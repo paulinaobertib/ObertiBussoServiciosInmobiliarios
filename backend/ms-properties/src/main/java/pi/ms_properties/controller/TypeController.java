@@ -30,12 +30,12 @@ public class TypeController {
         return typeService.deleteType(id);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/getAll")
     public ResponseEntity<List<Type>> getAll() {
         return typeService.getAll();
     }
 
-    @GetMapping("/id/{id}")
+    @GetMapping("/getById/{id}")
     public ResponseEntity<Type> getById(@PathVariable Long id) {
         return typeService.getById(id);
     }

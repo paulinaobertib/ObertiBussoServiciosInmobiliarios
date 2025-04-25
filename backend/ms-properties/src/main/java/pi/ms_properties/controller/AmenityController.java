@@ -30,7 +30,7 @@ public class AmenityController {
         return amenityService.updateAmenity(amenity);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/getAll")
     public ResponseEntity<List<Amenity>> getAll() {
         return amenityService.getAll();
     }

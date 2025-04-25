@@ -51,14 +51,3 @@ public class OwnerController {
     }
 
 }
-
-/*
-List<UserDTO> filtered = users.stream()
-    .filter(user -> {
-        String lower = searchText.toLowerCase();
-        return (user.getName() != null && user.getName().toLowerCase().contains(lower)) ||
-               (user.getEmail() != null && user.getEmail().toLowerCase().contains(lower)) ||
-               (user.getPhone() != null && user.getPhone().toLowerCase().contains(lower));
-    })
-    .toList();
- */
