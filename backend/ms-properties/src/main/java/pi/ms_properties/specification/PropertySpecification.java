@@ -123,4 +123,18 @@ public class PropertySpecification {
             return criteriaBuilder.like(criteriaBuilder.lower(join.get("type")), "%" + neighborhoodType.toUpperCase() + "%");
         };
     }
+
+    public static Specification<Property> textSearch(String value) {
+        return (root, query, builder) -> {
+            if (value == null || value.isBlank()) {
+                return null;
+            }
+
+            String likePattern = "%" + value.toLowerCase() + "%";
+
+            return builder.or(
+                    builder.like(builder.lower(root.get("title")), likePattern)
+            );
+        };
+    }
 }

@@ -295,4 +295,17 @@ public class PropertyService implements IPropertyService {
         }
     }
 
+    @Override
+    public ResponseEntity<List<PropertyDTO>> findByTitle(String title) {
+        try {
+            Specification<Property> specification = PropertySpecification.textSearch(title);
+            List<Property> properties = propertyRepository.findAll(specification);
+            List<PropertyDTO> propertyDTOS = properties.stream()
+                    .map(this::toDTO)
+                    .toList();
+            return ResponseEntity.ok(propertyDTOS);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

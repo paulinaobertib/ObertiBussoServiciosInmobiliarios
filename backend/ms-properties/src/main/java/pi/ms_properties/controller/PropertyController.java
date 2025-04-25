@@ -70,4 +70,9 @@ public class PropertyController {
     public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") float priceFrom, @RequestParam(defaultValue = "0") float priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(defaultValue = "") String type, @RequestParam(defaultValue = "") List<String> amenities, @RequestParam(defaultValue = "") String city, @RequestParam(defaultValue = "") String neighborhood, @RequestParam(defaultValue = "") String neighborhoodType) {
         return propertyService.findBy(priceFrom, priceTo, areaFrom, areaTo, rooms, operation, type, amenities, city, neighborhood, neighborhoodType);
     }
+
+    @GetMapping("/title")
+    public ResponseEntity<List<PropertyDTO>> searchByTitle(@RequestParam String title) {
+        return propertyService.findByTitle(title);
+    }
 }
