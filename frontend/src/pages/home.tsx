@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import SpeedDialTooltipOpen from '../components/selectActions';
 import Navbar from '../components/navbar';
+import PropertyCatalog from '../components/propertyCatalog';
 
 function Home() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ function Home() {
       <Navbar />
       <Box sx={{ height: '100%', position: 'relative', padding: 2 }}>
         <SpeedDialTooltipOpen onAction={handleAction} />
+        <PropertyCatalog />
       </Box>
     </>
   );
