@@ -23,7 +23,7 @@ export default function SpeedDialTooltipOpen({ onAction }: SpeedDialTooltipOpenP
   const handleClose = () => setOpen(false);
 
   return (
-    <Box sx={{ position: 'fixed', bottom: 24, right: 24 }}>
+    <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1500 }}>
 
       <SpeedDial
         ariaLabel="SpeedDial tooltip"
@@ -38,7 +38,6 @@ export default function SpeedDialTooltipOpen({ onAction }: SpeedDialTooltipOpenP
             key={action.name}
             icon={action.icon}
             tooltipTitle={action.name}
-            // tooltipOpen
             onClick={() => {
               handleClose();
               onAction(action.action);
