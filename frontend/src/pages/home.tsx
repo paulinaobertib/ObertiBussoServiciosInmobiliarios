@@ -3,6 +3,8 @@ import { Box } from '@mui/material';
 import SpeedDialTooltipOpen from '../components/selectActions';
 import Navbar from '../components/navbar';
 import PropertyCatalog from '../components/propertyCatalog';
+import ImageCarousel from '../components/imageCarousel';
+
 
 function Home() {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ function Home() {
       <Navbar />
       <Box sx={{ height: '100%', position: 'relative', padding: 2 }}>
         <SpeedDialTooltipOpen onAction={handleAction} />
+        <ImageCarousel />
         <PropertyCatalog />
       </Box>
     </>
