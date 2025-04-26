@@ -1,6 +1,5 @@
 
-// import LayoutProps from '../components/layoutNewEditProperty'
-import LayoutProps from '../components/layout'
+import LayoutProps from '../components/LayoutCRUD'
 
 
 const CreateProperty = () => {
