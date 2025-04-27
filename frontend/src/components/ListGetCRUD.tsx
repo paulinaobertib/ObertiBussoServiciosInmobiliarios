@@ -46,11 +46,11 @@ const ListGetCRUD = () => {
             {loading ? (
                 <Typography variant="body2">Cargando datos...</Typography>
             ) : adaptedData.length > 0 ? (
-                <List sx={{ maxHeight: '75%', overflowY: 'auto' }}>
+                <List sx={{ maxHeight: '70%', overflowY: 'auto' }}>
                     {adaptedData.map((selectedItem: any, index: number) => (
                         <ListItem key={index}>
                             <ListItemText
-                                primary={selectedCategory === 'barrio' ? `${selectedItem.name}, ${selectedItem.city || ''}` : selectedItem.name}
+                                primary={selectedCategory === 'neighborhood' ? `${selectedItem.name}, ${selectedItem.city || ''}` : selectedItem.name}
                             />
                             <IconButton onClick={() => handleOpenModal('Editar', selectedItem)}>
                                 <EditIcon />

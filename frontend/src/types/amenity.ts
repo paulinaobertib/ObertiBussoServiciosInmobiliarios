@@ -1,4 +1,4 @@
 export interface Amenity {
-  id: number;
+  id: null;
   name: string;
 }

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Owner } from "../types/owner"; // donde tengas tu interfaz Owner
+import { Owner } from "../types/owner";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
