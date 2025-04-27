@@ -19,7 +19,7 @@ const CreateProperty = () => {
             <ButtonGrid label="Cargar propietario" category="owner" />
             <ButtonGrid label="Cargar Servicios" category="amenity" />
             <ButtonGrid label="Cargar Tipo de Propiedad" category="type" />
-            <ButtonGrid label="Cargar Imagen" category="image" />
+            {/* <ButtonGrid label="Cargar Imagen" category="image" /> */}
           </Grid>
         </Box>
 

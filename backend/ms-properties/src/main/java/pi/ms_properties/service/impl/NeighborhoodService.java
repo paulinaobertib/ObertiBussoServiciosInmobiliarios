@@ -92,7 +92,7 @@ public class NeighborhoodService implements INeighborhoodService {
             }
 
             List<NeighborhoodDTO> neighborhoodDTOS = neighborhoods.stream()
-                    .map(neighborhood -> new NeighborhoodDTO(neighborhood.getName(), String.valueOf(neighborhood.getType()), neighborhood.getCity()))
+                    .map(neighborhood -> new NeighborhoodDTO(neighborhood.getId(), neighborhood.getName(), String.valueOf(neighborhood.getType()), neighborhood.getCity()))
                     .toList();
 
             return ResponseEntity.ok(neighborhoodDTOS);
