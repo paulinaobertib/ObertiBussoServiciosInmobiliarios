@@ -47,8 +47,8 @@ const ListGetCRUD = () => {
                 <Typography variant="body2">Cargando datos...</Typography>
             ) : adaptedData.length > 0 ? (
                 <List sx={{ maxHeight: '70%', overflowY: 'auto' }}>
-                    {adaptedData.map((selectedItem: any, index: number) => (
-                        <ListItem key={index}>
+                    {adaptedData.map((selectedItem: any) => (
+                        <ListItem key={selectedItem.id}>
                             <ListItemText
                                 primary={selectedCategory === 'neighborhood' ? `${selectedItem.name}, ${selectedItem.city || ''}` : selectedItem.name}
                             />

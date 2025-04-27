@@ -1,8 +1,8 @@
 export interface Neighborhood {
-  id: number;
+  id: null;
   name: string;
-  type: NeighborhoodType;
   city: string;
+  type: NeighborhoodType;
 }
 
 export enum NeighborhoodType {
