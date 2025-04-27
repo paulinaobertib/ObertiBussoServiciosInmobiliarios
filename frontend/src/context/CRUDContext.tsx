@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { getAllOwners } from '../services/ownerService';
 import { getAllAmenities } from '../services/amenityService';
-import { getAllPropertyTypes } from '../services/typeService';
+import { getAllTypes } from '../services/typeService';
 import { getAllNeighborhood } from '../services/neighborhoodService';
 
 interface CRUDContextProps {
@@ -43,7 +43,7 @@ export const CRUDProvider = ({ children }: { children: React.ReactNode }) => {
             case 'amenity':
                 return await getAllAmenities();
             case 'type':
-                return await getAllPropertyTypes();
+                return await getAllTypes();
             default:
                 return null;
         }

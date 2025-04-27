@@ -20,7 +20,7 @@ const ButtonGrid = ({ label, category }: ButtonGridProps) => {
                 variant="outlined"
                 onClick={handleClick}
                 sx={{
-                    maxWidth: '7rem',
+                    maxWidth: '7.5rem',
                     aspectRatio: '1.3',
                     borderRadius: 4,
                     borderWidth: 2,
