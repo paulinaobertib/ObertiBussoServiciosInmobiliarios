@@ -24,7 +24,7 @@ const CreateProperty = () => {
         </Box>
 
         {/* Lista de datos */}
-        <Box sx={{ height: '50%', border: '1px solid black', p: 2 }}>
+        <Box sx={{ height: '50%', border: '1px solid black', p: 2, maxHeight: '50%', overflowY: 'auto' }}>
           {selectedCategory && <ListGetCRUD />}
         </Box>
       </Box>
@@ -34,7 +34,7 @@ const CreateProperty = () => {
         {/* ACÁ después pondremos la creación de propiedad */}
       </Box>
 
-    </Box>
+    </Box >
   );
 };
 

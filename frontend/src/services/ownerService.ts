@@ -32,3 +32,25 @@ export const postOwner = async (ownerData: Owner) => {
     throw error;
   }
 };
+
+export const putOwner = async (ownerData: Owner) => {
+  try {
+    const response = await axios.put(`${apiUrl}/owner/update`, ownerData);
+    return response.data;
+  } catch (error) {
+    console.error("Error saving owner:", error);
+    throw error;
+  }
+};
+
+export const deleteOwner = async (ownerData: Owner) => {
+  try {
+    const response = await axios.delete(
+      `${apiUrl}/owner/delete/${ownerData.id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting owner:", error);
+    throw error;
+  }
+};

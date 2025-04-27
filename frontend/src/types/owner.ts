@@ -5,5 +5,3 @@ export interface Owner {
   mail: string;
   phone: string;
 }
-
-// export type OwnerCreate = Omit<Owner, "id">;
