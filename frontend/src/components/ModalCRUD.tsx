@@ -1,11 +1,13 @@
 import { Dialog, DialogTitle, DialogContent } from '@mui/material';
 import OwnerForm from './OwnerForm';
 import AmenityForm from './AmenityForm';
-import { useCRUD } from '../context/CRUDContext'; // ⚡ Importamos el Context
+import TypeForm from './TypeForm';
+import { useCRUD } from '../context/CRUDContext';
 
 const formsMap: any = {
   owner: OwnerForm,
-  amenity: AmenityForm
+  amenity: AmenityForm,
+  type: TypeForm,
 };
 
 interface ModalCRUDProps {
