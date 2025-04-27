@@ -1,18 +1,18 @@
 import { Box, Button, TextField, Snackbar, Alert } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { deleteOwner, postOwner, putOwner } from '../services/ownerService';
+import { deleteAmenity, postAmenity, putAmenity } from '../services/amenityService';
 import { useCRUD } from '../context/CRUDContext';
 
-interface OwnerFormProps {
+interface AmenityFormProps {
     item: any;
     action: string | null;
     onClose: () => void;
 }
 
-const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
+const AmenityForm = ({ item, action, onClose }: AmenityFormProps) => {
     const { refreshData } = useCRUD();
-    const [formData, setFormData] = useState({ id: null, firstName: '', lastName: '', mail: '', phone: '' });
-    const [errors, setErrors] = useState({ firstName: false, lastName: false, mail: false, phone: false });
+    const [formData, setFormData] = useState({ id: null, name: '' });
+    const [errors, setErrors] = useState({ name: false });
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
     const [successSnackbarOpen, setSuccessSnackbarOpen] = useState(false);
 
@@ -20,10 +20,7 @@ const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
         if (action !== 'Agregar' && item) {
             setFormData({
                 id: item.id || null,
-                firstName: item.firstName || '',
-                lastName: item.lastName || '',
-                mail: item.mail || '',
-                phone: item.phone || '',
+                name: item.name || '',
             });
         }
     }, [item, action]);
@@ -40,10 +37,7 @@ const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
 
     const validateForm = () => {
         const newErrors = {
-            firstName: formData.firstName.trim() === '',
-            lastName: formData.lastName.trim() === '',
-            mail: formData.mail.trim() === '',
-            phone: formData.phone.trim() === '',
+            name: formData.name.trim() === '',
         };
         setErrors(newErrors);
         return Object.values(newErrors).some(error => error);
@@ -56,11 +50,11 @@ const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
         }
         try {
             if (action === 'Agregar') {
-                await postOwner(formData);
+                await postAmenity(formData);
             } else if (action === 'Editar' && formData.id !== null) {
-                await putOwner(formData);
+                await putAmenity(formData);
             } else if (action === 'Borrar' && formData.id !== null) {
-                await deleteOwner(formData);
+                await deleteAmenity(formData);
             }
 
             await refreshData();
@@ -68,7 +62,7 @@ const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
 
             onClose();
         } catch (error) {
-            console.error('Error processing owner:', error);
+            console.error('Error processing amenity:', error);
         }
     };
 
@@ -77,39 +71,12 @@ const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
             <Box display="flex" flexDirection="column" gap={2} mt={2}>
                 <Box display="flex" flexDirection="column" gap={2} mt={2}>
                     <TextField
-                        name="firstName"
+                        name="name"
                         label="Nombre"
-                        value={formData.firstName}
+                        value={formData.name}
                         onChange={handleChange}
-                        error={errors.firstName}
-                        helperText={errors.firstName ? 'Campo obligatorio' : ''}
-                        disabled={action === 'Borrar'}
-                    />
-                    <TextField
-                        name="lastName"
-                        label="Apellido"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        error={errors.lastName}
-                        helperText={errors.lastName ? 'Campo obligatorio' : ''}
-                        disabled={action === 'Borrar'}
-                    />
-                    <TextField
-                        name="mail"
-                        label="Mail"
-                        value={formData.mail}
-                        onChange={handleChange}
-                        error={errors.mail}
-                        helperText={errors.mail ? 'Campo obligatorio' : ''}
-                        disabled={action === 'Borrar'}
-                    />
-                    <TextField
-                        name="phone"
-                        label="Teléfono"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        error={errors.phone}
-                        helperText={errors.phone ? 'Campo obligatorio' : ''}
+                        error={errors.name}
+                        helperText={errors.name ? 'Campo obligatorio' : ''}
                         disabled={action === 'Borrar'}
                     />
                 </Box>
@@ -151,4 +118,4 @@ const OwnerForm = ({ item, action, onClose }: OwnerFormProps) => {
     );
 };
 
-export default OwnerForm;
+export default AmenityForm;

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { getAllOwners } from '../services/ownerService';
-import { getAllAmenities } from '../services/amenitieService';
+import { getAllAmenities } from '../services/amenityService';
 import { getAllPropertyTypes } from '../services/typeService';
 import { getAllNeighborhood } from '../services/neighborhoodService';
 
@@ -36,13 +36,13 @@ export const CRUDProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchData = async (category: string) => {
         switch (category) {
-            case 'propietario':
+            case 'owner':
                 return await getAllOwners();
-            case 'barrio':
+            case 'neighborhood':
                 return await getAllNeighborhood();
-            case 'servicio':
+            case 'amenity':
                 return await getAllAmenities();
-            case 'tipo de propiedad':
+            case 'type':
                 return await getAllPropertyTypes();
             default:
                 return null;
