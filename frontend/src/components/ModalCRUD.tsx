@@ -22,10 +22,10 @@ const ModalCRUD = ({ open, onClose, action, item }: ModalCRUDProps) => {
     <Dialog open={open} fullWidth maxWidth="sm" onClose={() => null}>
       <DialogTitle>{action} {selectedCategory}</DialogTitle>
       <DialogContent dividers>
-        {FormComponent ? (
+        {open && FormComponent ? (
           <FormComponent item={item} action={action} onClose={onClose} />
         ) : (
-          <div>No hay formulario para esta categoría</div>
+          null
         )}
       </DialogContent>
     </Dialog>

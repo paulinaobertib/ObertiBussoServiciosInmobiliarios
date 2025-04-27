@@ -37,7 +37,7 @@ const ListGetCRUD = () => {
                 <Button
                     variant="contained"
                     startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => handleOpenModal('add')}
+                    onClick={() => handleOpenModal('Agregar')}
                 >
                     Nuevo
                 </Button>
@@ -46,16 +46,16 @@ const ListGetCRUD = () => {
             {loading ? (
                 <Typography variant="body2">Cargando datos...</Typography>
             ) : adaptedData.length > 0 ? (
-                <List>
+                <List sx={{ maxHeight: '75%', overflowY: 'auto' }}>
                     {adaptedData.map((selectedItem: any, index: number) => (
                         <ListItem key={index}>
                             <ListItemText
                                 primary={selectedCategory === 'barrio' ? `${selectedItem.name}, ${selectedItem.city || ''}` : selectedItem.name}
                             />
-                            <IconButton onClick={() => handleOpenModal('edit', selectedItem)}>
+                            <IconButton onClick={() => handleOpenModal('Editar', selectedItem)}>
                                 <EditIcon />
                             </IconButton>
-                            <IconButton onClick={() => handleOpenModal('delete', selectedItem)}>
+                            <IconButton onClick={() => handleOpenModal('Borrar', selectedItem)}>
                                 <DeleteIcon />
                             </IconButton>
                         </ListItem>
