@@ -24,12 +24,9 @@ const Home: React.FC = () => {
     <Box sx={{ p: 2 }}>
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',       // 1 columna en pantallas pequeñas
-            sm: 'repeat(2, 1fr)',  // 2 columnas en pantallas medianas
-            md: 'repeat(3, 1fr)',  // 3 columnas en pantallas grandes
-          },
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
           gap: 3,
         }}
       >
@@ -37,6 +34,7 @@ const Home: React.FC = () => {
           <Card
             key={property.id}
             sx={{
+              width: 500, // Ancho fijo para que NO se achiquen
               height: 'auto',
               display: 'flex',
               flexDirection: 'column',
