@@ -38,14 +38,44 @@ function Home() {
           <SearchBar />
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, width: '100%', mt: -3 }}>
-          <Box sx={{ width: '270px', flexShrink: 0 }}>
-            <SearchFilters />
-          </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'center', md: 'flex-start' }, // ⬅️ centrado solo en mobile
+            justifyContent: { xs: 'center', md: 'flex-start' }, // ⬅️ centrado solo en mobile
+            gap: 1,
+            width: '100%',
+            mt: -3,
+          }}
+        >
+        <Box
+          sx={{
+            width: { xs: '100%', md: '270px' },
+            maxWidth: { xs: '400px', md: 'none' }, // ⬅️ maxWidth en mobile
+            flexShrink: 0,
+            display: { xs: 'flex', md: 'block' },
+            alignItems: { xs: 'center', md: 'flex-start' }, // ⬅️ aseguramos centro en mobile
+            justifyContent: { xs: 'center', md: 'flex-start' },
+          }}
+        >
+          <SearchFilters />
+        </Box>
 
-          <Box sx={{ flexGrow: 1, minWidth: 0, ml: 8 }}>
-            <PropertyCatalog />
-          </Box>
+        <Box
+          sx={{
+            flexGrow: 1,
+            minWidth: 0,
+            ml: { xs: 0, md: 8 },
+            width: { xs: '100%', md: 'auto' },
+            maxWidth: { xs: '400px', md: 'none' }, // ⬅️ agregado igual que en filtros
+            display: { xs: 'flex', md: 'block' },
+            alignItems: { xs: 'center', md: 'flex-start' }, // ⬅️ para que esté alineado igual
+            justifyContent: { xs: 'center', md: 'flex-start' },
+          }}
+        >
+          <PropertyCatalog />
+        </Box>
         </Box>
       </Box>
     </>
