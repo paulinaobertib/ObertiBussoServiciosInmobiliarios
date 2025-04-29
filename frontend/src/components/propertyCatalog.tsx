@@ -1,25 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Typography, Card, CardMedia, CardContent, Chip } from '@mui/material';
-import carrusel1 from '../assets/carrusel1.jpg';
-import carrusel2 from '../assets/carrusel2.jpg';
-import carrusel3 from '../assets/carrusel3.jpg';
-
-const properties = [
-  { id: 1, title: 'CASA', price: 325000, img: carrusel1, status: 'Disponible' },
-  { id: 2, title: 'CASA', price: 400000, img: carrusel2, status: 'Reservada' },
-  { id: 3, title: 'CABAÑA', price: 135000, img: carrusel3, status: 'Vendida' },
-  { id: 4, title: 'DÚPLEX AMPLIO', price: 250000, img: carrusel1, status: 'Alquilada' },
-  { id: 5, title: 'TERRENO', price: 430000, img: carrusel2, status: 'Disponible' },
-  { id: 6, title: 'DEPARTAMENTO', price: 250000, img: carrusel3, status: 'Reservada' },
-  { id: 7, title: 'GALPÓN INDUSTRIAL', price: 155000, img: carrusel1, status: 'Disponible' },
-  { id: 8, title: 'OFICINA', price: 44000, img: carrusel2, status: 'Vendida' },
-  { id: 9, title: 'LOFT MODERNO', price: 275000, img: carrusel3, status: 'Disponible' },
-  { id: 10, title: 'PH CON PATIO', price: 310000, img: carrusel1, status: 'Reservada' },
-  { id: 11, title: 'CASA DE CAMPO', price: 195000, img: carrusel2, status: 'Alquilada' },
-  { id: 12, title: 'LOCAL COMERCIAL', price: 225000, img: carrusel3, status: 'Disponible' },
-];
+import { getAllProperties } from '../services/propertyService';
 
 const Home: React.FC = () => {
+  const [properties, setProperties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await getAllProperties();
+        if (Array.isArray(response.data)) {
+          setProperties(response.data);
+        } else {
+          console.error('La respuesta no es un array:', response.data);
+          setProperties([]);
+        }
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+        setProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
+
+  if (!loading && properties.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+        <Typography variant="h5" color="text.secondary">
+          No se encontraron propiedades.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 2 }}>
       <Box
@@ -34,7 +51,7 @@ const Home: React.FC = () => {
           <Card
             key={property.id}
             sx={{
-              width: 500, // Ancho fijo para que NO se achiquen
+              width: 500,
               height: 'auto',
               display: 'flex',
               flexDirection: 'column',
@@ -53,12 +70,12 @@ const Home: React.FC = () => {
               <CardMedia
                 component="img"
                 height="250"
-                image={property.img}
-                alt={property.title}
+                image={property.mainImage || '/default-image.jpg'}
+                alt={property.title || 'Propiedad'}
                 sx={{ borderTopLeftRadius: 8, borderTopRightRadius: 8 }}
               />
               <Chip
-                label={property.status}
+                label={property.status || 'Sin Estado'}
                 color="default"
                 size="medium"
                 sx={{
@@ -86,10 +103,10 @@ const Home: React.FC = () => {
               }}
             >
               <Typography variant="h5" fontWeight={600}>
-                {property.title}
+                {property.title || 'Propiedad'}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                ${property.price.toLocaleString()} USD
+                ${property.price ? property.price.toLocaleString() : '0'} USD
               </Typography>
             </CardContent>
           </Card>

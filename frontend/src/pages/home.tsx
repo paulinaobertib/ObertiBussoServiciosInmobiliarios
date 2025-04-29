@@ -42,8 +42,8 @@ function Home() {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'center', md: 'flex-start' }, // ⬅️ centrado solo en mobile
-            justifyContent: { xs: 'center', md: 'flex-start' }, // ⬅️ centrado solo en mobile
+            alignItems: { xs: 'center', md: 'flex-start' },
+            justifyContent: { xs: 'center', md: 'flex-start' },
             gap: 1,
             width: '100%',
             mt: -3,
@@ -52,10 +52,10 @@ function Home() {
         <Box
           sx={{
             width: { xs: '100%', md: '270px' },
-            maxWidth: { xs: '400px', md: 'none' }, // ⬅️ maxWidth en mobile
+            maxWidth: { xs: '400px', md: 'none' },
             flexShrink: 0,
             display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' }, // ⬅️ aseguramos centro en mobile
+            alignItems: { xs: 'center', md: 'flex-start' }, 
             justifyContent: { xs: 'center', md: 'flex-start' },
           }}
         >
@@ -68,9 +68,9 @@ function Home() {
             minWidth: 0,
             ml: { xs: 0, md: 8 },
             width: { xs: '100%', md: 'auto' },
-            maxWidth: { xs: '400px', md: 'none' }, // ⬅️ agregado igual que en filtros
+            maxWidth: { xs: '400px', md: 'none' }, 
             display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' }, // ⬅️ para que esté alineado igual
+            alignItems: { xs: 'center', md: 'flex-start' },
             justifyContent: { xs: 'center', md: 'flex-start' },
           }}
         >
