@@ -6,33 +6,56 @@ import { getAllNeighborhood } from '../services/neighborhoodService';
 
 interface CRUDContextProps {
     selectedCategory: string;
-    setSelectedCategory: (category: string) => void;
+    setSelectedCategoryName: (category: string) => void;
+    selectedCategories: {
+        owner: number | null;
+        neighborhood: number | null;
+        type: number | null;
+        amenities: number[] | null;  // Ahora almacenamos solo los ids de amenities
+    };
+    setSelectedCategoryItem: (category: string, item: any) => void;
     data: any[] | null;
     setData: (data: any[] | null) => void;
     loading: boolean;
     setLoading: (loading: boolean) => void;
     refreshData: () => Promise<void>;
-    selectedItem: any;
-    setSelectedItem: (item: any) => void;
 }
 
+// CONTEXTO
 export const CRUDContext = createContext<CRUDContextProps>({
     selectedCategory: '',
-    setSelectedCategory: () => { },
+    setSelectedCategoryName: () => { },
+    selectedCategories: {
+        owner: null,
+        neighborhood: null,
+        type: null,
+        amenities: null,
+    },
+    setSelectedCategoryItem: () => { },
     data: null,
     setData: () => { },
     loading: false,
     setLoading: () => { },
     refreshData: async () => { },
-    selectedItem: null,
-    setSelectedItem: () => { },
 });
 
 export const CRUDProvider = ({ children }: { children: React.ReactNode }) => {
     const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+    const [selectedCategories, setSelectedCategories] = useState<{
+        owner: any | null;
+        neighborhood: any | null;
+        type: any | null;
+        amenities: any[] | null;
+    }>({
+        owner: null,
+        neighborhood: null,
+        type: null,
+        amenities: null,
+    });
+
     const [data, setData] = useState<any[] | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [selectedItem, setSelectedItem] = useState<any>(null);
 
     const fetchData = async (category: string) => {
         switch (category) {
@@ -54,29 +77,58 @@ export const CRUDProvider = ({ children }: { children: React.ReactNode }) => {
             try {
                 setLoading(true);
                 const result = await fetchData(selectedCategory);
-                setData(result);
+                if (result && result.length > 0) {
+                    setData(result);
+                } else {
+                    setData(null);
+                }
             } catch (error) {
+                console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
+        } else {
+            console.warn('No selected category to fetch.');
         }
     };
 
     useEffect(() => {
-        if (selectedCategory) {
-            refreshData();
-        } else {
-            setData(null);
-        }
-    }, [selectedCategory]);
+        const intervalId = setInterval(() => {
+            if (!data && selectedCategory) {
+                refreshData();
+            }
+        }, 3000);
+
+        return () => clearInterval(intervalId);
+    }, [data, selectedCategory]);
+
+    const setSelectedCategoryItem = (category: string, item: any) => {
+        setSelectedCategories(prev => {
+            if (category === 'amenity') {
+                const amenitiesArray = prev.amenities ? [...prev.amenities] : [];
+    
+                const alreadyExists = amenitiesArray.some((amenity: any) => amenity.id === item.id);
+    
+                if (alreadyExists) {
+                    const updatedAmenities = amenitiesArray.filter((amenity: any) => amenity.id !== item.id);
+                    return { ...prev, amenities: updatedAmenities };
+                } else {
+                    const updatedAmenities = [...amenitiesArray, item.id];  // Aquí solo almacenamos el id
+                    return { ...prev, amenities: updatedAmenities };
+                }
+            } else {
+                return { ...prev, [category]: item.id };  // Aquí solo almacenamos el id
+            }
+        });
+    };
 
     const value: CRUDContextProps = {
         selectedCategory,
-        setSelectedCategory,
+        setSelectedCategoryName: setSelectedCategory,
+        selectedCategories,
+        setSelectedCategoryItem,
         data,
         setData,
-        selectedItem,
-        setSelectedItem,
         loading,
         setLoading,
         refreshData,
@@ -92,7 +144,7 @@ export const CRUDProvider = ({ children }: { children: React.ReactNode }) => {
 export const useCRUD = () => {
     const context = useContext(CRUDContext);
     if (!context) {
-        throw new Error();
+        throw new Error('useCRUD must be used within a CRUDProvider');
     }
     return context;
 };
