@@ -8,10 +8,10 @@ interface ButtonGridProps {
 }
 
 const ButtonGrid = ({ label, category }: ButtonGridProps) => {
-    const { setSelectedCategory } = useCRUD();
+    const { setSelectedCategoryName } = useCRUD();
 
     const handleClick = () => {
-        setSelectedCategory(category);
+        setSelectedCategoryName(category);
     };
 
     return (
@@ -20,14 +20,22 @@ const ButtonGrid = ({ label, category }: ButtonGridProps) => {
                 variant="outlined"
                 onClick={handleClick}
                 sx={{
-                    maxWidth: '7.5rem',
-                    aspectRatio: '1.3',
+                    maxWidth: '7rem',
+                    aspectRatio: '2',
                     borderRadius: 4,
                     borderWidth: 2,
                     padding: 1,
                 }}
             >
-                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                <Typography variant="body2"
+                    sx={{
+                        fontSize: { xs: '0.7rem', md: '0.7rem' },  // Tamaño de letra adaptativo
+                        textAlign: 'center',
+                        wordBreak: 'break-word',
+                        lineHeight: 1.2,
+                        fontWeight: 'bold'
+                    }}
+                >
                     {label}
                 </Typography>
             </Button>

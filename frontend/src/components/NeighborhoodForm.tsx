@@ -57,7 +57,7 @@ const NeighborhoodForm = ({ item, action, onClose }: NeighborhoodFormProps) => {
 
     const handleSubmit = async () => {
         if (action !== 'Borrar' && validateForm()) {
-            console.log("Formulario inválido, mostrando snackbar.");
+            // console.log("Formulario inválido, mostrando snackbar.");
             setErrorSnackbarOpen(true);
             return;
         }

@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PropertyDTO {
+    private Long id;
     private String title;
     private String street;
     private String number;
