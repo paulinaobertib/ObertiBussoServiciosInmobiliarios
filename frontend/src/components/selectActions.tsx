@@ -12,9 +12,9 @@ type SpeedDialTooltipOpenProps = {
 };
 
 const actions = [
-  { icon: <AddCircleOutlineIcon />, name: 'Agregar Propiedad', action: 'create' },
-  { icon: <EditIcon />, name: 'Editar Propiedad', action: 'edit'  },
-  { icon: <DeleteIcon />, name: 'Eliminar Propiedad', action: 'delete'  },
+  { icon: <AddCircleOutlineIcon fontSize="large" />, name: 'Agregar Propiedad', action: 'create' },
+  { icon: <EditIcon fontSize="large" />, name: 'Editar Propiedad', action: 'edit' },
+  { icon: <DeleteIcon fontSize="large" />, name: 'Eliminar Propiedad', action: 'delete' },
 ];
 
 export default function SpeedDialTooltipOpen({ onAction }: SpeedDialTooltipOpenProps) {
@@ -23,11 +23,21 @@ export default function SpeedDialTooltipOpen({ onAction }: SpeedDialTooltipOpenP
   const handleClose = () => setOpen(false);
 
   return (
-    <Box sx={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1500 }}>
-
+    <Box sx={{ position: 'fixed', bottom: 30, right: 24, zIndex: 1500 }}>
       <SpeedDial
         ariaLabel="SpeedDial tooltip"
-        sx={{ position: 'absolute', bottom: 16, right: 16 }}
+        sx={{
+          position: 'absolute',
+          bottom: 16,
+          right: 16,
+          '& .MuiFab-primary': {
+            width: 70,
+            height: 70,
+          },
+          '& .MuiSvgIcon-root': {
+            fontSize: 35,
+          },
+        }}
         icon={<SettingsIcon />}
         onClose={handleClose}
         onOpen={handleOpen}
@@ -44,8 +54,10 @@ export default function SpeedDialTooltipOpen({ onAction }: SpeedDialTooltipOpenP
             }}
             FabProps={{
               sx: {
+                width: 64,
+                height: 64,
                 bgcolor: 'primary.main',
-                color: 'white', 
+                color: 'white',
                 '&:hover': {
                   bgcolor: 'primary.dark',
                 },
