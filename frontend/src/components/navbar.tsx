@@ -25,14 +25,19 @@ function ResponsiveAppBar() {
 
   return (
     <AppBar position="static">
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
-
+      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2 }, overflowX: 'hidden' }}>
+        <Toolbar disableGutters sx={{ width: '100%', overflowX: 'hidden' }}>
           <Box
             component="img"
             src={logo}
             alt="Logo"
-            sx={{ display: { xs: 'none', md: 'flex' }, height: 40, mr: 2 }}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              height: 40,
+              maxWidth: '100%',
+              objectFit: 'contain',
+              mr: 2,
+            }}
           />
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -80,7 +85,13 @@ function ResponsiveAppBar() {
             component="img"
             src={logo}
             alt="Logo"
-            sx={{ display: { xs: 'flex', md: 'none' }, height: 40, mr: 2 }}
+            sx={{
+              display: { xs: 'flex', md: 'none' },
+              height: 40,
+              maxWidth: '100%',
+              objectFit: 'contain',
+              mr: 2,
+            }}
           />
 
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
@@ -102,13 +113,14 @@ function ResponsiveAppBar() {
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0, display: 'flex', gap: 2 }}>
+          <Box sx={{ flexGrow: 0, display: 'flex'}}>
             <Button
               color="inherit"
               sx={{
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.1)',
                 },
+                fontSize: { xs: '0.75rem', sm: '1rem' }, 
               }}
             >
               Mi Perfil
@@ -119,6 +131,7 @@ function ResponsiveAppBar() {
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.1)',
                 },
+                fontSize: { xs: '0.75rem', sm: '1rem' },
               }}
             >
               Cerrar sesión
