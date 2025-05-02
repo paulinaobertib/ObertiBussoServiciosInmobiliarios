@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Card,
-  CardMedia,
-  CardContent,
-  Chip,
-} from '@mui/material';
+import { Box, Typography, Card, CardMedia, CardContent, Chip } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 import { getAllProperties } from '../services/propertyService';
 
 const Home: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
+
+  const toggleSelection = (id: number) => {
+    setSelectedPropertyIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      } else if (prev.length < 2) {
+        return [...prev, id];
+      } else {
+        return [...prev.slice(1), id];
+      }
+    });
+  };
+
+  const isSelected = (id: number) => selectedPropertyIds.includes(id);
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         const response = await getAllProperties();
-        if (Array.isArray(response.data)) {
+        if (Array.isArray(response?.data)) {
           setProperties(response.data);
         } else if (Array.isArray(response)) {
           setProperties(response);
@@ -52,7 +61,7 @@ const Home: React.FC = () => {
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          justifyContent: 'flex-start',
+          justifyContent: 'center',
           gap: 3,
         }}
       >
@@ -63,11 +72,7 @@ const Home: React.FC = () => {
             <Card
               key={propertyId}
               sx={{
-                width: {
-                  xs: '100%',
-                  sm: 360,
-                  md: 500,
-                },
+                width: { xs: '100%', sm: 360, md: 500 },
                 height: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
@@ -125,6 +130,29 @@ const Home: React.FC = () => {
                   ${property.price ? property.price.toLocaleString() : '0'} USD
                 </Typography>
               </CardContent>
+
+              <Box
+                onClick={() => toggleSelection(propertyId)}
+                sx={{
+                  position: 'absolute',
+                  bottom: 10,
+                  left: 10,
+                  width: 28,
+                  height: 28,
+                  borderRadius: '4px',
+                  border: '2px solid #000',
+                  backgroundColor: isSelected(propertyId) ? '#e65100' : '#fff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  transition: 'background-color 0.3s',
+                }}
+              >
+                {isSelected(propertyId) && (
+                  <CheckIcon sx={{ color: '#fff', fontSize: 20 }} />
+                )}
+              </Box>
             </Card>
           );
         })}
