@@ -27,15 +27,19 @@ function Home() {
     }
   };
 
+
   return (
     <>
       <Navbar />
       <Box sx={{ height: '100%', position: 'relative', p: 2 }}>
         <SpeedDialTooltipOpen onAction={handleAction} />
+
         <ImageCarousel />
 
-        <Box sx={{ mt: 2, mb: 0 }}>
-          <SearchBar />
+        <Box sx={{ mt: 2, mb: 0, display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ flexGrow: 1 }}>
+            <SearchBar />
+          </Box>
         </Box>
 
         <Box
@@ -49,33 +53,34 @@ function Home() {
             mt: -3,
           }}
         >
-        <Box
-          sx={{
-            width: { xs: '100%', md: '270px' },
-            maxWidth: { xs: '400px', md: 'none' },
-            flexShrink: 0,
-            display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' }, 
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          <SearchFilters />
-        </Box>
+          <Box
+            sx={{
+              width: { xs: '100%', md: '10%' },
+              maxWidth: { xs: '400px', md: 'none' },
+              flexShrink: 0,
+              display: { xs: 'flex', md: 'block' },
+              alignItems: { xs: 'center', md: 'flex-start' },
+              justifyContent: { xs: 'center', md: 'flex-start' },
+            }}
+          >
+            <SearchFilters />
+          </Box>
 
-        <Box
-          sx={{
-            flexGrow: 1,
-            minWidth: 0,
-            ml: { xs: 0, md: 8 },
-            width: { xs: '100%', md: 'auto' },
-            maxWidth: { xs: '400px', md: 'none' }, 
-            display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' },
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          <PropertyCatalog />
-        </Box>
+          <Box
+            sx={{
+              flexGrow: 1,
+              minWidth: 0,
+              ml: { xs: 0, md: 8 },
+              width: { xs: '100%', md: 'auto' },
+              maxWidth: { xs: '400px', md: 'none' },
+              display: { xs: 'flex', md: 'block' },
+              alignItems: { xs: 'center', md: 'flex-start' },
+              justifyContent: { xs: 'center', md: 'flex-start' },
+              flexDirection: 'column',
+            }}
+          >
+            <PropertyCatalog />
+          </Box>
         </Box>
       </Box>
     </>
