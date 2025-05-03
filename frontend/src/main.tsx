@@ -1,15 +1,19 @@
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { BrowserRouter } from 'react-router-dom';
-import { CRUDProvider } from './context/CRUDContext';
 
+/**
+ *  main.tsx es el punto de entrada de Vite/React.  
+ *  Se limita a montar <App/> en #root.
+ *  Todo el ruteo, provider de catálogos y tema MUI ya
+ *  se inyectan dentro de App.tsx, así evitamos wrappers duplicados.
+ */
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
+
 root.render(
-  <CRUDProvider >
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </CRUDProvider >
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
