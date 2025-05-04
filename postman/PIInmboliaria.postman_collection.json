@@ -181,17 +181,17 @@
 										{
 											"key": "mainImage",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/pruebaoficial.jpeg"
+											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
 										},
 										{
 											"key": "images",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/pruebas.jpeg"
+											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
 										},
 										{
 											"key": "images",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/pruebas2.jpeg"
+											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
 										}
 									]
 								},
@@ -334,7 +334,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/getById/2",
+									"raw": "http://localhost:8083/property/getById/9",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -343,7 +343,7 @@
 									"path": [
 										"property",
 										"getById",
-										"2"
+										"9"
 									]
 								}
 							},
@@ -473,12 +473,12 @@
 							"response": []
 						},
 						{
-							"name": "title",
+							"name": "text",
 							"request": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/title?title=DEP",
+									"raw": "http://localhost:8083/property/text?value=dep",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -486,12 +486,12 @@
 									"port": "8083",
 									"path": [
 										"property",
-										"title"
+										"text"
 									],
 									"query": [
 										{
-											"key": "title",
-											"value": "DEP"
+											"key": "value",
+											"value": "dep"
 										}
 									]
 								}
@@ -508,8 +508,17 @@
 							"request": {
 								"method": "POST",
 								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Departamento\",\r\n  \"hasRooms\": true,\r\n  \"hasBathrooms\": true,\r\n  \"hasBedrooms\": false\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
 								"url": {
-									"raw": "http://localhost:8083/type/create?name=Departamento",
+									"raw": "http://localhost:8083/type/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -518,12 +527,6 @@
 									"path": [
 										"type",
 										"create"
-									],
-									"query": [
-										{
-											"key": "name",
-											"value": "Departamento"
-										}
 									]
 								}
 							},
@@ -536,7 +539,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"id\": 3,\r\n    \"name\": \"Departamento monoambiente\"\r\n}\r\n",
+									"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Departamento monoambiente\",\r\n    \"hasRooms\": true,\r\n    \"hasBathrooms\": true,\r\n    \"hasBedrooms\": false\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -585,7 +588,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/type/all",
+									"raw": "http://localhost:8083/type/getAll",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -593,7 +596,7 @@
 									"port": "8083",
 									"path": [
 										"type",
-										"all"
+										"getAll"
 									]
 								}
 							},
@@ -636,11 +639,11 @@
 										{
 											"key": "file",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/create.jpeg"
+											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
 										},
 										{
 											"key": "propertyId",
-											"value": "2",
+											"value": "7",
 											"type": "text"
 										}
 									]
@@ -687,7 +690,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/image/getByProperty/6",
+									"raw": "http://localhost:8083/image/getByProperty/8",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -696,7 +699,7 @@
 									"path": [
 										"image",
 										"getByProperty",
-										"6"
+										"8"
 									]
 								}
 							},
