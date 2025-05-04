@@ -5,10 +5,16 @@ import com.azure.storage.blob.BlobContainerClient;
 
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.models.BlobStorageException;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import com.azure.storage.common.sas.SasProtocol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Storage;
 import pi.ms_properties.service.interf.IAzureBlobStorage;
+
+import java.time.Duration;
+import java.time.OffsetDateTime;
 
 // hacemos el servicio de blob
 // el servicio de image se va a comunicar con este
@@ -18,6 +24,8 @@ import pi.ms_properties.service.interf.IAzureBlobStorage;
 public class AzureBlobStorage implements IAzureBlobStorage {
 
     private final BlobContainerClient blobContainerClient;
+
+    private static final String STORAGE_BASE_URL = "https://storageimages.blob.core.windows.net/images/";
 
     @Override
     public String create(Storage storage) {
@@ -52,5 +60,10 @@ public class AzureBlobStorage implements IAzureBlobStorage {
                 throw new RuntimeException("Error al eliminar el blob", e);
             }
         }
+    }
+
+    @Override
+    public String getImageUrl(String imageName) {
+        return STORAGE_BASE_URL + imageName;
     }
 }

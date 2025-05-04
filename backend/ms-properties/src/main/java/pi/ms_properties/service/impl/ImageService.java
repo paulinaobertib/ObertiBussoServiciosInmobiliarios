@@ -17,6 +17,7 @@ import pi.ms_properties.service.interf.IAzureBlobStorage;
 import pi.ms_properties.service.interf.IImageService;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -113,8 +114,16 @@ public class ImageService implements IImageService {
             }
 
             List<Image> images = imageRepository.findAllByPropertyId(propertyId);
+
+            for (Image image : images) {
+                String blobPath = image.getUrl();
+                String signedUrl = azureBlobStorage.getImageUrl(blobPath);
+                image.setUrl(signedUrl);
+            }
+
             return ResponseEntity.ok(images);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
