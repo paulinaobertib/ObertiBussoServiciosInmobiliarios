@@ -19,6 +19,7 @@ import pi.ms_properties.service.interf.IImageService;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,17 +33,25 @@ public class ImageService implements IImageService {
 
     private final BlobContainerClient blobContainerClient;
 
+    // como lo guardamos con un nombre random a la imagen, necesito que guarde la extension del archivo
+    private String getExtension(String filename) {
+        if (filename == null || !filename.contains(".")) {
+            return "";
+        }
+        return filename.substring(filename.lastIndexOf("."));
+    }
+
     // cuando edite una propiedad, si quiero cargar imagenes, hago un llamado aca
     @Override
     public String uploadImageToProperty(MultipartFile file, Long propertyId) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new RuntimeException("No se ha encontrado la propiedad"));
 
-        String path = file.getOriginalFilename();
+        String uniqueFileName = UUID.randomUUID() + getExtension(file.getOriginalFilename());
 
         try {
             Storage storage = new Storage();
-            storage.setPath(path);
+            storage.setPath(uniqueFileName);
             storage.setFileName(file.getOriginalFilename());
             storage.setInputStream(file.getInputStream());
             storage.setSize(file.getSize());
@@ -51,7 +60,7 @@ public class ImageService implements IImageService {
             String blobPath = azureBlobStorage.create(storage);
 
             Image image = new Image();
-            image.setUrl(blobPath);
+            image.setUrl(uniqueFileName);
             image.setProperty(property);
             imageRepository.save(image);
 
@@ -110,6 +119,3 @@ public class ImageService implements IImageService {
         }
     }
 }
-
-// falta el delete, getByPropertyId
-

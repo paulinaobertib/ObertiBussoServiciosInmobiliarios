@@ -62,7 +62,7 @@ public class PropertyService implements IPropertyService {
 
     private PropertyDTO toDTO(Property property) {
         PropertyDTO response = new PropertyDTO();
-
+        response.setId(property.getId());
         response.setTitle(property.getTitle());
         response.setStreet(property.getStreet());
         response.setNumber(property.getNumber());
