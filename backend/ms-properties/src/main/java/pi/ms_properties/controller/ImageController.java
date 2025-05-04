@@ -20,7 +20,7 @@ public class ImageController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("propertyId") Long propertyId) throws IOException {
-        imageService.uploadImageToProperty(file, propertyId);
+        imageService.uploadImageToProperty(file, propertyId, false);
         return ResponseEntity.status(HttpStatus.CREATED).body("Se ha creado la imagen correctamente ");
     }
 

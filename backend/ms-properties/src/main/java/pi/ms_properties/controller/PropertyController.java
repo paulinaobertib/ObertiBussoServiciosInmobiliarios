@@ -71,8 +71,8 @@ public class PropertyController {
         return propertyService.findBy(priceFrom, priceTo, areaFrom, areaTo, rooms, operation, type, amenities, city, neighborhood, neighborhoodType);
     }
 
-    @GetMapping("/title")
-    public ResponseEntity<List<PropertyDTO>> searchByTitle(@RequestParam String title) {
-        return propertyService.findByTitle(title);
+    @GetMapping("/text")
+    public ResponseEntity<List<PropertyDTO>> searchBy(@RequestParam String value) {
+        return propertyService.findByTitleDescription(value);
     }
 }

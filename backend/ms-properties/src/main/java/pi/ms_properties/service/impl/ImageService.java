@@ -44,7 +44,7 @@ public class ImageService implements IImageService {
 
     // cuando edite una propiedad, si quiero cargar imagenes, hago un llamado aca
     @Override
-    public String uploadImageToProperty(MultipartFile file, Long propertyId) {
+    public String uploadImageToProperty(MultipartFile file, Long propertyId, Boolean type) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new RuntimeException("No se ha encontrado la propiedad"));
 
@@ -60,10 +60,12 @@ public class ImageService implements IImageService {
 
             String blobPath = azureBlobStorage.create(storage);
 
-            Image image = new Image();
-            image.setUrl(uniqueFileName);
-            image.setProperty(property);
-            imageRepository.save(image);
+            if (!type) {
+                Image image = new Image();
+                image.setUrl(uniqueFileName);
+                image.setProperty(property);
+                imageRepository.save(image);
+            }
 
             return blobPath;
 
