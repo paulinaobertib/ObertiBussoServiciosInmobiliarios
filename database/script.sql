@@ -10,8 +10,11 @@ CREATE TABLE Owner (
 );
 
 CREATE TABLE Type (
-	id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255)
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255),
+    hasRooms BOOLEAN,
+    hasBathrooms BOOLEAN,
+    hasBedrooms BOOLEAN
 );
 
 CREATE TABLE Neighborhood (
