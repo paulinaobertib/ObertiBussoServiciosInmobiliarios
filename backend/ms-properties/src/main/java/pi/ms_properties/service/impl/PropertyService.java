@@ -15,6 +15,7 @@ import pi.ms_properties.repository.*;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +39,10 @@ public class PropertyService implements IPropertyService {
     private final ViewService viewService;
 
     private final ObjectMapper mapper;
+
     private final ImageService imageService;
+
+    private final AzureBlobStorage azureBlobStorage;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -85,7 +89,7 @@ public class PropertyService implements IPropertyService {
         response.setAmenities(amenityNames);
 
         List<String> imageUrls = property.getImages().stream()
-                .map(Image::getUrl)
+                .map(image -> azureBlobStorage.getImageUrl(image.getUrl()))
                 .collect(Collectors.toList());
         response.setImages(imageUrls);
 
