@@ -111,7 +111,7 @@ public class PropertyService implements IPropertyService {
 
             // para la imagen principal
             try {
-                String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId());
+                String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId(), true);
                 property.setMainImage(path);
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -121,7 +121,7 @@ public class PropertyService implements IPropertyService {
             List<MultipartFile> images = propertyDTO.getImages();
             if (images != null && !images.isEmpty()) {
                 for (MultipartFile image : images) {
-                    imageService.uploadImageToProperty(image, property.getId());
+                    imageService.uploadImageToProperty(image, property.getId(), false);
                 }
             }
             propertyRepository.save(property);
@@ -300,9 +300,9 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
-    public ResponseEntity<List<PropertyDTO>> findByTitle(String title) {
+    public ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value) {
         try {
-            Specification<Property> specification = PropertySpecification.textSearch(title);
+            Specification<Property> specification = PropertySpecification.textSearch(value);
             List<Property> properties = propertyRepository.findAll(specification);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)
