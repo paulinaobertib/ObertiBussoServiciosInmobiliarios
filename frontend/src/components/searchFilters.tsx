@@ -44,12 +44,12 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Box sx={{ px: 4, pt: 2, pb: 4 }}>
+    <Box sx={{ px: 4, pt: 0, pb: 4 }}>
       <Box
         sx={{
           width: '260px',
           position: 'sticky',
-          top: '20px',
+          top: '0px',
           backgroundColor: '#fff',
           p: 2,
           borderRadius: 2,
