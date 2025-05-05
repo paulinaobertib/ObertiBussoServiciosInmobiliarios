@@ -20,10 +20,20 @@ export default function SelectButtonFloating({
   };
 
   return (
-    <Box sx={{ position: 'fixed', bottom: 47, right: 45, zIndex: 1500 }}> 
+    <Box sx={{ position: 'fixed', bottom: 47, right: 45, zIndex: 1500 }}>
       <Tooltip
-        title={selectionMode ? 'Cancelar selección' : 'Habilitar selección'}
-        placement="left"
+        title={selectionMode ? 'Cancelar' : 'Seleccionar'}
+        placement="bottom"
+        PopperProps={{
+          modifiers: [
+            {
+              name: 'offset',
+              options: {
+                offset: [0, 22],
+              },
+            },
+          ],
+        }}
       >
         <span>
           <Fab
