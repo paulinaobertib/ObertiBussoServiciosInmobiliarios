@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+//import CompareArrowsIcon from '@mui/icons-material/CompareArrows'; y abajo va CompareArrowsIcon
+import CompareIcon from '@mui/icons-material/Compare';
 import Tooltip from '@mui/material/Tooltip';
 import { useNavigate } from 'react-router-dom';
 
@@ -45,7 +46,7 @@ export default function CompareButtonFloating({
               },
             }}
           >
-            <CompareArrowsIcon />
+            <CompareIcon /> 
           </Fab>
         </span>
       </Tooltip>
