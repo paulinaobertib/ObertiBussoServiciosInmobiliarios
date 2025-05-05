@@ -20,8 +20,8 @@ public class ImageController {
 
     @PostMapping("/upload")
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("propertyId") Long propertyId) throws IOException {
-        String path = imageService.uploadImageToProperty(file, propertyId);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha creado la imagen correctamente " + path);
+        imageService.uploadImageToProperty(file, propertyId, false);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha creado la imagen correctamente ");
     }
 
     @DeleteMapping("/delete/{id}")

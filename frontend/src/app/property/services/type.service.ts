@@ -25,9 +25,9 @@ export const getTypeById = async (id: number) => {
 
 export const postType = async (typeData: TypeCreate) => {
   try {
-    const response = await axios.post(`${apiUrl}/type/create`, null, {
-      params: {
-        name: typeData.name,
+    const response = await axios.post(`${apiUrl}/type/create`, typeData, {
+      headers: {
+        "Content-Type": "application/json",
       },
     });
     return response.data;

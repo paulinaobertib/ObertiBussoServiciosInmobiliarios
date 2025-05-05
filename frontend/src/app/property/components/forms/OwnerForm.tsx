@@ -23,7 +23,7 @@ export default function OwnerForm({ action, item, onDone }: Props) {
         phone: item?.phone ?? '',
     });
 
-    const set = (k: keyof Owner) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    const set = (k: keyof typeof form) => (e: any) =>
         setForm((f) => ({ ...f, [k]: e.target.value }));
 
     const invalid =
@@ -36,11 +36,11 @@ export default function OwnerForm({ action, item, onDone }: Props) {
                 await postOwner({ ...form } as OwnerCreate);
                 showAlert('Propietario creado con éxito!', 'success');
             }
-            if (action === 'edit') {
+            if (action === 'edit' && item) {
                 await putOwner(form);
                 showAlert('Propietario editado con éxito!', 'success');
             }
-            if (action === 'delete') {
+            if (action === 'delete' && item) {
                 await deleteOwner(form);
                 showAlert('Propietario eliminado con éxito!', 'success');
             }

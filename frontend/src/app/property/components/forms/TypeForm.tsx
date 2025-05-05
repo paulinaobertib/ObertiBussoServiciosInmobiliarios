@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextField, Box, Button, FormControlLabel, Checkbox } from '@mui/material';
+import { TextField, Box, Button, FormControlLabel, Checkbox, Grid } from '@mui/material';
 import { Type, TypeCreate } from '../../types/type';
 import { postType, putType, deleteType } from '../../services/type.service';
 import { usePropertyCrud } from '../../context/PropertyCrudContext';
@@ -12,31 +12,45 @@ interface Props {
 }
 
 export default function TypeForm({ action, item, onDone }: Props) {
-    const { refresh } = usePropertyCrud();
-    const [name, setName] = useState(item?.name ?? '');
+    const { refresh, refreshTypes } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
-    const invalid = action !== 'delete' && name.trim() === '';
+    const [form, setForm] = useState<Type>({
+        id: item?.id ?? 0,
+        name: item?.name ?? '',
+        hasRooms: item?.hasRooms ?? false,
+        hasBathrooms: item?.hasBathrooms ?? false,
+        hasBedrooms: item?.hasBedrooms ?? false,
+    });
 
-    const [hasBedrooms, setHasBedrooms] = useState(true);
-    const [hasBathrooms, setHasBathrooms] = useState(true);
-    const [hasRooms, setHasRooms] = useState(true);
+    const set = (k: keyof typeof form) => (e: any) =>
+        setForm((f) => ({ ...f, [k]: e.target.value }));
+
+    const setBoolean = (key: keyof Type) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        setForm((prev) => ({ ...prev, [key]: event.target.checked }));
+    };
+
+    const invalid =
+        action !== 'delete' &&
+        Object.values(form).some((v) => typeof v === 'string' && v.trim() === '');
 
     const save = async () => {
         try {
             if (action === 'add') {
-                await postType({ name } as TypeCreate);
+                await postType({ ...form } as TypeCreate);
                 showAlert('Tipo de propiedad creado con éxito!', 'success');
             }
             if (action === 'edit' && item) {
-                await putType({ ...item, name });
+                await putType(form);
                 showAlert('Tipo de propiedad editado con éxito!', 'success');
             }
             if (action === 'delete' && item) {
-                await deleteType(item);
+                await deleteType(form);
                 showAlert('Tipo de propiedad eliminado con éxito!', 'success');
             }
+
             await refresh();
+            await refreshTypes();
             onDone();
 
         } catch {
@@ -46,27 +60,46 @@ export default function TypeForm({ action, item, onDone }: Props) {
 
     return (
         <>
-            <TextField
-                fullWidth
-                label="Nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={action === 'delete'}
-                sx={{ mb: 2 }}
-            />
+            <Grid size={6}>
+                <TextField
+                    fullWidth
+                    label="Nombre"
+                    value={form.name}
+                    onChange={set('name')}
+                    disabled={action === 'delete'}
+                    sx={{ mb: 2 }}
+                />
+            </Grid>
+
 
             <FormControlLabel
-                control={<Checkbox checked={hasRooms} onChange={(e) => setHasRooms(e.target.checked)} />}
+                control={
+                    <Checkbox
+                        checked={form.hasRooms}
+                        onChange={setBoolean('hasRooms')}
+                    />
+                }
                 label="Ambientes"
                 disabled={action === 'delete'}
             />
             <FormControlLabel
-                control={<Checkbox checked={hasBedrooms} onChange={(e) => setHasBedrooms(e.target.checked)} />}
+                control={
+                    <Checkbox
+                        checked={form.hasBedrooms}
+                        onChange={setBoolean('hasBedrooms')}
+                    />
+                }
                 label="Dormitorios"
                 disabled={action === 'delete'}
             />
+
             <FormControlLabel
-                control={<Checkbox checked={hasBathrooms} onChange={(e) => setHasBathrooms(e.target.checked)} />}
+                control={
+                    <Checkbox
+                        checked={form.hasBathrooms}
+                        onChange={setBoolean('hasBathrooms')}
+                    />
+                }
                 label="Baños"
                 disabled={action === 'delete'}
             />

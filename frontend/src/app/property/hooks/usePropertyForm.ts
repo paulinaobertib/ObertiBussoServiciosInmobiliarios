@@ -26,7 +26,7 @@ export const empty: PropertyCreate = {
 
 export function usePropertyForm() {
   const [form, setForm] = useState<PropertyCreate>(empty);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -38,30 +38,23 @@ export function usePropertyForm() {
     setForm((f) => ({ ...f, [k]: v }));
   };
 
-  const cleanForm = {
-    ...form,
-    rooms: form.rooms === "S/N" ? 0 : Number(form.rooms),
-    bathrooms: form.bathrooms === "S/N" ? 0 : Number(form.bathrooms),
-    bedrooms: form.bedrooms === "S/N" ? 0 : Number(form.bedrooms),
-  };
-
   const reset = () => {
     setForm(empty);
   };
 
   const submit = async (): Promise<boolean> => {
     if (!validate()) return false;
-    setLoading(true);
+    // setLoading(true);
 
     try {
-      await postProperty(cleanForm);
+      await postProperty(form);
       setSuccess(true);
       reset();
       return true;
     } catch {
       return false;
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -71,12 +64,9 @@ export function usePropertyForm() {
     if (!form.title) errors.title = "Campo obligatorio";
     if (!form.street) errors.street = "Campo obligatorio";
     if (!form.number) errors.number = "Campo obligatorio";
-    if (form.rooms !== "S/N" && Number(form.rooms) < 0)
-      errors.rooms = "Debe ser mayor a 0";
-    if (form.bathrooms !== "S/N" && Number(form.bathrooms) < 0)
-      errors.bathrooms = "Debe ser mayor a 0";
-    if (form.bedrooms !== "S/N" && Number(form.bedrooms) < 0)
-      errors.bedrooms = "Debe ser mayor a 0";
+    if (form.rooms < 0) errors.rooms = "Debe ser mayor a 0";
+    if (form.bathrooms < 0) errors.bathrooms = "Debe ser mayor a 0";
+    if (form.bedrooms < 0) errors.bedrooms = "Debe ser mayor a 0";
     if (form.area <= 0) errors.area = "Debe ser mayor a 0";
     if (form.price <= 0) errors.price = "Debe ser mayor a 0";
     if (!form.description) errors.description = "Campo obligatorio";
@@ -98,7 +88,7 @@ export function usePropertyForm() {
     setField,
     submit,
     reset,
-    loading,
+    // loading,
     success,
     fieldErrors,
   };

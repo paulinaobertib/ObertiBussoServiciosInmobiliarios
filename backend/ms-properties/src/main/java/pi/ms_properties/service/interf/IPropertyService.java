@@ -29,5 +29,5 @@ public interface IPropertyService {
 
     ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType);
 
-    ResponseEntity<List<PropertyDTO>> findByTitle(String title);
+    ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value);
 }

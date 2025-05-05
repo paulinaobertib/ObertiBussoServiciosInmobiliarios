@@ -27,7 +27,7 @@ export default function ImageUploader({ label, multiple = false, sx, append = fa
                 border: '1px dashed',
                 borderColor: 'grey.500',
                 borderRadius: 1,
-                p: 2,
+                p: 3,
                 cursor: 'pointer',
                 maxHeight: { xs: '50%', md: '50%' },
                 ...sx,
