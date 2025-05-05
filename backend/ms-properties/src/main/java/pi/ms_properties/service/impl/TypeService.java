@@ -18,16 +18,12 @@ public class TypeService implements ITypeService {
     public final TypeRepository typeRepository;
 
     @Override
-    public ResponseEntity<String> createType(String name) {
+    public ResponseEntity<String> createType(Type type) {
         try {
-            if (name == null || name.isBlank()) {
+            if (type.getName() == null || type.getName().isBlank()) {
                 return ResponseEntity.badRequest().body("El nombre no puede estar vacio");
             }
-
-            Type type = new Type();
-            type.setName(name);
             typeRepository.save(type);
-
             return ResponseEntity.ok("Se ha guardado el tipo de propiedad");
         } catch (Exception e) {
             return ResponseEntity

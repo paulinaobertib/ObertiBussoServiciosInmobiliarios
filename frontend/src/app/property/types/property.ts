@@ -9,9 +9,9 @@ export interface Property {
   operation: string;
   currency: string;
 
-  rooms: number | string;
-  bathrooms: number | string;
-  bedrooms: number | string;
+  rooms: number;
+  bathrooms: number;
+  bedrooms: number;
   area: number;
   price: number;
 

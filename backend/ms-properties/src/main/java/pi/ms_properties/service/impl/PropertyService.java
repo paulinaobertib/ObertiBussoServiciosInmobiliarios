@@ -15,6 +15,7 @@ import pi.ms_properties.repository.*;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +39,10 @@ public class PropertyService implements IPropertyService {
     private final ViewService viewService;
 
     private final ObjectMapper mapper;
+
     private final ImageService imageService;
+
+    private final AzureBlobStorage azureBlobStorage;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -85,7 +89,7 @@ public class PropertyService implements IPropertyService {
         response.setAmenities(amenityNames);
 
         List<String> imageUrls = property.getImages().stream()
-                .map(Image::getUrl)
+                .map(image -> azureBlobStorage.getImageUrl(image.getUrl()))
                 .collect(Collectors.toList());
         response.setImages(imageUrls);
 
@@ -107,7 +111,7 @@ public class PropertyService implements IPropertyService {
 
             // para la imagen principal
             try {
-                String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId());
+                String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId(), true);
                 property.setMainImage(path);
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -117,7 +121,7 @@ public class PropertyService implements IPropertyService {
             List<MultipartFile> images = propertyDTO.getImages();
             if (images != null && !images.isEmpty()) {
                 for (MultipartFile image : images) {
-                    imageService.uploadImageToProperty(image, property.getId());
+                    imageService.uploadImageToProperty(image, property.getId(), false);
                 }
             }
             propertyRepository.save(property);
@@ -296,9 +300,9 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
-    public ResponseEntity<List<PropertyDTO>> findByTitle(String title) {
+    public ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value) {
         try {
-            Specification<Property> specification = PropertySpecification.textSearch(title);
+            Specification<Property> specification = PropertySpecification.textSearch(value);
             List<Property> properties = propertyRepository.findAll(specification);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)

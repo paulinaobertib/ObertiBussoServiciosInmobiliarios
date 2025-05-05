@@ -13,21 +13,21 @@ interface Props {
 
 export default function NeighborhoodForm({ action, item, onDone }: Props) {
     const { refresh } = usePropertyCrud();
+    const { showAlert } = useGlobalAlert();
 
-    const [form, setForm] = useState<Omit<Neighborhood, 'id'>>({
+    const [form, setForm] = useState<Neighborhood>({
+        id: item?.id ?? 0,
         name: item?.name ?? '',
         city: item?.city ?? '',
-        type: item?.type ?? NeighborhoodType.ABIERTO,
+        type: item?.type ?? '',
     });
-    const { showAlert } = useGlobalAlert();
 
     const set = (k: keyof typeof form) => (e: any) =>
         setForm((f) => ({ ...f, [k]: e.target.value }));
 
     const invalid =
         action !== 'delete' &&
-        (form.name.trim() === '' || form.city.trim() === '' || !form.type);
-
+        Object.values(form).some((v) => typeof v === 'string' && v.trim() === '');
 
     const save = async () => {
         try {
@@ -36,7 +36,7 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
                 showAlert('¡Barrio creado con éxito!', 'success');
             }
             if (action === 'edit' && item) {
-                await putNeighborhood({ ...item, ...form });
+                await putNeighborhood(form);
                 showAlert('¡Barrio editado con éxito!', 'success');
             }
             if (action === 'delete' && item) {
@@ -55,7 +55,9 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
         <>
 
             <Grid container spacing={2} mb={2} >
-                <Grid size={6}><TextField disabled={action === 'delete'} fullWidth label="Nombre" value={form.name} onChange={set('name')} /></Grid>
+                <Grid size={6}>
+                    <TextField disabled={action === 'delete'} fullWidth label="Nombre" value={form.name} onChange={set('name')} />
+                </Grid>
                 <Grid size={6}><TextField disabled={action === 'delete'} fullWidth label="Ciudad" value={form.city} onChange={set('city')} /></Grid>
                 <Grid size={12}>
                     <FormControl fullWidth
@@ -63,7 +65,7 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
                         <InputLabel>Tipo</InputLabel>
                         <Select disabled={action === 'delete'} value={form.type} label="Tipo" onChange={set('type')}>
                             <MenuItem value={NeighborhoodType.CERRADO}>Cerrado</MenuItem>
-                            <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi‑cerrado</MenuItem>
+                            <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi cerrado</MenuItem>
                             <MenuItem value={NeighborhoodType.ABIERTO}>Abierto</MenuItem>
                         </Select>
                     </FormControl>

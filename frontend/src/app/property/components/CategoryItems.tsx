@@ -12,7 +12,7 @@ import { translate } from '../utils/translate';
 import ModalItem from './ModalItem';
 
 export default function CategoryItems() {
-    const { category, data, loading, selected, toggleSelect } = usePropertyCrud();
+    const { category, data, categoryLoading, selected, toggleSelect } = usePropertyCrud();
     const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; item?: any } | null>(null);
     if (!category) return null;
 
@@ -30,9 +30,9 @@ export default function CategoryItems() {
             </Box>
 
             {/* lista con scroll propio */}
-            {loading ? <CircularProgress /> : data && data.length ? (
+            {categoryLoading ? <CircularProgress /> : data && data.length ? (
                 <List disablePadding
-                    sx={{ minHeight: 0, maxHeight: '90%', overflowY: 'auto' }}>
+                    sx={{ minHeight: 0, maxHeight: '80%', overflowY: 'auto' }}>
                     {data.map((it: any) => (
                         <ListItem key={it.id}
                             onClick={() => toggleSelect(it.id)}

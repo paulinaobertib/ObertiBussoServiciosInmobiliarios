@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Container, Grid, Box, Typography, Button, useMediaQuery } from '@mui/material';
+import { Container, Grid, Box, Typography, Button, useMediaQuery, CircularProgress } from '@mui/material';
 import { usePropertyCrud } from '../../app/property/context/PropertyCrudContext';
 
 import CategoryButton from '../../app/property/components/CategoryButton';
@@ -14,13 +14,14 @@ export default function CreatePropertyPage() {
     const [gallery, setGallery] = useState<File[]>([]);
     const [main, setMain] = useState<File | null>(null);
     const { showAlert } = useGlobalAlert();
-
-    const { selected, allTypes, resetSelected } = usePropertyCrud();
+    const { selected, resetSelected, allTypes } = usePropertyCrud();
+    const [loading, setLoading] = useState(false);
 
     const formRef = useRef<PropertyFormHandle>(null);
 
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     const lowScreen = useMediaQuery('(max-height:800px)', { noSsr: true });
-
+    const lowScreenOnDesktop = !isMobile && lowScreen;
 
     /* ---------- callbacks imágenes ---------- */
     const handleImages = (m: File | null, g: File[]) => { setMain(m); setGallery(g); };
@@ -37,7 +38,9 @@ export default function CreatePropertyPage() {
     /* ---------- botonería confirm ----------- */
     const { ask, DialogUI } = useConfirmDialog();
     const save = () => ask('¿Guardar la propiedad?', async () => {
+        setLoading(true);
         const ok = await formRef.current?.submit();
+        setLoading(false);
         if (ok) {
             showAlert('¡Propiedad creada correctamente!', 'success');
             resetSelected();
@@ -57,28 +60,49 @@ export default function CreatePropertyPage() {
     });
 
     /* ---------- textos ---------- */
-    const selectedTypeName = allTypes.find(t => t.id === selected.type)?.name ?? '';
-    const title = selectedTypeName
-        ? `Formulario de ${selectedTypeName}`
-        : 'Formulario de Creación';
+    const selectedTypeName = allTypes.length && selected.type
+        ? allTypes.find(t => t.id === selected.type)?.name ?? ''
+        : ''; const title = selectedTypeName
+            ? `Formulario de Creación de ${selectedTypeName}`
+            : 'Formulario de Creación';
 
     return (
-        <Container maxWidth={false} sx={{ display: 'flex', height: { xs: 'auto', md: '95vh' }, overflow: 'hidden', p: 2, flexDirection: { xs: 'column', md: 'row' }, }}  >
-            <Grid container spacing={3} sx={{ height: '100%' }}>
 
+        <Container maxWidth={false} sx={{ display: 'flex', height: { xs: 'auto', md: '95vh' }, overflow: 'hidden', p: 1, flexDirection: { xs: 'column', md: 'row' }, }}  >
+
+            <Grid container spacing={2} sx={{
+                height: '100%', flex: 1
+            }}>
+
+                {loading && (
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            zIndex: 10,
+                            bgcolor: 'rgba(255,255,255,0.7)', // fondo opaco
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            pointerEvents: 'all', // bloquea interacción
+                        }}
+                    >
+                        <CircularProgress size={48} />
+                    </Box>
+                )}
                 {/* -------- PANEL IZQUIERDO -------- */}
-                <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', }}>
+                <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', height: '100%', }}>
 
-                    <Box sx={{ p: 2, mb: 2, borderRadius: 4, boxShadow: 5 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', p: 2, mb: 2, borderRadius: 4, boxShadow: 5 }}>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 3, textAlign: 'center' }}>
                             Gestión de Categorías
                         </Typography>
 
-                        <Grid container spacing={2} justifyContent="center">
-                            <Grid><CategoryButton category="neighborhood" label="Barrios" /></Grid>
-                            <Grid><CategoryButton category="owner" label="Propietarios" /></Grid>
-                            <Grid><CategoryButton category="amenity" label="Servicios" /></Grid>
-                            <Grid><CategoryButton category="type" label="Tipos" /></Grid>
+                        <Grid container spacing={3}>
+                            <Grid size={{ xs: 6 }} sx={{ display: "flex", justifyContent: "right" }}><CategoryButton category="type" label="Tipos" /></Grid>
+                            <Grid size={{ xs: 6 }} sx={{ display: "flex", justifyContent: "left" }}><CategoryButton category="neighborhood" label="Barrios" /></Grid>
+                            <Grid size={{ xs: 6 }} sx={{ display: "flex", justifyContent: "right" }}><CategoryButton category="owner" label="Propietarios" /></Grid>
+                            <Grid size={{ xs: 6 }} sx={{ display: "flex", justifyContent: "left" }}><CategoryButton category="amenity" label="Servicios" /></Grid>
                         </Grid>
                     </Box>
 
@@ -104,28 +128,57 @@ export default function CreatePropertyPage() {
 
                 {/* -------- PANEL DERECHO -------- */}
                 <Grid size={{ xs: 12, md: 8 }} sx={{
-                    display: 'flex', flexDirection: lowScreen ? 'row' : 'column', width: '100%', height: '100%', gap: 2
-                }}>
+                    display: 'flex', flexDirection: lowScreenOnDesktop ? 'row' : 'column', height: '100%', gap: 2,
 
+                }}
+                >
                     {/* formulario */}
-                    <Box sx={{
-                        display: 'flex', flexDirection: 'column', p: 2, borderRadius: 4, boxShadow: 5,
-                        flex: lowScreen ? '0 0 60%' : 'none', overflow: 'hidden', minHeight: 0
-                    }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
-                            {title}
-                        </Typography>
-                        <PropertyForm ref={formRef} onImageSelect={handleImages} />
-                    </Box>
-
-                    {/* Vista previa fuera del form, opcional */}
                     <Box
                         sx={{
-
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             p: 2,
                             borderRadius: 4,
                             boxShadow: 5,
-                            flexGrow: lowScreen ? 0 : 1,
+                            overflow: 'hidden',
+                            minHeight: 0,
+                            flexBasis: '60%',
+                            position: 'relative',
+                        }}
+                    >
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center'}}>
+                            {title}
+                        </Typography>
+
+                        {selected.type ? (
+                            <PropertyForm key={selected.type} ref={formRef} onImageSelect={handleImages} />
+                        ) : (
+                            <Box
+                                sx={{
+                                    flexGrow: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textAlign: 'center',
+                                }}
+                            >
+                                <Typography variant="body1" color="text.secondary">
+                                    Seleccioná un tipo de propiedad para comenzar.
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
+
+                    {/* Previsualización */}
+                    <Box
+                        sx={{
+                            maxWidth: '100%',
+                            p: 2,
+                            borderRadius: 4,
+                            boxShadow: 5,
+                            flexGrow: lowScreenOnDesktop ? 0 : 1,
                             overflow: 'hidden',
                             minHeight: 0,
                             display: 'flex',
@@ -144,13 +197,13 @@ export default function CreatePropertyPage() {
                             <PropertyPreview
                                 main={main}
                                 images={gallery}
-                                vertical={lowScreen}
+                                vertical={lowScreenOnDesktop}
                                 onDelete={deleteImg}
                             />
                         </Box>
                     </Box>
                 </Grid>
-            </Grid>
+            </Grid >
             {DialogUI}
         </Container >
     );

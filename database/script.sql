@@ -10,8 +10,11 @@ CREATE TABLE Owner (
 );
 
 CREATE TABLE Type (
-	id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255)
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255),
+    hasRooms BOOLEAN,
+    hasBathrooms BOOLEAN,
+    hasBedrooms BOOLEAN
 );
 
 CREATE TABLE Neighborhood (
@@ -42,7 +45,7 @@ CREATE TABLE Property (
     bedrooms INT NOT NULL,
     area DECIMAL(10,2) NOT NULL,
     price DECIMAL(15,2) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(2000),
     date DATETIME NOT NULL,
     main_image VARCHAR(255),
     FOREIGN KEY (owner_id) REFERENCES Owner(id), 
@@ -77,7 +80,7 @@ CREATE TABLE User (
     last_name VARCHAR(100) NOT NULL,
     username VARCHAR(100) UNIQUE NOT NULL,
     role ENUM('admin', 'user', 'client') NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
+    mail VARCHAR(150) UNIQUE NOT NULL,
     phone VARCHAR(20),
     password VARCHAR(255) NOT NULL
 );
@@ -102,7 +105,7 @@ CREATE TABLE Payment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     contract_id BIGINT NOT NULL,
     date DATETIME NOT NULL,
-    description TEXT,
+    description VARCHAR(2000),
     FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
@@ -110,7 +113,7 @@ CREATE TABLE Notification (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
     type VARCHAR(50) NOT NULL,
-    description TEXT NOT NULL,
+    description VARCHAR(1000) NOT NULL,
     date DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
 );
@@ -128,7 +131,7 @@ CREATE TABLE Maintenance (
     property_id BIGINT NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
+    description VARCHAR(2000) NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
@@ -147,7 +150,7 @@ CREATE TABLE News (
     user_id BIGINT NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
+    description VARCHAR(2000) NOT NULL,
     image VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES User(id)
 );
@@ -157,7 +160,7 @@ CREATE TABLE Inquiry (
     user_id BIGINT NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
+    description VARCHAR(2000) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User(id)
 );
 

@@ -1,8 +1,8 @@
 const labels = {
-  amenity: "Servicios",
-  owner: "Propietarios",
-  type: "Tipos",
-  neighborhood: "Barrios",
+  amenity: "Servicio",
+  owner: "Propietario",
+  type: "Tipo de Propiedad",
+  neighborhood: "Barrio",
 } as const;
 
 export type CategoryKey = keyof typeof labels;

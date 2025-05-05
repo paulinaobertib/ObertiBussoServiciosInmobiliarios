@@ -6,6 +6,7 @@ import { usePropertyCrud } from '../../context/PropertyCrudContext';
 import { useEffect } from 'react';
 import { useImageHandlers } from '../../hooks/useImageHandlers';
 import EditOffIcon from '@mui/icons-material/EditOff';
+import { useMemo } from 'react';
 
 interface Props {
     onImageSelect?: (main: File | null, gallery: File[]) => void;
@@ -20,9 +21,20 @@ export type PropertyFormHandle = {
 const PropertyForm = forwardRef<PropertyFormHandle, Props>(
     ({ onImageSelect }, ref) => {
 
-        const { handleMainImage, handleGalleryImages, deleteImage } = useImageHandlers();
-        const { selected } = usePropertyCrud();
         const { form, setField, submit, reset, fieldErrors } = usePropertyForm();
+        const { handleMainImage, handleGalleryImages, deleteImage } = useImageHandlers();
+        const { selected, allTypes } = usePropertyCrud();
+
+        const currentType = useMemo(
+            () => allTypes.find(t => t.id === selected.type),
+            [selected.type, allTypes]
+        );
+
+        const showRooms = currentType?.hasRooms ?? false;
+        const showBedrooms = currentType?.hasBedrooms ?? false;
+        const showBathrooms = currentType?.hasBathrooms ?? false;
+        const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(Boolean).length;
+        const colSize = visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
 
         useImperativeHandle(ref, () => ({
             submit,
@@ -30,18 +42,21 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             deleteImage: (f: File) => deleteImage(f, form, setField, onImageSelect)
         }));
 
-
         const num = (k: keyof typeof form) =>
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                setField(k as any, Number(e.target.value));
-
-        const handleOptionalNumber = (field: keyof typeof form) =>
             (e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = e.target.value;
-                if (/^\d*$/.test(value) || value === "S/N") {
-                    setField(field, value);
+                const val = e.target.value;
+
+                // Si el input está vacío, guardamos el valor como string vacío temporalmente
+                if (val === '') {
+                    setField(k, '' as any); // lo forzamos como string para que se vea vacío
+                } else {
+                    const parsed = parseInt(val, 10);
+                    if (!isNaN(parsed)) {
+                        setField(k, parsed as any);
+                    }
                 }
             };
+
         const handleMain = (f: File | null) => {
             handleMainImage(f, form, setField, onImageSelect);
         };
@@ -63,8 +78,15 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         }, [selected.type]);
 
         useEffect(() => {
+            if (!showRooms) setField('rooms', 0);
+            if (!showBedrooms) setField('bedrooms', 0);
+            if (!showBathrooms) setField('bathrooms', 0);
+        }, [showRooms, showBedrooms, showBathrooms]);
+
+        useEffect(() => {
             setField('amenitiesIds', selected.amenities);
         }, [selected.amenities]);
+
 
         return (
             <Box component="form" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}>
@@ -90,6 +112,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                         <TextField fullWidth label="Precio" value={form.price === 0 ? "" : form.price}
                             onChange={num('price')} required
                             error={!!fieldErrors.price}
+                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                         />
                     </Grid>
 
@@ -112,8 +135,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                             fullWidth
                             label="Número"
                             value={form.number}
-                            onChange={(e) => setField('number', e.target.value)}
-                            required
+                            onChange={(e) => setField('number', e.target.value)} required
                             error={!!fieldErrors.number}
                             InputProps={{
                                 endAdornment: (
@@ -132,72 +154,38 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                         />
                     </Grid>
 
-                    <Grid size={{ xs: 4 }}>
-                        <TextField fullWidth label="Ambientes" value={form.rooms === 0 ? "" : form.rooms}
-                            required
-                            error={!!fieldErrors.rooms}
+                    {showRooms && (
+                        <Grid size={{ xs: colSize }}>
+                            <TextField fullWidth label="Ambientes"
+                                value={form.rooms === 0 ? "" : form.rooms}
+                                error={!!fieldErrors.rooms}
+                                onChange={num('rooms')} required
+                            />
+                        </Grid>
+                    )}
 
-                            onChange={handleOptionalNumber('rooms')}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            edge="end"
-                                            size="small"
-                                            onClick={() => setField('rooms', 'S/N')}
-                                            title="Sin número"
-                                        >
-                                            <EditOffIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
 
-                    <Grid size={{ xs: 4 }}>
-                        <TextField fullWidth label="Dormitorios" value={form.bedrooms === 0 ? "" : form.bedrooms}
-                            required
-                            error={!!fieldErrors.bedrooms}
-                            onChange={handleOptionalNumber('bedrooms')}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            edge="end"
-                                            size="small"
-                                            onClick={() => setField('bedrooms', 'S/N')}
-                                            title="Sin número"
-                                        >
-                                            <EditOffIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
+                    {showBedrooms && (
+                        <Grid size={{ xs: colSize }}>
+                            <TextField fullWidth label="Dormitorios"
+                                value={form.bedrooms === 0 ? "" : form.bedrooms}
+                                error={!!fieldErrors.bedrooms}
+                                onChange={num('bedrooms')} required
+                            />
+                        </Grid>
+                    )}
 
-                    <Grid size={{ xs: 4 }}>
-                        <TextField fullWidth label="Baños" value={form.bathrooms === 0 ? "" : form.bathrooms}
-                            required
-                            error={!!fieldErrors.bathrooms}
-                            onChange={handleOptionalNumber('bathrooms')}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            edge="end"
-                                            size="small"
-                                            onClick={() => setField('bathrooms', 'S/N')}
-                                            title="Sin número"
-                                        >
-                                            <EditOffIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
+                    {showBathrooms && (
+                        <Grid size={{ xs: colSize }}>
+                            <TextField fullWidth label="Baños"
+                                value={form.bathrooms === 0 ? "" : form.bathrooms}
+                                error={!!fieldErrors.bathrooms}
+                                helperText={fieldErrors.bathrooms}
+
+                                onChange={num('bathrooms')} required
+                            />
+                        </Grid>
+                    )}
 
                     <Grid size={{ xs: 4 }}>
                         <TextField fullWidth label="Superficie m²" value={form.area === 0 ? "" : form.area}

@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import AmenityForm from './forms/AmenityForm';
 import OwnerForm from './forms/OwnerForm';
 import TypeForm from './forms/TypeForm';
@@ -29,11 +30,55 @@ export default function ModalItem({ info, close }: Props) {
             : `Eliminar ${translate(category)}`;
 
     return (
-        <Dialog open onClose={close} maxWidth="sm" fullWidth>
-            <DialogTitle>{title}</DialogTitle>
+        // <Dialog open onClose={() => null} maxWidth="sm" fullWidth>
+        //     <DialogTitle>{title}</DialogTitle>
+        //     <DialogContent dividers>
+        //         <Form action={info.action} item={info.item} onDone={close} />
+        //     </DialogContent>
+        // </Dialog>
+
+        <Dialog
+            open
+            // onClose={close}
+            onClose={(_, reason) => {
+                if (reason === 'backdropClick') return;
+                close;
+            }}
+            fullWidth
+            maxWidth="sm"
+            PaperProps={{
+                sx: { borderRadius: 3, p: 2 },
+            }}
+        >
+            {/* Encabezado con título + botón de cerrar */}
+            <DialogTitle
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.25rem',
+                    color: '#EF6C00',
+                    mb: 1,
+                }}
+            >
+
+                {title}
+                <IconButton
+                    aria-label="close"
+                    onClick={close}
+                    sx={{
+                        color: '#EF6C00',
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+
+            {/* Contenido del Form */}
             <DialogContent dividers>
                 <Form action={info.action} item={info.item} onDone={close} />
             </DialogContent>
         </Dialog>
     );
-}
+};

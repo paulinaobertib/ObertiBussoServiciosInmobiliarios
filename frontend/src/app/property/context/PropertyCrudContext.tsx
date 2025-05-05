@@ -17,7 +17,7 @@ export type Category = 'amenity' | 'owner' | 'type' | 'neighborhood';
 interface State {
   category: Category | null;
   data: any[] | null;
-  loading: boolean;
+  categoryLoading: boolean;
 }
 
 interface SelectedIds {
@@ -28,13 +28,15 @@ interface SelectedIds {
 }
 
 interface Ctx extends State {
-  pickCategory: (c: Category) => void;
+  pickCategory: (c: Category | null) => void;
   refresh: () => Promise<void>;
   selected: SelectedIds;
+  setCategoryLoading: (v: boolean) => void;
   toggleSelect: (id: number) => void;
-  allTypes: any[]; // Podés reemplazar 'any' por tu tipo real si tenés uno
+  allTypes: any[];
   setAllTypes: (types: any[]) => void;
   resetSelected: () => void;
+  refreshTypes: () => void;
 }
 
 const Context = createContext<Ctx | null>(null);
@@ -42,7 +44,7 @@ const Context = createContext<Ctx | null>(null);
 export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [category, setCategory] = useState<Category | null>(null);
   const [data, setData] = useState<any[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(false);
 
   const [allTypes, setAllTypes] = useState<any[]>([]);
 
@@ -71,14 +73,19 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!category) return;
-    setLoading(true);
+    setCategoryLoading(true);
     try {
       const res = await fetchers[category]();
       setData(res);
     } finally {
-      setLoading(false);
+      setCategoryLoading(false);
     }
   }, [category]);
+
+  const refreshTypes = async () => {
+    const types = await getAllTypes();
+    setAllTypes(types);
+  };
 
   const toggleSelect = (id: number) => {
     if (!category) return;
@@ -112,7 +119,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       value={{
         category,
         data,
-        loading,
+        categoryLoading,
+        setCategoryLoading,
         pickCategory: setCategory,
         selected,
         toggleSelect,
@@ -120,6 +128,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         allTypes,
         setAllTypes,
         resetSelected,
+        refreshTypes
       }}
     >
       {children}

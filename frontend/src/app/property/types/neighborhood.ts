@@ -2,7 +2,7 @@ export interface Neighborhood {
   id: number;
   name: string;
   city: string;
-  type: NeighborhoodType;
+  type: NeighborhoodType | '';
 }
 
 export enum NeighborhoodType {

@@ -24,11 +24,11 @@ export default function AmenityForm({ action, item, onDone }: Props) {
                 await postAmenity({ name } as AmenityCreate)
                 showAlert('¡Servicio creado con éxito!', 'success');;
             }
-            if (action === 'edit') {
+            if (action === 'edit' && item) {
                 await putAmenity({ ...item!, name });
                 showAlert('¡Servicio editado con éxito!', 'success');;
             }
-            if (action === 'delete') {
+            if (action === 'delete' && item) {
                 await deleteAmenity(item!);
                 showAlert('¡Servicio eliminado con éxito!', 'success');;
             }
@@ -47,8 +47,6 @@ export default function AmenityForm({ action, item, onDone }: Props) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={action === 'delete'}
-                error={invalid}
-                helperText={invalid && 'Campo obligatorio'}
                 sx={{ mb: 2 }}
             />
 

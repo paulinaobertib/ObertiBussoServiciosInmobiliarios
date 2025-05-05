@@ -5,5 +5,4 @@ export interface Type {
   hasBathrooms: boolean;
   hasRooms: boolean;
 }
-
-export type TypeCreate = Pick<Type, "name">;
+export type TypeCreate = Omit<Type, "id">;

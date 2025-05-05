@@ -13,7 +13,7 @@ export default function CategoryButton({ category, label }: Props) {
   return (
     <Button
       variant={active ? 'contained' : 'outlined'}
-      onClick={() => pickCategory(category)}
+      onClick={() => pickCategory(active ? null : category)}
       sx={{ textTransform: 'none', minWidth: 110 }}
     >
       {label}
