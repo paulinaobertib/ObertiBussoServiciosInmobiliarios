@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, FormControl, InputLabel, Select, useMediaQuery } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { useTheme } from '@mui/material/styles';
+import { Checkbox, FormControlLabel } from '@mui/material';
 
 const Home: React.FC = () => {
   const [filters, setFilters] = useState({
     precioDesde: '', precioHasta: '', tipoInmueble: '', ciudad: '',
     barrio: '', tipoBarrio: '', superficieDesde: '', superficieHasta: '',
-    ambientes: '', servicios: '', operacion: '', banios: '', habitaciones: ''
+    ambientes: '', servicios: '', operacion: '', banios: '', habitaciones: '',
+    financiado: 'false', aptoCredito: 'false'
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -123,6 +125,66 @@ const Home: React.FC = () => {
               <Select name="servicios" value={filters.servicios} onChange={handleChange} label="Servicios">
               </Select>
             </FormControl>
+
+            <Box
+              sx={{
+                ...inputBoxStyle,
+                py: 1,
+                borderRadius: 1,
+                border: '1px solid #ccc',
+                transition: 'border-color 0.2s',
+                '&:hover': {
+                  borderColor: '#666',
+                },
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.financiado === 'true'}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        financiado: e.target.checked.toString(),
+                      }))
+                    }
+                    name="financiado"
+                  />
+                }
+                label="Financiado"
+                sx={{ ml: 1, color: '#666' }}
+              />
+            </Box>
+
+            <Box
+              sx={{
+                ...inputBoxStyle,
+                py: 1,
+                borderRadius: 1,
+                border: '1px solid #ccc',
+                transition: 'border-color 0.2s',
+                '&:hover': {
+                  borderColor: '#666',
+                },
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.aptoCredito === 'true'}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        aptoCredito: e.target.checked.toString(),
+                      }))
+                    }
+                    name="aptoCredito"
+                  />
+                }
+                label="Apto crédito"
+                sx={{ ml: 1, color: '#666' }}
+              />
+            </Box>
 
             <Button variant="contained" color="primary" size="large" sx={{ width: '100%' }}>
               Buscar

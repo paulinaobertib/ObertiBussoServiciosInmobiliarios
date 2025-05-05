@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, Card, CardMedia, CardContent, Chip } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { getAllProperties } from '../services/propertyService';
-import CompareButtonFloating from '../components/buttonCompare'; // Asegúrate de importar este componente
+import CompareButtonFloating from '../components/buttonCompare';
 
 const Home: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([]);
@@ -58,7 +58,7 @@ const Home: React.FC = () => {
 
   const handleCompareClick = () => {
     console.log('Comparar propiedades:', selectedPropertyIds);
-    // Aquí podés agregar la lógica para comparar o mostrar un modal
+
   };
 
   return (
@@ -67,7 +67,7 @@ const Home: React.FC = () => {
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           gap: 3,
           pl: { md: 16 },
         }}
@@ -165,7 +165,6 @@ const Home: React.FC = () => {
         })}
       </Box>
 
-      {/* Agregar el botón flotante de comparación */}
       <CompareButtonFloating
         onClick={handleCompareClick}
         selectedCount={selectedPropertyIds.length}
