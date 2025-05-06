@@ -1,6 +1,7 @@
 package pi.ms_properties.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,9 @@ public class AmenityService implements IAmenityService {
             amenityRepository.save(amenity);
 
             return ResponseEntity.ok("Se ha guardado correctamente el servicio");
-        } catch (Exception e) {
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("El servicio '" + name + "' ya existe");
+        }catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("No se ha podido guardar el servicio" + e);

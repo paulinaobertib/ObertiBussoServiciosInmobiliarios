@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.*;
+import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
@@ -79,20 +80,12 @@ public class PropertyService implements IPropertyService {
         response.setDate(property.getDate());
         response.setMainImage(property.getMainImage());
 
-        response.setNeighborhoodName(property.getNeighborhood().getName());
-        response.setNeighborhoodType(property.getNeighborhood().getType().name());
-        response.setType(property.getType().getName());
+        NeighborhoodDTO neighborhoodDTO = mapper.convertValue(property.getNeighborhood(), NeighborhoodDTO.class);
 
-        List<String> amenityNames = property.getAmenities().stream()
-                .map(Amenity::getName)
-                .collect(Collectors.toList());
-        response.setAmenities(amenityNames);
-
-        List<String> imageUrls = property.getImages().stream()
-                .map(image -> azureBlobStorage.getImageUrl(image.getUrl()))
-                .collect(Collectors.toList());
-        response.setImages(imageUrls);
-
+        response.setNeighborhood(neighborhoodDTO);
+        response.setType(property.getType());
+        response.setAmenities(property.getAmenities());
+        response.setImages(property.getImages());
         response.setStatus(property.getStatus().toString());
         response.setOperation(property.getOperation().toString());
         response.setCurrency(property.getCurrency().toString());
