@@ -5,12 +5,14 @@ import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import logo from '../assets/logoJPG.png';
+import { Link } from 'react-router-dom';
 
-const pages = ['Catálogo', 'Contacto', 'Blog'];
+const pages = ['Contacto', 'Noticias'];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
@@ -25,122 +27,92 @@ function ResponsiveAppBar() {
 
   return (
     <AppBar position="static">
-      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2 }, overflowX: 'hidden' }}>
-        <Toolbar disableGutters sx={{ width: '100%', overflowX: 'hidden' }}>
-          <Box
-            component="img"
-            src={logo}
-            alt="Logo"
-            sx={{
-              display: { xs: 'none', md: 'flex' },
-              height: 40,
-              maxWidth: '100%',
-              objectFit: 'contain',
-              mr: 2,
-            }}
-          />
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Toolbar
+          disableGutters
+          sx={{
+            width: '90%',
+            justifyContent: { xs: 'flex-start', md: 'space-between' },
+            paddingLeft: { xs: 0, md: 'auto' },
+          }}
+        >
+          <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
+            <Box
+              component="img"
+              src={logo}
+              alt="Logo"
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                height: 50,
+                objectFit: 'contain',
+                mr: 2,
+              }}
+            />
+          </Link>
 
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
             <IconButton
               size="large"
-              aria-label="menú de navegación"
               onClick={handleOpenNavMenu}
               color="inherit"
+              aria-label="abrir menú"
+              sx={{ mr: 1 }}
             >
               <MenuIcon />
             </IconButton>
+            <Link to="/">
+              <Box
+                component="img"
+                src={logo}
+                alt="Logo"
+                sx={{ height: 40, objectFit: 'contain' }}
+              />
+            </Link>
             <Menu
               id="menu-appbar"
               anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
               {pages.map((page) => (
-                <MenuItem
-                  key={page}
-                  onClick={handleCloseNavMenu}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                    },
-                  }}
-                >
+                <MenuItem key={page} onClick={handleCloseNavMenu} component={Link} to={`/${page.toLowerCase()}`}>
                   {page}
                 </MenuItem>
               ))}
             </Menu>
           </Box>
 
-          <Box
-            component="img"
-            src={logo}
-            alt="Logo"
-            sx={{
-              display: { xs: 'flex', md: 'none' },
-              height: 40,
-              maxWidth: '100%',
-              objectFit: 'contain',
-              mr: 2,
-            }}
-          />
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 2 }}>
             {pages.map((page) => (
               <Button
                 key={page}
+                component={Link}
+                to={`/${page.toLowerCase()}`}
                 onClick={handleCloseNavMenu}
-                sx={{
-                  my: 2,
-                  color: 'white',
-                  display: 'block',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                  },
-                }}
+                sx={{ color: 'white', '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' } }}
               >
                 {page}
               </Button>
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0, display: 'flex'}}>
-            <Button
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                },
-                fontSize: { xs: '0.75rem', sm: '1rem' }, 
-              }}
-            >
-              Mi Perfil
-            </Button>
-            <Button
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                },
-                fontSize: { xs: '0.75rem', sm: '1rem' },
-              }}
-            >
-              Cerrar sesión
-            </Button>
+          <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+            <IconButton color="inherit" aria-label="perfil">
+              <AccountCircleIcon sx={{ fontSize: 28 }} />
+            </IconButton>
+            <IconButton color="inherit" aria-label="cerrar sesión">
+              <LogoutIcon sx={{ fontSize: 28 }} />
+            </IconButton>
           </Box>
         </Toolbar>
-      </Container>
+      </Box>
     </AppBar>
   );
 }
 
 export default ResponsiveAppBar;
+

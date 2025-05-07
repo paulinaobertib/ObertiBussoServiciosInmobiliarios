@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Card, CardMedia, CardContent, Typography, Chip } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 
@@ -13,7 +12,6 @@ type PropertyCatalogProps = {
 const PropertyCatalog = ({
   properties,
   selectionMode,
-  selectedPropertyIds,
   toggleSelection,
   isSelected,
 }: PropertyCatalogProps) => {

@@ -84,22 +84,11 @@ function Home() {
     console.log('Comparar propiedades:', selectedPropertyIds);
   };
 
-  if (!loading && properties.length === 0) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
-        <Typography variant="h5" color="text.secondary">
-          No se encontraron propiedades.
-        </Typography>
-      </Box>
-    );
-  }
-
   return (
     <>
       <Navbar />
       <Box sx={{ height: '100%', position: 'relative', p: 2 }}>
         <SpeedDialTooltipOpen onAction={handleAction} />
-
         <ImageCarousel />
 
         <Box sx={{ mt: 2, mb: 0, display: 'flex', alignItems: 'center' }}>
@@ -145,13 +134,21 @@ function Home() {
               flexDirection: 'column',
             }}
           >
-            <PropertyCatalog
-              properties={properties}
-              selectionMode={selectionMode}
-              selectedPropertyIds={selectedPropertyIds}
-              toggleSelection={toggleSelection}
-              isSelected={isSelected}
-            />
+            {loading ? (
+              <Typography>Cargando propiedades...</Typography>
+            ) : properties.length > 0 ? (
+              <PropertyCatalog
+                properties={properties}
+                selectionMode={selectionMode}
+                selectedPropertyIds={selectedPropertyIds}
+                toggleSelection={toggleSelection}
+                isSelected={isSelected}
+              />
+            ) : (
+              <Typography variant="h5" color="text.secondary" sx={{ mt: 4 }}>
+                No se encontraron propiedades.
+              </Typography>
+            )}
           </Box>
         </Box>
 
