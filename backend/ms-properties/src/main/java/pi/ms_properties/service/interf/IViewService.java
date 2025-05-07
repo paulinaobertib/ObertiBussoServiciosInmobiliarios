@@ -21,7 +21,9 @@ public interface IViewService {
 
     ResponseEntity<Map<String, Long>> getViewsByNeighborhoodType();
 
-    ResponseEntity<Map<String, Long>> getViewsByState();
+    ResponseEntity<Map<String, Long>> getViewsByStatus();
+
+    ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType();
 
     ResponseEntity<Map<String, Long>> getViewsByOperation();
 
