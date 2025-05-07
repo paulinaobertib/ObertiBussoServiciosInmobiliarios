@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_properties.domain.Amenity;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.View;
+import pi.ms_properties.repository.PropertyRepository;
 import pi.ms_properties.repository.ViewRepository;
 import pi.ms_properties.service.interf.IViewService;
 
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 public class ViewService implements IViewService {
 
     private final ViewRepository viewRepository;
+
+    private  final PropertyRepository propertyRepository;
 
     @Override
     public void createView(Property property, LocalDateTime date) {
@@ -111,16 +114,29 @@ public class ViewService implements IViewService {
     }
 
     @Override
-    public ResponseEntity<Map<String, Long>> getViewsByState() {
-        List<View> views = viewRepository.findAll();
+    public ResponseEntity<Map<String, Long>> getViewsByStatus() {
+        List<Property> properties = propertyRepository.findAll();
 
-        Map<String, Long> result = views.stream()
+        Map<String, Long> statusCount = properties.stream()
+                .collect(Collectors.groupingBy(p -> p.getStatus().name(), Collectors.counting()));
+
+        return ResponseEntity.ok(statusCount);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType() {
+        List<Property> properties = propertyRepository.findAll();
+
+        Map<String, Map<String, Long>> statusAndTypeCount = properties.stream()
                 .collect(Collectors.groupingBy(
-                        v -> v.getProperty().getStatus().toString(),
-                        Collectors.counting()
+                        property -> property.getStatus().name(),
+                        Collectors.groupingBy(
+                                property -> property.getType().getName(),
+                                Collectors.counting()
+                        )
                 ));
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(statusAndTypeCount);
     }
 
     @Override
