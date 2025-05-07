@@ -1,9 +1,13 @@
 package pi.ms_users.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.User;
 import pi.ms_users.service.impl.UserService;
+
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
@@ -13,13 +17,37 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/getById/{id}")
-    public User findById(@PathVariable String id) {
+    public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
         return userService.findById(id);
     }
 
-    @PutMapping("/update/{id}")
-    public User updatePhone(@PathVariable String id, @RequestParam String phone) {
-        return userService.updatePhone(id, phone);
+    @GetMapping("/getAll")
+    public ResponseEntity<List<User>> findAll() {
+        return userService.findAll();
     }
 
+    @GetMapping("/role/{id}")
+    public ResponseEntity<List<String>> findRoles(@PathVariable String id) {
+        return userService.getUserRoles(id);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable String id) {
+        return userService.deleteUserById(id);
+    }
+
+    @DeleteMapping("/delete/role/{id}")
+    public ResponseEntity<String> deleteRoleToUser(@PathVariable String id, @RequestParam String role) {
+        return userService.deleteRoleToUser(id, role);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<User> update(@RequestBody User user) {
+        return userService.updateUser(user);
+    }
+
+    @PutMapping("/update/role/{id}")
+    public ResponseEntity<List<String>> addRoleToUser(@PathVariable String id, @RequestParam String role) {
+        return userService.addRoleToUser(id, role);
+    }
 }
