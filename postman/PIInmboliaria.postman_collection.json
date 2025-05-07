@@ -22,20 +22,22 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "http://localhost:8083/amenity/create?name=Luz",
+									"raw": "http://localhost:8090/api/properties/amenity/create?name=agua",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"amenity",
 										"create"
 									],
 									"query": [
 										{
 											"key": "name",
-											"value": "Luz"
+											"value": "agua"
 										}
 									]
 								}
@@ -48,15 +50,17 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/amenity/all",
+									"raw": "http://localhost:8090/api/properties/amenity/getAll",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"amenity",
-										"all"
+										"getAll"
 									]
 								}
 							},
@@ -77,13 +81,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/amenity/update",
+									"raw": "http://localhost:8090/api/properties/amenity/update",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"amenity",
 										"update"
 									]
@@ -97,16 +103,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/amenity/delete/3",
+									"raw": "http://localhost:8090/api/properties/amenity/delete/7",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"amenity",
 										"delete",
-										"3"
+										"7"
 									]
 								}
 							},
@@ -118,16 +126,18 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/amenity/getById/1",
+									"raw": "http://localhost:8090/api/properties/amenity/getById/4",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"amenity",
 										"getById",
-										"1"
+										"4"
 									]
 								}
 							},
@@ -139,20 +149,22 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/amenity/getByName?name=Luz",
+									"raw": "http://localhost:8090/api/properties/amenity/getByName?name=agua",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"amenity",
 										"getByName"
 									],
 									"query": [
 										{
 											"key": "name",
-											"value": "Luz"
+											"value": "agua"
 										}
 									]
 								}
@@ -181,28 +193,30 @@
 										{
 											"key": "mainImage",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
+											"src": "/C:/Users/pauli/Downloads/mainImage.png"
 										},
 										{
 											"key": "images",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
+											"src": "/C:/Users/pauli/Downloads/casita.png"
 										},
 										{
 											"key": "images",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
+											"src": "/C:/Users/pauli/Downloads/casita.png"
 										}
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8083/property/create",
+									"raw": "http://localhost:8090/api/properties/property/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"create"
 									]
@@ -216,16 +230,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/delete/3",
+									"raw": "http://localhost:8090/api/properties/property/delete/2",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"delete",
-										"3"
+										"2"
 									]
 								}
 							},
@@ -246,16 +262,18 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/property/update/3",
+									"raw": "http://localhost:8090/api/properties/property/update/2",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"update",
-										"3"
+										"2"
 									]
 								}
 							},
@@ -267,13 +285,15 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/status/2?status=RESERVADA",
+									"raw": "http://localhost:8090/api/properties/property/status/2?status=RESERVADA",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"status",
 										"2"
@@ -294,13 +314,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/getAll",
+									"raw": "http://localhost:8090/api/properties/property/getAll",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"getAll"
 									]
@@ -314,13 +336,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/get",
+									"raw": "http://localhost:8090/api/properties/property/get",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"get"
 									]
@@ -334,16 +358,18 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/getById/9",
+									"raw": "http://localhost:8090/api/properties/property/getById/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"getById",
-										"9"
+										"1"
 									]
 								}
 							},
@@ -355,13 +381,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/getByTitle?title=Casa en el centro EDITADA",
+									"raw": "http://localhost:8090/api/properties/property/getByTitle?title=Casa en el centro EDITADA",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"getByTitle"
 									],
@@ -381,13 +409,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/getByStatus?status=DISPONIBLE",
+									"raw": "http://localhost:8090/api/properties/property/getByStatus?status=DISPONIBLE",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"getByStatus"
 									],
@@ -407,13 +437,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/search?city=Cordoba&rooms=3&priceFrom=120000&priceTo=1800000&areaFrom=70&areaTo=1800&operation=ALQUILER&type=casa&amenities=agua potable&neighborhood=Valle Escondido&neighborhoodType=cerrado",
+									"raw": "http://localhost:8090/api/properties/property/search?city=Cordoba&rooms=3&priceFrom=120000&priceTo=1800000&areaFrom=70&areaTo=1800&operation=ALQUILER&type=casa&amenities=agua potable&neighborhood=Valle Escondido&neighborhoodType=cerrado",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"search"
 									],
@@ -478,13 +510,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/property/text?value=dep",
+									"raw": "http://localhost:8090/api/properties/property/text?value=dep",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"property",
 										"text"
 									],
@@ -510,7 +544,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"name\": \"Departamento\",\r\n  \"hasRooms\": true,\r\n  \"hasBathrooms\": true,\r\n  \"hasBedrooms\": false\r\n}\r\n",
+									"raw": "{\r\n  \"name\": \"Hotel\",\r\n  \"hasRooms\": true,\r\n  \"hasBathrooms\": true,\r\n  \"hasBedrooms\": false\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -518,13 +552,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/type/create",
+									"raw": "http://localhost:8090/api/properties/type/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"type",
 										"create"
 									]
@@ -539,7 +575,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Departamento monoambiente\",\r\n    \"hasRooms\": true,\r\n    \"hasBathrooms\": true,\r\n    \"hasBedrooms\": false\r\n}\r\n",
+									"raw": "{\r\n    \"id\": 1,\r\n    \"name\": \"Departamento monoambiente\",\r\n    \"hasRooms\": true,\r\n    \"hasBathrooms\": true,\r\n    \"hasBedrooms\": true\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -547,13 +583,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/type/update",
+									"raw": "http://localhost:8090/api/properties/type/update",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"type",
 										"update"
 									]
@@ -567,16 +605,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/type/delete/3",
+									"raw": "http://localhost:8090/api/properties/type/delete/4",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"type",
 										"delete",
-										"3"
+										"4"
 									]
 								}
 							},
@@ -588,13 +628,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/type/getAll",
+									"raw": "http://localhost:8090/api/properties/type/getAll",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"type",
 										"getAll"
 									]
@@ -608,16 +650,18 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/type/id/2",
+									"raw": "http://localhost:8090/api/properties/type/getById/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"type",
-										"id",
-										"2"
+										"getById",
+										"1"
 									]
 								}
 							},
@@ -639,23 +683,25 @@
 										{
 											"key": "file",
 											"type": "file",
-											"src": "/C:/Users/pauli/Downloads/casa3.jpeg"
+											"src": "/C:/Users/pauli/Downloads/imag1.png"
 										},
 										{
 											"key": "propertyId",
-											"value": "7",
+											"value": "3",
 											"type": "text"
 										}
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8083/image/upload",
+									"raw": "http://localhost:8090/api/properties/image/upload",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"image",
 										"upload"
 									]
@@ -669,16 +715,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/image/delete/16",
+									"raw": "http://localhost:8090/api/properties/image/delete/7",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"image",
 										"delete",
-										"16"
+										"7"
 									]
 								}
 							},
@@ -690,16 +738,18 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/image/getByProperty/8",
+									"raw": "http://localhost:8090/api/properties/image/getByProperty/3",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"image",
 										"getByProperty",
-										"8"
+										"3"
 									]
 								}
 							},
@@ -717,7 +767,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"date\": \"2025-04-20T14:30:00\",\r\n  \"title\": \"Cambio de cañerías\",\r\n  \"description\": \"Se reemplazaron las cañerías del baño principal.\",\r\n  \"propertyId\": 1\r\n}\r\n",
+									"raw": "{\r\n  \"date\": \"2025-04-20T14:30:00\",\r\n  \"title\": \"Cambio de cañerías\",\r\n  \"description\": \"Se reemplazaron las cañerías del baño principal.\",\r\n  \"propertyId\": 3\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -725,13 +775,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/maintenance/create",
+									"raw": "http://localhost:8090/api/properties/maintenance/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"maintenance",
 										"create"
 									]
@@ -754,16 +806,18 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/maintenance/update/2",
+									"raw": "http://localhost:8090/api/properties/maintenance/update/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"maintenance",
 										"update",
-										"2"
+										"1"
 									]
 								}
 							},
@@ -775,16 +829,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/maintenance/delete/2",
+									"raw": "http://localhost:8090/api/properties/maintenance/delete/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"maintenance",
 										"delete",
-										"2"
+										"1"
 									]
 								}
 							},
@@ -796,13 +852,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/maintenance/getById/1",
+									"raw": "http://localhost:8090/api/properties/maintenance/getById/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"maintenance",
 										"getById",
 										"1"
@@ -817,13 +875,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/maintenance/getByPropertyId/1",
+									"raw": "http://localhost:8090/api/properties/maintenance/getByPropertyId/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"maintenance",
 										"getByPropertyId",
 										"1"
@@ -844,7 +904,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"name\": \"Villa Cabrera\",\r\n    \"type\": \"ABIERTO\",\r\n    \"city\": \"Cordoba\"\r\n}\r\n",
+									"raw": "{\r\n    \"name\": \"Villa Allende\",\r\n    \"type\": \"ABIERTO\",\r\n    \"city\": \"Cordoba\"\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -852,13 +912,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/neighborhood/create",
+									"raw": "http://localhost:8090/api/properties/neighborhood/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"neighborhood",
 										"create"
 									]
@@ -872,16 +934,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/neighborhood/delete/2",
+									"raw": "http://localhost:8090/api/properties/neighborhood/delete/4",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"neighborhood",
 										"delete",
-										"2"
+										"4"
 									]
 								}
 							},
@@ -902,16 +966,18 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/neighborhood/update/2",
+									"raw": "http://localhost:8090/api/properties/neighborhood/update/4",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"neighborhood",
 										"update",
-										"2"
+										"4"
 									]
 								}
 							},
@@ -923,13 +989,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/neighborhood/getAll",
+									"raw": "http://localhost:8090/api/properties/neighborhood/getAll",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"neighborhood",
 										"getAll"
 									]
@@ -943,13 +1011,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/neighborhood/getById/1",
+									"raw": "http://localhost:8090/api/properties/neighborhood/getById/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"neighborhood",
 										"getById",
 										"1"
@@ -970,7 +1040,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"firstName\": \"Tomas\",\r\n    \"lastName\": \"Oberti\",\r\n    \"mail\": \"tomas@gmail.com\",\r\n    \"phone\": \"123456789\"\r\n}\r\n",
+									"raw": "{\r\n    \"firstName\": \"Tomas\",\r\n    \"lastName\": \"Oberti\",\r\n    \"mail\": \"tomasoberti@gmail.com\",\r\n    \"phone\": \"123456789\"\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -978,13 +1048,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/owner/create",
+									"raw": "http://localhost:8090/api/properties/owner/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"create"
 									]
@@ -998,16 +1070,18 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/owner/delete/3",
+									"raw": "http://localhost:8090/api/properties/owner/delete/4",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"delete",
-										"3"
+										"4"
 									]
 								}
 							},
@@ -1020,7 +1094,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"id\": 3,\r\n    \"firstName\": \"Tomas\",\r\n    \"lastName\": \"Cassanelli\",\r\n    \"mail\": \"tomas@gmail.com\",\r\n    \"phone\": \"987654321\"\r\n}\r\n",
+									"raw": "{\r\n    \"id\": 4,\r\n    \"firstName\": \"Tomas\",\r\n    \"lastName\": \"Cassanelli\",\r\n    \"mail\": \"tomascass@gmail.com\",\r\n    \"phone\": \"987654321\"\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1028,13 +1102,15 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/owner/update",
+									"raw": "http://localhost:8090/api/properties/owner/update",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"update"
 									]
@@ -1048,13 +1124,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/owner/getByProperty/1",
+									"raw": "http://localhost:8090/api/properties/owner/getByProperty/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"getByProperty",
 										"1"
@@ -1076,13 +1154,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/owner/getAll",
+									"raw": "http://localhost:8090/api/properties/owner/getAll",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"getAll"
 									]
@@ -1096,13 +1176,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/owner/getById/1",
+									"raw": "http://localhost:8090/api/properties/owner/getById/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"getById",
 										"1"
@@ -1117,13 +1199,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/owner/search?search=T",
+									"raw": "http://localhost:8090/api/properties/owner/search?search=T",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"owner",
 										"search"
 									],
@@ -1148,13 +1232,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/property",
+									"raw": "http://localhost:8090/api/properties/view/property",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"property"
 									]
@@ -1168,13 +1254,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/propertyType",
+									"raw": "http://localhost:8090/api/properties/view/propertyType",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"propertyType"
 									]
@@ -1188,13 +1276,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/day",
+									"raw": "http://localhost:8090/api/properties/view/day",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"day"
 									]
@@ -1208,13 +1298,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/month",
+									"raw": "http://localhost:8090/api/properties/view/month",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"month"
 									]
@@ -1228,13 +1320,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/neighborhood",
+									"raw": "http://localhost:8090/api/properties/view/neighborhood",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"neighborhood"
 									]
@@ -1248,13 +1342,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/neighborhoodType",
+									"raw": "http://localhost:8090/api/properties/view/neighborhoodType",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"neighborhoodType"
 									]
@@ -1263,20 +1359,22 @@
 							"response": []
 						},
 						{
-							"name": "state",
+							"name": "status",
 							"request": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/state",
+									"raw": "http://localhost:8090/api/properties/view/status",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
-										"state"
+										"status"
 									]
 								}
 							},
@@ -1288,13 +1386,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/operation",
+									"raw": "http://localhost:8090/api/properties/view/operation",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"operation"
 									]
@@ -1308,13 +1408,15 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/rooms",
+									"raw": "http://localhost:8090/api/properties/view/rooms",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"rooms"
 									]
@@ -1328,15 +1430,39 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/view/amenity",
+									"raw": "http://localhost:8090/api/properties/view/amenity",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
-									"port": "8083",
+									"port": "8090",
 									"path": [
+										"api",
+										"properties",
 										"view",
 										"amenity"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "statusAndType",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8090/api/properties/view/statusAndType",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8090",
+									"path": [
+										"api",
+										"properties",
+										"view",
+										"statusAndType"
 									]
 								}
 							},
