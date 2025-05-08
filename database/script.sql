@@ -74,17 +74,6 @@ CREATE TABLE Image (
     FOREIGN KEY (property_id) REFERENCES Property(id)
 );
 
-CREATE TABLE User (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    username VARCHAR(100) UNIQUE NOT NULL,
-    role ENUM('admin', 'user', 'client') NOT NULL,
-    mail VARCHAR(150) UNIQUE NOT NULL,
-    phone VARCHAR(20),
-    password VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE Contract (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
@@ -97,7 +86,6 @@ CREATE TABLE Contract (
     status ENUM('activo', 'inactivo') NOT NULL,
     increase DECIMAL(5,2),
     increase_frequency VARCHAR(50),
-    FOREIGN KEY (user_id) REFERENCES User(id),
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
@@ -114,15 +102,13 @@ CREATE TABLE Notification (
     user_id BIGINT NOT NULL,
     type VARCHAR(50) NOT NULL,
     description VARCHAR(1000) NOT NULL,
-    date DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
+    date DATETIME NOT NULL
 );
 
 CREATE TABLE Favorite (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
     property_id BIGINT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
@@ -141,8 +127,7 @@ CREATE TABLE Appointment (
     date DATETIME NOT NULL,
     time TIME NOT NULL,
     status VARCHAR(50) NOT NULL,
-    comment VARCHAR(250),
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    comment VARCHAR(250)
 );
 
 CREATE TABLE News (
@@ -151,8 +136,7 @@ CREATE TABLE News (
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL,
-    image VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    image VARCHAR(255)
 );
 
 CREATE TABLE Inquiry (
@@ -160,8 +144,7 @@ CREATE TABLE Inquiry (
     user_id BIGINT NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description VARCHAR(2000) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    description VARCHAR(2000) NOT NULL
 );
 
 CREATE TABLE Property_Inquiry (

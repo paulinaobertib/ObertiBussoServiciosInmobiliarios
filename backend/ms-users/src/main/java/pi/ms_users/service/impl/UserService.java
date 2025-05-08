@@ -1,6 +1,7 @@
 package pi.ms_users.service.impl;
 
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ public class UserService {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(user);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
@@ -44,8 +47,9 @@ public class UserService {
         try {
             userRepository.deleteUserById(id);
             return ResponseEntity.ok("Se ha eliminado el usuario");
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -58,9 +62,16 @@ public class UserService {
             }
             User updated = userRepository.updateUser(user);
             return ResponseEntity.ok(updated);
+        } catch (NotFoundException e) {
+            // Manejo específico si un servicio REST externo devuelve 404
+            System.err.println("Recurso no encontrado en servicio externo: " + e.getMessage());
+            return ResponseEntity.notFound().build();
+
         } catch (BadRequestException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
