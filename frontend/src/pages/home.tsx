@@ -1,3 +1,4 @@
+// src/pages/home.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
@@ -10,14 +11,17 @@ import PropertyCatalog from '../components/propertyCatalog';
 import ButtonSelect from '../components/buttonSelect';
 import CompareButtonFloating from '../components/buttonCompare';
 import { getAllProperties } from '../services/propertyService';
+import { useComparison } from '../context/comparisonContext';
+import { Property } from '../types/property';
 
 function Home() {
   const navigate = useNavigate();
+  const { selectedPropertyIds, toggleSelection, addToComparison, clearComparison } = useComparison();
 
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
+  const [shouldNavigateToCompare, setShouldNavigateToCompare] = useState(false);
 
   const handleAction = (action: string) => {
     switch (action) {
@@ -40,14 +44,22 @@ function Home() {
     const fetchProperties = async () => {
       try {
         const response = await getAllProperties();
+        let fetchedProperties: Property[] = [];
         if (Array.isArray(response?.data)) {
-          setProperties(response.data);
+          fetchedProperties = response.data;
         } else if (Array.isArray(response)) {
-          setProperties(response);
+          fetchedProperties = response;
         } else {
           console.error('Estructura inesperada de respuesta:', response);
-          setProperties([]);
+          fetchedProperties = [];
         }
+
+        const propertiesWithStatus = fetchedProperties.map((property) => ({
+          ...property,
+          status: property.status || 'Desconocido',
+        }));
+
+        setProperties(propertiesWithStatus);
       } catch (error) {
         console.error('Error fetching properties:', error);
         setProperties([]);
@@ -59,29 +71,37 @@ function Home() {
     fetchProperties();
   }, []);
 
-  const toggleSelectionMode = () => {
-    setSelectionMode((prev) => !prev);
-    if (selectionMode) {
-      setSelectedPropertyIds([]);
+  useEffect(() => {
+    if (shouldNavigateToCompare) {
+      console.log('Navigating to /compare'); // Depuración
+      navigate('/compare');
+      setShouldNavigateToCompare(false);
     }
-  };
+  }, [shouldNavigateToCompare, navigate]);
 
-  const toggleSelection = (id: number) => {
-    setSelectedPropertyIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((item) => item !== id);
-      } else if (prev.length < 2) {
-        return [...prev, id];
-      } else {
-        return [...prev.slice(1), id];
+  const toggleSelectionMode = () => {
+    setSelectionMode((prev) => {
+      const newMode = !prev;
+      if (!newMode) {
+        clearComparison(); // Limpiamos el contexto al salir del modo de selección
       }
+      return newMode;
     });
   };
 
   const isSelected = (id: number) => selectedPropertyIds.includes(id);
 
   const handleCompareClick = () => {
-    console.log('Comparar propiedades:', selectedPropertyIds);
+    console.log('Selected Property IDs:', selectedPropertyIds); // Depuración
+    clearComparison();
+    const selectedProperties = properties.filter((property) =>
+      selectedPropertyIds.includes(property.id)
+    );
+    console.log('Selected Properties:', selectedProperties); // Depuración
+    selectedProperties.forEach((property) => {
+      addToComparison(property);
+    });
+    setShouldNavigateToCompare(true);
   };
 
   return (
@@ -90,13 +110,11 @@ function Home() {
       <Box sx={{ height: '100%', position: 'relative', p: 2 }}>
         <SpeedDialTooltipOpen onAction={handleAction} />
         <ImageCarousel />
-
         <Box sx={{ mt: 2, mb: 0, display: 'flex', alignItems: 'center' }}>
           <Box sx={{ flexGrow: 1 }}>
             <SearchBar />
           </Box>
         </Box>
-
         <Box
           sx={{
             display: 'flex',
@@ -120,7 +138,6 @@ function Home() {
           >
             <SearchFilters />
           </Box>
-
           <Box
             sx={{
               flexGrow: 1,
@@ -151,7 +168,6 @@ function Home() {
             )}
           </Box>
         </Box>
-
         <Box sx={{ position: 'fixed', bottom: 30, right: 30, zIndex: 1500 }}>
           <ButtonSelect onClick={toggleSelectionMode} isActive={selectionMode} />
           <CompareButtonFloating

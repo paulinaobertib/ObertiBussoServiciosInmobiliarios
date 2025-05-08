@@ -8,6 +8,7 @@ export const ROUTES = {
   VIEW_PROPERTY: `/properties/:id`,
   LOGIN: `/login`,
   COMPARE: '/compare',
+  PROPERTY_DETAILS: '/properties/:id',
 };
 
 export const PAGES = [
@@ -16,4 +17,5 @@ export const PAGES = [
   { name: "Editar Propiedad", url: ROUTES.EDIT_PROPERTY },
   { name: "Ver Propiedad", url: ROUTES.VIEW_PROPERTY },
   { name: "Comparar Propiedades", url: ROUTES.COMPARE },
+  { name: "Detalle de Propiedades", url: ROUTES.PROPERTY_DETAILS },
 ];
