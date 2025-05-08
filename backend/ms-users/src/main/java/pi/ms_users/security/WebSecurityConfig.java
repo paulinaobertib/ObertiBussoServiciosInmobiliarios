@@ -19,7 +19,6 @@ public class WebSecurityConfig {
 
         httpSecurity
                 .authorizeHttpRequests(authorize -> authorize
-                        //.requestMatchers(HttpMethod.GET, "path").permitAll().hasRole
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
