@@ -28,9 +28,10 @@ interface SelectedIds {
 }
 
 interface Ctx extends State {
-  pickCategory: (c: Category | null) => void;
-  refresh: () => Promise<void>;
-  selected: SelectedIds;
+  pickCategory: (c: Category | null) => void; // Toma la categoria seleccionada
+  refresh: () => Promise<void>; // Refresca, actualiza datos
+  selected: SelectedIds; // Combinacion de los id seleccionadso
+  setSelected: (next: SelectedIds) => void;
   setCategoryLoading: (v: boolean) => void;
   toggleSelect: (id: number) => void;
   allTypes: any[];
@@ -73,20 +74,32 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!category) return;
-    setCategoryLoading(true);
+
+    setData([]);                 // ← 1️⃣  limpia la vista al instante
+    setCategoryLoading(true);    // ← 2️⃣  dispara el spinner
+
     try {
       const res = await fetchers[category]();
-      setData(res);
+      setData(res);              // ← 3️⃣  rellena con la respuesta nueva
     } finally {
       setCategoryLoading(false);
     }
   }, [category]);
 
-  const refreshTypes = async () => {
-    const types = await getAllTypes();
-    setAllTypes(types);
-  };
 
+  const refreshTypes = async () => {
+    setAllTypes([]);          // limpia
+    try {
+      const res = await fetchers.type();
+      console.log('💬 fetch types →', res);   // 👀 mira la consola
+      setAllTypes(Array.isArray(res) ? res
+                : Array.isArray(res?.content) ? res.content
+                : Array.isArray(res?.data)    ? res.data
+                : []);                        // último fallback
+    } catch {
+      setAllTypes([]);
+    }
+  };
   const toggleSelect = (id: number) => {
     if (!category) return;
 
@@ -123,6 +136,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         setCategoryLoading,
         pickCategory: setCategory,
         selected,
+        setSelected,
         toggleSelect,
         refresh,
         allTypes,

@@ -11,22 +11,22 @@ CREATE TABLE Owner (
 
 CREATE TABLE Type (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255),
-    hasRooms BOOLEAN,
-    hasBathrooms BOOLEAN,
-    hasBedrooms BOOLEAN
+    name VARCHAR(255) UNIQUE NOT NULL,
+    has_rooms BOOLEAN NOT NULL,
+    has_bathrooms BOOLEAN NOT NULL,
+    has_bedrooms BOOLEAN NOT NULL
 );
 
 CREATE TABLE Neighborhood (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255),
+    name VARCHAR(255) UNIQUE NOT NULL,
     type ENUM('CERRADO', 'SEMICERRADO', 'ABIERTO') NOT NULL,
-    city VARCHAR(255)
+    city VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Amenity (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255)
+    name VARCHAR(255) UNIQUE NOT NULL
 );
 
 CREATE TABLE Property (
@@ -105,7 +105,7 @@ CREATE TABLE Payment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     contract_id BIGINT NOT NULL,
     date DATETIME NOT NULL,
-    description VARCHAR(2000),
+    description VARCHAR(2000) NOT NULL,
     FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 

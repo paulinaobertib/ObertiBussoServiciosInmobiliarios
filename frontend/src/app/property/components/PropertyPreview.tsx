@@ -1,101 +1,94 @@
-import { Box, Divider, IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { Image } from '../types/image';
 
-const toURL = (f: File) => URL.createObjectURL(f);
+const toSrc = (p: Image) =>
+  typeof p === 'string' ? p : URL.createObjectURL(p);
 
 interface Props {
-  main: File | null;
-  images: File[];
-  vertical?: boolean;
-  onDelete?: (img: File) => void;
+  main: Image | null;
+  images: Image[];
+  onDelete?: (img: Image) => void;
 }
 
-export default function PropertyPreview({ main, images, vertical = false, onDelete }: Props) {
-  if (!(main instanceof File) && !images.some((img) => img instanceof File)) return null;
+export default function PropertyPreview({ main, images, onDelete }: Props) {
+  if (!main && images.length === 0) return null;
 
-  const axis = vertical ? 'column' : 'row';
-
-  const Thumb = ({ file }: { file: File }) => {
-    if (!(file instanceof File)) return null;
-
-    return (
-      <Box sx={{ position: 'relative', flex: '0 0 auto', '&:hover .deleteBtn': { opacity: 1 } }}>
-        <Box
-          component="img"
-          src={toURL(file)}
-          sx={{
-            width: vertical ? '100%' : 120,
-            height: vertical ? 120 : '100%',
-            objectFit: 'contain',
-            borderRadius: 1,
-            flexShrink: 0,
-          }}
-        />
-
-        {onDelete && (
-          <Tooltip title="Eliminar">
-            <IconButton
-              size="medium"
-              className="deleteBtn"
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%,-50%)',
-                bgcolor: 'rgba(0,0,0,0.55)',
-                color: '#fff',
-                opacity: 0,
-                transition: 'opacity .2s',
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.75)' },
-              }}
-              onClick={() => onDelete(file)}
-            >
-              <CloseIcon fontSize="inherit" />
-            </IconButton>
-          </Tooltip>
-        )}
-      </Box>
-    );
-  };
-
-  return (
+  const Thumb = ({ file, isMain }: { file: Image; isMain: boolean }) => (
     <Box
       sx={{
+        position: 'relative',
+        maxWidth: 100,
+        aspectRatio: '1',
+        border: isMain ? '3px solid #EF6C00' : '1px solid #ccc',
+        borderRadius: 2,
         display: 'flex',
-        flexDirection: axis,
         alignItems: 'center',
-        gap: 1,
-        height: '100%',
-        minHeight: 0,
+        justifyContent: 'center',
+        '&:hover .deleteBtn': { opacity: 1, pointerEvents: 'auto' },
       }}
     >
-      {main instanceof File && <Thumb file={main} />}
+      <Box
+        component="img"
+        src={toSrc(file)}
+        sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 1 }}
+      />
 
-      {main instanceof File && images.length > 0 && (
-        <Divider
-          orientation={vertical ? 'horizontal' : 'vertical'}
-          sx={{ bgcolor: 'black' }}
-          flexItem
-        />
+      {isMain && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 4,
+            left: 4,
+            bgcolor: '#EF6C00',
+            color: '#fff',
+            px: 1,
+            py: 0.2,
+            borderRadius: 1,
+            fontSize: '0.7rem',
+            fontWeight: 700,
+          }}
+        >
+          Principal
+        </Box>
       )}
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: axis,
-          gap: 1,
-          flexGrow: 1,
-          minHeight: 0,
-          overflowX: vertical ? 'hidden' : 'auto',
-          overflowY: vertical ? 'auto' : 'hidden',
-        }}
-      >
-        {images
-          .filter((f) => f instanceof File)
-          .map((f) => (
-            <Thumb key={f.name} file={f} />
-          ))}
-      </Box>
+      {onDelete && (
+        <Tooltip title="Eliminar">
+          <IconButton
+            size="small"
+            onClick={() => onDelete(file)}
+            className="deleteBtn"
+            sx={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              bgcolor: 'rgba(0,0,0,0.6)',
+              color: '#fff',
+              opacity: 0,
+              pointerEvents: 'none',
+              transition: 'opacity 0.2s',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' },
+            }}
+          >
+            <CloseIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, p: 1, overflowY: 'auto' }}>
+      {[main, ...images]
+        .filter((f): f is Image => f != null)
+        .map((f) => (
+          <Thumb
+            key={typeof f === 'string' ? f : f.name}
+            file={f}
+            isMain={f === main}
+          />
+        ))}
     </Box>
   );
 }

@@ -20,8 +20,10 @@ export interface Property {
   typeId: number;
   amenitiesIds: number[];
 
-  mainImage: File | null; // obligatoria
+  mainImage: File | string; // obligatoria
   images: File[]; // opcional
 }
 
 export type PropertyCreate = Omit<Property, "id">;
+
+export type PropertyUpdate = Omit<Property, "images">;

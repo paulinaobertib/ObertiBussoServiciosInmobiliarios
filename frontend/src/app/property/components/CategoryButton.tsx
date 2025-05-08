@@ -1,12 +1,12 @@
 import { Button } from '@mui/material';
 import { usePropertyCrud } from '../context/PropertyCrudContext';
+import { translate } from '../utils/translate';
 
 interface Props {
   category: 'amenity' | 'owner' | 'type' | 'neighborhood';
-  label: string;
 }
 
-export default function CategoryButton({ category, label }: Props) {
+export default function CategoryButton({ category }: Props) {
   const { pickCategory, category: current } = usePropertyCrud();
   const active = current === category;
 
@@ -16,7 +16,7 @@ export default function CategoryButton({ category, label }: Props) {
       onClick={() => pickCategory(active ? null : category)}
       sx={{ textTransform: 'none', minWidth: 110 }}
     >
-      {label}
+      {translate(category)}
     </Button>
   );
 }
