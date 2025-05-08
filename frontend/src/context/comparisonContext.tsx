@@ -1,56 +1,67 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface Property {
-  id: number;
-  title: string;
-  price: number;
-  img: string;
-}
+// src/context/comparisonContext.tsx
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { Property } from '../types/property';
 
 interface ComparisonContextType {
   comparisonItems: Property[];
+  selectedPropertyIds: number[];
   addToComparison: (property: Property) => void;
+  toggleSelection: (id: number) => void;
   clearComparison: () => void;
 }
 
 const ComparisonContext = createContext<ComparisonContextType | undefined>(undefined);
 
-export const ComparisonProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ComparisonProvider = ({ children }: { children: ReactNode }) => {
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
 
-  useEffect(() => {
-    const storedItems = localStorage.getItem('comparisonItems');
-    if (storedItems) {
-      setComparisonItems(JSON.parse(storedItems));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('comparisonItems', JSON.stringify(comparisonItems));
-  }, [comparisonItems]);
+  const toggleSelection = (id: number) => {
+    setSelectedPropertyIds((prev) => {
+      console.log(`Toggling selection for ID ${id}, current: ${prev}`); // Depuración
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      } else if (prev.length < 2) {
+        return [...prev, id];
+      } else {
+        return [...prev.slice(1), id];
+      }
+    });
+  };
 
   const addToComparison = (property: Property) => {
     setComparisonItems((prev) => {
-      const exists = prev.find((item) => item.id === property.id);
-      if (exists) return prev;
-      if (prev.length >= 2) return [prev[1], property];
-      return [...prev, property];
+      console.log('Adding to comparison:', property); // Depuración
+      console.log('Current comparisonItems:', prev);
+      if (prev.length < 2) {
+        return [...prev, property];
+      }
+      return prev; // No añadimos más si ya hay 2
     });
   };
 
   const clearComparison = () => {
     setComparisonItems([]);
-    localStorage.removeItem('comparisonItems');
+    setSelectedPropertyIds([]);
+    console.log('Cleared comparisonItems and selectedPropertyIds'); // Depuración
   };
 
   return (
-    <ComparisonContext.Provider value={{ comparisonItems, addToComparison, clearComparison }}>
+    <ComparisonContext.Provider
+      value={{
+        comparisonItems,
+        selectedPropertyIds,
+        addToComparison,
+        toggleSelection,
+        clearComparison,
+      }}
+    >
       {children}
     </ComparisonContext.Provider>
   );
 };
 
-export const useComparison = (): ComparisonContextType => {
+export const useComparison = () => {
   const context = useContext(ComparisonContext);
   if (!context) {
     throw new Error('useComparison must be used within a ComparisonProvider');

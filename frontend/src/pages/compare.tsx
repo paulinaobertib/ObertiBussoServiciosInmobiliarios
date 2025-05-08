@@ -1,17 +1,36 @@
-import { useComparison } from '../context/comparisonContext'; 
+// src/pages/compare.tsx
+import { Box, Typography, Button } from '@mui/material';
 import Navbar from '../components/navbar';
-
+import PropertyDetails from '../components/propertyDetails';
+import { useComparison } from '../context/comparisonContext';
 
 const Compare = () => {
   const { comparisonItems, clearComparison } = useComparison();
+
+  console.log('Comparison Items in Compare:', comparisonItems); // Depuración
 
   if (comparisonItems.length === 0) {
     return (
       <>
         <Navbar />
-        <div style={{ padding: '1rem' }}>
-          <p>No hay propiedades para comparar.</p>
-        </div>
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h5" color="text.secondary">
+            No hay propiedades para comparar.
+          </Typography>
+        </Box>
+      </>
+    );
+  }
+
+  if (comparisonItems.length !== 2) {
+    return (
+      <>
+        <Navbar />
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h5" color="error">
+            Por favor selecciona exactamente 2 propiedades para comparar.
+          </Typography>
+        </Box>
       </>
     );
   }
@@ -19,21 +38,42 @@ const Compare = () => {
   return (
     <>
       <Navbar />
-      <div style={{ padding: '1rem' }}>
-        <h2>Comparar propiedades</h2>
-        <button onClick={clearComparison} style={{ marginBottom: '1rem' }}>
-          Limpiar comparación
-        </button>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+      <Box sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Comparar propiedades
+        </Typography>
+        <Box sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            onClick={clearComparison}
+            sx={{ backgroundColor: '#e65100', color: '#fff' }}
+          >
+            Limpiar comparación
+          </Button>
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 4,
+            justifyContent: 'center',
+          }}
+        >
           {comparisonItems.map((property) => (
-            <div key={property.id} style={{ border: '1px solid #ccc', padding: '1rem' }}>
-              <img src={property.img} alt={property.title} style={{ width: '100px' }} />
-              <h3>{property.title}</h3>
-              <p>Precio: ${property.price}</p>
-            </div>
+            <Box key={property.id} sx={{ position: 'relative', flex: 1 }}>
+              <PropertyDetails property={property} />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 10,
+                  right: 10,
+                  '& > button': { display: 'none' }, // Ocultamos el botón "Volver al catálogo"
+                }}
+              />
+            </Box>
           ))}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </>
   );
 };

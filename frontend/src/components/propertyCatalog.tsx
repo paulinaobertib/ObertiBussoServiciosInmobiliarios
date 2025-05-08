@@ -1,25 +1,41 @@
+// src/components/PropertyCatalog.tsx
 import { Box, Card, CardMedia, CardContent, Typography, Chip } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
+import { useNavigate } from 'react-router-dom';
+import { Property } from '../types/property';
 
 type PropertyCatalogProps = {
-  properties: any[];
-  selectionMode: boolean;
-  selectedPropertyIds: number[];
-  toggleSelection: (id: number) => void;
-  isSelected: (id: number) => boolean;
+  properties?: Property[];
+  selectionMode?: boolean;
+  selectedPropertyIds?: number[];
+  toggleSelection?: (id: number) => void;
+  isSelected?: (id: number) => boolean;
 };
 
 const PropertyCatalog = ({
-  properties,
-  selectionMode,
-  toggleSelection,
-  isSelected,
+  properties = [],
+  selectionMode = false,
+  toggleSelection = () => {},
+  isSelected = () => false,
 }: PropertyCatalogProps) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = (propertyId: number) => {
+    if (!selectionMode) {
+      navigate(`/properties/${propertyId}`);
+    }
+  };
+
+  const handleSelectionClick = (e: React.MouseEvent, propertyId: number) => {
+    e.stopPropagation();
+    console.log(`Handling selection click for ID ${propertyId}`); // Depuración
+    toggleSelection(propertyId);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-      {properties.map((property, index) => {
-        const propertyId = property.id ?? index;
+      {properties.map((property) => {
+        const propertyId = property.id;
 
         return (
           <Card
@@ -38,7 +54,9 @@ const PropertyCatalog = ({
                 boxShadow: 4,
                 zIndex: 1,
               },
+              cursor: selectionMode ? 'default' : 'pointer',
             }}
+            onClick={() => handleCardClick(propertyId)}
           >
             <Box sx={{ position: 'relative' }}>
               <CardMedia
@@ -86,7 +104,7 @@ const PropertyCatalog = ({
 
             {selectionMode && (
               <Box
-                onClick={() => toggleSelection(propertyId)}
+                onClick={(e) => handleSelectionClick(e, propertyId)}
                 sx={{
                   position: 'absolute',
                   bottom: 10,
@@ -95,9 +113,7 @@ const PropertyCatalog = ({
                   height: 28,
                   borderRadius: '4px',
                   border: '2px solid #000',
-                  backgroundColor: isSelected(propertyId)
-                    ? '#e65100'
-                    : '#fff',
+                  backgroundColor: isSelected(propertyId) ? '#e65100' : '#fff',
                   cursor: 'pointer',
                   display: 'flex',
                   justifyContent: 'center',
