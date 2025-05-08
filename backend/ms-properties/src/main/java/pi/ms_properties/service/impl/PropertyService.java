@@ -2,6 +2,8 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PropertyService implements IPropertyService {
 
+    private static final Logger log = LoggerFactory.getLogger(PropertyService.class);
     private final PropertyRepository propertyRepository;
 
     private final OwnerRepository ownerRepository;
@@ -44,6 +47,7 @@ public class PropertyService implements IPropertyService {
     private final ImageService imageService;
 
     private final AzureBlobStorage azureBlobStorage;
+    private final ImageRepository imageRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -78,14 +82,22 @@ public class PropertyService implements IPropertyService {
         response.setPrice(property.getPrice());
         response.setDescription(property.getDescription());
         response.setDate(property.getDate());
-        response.setMainImage(property.getMainImage());
+        response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
 
         NeighborhoodDTO neighborhoodDTO = mapper.convertValue(property.getNeighborhood(), NeighborhoodDTO.class);
 
         response.setNeighborhood(neighborhoodDTO);
         response.setType(property.getType());
         response.setAmenities(property.getAmenities());
-        response.setImages(property.getImages());
+
+        Set<Image> images = property.getImages();
+        for (Image image : images ) {
+            String blobPath = image.getUrl();
+            String signedUrl = azureBlobStorage.getImageUrl(blobPath);
+            image.setUrl(signedUrl);
+        }
+        response.setImages(images);
+
         response.setStatus(property.getStatus().toString());
         response.setOperation(property.getOperation().toString());
         response.setCurrency(property.getCurrency().toString());
@@ -155,7 +167,19 @@ public class PropertyService implements IPropertyService {
             Property updated = SaveProperty(propertyDTO);
             updated.setId(id);
             updated.setDate(property.get().getDate());
+
+            // para la imagen principal
+            try {
+                imageService.deleteImageByName(property.get().getMainImage());
+                String path = imageService.uploadImageToProperty(propertyDTO.getMainImageUpdated(), updated.getId(), true);
+                updated.setMainImage(path);
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Fallo al subir la imagen principal", e);
+            }
+
             propertyRepository.save(updated);
+            updated.setImages(property.get().getImages());
             PropertyDTO response = toDTO(updated);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
