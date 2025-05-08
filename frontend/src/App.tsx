@@ -1,7 +1,7 @@
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import { Routes } from './Routes';
-import { ComparisonProvider } from './context/comparisonContext';
+import { ComparisonProvider } from './app/property/context/comparisonContext';
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;

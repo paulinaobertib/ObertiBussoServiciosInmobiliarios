@@ -1,4 +1,3 @@
-// src/context/comparisonContext.tsx
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { Property } from '../types/property';
 
@@ -18,7 +17,7 @@ export const ComparisonProvider = ({ children }: { children: ReactNode }) => {
 
   const toggleSelection = (id: number) => {
     setSelectedPropertyIds((prev) => {
-      console.log(`Toggling selection for ID ${id}, current: ${prev}`); // Depuración
+      console.log(`Toggling selection for ID ${id}, current: ${prev}`);
       if (prev.includes(id)) {
         return prev.filter((item) => item !== id);
       } else if (prev.length < 2) {
@@ -31,19 +30,19 @@ export const ComparisonProvider = ({ children }: { children: ReactNode }) => {
 
   const addToComparison = (property: Property) => {
     setComparisonItems((prev) => {
-      console.log('Adding to comparison:', property); // Depuración
+      console.log('Adding to comparison:', property);
       console.log('Current comparisonItems:', prev);
       if (prev.length < 2) {
         return [...prev, property];
       }
-      return prev; // No añadimos más si ya hay 2
+      return prev;
     });
   };
 
   const clearComparison = () => {
     setComparisonItems([]);
     setSelectedPropertyIds([]);
-    console.log('Cleared comparisonItems and selectedPropertyIds'); // Depuración
+    console.log('Cleared comparisonItems and selectedPropertyIds');
   };
 
   return (

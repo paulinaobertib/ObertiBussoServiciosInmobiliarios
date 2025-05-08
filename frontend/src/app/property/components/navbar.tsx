@@ -9,7 +9,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
-import logo from '../assets/logoJPG.png';
+import logo from '../../../assets/logoJPG.png';
 import { Link } from 'react-router-dom';
 
 const pages = ['Contacto', 'Noticias'];

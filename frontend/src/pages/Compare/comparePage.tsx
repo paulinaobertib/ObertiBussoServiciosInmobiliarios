@@ -1,13 +1,12 @@
-// src/pages/compare.tsx
 import { Box, Typography, Button } from '@mui/material';
-import Navbar from '../components/navbar';
-import PropertyDetails from '../components/propertyDetails';
-import { useComparison } from '../context/comparisonContext';
+import Navbar from '../../app/property/components/navbar';
+import PropertyDetails from '../../app/property/components/propertyDetails';
+import { useComparison } from '../../app/property/context/comparisonContext';
 
 const Compare = () => {
   const { comparisonItems, clearComparison } = useComparison();
 
-  console.log('Comparison Items in Compare:', comparisonItems); // Depuración
+  console.log('Comparison Items in Compare:', comparisonItems);
 
   if (comparisonItems.length === 0) {
     return (
@@ -67,7 +66,7 @@ const Compare = () => {
                   position: 'absolute',
                   bottom: 10,
                   right: 10,
-                  '& > button': { display: 'none' }, // Ocultamos el botón "Volver al catálogo"
+                  '& > button': { display: 'none' },
                 }}
               />
             </Box>
