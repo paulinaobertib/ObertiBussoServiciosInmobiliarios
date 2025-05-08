@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-import SpeedDialTooltipOpen from '../components/selectActions';
-import Navbar from '../components/navbar';
-import PropertyCatalog from '../components/propertyCatalog';
-import ImageCarousel from '../components/imageCarousel';
-import SearchFilters from '../components/searchFilters';
-import SearchBar from '../components/searchBar';
+import SpeedDialTooltipOpen from '../app/property/components/selectActions';
+import Navbar from '../app/property/components/navbar';
+import PropertyCatalog from '../app/property/components/propertyCatalog';
+import ImageCarousel from '../app/property/components/imageCarousel';
+import SearchFilters from '../app/property/components/searchFilters';
+import SearchBar from '../app/property/components/searchBar';
 
 function Home() {
   const navigate = useNavigate();
