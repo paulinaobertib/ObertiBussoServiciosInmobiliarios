@@ -8,7 +8,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
-import logo from '../assets/logoJPG.png';
+import logo from '../../../assets/logoJPG.png';
 
 const pages = ['Catálogo', 'Contacto', 'Blog'];
 
@@ -113,14 +113,14 @@ function ResponsiveAppBar() {
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0, display: 'flex'}}>
+          <Box sx={{ flexGrow: 0, display: 'flex' }}>
             <Button
               color="inherit"
               sx={{
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.1)',
                 },
-                fontSize: { xs: '0.75rem', sm: '1rem' }, 
+                fontSize: { xs: '0.75rem', sm: '1rem' },
               }}
             >
               Mi Perfil
