@@ -1,6 +1,9 @@
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
-import { Routes } from './Routes';
+import Routes from './Routes';
+import { BrowserRouter } from 'react-router-dom';
+import { PropertyCrudProvider } from './app/property/context/PropertyCrudContext';
+import { AlertProvider } from './app/property/context/AlertContext';
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -11,7 +14,13 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Routes />
+      <AlertProvider>
+        <PropertyCrudProvider>
+          <BrowserRouter>
+            <Routes />
+          </BrowserRouter>
+        </PropertyCrudProvider>
+      </AlertProvider>
     </ThemeProvider>
   );
 }
