@@ -5,7 +5,7 @@ import { Neighborhood, NeighborhoodCreate } from "../types/neighborhood";
 
 export const getAllNeighborhoods = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/neighborhood/getAll`);
+    const response = await axios.get(`${apiUrl}/properties/neighborhood/getAll`);
     return response.data;
   } catch (error) {
     console.error("Error fetching property types:", error);
@@ -15,7 +15,7 @@ export const getAllNeighborhoods = async () => {
 
 export const getNeighborhoodById = async (id: number) => {
   try {
-    const response = await axios.get(`${apiUrl}/neighborhood/getById/${id}`);
+    const response = await axios.get(`${apiUrl}/properties/neighborhood/getById/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching neighborhood with ID ${id}:`, error);
@@ -28,7 +28,7 @@ export const postNeighborhood = async (
 ) => {
   try {
     const response = await axios.post(
-      `${apiUrl}/neighborhood/create`,
+      `${apiUrl}/properties/neighborhood/create`,
       neighborhoodData
     );
     return response.data;
@@ -39,10 +39,9 @@ export const postNeighborhood = async (
 };
 
 export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
-  console.log(`PUT URL: ${apiUrl}/neighborhood/update/${neighborhoodData.id}`);
   try {
     const response = await axios.put(
-      `${apiUrl}/neighborhood/update/${neighborhoodData.id}`,
+      `${apiUrl}/properties/neighborhood/update/${neighborhoodData.id}`,
       neighborhoodData,
       {
         headers: {
@@ -60,7 +59,7 @@ export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
 export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/neighborhood/delete/${neighborhoodData.id}`
+      `${apiUrl}/properties/neighborhood/delete/${neighborhoodData.id}`
     );
     return response.data;
   } catch (error) {

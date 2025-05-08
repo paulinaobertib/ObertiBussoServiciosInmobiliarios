@@ -5,7 +5,7 @@ import { Amenity, AmenityCreate } from "../types/amenity";
 
 export const getAllAmenities = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/amenity/getAll`);
+    const response = await axios.get(`${apiUrl}/properties/amenity/getAll`);
     return response.data;
   } catch (error) {
     console.error("Error fetching amenities:", error);
@@ -15,7 +15,9 @@ export const getAllAmenities = async () => {
 
 export const getAmenityById = async (id: number) => {
   try {
-    const response = await axios.get(`${apiUrl}/amenity/getById/${id}`);
+    const response = await axios.get(
+      `${apiUrl}/properties/amenity/getById/${id}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching amenity with ID ${id}:`, error);
@@ -25,11 +27,15 @@ export const getAmenityById = async (id: number) => {
 
 export const postAmenity = async (amenityData: AmenityCreate) => {
   try {
-    const response = await axios.post(`${apiUrl}/amenity/create`, null, {
-      params: {
-        name: amenityData.name,
-      },
-    });
+    const response = await axios.post(
+      `${apiUrl}/properties/amenity/create`,
+      null,
+      {
+        params: {
+          name: amenityData.name,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating amenity:", error);
@@ -39,7 +45,10 @@ export const postAmenity = async (amenityData: AmenityCreate) => {
 
 export const putAmenity = async (amenityData: Amenity) => {
   try {
-    const response = await axios.put(`${apiUrl}/amenity/update`, amenityData);
+    const response = await axios.put(
+      `${apiUrl}/properties/amenity/update`,
+      amenityData
+    );
     return response.data;
   } catch (error) {
     console.error("Error saving amenity:", error);
@@ -50,7 +59,7 @@ export const putAmenity = async (amenityData: Amenity) => {
 export const deleteAmenity = async (amenityData: Amenity) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/amenity/delete/${amenityData.id}`
+      `${apiUrl}/properties/amenity/delete/${amenityData.id}`
     );
     return response.data;
   } catch (error) {

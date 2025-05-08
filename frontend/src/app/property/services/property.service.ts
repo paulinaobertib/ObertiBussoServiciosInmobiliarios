@@ -1,24 +1,81 @@
 import axios from "axios";
-import { PropertyCreate } from "../types/property";
+import { Property, PropertyUpdate, PropertyCreate } from "../types/property";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export async function postProperty(data: PropertyCreate) {
-  const fd = new FormData();
+  const form = new FormData();
   const { mainImage, images, ...plainFields } = data;
 
-  fd.append(
+  form.append(
     "data",
     new Blob([JSON.stringify(plainFields)], { type: "application/json" })
   );
 
-  if (mainImage) fd.append("mainImage", mainImage);
-  images.forEach((img) => fd.append("images", img));
+  if (mainImage) form.append("mainImage", mainImage);
+  images.forEach((img) => form.append("images", img));
 
   try {
-    return (await axios.post(`${apiUrl}/property/create`, fd)).data;
-  } catch (err: any) {
-    console.error("Error al enviar la propiedad:", err);
-    throw err;
+    return (await axios.post(`${apiUrl}/properties/property/create`, form))
+      .data;
+  } catch (error) {
+    console.error("Error saving property:", error);
+    throw error;
   }
 }
+
+/* ---- PUT actualizar propiedad ---- */
+export const putProperty = async (data: PropertyUpdate) => {
+  const { id, ...plainFields } = data;
+
+  const form = new FormData();
+  form.append(
+    "data",
+    new Blob([JSON.stringify(plainFields)], { type: "application/json" })
+  );
+
+  // if (mainImage instanceof File) {
+  //   form.append("mainImage", mainImage);
+  // }
+  try {
+    return (await axios.put(`${apiUrl}/properties/property/update/${id}`, form))
+      .data;
+  } catch (error) {
+    console.error("Error saving property:", error);
+    throw error;
+  }
+};
+
+export const deleteProperty = async (data: Property) => {
+  try {
+    const response = await axios.delete(
+      `${apiUrl}/properties/property/delete/${data.id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    throw error;
+  }
+};
+
+export const getAllProperties = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/properties/property/getAll`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    throw error;
+  }
+};
+
+export const getPropertyById = async (id: number) => {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/properties/property/getById/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching property with ID ${id}:`, error);
+    throw error;
+  }
+};
