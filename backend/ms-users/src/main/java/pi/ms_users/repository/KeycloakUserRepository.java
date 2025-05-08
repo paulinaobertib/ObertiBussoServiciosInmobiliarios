@@ -25,7 +25,12 @@ public class KeycloakUserRepository implements IUserRepository{
     private String realm;
 
     private User toUser(UserRepresentation userRepresentation) {
-        return new User(userRepresentation.getId(), userRepresentation.getUsername(), userRepresentation.getEmail(), userRepresentation.getFirstName(), userRepresentation.getLastName(), userRepresentation.getAttributes().get("phone").getFirst());
+        Map<String, List<String>> attributes = userRepresentation.getAttributes();
+        String phone = null;
+        if (attributes != null && attributes.get("phone") != null && !attributes.get("phone").isEmpty()) {
+            phone = attributes.get("phone").getFirst();
+        }
+        return new User(userRepresentation.getId(), userRepresentation.getUsername(), userRepresentation.getEmail(), userRepresentation.getFirstName(), userRepresentation.getLastName(), phone);
     }
 
     @Override
@@ -52,16 +57,21 @@ public class KeycloakUserRepository implements IUserRepository{
     public User updateUser(User user) {
         UsersResource usersResource = keycloak.realm(realm).users();
         UserRepresentation userRepresentation = usersResource.get(user.getId()).toRepresentation();
+
+        userRepresentation.setEmail(user.getMail());
         userRepresentation.setFirstName(user.getFirstName());
         userRepresentation.setLastName(user.getLastName());
-        userRepresentation.setEmail(user.getMail());
-        userRepresentation.setUsername(user.getUsername());
 
-        Map<String, List<String>> attributes = new HashMap<>();
-        attributes.put("phone", List.of(user.getPhone()));
+        Map<String, List<String>> attributes = userRepresentation.getAttributes();
+        if (attributes == null) {
+            attributes = new HashMap<>();
+        }
+        attributes.put("phone", Collections.singletonList(user.getPhone()));
         userRepresentation.setAttributes(attributes);
 
         usersResource.get(user.getId()).update(userRepresentation);
+
+        user.setMail(userRepresentation.getEmail());
         return user;
     }
 

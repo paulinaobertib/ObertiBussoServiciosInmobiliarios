@@ -22,7 +22,7 @@ public class JwtAuthConverter implements Converter<Jwt, Collection<GrantedAuthor
         }
 
         // roles del cliente
-        Map<String, Object> resourceAccess = source.getClaim("resouce_access");
+        Map<String, Object> resourceAccess = source.getClaim("resource_access");
         Map<String, Object> resource;
         Collection<String> resourceRoles;
 

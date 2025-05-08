@@ -1,5 +1,6 @@
 package pi.ms_users.service.impl;
 
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class UserService {
             userRepository.deleteUserById(id);
             return ResponseEntity.ok("Se ha eliminado el usuario");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -56,6 +58,8 @@ public class UserService {
             }
             User updated = userRepository.updateUser(user);
             return ResponseEntity.ok(updated);
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
