@@ -32,7 +32,8 @@ public class PropertyController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestBody PropertyUpdateDTO propertyUpdateDTO) {
+    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestPart("data") PropertyUpdateDTO propertyUpdateDTO, @RequestPart("mainImage") MultipartFile mainImage) {
+        propertyUpdateDTO.setMainImageUpdated(mainImage);
         return propertyService.updateProperty(id, propertyUpdateDTO);
     }
 
