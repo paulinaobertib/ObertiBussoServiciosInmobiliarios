@@ -7,7 +7,7 @@ import {
   CardContent,
   Chip,
 } from '@mui/material';
-import { getAllProperties } from '../services/propertyService';
+import { getAllProperties } from '../services/property.service';
 
 const Home: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([]);
