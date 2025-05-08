@@ -82,7 +82,7 @@ public class Property {
     )
     private Set<Amenity> amenities = new HashSet<>();
 
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Set<Image> images = new HashSet<>();
 }
