@@ -7,7 +7,7 @@ import pi.ms_properties.domain.Image;
 import java.util.List;
 
 public interface IImageService {
-    String uploadImageToProperty(MultipartFile file, Long propertyId);
+    String uploadImageToProperty(MultipartFile file, Long propertyId, Boolean type);
 
     ResponseEntity<String> deleteImage(Long id);
 

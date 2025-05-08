@@ -46,9 +46,14 @@ public class ViewController {
         return viewService.getViewsByNeighborhoodType();
     }
 
-    @GetMapping("/state")
-    public ResponseEntity<Map<String, Long>> getByState() {
-        return viewService.getViewsByState();
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Long>> getViewsByStatus() {
+        return viewService.getViewsByStatus();
+    }
+
+    @GetMapping("/statusAndType")
+    public ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType() {
+        return viewService.getViewsByStatusAndType();
     }
 
     @GetMapping("/operation")

@@ -6,7 +6,7 @@ import pi.ms_properties.domain.Type;
 import java.util.List;
 
 public interface ITypeService {
-    ResponseEntity<String> createType(String name);
+    ResponseEntity<String> createType(Type type);
 
     ResponseEntity<String> deleteType(Long id);
 

@@ -11,6 +11,7 @@ import pi.ms_properties.repository.OwnerRepository;
 import pi.ms_properties.repository.PropertyRepository;
 import pi.ms_properties.service.interf.IOwnerService;
 import pi.ms_properties.specification.OwnerSpecification;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,8 @@ public class OwnerService implements IOwnerService {
         try {
             ownerRepository.save(owner);
             return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("El mail '" + owner.getMail() + "' ya existe");
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)

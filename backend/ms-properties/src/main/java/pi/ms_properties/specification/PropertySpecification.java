@@ -133,7 +133,8 @@ public class PropertySpecification {
             String likePattern = "%" + value.toLowerCase() + "%";
 
             return builder.or(
-                    builder.like(builder.lower(root.get("title")), likePattern)
+                    builder.like(builder.lower(root.get("title")), likePattern),
+                    builder.like(builder.lower(root.get("description")), likePattern)
             );
         };
     }

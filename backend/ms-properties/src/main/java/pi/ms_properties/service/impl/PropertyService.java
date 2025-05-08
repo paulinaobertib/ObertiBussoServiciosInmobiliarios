@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.*;
+import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
@@ -15,6 +16,7 @@ import pi.ms_properties.repository.*;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +40,10 @@ public class PropertyService implements IPropertyService {
     private final ViewService viewService;
 
     private final ObjectMapper mapper;
+
     private final ImageService imageService;
+
+    private final AzureBlobStorage azureBlobStorage;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -62,7 +67,7 @@ public class PropertyService implements IPropertyService {
 
     private PropertyDTO toDTO(Property property) {
         PropertyDTO response = new PropertyDTO();
-
+        response.setId(property.getId());
         response.setTitle(property.getTitle());
         response.setStreet(property.getStreet());
         response.setNumber(property.getNumber());
@@ -75,20 +80,12 @@ public class PropertyService implements IPropertyService {
         response.setDate(property.getDate());
         response.setMainImage(property.getMainImage());
 
-        response.setNeighborhoodName(property.getNeighborhood().getName());
-        response.setNeighborhoodType(property.getNeighborhood().getType().name());
-        response.setType(property.getType().getName());
+        NeighborhoodDTO neighborhoodDTO = mapper.convertValue(property.getNeighborhood(), NeighborhoodDTO.class);
 
-        List<String> amenityNames = property.getAmenities().stream()
-                .map(Amenity::getName)
-                .collect(Collectors.toList());
-        response.setAmenities(amenityNames);
-
-        List<String> imageUrls = property.getImages().stream()
-                .map(Image::getUrl)
-                .collect(Collectors.toList());
-        response.setImages(imageUrls);
-
+        response.setNeighborhood(neighborhoodDTO);
+        response.setType(property.getType());
+        response.setAmenities(property.getAmenities());
+        response.setImages(property.getImages());
         response.setStatus(property.getStatus().toString());
         response.setOperation(property.getOperation().toString());
         response.setCurrency(property.getCurrency().toString());
@@ -107,7 +104,7 @@ public class PropertyService implements IPropertyService {
 
             // para la imagen principal
             try {
-                String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId());
+                String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId(), true);
                 property.setMainImage(path);
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -117,7 +114,7 @@ public class PropertyService implements IPropertyService {
             List<MultipartFile> images = propertyDTO.getImages();
             if (images != null && !images.isEmpty()) {
                 for (MultipartFile image : images) {
-                    imageService.uploadImageToProperty(image, property.getId());
+                    imageService.uploadImageToProperty(image, property.getId(), false);
                 }
             }
             propertyRepository.save(property);
@@ -296,9 +293,9 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
-    public ResponseEntity<List<PropertyDTO>> findByTitle(String title) {
+    public ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value) {
         try {
-            Specification<Property> specification = PropertySpecification.textSearch(title);
+            Specification<Property> specification = PropertySpecification.textSearch(value);
             List<Property> properties = propertyRepository.findAll(specification);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)

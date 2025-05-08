@@ -2,6 +2,7 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,8 @@ public class NeighborhoodService implements INeighborhoodService {
             neighborhoodRepository.save(neighborhood);
 
             return ResponseEntity.ok("Se ha guardado el barrio");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("El barrio '" + neighborhoodDTO.getName() + "' ya existe");
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -92,7 +95,7 @@ public class NeighborhoodService implements INeighborhoodService {
             }
 
             List<NeighborhoodDTO> neighborhoodDTOS = neighborhoods.stream()
-                    .map(neighborhood -> new NeighborhoodDTO(neighborhood.getName(), String.valueOf(neighborhood.getType()), neighborhood.getCity()))
+                    .map(neighborhood -> new NeighborhoodDTO(neighborhood.getId(), neighborhood.getName(), String.valueOf(neighborhood.getType()), neighborhood.getCity()))
                     .toList();
 
             return ResponseEntity.ok(neighborhoodDTOS);
