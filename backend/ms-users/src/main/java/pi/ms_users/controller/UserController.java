@@ -2,6 +2,7 @@ package pi.ms_users.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.User;
 import pi.ms_users.service.impl.UserService;
