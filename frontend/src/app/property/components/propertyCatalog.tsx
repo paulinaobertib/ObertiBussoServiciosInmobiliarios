@@ -1,4 +1,3 @@
-// src/components/PropertyCatalog.tsx
 import { Box, Card, CardMedia, CardContent, Typography, Chip } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +27,7 @@ const PropertyCatalog = ({
 
   const handleSelectionClick = (e: React.MouseEvent, propertyId: number) => {
     e.stopPropagation();
-    console.log(`Handling selection click for ID ${propertyId}`); // Depuración
+    console.log(`Handling selection click for ID ${propertyId}`);
     toggleSelection(propertyId);
   };
 

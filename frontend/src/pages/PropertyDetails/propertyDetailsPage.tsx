@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams} from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import Navbar from '../components/navbar';
-import PropertyDetails from '../components/propertyDetails';
-import { getPropertyById } from '../services/propertyService';
-import { Property } from '../types/property';
+import Navbar from '../../app/property/components/navbar';
+import PropertyDetails from '../../app/property/components/propertyDetails';
+import { getPropertyById } from '../../app/property/services/propertyService';
+import { Property } from '../../app/property/types/property';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();

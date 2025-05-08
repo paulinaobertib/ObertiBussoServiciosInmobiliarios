@@ -1,9 +1,9 @@
 import { Route, Routes as RoutesDom } from 'react-router-dom';
 
 import { ROUTES } from './lib';
-import Home from './pages/home';
-import Compare from './pages/compare'
-import PropertyDetailsPage from './pages/propertyDetailsPage';
+import Home from './pages/Home/homePage';
+import Compare from './pages/Compare/comparePage'
+import PropertyDetailsPage from './pages/PropertyDetails/propertyDetailsPage';
 
 export const Routes = () => {
     return (

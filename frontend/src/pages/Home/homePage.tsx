@@ -1,18 +1,17 @@
-// src/pages/home.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import Navbar from '../components/navbar';
-import SpeedDialTooltipOpen from '../components/selectActions';
-import ImageCarousel from '../components/imageCarousel';
-import SearchFilters from '../components/searchFilters';
-import SearchBar from '../components/searchBar';
-import PropertyCatalog from '../components/propertyCatalog';
-import ButtonSelect from '../components/buttonSelect';
-import CompareButtonFloating from '../components/buttonCompare';
-import { getAllProperties } from '../services/propertyService';
-import { useComparison } from '../context/comparisonContext';
-import { Property } from '../types/property';
+import Navbar from '../../app/property/components/navbar';
+import SpeedDialTooltipOpen from '../../app/property/components/selectActions';
+import ImageCarousel from '../../app/property/components/imageCarousel';
+import SearchFilters from '../../app/property/components/searchFilters';
+import SearchBar from '../../app/property/components/searchBar';
+import PropertyCatalog from '../../app/property/components/propertyCatalog';
+import ButtonSelect from '../../app/property/components/buttonSelect';
+import CompareButtonFloating from '../../app/property/components/buttonCompare';
+import { getAllProperties } from '../../app/property/services/propertyService';
+import { useComparison } from '../../app/property/context/comparisonContext';
+import { Property } from '../../app/property/types/property';
 
 function Home() {
   const navigate = useNavigate();
@@ -73,7 +72,7 @@ function Home() {
 
   useEffect(() => {
     if (shouldNavigateToCompare) {
-      console.log('Navigating to /compare'); // Depuración
+      console.log('Navigating to /compare');
       navigate('/compare');
       setShouldNavigateToCompare(false);
     }
@@ -83,7 +82,7 @@ function Home() {
     setSelectionMode((prev) => {
       const newMode = !prev;
       if (!newMode) {
-        clearComparison(); // Limpiamos el contexto al salir del modo de selección
+        clearComparison();
       }
       return newMode;
     });
@@ -92,12 +91,12 @@ function Home() {
   const isSelected = (id: number) => selectedPropertyIds.includes(id);
 
   const handleCompareClick = () => {
-    console.log('Selected Property IDs:', selectedPropertyIds); // Depuración
+    console.log('Selected Property IDs:', selectedPropertyIds);
     clearComparison();
     const selectedProperties = properties.filter((property) =>
       selectedPropertyIds.includes(property.id)
     );
-    console.log('Selected Properties:', selectedProperties); // Depuración
+    console.log('Selected Properties:', selectedProperties);
     selectedProperties.forEach((property) => {
       addToComparison(property);
     });

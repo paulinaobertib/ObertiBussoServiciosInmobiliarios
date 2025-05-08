@@ -9,5 +9,4 @@ export interface Property {
   bedrooms?: number;
   bathrooms?: number;
   area?: number;
-  // Agrega más campos según tu base de datos
 }
