@@ -16,8 +16,8 @@ public class TypeController {
     private final TypeService typeService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createType(@RequestParam String name) {
-        return typeService.createType(name);
+    public ResponseEntity<String> createType(@RequestBody Type type) {
+        return typeService.createType(type);
     }
 
     @PutMapping("/update")

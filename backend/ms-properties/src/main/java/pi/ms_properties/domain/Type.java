@@ -17,4 +17,13 @@ public class Type {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "has_rooms", nullable = false)
+    private Boolean hasRooms;
+
+    @Column(name = "has_bathrooms", nullable = false)
+    private Boolean hasBathrooms;
+
+    @Column(name = "has_bedrooms", nullable = false)
+    private Boolean hasBedrooms;
 }
