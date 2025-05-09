@@ -1,4 +1,4 @@
-package pi.ms_users.repository;
+package pi.ms_users.repository.UserRepository;
 
 import pi.ms_users.domain.User;
 

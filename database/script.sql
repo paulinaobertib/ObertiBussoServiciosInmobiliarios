@@ -76,7 +76,7 @@ CREATE TABLE Image (
 
 CREATE TABLE Contract (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     property_id BIGINT NOT NULL,
     type VARCHAR(50) NOT NULL,
     start_date DATETIME NOT NULL,
@@ -99,7 +99,7 @@ CREATE TABLE Payment (
 
 CREATE TABLE Notification (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     type VARCHAR(50) NOT NULL,
     description VARCHAR(1000) NOT NULL,
     date DATETIME NOT NULL
@@ -107,7 +107,7 @@ CREATE TABLE Notification (
 
 CREATE TABLE Favorite (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     property_id BIGINT NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
@@ -123,7 +123,7 @@ CREATE TABLE Maintenance (
 
 CREATE TABLE Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
     time TIME NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE Appointment (
 
 CREATE TABLE News (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE News (
 
 CREATE TABLE Inquiry (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL

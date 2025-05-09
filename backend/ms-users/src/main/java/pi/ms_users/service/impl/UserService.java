@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.User;
-import pi.ms_users.repository.IUserRepository;
+import pi.ms_users.repository.UserRepository.IUserRepository;
 
 import java.util.List;
 import java.util.Optional;
