@@ -35,6 +35,12 @@ public class UserController {
         return userService.getUserRoles(id);
     }
 
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/findUser")
+    public ResponseEntity<List<User>> searchUsersByText(@RequestParam String searchTerm) {
+        return userService.searchUsersByText(searchTerm);
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         return userService.deleteUserById(id);
