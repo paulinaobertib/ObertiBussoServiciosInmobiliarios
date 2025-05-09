@@ -10,6 +10,7 @@ import pi.ms_users.repository.UserRepository.IUserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -130,5 +131,33 @@ public class UserService {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    public ResponseEntity<List<User>> searchUsersByText(String searchTerm) {
+        try {
+            List<User> allUsers = userRepository.findAll();
+
+            List<User> filteredUsers = allUsers.stream()
+                    .filter(user -> contains(user.getUsername(), searchTerm) ||
+                            contains(user.getMail(), searchTerm) ||
+                            contains(user.getFirstName(), searchTerm) ||
+                            contains(user.getLastName(), searchTerm) ||
+                            contains(user.getPhone(), searchTerm))
+                    .collect(Collectors.toList());
+
+            if (filteredUsers.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(filteredUsers);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    private boolean contains(String field, String searchTerm) {
+        return field != null && searchTerm != null &&
+                field.toLowerCase().contains(searchTerm.toLowerCase());
     }
 }
