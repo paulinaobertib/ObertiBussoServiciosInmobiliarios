@@ -68,10 +68,21 @@ public class UserService {
             return ResponseEntity.notFound().build();
 
         } catch (BadRequestException e) {
-            e.printStackTrace();
+            System.err.println("Error 400 - Bad Request al actualizar usuario en Keycloak");
+
+            if (e.getResponse() != null) {
+                try {
+                    String errorBody = e.getResponse().readEntity(String.class);
+                    System.err.println("Respuesta de Keycloak: " + errorBody);
+                } catch (Exception ex) {
+                    System.err.println("No se pudo leer el cuerpo de la respuesta: " + ex.getMessage());
+                }
+            } else {
+                System.err.println("La excepción no contiene una respuesta HTTP.");
+            }
+
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
