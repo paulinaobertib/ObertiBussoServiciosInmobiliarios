@@ -1,21 +1,21 @@
 import { Box, Typography, Chip, Card, CardContent, Button, Stack, useMediaQuery, useTheme } from '@mui/material';
-  import LocationOnIcon from '@mui/icons-material/LocationOn';
-  import HotelIcon from '@mui/icons-material/Hotel';
-  import BathtubIcon from '@mui/icons-material/Bathtub';
-  import DoorFrontIcon from '@mui/icons-material/DoorFront';
-  import SquareFootIcon from '@mui/icons-material/SquareFoot';
-  import { Property } from '../../types/property';
-  import { formatPrice } from '../../../utils/formatPrice';
-  
-  interface PropertyInfoProps {
-    property: Property;
-  }
-  
-  const PropertyInfo = ({ property }: PropertyInfoProps) => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-    return (
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import HotelIcon from '@mui/icons-material/Hotel';
+import BathtubIcon from '@mui/icons-material/Bathtub';
+import DoorFrontIcon from '@mui/icons-material/DoorFront';
+import SquareFootIcon from '@mui/icons-material/SquareFoot';
+import { Property } from '../../types/property';
+import { formatPrice } from '../../utils/formatPrice';
+
+interface PropertyInfoProps {
+  property: Property;
+}
+
+const PropertyInfo = ({ property }: PropertyInfoProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  return (
       <Stack spacing={3}>
         <Box>
           <Box
@@ -33,7 +33,7 @@ import { Box, Typography, Chip, Card, CardContent, Button, Stack, useMediaQuery,
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <LocationOnIcon color="action" fontSize="small" sx={{ mr: 0.5 }} />
             <Typography variant="body1" color="text.secondary">
-              {/* Lógica para el nombre del barrio */}
+              {property.neighborhood ? `${property.neighborhood.name}, ${property.neighborhood.city}` : 'Barrio desconocido'}
             </Typography>
           </Box>
           <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>

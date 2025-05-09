@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  IconButton,
-  Paper,
-  Chip,
-  Typography,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
+import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery, } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { getFullImageUrl } from '../../../utils/getFullImageUrl';
+import { getFullImageUrl } from '../../utils/getFullImageUrl';
 
 interface Image {
   id: number;
