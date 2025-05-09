@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams} from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import Navbar from '../../app/property/components/navbar';
-import PropertyDetails from '../../app/property/components/propertyDetails';
+import PropertyDetails from '../../app/property/components/propertyDetails/propertyDetails';
 import { getPropertyById } from '../../app/property/services/propertyService';
 import { Property } from '../../app/property/types/property';
 
