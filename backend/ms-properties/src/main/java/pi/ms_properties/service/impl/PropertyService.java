@@ -2,6 +2,8 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PropertyService implements IPropertyService {
 
+    private static final Logger log = LoggerFactory.getLogger(PropertyService.class);
     private final PropertyRepository propertyRepository;
 
     private final OwnerRepository ownerRepository;
@@ -44,6 +47,7 @@ public class PropertyService implements IPropertyService {
     private final ImageService imageService;
 
     private final AzureBlobStorage azureBlobStorage;
+    private final ImageRepository imageRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -78,14 +82,22 @@ public class PropertyService implements IPropertyService {
         response.setPrice(property.getPrice());
         response.setDescription(property.getDescription());
         response.setDate(property.getDate());
-        response.setMainImage(property.getMainImage());
+        response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
 
         NeighborhoodDTO neighborhoodDTO = mapper.convertValue(property.getNeighborhood(), NeighborhoodDTO.class);
 
         response.setNeighborhood(neighborhoodDTO);
         response.setType(property.getType());
         response.setAmenities(property.getAmenities());
-        response.setImages(property.getImages());
+
+        Set<Image> images = property.getImages();
+        for (Image image : images ) {
+            String blobPath = image.getUrl();
+            String signedUrl = azureBlobStorage.getImageUrl(blobPath);
+            image.setUrl(signedUrl);
+        }
+        response.setImages(images);
+
         response.setStatus(property.getStatus().toString());
         response.setOperation(property.getOperation().toString());
         response.setCurrency(property.getCurrency().toString());
@@ -147,17 +159,36 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<PropertyDTO> updateProperty(Long id, PropertyUpdateDTO propertyDTO) {
         try {
-            Optional<Property> property = propertyRepository.findById(id);
-            if (property.isEmpty()) {
-                return ResponseEntity.notFound().build();
+            // 1) Verificamos que la propiedad exista
+            Optional<Property> optProperty = propertyRepository.findById(id);
+            if (optProperty.isEmpty()) {
+            return ResponseEntity.notFound().build();
             }
 
+            Property current = optProperty.get();
+
             Property updated = SaveProperty(propertyDTO);
-            updated.setId(id);
-            updated.setDate(property.get().getDate());
+            updated.setId(id); 
+            updated.setDate(current.getDate()); 
+    
+            // 3) Manejo flexible de la imagen principal
+            MultipartFile newMain = propertyDTO.getMainImageUpdated();  // puede ser null
+            if (newMain != null && !newMain.isEmpty()) {
+                // → El usuario subió una nueva imagen: reemplazamos la anterior
+                imageService.deleteImageByName(current.getMainImage());
+                String path = imageService.uploadImageToProperty(newMain, id, true);
+                updated.setMainImage(path);
+            } else {
+                // → El usuario no cambió la imagen: mantenemos la existente
+                updated.setMainImage(current.getMainImage());
+            }
+    
+            updated.setImages(current.getImages());
             propertyRepository.save(updated);
+    
             PropertyDTO response = toDTO(updated);
             return ResponseEntity.ok(response);
+    
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

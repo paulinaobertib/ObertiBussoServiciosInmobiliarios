@@ -1,14 +1,22 @@
-import { useNavigate } from 'react-router-dom';
+// src/pages/home.tsx
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
+
 import SpeedDialTooltipOpen from '../app/property/components/selectActions';
 import Navbar from '../app/property/components/navbar';
 import PropertyCatalog from '../app/property/components/propertyCatalog';
 import ImageCarousel from '../app/property/components/imageCarousel';
 import SearchFilters from '../app/property/components/searchFilters';
 import SearchBar from '../app/property/components/searchBar';
+import { useGlobalAlert } from '../app/property/context/AlertContext';
 
 function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { showAlert } = useGlobalAlert();
+
+  const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
 
   const handleAction = (action: string) => {
     switch (action) {
@@ -16,16 +24,32 @@ function Home() {
         navigate('/properties/new');
         break;
       case 'edit':
-        navigate('/properties/edit/123');
+        if (mode === 'edit') {
+          setMode('normal');
+          showAlert('¡Saliste del modo edición!', 'info');
+        } else {
+          setMode('edit');
+          showAlert('¡Estás en modo edición!', 'info');
+        }
         break;
       case 'delete':
-        console.log('Eliminar algo');
+        if (mode === 'delete') {
+          setMode('normal');
+          showAlert('¡Saliste del modo eliminación!', 'info');
+        } else {
+          setMode('delete');
+          showAlert('¡Estás en modo eliminación! Tené cuidado', 'info');
+        }
         break;
       default:
-        console.log('Acción no reconocida');
-        break;
+        console.warn('Acción no reconocida:', action);
     }
   };
+
+  // Al cambiar de URL, resetear el modo
+  useEffect(() => {
+    setMode('normal');
+  }, [location]);
 
   return (
     <>
@@ -34,7 +58,7 @@ function Home() {
         <SpeedDialTooltipOpen onAction={handleAction} />
         <ImageCarousel />
 
-        <Box sx={{ mt: 2, mb: 0 }}>
+        <Box sx={{ mt: 2 }}>
           <SearchBar />
         </Box>
 
@@ -42,40 +66,16 @@ function Home() {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'center', md: 'flex-start' },
-            justifyContent: { xs: 'center', md: 'flex-start' },
             gap: 1,
-            width: '100%',
             mt: -3,
           }}
         >
-        <Box
-          sx={{
-            width: { xs: '100%', md: '270px' },
-            maxWidth: { xs: '400px', md: 'none' },
-            flexShrink: 0,
-            display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' }, 
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          <SearchFilters />
-        </Box>
-
-        <Box
-          sx={{
-            flexGrow: 1,
-            minWidth: 0,
-            ml: { xs: 0, md: 8 },
-            width: { xs: '100%', md: 'auto' },
-            maxWidth: { xs: '400px', md: 'none' }, 
-            display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' },
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          <PropertyCatalog />
-        </Box>
+          <Box sx={{ width: { xs: '100%', md: 270 } }}>
+            <SearchFilters />
+          </Box>
+          <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
+            <PropertyCatalog mode={mode} onFinishAction={() => setMode('normal')} />
+          </Box>
         </Box>
       </Box>
     </>

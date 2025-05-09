@@ -91,7 +91,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setAllTypes([]);          // limpia
     try {
       const res = await fetchers.type();
-      console.log('💬 fetch types →', res);   // 👀 mira la consola
       setAllTypes(Array.isArray(res) ? res
                 : Array.isArray(res?.content) ? res.content
                 : Array.isArray(res?.data)    ? res.data
@@ -155,3 +154,4 @@ export function usePropertyCrud() {
   if (!ctx) throw new Error('usePropertyCrud debe usarse dentro de PropertyCrudProvider');
   return ctx;
 }
+

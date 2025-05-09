@@ -8,11 +8,11 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
 
 import { usePropertyForm } from '../../hooks/usePropertyForm';
 import { usePropertyCrud } from '../../context/PropertyCrudContext';
-import { useImageHandlers } from '../../hooks/useImageHandlersCreate';
+import { useImageHandlers as useImageHandlers } from '../../hooks/useImageHandlersCreate';
 
 import { Property, PropertyCreate, PropertyUpdate } from '../../types/property';
 
-
+/* ----------------------------- tipos ----------------------------- */
 interface Props {
     onImageSelect?: (main: File | null, gallery: File[]) => void;
     onValidityChange?: (valid: boolean) => void;
@@ -23,22 +23,23 @@ export type PropertyFormHandle = {
     submit: () => Promise<boolean>;
     reset: () => void;
     deleteImage: (f: File) => void;
+    setField: <K extends keyof PropertyCreate>(key: K, value: PropertyCreate[K]) => void;
     getCreateData: () => PropertyCreate;
     getUpdateData: () => PropertyUpdate;
 };
 
-
+/* ----------------------------------------------------------------- */
 const PropertyForm = forwardRef<PropertyFormHandle, Props>(
     ({ onImageSelect, onValidityChange, initialData }, ref) => {
+
         const {
-            form, setField, submit, reset, fieldErrors,
-            check,          // 👈 lo recibimos del hook
+            form, setField, submit, reset, fieldErrors, check,
         } = usePropertyForm();
 
         const { handleMainImage, handleGalleryImages, deleteImage } = useImageHandlers();
         const { selected, allTypes } = usePropertyCrud();
 
-        /* ---------------- lógica de visibilidad ---------------- */
+        /* ------------ lógica de visibilidad (sin cambios) ------------- */
         const currentType = useMemo(
             () => allTypes.find((t) => t.id === selected.type),
             [selected.type, allTypes]
@@ -49,15 +50,19 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(Boolean).length;
         const colSize = visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
 
-        /* ------------- expone métodos al padre ------------- */
+        /* ------------ expone métodos al padre ------------------------- */
         useEffect(() => {
-            if (onValidityChange) onValidityChange(check);
+            onValidityChange?.(check);
         }, [check, onValidityChange]);
 
         useImperativeHandle(ref, () => ({
             submit,
             reset,
             deleteImage: (f: File) => deleteImage(f, form, setField, onImageSelect),
+
+            /* ✅  firmamos con 'any' para no forzar coincidencia exacta */
+            setField: setField as any,
+
             getCreateData: () => {
                 const { id, ...createData } = form;
                 return createData;
@@ -68,7 +73,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             },
         }));
 
-        /* ------------- hidratar datos iniciales ------------- */
+        /* ------------ hidratar datos iniciales (sin cambios) ---------- */
         useEffect(() => {
             if (initialData) {
                 Object.entries(initialData).forEach(([k, v]) => {
@@ -77,7 +82,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             }
         }, [initialData]);
 
-        /* ------------- sync de selecciones externas ------------- */
+        /* ------------ sync selecciones externas (sin cambios) --------- */
         useEffect(() => { setField('ownerId', selected.owner ?? 0); }, [selected.owner]);
         useEffect(() => { setField('neighborhoodId', selected.neighborhood ?? 0); }, [selected.neighborhood]);
         useEffect(() => { setField('typeId', selected.type ?? 0); }, [selected.type]);
@@ -88,14 +93,13 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         }, [showRooms, showBedrooms, showBathrooms]);
         useEffect(() => { setField('amenitiesIds', selected.amenities); }, [selected.amenities]);
 
-        /* ------------- helpers ------------- */
+        /* ------------ helpers ----------------------------------------- */
         const num =
             (k: keyof typeof form) =>
                 (e: React.ChangeEvent<HTMLInputElement>) => {
                     const val = e.target.value;
-                    if (val === '') {
-                        setField(k, '' as any);
-                    } else {
+                    if (val === '') setField(k, '' as any);
+                    else {
                         const parsed = parseInt(val, 10);
                         if (!isNaN(parsed)) setField(k, parsed as any);
                     }
