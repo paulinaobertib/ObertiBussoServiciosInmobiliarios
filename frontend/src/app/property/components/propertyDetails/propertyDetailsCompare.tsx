@@ -1,6 +1,6 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from '../propertyDetails/carousel';
-import PropertyInfo from '../propertyDetails/propertyInfo';
+import PropertyInfo from '../propertyDetails/propertyInfoCompare';
 import { Property } from '../../types/property';
 
 interface PropertyDetailsProps {
@@ -12,16 +12,17 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
-    <Container maxWidth="xl" sx={{ py: 8 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box
         sx={{
           backgroundColor: '#ffe0b2', // #FFA5001A   #ffe0b2
           borderRadius: 2,
-          p: 3, 
+          p: 3,
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           gap: 3,
           alignItems: 'flex-start',
+          minHeight: '600px', 
         }}
       >
         <Box sx={{ width: isMobile ? '100%' : '50%', flexShrink: 0 }}>

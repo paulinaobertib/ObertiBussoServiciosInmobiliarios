@@ -1,12 +1,10 @@
 import { Box, Typography, Button } from '@mui/material';
 import Navbar from '../../app/property/components/navbar';
-import PropertyDetails from '../../app/property/components/propertyDetails/propertyDetails';
+import PropertyDetails from '../../app/property/components/propertyDetails/propertyDetailsCompare';
 import { useComparison } from '../../app/property/context/comparisonContext';
 
 const Compare = () => {
-  const { comparisonItems, clearComparison } = useComparison();
-
-  console.log('Comparison Items in Compare:', comparisonItems);
+  const { comparisonItems } = useComparison();
 
   if (comparisonItems.length === 0) {
     return (
@@ -25,7 +23,7 @@ const Compare = () => {
     return (
       <>
         <Navbar />
-        <Box sx={{ p: 4 }}>
+        <Box sx={{ p: 4, overflowX: 'hidden' }}>
           <Typography variant="h5" color="error">
             Por favor selecciona exactamente 2 propiedades para comparar.
           </Typography>
@@ -35,45 +33,46 @@ const Compare = () => {
   }
 
   return (
-    <>
+    <Box sx={{ width: '100%', overflowX: 'hidden' }}>
       <Navbar />
       <Box sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Comparar propiedades
-        </Typography>
-        <Box sx={{ mb: 2 }}>
-          <Button
-            variant="contained"
-            onClick={clearComparison}
-            sx={{ backgroundColor: '#e65100', color: '#fff' }}
-          >
-            Limpiar comparación
-          </Button>
-        </Box>
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             gap: 4,
             justifyContent: 'center',
+            width: '100%',
+            maxWidth: '100%',
           }}
         >
           {comparisonItems.map((property) => (
-            <Box key={property.id} sx={{ position: 'relative', flex: 1 }}>
+            <Box
+              key={property.id}
+              sx={{
+                position: 'relative',
+                flex: 1,
+                width: '100%',
+                maxWidth: '100%',
+                overflowX: 'hidden',
+              }}
+            >
               <PropertyDetails property={property} />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  bottom: 10,
-                  right: 10,
-                  '& > button': { display: 'none' },
-                }}
-              />
             </Box>
           ))}
         </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            sx={{ minWidth: 200 }}
+          >
+            Contactar al vendedor
+          </Button>
+        </Box>
       </Box>
-    </>
+    </Box>
   );
 };
 
