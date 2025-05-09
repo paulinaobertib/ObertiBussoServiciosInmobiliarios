@@ -27,7 +27,6 @@ const PropertyCatalog = ({
 
   const handleSelectionClick = (e: React.MouseEvent, propertyId: number) => {
     e.stopPropagation();
-    console.log(`Handling selection click for ID ${propertyId}`);
     toggleSelection(propertyId);
   };
 
@@ -97,7 +96,7 @@ const PropertyCatalog = ({
                 {property.title || 'Propiedad'}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                ${property.price ? property.price.toLocaleString() : '0'} USD
+                {property.currency || 'USD'} ${property.price ? property.price.toLocaleString() : '0'}
               </Typography>
             </CardContent>
 

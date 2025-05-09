@@ -1,12 +1,21 @@
 export interface Property {
   id: number;
   title: string;
+  street: string;
+  number: string;
+  rooms: number;
+  bathrooms: number;
+  bedrooms: number;
+  area: number;
   price: number;
-  mainImage: string;
-  status: string;
   description?: string;
-  address?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  area?: number;
+  status: string;
+  operation: string;
+  currency: 'ARS' | 'USD';
+  ownerId: number;
+  neighborhoodId: number;
+  typeId: number;
+  amenitiesIds: number[];
+  mainImage: string;
+  images: { id: number; url: string }[];
 }
