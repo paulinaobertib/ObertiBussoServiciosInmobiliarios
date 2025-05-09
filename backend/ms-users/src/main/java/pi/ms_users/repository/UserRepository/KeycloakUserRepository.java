@@ -1,4 +1,4 @@
-package pi.ms_users.repository;
+package pi.ms_users.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class KeycloakUserRepository implements IUserRepository{
+public class KeycloakUserRepository implements IUserRepository {
 
     private final Keycloak keycloak;
 

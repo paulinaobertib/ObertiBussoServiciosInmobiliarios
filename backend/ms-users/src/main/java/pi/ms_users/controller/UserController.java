@@ -35,7 +35,6 @@ public class UserController {
         return userService.getUserRoles(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         return userService.deleteUserById(id);
@@ -47,7 +46,6 @@ public class UserController {
         return userService.deleteRoleToUser(id, role);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
     @PutMapping("/update")
     public ResponseEntity<User> update(@RequestBody User user) {
         return userService.updateUser(user);
