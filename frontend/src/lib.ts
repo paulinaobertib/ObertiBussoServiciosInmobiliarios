@@ -2,7 +2,7 @@
 // console.log("Base URL del frontend:", BASE_URL);
 
 export const ROUTES = {
-  HOME_APP: '',
+  HOME_APP: "/",
   NEW_PROPERTY: `/properties/new`,
   EDIT_PROPERTY: `/properties/:id/edit`,
   VIEW_PROPERTY: `/properties/:id`,

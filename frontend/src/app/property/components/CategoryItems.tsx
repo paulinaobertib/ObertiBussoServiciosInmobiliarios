@@ -13,6 +13,7 @@ import { usePropertyCrud } from '../context/PropertyCrudContext';
 import { translate } from '../utils/translate';
 import ModalItem from './ModalItem';
 
+
 export default function CategoryItems() {
   const { category, data, categoryLoading, selected, toggleSelect } = usePropertyCrud();
   const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; item?: any } | null>(null);

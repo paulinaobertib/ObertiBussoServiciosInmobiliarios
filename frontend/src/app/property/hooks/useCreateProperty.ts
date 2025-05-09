@@ -1,6 +1,10 @@
 import { useRef, useState } from 'react';
 import { Image } from '../types/image';
 
+/** Hook compartido para Crear / Editar propiedades.
+ *  - NO mueve la main image a la galería si se cambia.
+ *  - NO reasigna un nuevo main automáticamente al borrar la foto principal.
+ */
 export function useCreateProperty() {
   const formRef = useRef<any>(null);
 
@@ -14,12 +18,10 @@ export function useCreateProperty() {
     setGallery(g);
   };
 
-  /* borrar solo Files: se usa en Crear y como helper en Editar */
+  /* borrar solo Files: se usa en Crear y Editar */
   const deleteImgFile = (file: File) => {
-    if (main instanceof File && file === main) {
-      const [first, ...rest] = gallery;
-      setMain(first ?? null);
-      setGallery(rest);
+    if (file === main) {
+      setMain(null);                 // simplemente se quita la principal
     } else {
       setGallery(gallery.filter(f => f !== file));
     }

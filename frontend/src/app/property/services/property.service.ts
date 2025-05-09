@@ -24,26 +24,26 @@ export async function postProperty(data: PropertyCreate) {
   }
 }
 
-/* ---- PUT actualizar propiedad ---- */
 export const putProperty = async (data: PropertyUpdate) => {
-  const { id, ...plainFields } = data;
-
+  const { id, mainImage, ...plainFields } = data;
   const form = new FormData();
+
   form.append(
     "data",
     new Blob([JSON.stringify(plainFields)], { type: "application/json" })
   );
 
-  // if (mainImage instanceof File) {
-  //   form.append("mainImage", mainImage);
-  // }
-  try {
-    return (await axios.put(`${apiUrl}/properties/property/update/${id}`, form))
-      .data;
-  } catch (error) {
-    console.error("Error saving property:", error);
-    throw error;
+  /* ③  Sólo adjuntar si es File (=> hay cambio) */
+  if (mainImage instanceof File) {
+    form.append("mainImage", mainImage);
   }
+
+  const { data: updated } = await axios.put(
+    `${apiUrl}/properties/property/update/${id}`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return updated;
 };
 
 export const deleteProperty = async (data: Property) => {

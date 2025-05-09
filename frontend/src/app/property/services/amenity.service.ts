@@ -67,3 +67,4 @@ export const deleteAmenity = async (amenityData: Amenity) => {
     throw error;
   }
 };
+

@@ -74,3 +74,4 @@ export const getOwnerByPropertyId = async (id: number) => {
     throw error;
   }
 };
+

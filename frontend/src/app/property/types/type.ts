@@ -6,3 +6,4 @@ export interface Type {
   hasRooms: boolean;
 }
 export type TypeCreate = Omit<Type, "id">;
+

@@ -1,81 +1,57 @@
-/* src/app/property/hooks/useImageHandlers.ts ------------------------ */
-import { useState } from 'react';
-import { PropertyCreate } from '../types/property';
+import { useState } from "react";
+import { PropertyCreate } from "../types/property";
 
-interface HookReturn {
-  handleMainImage: (
-    f: File | null,
-    form: PropertyCreate,
-    setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | null, gallery: File[]) => void
-  ) => void;
-  handleGalleryImages: (
-    files: File[],
-    form: PropertyCreate,
-    setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | null, gallery: File[]) => void
-  ) => void;
-  deleteImage: (
-    file: File,
-    form: PropertyCreate,
-    setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | null, gallery: File[]) => void
-  ) => void;
-  imageError: string | null;
-  clearImageError: () => void;
-}
-
-export function useImageHandlers(): HookReturn {
+export function useImageHandlers() {
   const [imageError, setImageError] = useState<string | null>(null);
 
-  /* --------------- principal --------------- */
+  /* ------------ handleMainImage ------------ */
   const handleMainImage = (
     f: File | null,
     form: PropertyCreate,
     setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | null, gallery: File[]) => void
+    onImageSelect?: (main: File | string | null, gallery: Array<File | string>) => void
   ) => {
-    /* quitar principal ⇒ poner null y mantener galería */
     if (!f) {
-      setField('mainImage', null);
+      setField("mainImage", null);
       onImageSelect?.(null, form.images);
       return;
     }
 
-    const alreadyMain = form.mainImage?.name === f.name;
-    if (alreadyMain) {
-      setImageError('Esta imagen ya está como principal');
+    if (form.mainImage instanceof File && form.mainImage.name === f.name) {
+      setImageError("Esta imagen ya está como principal");
       return;
     }
 
-    /* quito de galería si la misma foto entra como principal */
-    const filteredGallery = form.images.filter(img => img.name !== f.name);
+    const filteredGallery = form.images.filter(
+      (img) => !(img instanceof File && img.name === f.name)
+    );
 
-    const previousMain = form.mainImage;
-    const updatedGallery =
-      previousMain && !filteredGallery.some(img => img.name === previousMain.name)
-        ? [...filteredGallery, previousMain]
-        : filteredGallery;
-
-    setField('mainImage', f);
-    setField('images', updatedGallery);
-    onImageSelect?.(f, updatedGallery);
+    setField("mainImage", f);
+    setField("images", filteredGallery);
+    onImageSelect?.(f, filteredGallery);
   };
 
-  /* --------------- galería --------------- */
+  /* ------------ handleGalleryImages ------------ */
   const handleGalleryImages = (
     files: File[],
     form: PropertyCreate,
     setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | null, gallery: File[]) => void
+    onImageSelect?: (main: File | string | null, gallery: Array<File | string>) => void
   ) => {
-    const existing = new Set(form.images.map(f => f.name));
-    const mainName = form.mainImage?.name;
+    const existing = new Set(
+      form.images
+        .filter((f): f is File => f instanceof File)
+        .map((f) => f.name)
+    );
+    const mainValue = form.mainImage;  // puede ser File | string | null
 
     const { valid, duplicates } = files.reduce(
       (acc, file) => {
-        if (existing.has(file.name) || file.name === mainName) acc.duplicates.push(file.name);
-        else acc.valid.push(file);
+        if (existing.has(file.name) || (mainValue instanceof File && file.name === mainValue.name)) {
+          acc.duplicates.push(file.name);
+        } else {
+          acc.valid.push(file);
+        }
         return acc;
       },
       { valid: [] as File[], duplicates: [] as string[] }
@@ -84,38 +60,36 @@ export function useImageHandlers(): HookReturn {
     if (duplicates.length) {
       setImageError(
         duplicates.length === 1
-          ? 'Se ignoró 1 imagen; ya está en uso'
+          ? "Se ignoró 1 imagen; ya está en uso"
           : `Se ignoraron ${duplicates.length} imágenes; ya están en uso`
       );
     }
-
     if (!valid.length) return;
 
-    const newGallery = [...form.images, ...valid];
-    setField('images', newGallery);
-    onImageSelect?.(form.mainImage, newGallery);
+    const newGallery: Array<File | string> = [...form.images, ...valid];
+    setField("images", newGallery);
+    onImageSelect?.(mainValue, newGallery);
   };
 
-  /* --------------- eliminar --------------- */
+  /* ------------ deleteImage ------------ */
   const deleteImage = (
     file: File,
     form: PropertyCreate,
     setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | null, gallery: File[]) => void
+    onImageSelect?: (main: File | string | null, gallery: Array<File | string>) => void
   ) => {
-    if (file === form.mainImage) {
-      const [first, ...rest] = form.images;
-      setField('mainImage', first ?? null);
-      setField('images', rest);
-      onImageSelect?.(first ?? null, rest);
+    const mainValue = form.mainImage;
+    if (file === mainValue) {
+      setField("mainImage", null);
+      onImageSelect?.(null, form.images);
     } else {
-      const rest = form.images.filter(f => f !== file);
-      setField('images', rest);
-      onImageSelect?.(form.mainImage, rest);
+      const rest = form.images.filter((f) => f !== file);
+      setField("images", rest);
+      onImageSelect?.(mainValue, rest);
     }
   };
 
-  /* --------------- utils --------------- */
+  /* ------------ utils ------------ */
   const clearImageError = () => setImageError(null);
 
   return {
