@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
-import Navbar, { NAVBAR_HEIGHT, NAVBAR_HEIGHT_XS } from '../../app/property/components/navbar';
+import Navbar, { NAVBAR_HEIGHT, NAVBAR_HEIGHT_XS } from '../../app/property/components/Navbar';
 
 /* hooks, contextos y servicios (sin cambios) */
 import { useCreateProperty } from '../../app/property/hooks/useCreateProperty';

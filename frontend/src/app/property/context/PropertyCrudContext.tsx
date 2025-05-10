@@ -92,9 +92,9 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetchers.type();
       setAllTypes(Array.isArray(res) ? res
-                : Array.isArray(res?.content) ? res.content
-                : Array.isArray(res?.data)    ? res.data
-                : []);                        // último fallback
+        : Array.isArray(res?.content) ? res.content
+          : Array.isArray(res?.data) ? res.data
+            : []);                        // último fallback
     } catch {
       setAllTypes([]);
     }

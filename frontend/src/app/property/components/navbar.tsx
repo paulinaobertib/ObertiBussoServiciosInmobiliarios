@@ -1,105 +1,149 @@
-import * as React from 'react';
-import {
-  AppBar, Box, Toolbar, IconButton, Menu,
-  MenuItem, Button, useTheme
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import logo from '../../../assets/logoJPG.png';
 
 const pages = ['Catálogo', 'Contacto', 'Blog'];
-export const NAVBAR_HEIGHT     = 56; // desktop
-export const NAVBAR_HEIGHT_XS  = 48; // mobile
+export const NAVBAR_HEIGHT = 56; // desktop
+export const NAVBAR_HEIGHT_XS = 48; // mobile
 
-export default function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const theme = useTheme();
+import {
+  AppBar,
+  Box,
+  Button,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import { useState } from 'react';
+import { LinkProps, useNavigate } from 'react-router-dom';
+import { Logout, Menu } from '@mui/icons-material';
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) =>
-    setAnchorElNav(event.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
+export const NavBarLink = ({ to, children }: LinkProps) => {
+  const { palette } = useTheme();
+  const { primary, background, common } = palette;
+  const navigate = useNavigate();
 
   return (
-    <AppBar position="fixed" elevation={2}>
-      <Toolbar
-        variant="dense"                                   /* 1️⃣  más bajo de fábrica */
-        sx={{
-          minHeight: { xs: 48, md: 56 },                  /* 2️⃣  máximo permitido   */
-          px: { xs: 1, sm: 2 },
-        }}
-      >
-        {/* LOGO — se adapta sin desbordar */}
-        <Box
-          component="img"
-          src={logo}
-          alt="Logo"
-          sx={{
-            height: 36,
-            mr: 2,
-            display: { xs: 'none', md: 'block' },
-            objectFit: 'contain',
-          }}
-        />
-
-        {/* MENÚ HAMBURGUESA */}
-        <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-          <IconButton color="inherit" onClick={handleOpenNavMenu}>
-            <MenuIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorElNav}
-            open={Boolean(anchorElNav)}
-            onClose={handleCloseNavMenu}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          >
-            {pages.map(page => (
-              <MenuItem key={page} onClick={handleCloseNavMenu}>
-                {page}
-              </MenuItem>
-            ))}
-          </Menu>
-        </Box>
-
-        {/* LOGO mobile */}
-        <Box
-          component="img"
-          src={logo}
-          alt="Logo"
-          sx={{
-            height: 32,
-            mr: 2,
-            display: { xs: 'block', md: 'none' },
-            objectFit: 'contain',
-          }}
-        />
-
-        {/* LINKS desktop */}
-        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-          {pages.map(page => (
-            <Button
-              key={page}
-              color="inherit"
-              onClick={handleCloseNavMenu}
-              sx={{ my: 0.5 }}
-            >
-              {page}
-            </Button>
-          ))}
-        </Box>
-
-        {/* BOTONES DERECHA */}
-        <Box sx={{ flexGrow: 0 }}>
-          <Button color="inherit" sx={{ fontSize: '0.75rem' }}>
-            Mi Perfil
-          </Button>
-          <Button color="inherit" sx={{ fontSize: '0.75rem' }}>
-            Cerrar sesión
-          </Button>
-        </Box>
-      </Toolbar>
-
-      {/* espaciador automático para el resto de la página */}
-      <Box sx={{ ...theme.mixins.toolbar, display: 'none' }} />
-    </AppBar>
+    <Button
+      onClick={() => {
+        navigate(to);
+      }}
+      size="small"
+      variant='contained'
+      disableElevation
+      sx={{
+        '&:hover': {
+          backgroundColor: background.default,
+          color: primary.main,
+        },
+        backgroundColor: false ? primary.contrastText : primary.main,
+        color: false ? primary.main : common.white,
+        my: 2,
+        display: 'block',
+      }}
+    >
+      <Typography sx={{ textTransform: 'none' }}>{children}</Typography>
+    </Button>
   );
-}
+};
+
+export const MobileNavBarLink = ({
+  name,
+  to,
+}: LinkProps & { name: string }) => {
+  const navigate = useNavigate();
+  return (
+    <ListItem
+      disablePadding
+      onClick={() => navigate(to)}
+    >
+      <ListItemButton sx={{ textAlign: 'center' }}>
+        <ListItemText primary={name} />
+      </ListItemButton>
+    </ListItem>
+  );
+};
+
+export default function NavBar() {
+  const { palette, breakpoints } = useTheme();
+  const isMobileScreen = useMediaQuery(breakpoints.only('xs'));
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  return (
+    <>
+      <AppBar component="nav">
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {isMobileScreen && (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+              >
+                <Menu />
+              </IconButton>
+            )}
+            {!isMobileScreen && (
+              <>
+                <Box sx={{ display: 'flex', marginRight: 2 }}>
+                  <img src={logo} alt="logo" width={90} />
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1, marginRight: 1 }}>
+                  {pages.map((page) => (
+                    <NavBarLink key={page} to={page}>
+                      {page}
+                    </NavBarLink>
+                  ))}
+                </Box>
+              </>
+            )}
+          </Box>
+          <Button
+            variant="text"
+            sx={{ color: palette.common.white }}
+            startIcon={<Logout />}
+          >
+            Salir
+          </Button>
+        </Toolbar>
+      </AppBar>
+      {isMobileScreen && (
+        <Drawer
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          sx={{
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 180 },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingY: 1,
+            }}
+          >
+            <img src={logo} alt="logo" width={140} />
+          </Box>
+          <Divider />
+          <List>
+            {pages.map((page) => (
+              <MobileNavBarLink key={page} to={page} name={page} />
+            ))}
+          </List>
+        </Drawer>
+      )}
+    </>
+  );
+};
