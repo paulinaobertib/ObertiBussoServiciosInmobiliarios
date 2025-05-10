@@ -27,3 +27,4 @@ export interface Property {
 export type PropertyCreate = Omit<Property, "id">;
 
 export type PropertyUpdate = Omit<Property, "images">;
+

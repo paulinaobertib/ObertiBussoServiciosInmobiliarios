@@ -82,3 +82,4 @@ export default function ModalItem({ info, close }: Props) {
         </Dialog>
     );
 };
+

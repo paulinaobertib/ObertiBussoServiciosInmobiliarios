@@ -1,40 +1,104 @@
-import { useNavigate } from 'react-router-dom';
-import { Box } from '@mui/material';
-import SpeedDialTooltipOpen from '../app/property/components/selectActions';
-import Navbar from '../app/property/components/navbar';
-import PropertyCatalog from '../app/property/components/propertyCatalog';
-import ImageCarousel from '../app/property/components/imageCarousel';
-import SearchFilters from '../app/property/components/searchFilters';
-import SearchBar from '../app/property/components/searchBar';
+// src/pages/Home.tsx
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Typography } from '@mui/material';
 
-function Home() {
+import ImageCarousel from '../app/property/components/ImageCarousel';
+import SearchBar from '../app/property/components/SearchBar';
+import SearchFilters from '../app/property/components/SearchFilters';
+import PropertyCatalog from '../app/property/components/PropertyCatalog';
+import FloatingButtons from '../app/property/components/FloatingButtons';
+
+import { getAllProperties } from '../app/property/services/property.service';
+import { useComparison } from '../app/property/context/ComparisonContext';
+import { useGlobalAlert } from '../app/property/context/AlertContext';
+import { Property } from '../app/property/types/property';
+import { BasePage } from './BasePage';
+
+export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { showAlert } = useGlobalAlert();
+  const { selectedPropertyIds, toggleSelection, clearComparison } = useComparison();
 
-  const handleAction = (action: string) => {
-    switch (action) {
-      case 'create':
-        navigate('/properties/new');
-        break;
-      case 'edit':
-        navigate('/properties/edit/123');
-        break;
-      case 'delete':
-        console.log('Eliminar algo');
-        break;
-      default:
-        console.log('Acción no reconocida');
-        break;
+  const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
+  const [selectionMode, setSelectionMode] = useState(false);
+
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [goCompare, setGoCompare] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const resp = await getAllProperties();
+        const data = Array.isArray(resp?.data) ? resp.data : resp;
+        setProperties(
+          (data as Property[]).map(p => ({ ...p, status: p.status ?? 'Desconocido' }))
+        );
+      } catch {
+        setProperties([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (goCompare) {
+      navigate('/compare');
+      setGoCompare(false);
+    }
+  }, [goCompare, navigate]);
+
+  useEffect(() => {
+    setMode('normal');
+  }, [location]);
+
+  const handleAction = (action: 'create' | 'edit' | 'delete') => {
+    if (action === 'create') {
+      navigate('/properties/new');
+      return;
+    }
+    if (mode === action) {
+      setMode('normal');
+      showAlert(
+        action === 'delete' ? 'Saliste del modo eliminación' : 'Saliste del modo edición',
+        'info'
+      );
+    } else {
+      setMode(action);
+      showAlert(
+        action === 'delete'
+          ? 'Modo eliminación: selecciona una propiedad'
+          : 'Modo edición: selecciona una propiedad',
+        action === 'delete' ? 'warning' : 'info'
+      );
     }
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(prev => {
+      if (prev) clearComparison();
+      return !prev;
+    });
+  };
+
+  const handleCompare = () => {
+    clearComparison();
+    properties
+      .filter(p => selectedPropertyIds.includes(p.id))
+      .forEach(p => toggleSelection(p.id));
+    setGoCompare(true);
+  };
+
   return (
-    <>
-      <Navbar />
-      <Box sx={{ height: '100%', position: 'relative', p: 2 }}>
-        <SpeedDialTooltipOpen onAction={handleAction} />
+    <BasePage>
+
+      <Box sx={{ p: 2 }}>
         <ImageCarousel />
 
-        <Box sx={{ mt: 2, mb: 0 }}>
+        <Box sx={{ mt: 2 }}>
           <SearchBar />
         </Box>
 
@@ -42,44 +106,43 @@ function Home() {
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'center', md: 'flex-start' },
-            justifyContent: { xs: 'center', md: 'flex-start' },
             gap: 1,
-            width: '100%',
             mt: -3,
           }}
         >
-        <Box
-          sx={{
-            width: { xs: '100%', md: '270px' },
-            maxWidth: { xs: '400px', md: 'none' },
-            flexShrink: 0,
-            display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' }, 
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          <SearchFilters />
-        </Box>
+          <Box sx={{ width: { xs: '100%', md: 270 } }}>
+            <SearchFilters />
+          </Box>
 
-        <Box
-          sx={{
-            flexGrow: 1,
-            minWidth: 0,
-            ml: { xs: 0, md: 8 },
-            width: { xs: '100%', md: 'auto' },
-            maxWidth: { xs: '400px', md: 'none' }, 
-            display: { xs: 'flex', md: 'block' },
-            alignItems: { xs: 'center', md: 'flex-start' },
-            justifyContent: { xs: 'center', md: 'flex-start' },
-          }}
-        >
-          <PropertyCatalog />
-        </Box>
+          <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
+            {loading ? (
+              <Typography>Cargando propiedades...</Typography>
+            ) : properties.length > 0 ? (
+              <PropertyCatalog
+                mode={mode}
+                onFinishAction={() => setMode('normal')}
+                properties={properties}
+                selectionMode={selectionMode}
+                selectedPropertyIds={selectedPropertyIds}
+                toggleSelection={toggleSelection}
+                isSelected={id => selectedPropertyIds.includes(id)}
+              />
+            ) : (
+              <Typography variant="h5" color="text.secondary">
+                No se encontraron propiedades.
+              </Typography>
+            )}
+          </Box>
         </Box>
       </Box>
-    </>
+
+      <FloatingButtons
+        onAction={handleAction}
+        selectionMode={selectionMode}
+        toggleSelectionMode={toggleSelectionMode}
+        onCompare={handleCompare}
+        compareCount={selectedPropertyIds.length}
+      />
+    </BasePage>
   );
 }
-
-export default Home;

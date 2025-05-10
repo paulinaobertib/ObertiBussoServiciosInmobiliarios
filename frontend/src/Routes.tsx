@@ -1,9 +1,9 @@
 import { Route, Routes as RoutesDom } from 'react-router-dom';
 
 import { ROUTES } from './lib';
-import Home from './pages/home';
+import Home from './pages/Home';
 import CreatePropertyPage from './pages/CreateProperty/CreatePropertyPage';
-import EditPropertyPage from './pages/EditProperty/EditPropertyPage';
+import EditPropertyPage from './pages/EditPropertyPage';
 
 export default function Routes() {
     return (
