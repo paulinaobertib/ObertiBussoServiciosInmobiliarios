@@ -1,146 +1,149 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import logo from '../../../assets/logoJPG.png';
 
 const pages = ['Catálogo', 'Contacto', 'Blog'];
+export const NAVBAR_HEIGHT = 56; // desktop
+export const NAVBAR_HEIGHT_XS = 48; // mobile
 
-function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+import {
+  AppBar,
+  Box,
+  Button,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import { useState } from 'react';
+import { LinkProps, useNavigate } from 'react-router-dom';
+import { Logout, Menu } from '@mui/icons-material';
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
+export const NavBarLink = ({ to, children }: LinkProps) => {
+  const { palette } = useTheme();
+  const { primary, background, common } = palette;
+  const navigate = useNavigate();
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
+  return (
+    <Button
+      onClick={() => {
+        navigate(to);
+      }}
+      size="small"
+      variant='contained'
+      disableElevation
+      sx={{
+        '&:hover': {
+          backgroundColor: background.default,
+          color: primary.main,
+        },
+        backgroundColor: false ? primary.contrastText : primary.main,
+        color: false ? primary.main : common.white,
+        my: 2,
+        display: 'block',
+      }}
+    >
+      <Typography sx={{ textTransform: 'none' }}>{children}</Typography>
+    </Button>
+  );
+};
+
+export const MobileNavBarLink = ({
+  name,
+  to,
+}: LinkProps & { name: string }) => {
+  const navigate = useNavigate();
+  return (
+    <ListItem
+      disablePadding
+      onClick={() => navigate(to)}
+    >
+      <ListItemButton sx={{ textAlign: 'center' }}>
+        <ListItemText primary={name} />
+      </ListItemButton>
+    </ListItem>
+  );
+};
+
+export default function NavBar() {
+  const { palette, breakpoints } = useTheme();
+  const isMobileScreen = useMediaQuery(breakpoints.only('xs'));
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
   return (
-    <AppBar position="static">
-      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2 }, overflowX: 'hidden' }}>
-        <Toolbar disableGutters sx={{ width: '100%', overflowX: 'hidden' }}>
-          <Box
-            component="img"
-            src={logo}
-            alt="Logo"
-            sx={{
-              display: { xs: 'none', md: 'flex' },
-              height: 40,
-              maxWidth: '100%',
-              objectFit: 'contain',
-              mr: 2,
-            }}
-          />
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="menú de navegación"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{ display: { xs: 'block', md: 'none' } }}
-            >
-              {pages.map((page) => (
-                <MenuItem
-                  key={page}
-                  onClick={handleCloseNavMenu}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                    },
-                  }}
-                >
-                  {page}
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
-
-          <Box
-            component="img"
-            src={logo}
-            alt="Logo"
-            sx={{
-              display: { xs: 'flex', md: 'none' },
-              height: 40,
-              maxWidth: '100%',
-              objectFit: 'contain',
-              mr: 2,
-            }}
-          />
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page) => (
-              <Button
-                key={page}
-                onClick={handleCloseNavMenu}
-                sx={{
-                  my: 2,
-                  color: 'white',
-                  display: 'block',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                  },
-                }}
+    <>
+      <AppBar component="nav">
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {isMobileScreen && (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
               >
-                {page}
-              </Button>
-            ))}
+                <Menu />
+              </IconButton>
+            )}
+            {!isMobileScreen && (
+              <>
+                <Box sx={{ display: 'flex', marginRight: 2 }}>
+                  <img src={logo} alt="logo" width={90} />
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1, marginRight: 1 }}>
+                  {pages.map((page) => (
+                    <NavBarLink key={page} to={page}>
+                      {page}
+                    </NavBarLink>
+                  ))}
+                </Box>
+              </>
+            )}
           </Box>
-
-          <Box sx={{ flexGrow: 0, display: 'flex' }}>
-            <Button
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                },
-                fontSize: { xs: '0.75rem', sm: '1rem' },
-              }}
-            >
-              Mi Perfil
-            </Button>
-            <Button
-              color="inherit"
-              sx={{
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                },
-                fontSize: { xs: '0.75rem', sm: '1rem' },
-              }}
-            >
-              Cerrar sesión
-            </Button>
-          </Box>
+          <Button
+            variant="text"
+            sx={{ color: palette.common.white }}
+            startIcon={<Logout />}
+          >
+            Salir
+          </Button>
         </Toolbar>
-      </Container>
-    </AppBar>
+      </AppBar>
+      {isMobileScreen && (
+        <Drawer
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          sx={{
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 180 },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingY: 1,
+            }}
+          >
+            <img src={logo} alt="logo" width={140} />
+          </Box>
+          <Divider />
+          <List>
+            {pages.map((page) => (
+              <MobileNavBarLink key={page} to={page} name={page} />
+            ))}
+          </List>
+        </Drawer>
+      )}
+    </>
   );
-}
-
-export default ResponsiveAppBar;
+};

@@ -45,3 +45,4 @@ export async function postImage(
 export async function deleteImageById(id: number) {
   await axios.delete(`${apiUrl}/properties/image/delete/${id}`);
 }
+

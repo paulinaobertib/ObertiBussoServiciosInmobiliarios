@@ -20,7 +20,7 @@ export const empty: Property = {
   neighborhoodId: 0,
   typeId: 0,
   amenitiesIds: [],
-  mainImage: null,
+  mainImage: "",
   images: [],
 };
 

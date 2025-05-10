@@ -40,7 +40,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
 
             <Snackbar
                 open={open}
-                autoHideDuration={3000}
+                autoHideDuration={5000}
                 onClose={() => setOpen(false)}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
@@ -57,3 +57,4 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         </AlertContext.Provider>
     );
 }
+

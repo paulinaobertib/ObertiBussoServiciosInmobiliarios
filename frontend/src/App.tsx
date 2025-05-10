@@ -4,6 +4,8 @@ import Routes from './Routes';
 import { BrowserRouter } from 'react-router-dom';
 import { PropertyCrudProvider } from './app/property/context/PropertyCrudContext';
 import { AlertProvider } from './app/property/context/AlertContext';
+import { ComparisonProvider } from './app/property/context/ComparisonContext';
+import "./index.css"
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -16,9 +18,11 @@ function App() {
     <ThemeProvider theme={theme}>
       <AlertProvider>
         <PropertyCrudProvider>
-          <BrowserRouter>
-            <Routes />
-          </BrowserRouter>
+          <ComparisonProvider>
+            <BrowserRouter>
+              <Routes />
+            </BrowserRouter>
+          </ComparisonProvider>
         </PropertyCrudProvider>
       </AlertProvider>
     </ThemeProvider>

@@ -56,3 +56,4 @@ export const deleteType = async (typeData: Type) => {
     throw error;
   }
 };
+

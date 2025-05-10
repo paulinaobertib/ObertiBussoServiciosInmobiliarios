@@ -4,3 +4,4 @@ export interface Amenity {
 }
 
 export type AmenityCreate = Pick<Amenity, "name">;
+

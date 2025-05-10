@@ -67,3 +67,4 @@ export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
     throw error;
   }
 };
+
