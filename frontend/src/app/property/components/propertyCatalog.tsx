@@ -1,15 +1,15 @@
-// src/app/property/components/PropertyCatalog.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, MouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
-  CardMedia,
   CardContent,
   Chip,
   Typography,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 
 import { getAllProperties, deleteProperty } from '../services/property.service';
 import { Property } from '../types/property';
@@ -21,46 +21,63 @@ export type CatalogMode = 'normal' | 'edit' | 'delete';
 interface CatalogProps {
   mode: CatalogMode;
   onFinishAction: () => void;
+
+  properties?: Property[];
+  selectionMode?: boolean;
+  selectedPropertyIds?: number[];
+  toggleSelection?: (id: number) => void;
+  isSelected?: (id: number) => boolean;
 }
 
-function PropertyCatalog({ mode, onFinishAction }: CatalogProps) {
+function PropertyCatalog({
+  mode,
+  onFinishAction,
+  properties = [],
+  selectionMode = false,
+  toggleSelection = () => { },
+  isSelected = () => false,
+}: CatalogProps) {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
 
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [internalProperties, setInternalProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [_, setError] = useState<string | null>(null);
 
-  // Función para cargar el listado
   const fetchProperties = async () => {
     try {
-      const response = await getAllProperties();
-      const data = Array.isArray(response?.data) ? response.data : response;
-      setProperties(data as Property[]);
-    } catch (err) {
-      console.error(err);
-      setError('Error cargando propiedades');
+      const resp = await getAllProperties();
+      const data = Array.isArray(resp?.data) ? resp.data : resp;
+      setInternalProperties(data as Property[]);
+    } catch {
+      showAlert('Error cargando propiedades', 'error');
+      setInternalProperties([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProperties();
-  }, []);
+    if (properties.length > 0) {
+      setInternalProperties(properties);
+      setLoading(false);
+    } else {
+      fetchProperties();
+    }
+  }, [properties]);
 
-  const handleClick = (property: Property) => {
+  const handleCrudClick = (property: Property) => {
     if (mode === 'edit') {
       navigate(`/properties/${property.id}/edit`);
       onFinishAction();
     } else if (mode === 'delete') {
       ask(
-        `¿Deseas eliminar la propiedad "${property.title}"?`,
+        `¿Eliminar "${property.title}"?`,
         async () => {
           try {
             await deleteProperty(property);
-            showAlert('Propiedad eliminada correctamente', 'success');
+            showAlert('Propiedad eliminada', 'success');
             await fetchProperties();
           } catch {
             showAlert('Error al eliminar propiedad', 'error');
@@ -74,6 +91,11 @@ function PropertyCatalog({ mode, onFinishAction }: CatalogProps) {
     }
   };
 
+  const handleSelectionClick = (e: MouseEvent, propertyId: number) => {
+    e.stopPropagation();
+    toggleSelection(propertyId);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
@@ -85,57 +107,89 @@ function PropertyCatalog({ mode, onFinishAction }: CatalogProps) {
   return (
     <>
       <Box sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          {properties.map((property) => {
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3,1fr)' },
+            gap: 3,
+          }}
+        >
+          {internalProperties.map((property) => {
             const imageSrc =
               typeof property.mainImage === 'string'
                 ? property.mainImage
                 : URL.createObjectURL(property.mainImage);
 
+            const hoverBg =
+              mode === 'edit'
+                ? theme.palette.primary.light
+                : mode === 'delete'
+                  ? theme.palette.error.light
+                  : undefined;
+
             return (
               <Card
                 key={property.id}
-                onClick={() => handleClick(property)}
+                onClick={() =>
+                  selectionMode
+                    ? undefined
+                    : handleCrudClick(property)
+                }
                 sx={{
                   position: 'relative',
-                  width: { xs: '100%', sm: 360, md: 500 },
+                  width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   borderRadius: 2,
                   boxShadow: 2,
-                  cursor: 'pointer',
-                  transition: 'transform 0.3s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                    boxShadow: 4,
-                    zIndex: 1,
-                  },
-                  border: mode !== 'normal' ? 2 : 0,
+                  transition: 'transform 0.2s, background-color 0.2s',
+                  border: mode !== 'normal' ? '2px solid' : 0,
                   borderColor:
-                    mode === 'edit' ? 'primary.main' :
-                      mode === 'delete' ? 'error.main' :
-                        'transparent',
+                    mode === 'edit'
+                      ? theme.palette.primary.main
+                      : mode === 'delete'
+                        ? theme.palette.error.main
+                        : 'transparent',
                   borderStyle: 'solid',
+                  cursor:
+                    selectionMode || mode !== 'normal'
+                      ? 'pointer'
+                      : 'pointer',
+                  '&:hover': mode !== 'normal' || selectionMode
+                    ? {
+                      backgroundColor: selectionMode
+                        ? theme.palette.action.hover
+                        : hoverBg,
+                      transform: mode !== 'normal' ? 'scale(1.01)' : undefined,
+                    }
+                    : {},
                 }}
               >
-                <CardMedia
-                  component="img"
-                  height="250"
-                  image={imageSrc}
-                  alt={property.title}
-                  sx={{ borderTopLeftRadius: 8, borderTopRightRadius: 8 }}
+                <Box
+                  component="div"
+                  sx={{
+                    width: '100%',
+                    aspectRatio: '16/9',
+                    backgroundImage: `url(${imageSrc})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    borderTopLeftRadius: 8,
+                    borderTopRightRadius: 8,
+                  }}
                 />
 
                 <Chip
                   label={property.status ?? 'Sin Estado'}
-                  size="medium"
+                  size="small"
                   sx={{
                     position: 'absolute',
-                    top: 10,
-                    left: 10,
+                    top: { xs: 6, sm: 8 },
+                    left: { xs: 6, sm: 10 },
                     zIndex: 5,
                     fontWeight: 600,
-                    fontSize: { xs: '12px', sm: '15px' },
+                    fontSize: { xs: '0.6rem', sm: '0.75rem', md: '0.875rem' },
+                    px: { xs: 0.5, sm: 1 },
+                    py: { xs: 0, sm: 0.5 },
                     borderRadius: 3,
                     boxShadow: 3,
                     bgcolor: '#e0e0e0',
@@ -149,24 +203,63 @@ function PropertyCatalog({ mode, onFinishAction }: CatalogProps) {
                     textAlign: 'center',
                     backgroundColor: '#fed7aa',
                     flexGrow: 1,
-                    p: { xs: 1, sm: 2 },
+                    p: { xs: 1, sm: 2, md: 3 },
                     borderBottomLeftRadius: 8,
                     borderBottomRightRadius: 8,
                   }}
                 >
-                  <Typography variant="h5" fontWeight={600} noWrap>
+                  <Typography
+                    variant="h6"
+                    noWrap
+                    sx={{
+                      fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                    }}
+                  >
                     {property.title}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    ${property.price?.toLocaleString('es-AR') ?? '0'} {property.currency}
+                  <Typography
+                    color="text.secondary"
+                    sx={{
+                      fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                    }}
+                  >
+                    ${property.price?.toLocaleString('es-AR') ?? '0'}{' '}
+                    {property.currency}
                   </Typography>
                 </CardContent>
+
+                {selectionMode && (
+                  <Box
+                    onClick={(e) => handleSelectionClick(e, property.id)}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 10,
+                      left: 10,
+                      width: 28,
+                      height: 28,
+                      borderRadius: 1,
+                      border: `2px solid ${theme.palette.primary.main}`,
+                      backgroundColor: isSelected(property.id)
+                        ? theme.palette.primary.main
+                        : '#fff',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      transition: 'background-color 0.3s',
+                      zIndex: 10,
+                    }}
+                  >
+                    {isSelected(property.id) && (
+                      <CheckIcon sx={{ color: '#fff', fontSize: 20 }} />
+                    )}
+                  </Box>
+                )}
               </Card>
             );
           })}
         </Box>
       </Box>
-
       {DialogUI}
     </>
   );

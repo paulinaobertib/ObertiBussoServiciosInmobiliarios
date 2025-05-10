@@ -1,4 +1,4 @@
-import { Category } from '../../property/context/PropertyCrudContext';
+import { Category } from '../context/PropertyCrudContext';
 
 export const getLabel = (cat: Category, id: number, data: any[]|null) => {
   const item = data?.find((d:any) => d.id === id);
