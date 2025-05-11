@@ -2,7 +2,7 @@ import { Route, Routes as RoutesDom } from 'react-router-dom';
 
 import { ROUTES } from './lib';
 import Home from './pages/Home';
-import CreatePropertyPage from './pages/CreateProperty/CreatePropertyPage';
+import CreatePropertyPage from './pages/CreatePropertyPage';
 import EditPropertyPage from './pages/EditPropertyPage';
 
 export default function Routes() {

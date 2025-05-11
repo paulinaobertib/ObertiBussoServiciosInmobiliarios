@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TextField, Box, Button, FormControlLabel, Checkbox, Grid } from '@mui/material';
 import { Type, TypeCreate } from '../../types/type';
 import { postType, putType, deleteType } from '../../services/type.service';
-import { usePropertyCrud } from '../../context/PropertyCrudContext';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
 
 interface Props {
