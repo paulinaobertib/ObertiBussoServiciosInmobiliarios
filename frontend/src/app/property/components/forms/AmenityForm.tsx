@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TextField, Box, Button } from '@mui/material';
 import { Amenity, AmenityCreate } from '../../types/amenity';
 import { postAmenity, putAmenity, deleteAmenity } from '../../services/amenity.service';
-import { usePropertyCrud } from '../../context/PropertyCrudContext';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
 
 interface Props {

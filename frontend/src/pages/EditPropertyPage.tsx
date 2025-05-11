@@ -9,7 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 // hooks y contextos
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
-import { usePropertyCrud } from '../app/property/context/PropertyCrudContext';
+import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 
@@ -160,6 +160,7 @@ export default function EditPropertyPage() {
                 setMain(updated.mainImage);
                 formRef.current?.setField('mainImage', updated.mainImage);
 
+                resetSelected();
                 navigate(ROUTES.HOME_APP, { replace: true });
                 showAlert('Propiedad actualizada con éxito', 'success');
             } catch (err) {

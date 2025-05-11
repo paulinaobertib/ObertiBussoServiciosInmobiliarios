@@ -1,5 +1,5 @@
 import { Button } from '@mui/material';
-import { usePropertyCrud } from '../context/PropertyCrudContext';
+import { usePropertyCrud } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
 
 interface Props {

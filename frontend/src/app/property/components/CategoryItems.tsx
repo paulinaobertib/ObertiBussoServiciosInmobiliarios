@@ -9,7 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
-import { usePropertyCrud } from '../context/PropertyCrudContext';
+import { usePropertyCrud } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
 import ModalItem from './ModalItem';
 

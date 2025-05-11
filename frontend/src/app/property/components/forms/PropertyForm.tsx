@@ -7,7 +7,7 @@ import ImageUploader from '../ImageUploader';
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
 
 import { usePropertyForm } from '../../hooks/usePropertyForm';
-import { usePropertyCrud } from '../../context/PropertyCrudContext';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useImageHandlers as useImageHandlers } from '../../hooks/useImageHandlersCreate';
 
 import { Property, PropertyCreate, PropertyUpdate } from '../../types/property';
@@ -110,15 +110,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
 
         return (
             <Box component="form" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}
-                sx={{
-                    /* achica tipografía en pantallas pequeñas */
-                    '& .MuiInputBase-input, & .MuiInputLabel-root': {
-                        fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem' },
-                    },
-                    '& .MuiTypography-root': {
-                        fontSize: { xs: '0.75rem', md: '0.875rem' },
-                    },
-                }}
             >
                 <Grid container spacing={1.5} sx={{ flexGrow: 1 }}>
                     <Grid size={{ xs: 12, md: 6 }}>

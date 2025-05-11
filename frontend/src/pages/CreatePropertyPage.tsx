@@ -5,19 +5,19 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
-import Navbar, { NAVBAR_HEIGHT, NAVBAR_HEIGHT_XS } from '../../app/property/components/Navbar';
+import Navbar, { NAVBAR_HEIGHT, NAVBAR_HEIGHT_XS } from '../app/property/components/Navbar';
 
 /* hooks, contextos y servicios (sin cambios) */
-import { useCreateProperty } from '../../app/property/hooks/useCreateProperty';
-import { usePropertyCrud } from '../../app/property/context/PropertyCrudContext';
-import { useConfirmDialog } from '../../app/property/utils/ConfirmDialog';
-import { useGlobalAlert } from '../../app/property/context/AlertContext';
-import PropertyForm from '../../app/property/components/forms/PropertyForm';
-import PropertyPreview from '../../app/property/components/PropertyPreview';
-import CategoryButton from '../../app/property/components/CategoryButton';
-import CategoryItems from '../../app/property/components/CategoryItems';
-import { postProperty } from '../../app/property/services/property.service';
-import { ROUTES } from '../../lib';
+import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
+import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
+import { useGlobalAlert } from '../app/property/context/AlertContext';
+import PropertyForm from '../app/property/components/forms/PropertyForm';
+import PropertyPreview from '../app/property/components/PropertyPreview';
+import CategoryButton from '../app/property/components/CategoryButton';
+import CategoryItems from '../app/property/components/CategoryItems';
+import { postProperty } from '../app/property/services/property.service';
+import { ROUTES } from '../lib';
 
 export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
@@ -86,7 +86,7 @@ export default function CreatePropertyPage() {
 
   /* nombre del tipo de propiedad (para el título) ------------------ */
   const selectedTypeName =
-    allTypes.find(t => t.id === Number(selected.type))?.name ?? '';
+    allTypes.find((t: { id: number; }) => t.id === Number(selected.type))?.name ?? '';
   const title = selectedTypeName
     ? `Formulario de Creación de ${selectedTypeName}`
     : 'Formulario de Creación';
