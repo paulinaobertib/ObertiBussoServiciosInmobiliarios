@@ -1,34 +1,72 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+// src/app/property/components/SearchBar.tsx
+import { useState, useEffect } from 'react';
+import { Box, TextField, CircularProgress } from '@mui/material';
+import { getPropertiesByText, getAllProperties } from '../services/property.service';
+import { Property } from '../types/property';
 
-const SearchBar: React.FC = () => {
-  const [search, setSearch] = useState('');
+interface Props {
+  onSearch: (results: Property[]) => void;
+  debounceMs?: number;
+}
+
+export default function SearchBar({ onSearch, debounceMs = 300 }: Props) {
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Cada vez que cambia `query`, disparo la búsqueda tras un debounce
+  useEffect(() => {
+    // Configuro un timer
+    const handler = setTimeout(async () => {
+      setLoading(true);
+      try {
+        let results: Property[];
+
+        if (query.trim() === '') {
+          // Si el campo está vacío, retorno TODO
+          results = await getAllProperties();
+        } else {
+          // Sino, busco por texto
+          results = await getPropertiesByText(query.trim());
+        }
+
+        onSearch(results);
+      } catch (e) {
+        console.error('Error en búsqueda en tiempo real:', e);
+        onSearch([]);
+      } finally {
+        setLoading(false);
+      }
+    }, debounceMs);
+
+    // Si el usuario escribe de nuevo antes de que termine el timer,
+    // lo limpiamos y volvemos a contar
+    return () => clearTimeout(handler);
+  }, [query, debounceMs, onSearch]);
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', padding: '16px 32px', mb: 4 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 1,
+        p: 2,
+        mb: 4,
+      }}
+    >
       <TextField
-        placeholder="Buscar"
+        placeholder="Buscar por título o descripción…"
         variant="outlined"
         fullWidth
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        InputProps={{
+          endAdornment: loading ? <CircularProgress size={20} /> : null
+        }}
         sx={{
-          maxWidth: 600,
-          backgroundColor: '#f0f0f0',
-          '& .MuiInputBase-root': { color: '#333' },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': { borderColor: '#ddd' },
-            '&:hover fieldset': { borderColor: '#bbb' },
-            '&.Mui-focused fieldset': { borderColor: '#bbb' },
-          },
-          '& input::placeholder': { color: '#666', opacity: 1 },
+          maxWidth: '60%',
+          backgroundColor: '#f0f0f0'
         }}
       />
-      <Button variant="contained" color="primary" sx={{ marginLeft: 2 }}>
-        Buscar
-      </Button>
     </Box>
   );
-};
-
-export default SearchBar;
+}

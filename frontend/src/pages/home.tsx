@@ -112,7 +112,7 @@ export default function Home() {
         <ImageCarousel />
 
         <Box sx={{ mt: 2 }}>
-          <SearchBar />
+          <SearchBar onSearch={setResults} />
         </Box>
 
         <Box
@@ -156,6 +156,6 @@ export default function Home() {
         onCompare={handleCompare}
         compareCount={selectedPropertyIds.length}
       />
-    </BasePage>
+    </BasePage >
   );
 }

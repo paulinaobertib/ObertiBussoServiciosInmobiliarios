@@ -83,7 +83,6 @@ export const getPropertyById = async (id: number) => {
 export const getPropertiesByFilters = async (
   params: SearchParams
 ): Promise<Property[]> => {
-
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (Array.isArray(value)) {
@@ -100,6 +99,19 @@ export const getPropertiesByFilters = async (
     return data;
   } catch (error) {
     console.error("Error searching properties:", error);
+    throw error;
+  }
+};
+
+export const getPropertiesByText = async (value: string) => {
+  try {
+    const { data } = await axios.get<Property[]>(
+      `${apiUrl}/properties/property/text?`,
+      { params: { value } }
+    );
+    return data;
+  } catch (error) {
+    console.error("Error buscando por texto:", error);
     throw error;
   }
 };
