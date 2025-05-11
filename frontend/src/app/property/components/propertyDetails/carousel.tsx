@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery, } from '@mui/material';
+import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { getFullImageUrl } from '../../utils/getFullImageUrl';
@@ -70,7 +70,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
                 width: '100%',
                 height: '100%',
                 opacity: index === activeIndex ? 1 : 0,
-                transition: 'opacity 0.5s ease-in-out', 
+                transition: 'opacity 0.5s ease-in-out',
               }}
             >
               <img
@@ -94,7 +94,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
               bgcolor: 'rgba(5, 5, 5, 0.6)',
               color: 'white',
               fontWeight: 'bold',
-              zIndex: 1, 
+              zIndex: 1,
             }}
           />
           {allImages.length > 1 && (
@@ -111,7 +111,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
                     backgroundColor: 'rgba(255,255,255,1)',
                   },
                   boxShadow: 2,
-                  zIndex: 1, 
+                  zIndex: 1,
                 }}
                 size={isMobile ? 'small' : 'medium'}
               >
@@ -129,7 +129,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
                     backgroundColor: 'rgb(246, 246, 246)',
                   },
                   boxShadow: 2,
-                  zIndex: 1, 
+                  zIndex: 1,
                 }}
                 size={isMobile ? 'small' : 'medium'}
               >
@@ -139,9 +139,19 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
           )}
         </Paper>
       )}
-      {allImages.length > 1 && (
-        <Box sx={{ mt: 2, display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
-          {(showAllThumbnails
+      {/* Siempre renderizar el contenedor de miniaturas */}
+      <Box
+        sx={{
+          mt: 2,
+          display: 'flex',
+          gap: 1,
+          overflowX: 'auto',
+          pb: 1,
+          minHeight: isMobile ? 60 : 80, // Reservar espacio para miniaturas
+        }}
+      >
+        {allImages.length > 1 ? (
+          (showAllThumbnails
             ? allImages
             : allImages.slice(0, visibleThumbnails)
           ).map((image, index) => (
@@ -176,32 +186,35 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
                 }}
               />
             </Box>
-          ))}
-          {allImages.length > visibleThumbnails && !showAllThumbnails && (
-            <Box
-              onClick={() => setShowAllThumbnails(true)}
-              sx={{
-                width: isMobile ? 60 : 80,
-                height: isMobile ? 60 : 80,
-                borderRadius: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: 'rgba(0,0,0,0.2)',
-                },
-                flexShrink: 0,
-              }}
-            >
-              <Typography variant="body2" fontWeight="bold">
-                +{allImages.length - visibleThumbnails}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      )}
+          ))
+        ) : (
+          // Espacio vacío para mantener el layout
+          <Box sx={{ width: '100%', height: isMobile ? 60 : 80 }} />
+        )}
+        {allImages.length > visibleThumbnails && !showAllThumbnails && (
+          <Box
+            onClick={() => setShowAllThumbnails(true)}
+            sx={{
+              width: isMobile ? 60 : 80,
+              height: isMobile ? 60 : 80,
+              borderRadius: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.1)',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: 'rgba(0,0,0,0.2)',
+              },
+              flexShrink: 0,
+            }}
+          >
+            <Typography variant="body2" fontWeight="bold">
+              +{allImages.length - visibleThumbnails}
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

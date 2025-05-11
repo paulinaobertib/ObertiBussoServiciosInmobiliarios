@@ -3,10 +3,10 @@ export interface Property {
   title: string;
   street: string;
   number: string;
-  rooms: number;
-  bathrooms: number;
-  bedrooms: number;
-  area: number;
+  rooms: number | null;
+  bathrooms: number | null;
+  bedrooms: number | null;
+  area: number | null;
   price: number;
   description: string;
   status: string;
