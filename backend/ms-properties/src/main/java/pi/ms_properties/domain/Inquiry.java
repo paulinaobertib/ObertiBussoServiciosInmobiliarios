@@ -1,4 +1,4 @@
-package pi.ms_users.domain;
+package pi.ms_properties.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,4 +28,7 @@ public class Inquiry {
 
     @Column(name = "description", nullable = false)
     private String description;
+
+    // status
+    // date close
 }
