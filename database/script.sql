@@ -143,7 +143,9 @@ CREATE TABLE Inquiry (
     user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description VARCHAR(2000) NOT NULL
+    description VARCHAR(2000) NOT NULL,
+    status ENUM('ABIERTA', 'CERRADA') NOT NULL,
+    date_close DATETIME
 );
 
 CREATE TABLE Property_Inquiry (

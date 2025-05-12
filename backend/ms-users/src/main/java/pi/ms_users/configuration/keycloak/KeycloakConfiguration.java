@@ -1,4 +1,4 @@
-package pi.ms_users.configuration;
+package pi.ms_users.configuration.keycloak;
 
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
