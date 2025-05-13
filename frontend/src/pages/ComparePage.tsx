@@ -1,7 +1,7 @@
 import { Box, Typography, Button } from '@mui/material';
-import Navbar from '../../app/property/components/navbar';
-import PropertyDetails from '../../app/property/components/propertyDetails/propertyDetailsCompare';
-import { useComparison } from '../../app/property/context/comparisonContext';
+import Navbar from '../app/property/components/Navbar';
+import PropertyDetails from '../app/property/components/propertyDetails/propertyDetailsCompare';
+import { useComparison } from '../app/property/context/ComparisonContext';
 
 const Compare = () => {
   const { comparisonItems } = useComparison();

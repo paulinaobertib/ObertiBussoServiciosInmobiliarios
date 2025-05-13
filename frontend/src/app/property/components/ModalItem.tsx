@@ -30,16 +30,8 @@ export default function ModalItem({ info, close }: Props) {
             : `Eliminar ${translate(category)}`;
 
     return (
-        // <Dialog open onClose={() => null} maxWidth="sm" fullWidth>
-        //     <DialogTitle>{title}</DialogTitle>
-        //     <DialogContent dividers>
-        //         <Form action={info.action} item={info.item} onDone={close} />
-        //     </DialogContent>
-        // </Dialog>
-
         <Dialog
             open
-            // onClose={close}
             onClose={(_, reason) => {
                 if (reason === 'backdropClick') return;
                 close;
@@ -50,7 +42,6 @@ export default function ModalItem({ info, close }: Props) {
                 sx: { borderRadius: 3, p: 2 },
             }}
         >
-            {/* Encabezado con título + botón de cerrar */}
             <DialogTitle
                 sx={{
                     display: 'flex',
@@ -75,7 +66,6 @@ export default function ModalItem({ info, close }: Props) {
                 </IconButton>
             </DialogTitle>
 
-            {/* Contenido del Form */}
             <DialogContent dividers>
                 <Form action={info.action} item={info.item} onDone={close} />
             </DialogContent>

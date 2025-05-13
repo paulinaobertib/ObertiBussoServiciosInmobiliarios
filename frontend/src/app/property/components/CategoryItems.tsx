@@ -1,4 +1,3 @@
-// CategoryItems.tsx
 import { Box, CircularProgress, IconButton, Typography, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -41,7 +40,7 @@ export default function CategoryItems() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Título y botón agregar */}
+
       <Box
         sx={{
           px: 2,
@@ -63,7 +62,6 @@ export default function CategoryItems() {
         </Tooltip>
       </Box>
 
-      {/* Encabezado de tabla */}
       <Box
         sx={{
           display: 'grid',
@@ -85,7 +83,6 @@ export default function CategoryItems() {
         <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Acciones</Typography>
       </Box>
 
-      {/* Lista scrollable */}
       <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 2, py: 1 }}>
         {categoryLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>

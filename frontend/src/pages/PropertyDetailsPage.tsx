@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams} from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import Navbar from '../../app/property/components/navbar';
-import PropertyDetails from '../../app/property/components/propertyDetails/propertyDetails';
-import { getPropertyById } from '../../app/property/services/propertyService';
-import { Property } from '../../app/property/types/property';
+import { BasePage } from './BasePage';
+import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
+import { getPropertyById } from '../app/property/services/property.service';
+import { Property } from '../app/property/types/property';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,33 +35,30 @@ const PropertyDetailsPage = () => {
 
   if (loading) {
     return (
-      <>
-        <Navbar />
+      <BasePage maxWidth={false}>
         <Box sx={{ p: 4 }}>
           <Typography variant="h5">Cargando...</Typography>
         </Box>
-      </>
+      </BasePage >
     );
   }
 
   if (error || !property) {
     return (
-      <>
-        <Navbar />
+      <BasePage maxWidth={false}>
         <Box sx={{ p: 4 }}>
           <Typography variant="h5" color="error">
             {error || 'Propiedad no encontrada'}
           </Typography>
         </Box>
-      </>
+      </BasePage>
     );
   }
 
   return (
-    <>
-      <Navbar />
+    <BasePage maxWidth={false}>
       <PropertyDetails property={property} />
-    </>
+    </BasePage>
   );
 };
 
