@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   Box, Button, CircularProgress, Container, Stack,
-  Step, StepLabel, Stepper, Typography, Toolbar
+  Step, StepLabel, Stepper, Typography
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
-import Navbar, { NAVBAR_HEIGHT, NAVBAR_HEIGHT_XS } from '../app/property/components/Navbar';
 
 /* hooks, contextos y servicios (sin cambios) */
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
@@ -18,6 +17,7 @@ import CategoryButton from '../app/property/components/CategoryButton';
 import CategoryItems from '../app/property/components/CategoryItems';
 import { postProperty } from '../app/property/services/property.service';
 import { ROUTES } from '../lib';
+import { BasePage } from './BasePage';
 
 export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
@@ -25,7 +25,7 @@ export default function CreatePropertyPage() {
     formRef, gallery, setGallery, setMain, main,
     deleteImgFile, handleImages, loading, setLoading
   } = useCreateProperty();
-  const { selected, allTypes, resetSelected } = usePropertyCrud();
+  const { selected, typesList, resetSelected } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
 
@@ -86,25 +86,19 @@ export default function CreatePropertyPage() {
 
   /* nombre del tipo de propiedad (para el título) ------------------ */
   const selectedTypeName =
-    allTypes.find((t: { id: number; }) => t.id === Number(selected.type))?.name ?? '';
+    typesList.find(t => t.id === Number(selected.type))?.name ?? '';
+
   const title = selectedTypeName
     ? `Formulario de Creación de ${selectedTypeName}`
     : 'Formulario de Creación';
 
   /* ---------------- ⬇  UI  ⬇ ------------------------------------- */
   return (
-    <>
-      <Navbar />
-      <Toolbar variant="dense"
-        sx={{ minHeight: { xs: NAVBAR_HEIGHT_XS, md: NAVBAR_HEIGHT } }}
-      />
+    <BasePage maxWidth={true}>
 
       {/* wrapper que ocupa EXACTAMENTE la pantalla restante */}
       <Box sx={{
-        height: {
-          xs: `calc(97vh - ${NAVBAR_HEIGHT_XS}px)`,
-          md: `calc(97vh - ${NAVBAR_HEIGHT}px)`,
-        },
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',          /* no scroll exterior */
@@ -226,9 +220,14 @@ export default function CreatePropertyPage() {
                 </Box>
               </Box>
 
-              {/* volver */}
+              {/* Verificar si selected.type tiene el valor correcto en el segundo paso */}
               <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
-                <Button variant="contained" onClick={() => setActiveStep(0)}>Volver</Button>
+                <Button variant="contained" onClick={() => {
+                  console.log("Tipo seleccionado en el paso 2:", selected.type); // Agrega este log
+                  setActiveStep(0);  // Si se desea volver al primer paso
+                }}>
+                  Volver
+                </Button>
               </Box>
             </Box>
           )}
@@ -236,6 +235,6 @@ export default function CreatePropertyPage() {
           {DialogUI}
         </Container>
       </Box>
-    </>
+    </BasePage>
   );
 }
