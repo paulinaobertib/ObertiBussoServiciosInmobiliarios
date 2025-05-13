@@ -25,7 +25,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
   const allImages = [{ id: -1, url: mainImage }, ...images].filter(
     (img) => img.url
   );
-  const visibleThumbnails = isMobile ? 3 : isTablet ? 4 : 5;
+  const visibleThumbnails = isMobile ? 3 : isTablet ? 3 : 3;
 
   const nextImage = () => {
     setActiveIndex((activeIndex + 1) % allImages.length);

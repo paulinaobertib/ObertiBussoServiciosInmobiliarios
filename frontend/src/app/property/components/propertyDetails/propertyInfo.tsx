@@ -1,4 +1,4 @@
-import { Box, Typography, Chip, Button, Stack, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Typography, Chip, Button, Stack } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -22,8 +22,6 @@ const formatFeatureLabel = (
 };
 
 const PropertyInfo = ({ property }: PropertyInfoProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const features = [
     {
@@ -42,7 +40,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       label: property.area && property.area > 0 ? `${property.area} m²` : '-',
       icon: <SquareFootIcon color="primary" />,
     },
-  ].filter((feature) => feature.label !== '-'); // <-- Filtra características no válidas
+  ].filter((feature) => feature.label !== '-'); // Filtra características no válidas
 
 
   return (
@@ -98,7 +96,6 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
           <Typography variant="body1">{feature.label}</Typography>
         </Box>
       ))}
-
             {/* Descripción */}
             {property.description && (
               <Box>
