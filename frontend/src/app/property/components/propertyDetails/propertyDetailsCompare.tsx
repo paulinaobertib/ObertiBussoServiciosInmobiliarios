@@ -1,6 +1,6 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './carousel';
-import PropertyInfo from '../propertyDetails/propertyInfo';
+import PropertyInfo from '../propertyDetails/propertyInfoCompare';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
