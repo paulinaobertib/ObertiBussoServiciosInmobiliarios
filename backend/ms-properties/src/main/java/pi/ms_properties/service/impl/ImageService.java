@@ -65,7 +65,6 @@ public class ImageService implements IImageService {
                 image.setUrl(uniqueFileName);
                 image.setProperty(property);
                 imageRepository.save(image);
-                return blobPath;
             }
 
             return uniqueFileName;

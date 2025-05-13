@@ -193,17 +193,17 @@
 										{
 											"key": "mainImage",
 											"type": "file",
+											"src": "/C:/Users/pauli/Downloads/mainImage.png"
+										},
+										{
+											"key": "images",
+											"type": "file",
 											"src": "/C:/Users/pauli/Downloads/casita.png"
 										},
 										{
 											"key": "images",
 											"type": "file",
-											"src": "/C:/users/pauli/Downloads/casita.png"
-										},
-										{
-											"key": "images",
-											"type": "file",
-											"src": "/C:/users/pauli/Downloads/casita.png"
+											"src": "/C:/Users/pauli/Downloads/casita.png"
 										}
 									]
 								},
@@ -269,7 +269,7 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8090/api/properties/property/update/4",
+									"raw": "http://localhost:8090/api/properties/property/update/2",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -280,7 +280,7 @@
 										"properties",
 										"property",
 										"update",
-										"4"
+										"2"
 									]
 								}
 							},
@@ -745,7 +745,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8090/api/properties/image/getByProperty/5",
+									"raw": "http://localhost:8090/api/properties/image/getByProperty/3",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -756,7 +756,7 @@
 										"properties",
 										"image",
 										"getByProperty",
-										"5"
+										"3"
 									]
 								}
 							},
@@ -1470,37 +1470,6 @@
 										"properties",
 										"view",
 										"statusAndType"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "ms-users",
-			"item": [
-				{
-					"name": "User",
-					"item": [
-						{
-							"name": "getById",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/user/getById/9e08a729-3462-493a-933d-bc542e601d1a",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"user",
-										"getById",
-										"9e08a729-3462-493a-933d-bc542e601d1a"
 									]
 								}
 							},
