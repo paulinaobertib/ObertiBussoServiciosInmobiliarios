@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/user")
 @RequiredArgsConstructor
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -41,6 +41,7 @@ public class UserController {
         return userService.searchUsersByText(searchTerm);
     }
 
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         return userService.deleteUserById(id);
@@ -52,6 +53,7 @@ public class UserController {
         return userService.deleteRoleToUser(id, role);
     }
 
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @PutMapping("/update")
     public ResponseEntity<User> update(@RequestBody User user) {
         return userService.updateUser(user);

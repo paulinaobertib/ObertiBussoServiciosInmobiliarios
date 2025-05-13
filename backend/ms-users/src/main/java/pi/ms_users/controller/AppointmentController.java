@@ -34,6 +34,7 @@ public class AppointmentController {
         return appointmentService.updateStatus(id, status);
     }
 
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
         return appointmentService.findById(id);
@@ -45,6 +46,7 @@ public class AppointmentController {
         return appointmentService.findAll();
     }
 
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Appointment>> getAppointmentsByUserId(@PathVariable String userId) {
         return appointmentService.findByUserId(userId);
