@@ -1,5 +1,6 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import PropertyInfo from '../propertyDetails/propertyInfoCompare';
+import ImageCarousel from './carousel';
+import PropertyInfo from '../propertyDetails/propertyInfo';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -23,7 +24,7 @@ interface PropertyDetailsProps {
   property: Property;
 }
 
-const PropertyDetailsCompare = ({ property }: PropertyDetailsProps) => {
+const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -66,21 +67,36 @@ const PropertyDetailsCompare = ({ property }: PropertyDetailsProps) => {
     : `https://www.google.com/maps?q=Buenos+Aires,+Argentina`;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Cuadro naranja */}
+    <Container maxWidth="xl" sx={{ py: 8 }}>
       <Box
         sx={{
           backgroundColor: '#ffe0b2',
           borderRadius: 2,
           p: 3,
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: isMobile ? 'column' : 'row',
           gap: 3,
           alignItems: 'flex-start',
-          minHeight: '600px',
+          justifyContent: 'center',
         }}
       >
-        <PropertyInfo property={property} />
+        <Box
+          sx={{
+            width: isMobile ? '100%' : '50%',
+            flexShrink: 0,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <ImageCarousel
+            images={property.images}
+            mainImage={property.mainImage}
+            title={property.title}
+          />
+        </Box>
+        <Box sx={{ width: isMobile ? '100%' : '50%' }}>
+          <PropertyInfo property={property} />
+        </Box>
       </Box>
 
       {/* Mapa debajo del cuadro naranja */}
@@ -104,7 +120,7 @@ const PropertyDetailsCompare = ({ property }: PropertyDetailsProps) => {
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
+              attribution="© OpenStreetMap contributors"
             />
             <Marker position={coordinates} icon={customMarkerIcon}>
               <Popup>
@@ -118,4 +134,4 @@ const PropertyDetailsCompare = ({ property }: PropertyDetailsProps) => {
   );
 };
 
-export default PropertyDetailsCompare;
+export default PropertyDetails;

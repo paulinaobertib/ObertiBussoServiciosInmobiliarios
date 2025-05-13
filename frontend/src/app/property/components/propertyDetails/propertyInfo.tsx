@@ -25,7 +25,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-    const features = [
+  const features = [
     {
       label: formatFeatureLabel(property.bedrooms, 'dormitorio', 'dormitorios'),
       icon: <HotelIcon color="primary" />,
@@ -42,7 +42,8 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       label: property.area && property.area > 0 ? `${property.area} m²` : '-',
       icon: <SquareFootIcon color="primary" />,
     },
-  ];
+  ].filter((feature) => feature.label !== '-'); // <-- Filtra características no válidas
+
 
   return (
       <Stack spacing={3}>
