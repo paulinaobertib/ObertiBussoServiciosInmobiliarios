@@ -1,5 +1,5 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import ImageCarousel from '../propertyDetails/carousel';
+import ImageCarousel from './carousel';
 import PropertyInfo from '../propertyDetails/propertyInfo';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -68,7 +68,6 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 8 }}>
-      {/* Cuadro naranja */}
       <Box
         sx={{
           backgroundColor: '#ffe0b2',
