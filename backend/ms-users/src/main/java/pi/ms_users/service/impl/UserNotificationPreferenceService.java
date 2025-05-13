@@ -12,6 +12,7 @@ import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.IUserNotificationPreferenceService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +34,23 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
                 return ResponseEntity.notFound().build();
             }
 
-            UserNotificationPreference saved = userNotificationPreferenceRepository.save(userNotificationPreference);
+            if (!Arrays.asList(NotificationType.values()).contains(userNotificationPreference.getType())) {
+                return ResponseEntity.badRequest().body("Tipo de notificación invalido.");
+            }
+
+            List<String> usersIdFalse = userNotificationPreferenceRepository.usersIdByType(userNotificationPreference.getType());
+            List<String> usersIdTrue = userNotificationPreferenceRepository.usersIdByTypeTrue(userNotificationPreference.getType());
+
+            if (usersIdFalse.contains(userNotificationPreference.getUserId())) {
+                UserNotificationPreference byUser = userNotificationPreferenceRepository.findByUserIdAndType(userNotificationPreference.getUserId(), userNotificationPreference.getType());
+                byUser.setEnabled(true);
+                userNotificationPreferenceRepository.save(byUser);
+            } else if (usersIdTrue.contains(userNotificationPreference.getUserId())) {
+                return ResponseEntity.badRequest().body("El usuario ya esta guardado con la preferencia en este tipo de notificacion");
+            } else {
+                UserNotificationPreference saved = userNotificationPreferenceRepository.save(userNotificationPreference);
+            }
+
             return ResponseEntity.ok("Se ha guardado la preferencia de notificacion");
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
@@ -95,9 +112,10 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
     @Override
     public ResponseEntity<List<String>> getByTypeAndTrue(NotificationType type) {
         try {
-            List<String> usersId = userNotificationPreferenceRepository.usersIdByType(type);
+            List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(type);
             return ResponseEntity.ok(usersId);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }

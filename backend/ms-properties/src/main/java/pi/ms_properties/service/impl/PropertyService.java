@@ -119,10 +119,14 @@ public class PropertyService implements IPropertyService {
             propertyRepository.save(property);
 
             // creamos la notificacion de que se agrega una nueva propiedad
-            NotificationDTO notificationDTO = new NotificationDTO();
-            notificationDTO.setDate(property.getDate());
-            notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
-            notificationRepository.createNotification(notificationDTO, property.getId());
+            try {
+                NotificationDTO notificationDTO = new NotificationDTO();
+                notificationDTO.setDate(property.getDate());
+                notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
+                notificationRepository.createNotification(notificationDTO, property.getId());
+            } catch (Exception e) {
+                System.err.println("Error al crear la notificación: " + e.getMessage());
+            }
 
             return ResponseEntity.ok("Se ha guardado la propiedad");
         } catch (Exception e) {
@@ -153,17 +157,36 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<PropertyDTO> updateProperty(Long id, PropertyUpdateDTO propertyDTO) {
         try {
-            Optional<Property> property = propertyRepository.findById(id);
-            if (property.isEmpty()) {
+            // 1) Verificamos que la propiedad exista
+            Optional<Property> optProperty = propertyRepository.findById(id);
+            if (optProperty.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
 
+            Property current = optProperty.get();
+
             Property updated = SaveProperty(propertyDTO);
             updated.setId(id);
-            updated.setDate(property.get().getDate());
+            updated.setDate(current.getDate());
+
+            // 3) Manejo flexible de la imagen principal
+            MultipartFile newMain = propertyDTO.getMainImageUpdated();  // puede ser null
+            if (newMain != null && !newMain.isEmpty()) {
+                // → El usuario subió una nueva imagen: reemplazamos la anterior
+                imageService.deleteImageByName(current.getMainImage());
+                String path = imageService.uploadImageToProperty(newMain, id, true);
+                updated.setMainImage(path);
+            } else {
+                // → El usuario no cambió la imagen: mantenemos la existente
+                updated.setMainImage(current.getMainImage());
+            }
+
+            updated.setImages(current.getImages());
             propertyRepository.save(updated);
+
             PropertyDTO response = toDTO(updated);
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -52,7 +52,7 @@ public class EmailService implements IEmailService {
             MimeMessage messageCliente = javaMailSender.createMimeMessage();
             MimeMessageHelper helperCliente = new MimeMessageHelper(messageCliente, true, "UTF-8");
             helperCliente.setTo(emailDTO.getTo());
-            helperCliente.setSubject("Confirmación de turno - Oberti Busso Servicios Inmobiliarios");
+            helperCliente.setSubject("Solicitud de turno - Oberti Busso Servicios Inmobiliarios");
             String contentCliente = templateEngine.process("email_client", context);
             helperCliente.setText(contentCliente, true);
             javaMailSender.send(messageCliente);
@@ -108,6 +108,7 @@ public class EmailService implements IEmailService {
         }
     }
 
+    // cuando se agrega una nueva propiedad
     public void sendNotificationNewProperty(EmailPropertyDTO emailPropertyDTO) {
         try {
             Context context = new Context();

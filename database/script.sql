@@ -97,6 +97,14 @@ CREATE TABLE Payment (
     FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
+CREATE TABLE UserNotificationPreference (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(30) NOT NULL,
+    type ENUM('PROPIEDADNUEVA', 'PROPIEDADINTERES', 'ALQUILER', 'ACTUALIZACION') NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    UNIQUE(user_id, notification_type)
+);
+
 CREATE TABLE Notification (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(30) NOT NULL,

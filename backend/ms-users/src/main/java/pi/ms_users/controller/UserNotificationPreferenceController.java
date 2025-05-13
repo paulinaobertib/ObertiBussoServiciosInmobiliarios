@@ -41,7 +41,7 @@ public class UserNotificationPreferenceController {
         return userNotificationPreferenceService.getByUser(userId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/active")
     public ResponseEntity<List<String>> getByTypeAndTrue(@RequestParam NotificationType type) {
         return userNotificationPreferenceService.getByTypeAndTrue(type);

@@ -16,13 +16,13 @@ public class FavoriteController {
 
     private final FavoriteService favoriteService;
 
-    @PreAuthorize("hasRole('user')")
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<Favorite> create(@RequestBody Favorite favorite) {
         return favoriteService.create(favorite);
     }
 
-    @PreAuthorize("hasRole('user')")
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return favoriteService.delete(id);

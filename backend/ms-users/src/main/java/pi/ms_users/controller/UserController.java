@@ -55,7 +55,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @PutMapping("/update")
-    public ResponseEntity<User> update(@RequestBody User user) {
+    public ResponseEntity<?> update(@RequestBody User user) {
         return userService.updateUser(user);
     }
 

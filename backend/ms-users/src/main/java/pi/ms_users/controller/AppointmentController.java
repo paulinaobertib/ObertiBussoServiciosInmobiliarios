@@ -22,7 +22,7 @@ public class AppointmentController {
         return appointmentService.create(appointment);
     }
 
-    @PreAuthorize("hasRole('user')")
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
         return appointmentService.delete(id);

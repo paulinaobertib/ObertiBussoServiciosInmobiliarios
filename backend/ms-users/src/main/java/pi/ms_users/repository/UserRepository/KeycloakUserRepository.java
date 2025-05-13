@@ -61,8 +61,6 @@ public class KeycloakUserRepository implements IUserRepository {
         userRepresentation.setEmail(user.getMail());
         userRepresentation.setFirstName(user.getFirstName());
         userRepresentation.setLastName(user.getLastName());
-        String currentUsername = userRepresentation.getUsername();
-        userRepresentation.setUsername(currentUsername);
 
         Map<String, List<String>> attributes = userRepresentation.getAttributes();
         if (attributes == null) {

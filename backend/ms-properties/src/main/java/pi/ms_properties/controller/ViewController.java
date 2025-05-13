@@ -59,6 +59,7 @@ public class ViewController {
         return viewService.getViewsByStatus();
     }
 
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statusAndType")
     public ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType() {
         return viewService.getViewsByStatusAndType();
