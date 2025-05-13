@@ -28,6 +28,7 @@ public class FavoriteController {
         return favoriteService.delete(id);
     }
 
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Favorite>> getByUserId(@PathVariable String userId) {
         return favoriteService.findByUserId(userId);

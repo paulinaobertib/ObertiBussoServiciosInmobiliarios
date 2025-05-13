@@ -2,6 +2,7 @@ package pi.ms_users.service.impl;
 
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,12 +20,17 @@ import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.service.interf.IEmailService;
 import pi.ms_users.service.interf.INotificationService;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService implements INotificationService {
+
+    @Value("${frontend.base-url}")
+    private static String frontendBaseUrl;
 
     private final INotificationRepository notificationRepository;
 
@@ -35,6 +41,23 @@ public class NotificationService implements INotificationService {
     private final IEmailService emailService;
 
     private final PropertyRepository propertyRepository;
+
+    private static EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, Property property) {
+        EmailPropertyDTO dto = new EmailPropertyDTO();
+        dto.setTo(user.getMail());
+        dto.setDate(notificationDTO.getDate());
+        dto.setPropertyImageUrl(property.getMainImage());
+        dto.setPropertyTitle(property.getTitle());
+        dto.setPropertyLocation(property.getNeighborhood());
+        NumberFormat price = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
+        dto.setPropertyPrice(price.format(property.getPrice()));
+        dto.setPropertyPrice(property.getPrice().toString());
+        dto.setPropertyDescription(property.getDescription());
+        dto.setPropertyUrl(frontendBaseUrl + "/properties/" + property.getId());
+        dto.setPropertyCurrency(property.getCurrency());
+        dto.setPropertyOperation(property.getOperation());
+        return dto;
+    }
 
     @Override
     public ResponseEntity<String> createProperty(NotificationDTO notificationDTO, Long propertyId) {
@@ -60,17 +83,7 @@ public class NotificationService implements INotificationService {
 
                 User user = optionalUser.get();
 
-                EmailPropertyDTO dto = new EmailPropertyDTO();
-                dto.setTo(user.getMail());
-                dto.setDate(notificationDTO.getDate());
-                dto.setPropertyImageUrl(property.getMainImage());
-                dto.setPropertyTitle(property.getTitle());
-                dto.setPropertyLocation(property.getNeighborhood());
-                dto.setPropertyPrice(property.getPrice().toString());
-                dto.setPropertyDescription(property.getDescription());
-                // dto.setPropertyUrl(propertyUrl);
-                dto.setPropertyCurrency(property.getCurrency());
-                dto.setPropertyOperation(property.getOperation());
+                EmailPropertyDTO dto = getEmailPropertyDTO(notificationDTO, user, property);
 
                 emailService.sendNotificationNewProperty(dto);
 

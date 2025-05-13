@@ -20,7 +20,26 @@ public class WebSecurityConfig {
 
         httpSecurity
                 .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/property/get",
+                                "/property/getById/**",
+                                "/property/getByTitle",
+                                "/property/search",
+                                "/property/text",
+                                "/property/getSimple/**",
+                                "/amenity/getAll",
+                                "/amenity/getById/**",
+                                "/amenity/getByName",
+                                "/image/getByProperty/**",
+                                "/maintenance/getById/**",
+                                "/maintenance/getByPropertyId/**",
+                                "/neighborhood/getAll",
+                                "/neighborhood/getById/**",
+                                "/propertyType/getAll",
+                                "/propertyType/getById/**",
+                                "/view/statusAndType"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer
@@ -30,3 +49,4 @@ public class WebSecurityConfig {
         return httpSecurity.build();
     }
 }
+
