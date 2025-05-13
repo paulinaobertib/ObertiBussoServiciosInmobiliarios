@@ -47,7 +47,6 @@ public class PropertyService implements IPropertyService {
     private final ImageService imageService;
 
     private final AzureBlobStorage azureBlobStorage;
-    private final ImageRepository imageRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -89,15 +88,7 @@ public class PropertyService implements IPropertyService {
         response.setNeighborhood(neighborhoodDTO);
         response.setType(property.getType());
         response.setAmenities(property.getAmenities());
-
-        Set<Image> images = property.getImages();
-        for (Image image : images ) {
-            String blobPath = image.getUrl();
-            String signedUrl = azureBlobStorage.getImageUrl(blobPath);
-            image.setUrl(signedUrl);
-        }
-        response.setImages(images);
-
+        response.setImages(property.getImages());
         response.setStatus(property.getStatus().toString());
         response.setOperation(property.getOperation().toString());
         response.setCurrency(property.getCurrency().toString());
