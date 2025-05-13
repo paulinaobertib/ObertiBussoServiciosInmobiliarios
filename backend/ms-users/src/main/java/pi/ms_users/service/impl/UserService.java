@@ -1,8 +1,10 @@
 package pi.ms_users.service.impl;
 
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.User;
@@ -55,36 +57,36 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<User> updateUser(User user) {
+    public ResponseEntity<?> updateUser(User user) {
         try {
             Optional<User> users = userRepository.findById(user.getId());
             if (users.isEmpty()) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
             }
+
             User updated = userRepository.updateUser(user);
             return ResponseEntity.ok(updated);
-        } catch (NotFoundException e) {
-            // Manejo específico si un servicio REST externo devuelve 404
-            System.err.println("Recurso no encontrado en servicio externo: " + e.getMessage());
-            return ResponseEntity.notFound().build();
 
-        } catch (BadRequestException e) {
-            System.err.println("Error 400 - Bad Request al actualizar usuario en Keycloak");
-
-            if (e.getResponse() != null) {
-                try {
-                    String errorBody = e.getResponse().readEntity(String.class);
-                    System.err.println("Respuesta de Keycloak: " + errorBody);
-                } catch (Exception ex) {
-                    System.err.println("No se pudo leer el cuerpo de la respuesta: " + ex.getMessage());
-                }
-            } else {
-                System.err.println("La excepción no contiene una respuesta HTTP.");
+        } catch (ClientErrorException e) {
+            int status = e.getResponse().getStatus();
+            String errorBody = "";
+            try {
+                errorBody = e.getResponse().readEntity(String.class);
+            } catch (Exception ex) {
+                errorBody = "No se pudo leer el cuerpo de la respuesta de Keycloak.";
             }
 
-            return ResponseEntity.badRequest().build();
+            if (status == 409) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Conflicto al actualizar el usuario: " + errorBody);
+            }
+
+            return ResponseEntity.status(status)
+                    .body("Error al actualizar el usuario en Keycloak: " + errorBody);
+
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al actualizar el usuario: " + e.getMessage());
         }
     }
 

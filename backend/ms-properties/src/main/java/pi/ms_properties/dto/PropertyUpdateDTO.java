@@ -1,5 +1,6 @@
 package pi.ms_properties.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,8 @@ public class PropertyUpdateDTO {
     private String status;
     private String operation;
     private String currency;
+    @JsonIgnore
+    private MultipartFile mainImageUpdated;
     private Long ownerId;
     private Long neighborhoodId;
     private Long typeId;

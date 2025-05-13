@@ -1,5 +1,6 @@
 package pi.ms_users.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,13 +20,21 @@ public class WebSecurityConfig {
         authenticationConverter.setJwtGrantedAuthoritiesConverter(new JwtAuthConverter());
 
         httpSecurity
-                .authorizeHttpRequests(authorize -> authorize
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/appointments/create").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, authException) ->
+                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                        )
+                        .accessDeniedHandler((req, res, accessDeniedException) ->
+                                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                        )
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwtConfigurer -> jwtConfigurer
-                                .jwtAuthenticationConverter(authenticationConverter))
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter))
                 );
 
         return httpSecurity.build();

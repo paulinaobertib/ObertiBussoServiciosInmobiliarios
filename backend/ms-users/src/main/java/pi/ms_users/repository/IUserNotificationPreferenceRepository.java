@@ -11,6 +11,12 @@ public interface IUserNotificationPreferenceRepository extends JpaRepository<Use
     @Query("select n from UserNotificationPreference n where n.userId = ?1")
     List<UserNotificationPreference> findByUserId(String userId);
 
-    @Query("select n from UserNotificationPreference n where n.type = ?1")
+    @Query("select n from UserNotificationPreference n where n.userId = ?1 and n.type = ?2")
+    UserNotificationPreference findByUserIdAndType(String userId, NotificationType type);
+
+    @Query("select n.userId from UserNotificationPreference n where n.type = ?1 and n.enabled = false")
     List<String> usersIdByType(NotificationType type);
+
+    @Query("select n.userId from UserNotificationPreference n where n.type = ?1 and n.enabled = true")
+    List<String> usersIdByTypeTrue(NotificationType type);
 }

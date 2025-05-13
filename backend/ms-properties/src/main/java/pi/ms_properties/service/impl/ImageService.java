@@ -106,6 +106,19 @@ public class ImageService implements IImageService {
         }
     }
 
+    @Override
+    public ResponseEntity<String> deleteImageByName(String url) {
+        Storage storage = new Storage();
+        storage.setPath(url);
+        try {
+            azureBlobStorage.delete(storage);
+            return ResponseEntity.ok("Imagen eliminada correctamente");
+        } catch (BlobStorageException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen del blob storage");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al eliminar la imagen");
+        }
+    }
 
     @Override
     public ResponseEntity<List<Image>> getAllByPropertyId(Long propertyId) {

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
@@ -29,8 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotificationService implements INotificationService {
 
-    @Value("${frontend.base-url}")
-    private static String frontendBaseUrl;
+    private final AppProperties appProperties;
 
     private final INotificationRepository notificationRepository;
 
@@ -42,7 +42,7 @@ public class NotificationService implements INotificationService {
 
     private final PropertyRepository propertyRepository;
 
-    private static EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, Property property) {
+    private EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, Property property) {
         EmailPropertyDTO dto = new EmailPropertyDTO();
         dto.setTo(user.getMail());
         dto.setDate(notificationDTO.getDate());
@@ -53,7 +53,7 @@ public class NotificationService implements INotificationService {
         dto.setPropertyPrice(price.format(property.getPrice()));
         dto.setPropertyPrice(property.getPrice().toString());
         dto.setPropertyDescription(property.getDescription());
-        dto.setPropertyUrl(frontendBaseUrl + "/properties/" + property.getId());
+        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + property.getId());
         dto.setPropertyCurrency(property.getCurrency());
         dto.setPropertyOperation(property.getOperation());
         return dto;

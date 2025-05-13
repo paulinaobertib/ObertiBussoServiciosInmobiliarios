@@ -31,13 +31,10 @@ public class WebSecurityConfig {
                                 "/amenity/getById/**",
                                 "/amenity/getByName",
                                 "/image/getByProperty/**",
-                                "/maintenance/getById/**",
-                                "/maintenance/getByPropertyId/**",
                                 "/neighborhood/getAll",
                                 "/neighborhood/getById/**",
-                                "/propertyType/getAll",
-                                "/propertyType/getById/**",
-                                "/view/statusAndType"
+                                "/type/getAll",
+                                "/type/getById/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
