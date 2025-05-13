@@ -11,6 +11,7 @@ import {
   TextField,
   Card,
   CardContent,
+  Typography,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -21,6 +22,7 @@ import { getPropertiesByFilters } from '../services/property.service';
 import { SearchParams } from '../types/searchParams';
 import { Property } from '../types/property';
 import { NeighborhoodType } from '../types/neighborhood';
+import { useGlobalAlert } from '../context/AlertContext';
 
 const countOptions = [1, 2, 3];
 
@@ -42,6 +44,7 @@ export default function SearchFilters({ onSearch }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [openFilters, setOpen] = useState(!isMobile);
+  const { showAlert } = useGlobalAlert();
 
   const [params, setParams] = useState<Partial<SearchParams>>({
     priceFrom: 0,
@@ -59,9 +62,17 @@ export default function SearchFilters({ onSearch }: Props) {
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setParams(p => ({
+
+    // Validación: Prevenir valores negativos
+    const numValue = value === '' ? 0 : Number(value);
+    if (numValue < 0) {
+      showAlert('El valor no puede ser negativo', 'error');
+      return;  // No actualiza el valor si es negativo
+    }
+
+    setParams((p) => ({
       ...p,
-      [name]: value === '' ? 0 : Number(value)
+      [name]: numValue,
     }));
   };
 
@@ -79,7 +90,28 @@ export default function SearchFilters({ onSearch }: Props) {
   };
 
   const handleSearch = async () => {
-    const sp = buildSearchParams(params);
+    const priceFrom = params.priceFrom ?? 0;
+    const priceTo = params.priceTo ?? 0;
+    const areaFrom = params.areaFrom ?? 0;
+    const areaTo = params.areaTo ?? 0;
+
+    if (priceFrom && priceTo && priceFrom > priceTo) {
+      showAlert('El precio DESDE no puede ser mayor al precio HASTA', 'error');
+      return;
+    }
+
+    if (areaFrom && areaTo && areaFrom > areaTo) {
+      showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
+      return;
+    }
+    const sp = buildSearchParams({
+      ...params,
+      priceFrom,
+      priceTo,
+      areaFrom,
+      areaTo,
+    });
+
     const res = await getPropertiesByFilters(sp as SearchParams);
     onSearch(res);
   };
@@ -110,6 +142,8 @@ export default function SearchFilters({ onSearch }: Props) {
   };
 
 
+
+
   const cities = Array.from(
     new Set(
       neighborhoodsList
@@ -120,16 +154,20 @@ export default function SearchFilters({ onSearch }: Props) {
   const barrioTypes = Object.values(NeighborhoodType);
 
 
-
   const anyOption = (
     <MenuItem key="any" value="">
       Cualquiera
     </MenuItem>
   );
 
+
   return (
-    <Card sx={{ p: 1, width: isMobile ? '100%' : 300 }} elevation={3}>
+    <Card sx={{ borderRadius: 3, width: isMobile ? '100%' : 300 }} elevation={3}>
       <CardContent>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+          Filtros de Búsqueda
+        </Typography>
+
         {isMobile && (
           <Button
             fullWidth
@@ -152,7 +190,7 @@ export default function SearchFilters({ onSearch }: Props) {
                 onChange={handleSelect('operation')}
               >
                 {anyOption}
-                {operationsList.map((op) => (
+                {operationsList.map((op: string) => (  // Asegúrate de que `op` es un string
                   <MenuItem key={op} value={op}>
                     {op.charAt(0) + op.slice(1).toLowerCase()}
                   </MenuItem>
@@ -169,7 +207,7 @@ export default function SearchFilters({ onSearch }: Props) {
               >
                 {anyOption}
                 {typesList.map((t) => (
-                  <MenuItem key={t.id} value={t.name}>
+                  <MenuItem key={t.id} value={t.name}> {/* Utiliza `t.id` para el key y `t.name` para el valor */}
                     {t.name}
                   </MenuItem>
                 ))}
@@ -203,7 +241,7 @@ export default function SearchFilters({ onSearch }: Props) {
                 }}
               >
                 <MenuItem value="">
-                  <em>Cualquiera</em>
+                  Cualquiera
                 </MenuItem>
                 {cities.map(c => (
                   <MenuItem key={c} value={c}>
@@ -232,19 +270,14 @@ export default function SearchFilters({ onSearch }: Props) {
             <FormControl fullWidth size="small">
               <InputLabel>Barrio</InputLabel>
               <Select
-                value={selected.neighborhood?.toString() || ''}
+                value={params.neighborhood || ''}
                 label="Barrio"
-                onChange={(e) =>
-                  setSelected({
-                    ...selected,
-                    neighborhood: Number(e.target.value),
-                  })
-                }
+                onChange={handleSelect('neighborhood')}
               >
                 {anyOption}
-                {neighborhoodsList.map((nb) => (
-                  <MenuItem key={nb.id} value={nb.id.toString()}>
-                    {nb.name}
+                {neighborhoodsList.map((b) => (
+                  <MenuItem key={b.id} value={b.name}>
+                    {b.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -265,25 +298,19 @@ export default function SearchFilters({ onSearch }: Props) {
                       .join(', ')
                 }
                 onChange={e => {
-                  // eliminamos cualquier '' por seguridad
                   const vals = (e.target.value as string[]).filter(v => v !== '');
                   setSelected({ ...selected, amenities: vals.map(v => Number(v)) });
                 }}
               >
-                {/* Opción “Cualquiera” interceptada */}
                 <MenuItem
                   value=""
                   onMouseDown={event => {
-                    // evita que MUI añada "" al array
                     event.preventDefault();
-                    // limpia la selección
                     setSelected({ ...selected, amenities: [] });
                   }}
                 >
-                  <em>Cualquiera</em>
+                  Cualquiera
                 </MenuItem>
-
-                {/* Resto de servicios */}
                 {amenitiesList.map(a => (
                   <MenuItem key={a.id} value={a.id.toString()}>
                     {a.name}
@@ -292,16 +319,11 @@ export default function SearchFilters({ onSearch }: Props) {
               </Select>
             </FormControl>
 
-
             <FormControl fullWidth variant="outlined" size="small">
-              {/* El label “flotante” */}
               <InputLabel shrink>Superficie (m²)</InputLabel>
-
-              {/* Tus dos campos, con un pequeño margen-top para no tapar el label */}
               <Box display="flex" gap={1} mt={1}>
                 <TextField
                   name="areaFrom"
-                  // label="Desde"
                   placeholder="Desde"
                   type="number"
                   value={params.areaFrom || ''}
@@ -311,7 +333,6 @@ export default function SearchFilters({ onSearch }: Props) {
                 />
                 <TextField
                   name="areaTo"
-                  // label="Hasta"
                   placeholder="Hasta"
                   type="number"
                   value={params.areaTo || ''}
@@ -323,10 +344,7 @@ export default function SearchFilters({ onSearch }: Props) {
             </FormControl>
 
             <FormControl fullWidth variant="outlined" size="small">
-              {/* El label “flotante” */}
               <InputLabel shrink>Precio</InputLabel>
-
-              {/* Tus dos campos, con un pequeño margen-top para no tapar el label */}
               <Box display="flex" gap={1} mt={1}>
                 <TextField
                   name="priceFrom"
@@ -366,6 +384,6 @@ export default function SearchFilters({ onSearch }: Props) {
           </Box>
         </Collapse>
       </CardContent>
-    </Card >
+    </Card>
   );
 }

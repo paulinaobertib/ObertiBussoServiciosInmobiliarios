@@ -1,7 +1,7 @@
 import { Route, Routes as RoutesDom } from 'react-router-dom';
 
 import { ROUTES } from './lib';
-import Home from './pages/Home';
+import Home from './pages/HomePage';
 import CreatePropertyPage from './pages/CreatePropertyPage';
 import EditPropertyPage from './pages/EditPropertyPage';
 

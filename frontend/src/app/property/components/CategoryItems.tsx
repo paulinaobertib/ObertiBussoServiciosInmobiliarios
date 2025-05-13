@@ -1,10 +1,5 @@
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Typography,
-  Tooltip,
-} from '@mui/material';
+// CategoryItems.tsx
+import { Box, CircularProgress, IconButton, Typography, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,14 +8,12 @@ import { usePropertyCrud } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
 import ModalItem from './ModalItem';
 
-
 export default function CategoryItems() {
   const { category, data, categoryLoading, selected, toggleSelect } = usePropertyCrud();
   const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; item?: any } | null>(null);
   if (!category) return null;
 
-  const isSel = (id: number) =>
-    category === 'amenity' ? selected.amenities.includes(id) : selected[category] === id;
+  const isSel = (id: number) => category === 'amenity' ? selected.amenities.includes(id) : selected[category] === id;
 
   const categoryFields: Record<string, { label: string; key: string }[]> = {
     owner: [
@@ -53,20 +46,19 @@ export default function CategoryItems() {
         sx={{
           px: 2,
           py: 1.5,
-          bgcolor: '#FFF3E0',
-          borderBottom: '1px solid #eee',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexShrink: 0,
+          bgcolor: '#FFF3E0',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00' }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', fontFamily: 'Roboto, sans-serif' }}>
           {translate(category)}
         </Typography>
         <Tooltip title={`Agregar nuevo ${translate(category)}`}>
-          <IconButton onClick={() => setModal({ action: 'add' })}>
-            <AddIcon sx={{ color: '#EF6C00' }} />
+          <IconButton onClick={() => setModal({ action: 'add' })} sx={{ color: '#EF6C00' }}>
+            <AddIcon />
           </IconButton>
         </Tooltip>
       </Box>
@@ -80,24 +72,24 @@ export default function CategoryItems() {
           px: 2,
           py: 1,
           bgcolor: '#f9f9f9',
-          borderBottom: '1px solid #eee',
           fontSize: 14,
-          fontWeight: 500,
+          fontWeight: 600,
           color: 'text.secondary',
+          fontFamily: 'Roboto, sans-serif',
           flexShrink: 0,
         }}
       >
         {columns.map((col) => (
-          <span key={col.key}>{col.label}</span>
+          <Typography key={col.key} sx={{ fontSize: 14, fontWeight: 600 }}>{col.label}</Typography>
         ))}
-        <span>Acciones</span>
+        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>Acciones</Typography>
       </Box>
 
       {/* Lista scrollable */}
       <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 2, py: 1 }}>
         {categoryLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress size={28} />
+            <CircularProgress size={28} sx={{ color: '#EF6C00' }} />
           </Box>
         ) : data && data.length ? (
           data.map((it: any) => {
@@ -131,7 +123,7 @@ export default function CategoryItems() {
                     typeof value === 'boolean' ? (value ? 'Sí' : 'No') : value ?? '-';
 
                   return (
-                    <Typography key={col.key} sx={{ fontSize: 14 }}>
+                    <Typography key={col.key} sx={{ fontSize: 14, fontFamily: 'Roboto, sans-serif' }}>
                       {displayValue}
                     </Typography>
                   );
@@ -144,12 +136,14 @@ export default function CategoryItems() {
                   <IconButton
                     size="small"
                     onClick={() => setModal({ action: 'edit', item: it })}
+                    sx={{ color: '#EF6C00' }}
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
                   <IconButton
                     size="small"
                     onClick={() => setModal({ action: 'delete', item: it })}
+                    sx={{ color: '#EF6C00' }}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
@@ -158,7 +152,9 @@ export default function CategoryItems() {
             );
           })
         ) : (
-          <Typography sx={{ mt: 2, fontSize: 14 }}>No hay datos disponibles.</Typography>
+          <Typography sx={{ mt: 2, fontSize: 14, fontFamily: 'Roboto, sans-serif' }}>
+            No hay datos disponibles.
+          </Typography>
         )}
       </Box>
 
