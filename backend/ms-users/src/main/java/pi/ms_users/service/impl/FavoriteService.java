@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.User;
+import pi.ms_users.domain.feign.Property;
 import pi.ms_users.repository.IFavoriteRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.service.interf.IFavoriteService;
 
 import java.util.List;
@@ -21,6 +23,8 @@ public class FavoriteService implements IFavoriteService {
     private final IFavoriteRepository favoriteRepository;
 
     private final IUserRepository userRepository;
+
+    private final PropertyRepository propertyRepository;
 
     @Override
     public ResponseEntity<Favorite> create(Favorite favorite) {
@@ -75,7 +79,10 @@ public class FavoriteService implements IFavoriteService {
     @Override
     public ResponseEntity<List<Favorite>> findByPropertyId(Long propertyId) {
         try {
-            // verificar que la propiedad existe
+            Property property = propertyRepository.getById(propertyId);
+            if (property == null) {
+                return ResponseEntity.notFound().build();
+            }
             List<Favorite> favorites = favoriteRepository.findByPropertyId(propertyId);
             return ResponseEntity.ok(favorites);
         } catch (Exception e) {

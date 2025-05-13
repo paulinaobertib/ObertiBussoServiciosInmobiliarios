@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import pi.ms_users.dto.EmailDTO;
+import pi.ms_users.dto.EmailPropertyDTO;
 import pi.ms_users.service.interf.IEmailService;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ public class EmailService implements IEmailService {
         return date.format(formatter);
     }
 
+    // cuando se crea un turno
     public void sendAppointmentRequest(EmailDTO emailDTO) throws MessagingException {
         try {
             Context context = new Context();
@@ -60,6 +62,7 @@ public class EmailService implements IEmailService {
         }
     }
 
+    // cuando la inmobiliaria decide aceptarlo o rechazarlo
     public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date) {
         try {
             Context context = new Context();
@@ -82,6 +85,7 @@ public class EmailService implements IEmailService {
         }
     }
 
+    // cuando el cliente cancela el turno
     public void sendAppointmentCancelledMail(EmailDTO emailDTO) {
         try {
             Context context = new Context();
@@ -101,6 +105,32 @@ public class EmailService implements IEmailService {
             javaMailSender.send(message);
         } catch (Exception e) {
             throw new RuntimeException("Error al enviar correo de cancelación: " + e.getMessage(), e);
+        }
+    }
+
+    public void sendNotificationNewProperty(EmailPropertyDTO emailPropertyDTO) {
+        try {
+            Context context = new Context();
+            context.setVariable("date", formatDate(emailPropertyDTO.getDate()));
+            context.setVariable("propertyUrl", emailPropertyDTO.getPropertyUrl());
+            context.setVariable("propertyDescription", emailPropertyDTO.getPropertyDescription());
+            context.setVariable("propertyTitle", emailPropertyDTO.getPropertyTitle());
+            context.setVariable("propertyImageUrl", emailPropertyDTO.getPropertyImageUrl());
+            context.setVariable("propertyLocation", emailPropertyDTO.getPropertyLocation());
+            context.setVariable("propertyPrice", emailPropertyDTO.getPropertyPrice());
+            context.setVariable("propertyCurrency", emailPropertyDTO.getPropertyCurrency());
+            context.setVariable("propertyOperation", emailPropertyDTO.getPropertyOperation());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailPropertyDTO.getTo());
+            helper.setSubject("¡Nueva propiedad disponible que podría interesarte!");
+
+            String content = templateEngine.process("email_new_property.html", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar correo de nueva propiedad: " + e.getMessage(), e);
         }
     }
 }

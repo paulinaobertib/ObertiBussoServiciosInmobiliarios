@@ -8,11 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.*;
-import pi.ms_properties.dto.NeighborhoodDTO;
-import pi.ms_properties.dto.PropertyDTO;
-import pi.ms_properties.dto.PropertySaveDTO;
-import pi.ms_properties.dto.PropertyUpdateDTO;
+import pi.ms_properties.dto.*;
+import pi.ms_properties.dto.feign.NotificationDTO;
+import pi.ms_properties.dto.feign.NotificationType;
 import pi.ms_properties.repository.*;
+import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
@@ -43,7 +43,7 @@ public class PropertyService implements IPropertyService {
 
     private final ImageService imageService;
 
-    private final AzureBlobStorage azureBlobStorage;
+    private final NotificationRepository notificationRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -107,7 +107,6 @@ public class PropertyService implements IPropertyService {
                 String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId(), true);
                 property.setMainImage(path);
             } catch (RuntimeException e) {
-                e.printStackTrace();
                 throw new RuntimeException("Fallo al subir la imagen principal", e);
             }
             // para el resto de imagenes
@@ -118,6 +117,13 @@ public class PropertyService implements IPropertyService {
                 }
             }
             propertyRepository.save(property);
+
+            // creamos la notificacion de que se agrega una nueva propiedad
+            NotificationDTO notificationDTO = new NotificationDTO();
+            notificationDTO.setDate(property.getDate());
+            notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
+            notificationRepository.createNotification(notificationDTO, property.getId());
+
             return ResponseEntity.ok("Se ha guardado la propiedad");
         } catch (Exception e) {
             return ResponseEntity
@@ -301,6 +307,36 @@ public class PropertyService implements IPropertyService {
                     .map(this::toDTO)
                     .toList();
             return ResponseEntity.ok(propertyDTOS);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<PropertySimpleDTO> getSimpleById(Long id) {
+        try {
+            Optional<Property> property = propertyRepository.findById(id);
+
+            if (property.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Property get = property.get();
+
+            PropertySimpleDTO propertyDTO = new PropertySimpleDTO();
+            propertyDTO.setId(get.getId());
+            propertyDTO.setTitle(get.getTitle());
+            propertyDTO.setPrice(get.getPrice());
+            propertyDTO.setDescription(get.getDescription());
+            propertyDTO.setDate(get.getDate());
+            propertyDTO.setMainImage(get.getMainImage());
+            propertyDTO.setStatus(get.getStatus().toString());
+            propertyDTO.setOperation(get.getOperation().name());
+            propertyDTO.setCurrency(get.getCurrency().name());
+            propertyDTO.setNeighborhood(get.getNeighborhood().getName());
+            propertyDTO.setType(get.getType().getName());
+
+            return ResponseEntity.ok(propertyDTO);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

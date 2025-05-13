@@ -5,14 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "Notification")
-public class Notification {
+@Table(name = "UserNotificationPreference")
+public class UserNotificationPreference {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,6 +21,6 @@ public class Notification {
     @Column(name = "type", nullable = false)
     private NotificationType type;
 
-    @Column(name = "date", nullable = false)
-    private LocalDateTime date;
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled;
 }

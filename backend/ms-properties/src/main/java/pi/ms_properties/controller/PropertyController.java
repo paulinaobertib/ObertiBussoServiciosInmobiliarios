@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.Status;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
+import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
 import pi.ms_properties.service.impl.PropertyService;
 
@@ -74,5 +75,10 @@ public class PropertyController {
     @GetMapping("/text")
     public ResponseEntity<List<PropertyDTO>> searchBy(@RequestParam String value) {
         return propertyService.findByTitleDescription(value);
+    }
+
+    @GetMapping("/getSimple/{id}")
+    public ResponseEntity<PropertySimpleDTO> getSimpleById(@PathVariable Long id) {
+        return propertyService.getSimpleById(id);
     }
 }
