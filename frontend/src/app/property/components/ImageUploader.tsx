@@ -4,7 +4,7 @@ interface Props {
     label: string;
     multiple?: boolean;
     sx?: any;
-    append?: boolean;          // NUEVO: concatenar en vez de reemplazar
+    append?: boolean;
     onSelect: (files: File[]) => void;
 }
 

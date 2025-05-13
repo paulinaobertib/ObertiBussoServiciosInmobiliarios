@@ -4,7 +4,7 @@ import AmenityForm from './forms/AmenityForm';
 import OwnerForm from './forms/OwnerForm';
 import TypeForm from './forms/TypeForm';
 import NeighborhoodForm from './forms/NeighborhoodForm';
-import { usePropertyCrud } from '../context/PropertyCrudContext';
+import { usePropertyCrud } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
 
 const registry = {

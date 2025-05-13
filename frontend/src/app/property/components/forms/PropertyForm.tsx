@@ -7,14 +7,14 @@ import ImageUploader from '../ImageUploader';
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
 
 import { usePropertyForm } from '../../hooks/usePropertyForm';
-import { usePropertyCrud } from '../../context/PropertyCrudContext';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useImageHandlers as useImageHandlers } from '../../hooks/useImageHandlersCreate';
 
 import { Property, PropertyCreate, PropertyUpdate } from '../../types/property';
 
 /* ----------------------------- tipos ----------------------------- */
 interface Props {
-    onImageSelect?: (main: File | null, gallery: File[]) => void;
+    onImageSelect?: (main: string | File | null, gallery: (string | File)[]) => void
     onValidityChange?: (valid: boolean) => void;
     initialData?: Property;
 }
@@ -37,13 +37,15 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         } = usePropertyForm();
 
         const { handleMainImage, handleGalleryImages, deleteImage } = useImageHandlers();
-        const { selected, allTypes } = usePropertyCrud();
+        const { selected, typesList } = usePropertyCrud();
 
         /* ------------ lógica de visibilidad (sin cambios) ------------- */
-        const currentType = useMemo(
-            () => allTypes.find((t) => t.id === selected.type),
-            [selected.type, allTypes]
-        );
+        const currentType = useMemo(() => {
+            const type = typesList.find((t) => t.id === selected.type);
+            console.log("currentType:", type);  // Verifica si `currentType` tiene el valor correcto
+            return type;
+        }, [selected.type, typesList]);  // Dependencias de selected.type y allTypes
+
         const showRooms = currentType?.hasRooms ?? false;
         const showBedrooms = currentType?.hasBedrooms ?? false;
         const showBathrooms = currentType?.hasBathrooms ?? false;
@@ -110,15 +112,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
 
         return (
             <Box component="form" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}
-                sx={{
-                    /* achica tipografía en pantallas pequeñas */
-                    '& .MuiInputBase-input, & .MuiInputLabel-root': {
-                        fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.875rem' },
-                    },
-                    '& .MuiTypography-root': {
-                        fontSize: { xs: '0.75rem', md: '0.875rem' },
-                    },
-                }}
             >
                 <Grid container spacing={1.5} sx={{ flexGrow: 1 }}>
                     <Grid size={{ xs: 12, md: 6 }}>

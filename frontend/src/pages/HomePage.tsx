@@ -4,8 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
 import ImageCarousel from '../app/property/components/ImageCarousel';
-import SearchBar from '../app/property/components/SearchBar';
-import SearchFilters from '../app/property/components/SearchFilters';
+import SearchBar from '../app/property/components/searchBar';
+import FiltersSidebar from '../app/property/components/searchFilters';
 import PropertyCatalog from '../app/property/components/PropertyCatalog';
 import FloatingButtons from '../app/property/components/FloatingButtons';
 
@@ -14,15 +14,19 @@ import { useComparison } from '../app/property/context/ComparisonContext';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
+import { ROUTES } from '../lib';
+import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
+  const { refreshAllCatalogs } = usePropertyCrud();
   const { selectedPropertyIds, toggleSelection, clearComparison } = useComparison();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
+  const [results, setResults] = useState<Property[]>([]);
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,16 +37,25 @@ export default function Home() {
       try {
         const resp = await getAllProperties();
         const data = Array.isArray(resp?.data) ? resp.data : resp;
-        setProperties(
-          (data as Property[]).map(p => ({ ...p, status: p.status ?? 'Desconocido' }))
-        );
-      } catch {
+
+        const normalized = (data as Property[]).map(p => ({ ...p, status: p.status ?? 'Desconocido' }));
+        setProperties(normalized);
+        setResults(normalized);
+
+      } catch (err) {
         setProperties([]);
+        setResults([]);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (location.pathname === ROUTES.HOME_APP) {
+      refreshAllCatalogs();
+    }
+  }, [location.pathname, refreshAllCatalogs]);
 
   useEffect(() => {
     if (goCompare) {
@@ -93,13 +106,13 @@ export default function Home() {
   };
 
   return (
-    <BasePage>
+    <BasePage maxWidth={false}>
 
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
 
         <Box sx={{ mt: 2 }}>
-          <SearchBar />
+          <SearchBar onSearch={setResults} />
         </Box>
 
         <Box
@@ -111,17 +124,17 @@ export default function Home() {
           }}
         >
           <Box sx={{ width: { xs: '100%', md: 270 } }}>
-            <SearchFilters />
+            <FiltersSidebar onSearch={setResults} />
           </Box>
 
           <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
             {loading ? (
               <Typography>Cargando propiedades...</Typography>
-            ) : properties.length > 0 ? (
+            ) : results.length > 0 ? (
               <PropertyCatalog
+                properties={results}
                 mode={mode}
                 onFinishAction={() => setMode('normal')}
-                properties={properties}
                 selectionMode={selectionMode}
                 selectedPropertyIds={selectedPropertyIds}
                 toggleSelection={toggleSelection}
@@ -143,6 +156,6 @@ export default function Home() {
         onCompare={handleCompare}
         compareCount={selectedPropertyIds.length}
       />
-    </BasePage>
+    </BasePage >
   );
 }

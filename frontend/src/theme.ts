@@ -12,6 +12,30 @@ const theme = createTheme({
       default: "white",
     },
   },
+
+  components: {
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          "&.Mui-selected": {
+            backgroundColor: "#FFE0B2",
+            "&:hover": { backgroundColor: "#FFD699" },
+          },
+        },
+      },
+    },
+
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          "&.Mui-selected": {
+            backgroundColor: "#FFE0B2",
+            "&:hover": { backgroundColor: "#FFD699" },
+          },
+        },
+      },
+    },
+  },
 });
 
 export default theme;
