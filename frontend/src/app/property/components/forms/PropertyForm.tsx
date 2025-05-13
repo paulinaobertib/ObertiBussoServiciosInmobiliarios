@@ -12,7 +12,6 @@ import { useImageHandlers as useImageHandlers } from '../../hooks/useImageHandle
 
 import { Property, PropertyCreate, PropertyUpdate } from '../../types/property';
 
-/* ----------------------------- tipos ----------------------------- */
 interface Props {
     onImageSelect?: (main: string | File | null, gallery: (string | File)[]) => void
     onValidityChange?: (valid: boolean) => void;
@@ -28,7 +27,6 @@ export type PropertyFormHandle = {
     getUpdateData: () => PropertyUpdate;
 };
 
-/* ----------------------------------------------------------------- */
 const PropertyForm = forwardRef<PropertyFormHandle, Props>(
     ({ onImageSelect, onValidityChange, initialData }, ref) => {
 
@@ -39,12 +37,10 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         const { handleMainImage, handleGalleryImages, deleteImage } = useImageHandlers();
         const { selected, typesList } = usePropertyCrud();
 
-        /* ------------ lógica de visibilidad (sin cambios) ------------- */
         const currentType = useMemo(() => {
             const type = typesList.find((t) => t.id === selected.type);
-            console.log("currentType:", type);  // Verifica si `currentType` tiene el valor correcto
             return type;
-        }, [selected.type, typesList]);  // Dependencias de selected.type y allTypes
+        }, [selected.type, typesList]); 
 
         const showRooms = currentType?.hasRooms ?? false;
         const showBedrooms = currentType?.hasBedrooms ?? false;
@@ -52,7 +48,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(Boolean).length;
         const colSize = visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
 
-        /* ------------ expone métodos al padre ------------------------- */
         useEffect(() => {
             onValidityChange?.(check);
         }, [check, onValidityChange]);
@@ -61,8 +56,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             submit,
             reset,
             deleteImage: (f: File) => deleteImage(f, form, setField, onImageSelect),
-
-            /* ✅  firmamos con 'any' para no forzar coincidencia exacta */
             setField: setField as any,
 
             getCreateData: () => {
@@ -75,7 +68,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             },
         }));
 
-        /* ------------ hidratar datos iniciales (sin cambios) ---------- */
         useEffect(() => {
             if (initialData) {
                 Object.entries(initialData).forEach(([k, v]) => {
@@ -84,7 +76,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             }
         }, [initialData]);
 
-        /* ------------ sync selecciones externas (sin cambios) --------- */
         useEffect(() => { setField('ownerId', selected.owner ?? 0); }, [selected.owner]);
         useEffect(() => { setField('neighborhoodId', selected.neighborhood ?? 0); }, [selected.neighborhood]);
         useEffect(() => { setField('typeId', selected.type ?? 0); }, [selected.type]);
@@ -95,7 +86,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
         }, [showRooms, showBedrooms, showBathrooms]);
         useEffect(() => { setField('amenitiesIds', selected.amenities); }, [selected.amenities]);
 
-        /* ------------ helpers ----------------------------------------- */
         const num =
             (k: keyof typeof form) =>
                 (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,7 +241,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                         </TextField>
                     </Grid>
 
-                    {/* imágenes */}
                     <Grid size={{ xs: 6 }}>
                         <ImageUploader
                             label="Cargar Imagen principal"

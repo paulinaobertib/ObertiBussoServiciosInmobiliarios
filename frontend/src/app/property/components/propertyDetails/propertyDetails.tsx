@@ -1,7 +1,8 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import ImageCarousel from './carousel';
-import PropertyInfo from '../propertyDetails/propertyInfo';
+import ImageCarousel from './PropertyCarousel';
+import PropertyInfo from './propertyInfo';
 import { Property } from '../../types/property';
+import { Neighborhood } from '../../types/neighborhood';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -31,8 +32,8 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
   useEffect(() => {
-    const address = property.neighborhood
-      ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+    const address = neighborhood
+      ? `${neighborhood.name}, ${neighborhood.city}`
       : 'Buenos Aires, Argentina';
     
     const fetchCoordinates = async () => {
@@ -57,12 +58,12 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
     };
 
     fetchCoordinates();
-  }, [property.neighborhood]);
+  }, [neighborhood]);
 
   // Construir la URL de Google Maps
-  const googleMapsUrl = property.neighborhood
+  const googleMapsUrl = neighborhood
     ? `https://www.google.com/maps?q=${encodeURIComponent(
-        `${property.neighborhood.name}, ${property.neighborhood.city}`
+        `${neighborhood.name}, ${neighborhood.city}`
       )}`
     : `https://www.google.com/maps?q=Buenos+Aires,+Argentina`;
 

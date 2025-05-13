@@ -139,7 +139,6 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
           )}
         </Paper>
       )}
-      {/* Siempre renderizar el contenedor de miniaturas */}
       <Box
         sx={{
           mt: 2,
@@ -147,7 +146,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
           gap: 1,
           overflowX: 'auto',
           pb: 1,
-          minHeight: isMobile ? 60 : 80, // Reservar espacio para miniaturas
+          minHeight: isMobile ? 60 : 80, 
         }}
       >
         {allImages.length > 1 ? (
@@ -188,7 +187,6 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
             </Box>
           ))
         ) : (
-          // Espacio vacío para mantener el layout
           <Box sx={{ width: '100%', height: isMobile ? 60 : 80 }} />
         )}
         {allImages.length > visibleThumbnails && !showAllThumbnails && (

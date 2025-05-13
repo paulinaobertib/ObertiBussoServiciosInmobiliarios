@@ -1,4 +1,3 @@
-// src/app/property/components/SearchBar.tsx
 import { useState, useEffect } from 'react';
 import { Box, TextField, CircularProgress } from '@mui/material';
 import { getPropertiesByText, getAllProperties } from '../services/property.service';
@@ -13,19 +12,15 @@ export default function SearchBar({ onSearch, debounceMs = 300 }: Props) {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Cada vez que cambia `query`, disparo la búsqueda tras un debounce
   useEffect(() => {
-    // Configuro un timer
     const handler = setTimeout(async () => {
       setLoading(true);
       try {
         let results: Property[];
 
         if (query.trim() === '') {
-          // Si el campo está vacío, retorno TODO
           results = await getAllProperties();
         } else {
-          // Sino, busco por texto
           results = await getPropertiesByText(query.trim());
         }
 
@@ -38,8 +33,6 @@ export default function SearchBar({ onSearch, debounceMs = 300 }: Props) {
       }
     }, debounceMs);
 
-    // Si el usuario escribe de nuevo antes de que termine el timer,
-    // lo limpiamos y volvemos a contar
     return () => clearTimeout(handler);
   }, [query, debounceMs, onSearch]);
 

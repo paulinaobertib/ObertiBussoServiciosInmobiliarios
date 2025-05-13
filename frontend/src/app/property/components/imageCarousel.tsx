@@ -24,7 +24,7 @@ const sliderSettings = {
 
 const ImageCarousel: React.FC = () => {
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{position: 'relative', height: '350px', mb: 4 }}>
       <Slider {...sliderSettings}>
         {carouselImages.map((img, idx) => (
           <Box

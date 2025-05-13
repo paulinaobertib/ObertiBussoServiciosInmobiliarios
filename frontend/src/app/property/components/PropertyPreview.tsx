@@ -12,7 +12,6 @@ interface Props {
 }
 
 export default function PropertyPreview({ main, images, onDelete }: Props) {
-  // si no hay nada para mostrar, no renderizamos
   if (!main && images.length === 0) return null;
   const Thumb = ({ file, isMain }: { file: Image; isMain: boolean }) => (
     <Box

@@ -11,7 +11,6 @@ interface PropertyInfoProps {
   property: Property;
 }
 
-// Función para mostrar singular/plural o "-"
 const formatFeatureLabel = (
   value: number | null | undefined,
   singular: string,
@@ -40,7 +39,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       label: property.area && property.area > 0 ? `${property.area} m²` : '-',
       icon: <SquareFootIcon color="primary" />,
     },
-  ].filter((feature) => feature.label !== '-'); // Filtra características no válidas
+  ].filter((feature) => feature.label !== '-'); 
 
 
   return (
@@ -76,7 +75,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
             />
             <Chip label={property.status} size="small" color="default" />
           </Box>
-       {/* Características */}
+
       {features.map((feature, index) => (
         <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
@@ -96,7 +95,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
           <Typography variant="body1">{feature.label}</Typography>
         </Box>
       ))}
-            {/* Descripción */}
+
             {property.description && (
               <Box>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>

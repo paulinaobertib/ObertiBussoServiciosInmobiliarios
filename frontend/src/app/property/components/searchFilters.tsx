@@ -63,11 +63,10 @@ export default function SearchFilters({ onSearch }: Props) {
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Validación: Prevenir valores negativos
     const numValue = value === '' ? 0 : Number(value);
     if (numValue < 0) {
       showAlert('El valor no puede ser negativo', 'error');
-      return;  // No actualiza el valor si es negativo
+      return; 
     }
 
     setParams((p) => ({
