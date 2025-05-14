@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Typography, Button } from '@mui/material';
 import { BasePage } from './BasePage';
 import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
 import { getPropertyById } from '../app/property/services/property.service';
@@ -11,6 +11,11 @@ const PropertyDetailsPage = () => {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate('/');
+  };
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -39,7 +44,7 @@ const PropertyDetailsPage = () => {
         <Box sx={{ p: 4 }}>
           <Typography variant="h5">Cargando...</Typography>
         </Box>
-      </BasePage >
+      </BasePage>
     );
   }
 
@@ -57,6 +62,12 @@ const PropertyDetailsPage = () => {
 
   return (
     <BasePage maxWidth={false}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+        <Button variant="contained" color="primary" onClick={handleBack}>
+          VOLVER
+        </Button>
+      </Box>
+
       <PropertyDetails property={property} />
     </BasePage>
   );
