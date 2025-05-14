@@ -1,6 +1,5 @@
-/* src/app/property/components/propertyDetails/PropertyDetails.tsx */
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import ImageCarousel from './PropertyCarousel';
+import ImageCarousel from '../propertyDetails/PropertyCarousel'; 
 import PropertyInfo from '../propertyDetails/propertyInfo';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -11,7 +10,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Leaflet icon
+// Configurar íconos para Leaflet
 const customMarkerIcon = new L.Icon({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -28,8 +27,6 @@ interface PropertyDetailsProps {
 const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-  // Coordenadas: null mientras carga; fallback después
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
   useEffect(() => {
@@ -39,16 +36,13 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
 
     const fetchCoordinates = async () => {
       try {
-        const response = await axios.get(
-          `https://nominatim.openstreetmap.org/search`,
-          {
-            params: {
-              q: address,
-              format: 'json',
-              limit: 1,
-            },
-          }
-        );
+        const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+          params: {
+            q: address,
+            format: 'json',
+            limit: 1,
+          },
+        });
         if (response.data.length > 0) {
           const { lat, lon } = response.data[0];
           setCoordinates([parseFloat(lat), parseFloat(lon)]);
@@ -61,7 +55,6 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
     fetchCoordinates();
   }, [property.neighborhood]);
 
-  // Construir la URL de Google Maps
   const googleMapsUrl = property.neighborhood
     ? `https://www.google.com/maps?q=${encodeURIComponent(
         `${property.neighborhood.name}, ${property.neighborhood.city}`
@@ -70,7 +63,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
         `${property.street} ${property.number}, Buenos Aires, Argentina`
       )}`;
 
-  // URLs de imágenes (sin File/URL.createObjectURL)
+  // Procesar imágenes
   const mainImageUrl =
     typeof property.mainImage === 'string'
       ? property.mainImage
@@ -82,7 +75,6 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 8 }}>
-      {/* Carrusel + Info */}
       <Box
         sx={{
           backgroundColor: '#ffe0b2',
@@ -106,7 +98,6 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
         </Box>
       </Box>
 
-      {/* Mapa */}
       <Box
         sx={{
           mt: 4,
@@ -119,7 +110,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
         }}
         onClick={() => window.open(googleMapsUrl, '_blank')}
       >
-        {coordinates && (
+        {coordinates ? (
           <MapContainer
             center={coordinates}
             zoom={15}
@@ -137,9 +128,25 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
               </Popup>
             </Marker>
           </MapContainer>
+        ) : (
+          <Box
+            sx={{
+              height: 400,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f5f5f5',
+              color: 'text.secondary',
+              fontSize: '1.2rem',
+              fontStyle: 'italic',
+            }}
+          >
+            Barrio no encontrado.
+          </Box>
         )}
       </Box>
     </Container>
   );
 };
+
 export default PropertyDetails;

@@ -1,5 +1,4 @@
-/* src/app/property/components/propertyDetails/propertyInfoCompare.tsx */
-import { Box, Typography, Chip, Stack } from '@mui/material';
+import { Box, Typography, Chip } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -7,108 +6,165 @@ import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
+import { usePropertyCrud } from '../../context/PropertiesContext';
+import * as React from 'react';
 
 interface PropertyInfoProps {
   property: Property;
 }
 
+// Función para mostrar singular/plural o "- <plural>"
 const formatFeatureLabel = (
   value: number | null | undefined,
   singular: string,
   plural: string
 ) => {
-  if (!value || value <= 0) return '-';
+  if (!value || value <= 0) return `- `;
   return `${value} ${value === 1 ? singular : plural}`;
 };
 
 const PropertyInfo = ({ property }: PropertyInfoProps) => {
-  const features = [
-    {
-      label: formatFeatureLabel(property.bedrooms, 'dormitorio', 'dormitorios'),
-      icon: <HotelIcon color="primary" />,
-    },
-    {
-      label: formatFeatureLabel(property.bathrooms, 'baño', 'baños'),
-      icon: <BathtubIcon color="primary" />,
-    },
-    {
-      label: formatFeatureLabel(property.rooms, 'ambiente', 'ambientes'),
-      icon: <DoorFrontIcon color="primary" />,
-    },
-    {
-      label: property.area && property.area > 0 ? `${property.area} m²` : '-',
-      icon: <SquareFootIcon color="primary" />,
-    },
-  ].filter((feature) => feature.label !== '-');
+  const { comparisonItems } = usePropertyCrud();
+
+  // Definir las claves numéricas para las características
+  type NumericFeatureKey = 'bedrooms' | 'bathrooms' | 'rooms' | 'area';
+
+  // Determinar qué características mostrar
+  const getCommonFeatures = () => {
+    const features: { key: NumericFeatureKey; label: string; icon: React.ReactNode }[] = [
+      {
+        key: 'bedrooms',
+        label: formatFeatureLabel(property.bedrooms, 'dormitorio', 'dormitorios'),
+        icon: <HotelIcon color="primary" />,
+      },
+      {
+        key: 'bathrooms',
+        label: formatFeatureLabel(property.bathrooms, 'baño', 'baños'),
+        icon: <BathtubIcon color="primary" />,
+      },
+      {
+        key: 'rooms',
+        label: formatFeatureLabel(property.rooms, 'ambiente', 'ambientes'),
+        icon: <DoorFrontIcon color="primary" />,
+      },
+      {
+        key: 'area',
+        label: property.area && property.area > 0 ? `${property.area} m²` : '- m²',
+        icon: <SquareFootIcon color="primary" />,
+      },
+    ];
+
+    // Si no hay comparación (solo una propiedad), mostrar todas las características
+    if (comparisonItems.length <= 1) {
+      return features;
+    }
+
+    // Obtener la otra propiedad en comparación
+    const otherProperty = comparisonItems.find((item) => item.id !== property.id);
+
+    // Si no hay otra propiedad, mostrar todas las características
+    if (!otherProperty) {
+      return features;
+    }
+
+    // Filtrar características comunes
+    return features.filter((feature) => {
+      const propValue = property[feature.key] as number | null;
+      const otherPropValue = otherProperty[feature.key] as number | null;
+
+      // Mostrar la característica si:
+      // 1. Ambas propiedades tienen un valor válido (> 0)
+      // 2. Al menos una propiedad tiene un valor válido (para mostrar "- <plural>" en la otra)
+      // No mostrar si ambas propiedades tienen valor nulo o 0
+      return (
+        (propValue && propValue > 0) ||
+        (otherPropValue && otherPropValue > 0)
+      );
+    });
+  };
+
+  const features = getCommonFeatures();
 
   return (
-    <Stack spacing={3}>
-      <Box>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            mb: 1,
-          }}
-        >
-          <Typography variant="h4" component="h1" fontWeight="bold">
-            {property.title}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <LocationOnIcon color="action" fontSize="small" sx={{ mr: 0.5 }} />
-          <Typography variant="body1" color="text.secondary">
-            {property.neighborhood
-              ? `${property.neighborhood.name}, ${property.neighborhood.city}`
-              : 'Barrio desconocido'}
-          </Typography>
-        </Box>
-        <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
-          {formatPrice(property.price, property.currency)}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        maxWidth: { xs: '100%', md: '600px' },
+        mx: 'auto',
+        width: '100%',
+      }}
+    >
+      {/* Título */}
+      <Typography
+        variant="h4"
+        component="h1"
+        fontWeight="bold"
+        sx={{ textAlign: 'center' }}
+      >
+        {property.title}
+      </Typography>
+
+      {/* Barrio */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <LocationOnIcon color="action" fontSize="small" />
+        <Typography variant="body1" color="text.secondary">
+          {property.neighborhood
+            ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+            : 'Barrio desconocido'}
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-          <Chip
-            label={property.operation}
-            size="small"
-            color="primary"
-            variant="outlined"
-          />
-          <Chip label={property.status} size="small" color="default" />
-        </Box>
-
-        {features.map((feature, index) => (
-          <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box
-              sx={{
-                bgcolor: 'primary.50',
-                borderRadius: '50%',
-                width: 40,
-                height: 40,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              {feature.icon}
-            </Box>
-            <Typography variant="body1">{feature.label}</Typography>
-          </Box>
-        ))}
-
-        {property.description && (
-          <Box>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-              Descripción
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              {property.description}
-            </Typography>
-          </Box>
-        )}
       </Box>
-    </Stack>
+
+      {/* Precio */}
+      <Typography variant="h4" color="primary" fontWeight="bold">
+        {formatPrice(property.price, property.currency)}
+      </Typography>
+
+      {/* Operación y Estado */}
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Chip
+          label={property.operation}
+          size="small"
+          color="primary"
+          variant="outlined"
+        />
+        <Chip label={property.status} size="small" color="default" />
+      </Box>
+
+      {/* Características */}
+      {features.map((feature, index) => (
+        <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box
+            sx={{
+              bgcolor: 'primary.50',
+              borderRadius: '50%',
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {feature.icon}
+          </Box>
+          <Typography variant="body1">{feature.label}</Typography>
+        </Box>
+      ))}
+
+      {/* Descripción */}
+      {property.description && (
+        <Box>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+            Descripción
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            {property.description}
+          </Typography>
+        </Box>
+      )}
+    </Box>
   );
 };
 
