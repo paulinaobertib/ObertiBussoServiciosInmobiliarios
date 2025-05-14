@@ -7,8 +7,8 @@ export const ROUTES = {
   EDIT_PROPERTY: `/properties/:id/edit`,
   VIEW_PROPERTY: `/properties/:id`,
   LOGIN: `/login`,
-  COMPARE: '/compare',
-  PROPERTY_DETAILS: '/properties/:id',
+  COMPARE: "/properties/compare",
+  PROPERTY_DETAILS: "/properties/:id",
 };
 
 export const PAGES = [

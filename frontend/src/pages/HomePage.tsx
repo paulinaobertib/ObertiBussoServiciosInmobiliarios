@@ -9,7 +9,7 @@ import PropertyCatalog from '../app/property/components/PropertyCatalog';
 import FloatingButtons from '../app/property/components/FloatingButtons';
 
 import { getAllProperties } from '../app/property/services/property.service';
-import { useComparison } from '../app/property/context/ComparisonContext';
+// import { useComparison } from '../app/property/context/ComparisonContext';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
@@ -20,8 +20,7 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
-  const { refreshAllCatalogs } = usePropertyCrud();
-  const { selectedPropertyIds, toggleSelection, clearComparison } = useComparison();
+  const { refreshAllCatalogs, selectedPropertyIds, toggleCompare, clearComparison } = usePropertyCrud();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
@@ -58,7 +57,7 @@ export default function Home() {
 
   useEffect(() => {
     if (goCompare) {
-      navigate('/compare');
+      navigate('/properties/compare');
       setGoCompare(false);
     }
   }, [goCompare, navigate]);
@@ -100,7 +99,7 @@ export default function Home() {
     clearComparison();
     properties
       .filter(p => selectedPropertyIds.includes(p.id))
-      .forEach(p => toggleSelection(p.id));
+      .forEach(p => toggleCompare(p.id));
     setGoCompare(true);
   };
 
@@ -136,7 +135,7 @@ export default function Home() {
                 onFinishAction={() => setMode('normal')}
                 selectionMode={selectionMode}
                 selectedPropertyIds={selectedPropertyIds}
-                toggleSelection={toggleSelection}
+                toggleSelection={toggleCompare}
                 isSelected={id => selectedPropertyIds.includes(id)}
               />
             ) : (

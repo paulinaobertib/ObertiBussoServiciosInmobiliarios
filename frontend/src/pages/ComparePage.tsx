@@ -1,79 +1,54 @@
-import { Box, Typography, Button } from '@mui/material';
-import Navbar from '../app/property/components/Navbar';
-import PropertyDetails from '../app/property/components/propertyDetails/propertyDetailsCompare';
-import { useComparison } from '../app/property/context/ComparisonContext';
+import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { BasePage } from './BasePage';
+import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
+import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+// import { useEffect } from 'react';
 
-const Compare = () => {
-  const { comparisonItems } = useComparison();
+export default function ComparePage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { comparisonItems, selectedPropertyIds } = usePropertyCrud();
+  console.log('ComparePage → comparisonItems:', comparisonItems);
+  console.log('ComparePage → selectedPropertyIds:', selectedPropertyIds);
 
-  if (comparisonItems.length === 0) {
+  // Si no hay dos propiedades, mostramos mensaje
+  if (comparisonItems.length < 2) {
     return (
-      <>
-        <Navbar />
-        <Box sx={{ p: 4 }}>
-          <Typography variant="h5" color="text.secondary">
-            No hay propiedades para comparar.
+      <BasePage maxWidth={false}>
+        <Container sx={{ py: 8 }}>
+          <Typography variant="h6" color="text.secondary">
+            Selecciona dos propiedades para comparar.
           </Typography>
-        </Box>
-      </>
+        </Container>
+      </BasePage>
     );
   }
 
-  if (comparisonItems.length !== 2) {
-    return (
-      <>
-        <Navbar />
-        <Box sx={{ p: 4, overflowX: 'hidden' }}>
-          <Typography variant="h5" color="error">
-            Por favor selecciona exactamente 2 propiedades para comparar.
-          </Typography>
-        </Box>
-      </>
-    );
-  }
+  // Cuando salgamos de esta página, limpiamos la comparación
+  // (opcional, así la próxima vez parte limpia)
+  // useEffect(() => {
+  //   return () => {
+  //     clearComparison();
+  //   };
+  // }, [clearComparison]);
 
   return (
-    <Box sx={{ width: '100%', overflowX: 'hidden' }}>
-      <Navbar />
-      <Box sx={{ p: 4 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 4,
-            justifyContent: 'center',
-            width: '100%',
-            maxWidth: '100%',
-          }}
-        >
-          {comparisonItems.map((property) => (
-            <Box
-              key={property.id}
-              sx={{
-                position: 'relative',
-                flex: 1,
-                width: '100%',
-                maxWidth: '100%',
-                overflowX: 'hidden',
-              }}
-            >
-              <PropertyDetails property={property} />
-            </Box>
-          ))}
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            sx={{ minWidth: 200 }}
-          >
-            Contactar al vendedor
-          </Button>
-        </Box>
+    <BasePage maxWidth={false}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: 4,
+          py: 4,
+        }}
+      >
+        {comparisonItems.map((prop) => (
+          <Box key={prop.id} sx={{ flex: 1, borderRadius: 2, overflow: 'hidden' }}>
+            {/* Reutilizamos TODO: carrusel, info y mapa */}
+            <PropertyDetails property={prop} />
+          </Box>
+        ))}
       </Box>
-    </Box>
+    </BasePage>
   );
-};
-
-export default Compare;
+}

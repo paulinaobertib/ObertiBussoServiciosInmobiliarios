@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams} from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
+import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
 import { getPropertyById } from '../app/property/services/property.service';
 import { Property } from '../app/property/types/property';
 
