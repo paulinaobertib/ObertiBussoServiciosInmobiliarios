@@ -1,8 +1,8 @@
 /* src/app/property/components/propertyDetails/PropertyDetailsCompare.tsx */
 import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel';
-import PropertyInfo from './PropertyInfoCompare';
-import { usePropertyCrud } from '../../context/PropertiesContext';
+import PropertyInfoCompare from './propertyInfoCompare';
+import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -21,15 +21,15 @@ const customMarkerIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-export default function PropertyDetailsCompare() {
+interface PropertyDetailsCompareProps {
+  comparisonItems: Property[];
+}
+
+export default function PropertyDetailsCompare({ comparisonItems }: PropertyDetailsCompareProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const {
-    comparisonItems,
-    neighborhoodsList
-  } = usePropertyCrud();
 
-  // if not two, prompt
+  // Si no hay dos propiedades, mostramos mensaje
   if (comparisonItems.length !== 2) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -40,102 +40,115 @@ export default function PropertyDetailsCompare() {
     );
   }
 
-  // Coordinates for each
+  // Coordenadas para cada propiedad
   const [coords, setCoords] = useState<([number, number] | null)[]>([null, null]);
 
-  // Preview image URLs
+  // URLs de vista previa de imágenes
   const previewRefs = comparisonItems.map(() => ({
-    main: useRef<string>(''), gallery: useRef<string[]>([]), urls: useRef<string[]>([])
+    main: useRef<string>(''),
+    gallery: useRef<string[]>([]),
+    urls: useRef<string[]>([]),
   }));
 
-  // Setup previews and coords
+  // Configurar vistas previas y coordenadas
   comparisonItems.forEach((property, idx) => {
-    // images preview
+    // Vista previa de imágenes
     useEffect(() => {
       const urls: string[] = [];
-      // main
+      // Imagen principal
       const mainUrl =
         typeof property.mainImage === 'string'
           ? property.mainImage
-          : property.mainImage instanceof File
-            ? URL.createObjectURL(property.mainImage)
-            : typeof (property.mainImage as any)?.url === 'string'
-              ? (property.mainImage as any).url
-              : '';
+          : URL.createObjectURL(property.mainImage);
       if (property.mainImage instanceof File) urls.push(mainUrl);
-      // gallery
-      const galleryUrls = property.images.map(img => {
-        // Si ya es URL string
+
+      // Imágenes de la galería
+      const galleryUrls = property.images.map((img) => {
         if (typeof img === 'string') return img;
-        // Si es File
-        if (img instanceof File) {
-          const u = URL.createObjectURL(img);
-          urls.push(u);
-          return u;
-        }
-        // Si es objeto con propiedad url
-        if (img && typeof img === 'object' && 'url' in img) {
-          return (img as any).url;
-        }
-        // fallback vacío
-        return '';
+        const u = URL.createObjectURL(img);
+        urls.push(u);
+        return u;
       });
+
       previewRefs[idx].main.current = mainUrl;
       previewRefs[idx].gallery.current = galleryUrls;
       previewRefs[idx].urls.current = urls;
+
       return () => {
-        previewRefs[idx].urls.current.forEach(u => URL.revokeObjectURL(u));
+        urls.forEach((u) => URL.revokeObjectURL(u));
       };
     }, [property.mainImage, property.images]);
 
-    // geocode
+    // Geocodificación
     useEffect(() => {
-      const nb = neighborhoodsList.find(n => n.id === property.neighborhoodId);
-      if (!nb) return;
-      const address = `${nb.name}, ${nb.city}, Argentina`;
-      (async () => {
+      const address = property.neighborhood
+        ? `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
+        : `Buenos Aires, Argentina`;
+
+      const fetchCoordinates = async () => {
         try {
-          const { data } = await axios.get(
-            'https://nominatim.openstreetmap.org/search',
-            { params: { q: address, format: 'json', limit: 1, countrycodes: 'ar' } }
-          );
-          if (Array.isArray(data) && data.length) {
-            const { lat, lon } = data[0];
-            setCoords(old => {
-              const c = [...old]; c[idx] = [parseFloat(lat), parseFloat(lon)]; return c;
+          const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+            params: { q: address, format: 'json', limit: 1, countrycodes: 'ar' },
+          });
+          if (response.data.length) {
+            const { lat, lon } = response.data[0];
+            setCoords((old) => {
+              const c = [...old];
+              c[idx] = [parseFloat(lat), parseFloat(lon)];
+              return c;
             });
           }
-        } catch { }
-      })();
-    }, [property.neighborhoodId, neighborhoodsList]);
+        } catch (error) {
+          console.error('Error fetching coordinates:', error);
+        }
+      };
+
+      fetchCoordinates();
+    }, [property.neighborhood, property.street, property.number, idx]);
   });
 
-  const defaultCoords: [number, number] = [-31.4135, -64.1811];
+  const defaultCoords: [number, number] = [-34.6037, -58.3816]; // Buenos Aires por defecto
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
       <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 4 }}>
         {comparisonItems.map((property, idx) => {
-          const nb = neighborhoodsList.find(n => n.id === property.neighborhoodId);
           const center = coords[idx] ?? defaultCoords;
           const mainImage = previewRefs[idx].main.current;
           const galleryImages = previewRefs[idx].gallery.current;
           const carouselImgs = galleryImages.map((url, i) => ({ id: i, url }));
-          const gmUrl = nb
+          const gmUrl = property.neighborhood
             ? `https://www.google.com/maps?q=${encodeURIComponent(
-              `${nb.name}, ${nb.city}, Argentina`
-            )}`
-            : undefined;
+                `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
+              )}`
+            : `https://www.google.com/maps?q=${encodeURIComponent(
+                `${property.street} ${property.number}, Buenos Aires, Argentina`
+              )}`;
 
           return (
-            <Box key={property.id} sx={{ flex: 1, border: 1, borderColor: 'grey.300', borderRadius: 2, overflow: 'hidden' }}>
+            <Box
+              key={property.id}
+              sx={{ flex: 1, border: 1, borderColor: 'grey.300', borderRadius: 2, overflow: 'hidden' }}
+            >
               <ImageCarousel images={carouselImgs} mainImage={mainImage} title={property.title} />
-              <Box p={2}><PropertyInfo property={property} /></Box>
-              <Box sx={{ height: 300, cursor: gmUrl ? 'pointer' : 'default' }} onClick={() => gmUrl && window.open(gmUrl, '_blank')}>
+              <Box p={2}>
+                <PropertyInfoCompare property={property} /> {/* Cambiado a PropertyInfoCompare */}
+              </Box>
+              <Box
+                sx={{ height: 300, cursor: gmUrl ? 'pointer' : 'default' }}
+                onClick={() => gmUrl && window.open(gmUrl, '_blank')}
+              >
                 <MapContainer center={center} zoom={15} style={{ width: '100%', height: '100%' }}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="© OpenStreetMap contributors"
+                  />
                   <Marker position={center} icon={customMarkerIcon}>
-                    <Popup>{nb?.name}, {nb?.city}</Popup>
+                    <Popup>
+                      {property.neighborhood
+                        ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+                        : `${property.street} ${property.number}, Buenos Aires`}
+                    </Popup>
                   </Marker>
                 </MapContainer>
               </Box>

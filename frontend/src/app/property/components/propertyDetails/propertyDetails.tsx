@@ -1,9 +1,8 @@
 /* src/app/property/components/propertyDetails/PropertyDetails.tsx */
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel';
-import PropertyInfo from './PropertyInfo';
+import PropertyInfo from '../propertyDetails/propertyInfo';
 import { Property } from '../../types/property';
-import { usePropertyCrud } from '../../context/PropertiesContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -26,22 +25,17 @@ interface PropertyDetailsProps {
   property: Property;
 }
 
-export default function PropertyDetails({ property }: PropertyDetailsProps) {
+const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { neighborhoodsList } = usePropertyCrud();
 
-  // Encuentra el barrio completo por ID
-  const neighborhood =
-    neighborhoodsList.find(n => n.id === property.neighborhoodId) || null;
-
-  // Coordendas: null mientras carga; fallback después
+  // Coordenadas: null mientras carga; fallback después
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
   useEffect(() => {
-    const address = neighborhood
-      ? `${neighborhood.name}, ${neighborhood.city}`
-      : 'Buenos Aires, Argentina';
+    const address = property.neighborhood
+      ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+      : `${property.street} ${property.number}, Buenos Aires, Argentina`;
 
     const fetchCoordinates = async () => {
       try {
@@ -65,14 +59,16 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
     };
 
     fetchCoordinates();
-  }, [neighborhood]);
+  }, [property.neighborhood]);
 
   // Construir la URL de Google Maps
-  const googleMapsUrl = neighborhood
+  const googleMapsUrl = property.neighborhood
     ? `https://www.google.com/maps?q=${encodeURIComponent(
-      `${neighborhood.name}, ${neighborhood.city}`
-    )}`
-    : `https://www.google.com/maps?q=Buenos+Aires,+Argentina`;
+        `${property.neighborhood.name}, ${property.neighborhood.city}`
+      )}`
+    : `https://www.google.com/maps?q=${encodeURIComponent(
+        `${property.street} ${property.number}, Buenos Aires, Argentina`
+      )}`;
 
   // URLs de imágenes (sin File/URL.createObjectURL)
   const mainImageUrl =
@@ -131,11 +127,13 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
+              attribution="© OpenStreetMap contributors"
             />
             <Marker position={coordinates} icon={customMarkerIcon}>
               <Popup>
-                {neighborhood?.name}, {neighborhood?.city}
+                {property.neighborhood
+                  ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+                  : `${property.street} ${property.number}, Buenos Aires, Argentina`}
               </Popup>
             </Marker>
           </MapContainer>
@@ -143,4 +141,5 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
       </Box>
     </Container>
   );
-}
+};
+export default PropertyDetails;

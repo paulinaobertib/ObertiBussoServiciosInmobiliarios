@@ -1,3 +1,4 @@
+/* src/app/property/components/propertyDetails/propertyInfoCompare.tsx */
 import { Box, Typography, Chip, Stack } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -6,7 +7,6 @@ import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
-import { usePropertyCrud } from '../../context/PropertiesContext';
 
 interface PropertyInfoProps {
   property: Property;
@@ -22,12 +22,6 @@ const formatFeatureLabel = (
 };
 
 const PropertyInfo = ({ property }: PropertyInfoProps) => {
-  const { neighborhoodsList } = usePropertyCrud();
-
-  const neighborhood =
-    neighborhoodsList.find(n => n.id === property.neighborhoodId) || null;
-
-
   const features = [
     {
       label: formatFeatureLabel(property.bedrooms, 'dormitorio', 'dormitorios'),
@@ -47,7 +41,6 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
     },
   ].filter((feature) => feature.label !== '-');
 
-
   return (
     <Stack spacing={3}>
       <Box>
@@ -66,7 +59,9 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <LocationOnIcon color="action" fontSize="small" sx={{ mr: 0.5 }} />
           <Typography variant="body1" color="text.secondary">
-            {neighborhood ? `${neighborhood.name}, ${neighborhood.city}` : 'Barrio desconocido'}
+            {property.neighborhood
+              ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+              : 'Barrio desconocido'}
           </Typography>
         </Box>
         <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
