@@ -135,6 +135,11 @@ public class UserService {
         }
     }
 
+    private boolean contains(String field, String searchTerm) {
+        return field != null && searchTerm != null &&
+                field.toLowerCase().contains(searchTerm.toLowerCase());
+    }
+
     public ResponseEntity<List<User>> searchUsersByText(String searchTerm) {
         try {
             List<User> allUsers = userRepository.findAll();
@@ -158,8 +163,7 @@ public class UserService {
         }
     }
 
-    private boolean contains(String field, String searchTerm) {
-        return field != null && searchTerm != null &&
-                field.toLowerCase().contains(searchTerm.toLowerCase());
+    public Boolean exist(String id) {
+        return userRepository.exist(id);
     }
 }

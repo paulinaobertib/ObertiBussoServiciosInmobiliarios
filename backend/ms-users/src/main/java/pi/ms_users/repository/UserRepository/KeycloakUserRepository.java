@@ -1,5 +1,6 @@
 package pi.ms_users.repository.UserRepository;
 
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -105,5 +106,17 @@ public class KeycloakUserRepository implements IUserRepository {
         RoleMappingResource roleMappingResource = userResource.roles();
         RoleRepresentation roleRepresentation = realmResource.roles().get(role).toRepresentation();
         roleMappingResource.realmLevel().remove(Collections.singletonList(roleRepresentation));
+    }
+
+    @Override
+    public Boolean exist(String id) {
+        try {
+            UserRepresentation userRepresentation = keycloak.realm(realm).users().get(id).toRepresentation();
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Error al verificar la existencia del usuario en Keycloak: " + e.getMessage(), e);
+        }
     }
 }

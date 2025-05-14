@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Type;
-import pi.ms_properties.repository.TypeRepository;
+import pi.ms_properties.repository.ITypeRepository;
 import pi.ms_properties.service.interf.ITypeService;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TypeService implements ITypeService {
 
-    public final TypeRepository typeRepository;
+    public final ITypeRepository ITypeRepository;
 
     @Override
     public ResponseEntity<String> createType(Type type) {
@@ -24,7 +24,7 @@ public class TypeService implements ITypeService {
             if (type.getName() == null || type.getName().isBlank()) {
                 return ResponseEntity.badRequest().body("El nombre no puede estar vacio");
             }
-            typeRepository.save(type);
+            ITypeRepository.save(type);
             return ResponseEntity.ok("Se ha guardado el tipo de propiedad");
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("El tipo '" + type.getName() + "' ya existe");
@@ -39,13 +39,13 @@ public class TypeService implements ITypeService {
     public ResponseEntity<String> deleteType(Long id) {
         try {
 
-            Optional<Type> type = typeRepository.findById(id);
+            Optional<Type> type = ITypeRepository.findById(id);
 
             if (type.isEmpty()) {
                 return ResponseEntity.badRequest().body("No existe ese tipo de propiedad");
             }
 
-            typeRepository.delete(type.get());
+            ITypeRepository.delete(type.get());
             return ResponseEntity.ok("Se ha eliminado el tipo de propiedad");
         } catch (Exception e) {
             return ResponseEntity
@@ -57,13 +57,13 @@ public class TypeService implements ITypeService {
     @Override
     public ResponseEntity<Type> updateType(Type type) {
         try {
-            Optional<Type> search = typeRepository.findById(type.getId());
+            Optional<Type> search = ITypeRepository.findById(type.getId());
 
             if (search.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
 
-            Type updated = typeRepository.save(type);
+            Type updated = ITypeRepository.save(type);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -73,7 +73,7 @@ public class TypeService implements ITypeService {
     @Override
     public ResponseEntity<List<Type>> getAll() {
         try {
-            List<Type> types = typeRepository.findAll();
+            List<Type> types = ITypeRepository.findAll();
 
             if (types.isEmpty()) {
                 return ResponseEntity.noContent().build();
@@ -88,7 +88,7 @@ public class TypeService implements ITypeService {
     @Override
     public ResponseEntity<Type> getById(Long id) {
         try {
-            Optional<Type> type = typeRepository.findById(id);
+            Optional<Type> type = ITypeRepository.findById(id);
             return type.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

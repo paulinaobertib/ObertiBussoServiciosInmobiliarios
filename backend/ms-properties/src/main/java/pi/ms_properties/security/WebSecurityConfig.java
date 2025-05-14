@@ -1,5 +1,6 @@
 package pi.ms_properties.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +20,7 @@ public class WebSecurityConfig {
         authenticationConverter.setJwtGrantedAuthoritiesConverter(new JwtAuthConverter());
 
         httpSecurity
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET,
                                 "/property/get",
@@ -36,7 +38,16 @@ public class WebSecurityConfig {
                                 "/type/getAll",
                                 "/type/getById/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/inquiries/createWithoutUser").permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, authException) ->
+                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                        )
+                        .accessDeniedHandler((req, res, accessDeniedException) ->
+                                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                        )
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwtConfigurer -> jwtConfigurer

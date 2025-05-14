@@ -1,6 +1,5 @@
 package pi.ms_properties.service.impl;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -8,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_properties.domain.Amenity;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.View;
-import pi.ms_properties.repository.PropertyRepository;
-import pi.ms_properties.repository.ViewRepository;
+import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.IViewRepository;
 import pi.ms_properties.service.interf.IViewService;
 
 import java.time.LocalDateTime;
@@ -23,21 +22,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ViewService implements IViewService {
 
-    private final ViewRepository viewRepository;
+    private final IViewRepository IViewRepository;
 
-    private  final PropertyRepository propertyRepository;
+    private  final IPropertyRepository IPropertyRepository;
 
     @Override
     public void createView(Property property, LocalDateTime date) {
         View view = new View();
         view.setDate(date);
         view.setProperty(property);
-        viewRepository.save(view);
+        IViewRepository.save(view);
     }
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByProperty() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -50,7 +49,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByPropertyType() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -63,7 +62,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByDay() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -76,7 +75,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByMonth() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -89,7 +88,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByNeighborhood() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -102,7 +101,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByNeighborhoodType() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -115,7 +114,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByStatus() {
-        List<Property> properties = propertyRepository.findAll();
+        List<Property> properties = IPropertyRepository.findAll();
 
         Map<String, Long> statusCount = properties.stream()
                 .collect(Collectors.groupingBy(p -> p.getStatus().name(), Collectors.counting()));
@@ -125,7 +124,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType() {
-        List<Property> properties = propertyRepository.findAll();
+        List<Property> properties = IPropertyRepository.findAll();
 
         Map<String, Map<String, Long>> statusAndTypeCount = properties.stream()
                 .collect(Collectors.groupingBy(
@@ -141,7 +140,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByOperation() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
                         v -> v.getProperty().getOperation().toString(),
@@ -153,7 +152,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<Float, Long>> getViewsByRooms() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<Float, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -168,7 +167,7 @@ public class ViewService implements IViewService {
     // para que la seccion con la bd se mantenga abierta y pueda buscar las amenities
     @Transactional
     public ResponseEntity<Map<String, Long>> getViewsByAmenity() {
-        List<View> views = viewRepository.findAll();
+        List<View> views = IViewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 // recorremos todas las amenities de cada propiedad

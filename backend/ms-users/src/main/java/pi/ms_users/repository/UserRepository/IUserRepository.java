@@ -13,4 +13,5 @@ public interface IUserRepository {
     List<String> getUserRoles(String id);
     List<String> addRoleToUser(String id, String role);
     void deleteRoleToUser(String id, String role);
+    Boolean exist(String id);
 }

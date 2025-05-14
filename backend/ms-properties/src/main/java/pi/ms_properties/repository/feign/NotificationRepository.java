@@ -8,10 +8,10 @@ import pi.ms_properties.dto.feign.NotificationDTO;
 @RequiredArgsConstructor
 public class NotificationRepository {
 
-    private final FeignNotificationRepository feignNotificationRepository;
+    private final FeignUserRepository feignUserRepository;
 
     public void createNotification(NotificationDTO notificationDTO, Long propertyId) {
-        feignNotificationRepository.createProperty(notificationDTO, propertyId);
+        feignUserRepository.createProperty(notificationDTO, propertyId);
     }
 
 }

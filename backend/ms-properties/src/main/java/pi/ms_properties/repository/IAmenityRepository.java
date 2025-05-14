@@ -8,7 +8,7 @@ import pi.ms_properties.domain.Amenity;
 import java.util.Optional;
 
 @Repository
-public interface AmenityRepository extends JpaRepository<Amenity, Long> {
+public interface IAmenityRepository extends JpaRepository<Amenity, Long> {
     @Query("select a from Amenity a where a.name = ?1")
     Optional<Amenity> findByName(String name);
 }

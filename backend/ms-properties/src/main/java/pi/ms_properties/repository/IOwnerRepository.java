@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import pi.ms_properties.domain.Owner;
 
 @Repository
-public interface OwnerRepository extends JpaRepository<Owner, Long>, JpaSpecificationExecutor<Owner> {
+public interface IOwnerRepository extends JpaRepository<Owner, Long>, JpaSpecificationExecutor<Owner> {
 
 }

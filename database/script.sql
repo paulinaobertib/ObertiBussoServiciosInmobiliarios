@@ -147,12 +147,16 @@ CREATE TABLE News (
 
 CREATE TABLE Inquiry (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(30),
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL,
     status ENUM('ABIERTA', 'CERRADA') NOT NULL,
-    date_close DATETIME
+    date_close DATETIME,
+    phone VARCHAR(30) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    mail VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Property_Inquiry (
