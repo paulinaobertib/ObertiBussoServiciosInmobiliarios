@@ -2,11 +2,17 @@ import { Box, Button, Container, Typography, useMediaQuery, useTheme } from '@mu
 import { BasePage } from './BasePage';
 import PropertyDetailsCompare from '../app/property/components/propertyDetails/propertyDetailsCompare';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { useNavigate } from 'react-router-dom';
 
 const Compare = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { comparisonItems } = usePropertyCrud();
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate('/');
+  };
 
   if (comparisonItems.length === 0) {
     return (
@@ -34,7 +40,13 @@ const Compare = () => {
 
   return (
     <BasePage maxWidth={false}>
-      <Container maxWidth="xl" >
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+          <Button variant="contained" color="primary" onClick={handleBack}>
+            VOLVER
+          </Button>
+        </Box>
+
+      <Container maxWidth="xl">
         <Box
           sx={{
             display: 'flex',
@@ -46,6 +58,7 @@ const Compare = () => {
         >
           <PropertyDetailsCompare comparisonItems={comparisonItems} />
         </Box>
+
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
           <Button variant="contained" color="primary" size="large" sx={{ minWidth: theme.spacing(25) }}>
             Contactar al vendedor
