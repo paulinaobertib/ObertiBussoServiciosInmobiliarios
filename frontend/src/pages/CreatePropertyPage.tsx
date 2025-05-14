@@ -64,7 +64,7 @@ export default function CreatePropertyPage() {
           setGallery([]);
 
           /* redirige al catálogo */
-          navigate(ROUTES.HOME_APP, { replace: true });
+          navigate(ROUTES.HOME_APP);
 
         } catch {
           showAlert('Error al guardar la propiedad', 'error');
@@ -81,7 +81,7 @@ export default function CreatePropertyPage() {
       setMain(null);
       setGallery([]);
       showAlert('Formulario vaciado correctamente', 'info');
-      navigate(ROUTES.HOME_APP, { replace: true });
+      navigate(ROUTES.HOME_APP);
     });
 
   /* nombre del tipo de propiedad (para el título) ------------------ */

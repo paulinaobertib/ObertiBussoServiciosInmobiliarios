@@ -31,7 +31,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
     { onImageSelect, onValidityChange, initialData },
     ref
 ) {
-    // Ya no le pasamos initialData aquí:
     const {
         form,
         setField,
@@ -53,39 +52,42 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
 
     const { handleMainImage, handleGalleryImages, deleteImage } = useImageHandlers();
 
-    // 1) volcamos initialData al estado la primera vez (o cuando cambie)
     useEffect(() => {
-        if (!initialData) return;
-        // Solo volcamos si el ID cambió
-        setField('id', initialData.id as any);
-        Object.entries(initialData).forEach(([k, v]) => {
-            if (k === 'id') return;
-            if (k in form) {
-                setField(k as keyof typeof form, v as any);
-            }
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        if (initialData) {
+            Object.entries(initialData).forEach(([k, v]) => {
+                if (k in form) setField(k as keyof typeof form, v as any);
+            });
+        }
     }, [initialData]);
-    
-    // 2) sincronizamos selects de contexto
+
     useEffect(() => {
         const o = ownersList.find(o => o.id === selected.owner);
-        if (o) setField('owner', o);
+        if (o && form.owner.id !== o.id) {
+            setField('owner', o);
+        }
     }, [selected.owner, ownersList, setField]);
     useEffect(() => {
         const n = neighborhoodsList.find(n => n.id === selected.neighborhood);
-        if (n) setField('neighborhood', n);
-    }, [selected.neighborhood, neighborhoodsList, setField]);
+        if (n && form.neighborhood.id !== n.id) {
+            setField('neighborhood', n);
+        }
+    }, [selected.neighborhood, neighborhoodsList, setField, form.neighborhood.id]);
+
+
     useEffect(() => {
         const t = typesList.find(t => t.id === selected.type);
-        if (t) setField('type', t);
-    }, [selected.type, typesList, setField]);
+        if (t && form.type.id !== t.id) {
+            setField('type', t);
+        }
+    }, [selected.type, typesList, setField, form.type.id]);
+
     useEffect(() => {
         const a = amenitiesList.filter(a => selected.amenities.includes(a.id));
-        setField('amenities', a);
-    }, [selected.amenities, amenitiesList, setField]);
+        if (JSON.stringify(a.map(x => x.id)) !== JSON.stringify(form.amenities.map(x => x.id))) {
+            setField('amenities', a);
+        }
+    }, [selected.amenities, amenitiesList, setField, form.amenities]);
 
-    // 3) campos dinámicos
     const currentType = useMemo(
         () => typesList.find(t => t.id === selected.type),
         [selected.type, typesList]
@@ -100,7 +102,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
         onValidityChange?.(check);
     }, [check, onValidityChange]);
 
-    // 4) exponemos el API del forwardRef
     useImperativeHandle(ref, () => ({
         submit,
         reset,
@@ -110,14 +111,12 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
         getUpdateData,
     }));
 
-    // helper numérico
     const num = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         if (val === '') return setField(k, '' as any);
         const n = parseInt(val, 10);
         if (!isNaN(n)) setField(k, n as any);
     };
-
     // image handlers
     const handleMain = (f: File | null) =>
         handleMainImage(f, form, setField, onImageSelect);
