@@ -17,7 +17,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
         return userService.findById(id);
@@ -63,5 +63,11 @@ public class UserController {
     @PutMapping("/update/role/{id}")
     public ResponseEntity<List<String>> addRoleToUser(@PathVariable String id, @RequestParam String role) {
         return userService.addRoleToUser(id, role);
+    }
+
+    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @GetMapping("/exist/{id}")
+    public Boolean exist(@PathVariable String id) {
+        return userService.exist(id);
     }
 }

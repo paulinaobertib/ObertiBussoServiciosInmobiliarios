@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import pi.ms_properties.domain.Type;
 
 @Repository
-public interface TypeRepository extends JpaRepository<Type, Long> {
+public interface ITypeRepository extends JpaRepository<Type, Long> {
 }

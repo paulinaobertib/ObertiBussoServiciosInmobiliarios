@@ -9,7 +9,7 @@ import pi.ms_properties.domain.Image;
 import java.util.List;
 
 @Repository
-public interface ImageRepository extends JpaRepository<Image, Long> {
+public interface IImageRepository extends JpaRepository<Image, Long> {
     @Query("select i from Image i where i.property.id = ?1")
     @EntityGraph(attributePaths = {"property"})
     List<Image> findAllByPropertyId(Long id);
