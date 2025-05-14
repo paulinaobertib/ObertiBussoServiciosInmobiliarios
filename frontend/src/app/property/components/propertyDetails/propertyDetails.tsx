@@ -1,8 +1,9 @@
+/* src/app/property/components/propertyDetails/PropertyDetails.tsx */
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel';
-import PropertyInfo from './propertyInfo';
+import PropertyInfo from './PropertyInfo';
 import { Property } from '../../types/property';
-import { Neighborhood } from '../../types/neighborhood';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,7 +12,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Configurar íconos para Leaflet
+// Leaflet icon
 const customMarkerIcon = new L.Icon({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -25,17 +26,23 @@ interface PropertyDetailsProps {
   property: Property;
 }
 
-const PropertyDetails = ({ property }: PropertyDetailsProps) => {
+export default function PropertyDetails({ property }: PropertyDetailsProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { neighborhoodsList } = usePropertyCrud();
 
+  // Encuentra el barrio completo por ID
+  const neighborhood =
+    neighborhoodsList.find(n => n.id === property.neighborhoodId) || null;
+
+  // Coordendas: null mientras carga; fallback después
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     const address = neighborhood
       ? `${neighborhood.name}, ${neighborhood.city}`
       : 'Buenos Aires, Argentina';
-    
+
     const fetchCoordinates = async () => {
       try {
         const response = await axios.get(
@@ -63,12 +70,23 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   // Construir la URL de Google Maps
   const googleMapsUrl = neighborhood
     ? `https://www.google.com/maps?q=${encodeURIComponent(
-        `${neighborhood.name}, ${neighborhood.city}`
-      )}`
+      `${neighborhood.name}, ${neighborhood.city}`
+    )}`
     : `https://www.google.com/maps?q=Buenos+Aires,+Argentina`;
+
+  // URLs de imágenes (sin File/URL.createObjectURL)
+  const mainImageUrl =
+    typeof property.mainImage === 'string'
+      ? property.mainImage
+      : (property.mainImage as any).url;
+  const galleryUrls = property.images.map(img =>
+    typeof img === 'string' ? img : (img as any).url
+  );
+  const carouselImages = galleryUrls.map((url, idx) => ({ id: idx, url }));
 
   return (
     <Container maxWidth="xl" sx={{ py: 8 }}>
+      {/* Carrusel + Info */}
       <Box
         sx={{
           backgroundColor: '#ffe0b2',
@@ -82,8 +100,8 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
       >
         <Box sx={{ width: isMobile ? '100%' : '50%', flexShrink: 0 }}>
           <ImageCarousel
-            images={property.images}
-            mainImage={property.mainImage}
+            images={carouselImages}
+            mainImage={mainImageUrl}
             title={property.title}
           />
         </Box>
@@ -92,7 +110,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
         </Box>
       </Box>
 
-      {/* Mapa debajo del cuadro naranja */}
+      {/* Mapa */}
       <Box
         sx={{
           mt: 4,
@@ -117,7 +135,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
             />
             <Marker position={coordinates} icon={customMarkerIcon}>
               <Popup>
-                {property.neighborhood?.name}, {property.neighborhood?.city}
+                {neighborhood?.name}, {neighborhood?.city}
               </Popup>
             </Marker>
           </MapContainer>
@@ -125,6 +143,4 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
       </Box>
     </Container>
   );
-};
-
-export default PropertyDetails;
+}
