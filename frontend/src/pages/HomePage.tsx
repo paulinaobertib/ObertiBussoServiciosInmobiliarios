@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
-import ImageCarousel from '../app/property/components/ImageCarousel';
-import SearchBar from '../app/property/components/SearchBar';
-import FiltersSidebar from '../app/property/components/SearchFilters';
-import PropertyCatalog from '../app/property/components/PropertyCatalog';
+import ImageCarousel from '../app/property/components/imageCarousel';
+import SearchBar from '../app/property/components/searchBar';
+import FiltersSidebar from '../app/property/components/searchFilters';
+import PropertyCatalog from '../app/property/components/propertyCatalog';
 import FloatingButtons from '../app/property/components/FloatingButtons';
 
 import { getAllProperties } from '../app/property/services/property.service';
