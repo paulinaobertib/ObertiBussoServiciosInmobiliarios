@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.domain.NeighborhoodType;
 import pi.ms_properties.dto.NeighborhoodDTO;
-import pi.ms_properties.dto.PropertyDTO;
-import pi.ms_properties.repository.NeighborhoodRepository;
+import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NeighborhoodService implements INeighborhoodService {
 
-    private final NeighborhoodRepository neighborhoodRepository;
+    private final INeighborhoodRepository INeighborhoodRepository;
 
     private final ObjectMapper mapper;
 
@@ -31,7 +30,7 @@ public class NeighborhoodService implements INeighborhoodService {
             neighborhood.setName(neighborhoodDTO.getName());
             neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
             neighborhood.setCity(neighborhoodDTO.getCity());
-            neighborhoodRepository.save(neighborhood);
+            INeighborhoodRepository.save(neighborhood);
 
             return ResponseEntity.ok("Se ha guardado el barrio");
         } catch (DataIntegrityViolationException e) {
@@ -46,12 +45,12 @@ public class NeighborhoodService implements INeighborhoodService {
     @Override
     public ResponseEntity<String> deleteNeighborhood(Long id) {
         try {
-            Optional<Neighborhood> neighborhood = neighborhoodRepository.findById(id);
+            Optional<Neighborhood> neighborhood = INeighborhoodRepository.findById(id);
 
             if (neighborhood.isEmpty()) {
                 return ResponseEntity.badRequest().body("No existe el barrio");
             } else {
-                neighborhoodRepository.deleteById(id);
+                INeighborhoodRepository.deleteById(id);
                 return ResponseEntity.ok("Se ha eliminado el barrio");
             }
         } catch (Exception e) {
@@ -64,7 +63,7 @@ public class NeighborhoodService implements INeighborhoodService {
     @Override
     public ResponseEntity<NeighborhoodDTO> updateNeighborhood(Long id, NeighborhoodDTO neighborhoodDTO) {
         try {
-            Optional<Neighborhood> optionalNeighborhood = neighborhoodRepository.findById(id);
+            Optional<Neighborhood> optionalNeighborhood = INeighborhoodRepository.findById(id);
 
             if (optionalNeighborhood.isEmpty()) {
                 return ResponseEntity.notFound().build();
@@ -75,7 +74,7 @@ public class NeighborhoodService implements INeighborhoodService {
             neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
             neighborhood.setCity(neighborhoodDTO.getCity());
 
-            Neighborhood update = neighborhoodRepository.save(neighborhood);
+            Neighborhood update = INeighborhoodRepository.save(neighborhood);
 
             NeighborhoodDTO updateDTO = mapper.convertValue(update, NeighborhoodDTO.class);
 
@@ -88,7 +87,7 @@ public class NeighborhoodService implements INeighborhoodService {
     @Override
     public ResponseEntity<List<NeighborhoodDTO>> getAll() {
         try {
-            List<Neighborhood> neighborhoods = neighborhoodRepository.findAll();
+            List<Neighborhood> neighborhoods = INeighborhoodRepository.findAll();
 
             if (neighborhoods.isEmpty()) {
                 return ResponseEntity.noContent().build();
@@ -107,7 +106,7 @@ public class NeighborhoodService implements INeighborhoodService {
     @Override
     public ResponseEntity<NeighborhoodDTO> getById(Long id) {
         try {
-            Optional<Neighborhood> neighborhood = neighborhoodRepository.findById(id);
+            Optional<Neighborhood> neighborhood = INeighborhoodRepository.findById(id);
 
             if (neighborhood.isEmpty()) {
                 return ResponseEntity.notFound().build();

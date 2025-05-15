@@ -85,4 +85,12 @@ public class Property {
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Set<Image> images = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "property_inquiry",
+            joinColumns = @JoinColumn(name = "property_id"),
+            inverseJoinColumns = @JoinColumn(name = "inquiry_id")
+    )
+    private Set<Inquiry> inquiries = new HashSet<>();
 }
