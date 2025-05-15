@@ -22,21 +22,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ViewService implements IViewService {
 
-    private final IViewRepository IViewRepository;
+    private final IViewRepository viewRepository;
 
-    private  final IPropertyRepository IPropertyRepository;
+    private  final IPropertyRepository propertyRepository;
 
     @Override
     public void createView(Property property, LocalDateTime date) {
         View view = new View();
         view.setDate(date);
         view.setProperty(property);
-        IViewRepository.save(view);
+        viewRepository.save(view);
     }
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByProperty() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -49,7 +49,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByPropertyType() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -62,7 +62,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByDay() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -75,7 +75,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByMonth() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -88,7 +88,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByNeighborhood() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -101,7 +101,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByNeighborhoodType() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -114,7 +114,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByStatus() {
-        List<Property> properties = IPropertyRepository.findAll();
+        List<Property> properties = propertyRepository.findAll();
 
         Map<String, Long> statusCount = properties.stream()
                 .collect(Collectors.groupingBy(p -> p.getStatus().name(), Collectors.counting()));
@@ -124,7 +124,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType() {
-        List<Property> properties = IPropertyRepository.findAll();
+        List<Property> properties = propertyRepository.findAll();
 
         Map<String, Map<String, Long>> statusAndTypeCount = properties.stream()
                 .collect(Collectors.groupingBy(
@@ -140,7 +140,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByOperation() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
                         v -> v.getProperty().getOperation().toString(),
@@ -152,7 +152,7 @@ public class ViewService implements IViewService {
 
     @Override
     public ResponseEntity<Map<Float, Long>> getViewsByRooms() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<Float, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
@@ -167,7 +167,7 @@ public class ViewService implements IViewService {
     // para que la seccion con la bd se mantenga abierta y pueda buscar las amenities
     @Transactional
     public ResponseEntity<Map<String, Long>> getViewsByAmenity() {
-        List<View> views = IViewRepository.findAll();
+        List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
                 // recorremos todas las amenities de cada propiedad

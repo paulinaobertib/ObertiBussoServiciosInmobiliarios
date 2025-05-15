@@ -20,14 +20,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OwnerService implements IOwnerService {
 
-    private final IOwnerRepository IOwnerRepository;
+    private final IOwnerRepository ownerRepository;
 
-    private final IPropertyRepository IPropertyRepository;
+    private final IPropertyRepository propertyRepository;
 
     @Override
     public ResponseEntity<String> createOwner(Owner owner) {
         try {
-            IOwnerRepository.save(owner);
+            ownerRepository.save(owner);
             return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario");
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("El mail '" + owner.getMail() + "' ya existe");
@@ -41,13 +41,13 @@ public class OwnerService implements IOwnerService {
     @Override
     public ResponseEntity<String> deleteOwner(Long id) {
         try {
-            Optional<Owner> exist = IOwnerRepository.findById(id);
+            Optional<Owner> exist = ownerRepository.findById(id);
 
             if (exist.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-            IOwnerRepository.deleteById(id);
+            ownerRepository.deleteById(id);
 
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -60,13 +60,13 @@ public class OwnerService implements IOwnerService {
     @Override
     public ResponseEntity<Owner> updateOwner(Owner owner) {
         try {
-            Optional<Owner> exist = IOwnerRepository.findById(owner.getId());
+            Optional<Owner> exist = ownerRepository.findById(owner.getId());
 
             if (exist.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-            IOwnerRepository.save(owner);
+            ownerRepository.save(owner);
 
             return ResponseEntity.ok(owner);
         } catch (Exception e) {
@@ -77,13 +77,13 @@ public class OwnerService implements IOwnerService {
     @Override
     public ResponseEntity<Owner> getByPropertyId(Long id) {
         try {
-            Optional<Property> property = IPropertyRepository.findById(id);
+            Optional<Property> property = propertyRepository.findById(id);
 
             if (property.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
 
-            Optional<Owner> exist = IOwnerRepository.findById(property.get().getOwner().getId());
+            Optional<Owner> exist = ownerRepository.findById(property.get().getOwner().getId());
 
             return exist.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
@@ -95,7 +95,7 @@ public class OwnerService implements IOwnerService {
     @Override
     public ResponseEntity<List<Owner>> getAll() {
         try {
-            List<Owner> owners = IOwnerRepository.findAll();
+            List<Owner> owners = ownerRepository.findAll();
 
             if (owners.isEmpty()) {
                 return ResponseEntity.noContent().build();
@@ -111,7 +111,7 @@ public class OwnerService implements IOwnerService {
     @Override
     public ResponseEntity<Owner> getById(Long id) {
         try {
-            Optional<Owner> owner = IOwnerRepository.findById(id);
+            Optional<Owner> owner = ownerRepository.findById(id);
             return owner.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -122,7 +122,7 @@ public class OwnerService implements IOwnerService {
     public ResponseEntity<List<Owner>> findBy(String search) {
         try {
             Specification<Owner> specification = OwnerSpecification.textSearch(search);
-            List<Owner> find = IOwnerRepository.findAll(specification);
+            List<Owner> find = ownerRepository.findAll(specification);
             return ResponseEntity.ok(find);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

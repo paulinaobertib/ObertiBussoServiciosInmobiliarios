@@ -11,8 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.Image;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.Storage;
-import pi.ms_properties.repository.ImageRepository;
-import pi.ms_properties.repository.PropertyRepository;
+import pi.ms_properties.repository.IImageRepository;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.interf.IAzureBlobStorage;
 import pi.ms_properties.service.interf.IImageService;
 
