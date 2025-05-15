@@ -19,15 +19,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MaintenanceService implements IMaintenanceService {
 
-    private final IMaintenanceRepository IMaintenanceRepository;
+    private final IMaintenanceRepository maintenanceRepository;
 
-    private final IPropertyRepository IPropertyRepository;
+    private final IPropertyRepository propertyRepository;
 
     private final ObjectMapper objectMapper;
 
     private Maintenance prepareMaintenanceEntity(MaintenanceDTO dto) {
         Maintenance maintenance = objectMapper.convertValue(dto, Maintenance.class);
-        Property property = IPropertyRepository.findById(dto.getPropertyId())
+        Property property = propertyRepository.findById(dto.getPropertyId())
                 .orElseThrow(() -> new EntityNotFoundException("Property not found with ID: " + dto.getPropertyId()));
         maintenance.setProperty(property);
         return maintenance;
@@ -37,7 +37,7 @@ public class MaintenanceService implements IMaintenanceService {
     public ResponseEntity<String> createMaintenance(MaintenanceDTO maintenanceDTO) {
         try {
             Maintenance maintenance = prepareMaintenanceEntity(maintenanceDTO);
-            IMaintenanceRepository.save(maintenance);
+            maintenanceRepository.save(maintenance);
             return ResponseEntity.ok("Se ha creado el mantenimiento");
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -49,13 +49,13 @@ public class MaintenanceService implements IMaintenanceService {
     @Override
     public ResponseEntity<MaintenanceDTO> updateMaintenance(Long id, MaintenanceDTO maintenanceDTO) {
         try {
-            Optional<Maintenance> exist = IMaintenanceRepository.findById(id);
+            Optional<Maintenance> exist = maintenanceRepository.findById(id);
             if (exist.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
             Maintenance maintenance = prepareMaintenanceEntity(maintenanceDTO);
             maintenance.setId(id);
-            IMaintenanceRepository.save(maintenance);
+            maintenanceRepository.save(maintenance);
             MaintenanceDTO updatedDTO = objectMapper.convertValue(maintenance, MaintenanceDTO.class);
             updatedDTO.setPropertyId(maintenance.getProperty().getId());
             return ResponseEntity.ok(updatedDTO);
@@ -70,11 +70,11 @@ public class MaintenanceService implements IMaintenanceService {
     @Override
     public ResponseEntity<String> deleteMaintenance(Long id) {
         try {
-            Optional<Maintenance> maintenance = IMaintenanceRepository.findById(id);
+            Optional<Maintenance> maintenance = maintenanceRepository.findById(id);
             if (maintenance.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
-            IMaintenanceRepository.deleteById(id);
+            maintenanceRepository.deleteById(id);
             return ResponseEntity.ok("Se ha eliminado el mantenimiento");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -84,7 +84,7 @@ public class MaintenanceService implements IMaintenanceService {
     @Override
     public ResponseEntity<MaintenanceDTO> getById(Long id) {
         try {
-            Optional<Maintenance> maintenance = IMaintenanceRepository.findById(id);
+            Optional<Maintenance> maintenance = maintenanceRepository.findById(id);
             if (maintenance.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -99,11 +99,11 @@ public class MaintenanceService implements IMaintenanceService {
     @Override
     public ResponseEntity<List<MaintenanceDTO>> getByPropertyId(Long id) {
         try {
-            Optional<Property> property = IPropertyRepository.findById(id);
+            Optional<Property> property = propertyRepository.findById(id);
             if (property.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
-            List<Maintenance> maintenances = IMaintenanceRepository.findByPropertyId(id);
+            List<Maintenance> maintenances = maintenanceRepository.findByPropertyId(id);
             List<MaintenanceDTO> maintenanceDTOS = maintenances.stream()
                     .map(maintenance -> new MaintenanceDTO(
                             maintenance.getDate(),

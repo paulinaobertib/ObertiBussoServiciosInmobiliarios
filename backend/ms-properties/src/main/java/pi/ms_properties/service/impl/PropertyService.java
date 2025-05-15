@@ -16,7 +16,6 @@ import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,15 +26,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PropertyService implements IPropertyService {
 
-    private final IPropertyRepository IPropertyRepository;
+    private final IPropertyRepository propertyRepository;
 
-    private final IOwnerRepository IOwnerRepository;
+    private final IOwnerRepository ownerRepository;
 
-    private final INeighborhoodRepository INeighborhoodRepository;
+    private final INeighborhoodRepository neighborhoodRepository;
 
-    private final ITypeRepository ITypeRepository;
+    private final ITypeRepository typeRepository;
 
-    private final IAmenityRepository IAmenityRepository;
+    private final IAmenityRepository amenityRepository;
 
     private final ViewService viewService;
 
@@ -52,12 +51,12 @@ public class PropertyService implements IPropertyService {
         property.setOperation(Operation.fromString(propertyDTO.getOperation()));
         property.setCurrency(Currency.fromString(propertyDTO.getCurrency()));
 
-        property.setOwner(IOwnerRepository.findById(propertyDTO.getOwnerId()).orElseThrow());
-        property.setNeighborhood(INeighborhoodRepository.findById(propertyDTO.getNeighborhoodId()).orElseThrow());
-        property.setType(ITypeRepository.findById(propertyDTO.getTypeId()).orElseThrow());
+        property.setOwner(ownerRepository.findById(propertyDTO.getOwnerId()).orElseThrow());
+        property.setNeighborhood(neighborhoodRepository.findById(propertyDTO.getNeighborhoodId()).orElseThrow());
+        property.setType(typeRepository.findById(propertyDTO.getTypeId()).orElseThrow());
 
         Set<Amenity> amenities = propertyDTO.getAmenitiesIds().stream()
-                .map(id -> IAmenityRepository.findById(id)
+                .map(id -> amenityRepository.findById(id)
                         .orElseThrow())
                 .collect(Collectors.toSet());
         property.setAmenities(amenities);
@@ -100,7 +99,7 @@ public class PropertyService implements IPropertyService {
             Property property = SaveProperty(propertyUpdateDTO);
             property.setDate(LocalDateTime.now());
             // la tenemos que guardar antes de settearle las imagenes asi existe el id
-            IPropertyRepository.save(property);
+            propertyRepository.save(property);
 
             // para la imagen principal
             try {
@@ -116,7 +115,7 @@ public class PropertyService implements IPropertyService {
                     imageService.uploadImageToProperty(image, property.getId(), false);
                 }
             }
-            IPropertyRepository.save(property);
+            propertyRepository.save(property);
 
             // creamos la notificacion de que se agrega una nueva propiedad
             try {
@@ -139,12 +138,12 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<String> deleteProperty(Long id) {
         try {
-            Optional<Property> property = IPropertyRepository.findById(id);
+            Optional<Property> property = propertyRepository.findById(id);
 
             if (property.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
-                IPropertyRepository.deleteById(id);
+                propertyRepository.deleteById(id);
                 return ResponseEntity.ok("Se ha eliminado la propiedad");
             }
         } catch (Exception e) {
@@ -158,7 +157,7 @@ public class PropertyService implements IPropertyService {
     public ResponseEntity<PropertyDTO> updateProperty(Long id, PropertyUpdateDTO propertyDTO) {
         try {
             // 1) Verificamos que la propiedad exista
-            Optional<Property> optProperty = IPropertyRepository.findById(id);
+            Optional<Property> optProperty = propertyRepository.findById(id);
             if (optProperty.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -182,13 +181,12 @@ public class PropertyService implements IPropertyService {
             }
 
             updated.setImages(current.getImages());
-            IPropertyRepository.save(updated);
+            propertyRepository.save(updated);
 
             PropertyDTO response = toDTO(updated);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -196,14 +194,14 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<String> updateStatus(Long id, Status status) {
         try {
-            Optional<Property> search = IPropertyRepository.findById(id);
+            Optional<Property> search = propertyRepository.findById(id);
             if (search.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
 
             Property property = search.get();
             property.setStatus(status);
-            IPropertyRepository.save(property);
+            propertyRepository.save(property);
 
             return ResponseEntity.ok(property.getStatus().toString());
         } catch (Exception e) {
@@ -214,7 +212,7 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<List<PropertyDTO>> getAll() {
         try {
-            List<Property> properties = IPropertyRepository.findAll();
+            List<Property> properties = propertyRepository.findAll();
 
             if (properties.isEmpty()) {
                 return ResponseEntity.noContent().build();
@@ -226,7 +224,6 @@ public class PropertyService implements IPropertyService {
 
             return ResponseEntity.ok(propertyDTOS);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -234,7 +231,7 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<List<PropertyDTO>> getAllUsers() {
         try {
-            List<Property> properties = IPropertyRepository.findByStatus(Status.valueOf("DISPONIBLE"));
+            List<Property> properties = propertyRepository.findByStatus(Status.valueOf("DISPONIBLE"));
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)
                     .toList();
@@ -248,7 +245,7 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<PropertyDTO> getById(Long id) {
         try {
-            Optional<Property> property = IPropertyRepository.findById(id);
+            Optional<Property> property = propertyRepository.findById(id);
 
             if (property.isEmpty()) {
                 return ResponseEntity.notFound().build();
@@ -268,7 +265,7 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<List<PropertyDTO>> getByTitle(String title) {
         try {
-            List<Property> properties = IPropertyRepository.findByTitle(title);
+            List<Property> properties = propertyRepository.findByTitle(title);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)
                     .toList();
@@ -282,7 +279,7 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<List<PropertyDTO>> getByStatus(Status status) {
         try {
-            List<Property> properties = IPropertyRepository.findByStatus(status);
+            List<Property> properties = propertyRepository.findByStatus(status);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)
                     .toList();
@@ -309,14 +306,13 @@ public class PropertyService implements IPropertyService {
                     .and(PropertySpecification.hasNeighborhood(neighborhood))
                     .and(PropertySpecification.hasNeighborhoodType(neighborhoodType));
 
-            List<Property> properties = IPropertyRepository.findAll(spec);
+            List<Property> properties = propertyRepository.findAll(spec);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)
                     .toList();
 
             return ResponseEntity.ok(propertyDTOS);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -325,7 +321,7 @@ public class PropertyService implements IPropertyService {
     public ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value) {
         try {
             Specification<Property> specification = PropertySpecification.textSearch(value);
-            List<Property> properties = IPropertyRepository.findAll(specification);
+            List<Property> properties = propertyRepository.findAll(specification);
             List<PropertyDTO> propertyDTOS = properties.stream()
                     .map(this::toDTO)
                     .toList();
@@ -338,7 +334,7 @@ public class PropertyService implements IPropertyService {
     @Override
     public ResponseEntity<PropertySimpleDTO> getSimpleById(Long id) {
         try {
-            Optional<Property> property = IPropertyRepository.findById(id);
+            Optional<Property> property = propertyRepository.findById(id);
 
             if (property.isEmpty()) {
                 return ResponseEntity.notFound().build();
