@@ -28,9 +28,9 @@ public class ImageService implements IImageService {
 
     private final IAzureBlobStorage azureBlobStorage;
 
-    private final ImageRepository imageRepository;
+    private final IImageRepository imageRepository;
 
-    private final PropertyRepository propertyRepository;
+    private final IPropertyRepository propertyRepository;
 
     private final BlobContainerClient blobContainerClient;
 
