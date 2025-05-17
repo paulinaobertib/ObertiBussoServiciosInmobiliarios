@@ -110,9 +110,9 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
         <LocationOnIcon color="action" fontSize="small" />
         <Typography variant="body1" color="text.secondary">
-          {property.neighborhood
-            ? `${property.neighborhood.name}, ${property.neighborhood.city}`
-            : 'Barrio desconocido'}
+          {property.street && property.neighborhood
+            ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+            : 'Ubicación desconocida'}
         </Typography>
       </Box>
 

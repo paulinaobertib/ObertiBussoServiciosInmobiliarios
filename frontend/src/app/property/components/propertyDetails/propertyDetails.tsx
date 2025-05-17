@@ -29,11 +29,12 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
-  useEffect(() => {
-    const address = property.neighborhood
-      ? `${property.neighborhood.name}, ${property.neighborhood.city}`
-      : `${property.street} ${property.number}, Buenos Aires, Argentina`;
+  // Dirección completa para geocodificar y mostrar
+  const address = property.neighborhood
+    ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+    : `${property.street}, Buenos Aires, Argentina`;
 
+  useEffect(() => {
     const fetchCoordinates = async () => {
       try {
         const response = await axios.get('https://nominatim.openstreetmap.org/search', {
@@ -53,15 +54,9 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
     };
 
     fetchCoordinates();
-  }, [property.neighborhood]);
+  }, [address]);
 
-  const googleMapsUrl = property.neighborhood
-    ? `https://www.google.com/maps?q=${encodeURIComponent(
-        `${property.neighborhood.name}, ${property.neighborhood.city}`
-      )}`
-    : `https://www.google.com/maps?q=${encodeURIComponent(
-        `${property.street} ${property.number}, Buenos Aires, Argentina`
-      )}`;
+  const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
 
   // Procesar imágenes
   const mainImageUrl =
@@ -122,9 +117,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
             />
             <Marker position={coordinates} icon={customMarkerIcon}>
               <Popup>
-                {property.neighborhood
-                  ? `${property.neighborhood.name}, ${property.neighborhood.city}`
-                  : `${property.street} ${property.number}, Buenos Aires, Argentina`}
+                {address}
               </Popup>
             </Marker>
           </MapContainer>

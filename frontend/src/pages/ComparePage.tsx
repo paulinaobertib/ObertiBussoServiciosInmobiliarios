@@ -59,9 +59,9 @@ const Compare = () => {
           <PropertyDetailsCompare comparisonItems={comparisonItems} />
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button variant="contained" color="primary" size="large" sx={{ minWidth: theme.spacing(25) }}>
-            Contactar al vendedor
+            Mandar consulta
           </Button>
         </Box>
       </Container>
