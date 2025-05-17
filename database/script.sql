@@ -14,7 +14,8 @@ CREATE TABLE Type (
     name VARCHAR(255) UNIQUE NOT NULL,
     has_rooms BOOLEAN NOT NULL,
     has_bathrooms BOOLEAN NOT NULL,
-    has_bedrooms BOOLEAN NOT NULL
+    has_bedrooms BOOLEAN NOT NULL,
+    has_covered_area BOOLEAN NOT NULL
 );
 
 CREATE TABLE Neighborhood (
@@ -44,13 +45,24 @@ CREATE TABLE Property (
     bathrooms INT NOT NULL,
     bedrooms INT NOT NULL,
     area DECIMAL(10,2) NOT NULL,
+    covered_area DECIMAL(10, 2) NOT NULL,
     price DECIMAL(15,2) NOT NULL,
+    show_price BOOLEAN NOT NULL,
     description VARCHAR(2000),
     date DATETIME NOT NULL,
     main_image VARCHAR(255),
+    credit BOOLEAN NOT NULL,
+    financing BOOLEAN NOT NULL,
     FOREIGN KEY (owner_id) REFERENCES Owner(id), 
     FOREIGN KEY (neighborhood_id) REFERENCES Neighborhood(id),
     FOREIGN KEY (type_id) REFERENCES Type(id)
+);
+
+CREATE TABLE Comment (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    description TEXT NOT NULL,
+	property_id BIGINT NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES Property(id)
 );
 
 CREATE TABLE Property_Amenity (
@@ -164,4 +176,11 @@ CREATE TABLE Property_Inquiry (
     property_id BIGINT NOT NULL,
     FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE,
     FOREIGN KEY (property_id) REFERENCES Property(id)
+);
+
+CREATE TABLE Survey (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    score TINYINT NOT NULL,
+	inquiry_id BIGINT NOT NULL,
+	FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE
 );

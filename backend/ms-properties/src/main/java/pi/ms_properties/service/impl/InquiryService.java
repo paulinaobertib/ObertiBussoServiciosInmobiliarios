@@ -17,11 +17,13 @@ import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.ISurveyRepository;
 import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.interf.IInquiryService;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,8 @@ public class InquiryService implements IInquiryService {
     private final UserRepository userRepository;
 
     private final EmailService emailService;
+
+    private final SurveyService surveyService;
 
     private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
         List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
@@ -144,6 +148,7 @@ public class InquiryService implements IInquiryService {
             get.setStatus(InquiryStatus.CERRADA);
             get.setDateClose(LocalDateTime.now());
             inquiryRepository.save(get);
+            surveyService.sendSurvey(get.getEmail(), get.getId());
             return ResponseEntity.ok("Se ha actualizado el estado de la consulta");
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
@@ -220,4 +225,95 @@ public class InquiryService implements IInquiryService {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @Override
+    public ResponseEntity<Map<String, Long>> getInquiryStatusDistribution() {
+        List<Object[]> data = inquiryRepository.countByStatus();
+        Map<String, Long> result = data.stream()
+                .collect(Collectors.toMap(
+                        row -> row[0].toString(),
+                        row -> (Long) row[1]
+                ));
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    public ResponseEntity<Duration> getAverageInquiryResponseTime() {
+        List<Duration> durations = inquiryRepository.getByStatus(InquiryStatus.CERRADA).stream()
+                .filter(i -> i.getDateClose() != null)
+                .map(i -> Duration.between(
+                        i.getDate().atZone(ZoneId.systemDefault()).toInstant(),
+                        i.getDateClose().atZone(ZoneId.systemDefault()).toInstant()
+                ))
+                .toList();
+
+        if (durations.isEmpty()) return ResponseEntity.ok(Duration.ZERO);
+
+        long avgSeconds = durations.stream()
+                .mapToLong(Duration::getSeconds)
+                .sum() / durations.size();
+
+        return ResponseEntity.ok(Duration.ofSeconds(avgSeconds));
+    }
+
+    @Override
+    public ResponseEntity<Map<DayOfWeek, Long>> getInquiriesGroupedByDayOfWeek() {
+        List<Inquiry> all = inquiryRepository.findAll();
+        Map<DayOfWeek, Long> result = all.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getDate().toLocalDate().getDayOfWeek(),
+                        Collectors.counting()
+                ));
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Long>> getInquiriesGroupedByTimeRange() {
+        List<Inquiry> all = inquiryRepository.findAll();
+        Map<String, Long> result = all.stream()
+                .collect(Collectors.groupingBy(
+                        i -> {
+                            int hour = i.getDate().getHour();
+                            if (hour < 12) return "Mañana";
+                            if (hour < 18) return "Tarde";
+                            return "Noche";
+                        },
+                        Collectors.counting()
+                ));
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    public ResponseEntity<Map<LocalDate, Long>> getInquiriesPerDay() {
+        List<Object[]> data = inquiryRepository.countPerDay();
+        Map<LocalDate, Long> result = data.stream()
+                .collect(Collectors.toMap(
+                        row -> ((LocalDate) row[0]),
+                        row -> (Long) row[1]
+                ));
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    public ResponseEntity<Map<YearMonth, Long>> getInquiriesPerMonth() {
+        List<Object[]> data = inquiryRepository.countPerMonth();
+        Map<YearMonth, Long> result = data.stream()
+                .collect(Collectors.toMap(
+                        row -> YearMonth.parse((String) row[0]),
+                        row -> (Long) row[1]
+                ));
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Long>> getMostConsultedProperties() {
+        List<Object[]> data = inquiryRepository.countMostConsultedProperties();
+        Map<String, Long> result = data.stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> (Long) row[1]
+                ));
+        return ResponseEntity.ok(result);
+    }
+
 }
