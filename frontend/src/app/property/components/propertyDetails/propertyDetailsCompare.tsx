@@ -32,9 +32,9 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
   useEffect(() => {
     comparisonItems.forEach((property, idx) => {
-      const address = property.neighborhood
-        ? `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
-        : `${property.street} ${property.number}, Buenos Aires, Argentina`;
+    const address = property.neighborhood
+      ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+      : `${property.street}, Buenos Aires, Argentina`;
 
       const fetchCoordinates = async () => {
         try {
