@@ -5,7 +5,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 public enum Currency {
     USD,
-    ARG;
+    ARS;
 
     public static Currency fromString(String value) {
         try {
