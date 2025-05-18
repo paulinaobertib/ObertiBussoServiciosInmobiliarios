@@ -125,10 +125,9 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   // Funciones de comparación
   const toggleCompare = (id: number) => {
     setSelectedPropertyIds((prev) => {
-      console.log(`Toggling selection for ID ${id}, current: ${prev}`);
       if (prev.includes(id)) {
         return prev.filter((item) => item !== id);
-      } else if (prev.length < 2) {
+      } else if (prev.length < 3) {
         return [...prev, id];
       } else {
         return [...prev.slice(1), id];

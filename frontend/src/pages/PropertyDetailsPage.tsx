@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
+import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
 import { getPropertyById } from '../app/property/services/property.service';
 import { Property } from '../app/property/types/property';
 

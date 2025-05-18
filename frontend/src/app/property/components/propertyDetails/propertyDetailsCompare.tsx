@@ -58,11 +58,11 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
     });
   }, [comparisonItems]);
 
-  if (comparisonItems.length !== 2) {
+  if (comparisonItems.length < 2 || comparisonItems.length > 3) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Typography variant="h6" color="text.secondary">
-          Selecciona dos propiedades para comparar.
+          Selecciona 2 o 3 propiedades para comparar.
         </Typography>
       </Container>
     );
@@ -70,7 +70,17 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
   return (
     <Container maxWidth={false} sx={{ py: 8, px: 2 }}>
-      <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 4 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: isMobile
+            ? '1fr'
+            : comparisonItems.length === 3
+            ? 'repeat(3, 1fr)'
+            : 'repeat(2, 1fr)',
+          gap: 1,
+        }}
+      >
         {comparisonItems.map((property, idx) => {
           const center = coords[idx];
 
