@@ -9,7 +9,12 @@ import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.service.interf.IInquiryService;
 
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/inquiries")
@@ -62,6 +67,42 @@ public class InquiryController {
     @GetMapping("/getByStatus")
     public ResponseEntity<List<Inquiry>> getByStatus(@RequestParam InquiryStatus status) {
         return inquiryService.getByStatus(status);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/statistics/duration")
+    public ResponseEntity<String> getAverageInquiryResponseTime() {
+        return inquiryService.getAverageInquiryResponseTime();
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/statistics/status")
+    public ResponseEntity<Map<String, Long>> getInquiryStatusDistribution() {
+        return inquiryService.getInquiryStatusDistribution();
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/statistics/week")
+    public ResponseEntity<Map<String, Long>> getInquiriesGroupedByDayOfWeek() {
+        return inquiryService.getInquiriesGroupedByDayOfWeek();
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/statistics/time")
+    public ResponseEntity<Map<String, Long>> getInquiriesGroupedByTimeRange() {
+        return inquiryService.getInquiriesGroupedByTimeRange();
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/statistics/month")
+    public ResponseEntity<Map<YearMonth, Long>> getInquiriesPerMonth() {
+        return inquiryService.getInquiriesPerMonth();
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/statistics/properties")
+    public ResponseEntity<Map<String, Long>> getMostConsultedProperties() {
+        return inquiryService.getMostConsultedProperties();
     }
 }
 

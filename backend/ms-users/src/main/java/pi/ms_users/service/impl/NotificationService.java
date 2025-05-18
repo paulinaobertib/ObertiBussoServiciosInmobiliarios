@@ -66,7 +66,7 @@ public class NotificationService implements INotificationService {
                 return ResponseEntity.badRequest().body("Endpoint incorrecto para este tipo de notificacion");
             }
 
-            List<String> usersId = userNotificationPreferenceRepository.usersIdByType(notificationDTO.getType());
+            List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(notificationDTO.getType());
 
             if (usersId.isEmpty()) {
                 return ResponseEntity.badRequest().body("No hay usuarios suscriptos a este tipo de notificacion");
