@@ -7,7 +7,6 @@ import {
   Menu,
   MenuItem,
   Button,
-  //useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -15,15 +14,16 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import logo from '../../../assets/logoJPG.png';
+import { usePropertyCrud } from '../context/PropertiesContext'; 
 
 const pages = ['CONTACTO', 'NOTICIAS'];
 export const NAVBAR_HEIGHT = 56; // desktop
 export const NAVBAR_HEIGHT_XS = 48; // mobile
 
 export default function NavBar() {
-  const { palette } = useTheme(); // era palette, breakpoints
-  //const isMobileScreen = useMediaQuery(breakpoints.only('xs'));
+  const { palette } = useTheme();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const { clearComparison } = usePropertyCrud(); 
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -51,7 +51,12 @@ export default function NavBar() {
             minHeight: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
           }}
         >
-          <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
+          {/* Logo desktop */}
+          <Link
+            to="/"
+            onClick={clearComparison}
+            style={{ display: 'flex', alignItems: 'center' }}
+          >
             <Box
               component="img"
               src={logo}
@@ -65,9 +70,8 @@ export default function NavBar() {
             />
           </Link>
 
-          <Box
-            sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}
-          >
+          {/* Menu mobile y logo */}
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
             <IconButton
               size="large"
               onClick={handleOpenNavMenu}
@@ -77,7 +81,8 @@ export default function NavBar() {
             >
               <MenuIcon />
             </IconButton>
-            <Link to="/">
+
+            <Link to="/" onClick={clearComparison}>
               <Box
                 component="img"
                 src={logo}
@@ -85,6 +90,7 @@ export default function NavBar() {
                 sx={{ height: 40, objectFit: 'contain' }}
               />
             </Link>
+
             <Menu
               id="menu-appbar"
               anchorEl={anchorElNav}
@@ -108,9 +114,8 @@ export default function NavBar() {
             </Menu>
           </Box>
 
-          <Box
-            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2 }}
-          >
+          {/* Botones navegación desktop */}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2 }}>
             {pages.map((page) => (
               <Button
                 key={page}
@@ -128,6 +133,7 @@ export default function NavBar() {
             ))}
           </Box>
 
+          {/* Botones de usuario */}
           <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
             <IconButton color="inherit" aria-label="profile">
               <AccountCircleIcon sx={{ fontSize: 28 }} />
