@@ -37,7 +37,7 @@ CREATE TABLE Property (
     type_id BIGINT NOT NULL,
     status ENUM('DISPONIBLE', 'VENDIDA', 'ALQUILADA', 'RESERVADA') NOT NULL,
     operation ENUM('VENTA', 'ALQUILER') NOT NULL,
-	currency ENUM('USD', 'ARG') NOT NULL,
+	currency ENUM('USD', 'ARS') NOT NULL,
     title VARCHAR(255) NOT NULL,
     street VARCHAR(150) NOT NULL,
     number VARCHAR(10) NOT NULL,
@@ -109,12 +109,12 @@ CREATE TABLE Payment (
     FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
-CREATE TABLE UserNotificationPreference (
+CREATE TABLE User_Notification_Preference (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     type ENUM('PROPIEDADNUEVA', 'PROPIEDADINTERES', 'ALQUILER', 'ACTUALIZACION') NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    UNIQUE(user_id, notification_type)
+    UNIQUE(user_id, type)
 );
 
 CREATE TABLE Notification (
@@ -181,6 +181,7 @@ CREATE TABLE Property_Inquiry (
 CREATE TABLE Survey (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
     score TINYINT NOT NULL,
+    comment VARCHAR(255),
 	inquiry_id BIGINT NOT NULL,
 	FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE
 );

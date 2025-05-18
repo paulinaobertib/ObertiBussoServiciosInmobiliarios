@@ -31,13 +31,11 @@ public interface IInquiryService {
 
     ResponseEntity<Map<String, Long>> getInquiryStatusDistribution();
 
-    ResponseEntity<Duration> getAverageInquiryResponseTime();
+    ResponseEntity<String> getAverageInquiryResponseTime();
 
-    ResponseEntity<Map<DayOfWeek, Long>> getInquiriesGroupedByDayOfWeek();
+    ResponseEntity<Map<String, Long>> getInquiriesGroupedByDayOfWeek();
 
     ResponseEntity<Map<String, Long>> getInquiriesGroupedByTimeRange();
-
-    ResponseEntity<Map<LocalDate, Long>> getInquiriesPerDay();
 
     ResponseEntity<Map<YearMonth, Long>> getInquiriesPerMonth();
 

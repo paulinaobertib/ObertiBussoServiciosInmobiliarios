@@ -16,7 +16,7 @@ import lombok.Setter;
 public class Survey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "score", nullable = false)
     private int score;

@@ -23,13 +23,9 @@ public interface IInquiryRepository extends JpaRepository<Inquiry, Long> {
     @Query("SELECT i.status, COUNT(i) FROM Inquiry i GROUP BY i.status")
     List<Object[]> countByStatus();
 
-    @Query("SELECT DATE(i.date), COUNT(i) FROM Inquiry i GROUP BY DATE(i.date)")
-    List<Object[]> countPerDay();
-
     @Query("SELECT FUNCTION('DATE_FORMAT', i.date, '%Y-%m'), COUNT(i) FROM Inquiry i GROUP BY FUNCTION('DATE_FORMAT', i.date, '%Y-%m')")
     List<Object[]> countPerMonth();
 
-    @Query("SELECT i.title, COUNT(i) FROM Inquiry i GROUP BY i.title ORDER BY COUNT(i) DESC")
+    @Query("SELECT p.title, COUNT(p) FROM Inquiry i JOIN i.properties p GROUP BY p.title ORDER BY COUNT(p) DESC")
     List<Object[]> countMostConsultedProperties();
-
 }

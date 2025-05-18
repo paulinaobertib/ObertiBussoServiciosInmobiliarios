@@ -15,10 +15,9 @@ public interface ISurveyRepository extends JpaRepository<Survey, Long> {
     @Query("SELECT s.score, COUNT(s) FROM Survey s GROUP BY s.score")
     List<Object[]> countScores();
 
-    @Query("SELECT DATE(i.date), AVG(s.score) FROM Survey s JOIN s.inquiry i GROUP BY DATE(i.date)")
-    List<Object[]> findDailyAverageScore();
+    @Query("SELECT FUNCTION('DAYOFWEEK', s.inquiry.date), AVG(s.score) FROM Survey s GROUP BY FUNCTION('DAYOFWEEK', s.inquiry.date)")
+    List<Object[]> findAverageScoreGroupedByDayOfWeek();
 
     @Query("SELECT FUNCTION('DATE_FORMAT', i.date, '%Y-%m'), AVG(s.score) FROM Survey s JOIN s.inquiry i GROUP BY FUNCTION('DATE_FORMAT', i.date, '%Y-%m')")
     List<Object[]> findMonthlyAverageScore();
-
 }

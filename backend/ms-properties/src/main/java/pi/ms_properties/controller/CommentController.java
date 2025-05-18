@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Comment;
+import pi.ms_properties.dto.CommentDTO;
 import pi.ms_properties.service.impl.CommentService;
 
 import java.util.List;
@@ -18,14 +19,14 @@ public class CommentController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<String> create(@RequestBody Comment comment) {
-        return commentService.create(comment);
+    public ResponseEntity<String> create(@RequestBody CommentDTO commentDTO) {
+        return commentService.create(commentDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
-    public ResponseEntity<String> update(@RequestBody Comment comment) {
-        return commentService.update(comment);
+    public ResponseEntity<String> update(@RequestBody CommentDTO commentDTO) {
+        return commentService.update(commentDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
@@ -36,13 +37,13 @@ public class CommentController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Comment> getById(@PathVariable Long id) {
+    public ResponseEntity<CommentDTO> getById(@PathVariable Long id) {
         return commentService.getById(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
-    public ResponseEntity<List<Comment>> getByPropertyId(@PathVariable Long propertyId) {
+    public ResponseEntity<List<CommentDTO>> getByPropertyId(@PathVariable Long propertyId) {
         return commentService.getByPropertyId(propertyId);
     }
 }

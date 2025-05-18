@@ -22,7 +22,9 @@ import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.interf.IInquiryService;
 
 import java.time.*;
+import java.time.format.TextStyle;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -238,7 +240,7 @@ public class InquiryService implements IInquiryService {
     }
 
     @Override
-    public ResponseEntity<Duration> getAverageInquiryResponseTime() {
+    public ResponseEntity<String> getAverageInquiryResponseTime() {
         List<Duration> durations = inquiryRepository.getByStatus(InquiryStatus.CERRADA).stream()
                 .filter(i -> i.getDateClose() != null)
                 .map(i -> Duration.between(
@@ -247,23 +249,39 @@ public class InquiryService implements IInquiryService {
                 ))
                 .toList();
 
-        if (durations.isEmpty()) return ResponseEntity.ok(Duration.ZERO);
+        if (durations.isEmpty()) return ResponseEntity.ok("0 segundos");
 
         long avgSeconds = durations.stream()
                 .mapToLong(Duration::getSeconds)
                 .sum() / durations.size();
 
-        return ResponseEntity.ok(Duration.ofSeconds(avgSeconds));
+        Duration avgDuration = Duration.ofSeconds(avgSeconds);
+        long days = avgDuration.toDays();
+        long hours = avgDuration.toHours() % 24;
+        long minutes = avgDuration.toMinutes() % 60;
+        long seconds = avgDuration.getSeconds() % 60;
+
+        String readable = String.format("%d días, %d horas, %d minutos, %d segundos", days, hours, minutes, seconds);
+
+        return ResponseEntity.ok(readable);
     }
 
     @Override
-    public ResponseEntity<Map<DayOfWeek, Long>> getInquiriesGroupedByDayOfWeek() {
+    public ResponseEntity<Map<String, Long>> getInquiriesGroupedByDayOfWeek() {
         List<Inquiry> all = inquiryRepository.findAll();
-        Map<DayOfWeek, Long> result = all.stream()
+
+        Map<DayOfWeek, Long> grouped = all.stream()
                 .collect(Collectors.groupingBy(
                         i -> i.getDate().toLocalDate().getDayOfWeek(),
                         Collectors.counting()
                 ));
+
+        Map<String, Long> result = grouped.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                        Map.Entry::getValue
+                ));
+
         return ResponseEntity.ok(result);
     }
 
@@ -279,17 +297,6 @@ public class InquiryService implements IInquiryService {
                             return "Noche";
                         },
                         Collectors.counting()
-                ));
-        return ResponseEntity.ok(result);
-    }
-
-    @Override
-    public ResponseEntity<Map<LocalDate, Long>> getInquiriesPerDay() {
-        List<Object[]> data = inquiryRepository.countPerDay();
-        Map<LocalDate, Long> result = data.stream()
-                .collect(Collectors.toMap(
-                        row -> ((LocalDate) row[0]),
-                        row -> (Long) row[1]
                 ));
         return ResponseEntity.ok(result);
     }
@@ -311,9 +318,8 @@ public class InquiryService implements IInquiryService {
         Map<String, Long> result = data.stream()
                 .collect(Collectors.toMap(
                         row -> (String) row[0],
-                        row -> (Long) row[1]
+                        row -> ((Number) row[1]).longValue()
                 ));
         return ResponseEntity.ok(result);
     }
-
 }

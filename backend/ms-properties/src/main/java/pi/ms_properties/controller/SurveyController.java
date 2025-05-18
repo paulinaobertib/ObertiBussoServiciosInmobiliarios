@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Survey;
+import pi.ms_properties.dto.SurveyDTO;
 import pi.ms_properties.service.interf.ISurveyService;
 
 import java.time.LocalDate;
@@ -20,19 +21,19 @@ public class SurveyController {
     private final ISurveyService surveyService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createSurvey(@RequestBody Survey survey) {
-        return surveyService.create(survey);
+    public ResponseEntity<String> createSurvey(@RequestBody SurveyDTO surveyDTO) {
+        return surveyService.create(surveyDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Survey> getSurveyById(@PathVariable Long id) {
+    public ResponseEntity<SurveyDTO> getSurveyById(@PathVariable Long id) {
         return surveyService.getById(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
-    public ResponseEntity<List<Survey>> getAllSurveys() {
+    public ResponseEntity<List<SurveyDTO>> getAllSurveys() {
         return surveyService.getAll();
     }
 
@@ -50,7 +51,7 @@ public class SurveyController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/daily")
-    public ResponseEntity<Map<LocalDate, Double>> getDailyAverageScore() {
+    public ResponseEntity<Map<String, Double>> getDailyAverageScore() {
         return surveyService.getDailyAverageScore();
     }
 

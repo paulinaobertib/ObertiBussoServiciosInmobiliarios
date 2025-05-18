@@ -8,12 +8,14 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Comment;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.Property;
+import pi.ms_properties.dto.CommentDTO;
 import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.interf.ICommentService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,34 +26,41 @@ public class CommentService implements ICommentService {
     private final IPropertyRepository propertyRepository;
 
     @Override
-    public ResponseEntity<String> create(Comment comment) {
+    public ResponseEntity<String> create(CommentDTO commentDTO) {
         try {
-            Optional<Property> property = propertyRepository.findById(comment.getProperty().getId());
+            Optional<Property> property = propertyRepository.findById(commentDTO.getPropertyId());
             if (property.isEmpty()) {
                 return ResponseEntity.badRequest().body("No se ha encontrado la propiedad con ese id");
             }
+            Comment comment = new Comment();
+            comment.setDescription(commentDTO.getDescription());
+            comment.setProperty(property.get());
             commentRepository.save(comment);
             return ResponseEntity.ok("Se ha guardado correctamente el comentario");
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @Override
-    public ResponseEntity<String> update(Comment comment) {
+    public ResponseEntity<String> update(CommentDTO commentDTO) {
         try {
-            Optional<Comment> search = commentRepository.findById(comment.getId());
+            Optional<Comment> search = commentRepository.findById(commentDTO.getId());
             if (search.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el comentario");
             }
 
-            Optional<Property> property = propertyRepository.findById(comment.getProperty().getId());
+            Optional<Property> property = propertyRepository.findById(commentDTO.getPropertyId());
             if (property.isEmpty()) {
                 return ResponseEntity.badRequest().body("No se ha encontrado la propiedad con ese id");
             }
-
+            Comment comment = search.get();
+            comment.setId(commentDTO.getId());
+            comment.setDescription(commentDTO.getDescription());
+            comment.setProperty(property.get());
             commentRepository.save(comment);
             return ResponseEntity.ok("Se ha actualizado correctamente el comentario de la propiedad");
         } catch (DataIntegrityViolationException e) {
@@ -79,10 +88,15 @@ public class CommentService implements ICommentService {
     }
 
     @Override
-    public ResponseEntity<Comment> getById(Long id) {
+    public ResponseEntity<CommentDTO> getById(Long id) {
         try {
             Optional<Comment> comment = commentRepository.findById(id);
-            return comment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+            if (comment.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            Comment get = comment.get();
+            CommentDTO commentDTO = new CommentDTO(get.getId(), get.getDescription(), get.getProperty().getId());
+            return ResponseEntity.ok(commentDTO);
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -91,15 +105,22 @@ public class CommentService implements ICommentService {
     }
 
     @Override
-    public ResponseEntity<List<Comment>> getByPropertyId(Long propertyId) {
+    public ResponseEntity<List<CommentDTO>> getByPropertyId(Long propertyId) {
         try {
             Optional<Property> property = propertyRepository.findById(propertyId);
             if (property.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
-
             List<Comment> comments = commentRepository.findByPropertyId(propertyId);
-            return ResponseEntity.ok(comments);
+            List<CommentDTO> commentDTOS = comments
+                    .stream()
+                    .map(comment -> new CommentDTO(
+                            comment.getId(),
+                            comment.getDescription(),
+                            comment.getProperty().getId()
+                    ))
+                    .toList();
+            return ResponseEntity.ok(commentDTOS);
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
