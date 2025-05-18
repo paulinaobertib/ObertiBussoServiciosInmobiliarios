@@ -26,4 +26,7 @@ public class Type {
 
     @Column(name = "has_bedrooms", nullable = false)
     private Boolean hasBedrooms;
+
+    @Column(name = "has_covered_area", nullable = false)
+    private Boolean hasCoveredArea;
 }

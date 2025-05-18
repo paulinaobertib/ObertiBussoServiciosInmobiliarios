@@ -71,7 +71,7 @@ public class InquiryController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/duration")
-    public ResponseEntity<Duration> getAverageInquiryResponseTime() {
+    public ResponseEntity<String> getAverageInquiryResponseTime() {
         return inquiryService.getAverageInquiryResponseTime();
     }
 
@@ -83,7 +83,7 @@ public class InquiryController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/week")
-    public ResponseEntity<Map<DayOfWeek, Long>> getInquiriesGroupedByDayOfWeek() {
+    public ResponseEntity<Map<String, Long>> getInquiriesGroupedByDayOfWeek() {
         return inquiryService.getInquiriesGroupedByDayOfWeek();
     }
 
@@ -91,12 +91,6 @@ public class InquiryController {
     @GetMapping("/statistics/time")
     public ResponseEntity<Map<String, Long>> getInquiriesGroupedByTimeRange() {
         return inquiryService.getInquiriesGroupedByTimeRange();
-    }
-
-    @PreAuthorize("hasRole('admin')")
-    @GetMapping("/statistics/day")
-    public ResponseEntity<Map<LocalDate, Long>> getInquiriesPerDay() {
-        return inquiryService.getInquiriesPerDay();
     }
 
     @PreAuthorize("hasRole('admin')")
