@@ -38,7 +38,10 @@ public class WebSecurityConfig {
                                 "/type/getAll",
                                 "/type/getById/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/inquiries/createWithoutUser").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/inquiries/createWithoutUser",
+                                "/survey/create")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
