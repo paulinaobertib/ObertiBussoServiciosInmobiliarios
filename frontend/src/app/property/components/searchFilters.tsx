@@ -10,7 +10,7 @@ import {
   Collapse,
   TextField,
   Card,
-  CardContent,
+  CardContent, Checkbox, FormControlLabel,
   Typography,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
@@ -58,6 +58,8 @@ export default function SearchFilters({ onSearch }: Props) {
     city: '',
     neighborhood: '',
     neighborhoodType: undefined,
+    credit: false,
+    financing: false,
   });
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +68,7 @@ export default function SearchFilters({ onSearch }: Props) {
     const numValue = value === '' ? 0 : Number(value);
     if (numValue < 0) {
       showAlert('El valor no puede ser negativo', 'error');
-      return; 
+      return;
     }
 
     setParams((p) => ({
@@ -103,13 +105,21 @@ export default function SearchFilters({ onSearch }: Props) {
       showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
       return;
     }
-    const sp = buildSearchParams({
+
+    const filters: Partial<SearchParams> = {
       ...params,
       priceFrom,
       priceTo,
       areaFrom,
       areaTo,
-    });
+    };
+
+    if (params.credit === true) filters.credit = true;
+    if (params.financing === true) filters.financing = true;
+
+    const sp = buildSearchParams(filters);
+
+    console.log("Filtros a enviar:", sp);
 
     const res = await getPropertiesByFilters(sp as SearchParams);
     onSearch(res);
@@ -128,6 +138,8 @@ export default function SearchFilters({ onSearch }: Props) {
       city: '',
       neighborhood: '',
       neighborhoodType: '',
+      credit: false,
+      financing: false,
     });
 
     setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
@@ -135,19 +147,16 @@ export default function SearchFilters({ onSearch }: Props) {
     const all = await getPropertiesByFilters({
       priceFrom: 0, priceTo: 0, areaFrom: 0, areaTo: 0,
       rooms: 0, operation: '', type: '', amenities: [],
-      city: '', neighborhood: '', neighborhoodType: ''
+      city: '', neighborhood: '', neighborhoodType: '', credit: false, financing: false,
     });
     onSearch(all);
   };
 
-
-
-
   const cities = Array.from(
     new Set(
       neighborhoodsList
-        .map(n => (n.city || '').trim())   // quitamos espacios
-        .filter(c => c.length > 0)          // sólo los no vacíos
+        .map(n => (n.city || '').trim())
+        .filter(c => c.length > 0)
     )
   );
   const barrioTypes = Object.values(NeighborhoodType);
@@ -179,23 +188,80 @@ export default function SearchFilters({ onSearch }: Props) {
           </Button>
         )}
 
+
+
         <Collapse in={openFilters} timeout="auto" unmountOnExit sx={{ p: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Operación</InputLabel>
-              <Select
-                value={params.operation || ''}
-                label="Operación"
-                onChange={handleSelect('operation')}
-              >
-                {anyOption}
-                {operationsList.map((op: string) => (  // Asegúrate de que `op` es un string
-                  <MenuItem key={op} value={op}>
-                    {op.charAt(0) + op.slice(1).toLowerCase()}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+
+          <FormControl fullWidth size="small">
+            <InputLabel>Operación</InputLabel>
+            <Select
+              value={params.operation || ''}
+              label="Operación"
+              onChange={handleSelect('operation')}
+            >
+              {anyOption}
+              {operationsList.map((op: string) => (
+                <MenuItem key={op} value={op}>
+                  {op.charAt(0) + op.slice(1).toLowerCase()}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 2 }}>
+            {params.operation === 'VENTA' && (
+              <>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={params.credit || false}
+                      onChange={(_, checked) =>
+                        setParams(p => ({ ...p, credit: checked }))
+                      }
+                      size="small"
+                    />
+                  }
+                  label="Apto Crédito"
+                  sx={{
+                    width: 'auto',
+                    m: 0,
+                    py: 0,
+                    px: 1,
+                    border: '1px solid #ccc',
+                    borderRadius: 1,
+                    '&:hover': { borderColor: '#444' },
+                    '& .MuiFormControlLabel-label': {
+                      color: 'text.secondary',
+                    },
+                  }}
+                />
+
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={params.financing || false}
+                      onChange={(_, checked) =>
+                        setParams(p => ({ ...p, financing: checked }))
+                      }
+                      size="small"
+                    />
+                  }
+                  label="Apto Financiamiento"
+                  sx={{
+                    width: 'auto',
+                    m: 0,
+                    py: 0,
+                    px: 1,
+                    border: '1px solid #ccc',
+                    borderRadius: 1,
+                    '&:hover': { borderColor: '#444' },
+                    '& .MuiFormControlLabel-label': {
+                      color: 'text.secondary',
+                    },
+                  }}
+                />
+              </>
+            )}
 
             <FormControl fullWidth size="small">
               <InputLabel>Tipo</InputLabel>

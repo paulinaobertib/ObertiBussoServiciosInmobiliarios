@@ -21,6 +21,7 @@ export default function TypeForm({ action, item, onDone }: Props) {
         hasRooms: item?.hasRooms ?? false,
         hasBathrooms: item?.hasBathrooms ?? false,
         hasBedrooms: item?.hasBedrooms ?? false,
+        hasCoveredArea: item?.hasCoveredArea ?? false,
     });
 
     const set = (k: keyof typeof form) => (e: any) =>
@@ -92,7 +93,6 @@ export default function TypeForm({ action, item, onDone }: Props) {
                 label="Dormitorios"
                 disabled={action === 'delete'}
             />
-
             <FormControlLabel
                 control={
                     <Checkbox
@@ -101,6 +101,16 @@ export default function TypeForm({ action, item, onDone }: Props) {
                     />
                 }
                 label="Baños"
+                disabled={action === 'delete'}
+            />
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        checked={form.hasCoveredArea}
+                        onChange={setBoolean('hasCoveredArea')}
+                    />
+                }
+                label="Superficie Cubierta"
                 disabled={action === 'delete'}
             />
 

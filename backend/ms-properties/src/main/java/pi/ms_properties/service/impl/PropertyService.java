@@ -44,6 +44,8 @@ public class PropertyService implements IPropertyService {
 
     private final NotificationRepository notificationRepository;
 
+    private final AzureBlobStorage azureBlobStorage;
+
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
 
@@ -74,10 +76,14 @@ public class PropertyService implements IPropertyService {
         response.setBathrooms(property.getBathrooms());
         response.setBedrooms(property.getBedrooms());
         response.setArea(property.getArea());
+        response.setCoveredArea(property.getCoveredArea());
         response.setPrice(property.getPrice());
+        response.setShowPrice(property.getShowPrice());
+        response.setCredit(property.getCredit());
+        response.setFinancing(property.getFinancing());
         response.setDescription(property.getDescription());
         response.setDate(property.getDate());
-        response.setMainImage(property.getMainImage());
+        response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
 
         NeighborhoodDTO neighborhoodDTO = mapper.convertValue(property.getNeighborhood(), NeighborhoodDTO.class);
 
@@ -291,20 +297,24 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
-    public ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType) {
+    public ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float coveredAreaFrom, float coveredAreaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType, Boolean credit, Boolean financing) {
         try {
             Specification<Property> spec = Specification
                     .where(PropertySpecification.hasPriceFrom(priceFrom))
                     .and(PropertySpecification.hasPriceTo(priceTo))
                     .and(PropertySpecification.hasAreaFrom(areaFrom))
                     .and(PropertySpecification.hasAreaTo(areaTo))
+                    .and(PropertySpecification.hasCoveredAreaFrom(coveredAreaFrom))
+                    .and(PropertySpecification.hasCoveredAreaTo(coveredAreaTo))
                     .and(PropertySpecification.hasRooms(rooms))
                     .and(PropertySpecification.hasOperation(operation))
                     .and(PropertySpecification.hasType(type))
                     .and(PropertySpecification.hasAmenity(amenities))
                     .and(PropertySpecification.hasCity(city))
                     .and(PropertySpecification.hasNeighborhood(neighborhood))
-                    .and(PropertySpecification.hasNeighborhoodType(neighborhoodType));
+                    .and(PropertySpecification.hasNeighborhoodType(neighborhoodType))
+                    .and(PropertySpecification.hasCredit(credit))
+                    .and(PropertySpecification.hasFinancing(financing));
 
             List<Property> properties = propertyRepository.findAll(spec);
             List<PropertyDTO> propertyDTOS = properties.stream()
@@ -348,7 +358,7 @@ public class PropertyService implements IPropertyService {
             propertyDTO.setPrice(get.getPrice());
             propertyDTO.setDescription(get.getDescription());
             propertyDTO.setDate(get.getDate());
-            propertyDTO.setMainImage(get.getMainImage());
+            propertyDTO.setMainImage(azureBlobStorage.getImageUrl(get.getMainImage()));
             propertyDTO.setStatus(get.getStatus().toString());
             propertyDTO.setOperation(get.getOperation().name());
             propertyDTO.setCurrency(get.getCurrency().name());

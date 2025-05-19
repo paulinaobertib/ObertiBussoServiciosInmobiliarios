@@ -39,8 +39,14 @@ public class Property {
     @Column(name = "area", nullable = false)
     private Float area;
 
+    @Column(name = "covered_area", nullable = false)
+    private Float coveredArea;
+
     @Column(name = "price", nullable = false)
     private Float price;
+
+    @Column(name = "show_price", nullable = false)
+    private Boolean showPrice;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -59,6 +65,12 @@ public class Property {
 
     @Enumerated(EnumType.STRING)
     private Currency currency;
+
+    @Column(name = "credit", nullable = false)
+    private Boolean credit;
+
+    @Column(name = "financing", nullable = false)
+    private Boolean financing;
 
     // relaciones
 
