@@ -35,8 +35,7 @@ public class PropertyController {
         return propertyService.deleteProperty(id);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestPart("data") PropertyUpdateDTO propertyUpdateDTO, @RequestPart("mainImage") MultipartFile mainImage) {
+    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestPart("data") PropertyUpdateDTO propertyUpdateDTO, @RequestPart(value = "mainImage", required = false) MultipartFile mainImage) {
         propertyUpdateDTO.setMainImageUpdated(mainImage);
         return propertyService.updateProperty(id, propertyUpdateDTO);
     }

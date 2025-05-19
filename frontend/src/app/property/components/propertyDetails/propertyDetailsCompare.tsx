@@ -1,6 +1,6 @@
 import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel';
-import PropertyInfoCompare from './propertyInfoCompare';
+import PropertyInfoCompare from './PropertyInfoCompare';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -10,7 +10,6 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Configurar íconos para Leaflet
 const customMarkerIcon = new L.Icon({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -32,9 +31,9 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
   useEffect(() => {
     comparisonItems.forEach((property, idx) => {
-      const address = property.neighborhood
-        ? `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
-        : `${property.street} ${property.number}, Buenos Aires, Argentina`;
+    const address = property.neighborhood
+      ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+      : `${property.street}, Buenos Aires, Argentina`;
 
       const fetchCoordinates = async () => {
         try {
@@ -58,11 +57,11 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
     });
   }, [comparisonItems]);
 
-  if (comparisonItems.length !== 2) {
+  if (comparisonItems.length < 2 || comparisonItems.length > 3) {
     return (
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Typography variant="h6" color="text.secondary">
-          Selecciona dos propiedades para comparar.
+          Selecciona 2 o 3 propiedades para comparar.
         </Typography>
       </Container>
     );
@@ -70,11 +69,20 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
   return (
     <Container maxWidth={false} sx={{ py: 8, px: 2 }}>
-      <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 4 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: isMobile
+            ? '1fr'
+            : comparisonItems.length === 3
+            ? 'repeat(3, minmax(350px, 1fr))' // Columnas más anchas para 3 propiedades
+            : 'repeat(2, minmax(400px, 1fr))', // Mantener 2 propiedades o ajustar
+          gap: isMobile ? 1 : 3, // Aumentar espacio a 3 para no móviles, mantener 1 para móviles
+        }}
+      >
         {comparisonItems.map((property, idx) => {
           const center = coords[idx];
 
-          // Manejo de imágenes (igual que en PropertyDetails)
           const mainImage =
             typeof property.mainImage === 'string'
               ? property.mainImage
@@ -88,11 +96,11 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
           const gmUrl = property.neighborhood
             ? `https://www.google.com/maps?q=${encodeURIComponent(
-              `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
-            )}`
+                `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
+              )}`
             : `https://www.google.com/maps?q=${encodeURIComponent(
-              `${property.street} ${property.number}, Buenos Aires, Argentina`
-            )}`;
+                `${property.street} ${property.number}, Buenos Aires, Argentina`
+              )}`;
 
           return (
             <Box
@@ -153,7 +161,7 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
                     boxShadow: 1,
                   }}
                 >
-                  Barrio no encontrado.
+                  Ubicación no encontrada.
                 </Box>
               )}
             </Box>

@@ -51,6 +51,8 @@ export default function SearchFilters({ onSearch }: Props) {
     priceTo: 0,
     areaFrom: 0,
     areaTo: 0,
+    coveredAreaFrom: 0,
+    coveredAreaTo: 0,
     rooms: 0,
     operation: '',
     type: '',
@@ -58,8 +60,8 @@ export default function SearchFilters({ onSearch }: Props) {
     city: '',
     neighborhood: '',
     neighborhoodType: undefined,
-    credit: false,
-    financing: false,
+    credit: undefined,
+    financing: undefined,
   });
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +97,8 @@ export default function SearchFilters({ onSearch }: Props) {
     const priceTo = params.priceTo ?? 0;
     const areaFrom = params.areaFrom ?? 0;
     const areaTo = params.areaTo ?? 0;
+    const coveredAreaFrom = params.coveredAreaFrom ?? 0;
+    const coveredAreaTo = params.coveredAreaTo ?? 0;
 
     if (priceFrom && priceTo && priceFrom > priceTo) {
       showAlert('El precio DESDE no puede ser mayor al precio HASTA', 'error');
@@ -106,16 +110,22 @@ export default function SearchFilters({ onSearch }: Props) {
       return;
     }
 
+    if (coveredAreaFrom && coveredAreaTo && coveredAreaFrom > coveredAreaTo) {
+      showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
+      return;
+    }
+
     const filters: Partial<SearchParams> = {
       ...params,
       priceFrom,
       priceTo,
       areaFrom,
       areaTo,
+      coveredAreaFrom,
+      coveredAreaTo,
+      credit: params.credit ? true : undefined,
+      financing: params.financing ? true : undefined,
     };
-
-    if (params.credit === true) filters.credit = true;
-    if (params.financing === true) filters.financing = true;
 
     const sp = buildSearchParams(filters);
 
@@ -131,23 +141,25 @@ export default function SearchFilters({ onSearch }: Props) {
       priceTo: 0,
       areaFrom: 0,
       areaTo: 0,
+      coveredAreaFrom: 0,
+      coveredAreaTo: 0,
       rooms: 0,
       operation: '',
       type: '',
       amenities: [],
       city: '',
       neighborhood: '',
-      neighborhoodType: '',
-      credit: false,
-      financing: false,
+      neighborhoodType: undefined,
+      credit: undefined,
+      financing: undefined,
     });
 
     setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
 
     const all = await getPropertiesByFilters({
-      priceFrom: 0, priceTo: 0, areaFrom: 0, areaTo: 0,
+      priceFrom: 0, priceTo: 0, areaFrom: 0, areaTo: 0, coveredAreaFrom: 0, coveredAreaTo: 0,
       rooms: 0, operation: '', type: '', amenities: [],
-      city: '', neighborhood: '', neighborhoodType: '', credit: false, financing: false,
+      city: '', neighborhood: '', neighborhoodType: '', credit: undefined, financing: undefined,
     });
     onSearch(all);
   };
@@ -168,7 +180,6 @@ export default function SearchFilters({ onSearch }: Props) {
     </MenuItem>
   );
 
-
   return (
     <Card sx={{ borderRadius: 3, width: isMobile ? '100%' : 300 }} elevation={3}>
       <CardContent>
@@ -187,8 +198,6 @@ export default function SearchFilters({ onSearch }: Props) {
             {openFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
           </Button>
         )}
-
-
 
         <Collapse in={openFilters} timeout="auto" unmountOnExit sx={{ p: 1 }}>
 
@@ -272,7 +281,7 @@ export default function SearchFilters({ onSearch }: Props) {
               >
                 {anyOption}
                 {typesList.map((t) => (
-                  <MenuItem key={t.id} value={t.name}> {/* Utiliza `t.id` para el key y `t.name` para el valor */}
+                  <MenuItem key={t.id} value={t.name}>
                     {t.name}
                   </MenuItem>
                 ))}
@@ -385,7 +394,7 @@ export default function SearchFilters({ onSearch }: Props) {
             </FormControl>
 
             <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Superficie (m²)</InputLabel>
+              <InputLabel shrink>Superficie Total (m²)</InputLabel>
               <Box display="flex" gap={1} mt={1}>
                 <TextField
                   name="areaFrom"
@@ -401,6 +410,30 @@ export default function SearchFilters({ onSearch }: Props) {
                   placeholder="Hasta"
                   type="number"
                   value={params.areaTo || ''}
+                  onChange={handleInput}
+                  fullWidth
+                  size="small"
+                />
+              </Box>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" size="small">
+              <InputLabel shrink>Superficie Cubierta</InputLabel>
+              <Box display="flex" gap={1} mt={1}>
+                <TextField
+                  name="coveredAreaFrom"
+                  placeholder="Desde"
+                  type="number"
+                  value={params.coveredAreaFrom || ''}
+                  onChange={handleInput}
+                  fullWidth
+                  size="small"
+                />
+                <TextField
+                  name="coveredAreaTo"
+                  placeholder="Hasta"
+                  type="number"
+                  value={params.coveredAreaTo || ''}
                   onChange={handleInput}
                   fullWidth
                   size="small"

@@ -54,34 +54,24 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       },
     ];
 
-    // Si no hay comparación (solo una propiedad), mostrar todas las características
-    if (comparisonItems.length <= 1) {
-      return features;
-    }
+    // Si solo hay una propiedad, mostrarlas todas
+    if (comparisonItems.length <= 1) return features;
 
-    // Obtener la otra propiedad en comparación
-    const otherProperty = comparisonItems.find((item) => item.id !== property.id);
-
-    // Si no hay otra propiedad, mostrar todas las características
-    if (!otherProperty) {
-      return features;
-    }
-
-    // Filtrar características comunes
     return features.filter((feature) => {
-      const propValue = property[feature.key] as number | null;
-      const otherPropValue = otherProperty[feature.key] as number | null;
+      const currentValue = property[feature.key] as number | null;
 
-      // Mostrar la característica si:
-      // 1. Ambas propiedades tienen un valor válido (> 0)
-      // 2. Al menos una propiedad tiene un valor válido (para mostrar "- <plural>" en la otra)
-      // No mostrar si ambas propiedades tienen valor nulo o 0
-      return (
-        (propValue && propValue > 0) ||
-        (otherPropValue && otherPropValue > 0)
-      );
+      // ¿Alguna otra propiedad tiene ese valor válido?
+      const othersHaveValue = comparisonItems
+        .filter((item) => item.id !== property.id)
+        .some((item) => {
+          const otherValue = item[feature.key] as number | null;
+          return otherValue && otherValue > 0;
+        });
+
+      return (currentValue && currentValue > 0) || othersHaveValue;
     });
   };
+
 
   const features = getCommonFeatures();
 
@@ -110,9 +100,9 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
         <LocationOnIcon color="action" fontSize="small" />
         <Typography variant="body1" color="text.secondary">
-          {property.neighborhood
-            ? `${property.neighborhood.name}, ${property.neighborhood.city}`
-            : 'Barrio desconocido'}
+          {property.street && property.neighborhood
+            ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+            : 'Ubicación desconocida'}
         </Typography>
       </Box>
 
@@ -125,11 +115,11 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Chip
           label={property.operation}
-          size="small"
+          size="medium"
           color="primary"
           variant="outlined"
         />
-        <Chip label={property.status} size="small" color="default" />
+        <Chip label={property.status} size="medium" color="default" />
       </Box>
 
       {/* Características */}
