@@ -377,7 +377,7 @@
 									"formdata": [
 										{
 											"key": "data",
-											"value": "{\n  \"title\": \"Departamento en Nueva Córdoba 2\",\n  \"street\": \"Independencia\",\n  \"number\": \"123\",\n  \"rooms\": 3.0,\n  \"bathrooms\": 2.0,\n  \"bedrooms\": 2.0,\n  \"area\": 80.0,\n  \"coveredArea\": 90.0,\n  \"price\": 120000.0,\n  \"showPrice\": true,\n  \"credit\": false,\n  \"financing\": false,\n  \"description\": \"Departamento moderno con excelente vista.\",\n  \"status\": \"DISPONIBLE\",\n  \"operation\": \"ALQUILER\",\n  \"currency\": \"ARS\",\n  \"ownerId\": 1,\n  \"neighborhoodId\": 1,\n  \"typeId\": 1,\n  \"amenitiesIds\": [1]\n}",
+											"value": "{\n  \"title\": \"Departamento en Nueva Córdoba 2\",\n  \"street\": \"Independencia\",\n  \"number\": \"123\",\n  \"rooms\": 3.0,\n  \"bathrooms\": 2.0,\n  \"bedrooms\": 2.0,\n  \"area\": 80.0,\n  \"coveredArea\": 90.0,\n  \"price\": 120000.0,\n  \"showPrice\": true,\n  \"expenses\":12.0\n\n  \"credit\": false,\n  \"financing\": false,\n  \"description\": \"Departamento moderno con excelente vista.\",\n  \"status\": \"DISPONIBLE\",\n  \"operation\": \"ALQUILER\",\n  \"currency\": \"ARS\",\n  \"ownerId\": 1,\n  \"neighborhoodId\": 1,\n  \"typeId\": 1,\n  \"amenitiesIds\": [1]\n}",
 											"contentType": "application/json",
 											"type": "text"
 										},
@@ -544,7 +544,7 @@
 									"formdata": [
 										{
 											"key": "data",
-											"value": "{\n  \"title\": \"Casa moderna editada\",\n  \"street\": \"Calle Falsa\",\n  \"number\": \"123\",\n  \"rooms\": 4.0,\n  \"bathrooms\": 2.0,\n  \"bedrooms\": 3.0,\n  \"area\": 120.0,\n  \"coveredArea\": 130.0,\n  \"price\": 250000.0,\n  \"showPrice\": true,\n  \"credit\": false,\n  \"financing\": false,\n  \"description\": \"Hermosa casa con jardín\",\n  \"status\": \"DISPONIBLE\",\n  \"operation\": \"VENTA\",\n  \"currency\": \"USD\",\n  \"ownerId\": 1,\n  \"neighborhoodId\": 1,\n  \"typeId\": 1,\n  \"amenitiesIds\": [1]\n}\n",
+											"value": "{\n  \"title\": \"Departamento en Nueva Córdoba 2\",\n  \"street\": \"Independencia\",\n  \"number\": \"123\",\n  \"rooms\": 3.0,\n  \"bathrooms\": 2.0,\n  \"bedrooms\": 2.0,\n  \"area\": 80.0,\n  \"coveredArea\": 90.0,\n  \"price\": 120000.0,\n  \"showPrice\": true,\n  \"expenses\":12.0\n  \"credit\": false,\n  \"financing\": false,\n  \"description\": \"Departamento moderno con excelente vista.\",\n  \"status\": \"DISPONIBLE\",\n  \"operation\": \"ALQUILER\",\n  \"currency\": \"ARS\",\n  \"ownerId\": 1,\n  \"neighborhoodId\": 1,\n  \"typeId\": 1,\n  \"amenitiesIds\": [1]\n}\n",
 											"contentType": "application/json",
 											"type": "text"
 										},

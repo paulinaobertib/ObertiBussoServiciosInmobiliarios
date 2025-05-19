@@ -48,6 +48,7 @@ CREATE TABLE Property (
     covered_area DECIMAL(10, 2) NOT NULL,
     price DECIMAL(15,2) NOT NULL,
     show_price BOOLEAN NOT NULL,
+    expenses DECIMAL(15, 2),
     description VARCHAR(2000),
     date DATETIME NOT NULL,
     main_image VARCHAR(255),
