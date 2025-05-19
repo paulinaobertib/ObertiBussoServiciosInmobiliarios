@@ -21,6 +21,7 @@ public class PropertySaveDTO {
     private Float coveredArea;
     private Float price;
     private Boolean showPrice;
+    private Float expenses;
     private Boolean credit;
     private Boolean financing;
     private String description;

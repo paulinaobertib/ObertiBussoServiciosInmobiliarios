@@ -44,6 +44,8 @@ public class PropertyService implements IPropertyService {
 
     private final NotificationRepository notificationRepository;
 
+    private final AzureBlobStorage azureBlobStorage;
+
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
 
@@ -77,11 +79,12 @@ public class PropertyService implements IPropertyService {
         response.setCoveredArea(property.getCoveredArea());
         response.setPrice(property.getPrice());
         response.setShowPrice(property.getShowPrice());
+        response.setExpenses(property.getExpenses());
         response.setCredit(property.getCredit());
         response.setFinancing(property.getFinancing());
         response.setDescription(property.getDescription());
         response.setDate(property.getDate());
-        response.setMainImage(property.getMainImage());
+        response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
 
         NeighborhoodDTO neighborhoodDTO = mapper.convertValue(property.getNeighborhood(), NeighborhoodDTO.class);
 
@@ -356,7 +359,7 @@ public class PropertyService implements IPropertyService {
             propertyDTO.setPrice(get.getPrice());
             propertyDTO.setDescription(get.getDescription());
             propertyDTO.setDate(get.getDate());
-            propertyDTO.setMainImage(get.getMainImage());
+            propertyDTO.setMainImage(azureBlobStorage.getImageUrl(get.getMainImage()));
             propertyDTO.setStatus(get.getStatus().toString());
             propertyDTO.setOperation(get.getOperation().name());
             propertyDTO.setCurrency(get.getCurrency().name());
