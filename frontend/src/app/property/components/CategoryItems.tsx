@@ -32,10 +32,8 @@ export default function CategoryItems() {
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
 
-  /* ─── si no hay categoría activa ─── */
   if (!category) return null;
 
-  /* ─── helpers de selección clásica ─── */
   const isSel = (id: number) => {
     if (category === 'amenity') return selected.amenities.includes(id);
     if (category === 'owner') return selected.owner === id;
@@ -46,7 +44,6 @@ export default function CategoryItems() {
 
   const isProperty = (category as unknown as string) === 'property';
 
-  /* ─── columnas por tipo ─── */
   const categoryFields: Record<string, { label: string; key: string }[]> = {
     owner: [
       { label: 'Nombre Completo', key: 'fullName' },
@@ -75,12 +72,10 @@ export default function CategoryItems() {
 
   const columns = isProperty ? categoryFields.property : (categoryFields[category] ?? []);
 
-  /* ─────────────────── UI ─────────────────── */
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-        {/* barra superior */}
         <Box sx={{
           px: 2, py: 1.5, display: 'flex', justifyContent: 'space-between',
           alignItems: 'center', flexShrink: 0, bgcolor: '#FFF3E0',
@@ -103,7 +98,6 @@ export default function CategoryItems() {
           </Tooltip>
         </Box>
 
-        {/* cabecera de columnas */}
         <Box sx={{
           display: 'grid',
           gridTemplateColumns: `${columns.length > 0 ? `repeat(${columns.length},1fr)` : ''} auto`,
@@ -117,7 +111,6 @@ export default function CategoryItems() {
           <Typography>Acciones</Typography>
         </Box>
 
-        {/* listado / loader */}
         <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 2, py: 1 }}>
           {categoryLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -149,7 +142,6 @@ export default function CategoryItems() {
                     }),
                   }}
                 >
-                  {/* ─── celdas ─── */}
                   {isProperty ? (
                     <>
                       {propCols.map((v, i) => (
@@ -177,7 +169,6 @@ export default function CategoryItems() {
                           </IconButton>
                         </Tooltip>
 
-                        {/* eliminar */}
                         <Tooltip title="Eliminar">
                           <IconButton
                             size="small"
@@ -195,7 +186,6 @@ export default function CategoryItems() {
                           </IconButton>
                         </Tooltip>
 
-                        {/* ver detalle */}
                         <Tooltip title="Ver propiedad">
                           <IconButton
                             size="small"

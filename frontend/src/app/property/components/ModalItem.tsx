@@ -16,16 +16,14 @@ import PropertyForm from './forms/PropertyForm';
 import MaintenanceForm from './forms/MaintenanceForm';
 import CommentForm from './forms/CommentForm';
 
-/* ---------- tipos ---------- */
 type Action = 'add' | 'edit' | 'delete' | 'edit-status';
 
 interface Info {
     action: Action;
-    formKey?: string;   // ⇐ opcional para que el llamador decida
+    formKey?: string;
     item?: any;
 }
 
-/* ---------- componente ---------- */
 export default function ModalItem({
     info,
     close,
@@ -35,7 +33,6 @@ export default function ModalItem({
 }) {
     if (!info) return null;
 
-    /* ---------- registro de formularios ---------- */
     const registry = {
         amenity: AmenityForm,
         owner: OwnerForm,
@@ -46,7 +43,6 @@ export default function ModalItem({
         comment: CommentForm,
     } as const;
 
-    /* ---------- caso especial: sólo estado ---------- */
     if (info.action === 'edit-status') {
         return (
             <Dialog
@@ -79,12 +75,10 @@ export default function ModalItem({
         );
     }
 
-    /* ---------- elegimos formulario ---------- */
-    const formKey = info.formKey ?? 'property';             // string
-    const Form = registry[formKey as keyof typeof registry] // cast seguro
+    const formKey = info.formKey ?? 'property';
+    const Form = registry[formKey as keyof typeof registry]
         ?? PropertyForm;
 
-    /* ---------- título ---------- */
     const title =
         info.action === 'add'
             ? `Crear ${formKey}`
@@ -92,7 +86,6 @@ export default function ModalItem({
                 ? `Editar ${formKey}`
                 : `Eliminar ${formKey}`;
 
-    /* ---------- render ---------- */
     return (
         <Dialog
             open
@@ -119,7 +112,6 @@ export default function ModalItem({
             </DialogTitle>
 
             <DialogContent dividers>
-                {/* pasamos tal cual el item */}
                 <Form action={info.action} item={info.item} onDone={close} />
             </DialogContent>
         </Dialog>

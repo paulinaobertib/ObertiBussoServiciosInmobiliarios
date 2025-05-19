@@ -10,7 +10,7 @@ import {
     postMaintenance,
     putMaintenance,
     deleteMaintenance,
-} from '../../services/maintenance.service';      // ← nombre correcto
+} from '../../services/maintenance.service';
 
 import {
     Maintenance,
@@ -27,7 +27,6 @@ export default function MaintenanceForm({ action, item, onDone }: Props) {
     const { refresh, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
-    /* ---------- estado del formulario ---------- */
     const [form, setForm] = useState<Maintenance>({
         id: item?.id ?? 0,                 // ← ⬅️  ¡añadido!
         propertyId: item?.propertyId
@@ -37,19 +36,16 @@ export default function MaintenanceForm({ action, item, onDone }: Props) {
         date: item?.date ?? '',
     });
 
-    /* helper genérico */
     const set =
         (k: keyof Maintenance) =>
             (e: React.ChangeEvent<HTMLInputElement>) =>
                 setForm(f => ({ ...f, [k]: e.target.value }));
 
-    /* validación simple */
     const invalid =
         action !== 'delete' &&
         (!form.propertyId || !form.title.trim() ||
             !form.description.trim() || !form.date);
 
-    /* ---------- CRUD ---------- */
     const save = async () => {
         try {
             if (action === 'add') {
@@ -72,7 +68,6 @@ export default function MaintenanceForm({ action, item, onDone }: Props) {
         }
     };
 
-    /* ---------- UI ---------- */
     return (
         <>
             <Grid container spacing={2} mb={2}>

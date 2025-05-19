@@ -74,19 +74,19 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',  // centra verticalmente todo
+            //alignItems: 'center', 
             gap: 1,
             mb: 2,
           }}
         >
           <Chip
             label={property.operation}
-            size="medium"           // Medium es un poco más grande que small
+            size="medium" 
             color="primary"
             variant="outlined"
             sx={{
-              height: 32,           // si querés controlar altura exacta
-              fontSize: '0.875rem', // un pelín más grande
+              height: 32,  
+              fontSize: '0.875rem', 
             }}
           />
           <Chip

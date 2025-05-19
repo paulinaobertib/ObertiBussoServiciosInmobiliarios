@@ -21,8 +21,8 @@ const pages = [
   { label: 'NOTICIAS',  route: `/news`   },
 ];
 
-export const NAVBAR_HEIGHT = 56;    // desktop
-export const NAVBAR_HEIGHT_XS = 48; // mobile
+export const NAVBAR_HEIGHT = 56;
+export const NAVBAR_HEIGHT_XS = 48;
 
 export default function NavBar() {
   const { palette } = useTheme();

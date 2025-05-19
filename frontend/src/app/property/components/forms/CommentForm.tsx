@@ -27,7 +27,6 @@ export default function CommentForm({ action, item, onDone }: Props) {
     const { refresh, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
-    /* ---------- estado del formulario ---------- */
     const [form, setForm] = useState<Comment>({
         id: item?.id ?? 0,
         propertyId: item?.propertyId
@@ -35,18 +34,15 @@ export default function CommentForm({ action, item, onDone }: Props) {
         description: item?.description ?? ''
     });
 
-    /* helper genérico */
     const set =
         (k: keyof Comment) =>
             (e: React.ChangeEvent<HTMLInputElement>) =>
                 setForm(f => ({ ...f, [k]: e.target.value }));
 
-    /* validación simple */
     const invalid =
         action !== 'delete' &&
         (!form.propertyId || !form.description.trim());
 
-    /* ---------- CRUD ---------- */
     const save = async () => {
         try {
             if (action === 'add') {
@@ -69,7 +65,6 @@ export default function CommentForm({ action, item, onDone }: Props) {
         }
     };
 
-    /* ---------- UI ---------- */
     return (
         <>
             <Grid container spacing={2} mb={2}>
