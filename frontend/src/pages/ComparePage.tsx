@@ -1,6 +1,6 @@
 import { Box, Button, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetailsCompare from '../app/property/components/propertyDetails/propertyDetailsCompare';
+import PropertyDetailsCompare from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { useNavigate } from 'react-router-dom';
 

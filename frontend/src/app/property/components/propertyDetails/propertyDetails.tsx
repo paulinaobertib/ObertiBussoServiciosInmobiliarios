@@ -1,6 +1,6 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel'; 
-import PropertyInfo from './propertyInfo';
+import PropertyInfo from './PropertyInfo';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -134,7 +134,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
               fontStyle: 'italic',
             }}
           >
-            Barrio no encontrado.
+            Ubicación no encontrada.
           </Box>
         )}
       </Box>

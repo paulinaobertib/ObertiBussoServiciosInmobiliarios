@@ -1,6 +1,6 @@
 import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel';
-import PropertyInfoCompare from './propertyInfoCompare';
+import PropertyInfoCompare from './PropertyInfoCompare';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -76,9 +76,9 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
           gridTemplateColumns: isMobile
             ? '1fr'
             : comparisonItems.length === 3
-            ? 'repeat(3, 1fr)'
-            : 'repeat(2, 1fr)',
-          gap: 1,
+            ? 'repeat(3, minmax(350px, 1fr))' // Columnas más anchas para 3 propiedades
+            : 'repeat(2, minmax(400px, 1fr))', // Mantener 2 propiedades o ajustar
+          gap: isMobile ? 1 : 3, // Aumentar espacio a 3 para no móviles, mantener 1 para móviles
         }}
       >
         {comparisonItems.map((property, idx) => {
@@ -163,7 +163,7 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
                     boxShadow: 1,
                   }}
                 >
-                  Barrio no encontrado.
+                  Ubicación no encontrada.
                 </Box>
               )}
             </Box>
