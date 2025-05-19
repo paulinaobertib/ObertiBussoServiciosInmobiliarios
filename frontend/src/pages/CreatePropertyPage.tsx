@@ -25,7 +25,7 @@ export default function CreatePropertyPage() {
     formRef, gallery, setGallery, setMain, main,
     deleteImgFile, handleImages, loading, setLoading
   } = useCreateProperty();
-  const { selected, typesList, resetSelected } = usePropertyCrud();
+  const { selected, typesList, resetSelected, pickItem } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
 
@@ -35,6 +35,7 @@ export default function CreatePropertyPage() {
 
   /* limpiar estado al entrar -------------------------------------- */
   useEffect(() => {
+    pickItem('category', null);
     resetSelected();
     setMain(null);
     setGallery([]);
@@ -64,7 +65,7 @@ export default function CreatePropertyPage() {
           setGallery([]);
 
           /* redirige al catálogo */
-          navigate(ROUTES.HOME_APP, { replace: true });
+          navigate(ROUTES.HOME_APP);
 
         } catch {
           showAlert('Error al guardar la propiedad', 'error');
@@ -81,7 +82,7 @@ export default function CreatePropertyPage() {
       setMain(null);
       setGallery([]);
       showAlert('Formulario vaciado correctamente', 'info');
-      navigate(ROUTES.HOME_APP, { replace: true });
+      navigate(ROUTES.HOME_APP);
     });
 
   /* nombre del tipo de propiedad (para el título) ------------------ */

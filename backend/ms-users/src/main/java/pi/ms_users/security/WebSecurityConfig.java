@@ -23,7 +23,9 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/appointments/create").permitAll()
-                        .anyRequest().authenticated()
+                        // .requestMatchers(HttpMethod.POST, "/appointments/create").permitAll()
+                        // .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, authException) ->

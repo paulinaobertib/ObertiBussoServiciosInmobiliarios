@@ -1,9 +1,7 @@
-/* src/app/property/components/propertyDetails/PropertyDetails.tsx */
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import ImageCarousel from './PropertyCarousel';
 import PropertyInfo from './PropertyInfo';
 import { Property } from '../../types/property';
-import { usePropertyCrud } from '../../context/PropertiesContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -12,7 +10,6 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Leaflet icon
 const customMarkerIcon = new L.Icon({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -26,35 +23,25 @@ interface PropertyDetailsProps {
   property: Property;
 }
 
-export default function PropertyDetails({ property }: PropertyDetailsProps) {
+const PropertyDetails = ({ property }: PropertyDetailsProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { neighborhoodsList } = usePropertyCrud();
-
-  // Encuentra el barrio completo por ID
-  const neighborhood =
-    neighborhoodsList.find(n => n.id === property.neighborhoodId) || null;
-
-  // Coordendas: null mientras carga; fallback después
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
   useEffect(() => {
-    const address = neighborhood
-      ? `${neighborhood.name}, ${neighborhood.city}`
-      : 'Buenos Aires, Argentina';
+    const address = property.neighborhood
+      ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+      : `${property.street} ${property.number}, Buenos Aires, Argentina`;
 
     const fetchCoordinates = async () => {
       try {
-        const response = await axios.get(
-          `https://nominatim.openstreetmap.org/search`,
-          {
-            params: {
-              q: address,
-              format: 'json',
-              limit: 1,
-            },
-          }
-        );
+        const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+          params: {
+            q: address,
+            format: 'json',
+            limit: 1,
+          },
+        });
         if (response.data.length > 0) {
           const { lat, lon } = response.data[0];
           setCoordinates([parseFloat(lat), parseFloat(lon)]);
@@ -65,16 +52,17 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
     };
 
     fetchCoordinates();
-  }, [neighborhood]);
+  }, [property.neighborhood]);
 
-  // Construir la URL de Google Maps
-  const googleMapsUrl = neighborhood
+  const googleMapsUrl = property.neighborhood
     ? `https://www.google.com/maps?q=${encodeURIComponent(
-      `${neighborhood.name}, ${neighborhood.city}`
+      `${property.neighborhood.name}, ${property.neighborhood.city}`
     )}`
-    : `https://www.google.com/maps?q=Buenos+Aires,+Argentina`;
+    : `https://www.google.com/maps?q=${encodeURIComponent(
+      `${property.street} ${property.number}, Buenos Aires, Argentina`
+    )}`;
 
-  // URLs de imágenes (sin File/URL.createObjectURL)
+  // Procesar imágenes
   const mainImageUrl =
     typeof property.mainImage === 'string'
       ? property.mainImage
@@ -86,7 +74,6 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
 
   return (
     <Container maxWidth="xl" sx={{ py: 8 }}>
-      {/* Carrusel + Info */}
       <Box
         sx={{
           backgroundColor: '#ffe0b2',
@@ -110,7 +97,6 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
         </Box>
       </Box>
 
-      {/* Mapa */}
       <Box
         sx={{
           mt: 4,
@@ -123,7 +109,7 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
         }}
         onClick={() => window.open(googleMapsUrl, '_blank')}
       >
-        {coordinates && (
+        {coordinates ? (
           <MapContainer
             center={coordinates}
             zoom={15}
@@ -131,16 +117,35 @@ export default function PropertyDetails({ property }: PropertyDetailsProps) {
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
+              attribution="© OpenStreetMap contributors"
             />
             <Marker position={coordinates} icon={customMarkerIcon}>
               <Popup>
-                {neighborhood?.name}, {neighborhood?.city}
+                {property.neighborhood
+                  ? `${property.neighborhood.name}, ${property.neighborhood.city}`
+                  : `${property.street} ${property.number}, Buenos Aires, Argentina`}
               </Popup>
             </Marker>
           </MapContainer>
+        ) : (
+          <Box
+            sx={{
+              height: 400,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f5f5f5',
+              color: 'text.secondary',
+              fontSize: '1.2rem',
+              fontStyle: 'italic',
+            }}
+          >
+            Barrio no encontrado.
+          </Box>
         )}
       </Box>
     </Container>
   );
-}
+};
+
+export default PropertyDetails;

@@ -106,6 +106,7 @@ public class MaintenanceService implements IMaintenanceService {
             List<Maintenance> maintenances = maintenanceRepository.findByPropertyId(id);
             List<MaintenanceDTO> maintenanceDTOS = maintenances.stream()
                     .map(maintenance -> new MaintenanceDTO(
+                            maintenance.getId(),
                             maintenance.getDate(),
                             maintenance.getTitle(),
                             maintenance.getDescription(),

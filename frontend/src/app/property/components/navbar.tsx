@@ -1,150 +1,138 @@
-import logo from '../../../assets/logoJPG.png';
-
-const pages = ['Catálogo', 'Contacto', 'Blog'];
-export const NAVBAR_HEIGHT = 56; // desktop
-export const NAVBAR_HEIGHT_XS = 48; // mobile
-
+import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
-  Button,
-  Divider,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
   Toolbar,
-  Typography,
-  useMediaQuery,
+  IconButton,
+  Menu,
+  MenuItem,
+  Button,
   useTheme,
 } from '@mui/material';
-import { useState } from 'react';
-import { LinkProps, useNavigate } from 'react-router-dom';
-import { Logout, Menu } from '@mui/icons-material';
+import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { ROUTES } from '../../../lib';
+import logo from '../../../assets/logoJPG.png';
 
-export const NavBarLink = ({ to, children }: LinkProps) => {
-  const { palette } = useTheme();
-  const { primary, background, common } = palette;
-  const navigate = useNavigate();
+const pages = [
+  { label: 'CONTACTO', route: `/contact`},
+  { label: 'NOTICIAS',  route: `/news`   },
+];
 
-  return (
-    <Button
-      onClick={() => {
-        navigate(to);
-      }}
-      size="small"
-      variant='contained'
-      disableElevation
-      sx={{
-        '&:hover': {
-          backgroundColor: background.default,
-          color: primary.main,
-        },
-        backgroundColor: false ? primary.contrastText : primary.main,
-        color: false ? primary.main : common.white,
-        my: 2,
-        display: 'block',
-      }}
-    >
-      <Typography sx={{ textTransform: 'none' }}>{children}</Typography>
-    </Button>
-  );
-};
-
-export const MobileNavBarLink = ({
-  name,
-  to,
-}: LinkProps & { name: string }) => {
-  const navigate = useNavigate();
-  return (
-    <ListItem
-      disablePadding
-      onClick={() => navigate(to)}
-    >
-      <ListItemButton sx={{ textAlign: 'center' }}>
-        <ListItemText primary={name} />
-      </ListItemButton>
-    </ListItem>
-  );
-};
+export const NAVBAR_HEIGHT = 56;    // desktop
+export const NAVBAR_HEIGHT_XS = 48; // mobile
 
 export default function NavBar() {
-  const { palette, breakpoints } = useTheme();
-  const isMobileScreen = useMediaQuery(breakpoints.only('xs'));
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { palette } = useTheme();
+  const navigate = useNavigate();
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNav(e.currentTarget);
+  };
+  const handleCloseNavMenu = () => {
+    setAnchorElNav(null);
   };
 
   return (
-    <>
-      <AppBar component="nav">
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {isMobileScreen && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-              >
-                <Menu />
-              </IconButton>
-            )}
-            {!isMobileScreen && (
-              <>
-                <Box sx={{ display: 'flex', marginRight: 2 }}>
-                  <img src={logo} alt="logo" width={90} />
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1, marginRight: 1 }}>
-                  {pages.map((page) => (
-                    <NavBarLink key={page} to={page}>
-                      {page}
-                    </NavBarLink>
-                  ))}
-                </Box>
-              </>
-            )}
-          </Box>
-          <Button
-            variant="text"
-            sx={{ color: palette.common.white }}
-            startIcon={<Logout />}
-          >
-            Salir
-          </Button>
-        </Toolbar>
-      </AppBar>
-      {isMobileScreen && (
-        <Drawer
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
+    <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Toolbar
+          disableGutters
           sx={{
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 180 },
+            width: '90%',
+            justifyContent: { xs: 'flex-start', sm: 'space-between' },
+            height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
+            minHeight: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
           }}
         >
+          {/* Logo desktop */}
           <Box
+            component="img"
+            src={logo}
+            alt="Logo"
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              paddingY: 1,
+              display: { xs: 'none', sm: 'flex' },
+              height: 50,
+              objectFit: 'contain',
+              cursor: 'pointer',
             }}
-          >
-            <img src={logo} alt="logo" width={140} />
-          </Box>
-          <Divider />
-          <List>
-            {pages.map((page) => (
-              <MobileNavBarLink key={page} to={page} name={page} />
-            ))}
-          </List>
-        </Drawer>
-      )}
-    </>
-  );
-};
+            onClick={() => navigate(ROUTES.HOME_APP)}
+          />
 
+          {/* Mobile menu and logo */}
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
+            <IconButton size="large" color="inherit" onClick={handleOpenNavMenu}>
+              <MenuIcon />
+            </IconButton>
+
+            <Box
+              component="img"
+              src={logo}
+              alt="Logo"
+              sx={{ height: 40, objectFit: 'contain', cursor: 'pointer' }}
+              onClick={() => navigate(ROUTES.HOME_APP)}
+            />
+
+            <Menu
+              anchorEl={anchorElNav}
+              open={Boolean(anchorElNav)}
+              onClose={handleCloseNavMenu}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+              sx={{ display: { xs: 'block', sm: 'none' } }}
+            >
+              {pages.map(({ label, route }) => (
+                <MenuItem
+                  key={label}
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    navigate(route);
+                  }}
+                >
+                  {label}
+                </MenuItem>
+              ))}
+            </Menu>
+          </Box>
+
+          {/* Desktop links */}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4, }}>
+            {pages.map(({ label, route }) => (
+              <Button
+                key={label}
+                onClick={() => {
+                  handleCloseNavMenu();
+                  navigate(route);
+                }}
+                sx={{
+                  color: palette.common.white,
+                  textTransform: 'none',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                }}
+              >
+                {label}
+              </Button>
+            ))}
+          </Box>
+
+          {/* Profile & logout */}
+          <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+            <IconButton
+              color="inherit"
+              aria-label="profile"
+              onClick={() => navigate(ROUTES.ADMIN_PANEL)}
+            >
+              <AccountCircleIcon sx={{ fontSize: 28 }} />
+            </IconButton>
+            <IconButton color="inherit" aria-label="logout">
+              <LogoutIcon sx={{ fontSize: 28 }} />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </Box>
+    </AppBar>
+  );
+}

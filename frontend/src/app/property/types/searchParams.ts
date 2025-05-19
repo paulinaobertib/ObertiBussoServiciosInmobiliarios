@@ -10,4 +10,6 @@ export interface SearchParams {
   city: string;
   neighborhood: string;
   neighborhoodType: string;
+  credit: boolean;
+  financing: boolean;
 }
