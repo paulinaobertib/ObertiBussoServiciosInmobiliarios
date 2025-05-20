@@ -115,3 +115,12 @@ export const getPropertiesByText = async (value: string) => {
     throw error;
   }
 };
+
+export const putPropertyStatus = async (id: number, status: string) => {
+  const response = await axios.put(
+    `${apiUrl}/properties/property/status/${id}`,
+    null,
+    { params: { status } }
+  );
+  return response.data;
+};

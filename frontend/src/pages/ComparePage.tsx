@@ -1,54 +1,82 @@
-import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
+import PropertyDetailsCompare from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-// import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function ComparePage() {
+const Compare = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { comparisonItems, selectedPropertyIds } = usePropertyCrud();
-  console.log('ComparePage → comparisonItems:', comparisonItems);
-  console.log('ComparePage → selectedPropertyIds:', selectedPropertyIds);
+  const { comparisonItems } = usePropertyCrud();
+  const navigate = useNavigate();
+  const { clearComparison } = usePropertyCrud();
 
-  // Si no hay dos propiedades, mostramos mensaje
-  if (comparisonItems.length < 2) {
+  const handleBack = () => {
+    clearComparison();
+    navigate('/');
+  };
+
+  if (comparisonItems.length === 0) {
     return (
       <BasePage maxWidth={false}>
         <Container sx={{ py: 8 }}>
-          <Typography variant="h6" color="text.secondary">
-            Selecciona dos propiedades para comparar.
+          <Typography variant="h5" color="text.secondary">
+            No hay propiedades para comparar.
           </Typography>
         </Container>
       </BasePage>
     );
   }
 
-  // Cuando salgamos de esta página, limpiamos la comparación
-  // (opcional, así la próxima vez parte limpia)
-  // useEffect(() => {
-  //   return () => {
-  //     clearComparison();
-  //   };
-  // }, [clearComparison]);
+  if (comparisonItems.length < 2 || comparisonItems.length > 3) {
+    return (
+      <BasePage maxWidth={false}>
+        <Container sx={{ py: 8 }}>
+          <Typography variant="h5" color="error">
+            Por favor selecciona 2 o 3 propiedades para comparar.
+          </Typography>
+        </Container>
+      </BasePage>
+    );
+  }
 
   return (
     <BasePage maxWidth={false}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          gap: 4,
-          py: 4,
-        }}
-      >
-        {comparisonItems.map((prop) => (
-          <Box key={prop.id} sx={{ flex: 1, borderRadius: 2, overflow: 'hidden' }}>
-            {/* Reutilizamos TODO: carrusel, info y mapa */}
-            <PropertyDetails property={prop} />
-          </Box>
-        ))}
-      </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+          <Button variant="contained" color="primary" onClick={handleBack}>
+            VOLVER
+          </Button>
+        </Box>
+
+      <Container maxWidth="xl">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: 4,
+            justifyContent: 'center',
+            width: '100%',
+          }}
+        >
+          <PropertyDetailsCompare comparisonItems={comparisonItems} />
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 8 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            sx={{
+              minWidth: theme.spacing(25),
+            }}
+          >
+            Mandar consulta
+          </Button>
+        </Box>
+
+      </Container>
     </BasePage>
   );
-}
+};
+
+export default Compare;

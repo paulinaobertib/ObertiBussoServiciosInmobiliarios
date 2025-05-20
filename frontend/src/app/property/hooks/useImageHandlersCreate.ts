@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PropertyCreate } from "../types/property";
+import { Property } from "../types/property";
 
 export function useImageHandlers() {
   const [imageError, setImageError] = useState<string | null>(null);
@@ -7,9 +7,12 @@ export function useImageHandlers() {
   /* ------------ handleMainImage ------------ */
   const handleMainImage = (
     f: File | null,
-    form: PropertyCreate,
-    setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | string | null, gallery: Array<File | string>) => void
+    form: Property,
+    setField: (k: keyof Property, v: any) => void,
+    onImageSelect?: (
+      main: File | string | null,
+      gallery: Array<File | string>
+    ) => void
   ) => {
     if (!f) {
       setField("mainImage", null);
@@ -34,20 +37,24 @@ export function useImageHandlers() {
   /* ------------ handleGalleryImages ------------ */
   const handleGalleryImages = (
     files: File[],
-    form: PropertyCreate,
-    setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | string | null, gallery: Array<File | string>) => void
+    form: Property,
+    setField: (k: keyof Property, v: any) => void,
+    onImageSelect?: (
+      main: File | string | null,
+      gallery: Array<File | string>
+    ) => void
   ) => {
     const existing = new Set(
-      form.images
-        .filter((f): f is File => f instanceof File)
-        .map((f) => f.name)
+      form.images.filter((f): f is File => f instanceof File).map((f) => f.name)
     );
-    const mainValue = form.mainImage;  // puede ser File | string | null
+    const mainValue = form.mainImage; // puede ser File | string | null
 
     const { valid, duplicates } = files.reduce(
       (acc, file) => {
-        if (existing.has(file.name) || (mainValue instanceof File && file.name === mainValue.name)) {
+        if (
+          existing.has(file.name) ||
+          (mainValue instanceof File && file.name === mainValue.name)
+        ) {
           acc.duplicates.push(file.name);
         } else {
           acc.valid.push(file);
@@ -74,9 +81,12 @@ export function useImageHandlers() {
   /* ------------ deleteImage ------------ */
   const deleteImage = (
     file: File,
-    form: PropertyCreate,
-    setField: (k: keyof PropertyCreate, v: any) => void,
-    onImageSelect?: (main: File | string | null, gallery: Array<File | string>) => void
+    form: Property,
+    setField: (k: keyof Property, v: any) => void,
+    onImageSelect?: (
+      main: File | string | null,
+      gallery: Array<File | string>
+    ) => void
   ) => {
     const mainValue = form.mainImage;
     if (file === mainValue) {
