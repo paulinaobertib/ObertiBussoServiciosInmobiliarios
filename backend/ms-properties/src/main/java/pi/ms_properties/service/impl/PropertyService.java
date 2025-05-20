@@ -2,23 +2,20 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.*;
-import pi.ms_properties.dto.NeighborhoodDTO;
-import pi.ms_properties.dto.PropertyDTO;
-import pi.ms_properties.dto.PropertySaveDTO;
-import pi.ms_properties.dto.PropertyUpdateDTO;
+import pi.ms_properties.dto.*;
+import pi.ms_properties.dto.feign.NotificationDTO;
+import pi.ms_properties.dto.feign.NotificationType;
 import pi.ms_properties.repository.*;
+import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,22 +26,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PropertyService implements IPropertyService {
 
-    private static final Logger log = LoggerFactory.getLogger(PropertyService.class);
-    private final PropertyRepository propertyRepository;
+    private final IPropertyRepository propertyRepository;
 
-    private final OwnerRepository ownerRepository;
+    private final IOwnerRepository ownerRepository;
 
-    private final NeighborhoodRepository neighborhoodRepository;
+    private final INeighborhoodRepository neighborhoodRepository;
 
-    private final TypeRepository typeRepository;
+    private final ITypeRepository typeRepository;
 
-    private final AmenityRepository amenityRepository;
+    private final IAmenityRepository amenityRepository;
 
     private final ViewService viewService;
 
     private final ObjectMapper mapper;
 
     private final ImageService imageService;
+
+    private final NotificationRepository notificationRepository;
 
     private final AzureBlobStorage azureBlobStorage;
 
@@ -78,7 +76,12 @@ public class PropertyService implements IPropertyService {
         response.setBathrooms(property.getBathrooms());
         response.setBedrooms(property.getBedrooms());
         response.setArea(property.getArea());
+        response.setCoveredArea(property.getCoveredArea());
         response.setPrice(property.getPrice());
+        response.setShowPrice(property.getShowPrice());
+        response.setExpenses(property.getExpenses());
+        response.setCredit(property.getCredit());
+        response.setFinancing(property.getFinancing());
         response.setDescription(property.getDescription());
         response.setDate(property.getDate());
         response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
@@ -110,7 +113,6 @@ public class PropertyService implements IPropertyService {
                 String path = imageService.uploadImageToProperty(propertyDTO.getMainImage(), property.getId(), true);
                 property.setMainImage(path);
             } catch (RuntimeException e) {
-                e.printStackTrace();
                 throw new RuntimeException("Fallo al subir la imagen principal", e);
             }
             // para el resto de imagenes
@@ -121,6 +123,17 @@ public class PropertyService implements IPropertyService {
                 }
             }
             propertyRepository.save(property);
+
+            // creamos la notificacion de que se agrega una nueva propiedad
+            try {
+                NotificationDTO notificationDTO = new NotificationDTO();
+                notificationDTO.setDate(property.getDate());
+                notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
+                notificationRepository.createNotification(notificationDTO, property.getId());
+            } catch (Exception e) {
+                System.err.println("Error al crear la notificación: " + e.getMessage());
+            }
+
             return ResponseEntity.ok("Se ha guardado la propiedad");
         } catch (Exception e) {
             return ResponseEntity
@@ -153,15 +166,15 @@ public class PropertyService implements IPropertyService {
             // 1) Verificamos que la propiedad exista
             Optional<Property> optProperty = propertyRepository.findById(id);
             if (optProperty.isEmpty()) {
-            return ResponseEntity.notFound().build();
+                return ResponseEntity.notFound().build();
             }
 
             Property current = optProperty.get();
 
             Property updated = SaveProperty(propertyDTO);
-            updated.setId(id); 
-            updated.setDate(current.getDate()); 
-    
+            updated.setId(id);
+            updated.setDate(current.getDate());
+
             // 3) Manejo flexible de la imagen principal
             MultipartFile newMain = propertyDTO.getMainImageUpdated();  // puede ser null
             if (newMain != null && !newMain.isEmpty()) {
@@ -173,15 +186,14 @@ public class PropertyService implements IPropertyService {
                 // → El usuario no cambió la imagen: mantenemos la existente
                 updated.setMainImage(current.getMainImage());
             }
-    
+
             updated.setImages(current.getImages());
             propertyRepository.save(updated);
-    
+
             PropertyDTO response = toDTO(updated);
             return ResponseEntity.ok(response);
-    
+
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -219,7 +231,6 @@ public class PropertyService implements IPropertyService {
 
             return ResponseEntity.ok(propertyDTOS);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -287,20 +298,24 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
-    public ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType) {
+    public ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float coveredAreaFrom, float coveredAreaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType, Boolean credit, Boolean financing) {
         try {
             Specification<Property> spec = Specification
                     .where(PropertySpecification.hasPriceFrom(priceFrom))
                     .and(PropertySpecification.hasPriceTo(priceTo))
                     .and(PropertySpecification.hasAreaFrom(areaFrom))
                     .and(PropertySpecification.hasAreaTo(areaTo))
+                    .and(PropertySpecification.hasCoveredAreaFrom(coveredAreaFrom))
+                    .and(PropertySpecification.hasCoveredAreaTo(coveredAreaTo))
                     .and(PropertySpecification.hasRooms(rooms))
                     .and(PropertySpecification.hasOperation(operation))
                     .and(PropertySpecification.hasType(type))
                     .and(PropertySpecification.hasAmenity(amenities))
                     .and(PropertySpecification.hasCity(city))
                     .and(PropertySpecification.hasNeighborhood(neighborhood))
-                    .and(PropertySpecification.hasNeighborhoodType(neighborhoodType));
+                    .and(PropertySpecification.hasNeighborhoodType(neighborhoodType))
+                    .and(PropertySpecification.hasCredit(credit))
+                    .and(PropertySpecification.hasFinancing(financing));
 
             List<Property> properties = propertyRepository.findAll(spec);
             List<PropertyDTO> propertyDTOS = properties.stream()
@@ -309,7 +324,6 @@ public class PropertyService implements IPropertyService {
 
             return ResponseEntity.ok(propertyDTOS);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -323,6 +337,36 @@ public class PropertyService implements IPropertyService {
                     .map(this::toDTO)
                     .toList();
             return ResponseEntity.ok(propertyDTOS);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<PropertySimpleDTO> getSimpleById(Long id) {
+        try {
+            Optional<Property> property = propertyRepository.findById(id);
+
+            if (property.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Property get = property.get();
+
+            PropertySimpleDTO propertyDTO = new PropertySimpleDTO();
+            propertyDTO.setId(get.getId());
+            propertyDTO.setTitle(get.getTitle());
+            propertyDTO.setPrice(get.getPrice());
+            propertyDTO.setDescription(get.getDescription());
+            propertyDTO.setDate(get.getDate());
+            propertyDTO.setMainImage(azureBlobStorage.getImageUrl(get.getMainImage()));
+            propertyDTO.setStatus(get.getStatus().toString());
+            propertyDTO.setOperation(get.getOperation().name());
+            propertyDTO.setCurrency(get.getCurrency().name());
+            propertyDTO.setNeighborhood(get.getNeighborhood().getName());
+            propertyDTO.setType(get.getType().getName());
+
+            return ResponseEntity.ok(propertyDTO);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

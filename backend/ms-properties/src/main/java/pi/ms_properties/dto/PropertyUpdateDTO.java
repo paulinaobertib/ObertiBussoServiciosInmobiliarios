@@ -17,7 +17,12 @@ public class PropertyUpdateDTO {
     private Float bathrooms;
     private Float bedrooms;
     private Float area;
+    private Float coveredArea;
     private Float price;
+    private Boolean showPrice;
+    private Float expenses;
+    private Boolean credit;
+    private Boolean financing;
     private String description;
     private String status;
     private String operation;

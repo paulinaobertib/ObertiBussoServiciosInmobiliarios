@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.domain.NeighborhoodType;
 import pi.ms_properties.dto.NeighborhoodDTO;
-import pi.ms_properties.dto.PropertyDTO;
-import pi.ms_properties.repository.NeighborhoodRepository;
+import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NeighborhoodService implements INeighborhoodService {
 
-    private final NeighborhoodRepository neighborhoodRepository;
+    private final INeighborhoodRepository neighborhoodRepository;
 
     private final ObjectMapper mapper;
 
