@@ -48,6 +48,9 @@ public class Property {
     @Column(name = "show_price", nullable = false)
     private Boolean showPrice;
 
+    @Column(name = "expenses", nullable = true)
+    private Float expenses;
+
     @Column(name = "description", nullable = false)
     private String description;
 

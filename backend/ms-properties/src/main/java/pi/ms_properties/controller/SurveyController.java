@@ -25,37 +25,37 @@ public class SurveyController {
         return surveyService.create(surveyDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<SurveyDTO> getSurveyById(@PathVariable Long id) {
         return surveyService.getById(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<SurveyDTO>> getAllSurveys() {
         return surveyService.getAll();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/averageScore")
     public ResponseEntity<Float> getAverageScore() {
         return surveyService.getAverageScore();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/score")
     public ResponseEntity<Map<Integer, Long>> getScoreDistribution() {
         return surveyService.getScoreDistribution();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/daily")
     public ResponseEntity<Map<String, Double>> getDailyAverageScore() {
         return surveyService.getDailyAverageScore();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/monthly")
     public ResponseEntity<Map<YearMonth, Double>> getMonthlyAverageScore() {
         return surveyService.getMonthlyAverageScore();
