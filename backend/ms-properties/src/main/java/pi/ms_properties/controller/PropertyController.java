@@ -37,7 +37,7 @@ public class PropertyController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
-    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestPart("data") PropertyUpdateDTO propertyUpdateDTO, @RequestPart("mainImage") MultipartFile mainImage) {
+    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestPart("data") PropertyUpdateDTO propertyUpdateDTO, @RequestPart(value = "mainImage", required = false) MultipartFile mainImage) {
         propertyUpdateDTO.setMainImageUpdated(mainImage);
         return propertyService.updateProperty(id, propertyUpdateDTO);
     }
@@ -62,11 +62,6 @@ public class PropertyController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<PropertyDTO> getById(@PathVariable Long id) {
         return propertyService.getById(id);
-    }
-
-    @GetMapping("/getByTitle")
-    public ResponseEntity<List<PropertyDTO>> getByTitle(@RequestParam String title) {
-        return propertyService.getByTitle(title);
     }
 
     @PreAuthorize("hasRole('admin')")

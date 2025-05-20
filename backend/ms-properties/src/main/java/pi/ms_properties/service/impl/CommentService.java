@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Comment;
-import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.CommentDTO;
 import pi.ms_properties.repository.ICommentRepository;
@@ -15,7 +14,6 @@ import pi.ms_properties.service.interf.ICommentService;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +38,6 @@ public class CommentService implements ICommentService {
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }

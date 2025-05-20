@@ -1,0 +1,167 @@
+package pi.ms_properties.controllerTest;
+
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import pi.ms_properties.controller.AmenityController;
+import pi.ms_properties.domain.Amenity;
+import pi.ms_properties.service.impl.AmenityService;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(AmenityController.class)
+@RequiredArgsConstructor
+class AmenityControllerTest {
+
+    private final MockMvc mockMvc;
+
+    @Mock
+    private AmenityService amenityService;
+
+    // casos de exito
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void createAmenity_shouldReturnOk() throws Exception {
+        when(amenityService.createAmenity("WiFi"))
+                .thenReturn(ResponseEntity.ok("Amenity created"));
+
+        mockMvc.perform(post("/amenity/create").param("name", "WiFi"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Amenity created"));
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void deleteAmenity_shouldReturnOk() throws Exception {
+        when(amenityService.deleteAmenity(1L))
+                .thenReturn(ResponseEntity.ok("Amenity deleted"));
+
+        mockMvc.perform(delete("/amenity/delete/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Amenity deleted"));
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void updateAmenity_shouldReturnOk() throws Exception {
+        Amenity amenity = new Amenity();
+        amenity.setId(1L);
+        amenity.setName("WiFi");
+
+        when(amenityService.updateAmenity(any(Amenity.class)))
+                .thenReturn(ResponseEntity.ok(amenity));
+
+        String body = "{\"id\":1, \"name\":\"WiFi\"}";
+
+        mockMvc.perform(put("/amenity/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("WiFi"));
+    }
+
+    @Test
+    void getAll_shouldReturnOk() throws Exception {
+        Amenity amenity1 = new Amenity();
+        amenity1.setId(1L);
+        amenity1.setName("WiFi");
+
+        Amenity amenity2 = new Amenity();
+        amenity2.setId(2L);
+        amenity2.setName("Garage");
+
+        List<Amenity> list = Arrays.asList(amenity1, amenity2);
+
+        when(amenityService.getAll())
+                .thenReturn(ResponseEntity.ok(list));
+
+        mockMvc.perform(get("/amenity/getAll"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void getById_shouldReturnOk() throws Exception {
+        Amenity amenity = new Amenity();
+        amenity.setId(1L);
+        amenity.setName("WiFi");
+
+        when(amenityService.getById(1L))
+                .thenReturn(ResponseEntity.ok(amenity));
+
+        mockMvc.perform(get("/amenity/getById/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("WiFi"));
+    }
+
+    // casos de error
+
+    @Test
+    void createAmenity_shouldReturnUnauthorized_whenNoUser() throws Exception {
+        mockMvc.perform(post("/amenity/create").param("name", "WiFi"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "user") // no admin
+    void deleteAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(delete("/amenity/delete/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void updateAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(put("/amenity/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\": 1, \"name\": \"WiFi\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void createAmenity_shouldReturnBadRequest_whenNameMissing() throws Exception {
+        mockMvc.perform(post("/amenity/create"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void updateAmenity_shouldReturnBadRequest_whenBodyInvalid() throws Exception {
+        mockMvc.perform(put("/amenity/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("")) // cuerpo vacío
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getById_shouldReturnServerError_whenServiceThrowsException() throws Exception {
+        when(amenityService.getById(999L))
+                .thenThrow(new RuntimeException("Amenity not found"));
+
+        mockMvc.perform(get("/amenity/getById/999"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void getAll_shouldReturnServerError_whenServiceFails() throws Exception {
+        when(amenityService.getAll()).thenThrow(new RuntimeException("DB error"));
+
+        mockMvc.perform(get("/amenity/getAll"))
+                .andExpect(status().isInternalServerError());
+    }
+}

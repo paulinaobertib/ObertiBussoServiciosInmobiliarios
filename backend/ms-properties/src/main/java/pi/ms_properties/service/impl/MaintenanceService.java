@@ -62,7 +62,6 @@ public class MaintenanceService implements IMaintenanceService {
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }

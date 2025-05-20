@@ -21,10 +21,6 @@ public interface IPropertyRepository extends JpaRepository<Property, Long>, JpaS
     @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images"})
     Optional<Property> findById(Long id);
 
-    @Query("select p from Property p where p.title = ?1")
-    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images"})
-    List<Property> findByTitle(String title);
-
     @Query("select p from Property p where p.status = ?1")
     @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images"})
     List<Property> findByStatus(Status status);

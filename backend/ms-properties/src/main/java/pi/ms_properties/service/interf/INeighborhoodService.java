@@ -1,8 +1,6 @@
 package pi.ms_properties.service.interf;
 
 import org.springframework.http.ResponseEntity;
-import pi.ms_properties.domain.Neighborhood;
-import pi.ms_properties.domain.Owner;
 import pi.ms_properties.dto.NeighborhoodDTO;
 
 import java.util.List;
