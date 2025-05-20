@@ -1,63 +1,69 @@
+// src/pages/PropertyDetailsPage.tsx
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Typography, Button } from '@mui/material';
 import { BasePage } from './BasePage';
 import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
-import { getPropertyById } from '../app/property/services/property.service';
-import { Property } from '../app/property/types/property';
+import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [property, setProperty] = useState<Property | null>(null);
+  const navigate = useNavigate();
+
+  // Contexto
+  const { currentProperty, loadProperty } = usePropertyCrud();
+
+  // Locales para loading y error
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleBack = () => navigate('/');
+
   useEffect(() => {
-    const fetchProperty = async () => {
+    const fetch = async () => {
       if (!id) {
         setError('ID de propiedad no proporcionado');
         setLoading(false);
         return;
       }
-
+      setLoading(true);
+      setError(null);
       try {
-        const data = await getPropertyById(Number(id));
-        setProperty(data);
-      } catch (err) {
+        await loadProperty(Number(id));
+      } catch {
         setError('Error al cargar la propiedad');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProperty();
-  }, [id]);
-
-  if (loading) {
-    return (
-      <BasePage maxWidth={false}>
-        <Box sx={{ p: 4 }}>
-          <Typography variant="h5">Cargando...</Typography>
-        </Box>
-      </BasePage >
-    );
-  }
-
-  if (error || !property) {
-    return (
-      <BasePage maxWidth={false}>
-        <Box sx={{ p: 4 }}>
-          <Typography variant="h5" color="error">
-            {error || 'Propiedad no encontrada'}
-          </Typography>
-        </Box>
-      </BasePage>
-    );
-  }
+    fetch();
+  }, [id, loadProperty]);
 
   return (
     <BasePage maxWidth={false}>
-      <PropertyDetails property={property} />
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+        <Button variant="contained" color="primary" onClick={handleBack}>
+          VOLVER
+        </Button>
+      </Box>
+
+      {loading && (
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h5">Cargando...</Typography>
+        </Box>
+      )}
+
+      {error && (
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h5" color="error">
+            {error}
+          </Typography>
+        </Box>
+      )}
+
+      {!loading && !error && currentProperty && (
+        <PropertyDetails property={currentProperty} />
+      )}
     </BasePage>
   );
 };

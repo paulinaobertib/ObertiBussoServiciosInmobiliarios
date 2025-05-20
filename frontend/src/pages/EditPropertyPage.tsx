@@ -49,7 +49,7 @@ export default function EditPropertyPage() {
   } = useCreateProperty();
 
   // contexto CRUD
-  const { selected, setSelected, resetSelected, typesList } = usePropertyCrud();
+  const { selected, setSelected, resetSelected, typesList, pickItem } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
 
@@ -61,6 +61,9 @@ export default function EditPropertyPage() {
 
   // 1) Cargar datos al montar
   useEffect(() => {
+    pickItem('category', null);
+    resetSelected();
+
     let mounted = true;
     (async () => {
       try {
