@@ -29,6 +29,6 @@ public class Maintenance {
 
     @ManyToOne
     @JoinColumn(name = "property_id", nullable = false)
-    @JsonIgnoreProperties({"owner", "neighborhood", "type", "amenities", "images", "inquiries"})
+    @JsonIgnoreProperties({"owner", "neighborhood", "type", "amenities", "images"})
     private Property property;
 }

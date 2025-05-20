@@ -16,19 +16,19 @@ public class NeighborhoodController {
 
     private final NeighborhoodService neighborhoodService;
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createNeighborhood(@RequestBody NeighborhoodDTO neighborhoodDTO) {
         return neighborhoodService.createNeighborhood(neighborhoodDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteNeighborhood(@PathVariable Long id) {
         return neighborhoodService.deleteNeighborhood(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
     public ResponseEntity<NeighborhoodDTO> updateNeighborhood(@PathVariable Long id, @RequestBody NeighborhoodDTO neighborhoodDTO) {
         return neighborhoodService.updateNeighborhood(id, neighborhoodDTO);

@@ -79,6 +79,7 @@ public class PropertyService implements IPropertyService {
         response.setCoveredArea(property.getCoveredArea());
         response.setPrice(property.getPrice());
         response.setShowPrice(property.getShowPrice());
+        response.setExpenses(property.getExpenses());
         response.setCredit(property.getCredit());
         response.setFinancing(property.getFinancing());
         response.setDescription(property.getDescription());

@@ -22,24 +22,27 @@ public class WebSecurityConfig {
         httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        // .requestMatchers(HttpMethod.GET,
-                        //         "/property/get",
-                        //         "/property/getById/**",
-                        //         "/property/getByTitle",
-                        //         "/property/search",
-                        //         "/property/text",
-                        //         "/property/getSimple/**",
-                        //         "/amenity/getAll",
-                        //         "/amenity/getById/**",
-                        //         "/amenity/getByName",
-                        //         "/image/getByProperty/**",
-                        //         "/neighborhood/getAll",
-                        //         "/neighborhood/getById/**",
-                        //         "/type/getAll",
-                        //         "/type/getById/**"
-                        // ).permitAll()
-                        // .requestMatchers(HttpMethod.POST, "/inquiries/createWithoutUser").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/property/get",
+                                "/property/getById/**",
+                                "/property/getByTitle",
+                                "/property/search",
+                                "/property/text",
+                                "/property/getSimple/**",
+                                "/amenity/getAll",
+                                "/amenity/getById/**",
+                                "/amenity/getByName",
+                                "/image/getByProperty/**",
+                                "/neighborhood/getAll",
+                                "/neighborhood/getById/**",
+                                "/type/getAll",
+                                "/type/getById/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/inquiries/createWithoutUser",
+                                "/survey/create")
+                        .permitAll()
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, authException) ->
