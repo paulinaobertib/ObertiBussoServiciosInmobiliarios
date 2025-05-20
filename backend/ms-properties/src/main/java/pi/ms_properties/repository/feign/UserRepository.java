@@ -15,6 +15,9 @@ public class UserRepository {
 
     public UserDTO findById(String id) {
         ResponseEntity<Optional<UserDTO>> userDTO = feignUserRepository.findById(id);
+        if (userDTO.getBody().isEmpty()) {
+            return null;
+        }
         return userDTO.getBody().get();
     }
 

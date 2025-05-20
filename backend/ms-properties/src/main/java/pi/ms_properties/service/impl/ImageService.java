@@ -3,7 +3,6 @@ package pi.ms_properties.service.impl;
 import com.azure.storage.blob.*;
 import com.azure.storage.blob.models.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ import pi.ms_properties.service.interf.IAzureBlobStorage;
 import pi.ms_properties.service.interf.IImageService;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,7 +56,7 @@ public class ImageService implements IImageService {
             storage.setSize(file.getSize());
             storage.setContentType(file.getContentType());
 
-            String blobPath = azureBlobStorage.create(storage);
+            azureBlobStorage.create(storage);
 
             if (!type) {
                 Image image = new Image();
@@ -107,16 +105,16 @@ public class ImageService implements IImageService {
     }
 
     @Override
-    public ResponseEntity<String> deleteImageByName(String url) {
+    public void deleteImageByName(String url) {
         Storage storage = new Storage();
         storage.setPath(url);
         try {
             azureBlobStorage.delete(storage);
-            return ResponseEntity.ok("Imagen eliminada correctamente");
+            ResponseEntity.ok("Imagen eliminada correctamente");
         } catch (BlobStorageException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen del blob storage");
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen del blob storage");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al eliminar la imagen");
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al eliminar la imagen");
         }
     }
 
@@ -139,7 +137,6 @@ public class ImageService implements IImageService {
 
             return ResponseEntity.ok(images);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }

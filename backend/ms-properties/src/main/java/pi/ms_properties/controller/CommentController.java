@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pi.ms_properties.domain.Comment;
 import pi.ms_properties.dto.CommentDTO;
 import pi.ms_properties.service.impl.CommentService;
 

@@ -1,7 +1,5 @@
 package pi.ms_properties.service.impl;
 
-import jakarta.mail.MessagingException;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -17,7 +15,6 @@ import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.IPropertyRepository;
-import pi.ms_properties.repository.ISurveyRepository;
 import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.interf.IInquiryService;
 
@@ -67,7 +64,7 @@ public class InquiryService implements IInquiryService {
         return inquiry;
     }
 
-    private ResponseEntity<String> saveAndSendEmail(InquirySaveDTO inquirySaveDTO, Inquiry inquiry) throws MessagingException {
+    private ResponseEntity<String> saveAndSendEmail(InquirySaveDTO inquirySaveDTO, Inquiry inquiry) {
         inquiryRepository.save(inquiry);
 
         List<Long> propertyIds = inquirySaveDTO.getPropertyIds();

@@ -11,7 +11,7 @@ public interface IImageService {
 
     ResponseEntity<String> deleteImage(Long id);
 
-    ResponseEntity<String> deleteImageByName(String url);
+    void deleteImageByName(String url);
 
     ResponseEntity<List<Image>> getAllByPropertyId(Long propertyId);
 }

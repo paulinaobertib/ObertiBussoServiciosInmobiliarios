@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.Image;
 import pi.ms_properties.service.impl.ImageService;
 
-import java.io.IOException;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class ImageController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/upload")
-    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("propertyId") Long propertyId) throws IOException {
+    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("propertyId") Long propertyId) {
         String url = imageService.uploadImageToProperty(file, propertyId, false);
         return ResponseEntity.status(HttpStatus.CREATED).body(url);
     }

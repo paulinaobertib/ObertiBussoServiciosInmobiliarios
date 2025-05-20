@@ -6,7 +6,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import pi.ms_properties.configuration.components.AppProperties;
 import pi.ms_properties.dto.EmailDTO;
@@ -30,7 +29,7 @@ public class EmailService implements IEmailService {
     }
 
     @Override
-    public void sendEmailInquiry(EmailDTO emailDTO) throws MessagingException {
+    public void sendEmailInquiry(EmailDTO emailDTO) {
         try {
             Context context = new Context();
             context.setVariable("firstName", emailDTO.getFirstName());
@@ -54,7 +53,7 @@ public class EmailService implements IEmailService {
     }
 
     @Override
-    public void sendEmailSurvey(String emailTo, Long inquiryId) throws MessagingException {
+    public void sendEmailSurvey(String emailTo, Long inquiryId) {
         try {
             Context context = new Context();
             String surveyLink = appProperties.getFrontendBaseUrl() + "/survey?inquiryId=" + inquiryId;

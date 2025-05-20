@@ -4,5 +4,5 @@ public enum NotificationType {
     PROPIEDADNUEVA,
     PROPIEDADINTERES,
     ALQUILER,
-    ACTUALIZACION;
+    ACTUALIZACION
 }
