@@ -2,9 +2,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import Routes from './Routes';
 import { BrowserRouter } from 'react-router-dom';
-import { PropertyCrudProvider } from './app/property/context/PropertyCrudContext';
+import { PropertyCrudProvider } from './app/property/context/PropertiesContext';
 import { AlertProvider } from './app/property/context/AlertContext';
-import { ComparisonProvider } from './app/property/context/ComparisonContext';
 import "./index.css"
 
 function App() {
@@ -18,11 +17,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <AlertProvider>
         <PropertyCrudProvider>
-          <ComparisonProvider>
-            <BrowserRouter>
-              <Routes />
-            </BrowserRouter>
-          </ComparisonProvider>
+          <BrowserRouter>
+            <Routes />
+          </BrowserRouter>
         </PropertyCrudProvider>
       </AlertProvider>
     </ThemeProvider>

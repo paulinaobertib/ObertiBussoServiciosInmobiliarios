@@ -1,6 +1,5 @@
 package pi.ms_properties.service.impl;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -8,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_properties.domain.Amenity;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.View;
-import pi.ms_properties.repository.PropertyRepository;
-import pi.ms_properties.repository.ViewRepository;
+import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.IViewRepository;
 import pi.ms_properties.service.interf.IViewService;
 
 import java.time.LocalDateTime;
@@ -23,9 +22,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ViewService implements IViewService {
 
-    private final ViewRepository viewRepository;
+    private final IViewRepository viewRepository;
 
-    private  final PropertyRepository propertyRepository;
+    private  final IPropertyRepository propertyRepository;
 
     @Override
     public void createView(Property property, LocalDateTime date) {

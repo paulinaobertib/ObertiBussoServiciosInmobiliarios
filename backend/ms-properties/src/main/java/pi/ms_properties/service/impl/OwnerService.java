@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Owner;
 import pi.ms_properties.domain.Property;
-import pi.ms_properties.repository.OwnerRepository;
-import pi.ms_properties.repository.PropertyRepository;
+import pi.ms_properties.repository.IOwnerRepository;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.interf.IOwnerService;
 import pi.ms_properties.specification.OwnerSpecification;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,9 +20,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OwnerService implements IOwnerService {
 
-    private final OwnerRepository ownerRepository;
+    private final IOwnerRepository ownerRepository;
 
-    private final PropertyRepository propertyRepository;
+    private final IPropertyRepository propertyRepository;
 
     @Override
     public ResponseEntity<String> createOwner(Owner owner) {

@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Amenity;
-import pi.ms_properties.repository.AmenityRepository;
+import pi.ms_properties.repository.IAmenityRepository;
 import pi.ms_properties.service.interf.IAmenityService;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AmenityService implements IAmenityService {
 
-    private final AmenityRepository amenityRepository;
+    private final IAmenityRepository amenityRepository;
 
     @Override
     public ResponseEntity<String> createAmenity(String name) {

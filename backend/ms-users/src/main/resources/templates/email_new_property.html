@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva propiedad disponible</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; background-color: #f5f5f5; padding: 20px;">
+
+<div style="max-width: 600px; margin: auto; background-color: #FFFFFF; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+
+    <div style="background-color: #EE671E; padding: 20px; text-align: center;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; margin-bottom: 10px;">
+        <h1 style="color: #FFFFFF; font-size: 22px; margin: 0;">¡Nueva propiedad publicada!</h1>
+    </div>
+
+    <div style="padding: 25px;">
+        <p style="font-size: 16px; line-height: 1.5;">
+            Te informamos que hemos agregado una nueva propiedad el día <strong th:text="${date}">[fecha]</strong>.
+        </p>
+
+        <div style="margin-top: 25px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+            <img th:src="${propertyImageUrl}" alt="Imagen propiedad" style="width: 100%; height: auto; display: block;">
+
+            <div style="padding: 20px;">
+                <h2 style="margin: 0 0 10px 0; font-size: 20px; color: #EE671E;" th:text="${propertyTitle}">[Título]</h2>
+                <p style="margin: 5px 0; color: #777;" th:text="${propertyLocation}">[Ubicación]</p>
+                <p style="margin: 5px 0; color: #555;">
+                    <strong><span th:text="${propertyOperation}">[Operación]</span></strong>
+                </p>
+                <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #333;">
+                    <span th:text="${propertyPrice}">[Precio]</span>
+                    <span th:text="${propertyCurrency}">[Moneda]</span>
+                </p>
+                <p style="margin-top: 15px; font-size: 14px; color: #555;" th:text="${propertyDescription}">[Descripción corta]</p>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <a th:href="${propertyUrl}" style="background-color: #EE671E; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; display: inline-block; font-weight: bold;">
+                        Ver más detalles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background-color: #FAB360; padding: 15px; text-align: center;">
+        <small style="color: #333;">Oberti Busso Servicios Inmobiliarios</small>
+    </div>
+</div>
+</body>
+</html>
+
+

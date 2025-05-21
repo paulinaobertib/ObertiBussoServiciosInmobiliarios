@@ -1,13 +1,16 @@
-const labels = {
+const dict: Record<string, string> = {
+  /* ─── catálogos ─── */
   amenity: "Servicio",
   owner: "Propietario",
-  type: "Tipo de Propiedad",
+  type: "Tipo",
   neighborhood: "Barrio",
-} as const;
 
-export type CategoryKey = keyof typeof labels;
+  /* ─── VISTAS nuevas ─── */
+  property: "Propiedad",
+  maintenance: "Mantenimiento",
+  comment: "Comentario",
+};
 
-export function translate(key: CategoryKey): string {
-  return labels[key];
+export function translate(key: string) {
+  return dict[key] ?? key;
 }
-

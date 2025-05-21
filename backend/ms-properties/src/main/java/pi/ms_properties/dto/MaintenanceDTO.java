@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class MaintenanceDTO {
+    private Long id;
     private LocalDateTime date;
     private String title;
     private String description;

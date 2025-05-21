@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Property, PropertyUpdate, PropertyCreate } from "../types/property";
+import { SearchParams } from "../types/searchParams";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -33,7 +34,6 @@ export const putProperty = async (data: PropertyUpdate) => {
     new Blob([JSON.stringify(plainFields)], { type: "application/json" })
   );
 
-  /* ③  Sólo adjuntar si es File (=> hay cambio) */
   if (mainImage instanceof File) {
     form.append("mainImage", mainImage);
   }
@@ -78,4 +78,49 @@ export const getPropertyById = async (id: number) => {
     console.error(`Error fetching property with ID ${id}:`, error);
     throw error;
   }
+};
+
+export const getPropertiesByFilters = async (
+  params: SearchParams
+): Promise<Property[]> => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else if (value !== undefined && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  try {
+    const { data } = await axios.get<Property[]>(
+      `${apiUrl}/properties/property/search?${searchParams.toString()}`
+    );
+    return data;
+  } catch (error) {
+    console.error("Error searching properties:", error);
+    throw error;
+  }
+};
+
+export const getPropertiesByText = async (value: string) => {
+  try {
+    const { data } = await axios.get<Property[]>(
+      `${apiUrl}/properties/property/text?`,
+      { params: { value } }
+    );
+    return data;
+  } catch (error) {
+    console.error("Error buscando por texto:", error);
+    throw error;
+  }
+};
+
+export const putPropertyStatus = async (id: number, status: string) => {
+  const response = await axios.put(
+    `${apiUrl}/properties/property/status/${id}`,
+    null,
+    { params: { status } }
+  );
+  return response.data;
 };
