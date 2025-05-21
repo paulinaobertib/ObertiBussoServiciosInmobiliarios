@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Type;
-import pi.ms_properties.repository.TypeRepository;
+import pi.ms_properties.repository.ITypeRepository;
 import pi.ms_properties.service.interf.ITypeService;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TypeService implements ITypeService {
 
-    public final TypeRepository typeRepository;
+    public final ITypeRepository typeRepository;
 
     @Override
     public ResponseEntity<String> createType(Type type) {

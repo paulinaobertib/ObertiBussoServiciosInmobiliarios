@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Maintenance;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.MaintenanceDTO;
-import pi.ms_properties.repository.MaintenanceRepository;
-import pi.ms_properties.repository.PropertyRepository;
+import pi.ms_properties.repository.IMaintenanceRepository;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.interf.IMaintenanceService;
 
 import java.util.List;
@@ -19,9 +19,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MaintenanceService implements IMaintenanceService {
 
-    private final MaintenanceRepository maintenanceRepository;
+    private final IMaintenanceRepository maintenanceRepository;
 
-    private final PropertyRepository propertyRepository;
+    private final IPropertyRepository propertyRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -106,6 +106,7 @@ public class MaintenanceService implements IMaintenanceService {
             List<Maintenance> maintenances = maintenanceRepository.findByPropertyId(id);
             List<MaintenanceDTO> maintenanceDTOS = maintenances.stream()
                     .map(maintenance -> new MaintenanceDTO(
+                            maintenance.getId(),
                             maintenance.getDate(),
                             maintenance.getTitle(),
                             maintenance.getDescription(),
