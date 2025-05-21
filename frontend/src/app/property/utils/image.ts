@@ -7,7 +7,6 @@ export function toImageUrl(
   if (!image) return "";
 
   if (typeof image === "string") {
-    // 🔍 Evitá duplicar la URL si ya viene completa
     if (image.startsWith("http://") || image.startsWith("https://")) {
       return image;
     }

@@ -1,4 +1,3 @@
-// PropertyRowItems.tsx
 import CommentIcon from '@mui/icons-material/Comment';
 import BuildIcon from '@mui/icons-material/Build';
 import { ROUTES } from '../../../lib';

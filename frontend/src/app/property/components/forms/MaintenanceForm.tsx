@@ -28,7 +28,7 @@ export default function MaintenanceForm({ action, item, onDone }: Props) {
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Maintenance>({
-        id: item?.id ?? 0,                 // ← ⬅️  ¡añadido!
+        id: item?.id ?? 0,               
         propertyId: item?.propertyId
             ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
         title: item?.title ?? '',
