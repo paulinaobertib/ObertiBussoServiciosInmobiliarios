@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TextField, Grid, Box, Button } from '@mui/material';
 import { Owner, OwnerCreate } from '../../types/owner';
 import { postOwner, putOwner, deleteOwner } from '../../services/owner.service';
-import { usePropertyCrud } from '../../context/PropertyCrudContext';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
 
 interface Props {

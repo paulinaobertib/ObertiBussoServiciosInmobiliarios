@@ -1,4 +1,3 @@
-// FloatingButtons.tsx
 import { Box, Fab, Tooltip, SpeedDial, SpeedDialAction } from '@mui/material';
 import Settings from '@mui/icons-material/Settings';
 import Add from '@mui/icons-material/AddCircleOutline';
@@ -31,7 +30,7 @@ export default function FloatingButtons({
     const size = 56;
     const gap = 2;
     const off = 16;
-    const disabledCompare = compareCount !== 2;
+    const disabledCompare = compareCount < 2 || compareCount > 3;
 
     return (
         <Box
@@ -49,7 +48,7 @@ export default function FloatingButtons({
             <Tooltip
                 title={
                     disabledCompare
-                        ? 'Selecciona exactamente 2 propiedades'
+                        ? 'Selecciona 2 o 3 propiedades'
                         : 'Comparar propiedades'
                 }
                 arrow
@@ -76,11 +75,9 @@ export default function FloatingButtons({
                 </Fab>
             </Tooltip>
 
-
-            {/* SpeedDial (convertido en bloque para que respete el layout) */}
             <Box
                 sx={{
-                    position: 'relative', // ⚠️ Importante para que no flote y se quede en layout
+                    position: 'relative',
                     width: size,
                     height: size,
                 }}

@@ -6,7 +6,6 @@ import org.springframework.data.jpa.domain.Specification;
 import pi.ms_properties.domain.Property;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class PropertySpecification {
 
@@ -43,6 +42,24 @@ public class PropertySpecification {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.lessThanOrEqualTo(root.get("area"), areaTo);
+        };
+    }
+
+    public static Specification<Property> hasCoveredAreaFrom(float areaFrom) {
+        return (root, query, criteriaBuilder) -> {
+            if (areaFrom == 0) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("coveredArea"), areaFrom);
+        };
+    }
+
+    public static Specification<Property> hasCoveredAreaTo(float areaTo) {
+        return (root, query, criteriaBuilder) -> {
+            if (areaTo == 0) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.lessThanOrEqualTo(root.get("coveredArea"), areaTo);
         };
     }
 
@@ -121,6 +138,24 @@ public class PropertySpecification {
             }
             Join<Object, Object> join = root.join("neighborhood");
             return criteriaBuilder.like(criteriaBuilder.lower(join.get("type")), "%" + neighborhoodType.toUpperCase() + "%");
+        };
+    }
+
+    public static Specification<Property> hasCredit(Boolean credit) {
+        return (root, query, criteriaBuilder) -> {
+            if (credit == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.equal(root.get("credit"), credit);
+        };
+    }
+
+    public static Specification<Property> hasFinancing(Boolean financing) {
+        return (root, query, criteriaBuilder) -> {
+            if (financing == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.equal(root.get("financing"), financing);
         };
     }
 

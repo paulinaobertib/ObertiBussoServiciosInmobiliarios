@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TextField, Grid, Box, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { Neighborhood, NeighborhoodCreate, NeighborhoodType } from '../../types/neighborhood';
 import { postNeighborhood, putNeighborhood, deleteNeighborhood } from '../../services/neighborhood.service';
-import { usePropertyCrud } from '../../context/PropertyCrudContext';
+import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
 
 interface Props {

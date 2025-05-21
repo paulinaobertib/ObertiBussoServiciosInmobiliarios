@@ -1,5 +1,6 @@
 package pi.ms_properties.dto;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +23,12 @@ public class PropertyDTO {
     private Float bathrooms;
     private Float bedrooms;
     private Float area;
+    private Float coveredArea;
     private Float price;
+    private Boolean showPrice;
+    private Float expenses;
+    private Boolean credit;
+    private Boolean financing;
     private String description;
     private LocalDateTime date;
     private String mainImage;

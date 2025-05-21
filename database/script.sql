@@ -14,7 +14,8 @@ CREATE TABLE Type (
     name VARCHAR(255) UNIQUE NOT NULL,
     has_rooms BOOLEAN NOT NULL,
     has_bathrooms BOOLEAN NOT NULL,
-    has_bedrooms BOOLEAN NOT NULL
+    has_bedrooms BOOLEAN NOT NULL,
+    has_covered_area BOOLEAN NOT NULL
 );
 
 CREATE TABLE Neighborhood (
@@ -36,7 +37,7 @@ CREATE TABLE Property (
     type_id BIGINT NOT NULL,
     status ENUM('DISPONIBLE', 'VENDIDA', 'ALQUILADA', 'RESERVADA') NOT NULL,
     operation ENUM('VENTA', 'ALQUILER') NOT NULL,
-	currency ENUM('USD', 'ARG') NOT NULL,
+	currency ENUM('USD', 'ARS') NOT NULL,
     title VARCHAR(255) NOT NULL,
     street VARCHAR(150) NOT NULL,
     number VARCHAR(10) NOT NULL,
@@ -44,13 +45,25 @@ CREATE TABLE Property (
     bathrooms INT NOT NULL,
     bedrooms INT NOT NULL,
     area DECIMAL(10,2) NOT NULL,
+    covered_area DECIMAL(10, 2) NOT NULL,
     price DECIMAL(15,2) NOT NULL,
+    show_price BOOLEAN NOT NULL,
+    expenses DECIMAL(15, 2),
     description VARCHAR(2000),
     date DATETIME NOT NULL,
     main_image VARCHAR(255),
+    credit BOOLEAN NOT NULL,
+    financing BOOLEAN NOT NULL,
     FOREIGN KEY (owner_id) REFERENCES Owner(id), 
     FOREIGN KEY (neighborhood_id) REFERENCES Neighborhood(id),
     FOREIGN KEY (type_id) REFERENCES Type(id)
+);
+
+CREATE TABLE Comment (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    description TEXT NOT NULL,
+	property_id BIGINT NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES Property(id)
 );
 
 CREATE TABLE Property_Amenity (
@@ -74,20 +87,9 @@ CREATE TABLE Image (
     FOREIGN KEY (property_id) REFERENCES Property(id)
 );
 
-CREATE TABLE User (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    username VARCHAR(100) UNIQUE NOT NULL,
-    role ENUM('admin', 'user', 'client') NOT NULL,
-    mail VARCHAR(150) UNIQUE NOT NULL,
-    phone VARCHAR(20),
-    password VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE Contract (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     property_id BIGINT NOT NULL,
     type VARCHAR(50) NOT NULL,
     start_date DATETIME NOT NULL,
@@ -97,7 +99,6 @@ CREATE TABLE Contract (
     status ENUM('activo', 'inactivo') NOT NULL,
     increase DECIMAL(5,2),
     increase_frequency VARCHAR(50),
-    FOREIGN KEY (user_id) REFERENCES User(id),
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
@@ -109,20 +110,25 @@ CREATE TABLE Payment (
     FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
+CREATE TABLE User_Notification_Preference (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(100) NOT NULL,
+    type ENUM('PROPIEDADNUEVA', 'PROPIEDADINTERES', 'ALQUILER', 'ACTUALIZACION') NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    UNIQUE(user_id, type)
+);
+
 CREATE TABLE Notification (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    description VARCHAR(1000) NOT NULL,
-    date DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE
+    user_id VARCHAR(30) NOT NULL,
+    type ENUM('PROPIEDADNUEVA', 'PROPIEDADINTERES', 'ALQUILER', 'ACTUALIZACION') NOT NULL,
+    date DATETIME NOT NULL
 );
 
 CREATE TABLE Favorite (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     property_id BIGINT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
@@ -137,31 +143,33 @@ CREATE TABLE Maintenance (
 
 CREATE TABLE Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
-    time TIME NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    comment VARCHAR(250),
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    status ENUM('ACEPTADO', 'RECHAZADO', 'ESPERA') NOT NULL,
+    comment VARCHAR(250)
 );
 
 CREATE TABLE News (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL,
-    image VARCHAR(255),
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    image VARCHAR(255)
 );
 
 CREATE TABLE Inquiry (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    user_id VARCHAR(30),
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User(id)
+    status ENUM('ABIERTA', 'CERRADA') NOT NULL,
+    date_close DATETIME,
+    phone VARCHAR(30) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    mail VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Property_Inquiry (
@@ -169,4 +177,12 @@ CREATE TABLE Property_Inquiry (
     property_id BIGINT NOT NULL,
     FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE,
     FOREIGN KEY (property_id) REFERENCES Property(id)
+);
+
+CREATE TABLE Survey (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    score TINYINT NOT NULL,
+    comment VARCHAR(255),
+	inquiry_id BIGINT NOT NULL,
+	FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE
 );

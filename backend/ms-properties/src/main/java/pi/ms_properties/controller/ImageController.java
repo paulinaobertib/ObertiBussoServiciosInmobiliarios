@@ -3,6 +3,7 @@ package pi.ms_properties.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.Image;
@@ -18,12 +19,14 @@ public class ImageController {
 
     private final ImageService imageService;
 
+    // @PreAutAuthorize("hasRole('admin')")
     @PostMapping("/upload")
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("propertyId") Long propertyId) throws IOException {
-          String url = imageService.uploadImageToProperty(file, propertyId, false);
+        String url = imageService.uploadImageToProperty(file, propertyId, false);
         return ResponseEntity.status(HttpStatus.CREATED).body(url);
     }
 
+    // @PreAutAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return imageService.deleteImage(id);

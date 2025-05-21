@@ -4,6 +4,7 @@ export interface Type {
   hasBedrooms: boolean;
   hasBathrooms: boolean;
   hasRooms: boolean;
+  hasCoveredArea: boolean;
 }
 export type TypeCreate = Omit<Type, "id">;
 

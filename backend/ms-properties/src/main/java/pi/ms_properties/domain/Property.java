@@ -39,8 +39,17 @@ public class Property {
     @Column(name = "area", nullable = false)
     private Float area;
 
+    @Column(name = "covered_area", nullable = false)
+    private Float coveredArea;
+
     @Column(name = "price", nullable = false)
     private Float price;
+
+    @Column(name = "show_price", nullable = false)
+    private Boolean showPrice;
+
+    @Column(name = "expenses", nullable = true)
+    private Float expenses;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -59,6 +68,12 @@ public class Property {
 
     @Enumerated(EnumType.STRING)
     private Currency currency;
+
+    @Column(name = "credit", nullable = false)
+    private Boolean credit;
+
+    @Column(name = "financing", nullable = false)
+    private Boolean financing;
 
     // relaciones
 
@@ -85,4 +100,12 @@ public class Property {
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Set<Image> images = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "property_inquiry",
+            joinColumns = @JoinColumn(name = "property_id"),
+            inverseJoinColumns = @JoinColumn(name = "inquiry_id")
+    )
+    private Set<Inquiry> inquiries = new HashSet<>();
 }
