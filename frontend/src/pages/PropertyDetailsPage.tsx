@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetails from '../app/property/components/propertyDetails/propertyDetails';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +17,9 @@ const PropertyDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleBack = () => navigate('/');
+  const handleBack = () => {
+    navigate('/');
+  };
 
   useEffect(() => {
     const fetch = async () => {

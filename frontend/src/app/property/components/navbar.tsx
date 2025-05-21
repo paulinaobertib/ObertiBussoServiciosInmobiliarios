@@ -15,6 +15,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
+import { usePropertyCrud } from '../context/PropertiesContext'; 
 
 const pages = [
   { label: 'CONTACTO', route: `/contact`},
@@ -28,10 +29,12 @@ export default function NavBar() {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const { clearComparison } = usePropertyCrud(); 
 
   const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(e.currentTarget);
   };
+
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
   };
@@ -44,6 +47,7 @@ export default function NavBar() {
           sx={{
             width: '90%',
             justifyContent: { xs: 'flex-start', sm: 'space-between' },
+            paddingLeft: { xs: 0, sm: 'auto' },
             height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
             minHeight: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
           }}
@@ -59,12 +63,21 @@ export default function NavBar() {
               objectFit: 'contain',
               cursor: 'pointer',
             }}
-            onClick={() => navigate(ROUTES.HOME_APP)}
-          />
+            onClick={() => {
+                clearComparison();
+                navigate(ROUTES.HOME_APP);}
+                }
+          />
 
-          {/* Mobile menu and logo */}
+          {/* Menu mobile y logo */}
           <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
-            <IconButton size="large" color="inherit" onClick={handleOpenNavMenu}>
+            <IconButton
+              size="large"
+              onClick={handleOpenNavMenu}
+              color="inherit"
+              aria-label="open menu"
+              sx={{ mr: 1 }}
+            >
               <MenuIcon />
             </IconButton>
 
@@ -73,8 +86,11 @@ export default function NavBar() {
               src={logo}
               alt="Logo"
               sx={{ height: 40, objectFit: 'contain', cursor: 'pointer' }}
-              onClick={() => navigate(ROUTES.HOME_APP)}
-            />
+              onClick={() => {
+                clearComparison();
+                navigate(ROUTES.HOME_APP);}
+                }
+            />
 
             <Menu
               anchorEl={anchorElNav}
@@ -95,7 +111,7 @@ export default function NavBar() {
                   {label}
                 </MenuItem>
               ))}
-            </Menu>
+            </Menu>
           </Box>
 
           {/* Desktop links */}
