@@ -72,5 +72,4 @@ public class EmailService implements IEmailService {
             throw new RuntimeException("Error al enviar el email de encuesta: " + e.getMessage(), e);
         }
     }
-
 }
