@@ -40,11 +40,6 @@ jobs:
       #     run: |
       #       mvn -B clean verify --settings settings.xml
 
-      #   - name: Log in to Docker Hub
-      #     run: |
-      #       echo "${{ secrets.DOCKERHUB_TOKEN }}" \
-      #         | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin docker.io
-
       - name: Log in to Docker Hub # Necesario para push
         uses: docker/login-action@v2
         with:
@@ -74,7 +69,7 @@ jobs:
       - name: Deploy to ACA (DEV)
         run: |
           az containerapp update \
-            --name $ACA_NAME_DEV \
+            --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
             --image ${{ needs.build-and-push.outputs.image }}
 
@@ -84,8 +79,10 @@ jobs:
                   --resource-group $RESOURCE_GROUP \
                   --query properties.configuration.ingress.fqdn -o tsv)
           URL="https://$FQDN$HEALTH_PATH"
+
           echo "🩺 Checking health at $URL"
           HTTP=$(curl --max-time $HEALTH_TIMEOUT -s -o /dev/null -w "%{http_code}" $URL)
+          
           echo "HTTP status: $HTTP"
           if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
             echo "✅ Eureka Server is healthy"
