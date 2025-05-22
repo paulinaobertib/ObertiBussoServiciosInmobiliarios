@@ -23,6 +23,7 @@ jobs:
   build-and-push:
     name: Build, Test & Push Container
     runs-on: ubuntu-latest
+    environment: development
     outputs:
       image: ${{ steps.build.outputs.image }}
     steps:
