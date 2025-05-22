@@ -44,7 +44,7 @@ jobs:
           mvn -B clean package
 
       - name: Publicar .jar como artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: eureka-server-jar
           path: backend/eureka-server/target/*.jar
@@ -63,7 +63,6 @@ jobs:
           IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
           docker build -t $IMAGE -f backend/eureka-server/Dockerfile backend/eureka-server
           docker push $IMAGE
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   deploy-dev:
     name: Deploy to Development
