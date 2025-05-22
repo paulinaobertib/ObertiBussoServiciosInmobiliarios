@@ -1,0 +1,88 @@
+name: CI/CD - Eureka Server
+
+# 1) Lo que dice esto es, se dispara al hacer push en estas branches O de forma manual desde Actions
+on:
+  push:
+    branches:
+      - feature/pipeline
+    #   - main
+  workflow_dispatch:
+
+# 2) Variables de entorno comunes que funcionan de manera global, de esta manera no me hace falta definirlas por environment
+env:
+  RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  DOCKERHUB_REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+  #   Cuando pase de usar DockerHub a ACR, lo que tengo que cambiar es a
+  # ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
+  IMAGE_NAME: eureka-server
+  ACA_NAME_DEV: aca-eureka-server
+  HEALTH_PATH: /actuator/health
+  HEALTH_TIMEOUT: 60s
+
+jobs:
+  build-and-push:
+    name: Build, Test & Push Container
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build.outputs.image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "24"
+
+    #   - name: Build and Test with Maven
+    #     run: |
+    #       mvn -B clean verify --settings settings.xml
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" \
+            | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin docker.io
+
+      - name: Build & Push Docker Image
+        id: build
+        run: |
+          TAG=${GITHUB_SHA::8}
+          IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
+          docker build -t $IMAGE -f Dockerfile .
+          docker push $IMAGE
+          echo "::set-output name=image::$IMAGE"
+
+  deploy-dev:
+    name: Deploy to Development
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to ACA (DEV)
+        run: |
+          az containerapp update \
+            --name $CONTAINERAPP_EUREKA_DEV \
+            --resource-group $RESOURCE_GROUP \
+            --image ${{ needs.build-and-push.outputs.image }}
+
+      - name: Health check
+        run: |
+          FQDN=$(az containerapp show --name $CONTAINERAPP_EUREKA_DEV \
+                  --resource-group $RESOURCE_GROUP \
+                  --query properties.configuration.ingress.fqdn -o tsv)
+          URL="https://$FQDN$HEALTH_PATH"
+          echo "🩺 Checking health at $URL"
+          HTTP=$(curl --max-time $HEALTH_TIMEOUT -s -o /dev/null -w "%{http_code}" $URL)
+          echo "HTTP status: $HTTP"
+          if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
+            echo "✅ Eureka Server is healthy"
+          else
+            echo "❌ Health check failed with status $HTTP"
+            exit 1
+          fi
