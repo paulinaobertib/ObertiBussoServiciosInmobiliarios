@@ -21,12 +21,12 @@ env:
 
 jobs:
   build-and-push:
-    name: Build, Test & Push Container
+    name: Build, Test, Publish Artifact & Push Container
     runs-on: ubuntu-latest
     environment: development
 
     outputs:
-      image: ${{ steps.build.outputs.image }}
+      tag: ${{ steps.build.outputs.tag }}
 
     steps:
       - name: Checkout code
@@ -38,11 +38,18 @@ jobs:
           distribution: "temurin"
           java-version: "24"
 
-      #   - name: Build and Test with Maven
-      #     run: |
-      #       mvn -B clean verify --settings settings.xml
+      - name: Build con Maven (genera .jar)
+        run: |
+          cd backend/eureka-server
+          mvn -B clean package
 
-      - name: Log in to Docker Hub # Necesario para push
+      - name: Publicar .jar como artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: eureka-server-jar
+          path: backend/eureka-server/target/*.jar
+
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           registry: docker.io
@@ -56,44 +63,30 @@ jobs:
           IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
           docker build -t $IMAGE -f backend/eureka-server/Dockerfile backend/eureka-server
           docker push $IMAGE
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
-
-      - name: Debug step output
-        run: echo "STEP build.outputs.image = '${{ steps.build.outputs.image }}'"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   deploy-dev:
     name: Deploy to Development
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: development
+
     steps:
       - name: Azure login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Deploy to ACA (DEV)
-      #   run: |
-      #     TAG=${GITHUB_SHA::8}
-      #     IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
-      #     echo "Using image: $IMAGE"
-
-      #     az containerapp update \
-      #       --name $ACA_EUREKASERVER_DEV \
-      #       --resource-group $RESOURCE_GROUP \
-      #       --image $IMAGE
-
-      - name: Debug OUTPUTS
-        run: |
-          echo "JOB build-and-push IMAGE  = '${{ needs.build-and-push.outputs.image }}'"
-          echo "STEP build outputs.image = '$(jq -r .steps.build.outputs.image < $GITHUB_STEP_SUMMARY)'"
-
       - name: Deploy to ACA (DEV)
         run: |
+          TAG=${{ needs.build-and-push.outputs.tag }}
+          IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
+          echo "Deploying image: $IMAGE"
+
           az containerapp update \
             --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
-            --image ${{ needs.build-and-push.outputs.image }}
+            --image $IMAGE
 
       - name: Health check
         run: |
