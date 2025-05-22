@@ -92,7 +92,7 @@ jobs:
           echo "🌐 FQDN: $FQDN"
 
           echo "⚙️ Configurando ingress con puerto 8761..."
-          az containerapp ingress set \
+          az containerapp ingress enable \
             --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
             --type external \
