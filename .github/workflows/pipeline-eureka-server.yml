@@ -24,8 +24,10 @@ jobs:
     name: Build, Test & Push Container
     runs-on: ubuntu-latest
     environment: development
+
     outputs:
       image: ${{ steps.build.outputs.image }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,7 +58,11 @@ jobs:
           docker push $IMAGE
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
+      - name: Debug step output
+        run: echo "STEP build.outputs.image = '${{ steps.build.outputs.image }}'"
+
   deploy-dev:
+    name: Deploy to Development
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: development
@@ -65,6 +71,11 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Debug OUTPUTS
+        run: |
+          echo "JOB build-and-push IMAGE  = '${{ needs.build-and-push.outputs.image }}'"
+          echo "STEP build outputs.image = '$(jq -r .steps.build.outputs.image < $GITHUB_STEP_SUMMARY)'"
 
       - name: Deploy to ACA (DEV)
         run: |
