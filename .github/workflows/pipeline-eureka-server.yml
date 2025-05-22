@@ -105,6 +105,12 @@ jobs:
             --image $IMAGE \
             --set-env-vars EUREKA_HOSTNAME=$FQDN
 
+          az containerapp show \
+            --name aca-eureka-server \
+            --resource-group tu-recurso \
+            --query "properties.template.containers[0].env[?name=='EUREKA_HOSTNAME']" \
+            -o table
+
       - name: Health check
         run: |
           FQDN=$(az containerapp show --name $ACA_EUREKASERVER_DEV \
