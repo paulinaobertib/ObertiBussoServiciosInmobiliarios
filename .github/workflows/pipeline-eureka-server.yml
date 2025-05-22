@@ -11,13 +11,13 @@ on:
 # 2) Variables de entorno comunes que funcionan de manera global, de esta manera no me hace falta definirlas por environment
 env:
   RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  DOCKERHUB_REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_REGISTRY: docker.io/tomicassanelli
   #   Cuando pase de usar DockerHub a ACR, lo que tengo que cambiar es a
   # ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
   IMAGE_NAME: eureka-server
   ACA_EUREKASERVER_DEV: aca-eureka-server
   HEALTH_PATH: /actuator/health
-  HEALTH_TIMEOUT: 60s
+  HEALTH_TIMEOUT: 60
 
 jobs:
   build-and-push:
@@ -72,16 +72,28 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # - name: Deploy to ACA (DEV)
+      #   run: |
+      #     TAG=${GITHUB_SHA::8}
+      #     IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
+      #     echo "Using image: $IMAGE"
+
+      #     az containerapp update \
+      #       --name $ACA_EUREKASERVER_DEV \
+      #       --resource-group $RESOURCE_GROUP \
+      #       --image $IMAGE
+
+      - name: Debug OUTPUTS
+        run: |
+          echo "JOB build-and-push IMAGE  = '${{ needs.build-and-push.outputs.image }}'"
+          echo "STEP build outputs.image = '$(jq -r .steps.build.outputs.image < $GITHUB_STEP_SUMMARY)'"
+
       - name: Deploy to ACA (DEV)
         run: |
-          TAG=${GITHUB_SHA::8}
-          IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
-          echo "Using image: $IMAGE"
-
           az containerapp update \
             --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
-            --image $IMAGE
+            --image ${{ needs.build-and-push.outputs.image }}
 
       - name: Health check
         run: |
@@ -89,10 +101,8 @@ jobs:
                   --resource-group $RESOURCE_GROUP \
                   --query properties.configuration.ingress.fqdn -o tsv)
           URL="https://$FQDN$HEALTH_PATH"
-
           echo "🩺 Checking health at $URL"
           HTTP=$(curl --max-time $HEALTH_TIMEOUT -s -o /dev/null -w "%{http_code}" $URL)
-          
           echo "HTTP status: $HTTP"
           if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
             echo "✅ Eureka Server is healthy"
