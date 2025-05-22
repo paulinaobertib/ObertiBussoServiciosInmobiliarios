@@ -95,6 +95,7 @@ jobs:
             --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
             --image $IMAGE \
+            --target-port 8761 \
             --set-env-vars EUREKA_HOSTNAME=$FQDN
 
       - name: Health check
