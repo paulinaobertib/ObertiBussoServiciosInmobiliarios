@@ -91,11 +91,18 @@ jobs:
 
           echo "🌐 FQDN: $FQDN"
 
+          echo "⚙️ Configurando ingress con puerto 8761..."
+          az containerapp ingress set \
+            --name $ACA_EUREKASERVER_DEV \
+            --resource-group $RESOURCE_GROUP \
+            --type external \
+            --target-port 8761
+
+          echo "🚀 Actualizando imagen y variable de entorno..."
           az containerapp update \
             --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
             --image $IMAGE \
-            --target-port 8761 \
             --set-env-vars EUREKA_HOSTNAME=$FQDN
 
       - name: Health check
