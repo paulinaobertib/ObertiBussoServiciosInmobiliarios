@@ -15,7 +15,7 @@ env:
   #   Cuando pase de usar DockerHub a ACR, lo que tengo que cambiar es a
   # ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
   IMAGE_NAME: eureka-server
-  ACA_NAME_DEV: aca-eureka-server
+  ACA_EUREKASERVER_DEV: aca-eureka-server
   HEALTH_PATH: /actuator/health
   HEALTH_TIMEOUT: 60s
 
@@ -65,16 +65,16 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to ACA (DEV)
+      - name: Deploy to ACA on Development
         run: |
           az containerapp update \
-            --name $CONTAINERAPP_EUREKA_DEV \
+            --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
             --image ${{ needs.build-and-push.outputs.image }}
 
       - name: Health check
         run: |
-          FQDN=$(az containerapp show --name $CONTAINERAPP_EUREKA_DEV \
+          FQDN=$(az containerapp show --name $ACA_EUREKASERVER_DEV \
                   --resource-group $RESOURCE_GROUP \
                   --query properties.configuration.ingress.fqdn -o tsv)
           URL="https://$FQDN$HEALTH_PATH"
