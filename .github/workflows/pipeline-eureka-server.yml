@@ -72,17 +72,16 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Debug OUTPUTS
-        run: |
-          echo "JOB build-and-push IMAGE  = '${{ needs.build-and-push.outputs.image }}'"
-          echo "STEP build outputs.image = '$(jq -r .steps.build.outputs.image < $GITHUB_STEP_SUMMARY)'"
-
       - name: Deploy to ACA (DEV)
         run: |
+          TAG=${GITHUB_SHA::8}
+          IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
+          echo "Using image: $IMAGE"
+
           az containerapp update \
             --name $ACA_EUREKASERVER_DEV \
             --resource-group $RESOURCE_GROUP \
-            --image ${{ needs.build-and-push.outputs.image }}
+            --image $IMAGE
 
       - name: Health check
         run: |
