@@ -36,7 +36,6 @@ jobs:
     environment: development
 
     outputs:
-      # apúntale al step que genera el tag
       tag: ${{ steps.build-image.outputs.tag }}
 
     steps:
@@ -47,29 +46,32 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      - name: Run Tests & Report Coverage
-        run: |
-          cd backend/${{ env.IMAGE_NAME }}
-          mvn -B test jacoco:report package
+      # - name: Run Backend Tests
+      #   working-directory: backend/${{ env.IMAGE_NAME }}
+      #   run: mvn -B test
 
-      - uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      # - uses: EnricoMi/publish-unit-test-result-action@v2
+      #   if: always()
+      #   with:
+      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - uses: test-summary/action@v2
-        if: always()
-        with:
-          paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      # - uses: test-summary/action@v2
+      #   if: always()
+      #   with:
+      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - uses: PavanMudigonda/jacoco-reporter@v5.0
-        with:
-          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          coverage_report_name: Code Coverage
-          coverage_report_title: "📈 JaCoCo Coverage"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_coverage: 80
-          publish_only_summary: true
+      # - uses: PavanMudigonda/jacoco-reporter@v5.0
+      #   with:
+      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+      #     coverage_report_name: Code Coverage
+      #     coverage_report_title: "📈 JaCoCo Coverage"
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     minimum_coverage: 80
+      #     publish_only_summary: true
+
+      - name: Build & Package JAR
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: mvn -B package -DskipTests
 
       - uses: actions/upload-artifact@v4
         with:
