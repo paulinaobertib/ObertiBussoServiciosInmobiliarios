@@ -96,7 +96,7 @@ jobs:
         id: build-image
         run: |
           TAG=${GITHUB_SHA::8}
-           IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
+          IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
           docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -171,7 +171,7 @@ jobs:
           inlineScript: |
             set -e
             TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG"
+            IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
