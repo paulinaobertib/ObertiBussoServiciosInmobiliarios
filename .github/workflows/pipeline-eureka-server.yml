@@ -17,7 +17,6 @@ env:
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  DOCKERHUB_REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
 
   # Health-check
   HEALTH_PATH: /actuator/health
@@ -89,7 +88,6 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.DOCKERHUB_REGISTRY }}
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
@@ -97,7 +95,7 @@ jobs:
         id: build-image
         run: |
           TAG=${GITHUB_SHA::8}
-          IMAGE="${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+           IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
           docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -126,7 +124,7 @@ jobs:
 
             # 1) Tag e imagen
             TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+            IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
 
             # 2) Crear si no existe
             if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME &>/dev/null; then
