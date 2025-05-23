@@ -193,6 +193,12 @@ jobs:
             # Lo subimos a GitHub Env para todo el job
             echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
 
+            FQDN=$(az containerapp show \
+              -g ${{ env.AZURE_RESOURCE_GROUP }} \
+              -n ${{ vars.ACA_PROPERTIES_DEV }} \
+              --query properties.configuration.ingress.fqdn -o tsv)
+            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
       - name: Update Image & Scale
         uses: azure/cli@v1
         with:
@@ -241,7 +247,7 @@ jobs:
 
       - name: Health Check with Retries
         run: |
-          URL="https://$EUREKA_HOSTNAME${HEALTH_PATH}"
+          URL="https://$PROPERTIES_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
@@ -336,8 +342,8 @@ jobs:
             echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
 
             FQDN=$(az containerapp show \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_DEV \
+              -g ${{ env.AZURE_RESOURCE_GROUP }} \
+              -n ${{ vars.ACA_PROPERTIES_PROD }} \
               --query properties.configuration.ingress.fqdn -o tsv)
             echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
