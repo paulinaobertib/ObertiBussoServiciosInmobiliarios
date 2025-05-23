@@ -4,9 +4,9 @@ spring:
 
   # configuracion de la base de datos
   datasource:
-    url: ${DATASOURSE_URL}
-    username: ${DATASOURSE_USERNAME}
-    password: ${DATASOURSE_PASSWORD}
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
