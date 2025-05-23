@@ -115,6 +115,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
 
       - name: Ensure Container App Exists
         uses: azure/cli@v1
@@ -145,7 +146,6 @@ jobs:
         with:
           azPSVersion: latest
           inlineScript: |
-            # Autenticación ya está hecha por azure/login@v1
             # Leemos el estado actual
             $status = (Get-AzContainerApp `
               -Name $Env:CONTAINERAPP_NAME `
