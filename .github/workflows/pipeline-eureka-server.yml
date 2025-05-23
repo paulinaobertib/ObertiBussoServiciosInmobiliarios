@@ -177,29 +177,22 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
 
+            FQDN=$(az containerapp show \
+            -g $AZURE_RESOURCE_GROUP \
+            -n $CONTAINERAPP_NAME_DEV \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+            echo "🔖 Eureka FQDN: $FQDN"
+            echo "EUREKA_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
               -n $CONTAINERAPP_NAME_DEV \
               --image $IMAGE \
-              --min-replicas 1
-
-      - name: Inject EUREKA_HOSTNAME
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            FQDN=$(az containerapp show \
-                     -g $AZURE_RESOURCE_GROUP \
-                     -n $CONTAINERAPP_NAME_DEV \
-                     --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🌐 Eureka FQDN: $FQDN"
-            echo "EUREKA_HOSTNAME=$FQDN" >> $GITHUB_ENV
-            az containerapp update \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $CONTAINERAPP_NAME_DEV \
-              --set-env-vars EUREKA_HOSTNAME=$FQDN
+              --min-replicas 1 \
+              --set-env-vars \
+                EUREKA_HOSTNAME=$FQDN \
 
       - name: Restart Active Revision
         uses: azure/cli@v1
@@ -241,7 +234,7 @@ jobs:
           exit 1
 
   # --------------------------------------------------------------
-  # JOB 2: Deploy to Production
+  # JOB 3: Deploy to Production
   # --------------------------------------------------------------
   deploy-prod:
     name: Deploy to Production
@@ -316,29 +309,22 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
 
+            FQDN=$(az containerapp show \
+            -g $AZURE_RESOURCE_GROUP \
+            -n $CONTAINERAPP_NAME_PROD \
+            --query properties.configuration.ingress.fqdn -o tsv)
+
+            echo "🔖 Eureka FQDN: $FQDN"
+            echo "EUREKA_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
               -n $CONTAINERAPP_NAME_PROD \
               --image $IMAGE \
-              --min-replicas 1
-
-      - name: Inject EUREKA_HOSTNAME
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            FQDN=$(az containerapp show \
-                     -g $AZURE_RESOURCE_GROUP \
-                     -n $CONTAINERAPP_NAME_PROD \
-                     --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🌐 Eureka FQDN: $FQDN"
-            echo "EUREKA_HOSTNAME=$FQDN" >> $GITHUB_ENV
-            az containerapp update \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $CONTAINERAPP_NAME_PROD \
-              --set-env-vars EUREKA_HOSTNAME=$FQDN
+              --min-replicas 1 \
+              --set-env-vars \
+                EUREKA_HOSTNAME=$FQDN \
 
       - name: Restart Active Revision
         uses: azure/cli@v1
