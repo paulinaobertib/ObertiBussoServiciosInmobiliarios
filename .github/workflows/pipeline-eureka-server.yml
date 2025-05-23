@@ -245,7 +245,7 @@ jobs:
   # --------------------------------------------------------------
   deploy-prod:
     name: Deploy to Production
-    needs: build-and-push
+    needs: [deploy-dev, build-and-push]
     runs-on: ubuntu-latest
     environment: production
 
