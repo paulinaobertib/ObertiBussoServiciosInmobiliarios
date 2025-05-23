@@ -1,4 +1,3 @@
-backend/ms-properties/**/application.yml
 backend/ms-gateway/**/application.yml
 backend/ms-users/**/application.yml
 .vscode/

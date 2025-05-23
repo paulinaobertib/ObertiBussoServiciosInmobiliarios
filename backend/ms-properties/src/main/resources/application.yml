@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: ms-properties
+
+  # configuracion de la base de datos
+  datasource:
+    url: ${DATASOURSE_URL}
+    username: ${DATASOURSE_USERNAME}
+    password: ${DATASOURSE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+  # configuracion del tamaño maximo de archivos
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 260MB
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SECURITY_OAUTH2_ISSUER_URI:}
+
+server:
+  port: ${SERVICE_PORT}
+
+# Momentaneo mientras se hacen los pipelines
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env
+  endpoint:
+    health:
+      show-details: always
+
+# configuracion de azure
+azure:
+  blob-storage:
+    connection-string: ${AZURE_BLOB_CONNECTION_STRING}
+    container-name: images
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME}
+    # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOSTNAME}:8761/eureka
+
+email:
+  username: desarrolloinmobertibusso@gmail.com
+  password: gian ovac cerv btzf
