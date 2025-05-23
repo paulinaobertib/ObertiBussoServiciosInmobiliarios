@@ -1,123 +1,152 @@
 name: CI/CD - Eureka Server
 
-# 1) Lo que dice esto es, se dispara al hacer push en estas branches O de forma manual desde Actions
 on:
   push:
-    branches:
-      - feature/pipeline
-    #   - main
+    branches: [feature/pipeline]
   workflow_dispatch:
 
-# 2) Variables de entorno comunes que funcionan de manera global, de esta manera no me hace falta definirlas por environment
+# ────────────────────────────────────────────────────────────────────────────────
+# 1) ENVIRONS GLOBALES (resueltos antes de ejecutar cualquier step)
+# ────────────────────────────────────────────────────────────────────────────────
 env:
-  RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  DOCKERHUB_REGISTRY: docker.io/tomicassanelli
-  #   Cuando pase de usar DockerHub a ACR, lo que tengo que cambiar es a
-  # ACR_LOGIN_SERVER: ${{ secrets.ACR_NAME }}.azurecr.io
-  IMAGE_NAME: eureka-server
-  ACA_EUREKASERVER_DEV: aca-eureka-server
+  # Azure
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  ACA_ENVIRONMENT: ${{ secrets.ACA_ENVIRONMENT }}
+
+  # Docker Hub
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # Health check
   HEALTH_PATH: /actuator/health
   HEALTH_TIMEOUT: 60
 
+  # Eureka-specific
+  IMAGE_NAME: eureka-server
+  CONTAINERAPP_NAME: aca-eureka-server
+  SERVICE_PORT: 8761
+
 jobs:
+  # ────────────────────────────────────────────────────────────────────────────────
+  # JOB 1: Build · Test · Coverage · Docker
+  # ────────────────────────────────────────────────────────────────────────────────
   build-and-push:
-    name: Build, Test, Publish Artifact & Push Container
     runs-on: ubuntu-latest
     environment: development
 
     outputs:
-      tag: ${{ steps.build.outputs.tag }}
+      # apúntale al step que genera el tag
+      tag: ${{ steps.build-image.outputs.tag }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 24
-        uses: actions/setup-java@v3
+      - uses: actions/setup-java@v3
         with:
-          distribution: "temurin"
+          distribution: temurin
           java-version: "24"
 
-      - name: Build con Maven (genera .jar)
+      - name: Run Tests & Report Coverage
         run: |
-          cd backend/eureka-server
-          mvn -B clean package
+          cd backend/${{ env.IMAGE_NAME }}
+          mvn -B test jacoco:report package
 
-      - name: Publicar .jar como artifact
-        uses: actions/upload-artifact@v4
+      - uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
         with:
-          name: eureka-server-jar
-          path: backend/eureka-server/target/*.jar
+          files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+      - uses: test-summary/action@v2
+        if: always()
+        with:
+          paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+
+      - uses: PavanMudigonda/jacoco-reporter@v5.0
+        with:
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "📈 JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IMAGE_NAME }}-jar
+          path: backend/${{ env.IMAGE_NAME }}/target/*.jar
+
+      - uses: docker/login-action@v2
         with:
           registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Build & Push Docker Image
-        id: build
+      - id: build-image
         run: |
           TAG=${GITHUB_SHA::8}
-          IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
-          docker build -t $IMAGE -f backend/eureka-server/Dockerfile backend/eureka-server
+          IMAGE="docker.io/${DOCKERHUB_USERNAME}/${IMAGE_NAME}:$TAG"
+          docker build -t $IMAGE -f backend/${IMAGE_NAME}/Dockerfile backend/${IMAGE_NAME}
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
+  # ────────────────────────────────────────────────────────────────────────────────
+  # JOB 2: Deploy to Development
+  # ────────────────────────────────────────────────────────────────────────────────
   deploy-dev:
-    name: Deploy to Development
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: development
 
     steps:
-      - name: Azure login
-        uses: azure/login@v1
+      - uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ env.AZURE_CREDENTIALS }}
 
-      - name: Deploy to ACA (DEV)
+      - name: Deploy Eureka Container App
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -e
+            # 1) Resuelvo aquí el output del job anterior
+            TAG=${{ needs.build-and-push.outputs.tag }}
+            IMAGE="docker.io/${DOCKERHUB_USERNAME}/${IMAGE_NAME}:$TAG"
+
+            # 2) Crear si no existe
+            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME &>/dev/null; then
+              az containerapp create \
+                -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME \
+                --environment $ACA_ENVIRONMENT \
+                --image $IMAGE \
+                --ingress external \
+                --target-port $SERVICE_PORT \
+                --registry-server docker.io \
+                --registry-username $DOCKERHUB_USERNAME \
+                --registry-password $DOCKERHUB_TOKEN \
+                --cpu 0.25 \
+                --memory 0.5Gi
+            fi
+
+            # 3) Forzar mínimo 1 réplica + actualizar imagen y env-var
+            FQDN=$(az containerapp show \
+                     -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME \
+                     --query properties.configuration.ingress.fqdn -o tsv)
+            echo "EUREKA_FQDN=$FQDN" >> $GITHUB_ENV
+            az containerapp update \
+              -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME \
+              --image $IMAGE \
+              --min-replicas 1 \
+              --set-env-vars EUREKA_HOSTNAME=$FQDN
+
+      - name: Health check con reintentos
         run: |
-          TAG=${{ needs.build-and-push.outputs.tag }}
-          IMAGE=$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG
-          echo "Deploying image: $IMAGE"
-
-          echo "🔍 Obteniendo FQDN..."
-          FQDN=$(az containerapp show \
-            --name $ACA_EUREKASERVER_DEV \
-            --resource-group $RESOURCE_GROUP \
-            --query properties.configuration.ingress.fqdn -o tsv)
-
-          echo "🌐 FQDN: $FQDN"
-
-          echo "⚙️ Configurando ingress con puerto 8761..."
-          az containerapp ingress enable \
-            --name $ACA_EUREKASERVER_DEV \
-            --resource-group $RESOURCE_GROUP \
-            --type external \
-            --target-port 8761
-
-          echo "🚀 Actualizando imagen y variable de entorno..."
-          az containerapp update \
-            --name $ACA_EUREKASERVER_DEV \
-            --resource-group $RESOURCE_GROUP \
-            --image $IMAGE \
-            --set-env-vars EUREKA_HOSTNAME=$FQDN
-
-      - name: Health check
-        run: |
-          FQDN=$(az containerapp show --name $ACA_EUREKASERVER_DEV \
-                  --resource-group $RESOURCE_GROUP \
-                  --query properties.configuration.ingress.fqdn -o tsv)
-
-          URL="https://$FQDN$HEALTH_PATH"
-          echo "🩺 Checking health at $URL"
-          HTTP=$(curl --max-time $HEALTH_TIMEOUT -s -o /dev/null -w "%{http_code}" $URL)
-          echo "HTTP status: $HTTP"
-          if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-            echo "✅ Eureka Server is healthy"
-          else
-            echo "❌ Health check failed with status $HTTP"
-            exit 1
-          fi
+          URL="https://$EUREKA_FQDN${{ env.HEALTH_PATH }}"
+          for i in $(seq 1 10); do
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
+              echo "✅ Healthy (status $HTTP)"; exit 0
+            fi
+            sleep 10
+          done
+          echo "❌ Health check failed"; exit 1
