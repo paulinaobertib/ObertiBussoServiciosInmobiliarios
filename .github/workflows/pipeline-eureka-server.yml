@@ -5,9 +5,9 @@ on:
     branches: [feature/pipeline]
   workflow_dispatch:
 
-# ────────────────────────────────────────────────────────────────────────────────
-# 1) ENVIRONS GLOBALES (resueltos antes de ejecutar cualquier step)
-# ────────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────
+# 1) VARIABLES GLOBALES
+# ──────────────────────────────────────────────────────────────
 env:
   # Azure
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
@@ -17,8 +17,9 @@ env:
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  DOCKERHUB_REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
 
-  # Health check
+  # Health-check
   HEALTH_PATH: /actuator/health
   HEALTH_TIMEOUT: 60
 
@@ -28,10 +29,11 @@ env:
   SERVICE_PORT: 8761
 
 jobs:
-  # ────────────────────────────────────────────────────────────────────────────────
-  # JOB 1: Build · Test · Coverage · Docker
-  # ────────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────
+  # JOB 1: Build · Test · Package · Docker
+  # ──────────────────────────────────────────────────────────────
   build-and-push:
+    name: Build · Test · Package · Push Docker
     runs-on: ubuntu-latest
     environment: development
 
@@ -39,9 +41,11 @@ jobs:
       tag: ${{ steps.build-image.outputs.tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - name: Set up JDK 24
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: "24"
@@ -50,17 +54,20 @@ jobs:
       #   working-directory: backend/${{ env.IMAGE_NAME }}
       #   run: mvn -B test
 
-      # - uses: EnricoMi/publish-unit-test-result-action@v2
+      # - name: Publish JUnit Results
+      #   uses: EnricoMi/publish-unit-test-result-action@v2
       #   if: always()
       #   with:
       #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - uses: test-summary/action@v2
+      # - name: Test Summary
+      #   uses: test-summary/action@v2
       #   if: always()
       #   with:
       #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - uses: PavanMudigonda/jacoco-reporter@v5.0
+      # - name: Publish JaCoCo Coverage
+      #   uses: PavanMudigonda/jacoco-reporter@v5.0
       #   with:
       #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
       #     coverage_report_name: Code Coverage
@@ -73,35 +80,40 @@ jobs:
         working-directory: backend/${{ env.IMAGE_NAME }}
         run: mvn -B package -DskipTests
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Backend JAR Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.IMAGE_NAME }}-jar
           path: backend/${{ env.IMAGE_NAME }}/target/*.jar
 
-      - uses: docker/login-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          registry: docker.io
+          registry: ${{ env.DOCKERHUB_REGISTRY }}
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - id: build-image
+      - name: Build & Push Docker Image
+        id: build-image
         run: |
           TAG=${GITHUB_SHA::8}
-          IMAGE="docker.io/${DOCKERHUB_USERNAME}/${IMAGE_NAME}:$TAG"
-          docker build -t $IMAGE -f backend/${IMAGE_NAME}/Dockerfile backend/${IMAGE_NAME}
+          IMAGE="${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+          docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-  # ────────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────
   # JOB 2: Deploy to Development
-  # ────────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────
   deploy-dev:
+    name: Deploy to Development
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: development
 
     steps:
-      - uses: azure/login@v1
+      - name: Azure Login
+        uses: azure/login@v1
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
 
@@ -111,14 +123,17 @@ jobs:
           azcliversion: latest
           inlineScript: |
             set -e
-            # 1) Resuelvo aquí el output del job anterior
+
+            # 1) Tag e imagen
             TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${DOCKERHUB_USERNAME}/${IMAGE_NAME}:$TAG"
+            IMAGE="${{ env.DOCKERHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
 
             # 2) Crear si no existe
             if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME &>/dev/null; then
+              echo "🚀 Creating $CONTAINERAPP_NAME..."
               az containerapp create \
-                -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME \
+                -g $AZURE_RESOURCE_GROUP \
+                -n $CONTAINERAPP_NAME \
                 --environment $ACA_ENVIRONMENT \
                 --image $IMAGE \
                 --ingress external \
@@ -128,27 +143,52 @@ jobs:
                 --registry-password $DOCKERHUB_TOKEN \
                 --cpu 0.25 \
                 --memory 0.5Gi
+            else
+              echo "✏️ $CONTAINERAPP_NAME already exists."
             fi
 
-            # 3) Forzar mínimo 1 réplica + actualizar imagen y env-var
+            # 3) Obtener FQDN y actualizar imagen/env-vars
             FQDN=$(az containerapp show \
-                     -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME \
-                     --query properties.configuration.ingress.fqdn -o tsv)
+                     -g $AZURE_RESOURCE_GROUP \
+                     -n $CONTAINERAPP_NAME \
+                     --query properties.configuration.ingress.fqdn \
+                     -o tsv)
+            echo "🌐 FQDN: $FQDN"
             echo "EUREKA_FQDN=$FQDN" >> $GITHUB_ENV
+
             az containerapp update \
-              -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME \
+              -g $AZURE_RESOURCE_GROUP \
+              -n $CONTAINERAPP_NAME \
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars EUREKA_HOSTNAME=$FQDN
 
-      - name: Health check con reintentos
+            # 4) Reiniciar la revisión activa (despierta la app si estaba a cero)
+            REVISION=$(az containerapp revision list \
+                         -g $AZURE_RESOURCE_GROUP \
+                         -n $CONTAINERAPP_NAME \
+                         --query "[?properties.activeRevisionsMode=='Single'].name | [0]" \
+                         -o tsv)
+            if [ -n "$REVISION" ]; then
+              echo "🔄 Restarting revision $REVISION to wake up the app..."
+              az containerapp revision restart \
+                -g $AZURE_RESOURCE_GROUP \
+                -n $CONTAINERAPP_NAME \
+                --revision $REVISION
+            fi
+
+      - name: Health Check with Retries
         run: |
           URL="https://$EUREKA_FQDN${{ env.HEALTH_PATH }}"
+          echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Healthy (status $HTTP)"; exit 0
+              echo "✅ Eureka Server is healthy (status $HTTP)"
+              exit 0
             fi
+            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
             sleep 10
           done
-          echo "❌ Health check failed"; exit 1
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
