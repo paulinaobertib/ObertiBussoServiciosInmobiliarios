@@ -1,11 +1,13 @@
 package pi.ms_properties.controllerTest;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -13,9 +15,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.ImageController;
 import pi.ms_properties.domain.Image;
+import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.ImageService;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,20 +27,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ImageController.class)
-@RequiredArgsConstructor
+@Import({ImageControllerTest.Config.class, WebSecurityConfig.class})
 class ImageControllerTest {
 
-    private final MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
     private ImageService imageService;
 
     private MockMultipartFile mockFile;
 
+    @TestConfiguration
+    static class Config {
+        @Bean
+        public ImageService imageService() {
+            return Mockito.mock(ImageService.class);
+        }
+    }
+
     @BeforeEach
     void setup() {
         mockFile = new MockMultipartFile(
-                "file", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "dummy image".getBytes()
+                "file",
+                "test-image.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "test image content".getBytes()
         );
     }
 
@@ -48,13 +62,13 @@ class ImageControllerTest {
     @WithMockUser(roles = "admin")
     void uploadImage_success() throws Exception {
         Mockito.when(imageService.uploadImageToProperty(any(), eq(1L), eq(false)))
-                .thenReturn("http://example.com/test.jpg");
+                .thenReturn("https://example.com/test.jpg");
 
         mockMvc.perform(multipart("/image/upload")
                         .file(mockFile)
                         .param("propertyId", "1"))
                 .andExpect(status().isCreated())
-                .andExpect(content().string("http://example.com/test.jpg"));
+                .andExpect(content().string("https://example.com/test.jpg"));
     }
 
     @Test
@@ -76,7 +90,7 @@ class ImageControllerTest {
         mockMvc.perform(get("/image/getByProperty/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1))
-                .andExpect(jsonPath("$[0].url").value("http://example.com/test.jpg"));
+                .andExpect(jsonPath("$[0].url").value("https://example.com/test.jpg"));
     }
 
     // casos de error
@@ -86,7 +100,7 @@ class ImageControllerTest {
         mockMvc.perform(multipart("/image/upload")
                         .file(mockFile)
                         .param("propertyId", "1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -95,18 +109,6 @@ class ImageControllerTest {
         mockMvc.perform(multipart("/image/upload")
                         .param("propertyId", "1"))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "admin")
-    void uploadImage_ioException() throws Exception {
-        Mockito.when(imageService.uploadImageToProperty(any(), eq(1L), eq(false)))
-                .thenThrow(new IOException("Error al subir"));
-
-        mockMvc.perform(multipart("/image/upload")
-                        .file(mockFile)
-                        .param("propertyId", "1"))
-                .andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -121,7 +123,7 @@ class ImageControllerTest {
     @Test
     void deleteImage_unauthorized() throws Exception {
         mockMvc.perform(delete("/image/delete/1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

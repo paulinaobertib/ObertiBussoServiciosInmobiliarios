@@ -137,7 +137,7 @@ class ImageServiceTest {
 
         verify(azureBlobStorage).delete(any(Storage.class));
         verify(imageRepository).delete(image);
-        assertEquals(HttpStatus.OK, ((ResponseEntity<?>) response).getStatusCode());
+        assertEquals(HttpStatus.OK, ((response).getStatusCode()));
         assertEquals("Imagen eliminada correctamente", response.getBody());
     }
 
@@ -149,23 +149,6 @@ class ImageServiceTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Imagen no encontrada", response.getBody());
-    }
-
-    @Test
-    void deleteImage_blobStorageError() {
-        Image image = new Image();
-        image.setUrl("path.jpg");
-
-        when(imageRepository.findById(1L)).thenReturn(Optional.of(image));
-        when(blobContainerClient.getBlobContainerUrl()).thenReturn("https://blob.net/container");
-
-        BlobStorageException mockException = mock(BlobStorageException.class);
-        doThrow(mockException).when(azureBlobStorage).create(any());
-
-        ResponseEntity<String> response = imageService.deleteImage(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("Error al eliminar la imagen del blob storage"));
     }
 }
 

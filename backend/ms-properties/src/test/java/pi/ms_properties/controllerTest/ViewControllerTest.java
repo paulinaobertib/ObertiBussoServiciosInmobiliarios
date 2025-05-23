@@ -1,14 +1,17 @@
 package pi.ms_properties.controllerTest;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.ViewController;
+import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.ViewService;
 
 import java.util.Map;
@@ -17,13 +20,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ViewController.class)
-@RequiredArgsConstructor
-public class ViewControllerTest {
+@Import({ViewControllerTest.Config.class, WebSecurityConfig.class})
+class ViewControllerTest {
 
-    private final MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
     private ViewService viewService;
+
+    @TestConfiguration
+    static class Config {
+        @Bean
+        public ViewService viewService() {
+            return Mockito.mock(ViewService.class);
+        }
+    }
+
+    // casos de exito
 
     @Test
     @WithMockUser(roles = "admin")
@@ -147,74 +161,72 @@ public class ViewControllerTest {
                 .andExpect(jsonPath("$.Pool").value(7));
     }
 
-    // ====================
-    // === CASOS DE ERROR (sin auth) ===
-    // ====================
+    // casos de error
 
     @Test
-    void testGetByPropertyWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByPropertyWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/property"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByPropertyTypeWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByPropertyTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/propertyType"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByDayWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByDayWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/day"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByMonthWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByMonthWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/month"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByNeighborhoodWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByNeighborhoodWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/neighborhood"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByNeighborhoodTypeWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByNeighborhoodTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/neighborhoodType"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByStatusWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByStatusWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/status"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByStatusAndTypeWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByStatusAndTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/statusAndType"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByOperationWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByOperationWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/operation"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByRoomsWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByRoomsWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/rooms"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testGetByAmenityWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testGetByAmenityWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(get("/view/amenity"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
 

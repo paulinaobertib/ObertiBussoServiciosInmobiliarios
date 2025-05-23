@@ -1,8 +1,8 @@
 package pi.ms_properties.specificationTest;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,28 +11,37 @@ import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.PropertySpecification;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@RequiredArgsConstructor
 class PropertySpecificationTest {
 
-    private final TestEntityManager entityManager;
+    @Autowired
+    private TestEntityManager entityManager;
 
-    private final IPropertyRepository propertyRepository;
+    @Autowired
+    private IPropertyRepository propertyRepository;
 
     private Property testProperty;
 
     @BeforeEach
     void setUp() {
-        Owner owner = new Owner(1L, "Juan", "Pérez", "juan@mail.com", "123456");
+        Owner owner = new Owner();
+        owner.setFirstName("Juan");
+        owner.setLastName("Pérez");
+        owner.setMail("juan@mail.com");
+        owner.setPhone("123456");
         entityManager.persist(owner);
 
-        Type type = new Type(1L, "Casa", true, true, true, true);
+        Type type = new Type();
+        type.setName("Casa");
+        type.setHasBathrooms(true);
+        type.setHasRooms(true);
+        type.setHasBedrooms(true);
+        type.setHasCoveredArea(true);
         entityManager.persist(type);
 
         Neighborhood neighborhood = new Neighborhood();
@@ -41,7 +50,8 @@ class PropertySpecificationTest {
         neighborhood.setType(NeighborhoodType.ABIERTO);
         entityManager.persist(neighborhood);
 
-        Amenity pileta = new Amenity(0L, "Pileta", new ArrayList<>());
+        Amenity pileta = new Amenity();
+        pileta.setName("Pileta");
         entityManager.persist(pileta);
 
         Property property = new Property();
@@ -70,6 +80,7 @@ class PropertySpecificationTest {
 
         testProperty = entityManager.persist(property);
     }
+
 
     // casos de exito
 

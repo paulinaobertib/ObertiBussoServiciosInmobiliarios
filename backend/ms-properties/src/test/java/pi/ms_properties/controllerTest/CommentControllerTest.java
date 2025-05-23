@@ -1,42 +1,52 @@
 package pi.ms_properties.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.CommentController;
 import pi.ms_properties.dto.CommentDTO;
+import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.CommentService;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommentController.class)
-@RequiredArgsConstructor
+@Import({CommentControllerTest.Config.class, WebSecurityConfig.class})
 class CommentControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
     private CommentService commentService;
 
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private CommentDTO commentDTO;
+
+    @TestConfiguration
+    static class Config {
+        @Bean
+        public CommentService commentService() {
+            return Mockito.mock(CommentService.class);
+        }
+    }
 
     @BeforeEach
     void setup() {
@@ -95,7 +105,7 @@ class CommentControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getByPropertyId_success() throws Exception {
-        List<CommentDTO> comments = Arrays.asList(commentDTO);
+        List<CommentDTO> comments = Collections.singletonList(commentDTO);
         Mockito.when(commentService.getByPropertyId(100L)).thenReturn(ResponseEntity.ok(comments));
 
         mockMvc.perform(get("/comment/property/100"))
@@ -110,24 +120,25 @@ class CommentControllerTest {
         mockMvc.perform(post("/comment/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(commentDTO)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void createComment_missingField() throws Exception {
-        commentDTO.setDescription(null); // campo requerido omitido
+        commentDTO.setDescription(null);
 
         mockMvc.perform(post("/comment/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(commentDTO)))
-                .andExpect(status().isOk()); // depende de tu lógica, cambiar si hay validaciones
+                .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void updateComment_serviceThrowsException() throws Exception {
-        doThrow(new RuntimeException("Error al actualizar")).when(commentService).update(any());
+        Mockito.when(commentService.update(any()))
+                .thenReturn(ResponseEntity.internalServerError().build());
 
         mockMvc.perform(put("/comment/update")
                         .contentType(MediaType.APPLICATION_JSON)

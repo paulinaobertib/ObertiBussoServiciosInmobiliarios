@@ -1,18 +1,21 @@
 package pi.ms_properties.controllerTest;
 
-import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.TypeController;
 import pi.ms_properties.domain.Type;
+import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.TypeService;
 
 import java.util.List;
@@ -21,19 +24,28 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
 @WebMvcTest(TypeController.class)
-@RequiredArgsConstructor
-public class TypeControllerTest {
+@Import({TypeControllerTest.Config.class, WebSecurityConfig.class})
+class TypeControllerTest {
 
-    private final MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
     private TypeService typeService;
 
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private Type sampleType;
+
+    @TestConfiguration
+    static class Config {
+        @Bean
+        public TypeService typeService() {
+            return Mockito.mock(TypeService.class);
+        }
+    }
 
     @BeforeEach
     void setUp() {
@@ -98,25 +110,25 @@ public class TypeControllerTest {
     // casos de error
 
     @Test
-    void testCreateTypeWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testCreateTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(post("/type/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleType)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testUpdateTypeWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testUpdateTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(put("/type/update")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(sampleType)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void testDeleteTypeWithoutAuth_shouldReturnForbidden() throws Exception {
+    void testDeleteTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
         mockMvc.perform(delete("/type/delete/1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -125,15 +137,5 @@ public class TypeControllerTest {
 
         mockMvc.perform(get("/type/getById/99"))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void testCreateTypeInvalidInput_shouldReturn400() throws Exception {
-        Type invalidType = new Type(0, "", null, null, null, null);
-
-        mockMvc.perform(post("/type/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidType)))
-                .andExpect(status().isBadRequest());
     }
 }

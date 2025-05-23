@@ -20,10 +20,7 @@ import pi.ms_properties.service.interf.IInquiryService;
 
 import java.time.*;
 import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -227,96 +224,126 @@ public class InquiryService implements IInquiryService {
 
     @Override
     public ResponseEntity<Map<String, Long>> getInquiryStatusDistribution() {
-        List<Object[]> data = inquiryRepository.countByStatus();
-        Map<String, Long> result = data.stream()
-                .collect(Collectors.toMap(
-                        row -> row[0].toString(),
-                        row -> (Long) row[1]
-                ));
-        return ResponseEntity.ok(result);
+        try {
+            List<Object[]> data = inquiryRepository.countByStatus();
+            Map<String, Long> result = data.stream()
+                    .collect(Collectors.toMap(
+                            row -> row[0].toString(),
+                            row -> (Long) row[1]
+                    ));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", -1L));
+        }
     }
 
     @Override
     public ResponseEntity<String> getAverageInquiryResponseTime() {
-        List<Duration> durations = inquiryRepository.getByStatus(InquiryStatus.CERRADA).stream()
-                .filter(i -> i.getDateClose() != null)
-                .map(i -> Duration.between(
-                        i.getDate().atZone(ZoneId.systemDefault()).toInstant(),
-                        i.getDateClose().atZone(ZoneId.systemDefault()).toInstant()
-                ))
-                .toList();
+        try {
+            List<Duration> durations = inquiryRepository.getByStatus(InquiryStatus.CERRADA).stream()
+                    .filter(i -> i.getDateClose() != null)
+                    .map(i -> Duration.between(
+                            i.getDate().atZone(ZoneId.systemDefault()).toInstant(),
+                            i.getDateClose().atZone(ZoneId.systemDefault()).toInstant()
+                    ))
+                    .toList();
 
-        if (durations.isEmpty()) return ResponseEntity.ok("0 segundos");
+            if (durations.isEmpty()) return ResponseEntity.ok("0 segundos");
 
-        long avgSeconds = durations.stream()
-                .mapToLong(Duration::getSeconds)
-                .sum() / durations.size();
+            long avgSeconds = durations.stream()
+                    .mapToLong(Duration::getSeconds)
+                    .sum() / durations.size();
 
-        Duration avgDuration = Duration.ofSeconds(avgSeconds);
-        long days = avgDuration.toDays();
-        long hours = avgDuration.toHours() % 24;
-        long minutes = avgDuration.toMinutes() % 60;
-        long seconds = avgDuration.getSeconds() % 60;
+            Duration avgDuration = Duration.ofSeconds(avgSeconds);
+            long days = avgDuration.toDays();
+            long hours = avgDuration.toHours() % 24;
+            long minutes = avgDuration.toMinutes() % 60;
+            long seconds = avgDuration.getSeconds() % 60;
 
-        String readable = String.format("%d días, %d horas, %d minutos, %d segundos", days, hours, minutes, seconds);
+            String readable = String.format("%d días, %d horas, %d minutos, %d segundos", days, hours, minutes, seconds);
 
-        return ResponseEntity.ok(readable);
+            return ResponseEntity.ok(readable);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al calcular tiempo promedio");
+        }
     }
 
     @Override
     public ResponseEntity<Map<String, Long>> getInquiriesGroupedByDayOfWeek() {
-        List<Inquiry> all = inquiryRepository.findAll();
+        try {
+            List<Inquiry> all = inquiryRepository.findAll();
 
-        Map<DayOfWeek, Long> grouped = all.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i.getDate().toLocalDate().getDayOfWeek(),
-                        Collectors.counting()
-                ));
+            Map<DayOfWeek, Long> grouped = all.stream()
+                    .collect(Collectors.groupingBy(
+                            i -> i.getDate().toLocalDate().getDayOfWeek(),
+                            Collectors.counting()
+                    ));
 
-        Map<String, Long> result = grouped.entrySet().stream()
-                .collect(Collectors.toMap(
-                        e -> e.getKey().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
-                        Map.Entry::getValue
-                ));
+            Map<String, Long> result = grouped.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> e.getKey().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                            Map.Entry::getValue
+                    ));
 
-        return ResponseEntity.ok(result);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", -1L));
+        }
     }
 
     @Override
     public ResponseEntity<Map<String, Long>> getInquiriesGroupedByTimeRange() {
-        List<Inquiry> all = inquiryRepository.findAll();
-        Map<String, Long> result = all.stream()
-                .collect(Collectors.groupingBy(
-                        i -> {
-                            int hour = i.getDate().getHour();
-                            if (hour < 12) return "Mañana";
-                            if (hour < 18) return "Tarde";
-                            return "Noche";
-                        },
-                        Collectors.counting()
-                ));
-        return ResponseEntity.ok(result);
+        try {
+            List<Inquiry> all = inquiryRepository.findAll();
+            Map<String, Long> result = all.stream()
+                    .collect(Collectors.groupingBy(
+                            i -> {
+                                int hour = i.getDate().getHour();
+                                if (hour < 12) return "Mañana";
+                                if (hour < 18) return "Tarde";
+                                return "Noche";
+                            },
+                            Collectors.counting()
+                    ));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", -1L));
+        }
     }
 
     @Override
     public ResponseEntity<Map<YearMonth, Long>> getInquiriesPerMonth() {
-        List<Object[]> data = inquiryRepository.countPerMonth();
-        Map<YearMonth, Long> result = data.stream()
-                .collect(Collectors.toMap(
-                        row -> YearMonth.parse((String) row[0]),
-                        row -> (Long) row[1]
-                ));
-        return ResponseEntity.ok(result);
+        try {
+            List<Object[]> data = inquiryRepository.countPerMonth();
+            Map<YearMonth, Long> result = data.stream()
+                    .collect(Collectors.toMap(
+                            row -> YearMonth.parse((String) row[0]),
+                            row -> (Long) row[1]
+                    ));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @Override
     public ResponseEntity<Map<String, Long>> getMostConsultedProperties() {
-        List<Object[]> data = inquiryRepository.countMostConsultedProperties();
-        Map<String, Long> result = data.stream()
-                .collect(Collectors.toMap(
-                        row -> (String) row[0],
-                        row -> ((Number) row[1]).longValue()
-                ));
-        return ResponseEntity.ok(result);
+        try {
+            List<Object[]> data = inquiryRepository.countMostConsultedProperties();
+            Map<String, Long> result = data.stream()
+                    .collect(Collectors.toMap(
+                            row -> (String) row[0],
+                            row -> ((Number) row[1]).longValue()
+                    ));
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", -1L));
+        }
     }
+
 }

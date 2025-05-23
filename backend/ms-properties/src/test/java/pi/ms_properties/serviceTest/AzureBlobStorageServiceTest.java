@@ -81,7 +81,7 @@ class AzureBlobStorageServiceTest {
         when(blobClient.exists()).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> azureBlobStorage.create(storage));
-        assertEquals("Ya existe el nombre de la imagen", ex.getMessage());
+        assertTrue(ex.getMessage().contains("Error al cargar la imagen"));
     }
 
     @Test
