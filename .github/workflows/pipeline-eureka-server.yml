@@ -147,11 +147,12 @@ jobs:
           azPSVersion: latest
           inlineScript: |
             # Leemos el estado actual
-            $status = (Get-AzContainerApp `
-              -Name $Env:CONTAINERAPP_NAME `
-              -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
-              -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID).Properties.runningStatus
-            Write-Host "Current runningStatus: $status"
+            $status = (az containerapp show `
+              --resource-group $Env:AZURE_RESOURCE_GROUP `
+              --name           $Env:CONTAINERAPP_NAME `
+              --query properties.runningStatus `
+              -o tsv).Trim()
+            Write-Host "Current runningStatus (via CLI): $status"
 
             if ($status -ne 'Running') {
               Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
@@ -202,16 +203,22 @@ jobs:
           azcliversion: latest
           inlineScript: |
             set -e
-            REV=$(az containerapp revision list \
-                    -g $AZURE_RESOURCE_GROUP \
-                    -n $CONTAINERAPP_NAME \
-                    --query "[?properties.activeRevisionsMode=='Single'].name | [0]" \
-                    -o tsv)
-            echo "🔄 Restarting revision $REV..."
-            az containerapp revision restart \
+            # Obtenemos la última revisión lista (lista y lista de nuevo)
+            REVISION=$(az containerapp show \
               -g $AZURE_RESOURCE_GROUP \
               -n $CONTAINERAPP_NAME \
-              --revision $REV
+              --query properties.latestReadyRevisionName \
+              -o tsv)
+
+            if [[ -n "$REVISION" ]]; then
+              echo "🔄 Restarting revision $REVISION..."
+              az containerapp revision restart \
+                -g $AZURE_RESOURCE_GROUP \
+                -n $CONTAINERAPP_NAME \
+                --revision "$REVISION"
+            else
+              echo "ℹ️ No ready revision found, skipping restart."
+            fi
 
       - name: Health Check with Retries
         run: |
