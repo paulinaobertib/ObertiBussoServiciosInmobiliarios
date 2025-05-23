@@ -1,9 +1,9 @@
 name: CI/CD - MS Properties
 
 on:
-  workflow_run:
-    workflows: [ "CI/CD - Eureka Server" ]
-    types: [ completed ]
+  push:
+    branches: [feature/pipeline]
+  workflow_dispatch:
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
