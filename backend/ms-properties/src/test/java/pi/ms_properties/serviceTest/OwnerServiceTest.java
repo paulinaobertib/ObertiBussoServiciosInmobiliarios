@@ -10,14 +10,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import pi.ms_properties.domain.Comment;
 import pi.ms_properties.domain.Owner;
 import pi.ms_properties.domain.Property;
-import pi.ms_properties.dto.CommentDTO;
-import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IOwnerRepository;
 import pi.ms_properties.repository.IPropertyRepository;
-import pi.ms_properties.service.impl.CommentService;
 import pi.ms_properties.service.impl.OwnerService;
 
 import java.util.List;

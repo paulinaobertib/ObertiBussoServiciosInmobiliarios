@@ -1,8 +1,8 @@
 package pi.ms_properties.specificationTest;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,12 +15,13 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
-@RequiredArgsConstructor
 class OwnerSpecificationTest {
 
-    private final TestEntityManager entityManager;
+    @Autowired
+    private TestEntityManager entityManager;
 
-    private final IOwnerRepository ownerRepository;
+    @Autowired
+    private IOwnerRepository ownerRepository;
 
     @BeforeEach
     void setUp() {
@@ -85,5 +86,4 @@ class OwnerSpecificationTest {
 
         assertThat(result).isEmpty();
     }
-
 }

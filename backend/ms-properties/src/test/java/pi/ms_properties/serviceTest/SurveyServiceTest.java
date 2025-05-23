@@ -18,6 +18,7 @@ import pi.ms_properties.service.impl.SurveyService;
 import pi.ms_properties.service.interf.IEmailService;
 
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -112,7 +113,9 @@ class SurveyServiceTest {
     @Test
     void getScoreDistribution_success() {
         Object[] entry = new Object[]{5, 10L};
-        when(surveyRepository.countScores()).thenReturn((List<Object[]>) List.of(entry));
+        List<Object[]> mockResult = new ArrayList<>();
+        mockResult.add(entry);
+        when(surveyRepository.countScores()).thenReturn(mockResult);
 
         ResponseEntity<Map<Integer, Long>> response = surveyService.getScoreDistribution();
 
@@ -124,7 +127,9 @@ class SurveyServiceTest {
     @Test
     void getDailyAverageScore_success() {
         Object[] entry = new Object[]{2, 4.0};
-        when(surveyRepository.findAverageScoreGroupedByDayOfWeek()).thenReturn((List<Object[]>) List.of(entry));
+        List<Object[]> mockResult = new ArrayList<>();
+        mockResult.add(entry);
+        when(surveyRepository.findAverageScoreGroupedByDayOfWeek()).thenReturn(mockResult);
 
         ResponseEntity<Map<String, Double>> response = surveyService.getDailyAverageScore();
 
@@ -136,7 +141,9 @@ class SurveyServiceTest {
     @Test
     void getMonthlyAverageScore_success() {
         Object[] entry = new Object[]{"2024-05", 4.2};
-        when(surveyRepository.findMonthlyAverageScore()).thenReturn((List<Object[]>) List.of(entry));
+        List<Object[]> mockResult = new ArrayList<>();
+        mockResult.add(entry);
+        when(surveyRepository.findMonthlyAverageScore()).thenReturn(mockResult);
 
         ResponseEntity<Map<YearMonth, Double>> response = surveyService.getMonthlyAverageScore();
 

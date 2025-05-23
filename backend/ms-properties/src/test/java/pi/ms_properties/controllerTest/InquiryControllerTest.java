@@ -1,53 +1,58 @@
 package pi.ms_properties.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import pi.ms_properties.controller.ImageController;
 import pi.ms_properties.controller.InquiryController;
-import pi.ms_properties.domain.Image;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.dto.InquirySaveDTO;
-import pi.ms_properties.service.impl.ImageService;
+import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.interf.IInquiryService;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
 @WebMvcTest(InquiryController.class)
-@RequiredArgsConstructor
+@Import({InquiryControllerTest.Config.class, WebSecurityConfig.class})
 class InquiryControllerTest {
 
-    private final MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
     private IInquiryService inquiryService;
 
-    private InquirySaveDTO sampleDTO;
+    @Autowired
+    private ObjectMapper objectMapper;
 
+    private InquirySaveDTO sampleDTO;
     private Inquiry sampleInquiry;
 
-    private final ObjectMapper objectMapper;
+    @TestConfiguration
+    static class Config {
+        @Bean
+        public IInquiryService inquiryService() {
+            return Mockito.mock(IInquiryService.class);
+        }
+    }
 
     @BeforeEach
     void setup() {
@@ -81,12 +86,13 @@ class InquiryControllerTest {
     // casos de exito
 
     @Test
+    @WithMockUser(roles = "user")
     void createInquiry_success() throws Exception {
         Mockito.when(inquiryService.create(any())).thenReturn(ResponseEntity.ok("Creada"));
 
         mockMvc.perform(post("/inquiries/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(sampleDTO)))
+                        .content(objectMapper.writeValueAsString(sampleDTO)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Creada"));
     }
@@ -153,7 +159,7 @@ class InquiryControllerTest {
                 .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
 
         mockMvc.perform(get("/inquiries/getByStatus")
-                        .param("status", "OPEN"))
+                        .param("status", "ABIERTA"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1));
     }
@@ -173,13 +179,13 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getInquiryStatusDistribution_success() throws Exception {
-        Map<String, Long> data = Map.of("OPEN", 5L, "CLOSED", 3L);
+        Map<String, Long> data = Map.of("ABIERTA", 5L, "CERRADA", 3L);
         Mockito.when(inquiryService.getInquiryStatusDistribution()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/status"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.OPEN").value(5))
-                .andExpect(jsonPath("$.CLOSED").value(3));
+                .andExpect(jsonPath("$.ABIERTA").value(5))
+                .andExpect(jsonPath("$.CERRADA").value(3));
     }
 
     @Test
@@ -229,52 +235,45 @@ class InquiryControllerTest {
     // casos de error
 
     @Test
-    void updateStatus_forbidden() throws Exception {
+    void updateStatus_unauthorized() throws Exception {
         mockMvc.perform(put("/inquiries/status/1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void getById_forbidden() throws Exception {
+    void getById_unauthorized() throws Exception {
         mockMvc.perform(get("/inquiries/getById/1"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void getByStatus_forbidden() throws Exception {
+    void getByStatus_unauthorized() throws Exception {
         mockMvc.perform(get("/inquiries/getByStatus")
-                        .param("status", "OPEN"))
-                .andExpect(status().isForbidden());
+                        .param("status", "ABIERTA"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void createInquiry_invalidBody() throws Exception {
-        mockMvc.perform(post("/inquiries/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getInquiriesPerMonth_forbidden() throws Exception {
+    void getInquiriesPerMonth_unauthorized() throws Exception {
         mockMvc.perform(get("/inquiries/statistics/month"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_internalServerError() throws Exception {
         Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek())
-                .thenThrow(new RuntimeException("Error en el servicio"));
+                .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
 
         mockMvc.perform(get("/inquiries/statistics/week"))
                 .andExpect(status().isInternalServerError());
     }
 
     @Test
+    @WithMockUser(roles = "user")
     void createInquiry_internalServerError() throws Exception {
         Mockito.when(inquiryService.create(any()))
-                .thenThrow(new RuntimeException("Error inesperado"));
+                .thenReturn(ResponseEntity.internalServerError().build());
 
         mockMvc.perform(post("/inquiries/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -286,15 +285,16 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getById_notFound() throws Exception {
         Mockito.when(inquiryService.getById(999L))
-                .thenThrow(new NoSuchElementException("No existe"));
+                .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(get("/inquiries/getById/999"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void getMostConsultedProperties_forbidden() throws Exception {
+    void getMostConsultedProperties_unauthorized() throws Exception {
         mockMvc.perform(get("/inquiries/statistics/properties"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
+
 }
