@@ -21,7 +21,6 @@ env:
 
   # Health-check
   HEALTH_PATH: /actuator/health
-  HEALTH_TIMEOUT: 60
 
   # Eureka-specific
   IMAGE_NAME: eureka-server
@@ -124,13 +123,16 @@ jobs:
           azcliversion: latest
           inlineScript: |
             set -e
+            TAG=${{ needs.build-and-push.outputs.tag }}
+            IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
+
             if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME_DEV &>/dev/null; then
               echo "🚀 Creating $CONTAINERAPP_NAME_DEV..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
                 -n $CONTAINERAPP_NAME_DEV \
                 --environment $ACA_ENVIRONMENT \
-                --image dummy \
+                --image $IMAGE \
                 --ingress external \
                 --target-port $SERVICE_PORT \
                 --registry-server docker.io \
@@ -174,6 +176,7 @@ jobs:
             set -e
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
+            
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
