@@ -25,7 +25,8 @@ env:
 
   # Eureka-specific
   IMAGE_NAME: eureka-server
-  CONTAINERAPP_NAME: aca-eureka-server
+  CONTAINERAPP_NAME_DEV: aca-eureka-server-dev
+  CONTAINERAPP_NAME_PROD: aca-eureka-server
   SERVICE_PORT: 8761
 
 jobs:
@@ -123,11 +124,11 @@ jobs:
           azcliversion: latest
           inlineScript: |
             set -e
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME &>/dev/null; then
-              echo "🚀 Creating $CONTAINERAPP_NAME..."
+            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME_DEV &>/dev/null; then
+              echo "🚀 Creating $CONTAINERAPP_NAME_DEV..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $CONTAINERAPP_NAME \
+                -n $CONTAINERAPP_NAME_DEV \
                 --environment $ACA_ENVIRONMENT \
                 --image dummy \
                 --ingress external \
@@ -138,7 +139,7 @@ jobs:
                 --cpu 0.25 \
                 --memory 0.5Gi
             else
-              echo "✏️ $CONTAINERAPP_NAME already exists."
+              echo "✏️ $CONTAINERAPP_NAME_DEV already exists."
             fi
 
       - name: Ensure Container App Is Running
@@ -149,7 +150,7 @@ jobs:
             # Leemos el estado actual
             $status = (az containerapp show `
               --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name           $Env:CONTAINERAPP_NAME `
+              --name           $Env:CONTAINERAPP_NAME_DEV `
               --query properties.runningStatus `
               -o tsv).Trim()
             Write-Host "Current runningStatus (via CLI): $status"
@@ -157,7 +158,7 @@ jobs:
             if ($status -ne 'Running') {
               Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
               Start-AzContainerApp `
-                -Name $Env:CONTAINERAPP_NAME `
+                -Name $Env:CONTAINERAPP_NAME_DEV `
                 -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
                 -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
             }
@@ -176,7 +177,7 @@ jobs:
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $CONTAINERAPP_NAME \
+              -n $CONTAINERAPP_NAME_DEV \
               --image $IMAGE \
               --min-replicas 1
 
@@ -188,13 +189,13 @@ jobs:
             set -e
             FQDN=$(az containerapp show \
                      -g $AZURE_RESOURCE_GROUP \
-                     -n $CONTAINERAPP_NAME \
+                     -n $CONTAINERAPP_NAME_DEV \
                      --query properties.configuration.ingress.fqdn -o tsv)
             echo "🌐 Eureka FQDN: $FQDN"
             echo "EUREKA_HOSTNAME=$FQDN" >> $GITHUB_ENV
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $CONTAINERAPP_NAME \
+              -n $CONTAINERAPP_NAME_DEV \
               --set-env-vars EUREKA_HOSTNAME=$FQDN
 
       - name: Restart Active Revision
@@ -206,7 +207,7 @@ jobs:
             # Obtenemos la última revisión lista (lista y lista de nuevo)
             REVISION=$(az containerapp show \
               -g $AZURE_RESOURCE_GROUP \
-              -n $CONTAINERAPP_NAME \
+              -n $CONTAINERAPP_NAME_DEV \
               --query properties.latestReadyRevisionName \
               -o tsv)
 
@@ -214,7 +215,7 @@ jobs:
               echo "🔄 Restarting revision $REVISION..."
               az containerapp revision restart \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $CONTAINERAPP_NAME \
+                -n $CONTAINERAPP_NAME_DEV \
                 --revision "$REVISION"
             else
               echo "ℹ️ No ready revision found, skipping restart."
