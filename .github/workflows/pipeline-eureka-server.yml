@@ -5,9 +5,9 @@ on:
     branches: [feature/pipeline]
   workflow_dispatch:
 
-# ──────────────────────────────────────────────────────────────
-# 1) VARIABLES GLOBALES
-# ──────────────────────────────────────────────────────────────
+# --------------------------------------------------------------
+# VARIABLES GLOBALES
+# --------------------------------------------------------------
 env:
   # Azure
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
@@ -28,11 +28,11 @@ env:
   SERVICE_PORT: 8761
 
 jobs:
-  # ──────────────────────────────────────────────────────────────
-  # JOB 1: Build · Test · Package · Docker
-  # ──────────────────────────────────────────────────────────────
+  # --------------------------------------------------------------
+  # JOB 1: Build · Test · Docker
+  # --------------------------------------------------------------
   build-and-push:
-    name: Build · Test · Package · Push Docker
+    name: Build · Test · Docker
     runs-on: ubuntu-latest
     environment: development
 
@@ -100,9 +100,9 @@ jobs:
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-  # ──────────────────────────────────────────────────────────────
+  # --------------------------------------------------------------
   # JOB 2: Deploy to Development
-  # ──────────────────────────────────────────────────────────────
+  # --------------------------------------------------------------
   deploy-dev:
     name: Deploy to Development
     needs: build-and-push
@@ -115,25 +115,19 @@ jobs:
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
 
-      - name: Deploy Eureka Container App
+      - name: Ensure Container App Exists
         uses: azure/cli@v1
         with:
           azcliversion: latest
           inlineScript: |
             set -e
-
-            # 1) Tag e imagen
-            TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
-
-            # 2) Crear si no existe
             if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $CONTAINERAPP_NAME &>/dev/null; then
               echo "🚀 Creating $CONTAINERAPP_NAME..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
                 -n $CONTAINERAPP_NAME \
                 --environment $ACA_ENVIRONMENT \
-                --image $IMAGE \
+                --image dummy \
                 --ingress external \
                 --target-port $SERVICE_PORT \
                 --registry-server docker.io \
@@ -145,39 +139,82 @@ jobs:
               echo "✏️ $CONTAINERAPP_NAME already exists."
             fi
 
-            # 3) Obtener FQDN y actualizar imagen/env-vars
-            FQDN=$(az containerapp show \
-                     -g $AZURE_RESOURCE_GROUP \
-                     -n $CONTAINERAPP_NAME \
-                     --query properties.configuration.ingress.fqdn \
-                     -o tsv)
-            echo "🌐 FQDN: $FQDN"
-            echo "EUREKA_FQDN=$FQDN" >> $GITHUB_ENV
+      - name: Ensure Container App Is Running
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: latest
+          inlineScript: |
+            # Autenticación ya está hecha por azure/login@v1
+            # Leemos el estado actual
+            $status = (Get-AzContainerApp `
+              -Name $Env:CONTAINERAPP_NAME `
+              -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
+              -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID).Properties.runningStatus
+            Write-Host "Current runningStatus: $status"
 
+            if ($status -ne 'Running') {
+              Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
+              Start-AzContainerApp `
+                -Name $Env:CONTAINERAPP_NAME `
+                -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
+                -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
+            }
+            else {
+              Write-Host "✅ Container App is already Running."
+            }
+
+      - name: Update Image & Scale
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -e
+            TAG=${{ needs.build-and-push.outputs.tag }}
+            IMAGE="$DOCKERHUB_REGISTRY/$IMAGE_NAME:$TAG"
+            echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
               -n $CONTAINERAPP_NAME \
               --image $IMAGE \
-              --min-replicas 1 \
+              --min-replicas 1
+
+      - name: Inject EUREKA_HOSTNAME
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -e
+            FQDN=$(az containerapp show \
+                     -g $AZURE_RESOURCE_GROUP \
+                     -n $CONTAINERAPP_NAME \
+                     --query properties.configuration.ingress.fqdn -o tsv)
+            echo "🌐 Eureka FQDN: $FQDN"
+            echo "EUREKA_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            az containerapp update \
+              -g $AZURE_RESOURCE_GROUP \
+              -n $CONTAINERAPP_NAME \
               --set-env-vars EUREKA_HOSTNAME=$FQDN
 
-            # 4) Reiniciar la revisión activa (despierta la app si estaba a cero)
-            REVISION=$(az containerapp revision list \
-                         -g $AZURE_RESOURCE_GROUP \
-                         -n $CONTAINERAPP_NAME \
-                         --query "[?properties.activeRevisionsMode=='Single'].name | [0]" \
-                         -o tsv)
-            if [ -n "$REVISION" ]; then
-              echo "🔄 Restarting revision $REVISION to wake up the app..."
-              az containerapp revision restart \
-                -g $AZURE_RESOURCE_GROUP \
-                -n $CONTAINERAPP_NAME \
-                --revision $REVISION
-            fi
+      - name: Restart Active Revision
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -e
+            REV=$(az containerapp revision list \
+                    -g $AZURE_RESOURCE_GROUP \
+                    -n $CONTAINERAPP_NAME \
+                    --query "[?properties.activeRevisionsMode=='Single'].name | [0]" \
+                    -o tsv)
+            echo "🔄 Restarting revision $REV..."
+            az containerapp revision restart \
+              -g $AZURE_RESOURCE_GROUP \
+              -n $CONTAINERAPP_NAME \
+              --revision $REV
 
       - name: Health Check with Retries
         run: |
-          URL="https://$EUREKA_FQDN${{ env.HEALTH_PATH }}"
+          URL="https://$EUREKA_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
