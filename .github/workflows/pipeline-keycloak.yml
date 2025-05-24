@@ -210,13 +210,8 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                KEYCLOAK_HOSTNAME=$FQDN
-                KEYCLOAK_ADMIN=secretref:keycloak-admin \
-                KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password \
-                KC_DB=mysql \
-                KC_DB_URL="${{ secrets.DATASOURCE_URL_DEV }}" \
-                KC_DB_USERNAME="${{ secrets.DATASOURCE_USERNAME }}" \
-                KC_DB_PASSWORD="${{ secrets.DATASOURCE_PASSWORD }}" \
+                KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
+                KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -360,12 +355,8 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                KEYCLOAK_ADMIN=secretref:keycloak-admin \
-                KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password \
-                KC_DB=mysql \
-                KC_DB_URL="${{ secrets.DATASOURCE_URL_PROD }}" \
-                KC_DB_USERNAME="${{ secrets.DATASOURCE_USERNAME }}" \
-                KC_DB_PASSWORD="${{ secrets.DATASOURCE_PASSWORD }}"
+                KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
+                KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
