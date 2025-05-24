@@ -201,7 +201,7 @@ jobs:
                 EUREKA_HOSTNAME=$FQDN \
                 SERVICE_PORT=$SERVICE_PORT \
 
-      - name: Restart Active Revision
+      - name: Restart to apply Changes
         uses: azure/cli@v1
         with:
           azcliversion: latest
@@ -338,7 +338,7 @@ jobs:
               --set-env-vars \
                 EUREKA_HOSTNAME=$FQDN \
 
-      - name: Restart Active Revision
+      - name: Restart to apply Changes
         uses: azure/cli@v1
         with:
           azcliversion: latest
