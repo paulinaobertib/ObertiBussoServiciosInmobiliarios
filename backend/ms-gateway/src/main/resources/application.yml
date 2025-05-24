@@ -9,7 +9,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://${EUREKA_HOSTNAME}:8761/eureka
+      defaultZone: https://${EUREKA_HOSTNAME}:8761/eureka/
 
 # Momentaneo mientras se hacen los pipelines
 management:
