@@ -45,48 +45,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Set up JDK 24
-      #   uses: actions/setup-java@v3
-      #   with:
-      #     distribution: temurin
-      #     java-version: "24"
-
-      # - name: Run Backend Tests
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B test
-
-      # - name: Publish JUnit Results
-      #   uses: EnricoMi/publish-unit-test-result-action@v2
-      #   if: always()
-      #   with:
-      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Test Summary
-      #   uses: test-summary/action@v2
-      #   if: always()
-      #   with:
-      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Publish JaCoCo Coverage
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "📈 JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: true
-
-      # - name: Build & Package JAR
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B package -DskipTests
-
-      # - name: Upload Backend JAR Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{ env.IMAGE_NAME }}-jar
-      #     path: backend/${{ env.IMAGE_NAME }}/target/*.jar
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -98,7 +56,7 @@ jobs:
         run: |
           TAG=${GITHUB_SHA::8}
           IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
-          docker build -t $IMAGE -f ${{ env.IMAGE_NAME }}/Dockerfile .
+          docker build --no-cache -t $IMAGE -f ${{ env.IMAGE_NAME }}/Dockerfile .
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -190,20 +148,7 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
-
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
-            az containerapp secret set \
-              --name $ACA_KEYCLOAK_DEV \
-              --resource-group $AZURE_RESOURCE_GROUP \
-              --secrets keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
-                        keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
-
-
-            FQDN=$(az containerapp show \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_KEYCLOAK_DEV \
-              --query properties.configuration.ingress.fqdn -o tsv)
-
             az containerapp update \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
@@ -343,12 +288,6 @@ jobs:
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
-            az containerapp secret set \
-              --name $ACA_KEYCLOAK_PROD \
-              --resource-group $AZURE_RESOURCE_GROUP \
-              --secrets keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
-                        keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
-
             az containerapp update \
               --name $ACA_KEYCLOAK_PROD \
               --resource-group $AZURE_RESOURCE_GROUP \
