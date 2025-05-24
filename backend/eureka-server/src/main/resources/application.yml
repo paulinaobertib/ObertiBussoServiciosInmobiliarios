@@ -28,4 +28,4 @@ eureka:
     healthcheck:
       enabled: true
     service-url:
-      defaultZone: http://${EUREKA_HOSTNAME}:8761/eureka
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka
