@@ -10,6 +10,16 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://${EUREKA_HOSTNAME}:8761/eureka
+      
+# Momentaneo mientras se hacen los pipelines
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env
+  endpoint:
+    health:
+      show-details: always
 
 spring:
   application:
