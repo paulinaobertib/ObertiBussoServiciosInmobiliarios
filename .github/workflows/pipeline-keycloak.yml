@@ -193,7 +193,7 @@ jobs:
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_GATEWAY_DEV \
+              -n $ACA_KEYCLOAK_DEV \
               --image $IMAGE \
               --min-replicas 1 \
 
