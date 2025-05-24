@@ -1,10 +1,11 @@
 name: CI/CD - MS Properties
 
 on:
-  # push:
-  #   branches: [feature/pipeline]
   workflow_dispatch:
-
+  push:
+    branches:
+      - feature/pipeline
+      
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
 # --------------------------------------------------------------
