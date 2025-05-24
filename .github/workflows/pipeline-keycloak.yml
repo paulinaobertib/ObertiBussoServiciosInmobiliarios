@@ -195,16 +195,18 @@ jobs:
             az containerapp secret set \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
-              --secrets keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
-                        keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+              --secrets 
+                keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
+                keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
 
             az containerapp update \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
               --image $IMAGE \
-              --min-replicas 1
-              --set-env-vars KEYCLOAK_ADMIN=secretref:keycloak-admin \
-                             KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password
+              --min-replicas 1 \
+              --set-env-vars \
+                KEYCLOAK_ADMIN=secretref:keycloak-admin \
+                KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -346,9 +348,10 @@ jobs:
               --name $ACA_KEYCLOAK_PROD \
               --resource-group $AZURE_RESOURCE_GROUP \
               --image $IMAGE \
-              --min-replicas 1
-              --set-env-vars KEYCLOAK_ADMIN=secretref:keycloak-admin \
-                             KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password
+              --min-replicas 1 \
+              --set-env-vars 
+                KEYCLOAK_ADMIN=secretref:keycloak-admin \
+                KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
