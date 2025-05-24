@@ -195,10 +195,9 @@ jobs:
             az containerapp secret set \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
-              --secrets 
-                keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
-                keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
-
+              --secrets keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
+                        keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+                        
             az containerapp update \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
