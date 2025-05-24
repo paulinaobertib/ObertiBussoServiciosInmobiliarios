@@ -244,7 +244,7 @@ jobs:
       - name: Health Check Keycloak
         run: |
           URL="https://$KEYCLOAK_HOSTNAME/auth/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
-
+          echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
@@ -336,6 +336,8 @@ jobs:
             echo "🔖 Keycloak FQDN: $FQDN"
             echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
+            echo $KEYCLOAK_HOSTNAME
+
       - name: Update Image & Scale
         uses: azure/cli@v1
         with:
@@ -390,11 +392,8 @@ jobs:
 
       - name: Health Check Keycloak
         run: |
-          FQDN=$(az containerapp show \
-            -g $AZURE_RESOURCE_GROUP \
-            -n $ACA_KEYCLOAK_DEV \
-            --query properties.configuration.ingress.fqdn -o tsv)
           URL="https://$KEYCLOAK_HOSTNAME/auth/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
+          echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
