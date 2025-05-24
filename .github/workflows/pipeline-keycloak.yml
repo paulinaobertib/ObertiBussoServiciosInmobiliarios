@@ -190,16 +190,23 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
+
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
+            az containerapp secret set \
+              --name $ACA_KEYCLOAK_DEV \
+              --resource-group $AZURE_RESOURCE_GROUP \
+              --secrets \
+                KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
+                KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+
             az containerapp update \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_KEYCLOAK_DEV \
+              --name $ACA_KEYCLOAK_DEV \
+              --resource-group $AZURE_RESOURCE_GROUP \
               --image $IMAGE \
-              --min-replicas 1 \
-              --secrets KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
-                        KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
-              --set-env-vars KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
-                             KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
+              --min-replicas 1
+              --set-env-vars \
+                KEYCLOAK_ADMIN=secretref:KEYCLOAK_ADMIN \
+                KEYCLOAK_ADMIN_PASSWORD=secretref:KEYCLOAK_ADMIN_PASSWORD
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
