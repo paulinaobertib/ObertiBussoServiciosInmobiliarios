@@ -181,19 +181,19 @@ jobs:
             # Lo subimos a GitHub Env para todo el job
             echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
 
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            # FQDN=$(az containerapp show \
+            #   -g ${{ env.AZURE_RESOURCE_GROUP }} \
+            #   -n ${{ vars.ACA_PROPERTIES_DEV }} \
+            #   --query properties.configuration.ingress.fqdn -o tsv)
+            # echo "🔖 Properties FQDN: $FQDN"
+            # echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_USERS_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Users FQDN: $FQDN"
-            echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            # FQDN=$(az containerapp show \
+            #   -g ${{ env.AZURE_RESOURCE_GROUP }} \
+            #   -n ${{ vars.ACA_USERS_DEV }} \
+            #   --query properties.configuration.ingress.fqdn -o tsv)
+            # echo "🔖 Users FQDN: $FQDN"
+            # echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
@@ -227,7 +227,7 @@ jobs:
               --set-env-vars \
                 EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
                 KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
-                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME
+                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME \
                 SERVICE_PORT=$SERVICE_PORT \
                 KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} \
                 KEYCLOAK_CLIENT_SECRET=${{ env.KEYCLOAK_CLIENT_SECRET }} \
@@ -397,7 +397,7 @@ jobs:
               --set-env-vars \
                 EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
                 KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
-                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME
+                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME \
                 SERVICE_PORT=$SERVICE_PORT \
                 KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} \
                 KEYCLOAK_CLIENT_SECRET=${{ env.KEYCLOAK_CLIENT_SECRET }} \
