@@ -1,4 +1,3 @@
-# Etapa de build para health/metrics (tal como ya la tienes)
 FROM quay.io/keycloak/keycloak:latest AS builder
 
 ENV KC_HEALTH_ENABLED=true
@@ -33,4 +32,4 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY realm/realm-obertibussoserviciosinmobiliarios.json /opt/keycloak/data/import/realm.json
 
 # Arrancamos en modo dev e importamos automáticamente el realm
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--import-realm", "--hostname-strict=true", "--hostname", "$KEYCLOAK_HOSTNAME" ]
+ENTRYPOINT /bin/sh -c "/opt/keycloak/bin/kc.sh start --import-realm --hostname-strict=true --hostname $KEYCLOAK_HOSTNAME"
