@@ -25,7 +25,7 @@ FROM quay.io/keycloak/keycloak:latest
 ENV KC_HEALTH_ENABLED=true \
     KC_METRICS_ENABLED=true \
     KC_DB=mysql
-    
+
 # Copiamos todo lo construido
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
@@ -33,4 +33,4 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY ../realm/realm-obertibussoserviciosinmobiliarios.json /opt/keycloak/data/import/realm.json
 
 # Arrancamos en modo dev e importamos automáticamente el realm
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--import-realm"]
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--import-realm", "--hostname-strict=true", "--hostname", "$KEYCLOAK_HOSTNAME" ]
