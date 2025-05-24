@@ -185,7 +185,7 @@ jobs:
 
       - name: Health Check Keycloak
         run: |
-          URL="https://$KEYCLOAK_HOSTNAME/${{ secrets.KEYCLOAK_ADMIN }}"
+          URL="https://$KEYCLOAK_HOSTNAME/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
@@ -326,7 +326,7 @@ jobs:
 
       - name: Health Check Keycloak
         run: |
-          URL="https://$KEYCLOAK_HOSTNAME/${{ secrets.KEYCLOAK_ADMIN }}"
+          URL="https://$KEYCLOAK_HOSTNAME/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
