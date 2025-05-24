@@ -98,7 +98,7 @@ jobs:
         run: |
           TAG=${GITHUB_SHA::8}
           IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
-          docker build -t $IMAGE -f ./${{ env.IMAGE_NAME }}/Dockerfile ./${{ env.IMAGE_NAME }}
+          docker build -t $IMAGE -f ${{ env.IMAGE_NAME }}/Dockerfile
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -340,7 +340,7 @@ jobs:
               -n $ACA_KEYCLOAK_PROD \
               --image $IMAGE \
               --min-replicas 1 \
-              
+
               --secrets \
                 KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
                 KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
