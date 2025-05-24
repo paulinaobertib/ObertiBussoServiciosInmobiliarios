@@ -1,8 +1,8 @@
 name: CI/CD - MS Properties
 
 on:
-  # push:
-    # branches: [feature/pipeline]
+  push:
+    branches: [feature/pipeline]
   workflow_dispatch:
 
 # --------------------------------------------------------------
@@ -180,7 +180,7 @@ jobs:
               Write-Host "✅ Container App is already Running."
             }
 
-      - name: Fetch Eureka FQDN
+      - name: Fetch FQDNs
         uses: azure/cli@v1
         with:
           azcliversion: latest
@@ -216,7 +216,7 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
+                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
                 SERVICE_PORT=$SERVICE_PORT \
                 DATASOURCE_URL=$DATASOURCE_URL_DEV \
                 DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
