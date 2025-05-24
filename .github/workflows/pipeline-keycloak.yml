@@ -150,9 +150,6 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
-            FQDN=$(az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_KEYCLOAK_DEV --query properties.configuration.ingress.fqdn -o tsv)
-
-
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               --name $ACA_KEYCLOAK_DEV \
@@ -160,7 +157,7 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                KC_HOSTNAME=$FQDN
+                KC_HOSTNAME=$KEYCLOAK_HOSTNAME
                 KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
                 KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
 
@@ -284,8 +281,6 @@ jobs:
             echo "🔖 Keycloak FQDN: $FQDN"
             echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
-            echo $KEYCLOAK_HOSTNAME
-
       - name: Update Image & Scale
         uses: azure/cli@v1
         with:
@@ -302,6 +297,7 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
+                KC_HOSTNAME=$KEYCLOAK_HOSTNAME
                 KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
                 KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
 

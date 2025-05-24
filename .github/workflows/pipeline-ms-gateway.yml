@@ -1,8 +1,8 @@
 name: CI/CD - MS Gateway
 
 on:
-  # push:
-    # branches: [feature/pipeline]
+  push:
+    branches: [feature/pipeline]
   workflow_dispatch:
 
 # --------------------------------------------------------------
@@ -27,11 +27,6 @@ env:
   ACA_GATEWAY_DEV: ${{ vars.ACA_GATEWAY_DEV }}
   ACA_GATEWAY_PROD: ${{ vars.ACA_GATEWAY_PROD }}
   SERVICE_PORT: 8090
-
-  # Utils
-  KEYCLOAK_ISSUER_URI: ${{ secrets.KEYCLOAK_ISSUER_URI }}
-  GATEWAY_CLIENT_ID: ${{ secrets.GATEWAY_CLIENT_ID }}
-  GATEWAY_CLIENT_SECRET: ${{ secrets.GATEWAY_CLIENT_SECRET }}
 
 jobs:
   # --------------------------------------------------------------
@@ -173,7 +168,7 @@ jobs:
               Write-Host "✅ Container App is already Running."
             }
 
-      - name: Fetch Eureka FQDN
+      - name: Fetch FQDNs
         uses: azure/cli@v1
         with:
           azcliversion: latest
@@ -202,6 +197,13 @@ jobs:
 
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
+              -n ${{ vars.ACA_KEYCLOAK_DEV }} \
+              --query properties.configuration.ingress.fqdn -o tsv)
+            echo "🔖 Keycloak FQDN: $FQDN"
+            echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
+            FQDN=$(az containerapp show \
+              -g ${{ env.AZURE_RESOURCE_GROUP }} \
               -n ${{ vars.ACA_GATEWAY_DEV }} \
               --query properties.configuration.ingress.fqdn -o tsv)
             echo "🔖 Gateway FQDN: $FQDN"
@@ -223,11 +225,12 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
+                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
+                KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
+                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME
                 SERVICE_PORT=$SERVICE_PORT \
-                KEYCLOAK_ISSUER_URI=${{ env.KEYCLOAK_ISSUER_URI }} \
-                GATEWAY_CLIENT_ID=${{ env.GATEWAY_CLIENT_ID }} \
-                GATEWAY_CLIENT_SECRET=${{ env.GATEWAY_CLIENT_SECRET }} \
+                KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} \
+                KEYCLOAK_CLIENT_SECRET=${{ env.KEYCLOAK_CLIENT_SECRET }} \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -335,7 +338,7 @@ jobs:
               Write-Host "✅ Container App is already Running."
             }
 
-      - name: Fetch Eureka FQDN
+      - name: Fetch FQDNs
         uses: azure/cli@v1
         with:
           azcliversion: latest
@@ -364,6 +367,13 @@ jobs:
 
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
+              -n ${{ vars.ACA_KEYCLOAK_PROD }} \
+              --query properties.configuration.ingress.fqdn -o tsv)
+            echo "🔖 Keycloak FQDN: $FQDN"
+            echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
+            FQDN=$(az containerapp show \
+              -g ${{ env.AZURE_RESOURCE_GROUP }} \
               -n ${{ vars.ACA_GATEWAY_PROD }} \
               --query properties.configuration.ingress.fqdn -o tsv)
             echo "🔖 Gateway FQDN: $FQDN"
@@ -385,11 +395,12 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
+                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
+                KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
+                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME
                 SERVICE_PORT=$SERVICE_PORT \
-                KEYCLOAK_ISSUER_URI=${{ env.KEYCLOAK_ISSUER_URI }} \
-                GATEWAY_CLIENT_ID=${{ env.GATEWAY_CLIENT_ID }} \
-                GATEWAY_CLIENT_SECRET=${{ env.GATEWAY_CLIENT_SECRET }} \
+                KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} \
+                KEYCLOAK_CLIENT_SECRET=${{ env.KEYCLOAK_CLIENT_SECRET }} \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
