@@ -196,10 +196,8 @@ jobs:
               -n $ACA_KEYCLOAK_DEV \
               --image $IMAGE \
               --min-replicas 1 \
-
               --secrets KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
                         KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
-
               --set-env-vars KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
                              KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
 
@@ -338,10 +336,8 @@ jobs:
               -n $ACA_KEYCLOAK_PROD \
               --image $IMAGE \
               --min-replicas 1 \
-
               --secrets KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
                         KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
-
               --set-env-vars KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
                              KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
 
