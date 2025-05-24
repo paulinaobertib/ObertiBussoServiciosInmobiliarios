@@ -349,7 +349,7 @@ jobs:
               --resource-group $AZURE_RESOURCE_GROUP \
               --image $IMAGE \
               --min-replicas 1 \
-              --set-env-vars 
+              --set-env-vars \
                 KEYCLOAK_ADMIN=secretref:keycloak-admin \
                 KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password
 
