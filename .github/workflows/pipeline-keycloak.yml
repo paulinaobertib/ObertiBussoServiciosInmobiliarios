@@ -205,7 +205,11 @@ jobs:
               --min-replicas 1 \
               --set-env-vars \
                 KEYCLOAK_ADMIN=secretref:keycloak-admin \
-                KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password
+                KEYCLOAK_ADMIN_PASSWORD=secretref:keycloak-admin-password \
+                KC_DB=mysql \
+                KC_DB_URL="${{ secrets.DATASOURCE_URL_DEV }}" \
+                KC_DB_USERNAME="${{ secrets.DATASOURCE_USERNAME }}" \
+                KC_DB_PASSWORD="${{ secrets.DATASOURCE_PASSWORD }}"
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -241,7 +245,7 @@ jobs:
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 5
+            sleep 10
           done
           echo "❌ Keycloak failed healthcheck"
           exit 1
