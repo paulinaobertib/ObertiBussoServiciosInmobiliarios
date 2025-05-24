@@ -52,7 +52,7 @@ eureka:
     # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
     service-url:
-      defaultZone: http://${EUREKA_HOSTNAME}:8761/eureka
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka
 
 email:
   username: desarrolloinmobertibusso@gmail.com
