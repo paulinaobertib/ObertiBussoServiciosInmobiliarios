@@ -153,6 +153,7 @@ jobs:
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
               --image $IMAGE \
+              --target-port $SERVICE_PORT \
               --min-replicas 1 \
               --set-env-vars \
                 KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
