@@ -1,8 +1,8 @@
 name: CI/CD - Eureka Server
 
 on:
-  # push:
-    # branches: [feature/pipeline]
+  push:
+    branches: [feature/pipeline]
   workflow_dispatch:
 
 # --------------------------------------------------------------
@@ -198,7 +198,7 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
+                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
                 SERVICE_PORT=$SERVICE_PORT \
 
       - name: Restart to apply Changes
@@ -336,7 +336,7 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
+                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
