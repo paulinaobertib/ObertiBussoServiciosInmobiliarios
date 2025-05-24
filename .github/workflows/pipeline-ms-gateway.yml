@@ -229,8 +229,8 @@ jobs:
                 KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
                 GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME \
                 SERVICE_PORT=$SERVICE_PORT \
-                KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} \
-                KEYCLOAK_CLIENT_SECRET=${{ env.KEYCLOAK_CLIENT_SECRET }} \
+                KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
+                KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -399,8 +399,8 @@ jobs:
                 KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
                 GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME \
                 SERVICE_PORT=$SERVICE_PORT \
-                KEYCLOAK_CLIENT_ID=${{ env.KEYCLOAK_CLIENT_ID }} \
-                KEYCLOAK_CLIENT_SECRET=${{ env.KEYCLOAK_CLIENT_SECRET }} \
+                KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
+                KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
