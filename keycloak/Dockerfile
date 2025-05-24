@@ -30,7 +30,7 @@ ENV KC_HEALTH_ENABLED=true \
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
 # Copiamos tu realm JSON dentro de la imagen
-COPY ../realm/realm-obertibussoserviciosinmobiliarios.json /opt/keycloak/data/import/realm.json
+COPY realm/realm-obertibussoserviciosinmobiliarios.json /opt/keycloak/data/import/realm.json
 
 # Arrancamos en modo dev e importamos automáticamente el realm
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--import-realm", "--hostname-strict=true", "--hostname", "$KEYCLOAK_HOSTNAME" ]
