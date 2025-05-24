@@ -197,13 +197,11 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
 
-              --secrets \
-                KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
-                KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+              --secrets KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
+                        KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
 
-              --set-env-vars \
-                KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
-                KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
+              --set-env-vars KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
+                             KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -341,13 +339,11 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
 
-              --secrets \
-                KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
-                KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+              --secrets KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
+                        KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
 
-              --set-env-vars \
-                KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
-                KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
+              --set-env-vars KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
+                             KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
