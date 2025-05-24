@@ -197,7 +197,7 @@ jobs:
               --resource-group $AZURE_RESOURCE_GROUP \
               --secrets keycloak-admin=${{ secrets.KEYCLOAK_ADMIN }} \
                         keycloak-admin-password=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
-                        
+
             az containerapp update \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
@@ -232,11 +232,8 @@ jobs:
 
       - name: Health Check Keycloak
         run: |
-          FQDN=$(az containerapp show \
-            -g $AZURE_RESOURCE_GROUP \
-            -n $ACA_KEYCLOAK_DEV \
-            --query properties.configuration.ingress.fqdn -o tsv)
           URL="https://$KEYCLOAK_HOSTNAME/auth/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
+          
           for i in $(seq 1 10); do
             HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
