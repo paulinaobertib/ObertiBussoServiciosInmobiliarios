@@ -98,7 +98,7 @@ jobs:
                 --registry-username $DOCKERHUB_USERNAME \
                 --registry-password $DOCKERHUB_TOKEN \
                 --cpu 1 \
-                --memory 2Gi
+                --memory 2Gi \
                 --set-env-vars \
                   KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
                   KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
