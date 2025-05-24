@@ -97,8 +97,8 @@ jobs:
                 --registry-server docker.io \
                 --registry-username $DOCKERHUB_USERNAME \
                 --registry-password $DOCKERHUB_TOKEN \
-                --cpu 2 \
-                --memory 2Gi \
+                --cpu 1.5 \
+                --memory 3Gi \
                 --env-vars KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
 
             else
@@ -236,8 +236,8 @@ jobs:
                 --registry-server docker.io \
                 --registry-username $DOCKERHUB_USERNAME \
                 --registry-password $DOCKERHUB_TOKEN \
-                --cpu 2 \
-                --memory 2Gi \
+                --cpu 1.5 \
+                --memory 3Gi \
                 --env-vars KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
 
             else
