@@ -3,7 +3,7 @@ FROM quay.io/keycloak/keycloak:latest AS builder
 
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
-ENV KC_DB=postgres
+ENV KC_DB=mysql
 
 WORKDIR /opt/keycloak
 
@@ -27,13 +27,6 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
 # Copiamos tu realm JSON dentro de la imagen
 COPY ../realm/realm-obertibussoserviciosinmobiliarios.json /opt/keycloak/data/import/realm.json
-
-# Variables de DB (ajusta si vas a usar la embedded H2)
-ENV KC_DB=mssql
-ENV KC_DB_URL=<DBURL>
-ENV KC_DB_USERNAME=<DBUSERNAME>
-ENV KC_DB_PASSWORD=<DBPASSWORD>
-ENV KC_HOSTNAME=localhost
 
 # Arrancamos en modo dev e importamos automáticamente el realm
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm"]
