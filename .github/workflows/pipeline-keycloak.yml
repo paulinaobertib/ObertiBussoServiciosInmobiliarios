@@ -1,4 +1,4 @@
-name: CI/CD - MS Properties
+name: CI/CD - Keycloak
 
 on:
   push:
@@ -14,8 +14,6 @@ env:
   ACA_ENVIRONMENT: ${{ secrets.ACA_ENVIRONMENT }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  AZURE_BLOB_CONNECTION_STRING_DEV: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_DEV }}
-  AZURE_BLOB_CONNECTION_STRING_PROD: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_PROD }}
 
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -24,21 +22,12 @@ env:
   # Health-check
   HEALTH_PATH: /actuator/health
 
-  # Properties-specific
-  IMAGE_NAME: ms-properties
-  ACA_PROPERTIES_DEV: ${{ vars.ACA_PROPERTIES_DEV }}
-  ACA_PROPERTIES_PROD: ${{ vars.ACA_PROPERTIES_PROD }}
-  SERVICE_PORT: 8083
-
-  # Utils
-  DATASOURCE_URL_DEV: ${{ secrets.DATASOURCE_URL_DEV }}
-  DATASOURCE_URL_PROD: ${{ secrets.DATASOURCE_URL_PROD }}
-  DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-  DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
-  # SECURITY_OAUTH2_ISSUER_URI:
-  # EMAIL_USERNAME:
-  # EMAIL_PASSWORD:
-  # FRONTEND_BASE_URL:
+  # Gateway-specific
+  IMAGE_NAME: keycloak
+  ACA_KEYCLOAK_DEV: ${{ vars.ACA_KEYCLOAK_DEV }}
+  ACA_KEYCLOAK_PROD: ${{ vars.ACA_KEYCLOAK_PROD }}
+  REALM_FILE_PATH: ./realm/realm-obertibussoserviciosinmobiliarios.json
+  SERVICE_PORT: 8080
 
 jobs:
   # --------------------------------------------------------------
@@ -56,11 +45,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 24
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: "24"
+      # - name: Set up JDK 24
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     distribution: temurin
+      #     java-version: "24"
 
       # - name: Run Backend Tests
       #   working-directory: backend/${{ env.IMAGE_NAME }}
@@ -88,15 +77,15 @@ jobs:
       #     minimum_coverage: 80
       #     publish_only_summary: true
 
-      - name: Build & Package JAR
-        working-directory: backend/${{ env.IMAGE_NAME }}
-        run: mvn -B package -DskipTests
+      # - name: Build & Package JAR
+      #   working-directory: backend/${{ env.IMAGE_NAME }}
+      #   run: mvn -B package -DskipTests
 
-      - name: Upload Backend JAR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.IMAGE_NAME }}-jar
-          path: backend/${{ env.IMAGE_NAME }}/target/*.jar
+      # - name: Upload Backend JAR Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ env.IMAGE_NAME }}-jar
+      #     path: backend/${{ env.IMAGE_NAME }}/target/*.jar
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -109,7 +98,7 @@ jobs:
         run: |
           TAG=${GITHUB_SHA::8}
           IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
-          docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
+          docker build -t $IMAGE -f ./${{ env.IMAGE_NAME }}/Dockerfile ./${{ env.IMAGE_NAME }}
           docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -138,11 +127,11 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_PROPERTIES_DEV &>/dev/null; then
-              echo "🚀 Creating $ACA_PROPERTIES_DEV..."
+            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_KEYCLOAK_DEV &>/dev/null; then
+              echo "🚀 Creating $ACA_KEYCLOAK_DEV..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_DEV \
+                -n $ACA_KEYCLOAK_DEV \
                 --environment $ACA_ENVIRONMENT \
                 --image $IMAGE \
                 --ingress external \
@@ -153,7 +142,7 @@ jobs:
                 --cpu 0.25 \
                 --memory 0.5Gi
             else
-              echo "✏️ $ACA_PROPERTIES_DEV already exists."
+              echo "✏️ $ACA_KEYCLOAK_DEV already exists."
             fi
 
       - name: Ensure Container App Is Running
@@ -164,7 +153,7 @@ jobs:
             # Leemos el estado actual
             $status = (az containerapp show `
               --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name $Env:ACA_PROPERTIES_DEV `
+              --name $Env:ACA_KEYCLOAK_DEV `
               --query properties.runningStatus `
               -o tsv).Trim()
             Write-Host "Current runningStatus (via CLI): $status"
@@ -172,7 +161,7 @@ jobs:
             if ($status -ne 'Running') {
               Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
               Start-AzContainerApp `
-                -Name $Env:ACA_PROPERTIES_DEV `
+                -Name $Env:ACA_KEYCLOAK_DEV `
                 -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
                 -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
             }
@@ -180,25 +169,17 @@ jobs:
               Write-Host "✅ Container App is already Running."
             }
 
-      - name: Fetch Eureka FQDN
+      - name: Fetch Keycloak FQDN
         uses: azure/cli@v1
         with:
           azcliversion: latest
           inlineScript: |
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_EUREKA_DEV }} \
+              -n ${{ vars.ACA_KEYCLOAK_DEV }} \
               --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Eureka FQDN: $FQDN"
-            # Lo subimos a GitHub Env para todo el job
-            echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            echo "🔖 Keycloak FQDN: $FQDN"
+            echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
       - name: Update Image & Scale
         uses: azure/cli@v1
@@ -212,16 +193,17 @@ jobs:
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_DEV \
+              -n $ACA_GATEWAY_DEV \
               --image $IMAGE \
               --min-replicas 1 \
+
+              --secrets \
+                KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
+                KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
-                SERVICE_PORT=$SERVICE_PORT \
-                DATASOURCE_URL=$DATASOURCE_URL_DEV \
-                DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
-                DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD \
-                AZURE_BLOB_CONNECTION_STRING=$AZURE_BLOB_CONNECTION_STRING_DEV \
+                KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
+                KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -232,7 +214,7 @@ jobs:
             # Obtenemos la última revisión lista (lista y lista de nuevo)
             REVISION=$(az containerapp show \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_DEV \
+              -n $ACA_KEYCLOAK_DEV \
               --query properties.latestReadyRevisionName \
               -o tsv)
 
@@ -240,26 +222,28 @@ jobs:
               echo "🔄 Restarting revision $REVISION..."
               az containerapp revision restart \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_DEV \
+                -n $ACA_KEYCLOAK_DEV \
                 --revision "$REVISION"
             else
               echo "ℹ️ No ready revision found, skipping restart."
             fi
 
-      - name: Health Check with Retries
+      - name: Health Check Keycloak
         run: |
-          URL="https://$PROPERTIES_HOSTNAME${HEALTH_PATH}"
-          echo "🩺 Checking health at $URL"
+          FQDN=$(az containerapp show \
+            -g $AZURE_RESOURCE_GROUP \
+            -n $ACA_KEYCLOAK_DEV \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          URL="https://$KEYCLOAK_HOSTNAME/auth/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
           for i in $(seq 1 10); do
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
+              echo "✅ Keycloak is healthy"
               exit 0
             fi
-            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 10
+            sleep 5
           done
-          echo "❌ Health check failed after 10 attempts"
+          echo "❌ Keycloak failed healthcheck"
           exit 1
 
   # --------------------------------------------------------------
@@ -287,11 +271,11 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_PROPERTIES_PROD &>/dev/null; then
-              echo "🚀 Creating $ACA_PROPERTIES_PROD..."
+            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_KEYCLOAK_PROD &>/dev/null; then
+              echo "🚀 Creating $ACA_KEYCLOAK_PROD..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_PROD \
+                -n $ACA_KEYCLOAK_PROD \
                 --environment $ACA_ENVIRONMENT \
                 --image $IMAGE \
                 --ingress external \
@@ -302,7 +286,7 @@ jobs:
                 --cpu 0.25 \
                 --memory 0.5Gi
             else
-              echo "✏️ $ACA_PROPERTIES_PROD already exists."
+              echo "✏️ $ACA_KEYCLOAK_PROD already exists."
             fi
 
       - name: Ensure Container App Is Running
@@ -313,7 +297,7 @@ jobs:
             # Leemos el estado actual
             $status = (az containerapp show `
               --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name $Env:ACA_PROPERTIES_PROD `
+              --name $Env:ACA_KEYCLOAK_PROD `
               --query properties.runningStatus `
               -o tsv).Trim()
             Write-Host "Current runningStatus (via CLI): $status"
@@ -321,7 +305,7 @@ jobs:
             if ($status -ne 'Running') {
               Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
               Start-AzContainerApp `
-                -Name $Env:ACA_PROPERTIES_PROD `
+                -Name $Env:ACA_KEYCLOAK_PROD `
                 -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
                 -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
             }
@@ -329,24 +313,17 @@ jobs:
               Write-Host "✅ Container App is already Running."
             }
 
-      - name: Fetch Eureka FQDN
+      - name: Fetch Keycloak FQDN
         uses: azure/cli@v1
         with:
           azcliversion: latest
           inlineScript: |
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_EUREKA_PROD }} \
+              -n ${{ vars.ACA_KEYCLOAK_PROD }} \
               --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Eureka FQDN: $FQDN"
-            # Lo subimos a GitHub Env para todo el job
-            echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            echo "🔖 Keycloak FQDN: $FQDN"
+            echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
       - name: Update Image & Scale
         uses: azure/cli@v1
@@ -360,16 +337,17 @@ jobs:
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_PROD \
+              -n $ACA_KEYCLOAK_PROD \
               --image $IMAGE \
               --min-replicas 1 \
+              
+              --secrets \
+                KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }} \
+                KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+
               --set-env-vars \
-                EUREKA_HOSTNAME=$FQDN \
-                SERVICE_PORT=$SERVICE_PORT \
-                DATASOURCE_URL=$DATASOURCE_URL_PROD \
-                DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
-                DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD \
-                AZURE_BLOB_CONNECTION_STRING=$AZURE_BLOB_CONNECTION_STRING_PROD \
+                KEYCLOAK_ADMIN=$KEYCLOAK_ADMIN \
+                KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -380,7 +358,7 @@ jobs:
             # Obtenemos la última revisión lista (lista y lista de nuevo)
             REVISION=$(az containerapp show \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_PROD \
+              -n $ACA_KEYCLOAK_PROD \
               --query properties.latestReadyRevisionName \
               -o tsv)
 
@@ -388,24 +366,26 @@ jobs:
               echo "🔄 Restarting revision $REVISION..."
               az containerapp revision restart \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_PROD \
+                -n $ACA_KEYCLOAK_PROD \
                 --revision "$REVISION"
             else
               echo "ℹ️ No ready revision found, skipping restart."
             fi
 
-      - name: Health Check with Retries
+      - name: Health Check Keycloak
         run: |
-          URL="https://$PROPERTIES_HOSTNAME${HEALTH_PATH}"
-          echo "🩺 Checking health at $URL"
+          FQDN=$(az containerapp show \
+            -g $AZURE_RESOURCE_GROUP \
+            -n $ACA_KEYCLOAK_DEV \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          URL="https://$KEYCLOAK_HOSTNAME/auth/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
           for i in $(seq 1 10); do
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
+              echo "✅ Keycloak is healthy"
               exit 0
             fi
-            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 10
+            sleep 5
           done
-          echo "❌ Health check failed after 10 attempts"
+          echo "❌ Keycloak failed healthcheck"
           exit 1
