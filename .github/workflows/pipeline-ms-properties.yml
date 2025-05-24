@@ -1,8 +1,8 @@
 name: CI/CD - MS Properties
 
 on:
-  push:
-    branches: [feature/pipeline]
+  # push:
+  #   branches: [feature/pipeline]
   workflow_dispatch:
 
 # --------------------------------------------------------------

@@ -1,8 +1,8 @@
 name: CI/CD - Eureka Server
 
 on:
-  push:
-    branches: [feature/pipeline]
+  # push:
+  #   branches: [feature/pipeline]
   workflow_dispatch:
 
 # --------------------------------------------------------------
