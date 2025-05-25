@@ -204,7 +204,7 @@ jobs:
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
               -n ${{ vars.ACA_USERS_DEV }} \
               --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Properties FQDN: $FQDN"
+            echo "🔖 Users FQDN: $FQDN"
             echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
       - name: Update Image & Scale
@@ -230,7 +230,7 @@ jobs:
                 DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
                 DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD \
                 EMAIL_USERNAME="$EMAIL_USERNAME" \
-                EMAIL_PASSWORD="$EMAIL_PASSWORD"
+                EMAIL_PASSWORD="$EMAIL_PASSWORD" \
                 KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }} \
                 KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }} \
 
@@ -262,9 +262,14 @@ jobs:
           URL="https://$USERS_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
+              echo "✅ MS Users is healthy (status $HTTP)"
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
@@ -420,9 +425,14 @@ jobs:
           URL="https://$USERS_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
+              echo "✅ MS Users is healthy (status $HTTP)"
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."

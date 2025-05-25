@@ -261,9 +261,14 @@ jobs:
           URL="https://$GATEWAY_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
+              echo "✅ MS Gateway is healthy (status $HTTP)"
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
@@ -431,9 +436,14 @@ jobs:
           URL="https://$GATEWAY_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
-            HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
+              echo "✅ MS Gateway is healthy (status $HTTP)"
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
