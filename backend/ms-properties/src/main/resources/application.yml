@@ -46,7 +46,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,env
+        include: health,info,env,mappings
   endpoint:
     health:
       show-details: always
