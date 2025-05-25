@@ -13,6 +13,9 @@ spring:
   application:
     name: ms-properties
 
+  config:
+    ignore-unresolvable-placeholders: true
+
   # configuracion de la base de datos
   datasource:
     url: ${DATASOURCE_URL}
@@ -57,13 +60,6 @@ azure:
 email:
   username: ${EMAIL_USERNAME}
   password: ${EMAIL_PASSWORD}
-
-
-
-
-spring:
-  config:
-    ignore-unresolvable-placeholders: true
 
 frontend:
   base-url: ${FRONTEND_BASE_URL:}
