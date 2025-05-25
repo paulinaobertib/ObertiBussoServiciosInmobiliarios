@@ -1,10 +1,10 @@
-name: CI/CD - MS Properties
+name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -27,9 +27,9 @@ env:
 
   # Properties-specific
   IMAGE_NAME: ms-properties
-  ACA_PROPERTIES_DEV: ${{ vars.ACA_PROPERTIES_DEV }}
-  ACA_PROPERTIES_PROD: ${{ vars.ACA_PROPERTIES_PROD }}
-  SERVICE_PORT: 8083
+  ACA_USERS_DEV: ${{ vars.ACA_USERS_DEV }}
+  ACA_USERS_PROD: ${{ vars.ACA_USERS_PROD }}
+  SERVICE_PORT: 8081
 
   # Utils
   DATASOURCE_URL_DEV: ${{ secrets.DATASOURCE_URL_DEV }}
@@ -138,11 +138,11 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_PROPERTIES_DEV &>/dev/null; then
-              echo "🚀 Creating $ACA_PROPERTIES_DEV..."
+            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_USERS_DEV &>/dev/null; then
+              echo "🚀 Creating $ACA_USERS_DEV..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_DEV \
+                -n $ACA_USERS_DEV \
                 --environment $ACA_ENVIRONMENT \
                 --image $IMAGE \
                 --ingress external \
@@ -153,7 +153,7 @@ jobs:
                 --cpu 0.25 \
                 --memory 0.5Gi
             else
-              echo "✏️ $ACA_PROPERTIES_DEV already exists."
+              echo "✏️ $ACA_USERS_DEV already exists."
             fi
 
       - name: Ensure Container App Is Running
@@ -164,7 +164,7 @@ jobs:
             # Leemos el estado actual
             $status = (az containerapp show `
               --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name $Env:ACA_PROPERTIES_DEV `
+              --name $Env:ACA_USERS_DEV `
               --query properties.runningStatus `
               -o tsv).Trim()
             Write-Host "Current runningStatus (via CLI): $status"
@@ -172,7 +172,7 @@ jobs:
             if ($status -ne 'Running') {
               Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
               Start-AzContainerApp `
-                -Name $Env:ACA_PROPERTIES_DEV `
+                -Name $Env:ACA_USERS_DEV `
                 -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
                 -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
             }
@@ -202,10 +202,10 @@ jobs:
 
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_DEV }} \
+              -n ${{ vars.ACA_USERS_DEV }} \
               --query properties.configuration.ingress.fqdn -o tsv)
             echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
       - name: Update Image & Scale
         uses: azure/cli@v1
@@ -219,7 +219,7 @@ jobs:
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_DEV \
+              -n $ACA_USERS_DEV \
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
@@ -229,9 +229,10 @@ jobs:
                 DATASOURCE_URL=$DATASOURCE_URL_DEV \
                 DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
                 DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD \
-                AZURE_BLOB_CONNECTION_STRING=$AZURE_BLOB_CONNECTION_STRING_DEV \
                 EMAIL_USERNAME="$EMAIL_USERNAME" \
                 EMAIL_PASSWORD="$EMAIL_PASSWORD"
+                KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }} \
+                KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }} \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -242,7 +243,7 @@ jobs:
             # Obtenemos la última revisión lista (lista y lista de nuevo)
             REVISION=$(az containerapp show \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_DEV \
+              -n $ACA_USERS_DEV \
               --query properties.latestReadyRevisionName \
               -o tsv)
 
@@ -250,7 +251,7 @@ jobs:
               echo "🔄 Restarting revision $REVISION..."
               az containerapp revision restart \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_DEV \
+                -n $ACA_USERS_DEV \
                 --revision "$REVISION"
             else
               echo "ℹ️ No ready revision found, skipping restart."
@@ -258,7 +259,7 @@ jobs:
 
       - name: Health Check with Retries
         run: |
-          URL="https://$PROPERTIES_HOSTNAME${HEALTH_PATH}"
+          URL="https://$USERS_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
@@ -297,11 +298,11 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_PROPERTIES_PROD &>/dev/null; then
-              echo "🚀 Creating $ACA_PROPERTIES_PROD..."
+            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_USERS_PROD &>/dev/null; then
+              echo "🚀 Creating $ACA_USERS_PROD..."
               az containerapp create \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_PROD \
+                -n $ACA_USERS_PROD \
                 --environment $ACA_ENVIRONMENT \
                 --image $IMAGE \
                 --ingress external \
@@ -312,7 +313,7 @@ jobs:
                 --cpu 0.25 \
                 --memory 0.5Gi
             else
-              echo "✏️ $ACA_PROPERTIES_PROD already exists."
+              echo "✏️ $ACA_USERS_PROD already exists."
             fi
 
       - name: Ensure Container App Is Running
@@ -323,7 +324,7 @@ jobs:
             # Leemos el estado actual
             $status = (az containerapp show `
               --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name $Env:ACA_PROPERTIES_PROD `
+              --name $Env:ACA_USERS_PROD `
               --query properties.runningStatus `
               -o tsv).Trim()
             Write-Host "Current runningStatus (via CLI): $status"
@@ -331,7 +332,7 @@ jobs:
             if ($status -ne 'Running') {
               Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
               Start-AzContainerApp `
-                -Name $Env:ACA_PROPERTIES_PROD `
+                -Name $Env:ACA_USERS_PROD `
                 -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
                 -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
             }
@@ -361,10 +362,10 @@ jobs:
 
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_PROD }} \
+              -n ${{ vars.ACA_USERS_PROD }} \
               --query properties.configuration.ingress.fqdn -o tsv)
             echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+            echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
       - name: Update Image & Scale
         uses: azure/cli@v1
@@ -378,7 +379,7 @@ jobs:
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_PROD \
+              -n $ACA_USERS_PROD \
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
@@ -388,7 +389,8 @@ jobs:
                 DATASOURCE_URL=$DATASOURCE_URL_PROD \
                 DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
                 DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD \
-                AZURE_BLOB_CONNECTION_STRING=$AZURE_BLOB_CONNECTION_STRING_PROD \
+                KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }} \
+                KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }} \
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
@@ -399,7 +401,7 @@ jobs:
             # Obtenemos la última revisión lista (lista y lista de nuevo)
             REVISION=$(az containerapp show \
               -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_PROD \
+              -n $ACA_USERS_PROD \
               --query properties.latestReadyRevisionName \
               -o tsv)
 
@@ -407,7 +409,7 @@ jobs:
               echo "🔄 Restarting revision $REVISION..."
               az containerapp revision restart \
                 -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_PROPERTIES_PROD \
+                -n $ACA_USERS_PROD \
                 --revision "$REVISION"
             else
               echo "ℹ️ No ready revision found, skipping restart."
@@ -415,7 +417,7 @@ jobs:
 
       - name: Health Check with Retries
         run: |
-          URL="https://$PROPERTIES_HOSTNAME${HEALTH_PATH}"
+          URL="https://$USERS_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl -s -o /dev/null -w "%{http_code}" $URL) || true
