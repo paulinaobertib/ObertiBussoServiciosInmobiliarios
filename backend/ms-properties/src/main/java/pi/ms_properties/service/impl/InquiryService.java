@@ -345,5 +345,4 @@ public class InquiryService implements IInquiryService {
                     .body(Collections.singletonMap("error", -1L));
         }
     }
-
 }
