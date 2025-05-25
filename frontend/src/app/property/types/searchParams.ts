@@ -3,6 +3,8 @@ export interface SearchParams {
   priceTo: number;
   areaFrom: number;
   areaTo: number;
+  coveredAreaFrom: number;
+  coveredAreaTo: number;
   rooms: number;
   operation: string;
   type: string;
@@ -10,4 +12,6 @@ export interface SearchParams {
   city: string;
   neighborhood: string;
   neighborhoodType: string;
+  credit: boolean | undefined;
+  financing: boolean | undefined;
 }

@@ -1,10 +1,16 @@
-/*  SOLO estas 4 claves, en singular  */
-export const labels = {
-  amenity:      'Servicio',
-  owner:        'Propietario',
-  type:         'Tipo de Propiedad',
-  neighborhood: 'Barrio',
-} as const;
+const dict: Record<string, string> = {
+  /* ─── catálogos ─── */
+  amenity: "Servicio",
+  owner: "Propietario",
+  type: "Tipo",
+  neighborhood: "Barrio",
 
-export type CategoryKey = keyof typeof labels;   // 'amenity' | 'owner' | ...
-export const translate = (k: CategoryKey) => labels[k];
+  /* ─── VISTAS nuevas ─── */
+  property: "Propiedad",
+  maintenance: "Mantenimiento",
+  comment: "Comentario",
+};
+
+export function translate(key: string) {
+  return dict[key] ?? key;
+}

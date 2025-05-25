@@ -30,7 +30,7 @@ export default function FloatingButtons({
     const size = 56;
     const gap = 2;
     const off = 16;
-    const disabledCompare = compareCount !== 2;
+    const disabledCompare = compareCount < 2 || compareCount > 3;
 
     return (
         <Box
@@ -48,7 +48,7 @@ export default function FloatingButtons({
             <Tooltip
                 title={
                     disabledCompare
-                        ? 'Selecciona exactamente 2 propiedades'
+                        ? 'Selecciona 2 o 3 propiedades'
                         : 'Comparar propiedades'
                 }
                 arrow
