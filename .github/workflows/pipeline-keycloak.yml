@@ -190,7 +190,12 @@ jobs:
           URL="https://$KEYCLOAK_HOSTNAME/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
-            HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
               echo "✅ Keycloak is healthy"
               exit 0
@@ -330,7 +335,12 @@ jobs:
           URL="https://$KEYCLOAK_HOSTNAME/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
-            HTTP=$(curl -sk -o /dev/null -w "%{http_code}" $URL) || true
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
               echo "✅ Keycloak is healthy"
               exit 0
