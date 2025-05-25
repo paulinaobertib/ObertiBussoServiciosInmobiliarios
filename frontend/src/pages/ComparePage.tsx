@@ -42,11 +42,11 @@ const Compare = () => {
 
   return (
     <BasePage maxWidth={false}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
-          <Button variant="contained" color="primary" onClick={handleBack}>
-            VOLVER
-          </Button>
-        </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+        <Button variant="contained" color="primary" onClick={handleBack}>
+          VOLVER
+        </Button>
+      </Box>
 
       <Container maxWidth="xl">
         <Box
