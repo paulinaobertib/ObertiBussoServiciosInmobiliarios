@@ -16,7 +16,7 @@ import ModalItem from './ModalItem';
 import { getPropertyRowData } from './PropertyRowItems';
 import { ROUTES } from '../../../lib';
 import { buildRoute } from '../../../buildRoute';
-import { useConfirmDialog } from '../utils/ConfirmDialog';
+import { useConfirmDialog } from '../utils/confirmDialog';
 import { deleteProperty } from '../services/property.service';
 import { useGlobalAlert } from '../context/AlertContext';
 

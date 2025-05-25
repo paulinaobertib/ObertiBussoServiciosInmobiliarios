@@ -14,7 +14,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { getAllProperties, deleteProperty } from '../services/property.service';
 import { Property } from '../types/property';
 import { useGlobalAlert } from '../context/AlertContext';
-import { useConfirmDialog } from '../utils/ConfirmDialog';
+import { useConfirmDialog } from '../utils/confirmDialog';
 
 export type CatalogMode = 'normal' | 'edit' | 'delete';
 

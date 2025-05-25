@@ -31,9 +31,9 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
   useEffect(() => {
     comparisonItems.forEach((property, idx) => {
-    const address = property.neighborhood
-      ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
-      : `${property.street}, Buenos Aires, Argentina`;
+      const address = property.neighborhood
+        ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+        : `${property.street}, Buenos Aires, Argentina`;
 
       const fetchCoordinates = async () => {
         try {
@@ -75,8 +75,8 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
           gridTemplateColumns: isMobile
             ? '1fr'
             : comparisonItems.length === 3
-            ? 'repeat(3, minmax(350px, 1fr))' // Columnas más anchas para 3 propiedades
-            : 'repeat(2, minmax(400px, 1fr))', // Mantener 2 propiedades o ajustar
+              ? 'repeat(3, minmax(350px, 1fr))' // Columnas más anchas para 3 propiedades
+              : 'repeat(2, minmax(400px, 1fr))', // Mantener 2 propiedades o ajustar
           gap: isMobile ? 1 : 3, // Aumentar espacio a 3 para no móviles, mantener 1 para móviles
         }}
       >
@@ -96,11 +96,11 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
 
           const gmUrl = property.neighborhood
             ? `https://www.google.com/maps?q=${encodeURIComponent(
-                `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
-              )}`
+              `${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`
+            )}`
             : `https://www.google.com/maps?q=${encodeURIComponent(
-                `${property.street} ${property.number}, Buenos Aires, Argentina`
-              )}`;
+              `${property.street} ${property.number}, Buenos Aires, Argentina`
+            )}`;
 
           return (
             <Box

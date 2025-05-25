@@ -23,7 +23,7 @@ const formatFeatureLabel = (
   return `${value} ${value === 1 ? singular : plural}`;
 };
 
-const PropertyInfo = ({ property }: PropertyInfoProps) => {
+const PropertyInfoCompare = ({ property }: PropertyInfoProps) => {
   const { comparisonItems } = usePropertyCrud();
 
   // Definir las claves numéricas para las características
@@ -158,4 +158,4 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
   );
 };
 
-export default PropertyInfo;
+export default PropertyInfoCompare;
