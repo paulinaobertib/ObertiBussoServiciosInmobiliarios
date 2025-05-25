@@ -57,3 +57,13 @@ azure:
 email:
   username: ${EMAIL_USERNAME}
   password: ${EMAIL_PASSWORD}
+
+
+
+
+spring:
+  config:
+    ignore-unresolvable-placeholders: true
+
+frontend:
+  base-url: ${FRONTEND_BASE_URL:}

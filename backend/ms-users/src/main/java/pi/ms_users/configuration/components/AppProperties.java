@@ -10,9 +10,14 @@ public class AppProperties {
 
     private final String frontendBaseUrl;
 
-    public AppProperties(@Value("${frontend.base-url}") String frontendBaseUrl) {
+    // public AppProperties(@Value("${frontend.base-url}") String frontendBaseUrl) {
+    //     this.frontendBaseUrl = frontendBaseUrl;
+    // }
+
+    // Momentaneo mientras genero los pipelines del backend que no tiene el front configurado
+    public AppProperties(@Value("${frontend.base-url:}") String frontendBaseUrl) {
         this.frontendBaseUrl = frontendBaseUrl;
     }
-
+    
 }
 
