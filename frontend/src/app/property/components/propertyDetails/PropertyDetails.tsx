@@ -1,6 +1,6 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import ImageCarousel from './PropertyCarousel'; 
-import PropertyInfo from './PropertyInfo';
+import ImageCarousel from './PropertyCarousel';
+import PropertyInfoCompare from './PropertyInfoCompare';
 import { Property } from '../../types/property';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -86,7 +86,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
           />
         </Box>
         <Box sx={{ width: isMobile ? '100%' : '50%' }}>
-          <PropertyInfo property={property} />
+          <PropertyInfoCompare property={property} />
         </Box>
       </Box>
 

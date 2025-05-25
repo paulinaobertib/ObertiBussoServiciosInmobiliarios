@@ -1,4 +1,3 @@
-/* src/pages/EditProperty/EditPropertyPage.tsx */
 import { useEffect, useState } from 'react';
 import {
   Box, Button, CircularProgress, Stack,
@@ -10,7 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 // hooks y contextos
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
+import { useConfirmDialog } from '../app/property/utils/confirmDialog';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 
 // componentes
