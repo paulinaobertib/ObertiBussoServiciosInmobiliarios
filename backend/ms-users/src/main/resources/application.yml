@@ -11,9 +11,9 @@ eureka:
 
 spring:
   application:
-    name: ms-properties
+    name: ms-users
 
-# MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
+  # MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
   config:
     ignore-unresolvable-placeholders: true
 
@@ -29,12 +29,6 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-
-  # configuracion del tamaño maximo de archivos
-  servlet:
-    multipart:
-      max-file-size: 25MB
-      max-request-size: 260MB
 
   security:
     oauth2:
@@ -52,15 +46,16 @@ management:
     health:
       show-details: always
 
-# configuracion de azure
-azure:
-  blob-storage:
-    connection-string: ${AZURE_BLOB_CONNECTION_STRING}
-    container-name: images
-
 email:
   username: ${EMAIL_USERNAME}
   password: ${EMAIL_PASSWORD}
 
 frontend:
   base-url: ${FRONTEND_BASE_URL:}
+
+pi:
+  keycloak:
+    serverUrl: https://${KEYCLOAK_HOSTNAME}/
+    realm: obertibussoserviciosinmobiliarios
+    clientId: ${KEYCLOAK_SB_CLIENT_ID}
+    clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
