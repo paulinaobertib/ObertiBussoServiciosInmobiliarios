@@ -1,3 +1,14 @@
+server:
+  port: ${SERVICE_PORT}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME}
+    # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    service-url:
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
 spring:
   application:
     name: ms-properties
@@ -27,9 +38,6 @@ spring:
         jwt:
           issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
 
-server:
-  port: ${SERVICE_PORT}
-
 # Momentaneo mientras se hacen los pipelines
 management:
   endpoints:
@@ -46,14 +54,6 @@ azure:
     connection-string: ${AZURE_BLOB_CONNECTION_STRING}
     container-name: images
 
-eureka:
-  instance:
-    hostname: ${EUREKA_HOSTNAME}
-    # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-  client:
-    service-url:
-      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
-
 email:
-  username: desarrolloinmobertibusso@gmail.com
-  password: gian ovac cerv btzf
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
