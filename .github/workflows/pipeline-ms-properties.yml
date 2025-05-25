@@ -231,6 +231,8 @@ jobs:
                 DATASOURCE_USERNAME=$DATASOURCE_USERNAME \
                 DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD \
                 AZURE_BLOB_CONNECTION_STRING=$AZURE_BLOB_CONNECTION_STRING_DEV \
+                EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} \
+                EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
 
       - name: Restart to apply Changes
         uses: azure/cli@v1
