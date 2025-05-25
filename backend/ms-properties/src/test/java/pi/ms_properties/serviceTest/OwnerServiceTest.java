@@ -48,6 +48,8 @@ class OwnerServiceTest {
         owner.setPhone("123456789");
     }
 
+    // casos de exito
+
     @Test
     void createOwner_Success() {
         ResponseEntity<String> response = ownerService.createOwner(owner);
@@ -122,6 +124,9 @@ class OwnerServiceTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
     }
+
+    // casos de error
+
     @Test
     void createOwner_DuplicateMail_ReturnsBadRequest() {
         doThrow(DataIntegrityViolationException.class).when(ownerRepository).save(owner);
@@ -130,6 +135,16 @@ class OwnerServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertTrue(response.getBody().contains(owner.getMail()));
+    }
+
+    @Test
+    void createOwner_InternalServerError() {
+        doThrow(new RuntimeException("DB error")).when(ownerRepository).save(owner);
+
+        ResponseEntity<String> response = ownerService.createOwner(owner);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.getBody().contains("No se ha podido guardar el propietario"));
     }
 
     @Test
@@ -142,12 +157,33 @@ class OwnerServiceTest {
     }
 
     @Test
+    void deleteOwner_InternalServerError() {
+        when(ownerRepository.findById(1L)).thenReturn(Optional.of(owner));
+        doThrow(new RuntimeException("DB error")).when(ownerRepository).deleteById(1L);
+
+        ResponseEntity<String> response = ownerService.deleteOwner(1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.getBody().contains("No se ha podido eliminar el propietario"));
+    }
+
+    @Test
     void updateOwner_NotFound() {
         when(ownerRepository.findById(owner.getId())).thenReturn(Optional.empty());
 
         ResponseEntity<Owner> response = ownerService.updateOwner(owner);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void updateOwner_InternalServerError() {
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+        doThrow(new RuntimeException("DB error")).when(ownerRepository).save(owner);
+
+        ResponseEntity<Owner> response = ownerService.updateOwner(owner);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test
@@ -174,6 +210,15 @@ class OwnerServiceTest {
     }
 
     @Test
+    void getByPropertyId_InternalServerError() {
+        when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected error"));
+
+        ResponseEntity<Owner> response = ownerService.getByPropertyId(1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     void getAll_Empty_ReturnsNoContent() {
         when(ownerRepository.findAll()).thenReturn(List.of());
 
@@ -183,12 +228,40 @@ class OwnerServiceTest {
     }
 
     @Test
+    void getAll_InternalServerError() {
+        when(ownerRepository.findAll()).thenThrow(new RuntimeException("Unexpected error"));
+
+        ResponseEntity<List<Owner>> response = ownerService.getAll();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     void getById_NotFound() {
         when(ownerRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseEntity<Owner> response = ownerService.getById(1L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void getById_InternalServerError() {
+        when(ownerRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected error"));
+
+        ResponseEntity<Owner> response = ownerService.getById(1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void findBy_InternalServerError() {
+        when(ownerRepository.findAll(any(Specification.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        ResponseEntity<List<Owner>> response = ownerService.findBy("error");
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }
 

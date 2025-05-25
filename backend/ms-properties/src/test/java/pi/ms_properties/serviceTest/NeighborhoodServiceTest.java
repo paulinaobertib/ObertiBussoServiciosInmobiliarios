@@ -122,6 +122,35 @@ class NeighborhoodServiceTest {
     }
 
     @Test
+    void createNeighborhood_shouldReturnBadRequest_whenTypeIsInvalid() {
+        NeighborhoodDTO dto = new NeighborhoodDTO();
+        dto.setName("Test Barrio");
+        dto.setType("INVALID_TYPE");
+        dto.setCity("Ciudad");
+
+        ResponseEntity<String> response = service.createNeighborhood(dto);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().contains("Tipo de barrio inválido"));
+    }
+
+    @Test
+    void createNeighborhood_shouldReturnInternalServerError_onException() {
+        NeighborhoodDTO dto = new NeighborhoodDTO();
+        dto.setName("BarrioError");
+        dto.setType("ABIERTO");
+        dto.setCity("Ciudad");
+
+        doThrow(RuntimeException.class)
+                .when(repository).save(any());
+
+        ResponseEntity<String> response = service.createNeighborhood(dto);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.getBody().contains("No se ha podido guardar"));
+    }
+
+    @Test
     void deleteNeighborhood_notFound() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
@@ -129,6 +158,16 @@ class NeighborhoodServiceTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("No existe el barrio", response.getBody());
+    }
+
+    @Test
+    void deleteNeighborhood_shouldReturnInternalServerError_onException() {
+        when(repository.findById(anyLong())).thenThrow(new RuntimeException());
+
+        ResponseEntity<String> response = service.deleteNeighborhood(1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.getBody().contains("No se ha podido eliminar"));
     }
 
     @Test
@@ -143,6 +182,22 @@ class NeighborhoodServiceTest {
     }
 
     @Test
+    void updateNeighborhood_shouldReturnInternalServerError_onException() {
+        Neighborhood neighborhood = new Neighborhood();
+        when(repository.findById(anyLong())).thenReturn(Optional.of(neighborhood));
+        when(repository.save(any())).thenThrow(new RuntimeException());
+
+        NeighborhoodDTO dto = new NeighborhoodDTO();
+        dto.setName("Test");
+        dto.setType("ABIERTO");
+        dto.setCity("Ciudad");
+
+        ResponseEntity<NeighborhoodDTO> response = service.updateNeighborhood(1L, dto);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     void getAll_noContent() {
         when(repository.findAll()).thenReturn(List.of());
 
@@ -152,12 +207,30 @@ class NeighborhoodServiceTest {
     }
 
     @Test
+    void getAll_shouldReturnInternalServerError_onException() {
+        when(repository.findAll()).thenThrow(new RuntimeException());
+
+        ResponseEntity<List<NeighborhoodDTO>> response = service.getAll();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     void getById_notFound() {
         when(repository.findById(123L)).thenReturn(Optional.empty());
 
         ResponseEntity<NeighborhoodDTO> response = service.getById(123L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void getById_shouldReturnInternalServerError_onException() {
+        when(repository.findById(anyLong())).thenThrow(new RuntimeException());
+
+        ResponseEntity<NeighborhoodDTO> response = service.getById(1L);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }
 

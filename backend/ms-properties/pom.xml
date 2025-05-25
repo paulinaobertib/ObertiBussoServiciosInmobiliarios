@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>22</java.version>
+		<argLine></argLine>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -145,6 +146,7 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- para la ejecucion de los test -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -157,7 +159,6 @@
 			<artifactId>jacoco-maven-plugin</artifactId>
 			<version>0.8.12</version>
 		</dependency>
-
 
 	</dependencies>
 
@@ -204,16 +205,13 @@
 					</execution>
 				</executions>
 			</plugin>
-
-			<!-- Surefire -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0</version>
 				<configuration>
-					<forkCount>1</forkCount>       <!-- Usar 1 JVM fork -->
-					<reuseForks>true</reuseForks>  <!-- Reusar JVM fork -->
-					<!-- NO sobrescribir argLine -->
+					<forkCount>1</forkCount>
+					<reuseForks>true</reuseForks>
 				</configuration>
 			</plugin>
 		</plugins>

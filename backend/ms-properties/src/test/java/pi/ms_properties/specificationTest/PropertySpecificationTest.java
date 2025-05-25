@@ -128,6 +128,50 @@ class PropertySpecificationTest {
         assertFalse(results.isEmpty());
     }
 
+    @Test
+    void shouldReturnPropertyByCoveredAreaRange() {
+        Specification<Property> spec = PropertySpecification.hasCoveredAreaFrom(90f)
+                .and(PropertySpecification.hasCoveredAreaTo(110f));
+        List<Property> results = propertyRepository.findAll(spec);
+        assertFalse(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnPropertyByRooms() {
+        Specification<Property> spec = PropertySpecification.hasRooms(3f);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
+    }
+
+    @Test
+    void shouldReturnPropertyByOperation() {
+        Specification<Property> spec = PropertySpecification.hasOperation("venta");
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
+    }
+
+    @Test
+    void shouldReturnPropertyByType() {
+        Specification<Property> spec = PropertySpecification.hasType("casa");
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
+    }
+
+    @Test
+    void shouldReturnPropertyByCreditTrue() {
+        Specification<Property> spec = PropertySpecification.hasCredit(true);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
+    }
+
+
+    @Test
+    void shouldReturnEmptyWhenFinancingTrue() {
+        Specification<Property> spec = PropertySpecification.hasFinancing(true);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
     // casos de error
 
     @Test
@@ -163,6 +207,55 @@ class PropertySpecificationTest {
         Specification<Property> spec = PropertySpecification.textSearch("inexistente");
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenCoveredAreaOutOfRange() {
+        Specification<Property> spec = PropertySpecification.hasCoveredAreaTo(50f);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenRoomsDoNotMatch() {
+        Specification<Property> spec = PropertySpecification.hasRooms(5f);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenOperationDoesNotMatch() {
+        Specification<Property> spec = PropertySpecification.hasOperation("alquiler");
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenTypeDoesNotMatch() {
+        Specification<Property> spec = PropertySpecification.hasType("departamento");
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenNeighborhoodTypeDoesNotMatch() {
+        Specification<Property> spec = PropertySpecification.hasNeighborhoodType("cerrado");
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenCreditFalse() {
+        Specification<Property> spec = PropertySpecification.hasCredit(false);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnPropertyByFinancingFalse() {
+        Specification<Property> spec = PropertySpecification.hasFinancing(false);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
     }
 }
 

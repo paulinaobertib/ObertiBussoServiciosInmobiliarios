@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Comment;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -194,6 +196,73 @@ public class CommentServiceTest {
         ResponseEntity<String> response = commentService.update(dto);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void create_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        CommentDTO commentDTO = new CommentDTO(1, "Comentario", 1L);
+        Property property = new Property();
+        property.setId(1L);
+
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        doThrow(new DataIntegrityViolationException("Violation"))
+                .when(commentRepository).save(any(Comment.class));
+
+        ResponseEntity<String> response = commentService.create(commentDTO);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void update_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        CommentDTO commentDTO = new CommentDTO(1L, "Comentario actualizado", 1L);
+        Comment comment = new Comment();
+        comment.setId(1L);
+        Property property = new Property();
+        property.setId(1L);
+
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        doThrow(new DataIntegrityViolationException("Violation"))
+                .when(commentRepository).save(any(Comment.class));
+
+        ResponseEntity<String> response = commentService.update(commentDTO);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void delete_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        Comment comment = new Comment();
+        comment.setId(1L);
+
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        doThrow(new DataIntegrityViolationException("Violation"))
+                .when(commentRepository).delete(comment);
+
+        ResponseEntity<String> response = commentService.delete(1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getById_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        when(commentRepository.findById(1L)).thenThrow(new DataIntegrityViolationException("Violation"));
+
+        ResponseEntity<CommentDTO> response = commentService.getById(1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void getByPropertyId_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(new Property()));
+        when(commentRepository.findByPropertyId(1L)).thenThrow(new DataIntegrityViolationException("Violation"));
+
+        ResponseEntity<List<CommentDTO>> response = commentService.getByPropertyId(1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 }
 

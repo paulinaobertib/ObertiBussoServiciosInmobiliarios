@@ -202,4 +202,49 @@ class SurveyServiceTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
+
+    @Test
+    void sendSurvey_shouldReturnBadRequest_whenDataIntegrityViolationException() throws MessagingException {
+        doThrow(new DataIntegrityViolationException("Violation"))
+                .when(emailService).sendEmailSurvey(anyString(), anyLong());
+
+        ResponseEntity<String> response = surveyService.sendSurvey("test@mail.com", 1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void create_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        SurveyDTO surveyDTO = new SurveyDTO(null, 5, "Comentario", 1L);
+        Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+        doThrow(new DataIntegrityViolationException("Violation"))
+                .when(surveyRepository).save(any(Survey.class));
+
+        ResponseEntity<String> response = surveyService.create(surveyDTO);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getById_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        when(surveyRepository.findById(1L))
+                .thenThrow(new DataIntegrityViolationException("Violation"));
+
+        ResponseEntity<SurveyDTO> response = surveyService.getById(1L);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void getAll_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+        when(surveyRepository.findAll())
+                .thenThrow(new DataIntegrityViolationException("Violation"));
+
+        ResponseEntity<List<SurveyDTO>> response = surveyService.getAll();
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 }
