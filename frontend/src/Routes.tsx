@@ -6,6 +6,9 @@ import CreatePropertyPage from './pages/CreatePropertyPage';
 import EditPropertyPage from './pages/EditPropertyPage';
 import Compare from './pages/ComparePage'
 import PropertyDetailsPage from './pages/PropertyDetailsPage';
+import AdministratorPanel from './pages/AdministratorPanel';
+import PropertyCommentsPage from './pages/PropertyCommentsPage';
+import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 
 export default function Routes() {
     return (
@@ -15,6 +18,9 @@ export default function Routes() {
             <Route path={ROUTES.EDIT_PROPERTY} element={<EditPropertyPage />} />
             <Route path={ROUTES.COMPARE} element={<Compare />} />
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
+            <Route path={ROUTES.ADMIN_PANEL} element={<AdministratorPanel />} />
+            <Route path={ROUTES.PROPERTY_COMMENTS} element={<PropertyCommentsPage />} />
+            <Route path={ROUTES.PROPERTY_MAINTENANCE} element={<PropertyMaintenancePage />} />
         </RoutesDom>
     );
 };

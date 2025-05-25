@@ -1,4 +1,4 @@
-import { Box, Typography, Chip, Button, Stack } from '@mui/material';
+import { Box, Typography, Chip, Button, Stack, IconButton } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -6,12 +6,15 @@ import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
-import { usePropertyCrud } from '../../context/PropertiesContext';
+import ModalItem from '../ModalItem';
+import { useState } from 'react';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface PropertyInfoProps {
   property: Property;
 }
 
+// Función para mostrar singular/plural o "-"
 const formatFeatureLabel = (
   value: number | null | undefined,
   singular: string,
@@ -22,11 +25,7 @@ const formatFeatureLabel = (
 };
 
 const PropertyInfo = ({ property }: PropertyInfoProps) => {
-  const { neighborhoodsList } = usePropertyCrud();
-
-  const neighborhood =
-    neighborhoodsList.find(n => n.id === property.neighborhoodId) || null;
-
+  const [statusModal, setStatusModal] = useState<null | { action: 'edit-status'; item: { id: number; status: string } }>(null);
 
   const features = [
     {
@@ -45,11 +44,12 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       label: property.area && property.area > 0 ? `${property.area} m²` : '-',
       icon: <SquareFootIcon color="primary" />,
     },
-  ].filter((feature) => feature.label !== '-');
+  ].filter((feature) => feature.label !== '-'); // Filtra características no válidas
 
 
   return (
     <Stack spacing={3}>
+      {/* Título y ubicación */}
       <Box>
         <Box
           sx={{
@@ -63,25 +63,67 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
             {property.title}
           </Typography>
         </Box>
+
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <LocationOnIcon color="action" fontSize="small" sx={{ mr: 0.5 }} />
           <Typography variant="body1" color="text.secondary">
-            {neighborhood ? `${neighborhood.name}, ${neighborhood.city}` : 'Barrio desconocido'}
+            {property.street && property.neighborhood
+              ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
+              : 'Ubicación desconocida'}
           </Typography>
         </Box>
+
         <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
           {formatPrice(property.price, property.currency)}
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+
+        <Box
+          sx={{
+            display: 'flex',
+            //alignItems: 'center', 
+            gap: 1,
+            mb: 2,
+          }}
+        >
           <Chip
             label={property.operation}
-            size="small"
+            size="medium" 
             color="primary"
             variant="outlined"
+            sx={{
+              height: 32,  
+              fontSize: '0.875rem', 
+            }}
           />
-          <Chip label={property.status} size="small" color="default" />
+          <Chip
+            label={property.status}
+            size="medium"
+            color="default"
+            sx={{
+              height: 32,
+              fontSize: '0.875rem',
+            }}
+          />
+          <IconButton
+            size="small"
+            onClick={() =>
+              setStatusModal({
+                action: 'edit-status',
+                item: { id: property.id, status: property.status },
+              })
+            }
+            sx={{
+              alignSelf: 'center', // asegura que el botón esté centrado
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
         </Box>
-
+        {statusModal && <ModalItem
+          info={statusModal}
+          close={() => setStatusModal(null)}
+        />}
+        {/* Características */}
         {features.map((feature, index) => (
           <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
@@ -101,7 +143,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
             <Typography variant="body1">{feature.label}</Typography>
           </Box>
         ))}
-
+        {/* Descripción */}
         {property.description && (
           <Box>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>

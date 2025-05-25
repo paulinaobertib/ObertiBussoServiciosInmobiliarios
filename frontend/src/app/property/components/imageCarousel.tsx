@@ -10,7 +10,6 @@ import logo from '../../../assets/logoJPG.png';
 
 const carouselImages = [carrusel1, carrusel2, carrusel3];
 
-
 const sliderSettings = {
   dots: true,
   infinite: true,

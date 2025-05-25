@@ -9,7 +9,6 @@ import PropertyCatalog from '../app/property/components/PropertyCatalog';
 import FloatingButtons from '../app/property/components/FloatingButtons';
 
 import { getAllProperties } from '../app/property/services/property.service';
-// import { useComparison } from '../app/property/context/ComparisonContext';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
