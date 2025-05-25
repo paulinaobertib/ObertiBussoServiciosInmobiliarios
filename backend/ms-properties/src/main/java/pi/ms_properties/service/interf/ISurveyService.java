@@ -1,10 +1,8 @@
 package pi.ms_properties.service.interf;
 
 import org.springframework.http.ResponseEntity;
-import pi.ms_properties.domain.Survey;
 import pi.ms_properties.dto.SurveyDTO;
 
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;

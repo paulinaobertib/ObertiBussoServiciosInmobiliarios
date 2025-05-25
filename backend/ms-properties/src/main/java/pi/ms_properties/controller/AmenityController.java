@@ -43,9 +43,4 @@ public class AmenityController {
     public ResponseEntity<Amenity> getById(@PathVariable Long id) {
         return amenityService.getById(id);
     }
-
-    @GetMapping("/getByName")
-    public ResponseEntity<Amenity> getByName(@RequestParam String name) {
-        return amenityService.getByName(name);
-    }
 }

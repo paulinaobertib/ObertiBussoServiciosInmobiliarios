@@ -3,13 +3,14 @@ package pi.ms_properties.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class PropertySaveDTO {
     private String title;
     private String street;

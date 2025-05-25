@@ -98,14 +98,4 @@ public class AmenityService implements IAmenityService {
             return ResponseEntity.internalServerError().build();
         }
     }
-
-    @Override
-    public ResponseEntity<Amenity> getByName(String name) {
-        try {
-            Optional<Amenity> amenity = amenityRepository.findByName(name);
-            return amenity.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
 }

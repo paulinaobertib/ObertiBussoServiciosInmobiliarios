@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "Owner")
 public class Owner {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

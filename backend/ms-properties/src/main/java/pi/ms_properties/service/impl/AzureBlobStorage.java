@@ -5,16 +5,10 @@ import com.azure.storage.blob.BlobContainerClient;
 
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.models.BlobStorageException;
-import com.azure.storage.blob.sas.BlobSasPermission;
-import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
-import com.azure.storage.common.sas.SasProtocol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Storage;
 import pi.ms_properties.service.interf.IAzureBlobStorage;
-
-import java.time.Duration;
-import java.time.OffsetDateTime;
 
 // hacemos el servicio de blob
 // el servicio de image se va a comunicar con este

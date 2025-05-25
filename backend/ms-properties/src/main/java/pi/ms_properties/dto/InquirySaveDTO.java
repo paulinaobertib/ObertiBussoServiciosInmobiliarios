@@ -1,12 +1,15 @@
 package pi.ms_properties.dto;
 
+import jdk.jfr.Name;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class InquirySaveDTO {
     private Long id;
     private String userId;
