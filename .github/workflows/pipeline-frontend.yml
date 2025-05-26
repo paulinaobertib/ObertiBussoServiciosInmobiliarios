@@ -140,7 +140,7 @@ jobs:
         run: |
           VITE_API_URL_DEV="https://$PROPERTIES_HOSTNAME/api"
           HOSTNAME=${{ steps.swa-host.outputs.hostname }}
-          BASE_URL_DEV="https://$HOSTNAME"
+          BASE_URL_DEV="https://$PROPERTIES_HOSTNAME"
           VITE_BASE_URL_DEV=${BASE_URL_DEV//\//\\/}
 
           echo "API_URL  → $VITE_API_URL_DEV"
