@@ -114,7 +114,7 @@ jobs:
              -n ${{ vars.SWA_FRONTEND_DEV }} \
              --query defaultHostname -o tsv)
           echo "🔖 Frontend FQDN: $FQDN"
-          echo "FRONTEND_HOSTNAME=$HOST" >> $GITHUB_OUTPUT
+          echo "hostname=$FQDN" >> $GITHUB_OUTPUT
 
       - name: Fetch FQDNs from API
         uses: azure/cli@v1
@@ -135,13 +135,21 @@ jobs:
             echo "🔖 Users FQDN: $FQDN"
             echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
 
+            FQDN=$(az staticwebapp show \
+              -g ${{ env.AZURE_RESOURCE_GROUP }} \
+              -n "${{ vars.SWA_FRONTEND_DEV }}" \
+              --query defaultHostname -o tsv)
+            echo "🔖 Frontend FQDN: $FQDN"
+            echo "FRONTEND_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
       - name: Insert DEV URLs
         shell: bash
         run: |
-          VITE_API_URL_DEV="https://$PROPERTIES_HOSTNAME/api"
-          HOSTNAME=${{ steps.swa-host.outputs.hostname }}
-          BASE_URL_DEV="https://$HOSTNAME"
-          VITE_BASE_URL_DEV=${BASE_URL_DEV//\//\\/}
+          URL="https://${PROPERTIES_HOSTNAME}/api"
+          VITE_API_URL_DEV=${URL//\//\\/}
+
+          URL="https://${FRONTEND_HOSTNAME}"
+          VITE_API_URL_DEV=${URL//\//\\/}
 
           echo "API URL: $VITE_API_URL_DEV"
           echo "BASE URL: $VITE_BASE_URL_DEV"
