@@ -138,9 +138,9 @@ jobs:
       - name: Insert DEV URLs
         shell: bash
         run: |
-          VITE_API_URL_DEV="https://$PROPERTIES_HOSTNAME/api"
+          VITE_API_URL_DEV="https://$FRONTEND_HOSTNAME/api"
           HOSTNAME=${{ steps.swa-host.outputs.hostname }}
-          BASE_URL_DEV="https://$PROPERTIES_HOSTNAME"
+          BASE_URL_DEV="https://$FRONTEND_HOSTNAME"
           VITE_BASE_URL_DEV=${BASE_URL_DEV//\//\\/}
 
           echo "API_URL  → $VITE_API_URL_DEV"
