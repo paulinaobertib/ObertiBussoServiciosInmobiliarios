@@ -22,9 +22,9 @@ env:
 
   # Utils
   VITE_API_URL_DEV: "https://${{ vars.ACA_PROPERTIES_DEV }}/api"
-  VITE_BASE_URL_DEV: "https://${SWA_FRONTEND_DEV}.azurestaticapps.net"
+  VITE_BASE_URL_DEV: "https://${{ vars.SWA_FRONTEND_DEV }}.azurestaticapps.net"
   VITE_API_URL_PROD: "https://${{ vars.ACA_PROPERTIES_PROD }}/api"
-  VITE_BASE_URL_PROD: "https://${SWA_FRONTEND_PROD}.azurestaticapps.net"
+  VITE_BASE_URL_PROD: "https://${{ vars.SWA_FRONTEND_PROD }}.azurestaticapps.net"
 
 jobs:
   build:
@@ -125,11 +125,10 @@ jobs:
             --name "$SWA_FRONTEND_DEV" \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --query properties.apiKey -o tsv)
-          swa deploy \
+          swa deploy frontend/dist \
             --app-name "$SWA_FRONTEND_DEV" \
             --env production \
-            --source frontend/dist \
-            --deployment-token $DEPLOY_TOKEN
+            --deployment-token "$DEPLOY_TOKEN"
 
       - name: Health Check
         run: |
