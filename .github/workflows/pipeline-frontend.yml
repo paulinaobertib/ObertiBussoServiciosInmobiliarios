@@ -21,10 +21,10 @@ env:
   SWA_FRONTEND_PROD: ${{ vars.SWA_FRONTEND_PROD }}
 
   # Utils
-  VITE_API_URL_DEV: "https://${{ vars.ACA_PROPERTIES_DEV }}/api"
-  VITE_BASE_URL_DEV: "https://${{ vars.SWA_FRONTEND_DEV }}.azurestaticapps.net"
-  VITE_API_URL_PROD: "https://${{ vars.ACA_PROPERTIES_PROD }}/api"
-  VITE_BASE_URL_PROD: "https://${{ vars.SWA_FRONTEND_PROD }}.azurestaticapps.net"
+  API_URL_DEV: "https://${{ vars.ACA_PROPERTIES_DEV }}/api"
+  BASE_URL_DEV: "https://${{ vars.SWA_FRONTEND_DEV }}.azurestaticapps.net"
+  API_URL_PROD: "https://${{ vars.ACA_PROPERTIES_PROD }}/api"
+  BASE_URL_PROD: "https://${{ vars.SWA_FRONTEND_PROD }}.azurestaticapps.net"
 
 jobs:
   build:
@@ -97,7 +97,7 @@ jobs:
             echo "🚀 Creating $SWA_FRONTEND_DEV..."
             az staticwebapp create \
               -g "$AZURE_RESOURCE_GROUP" \
-              -n "$SWA_FRONTEND_DEV" \
+              -n "${{ vars.SWA_FRONTEND_DEV }}" \
               --location "$SWA_LOCATION" \
               --app-location frontend \
               --output-location frontend/dist \
@@ -106,11 +106,26 @@ jobs:
             echo "✏️ $SWA_FRONTEND_DEV already exists."
           fi
 
+      - name: Get default host
+        id: swa-host
+        run: |
+          HOST=$(az staticwebapp show \
+                   -n "$SWA_FRONTEND_DEV" \
+                   -g "$AZURE_RESOURCE_GROUP" \
+                   --query defaultHostname -o tsv)
+          echo "hostname=$HOST" >> $GITHUB_OUTPUT
+
       - name: Insert DEV URLs
         shell: bash
         run: |
-          echo "API_URL → $VITE_API_URL_DEV"
+          VITE_API_URL_DEV=${API_URL_DEV//\//\\/}
+          HOSTNAME=${{ steps.swa-host.outputs.hostname }}
+          BASE_URL_DEV="https://$HOSTNAME"
+          VITE_BASE_URL_DEV=${BASE_URL_DEV//\//\\/}
+
+          echo "API_URL  → $VITE_API_URL_DEV"
           echo "BASE_URL → $VITE_BASE_URL_DEV"
+
           find frontend/dist -type f -name '*.js' -exec \
             sed -i "s#__API_URL_PLACEHOLDER__#$VITE_API_URL_DEV#g"   {} +
           find frontend/dist -type f -name '*.js' -exec \
