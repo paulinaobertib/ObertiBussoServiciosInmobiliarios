@@ -36,7 +36,6 @@ jobs:
   build-and-push:
     name: Build · Test · Docker
     runs-on: ubuntu-latest
-    environment: development
 
     outputs:
       tag: ${{ steps.build-image.outputs.tag }}
