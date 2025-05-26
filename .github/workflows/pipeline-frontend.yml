@@ -115,10 +115,29 @@ jobs:
                    --query defaultHostname -o tsv)
           echo "hostname=$HOST" >> $GITHUB_OUTPUT
 
+      - name: Fetch FQDNs
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            # FQDN=$(az containerapp show \
+            #   -g ${{ env.AZURE_RESOURCE_GROUP }} \
+            #   -n ${{ vars.ACA_PROPERTIES_DEV }} \
+            #   --query properties.configuration.ingress.fqdn -o tsv)
+            # echo "🔖 Properties FQDN: $FQDN"
+            # echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
+            # FQDN=$(az containerapp show \
+            #   -g ${{ env.AZURE_RESOURCE_GROUP }} \
+            #   -n ${{ vars.ACA_USERS_DEV }} \
+            #   --query properties.configuration.ingress.fqdn -o tsv)
+            # echo "🔖 Users FQDN: $FQDN"
+            # echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
+
       - name: Insert DEV URLs
         shell: bash
         run: |
-          VITE_API_URL_DEV=${API_URL_DEV//\//\\/}
+          VITE_API_URL_DEV="https://$PROPERTIES_HOSTNAME/api"
           HOSTNAME=${{ steps.swa-host.outputs.hostname }}
           BASE_URL_DEV="https://$HOSTNAME"
           VITE_BASE_URL_DEV=${BASE_URL_DEV//\//\\/}
