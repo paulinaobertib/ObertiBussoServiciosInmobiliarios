@@ -2,9 +2,9 @@ name: CI/CD - Keycloak
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -37,7 +37,6 @@ jobs:
   build-and-push:
     name: Build · Test · Docker
     runs-on: ubuntu-latest
-    environment: development
 
     outputs:
       tag: ${{ steps.build-image.outputs.tag }}
