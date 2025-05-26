@@ -166,7 +166,7 @@ jobs:
 
       - name: Health Check
         run: |
-          URL="https://$SWA_FRONTEND_DEV.azurestaticapps.net"
+          URL="https://$HOSTNAME"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl --silent --show-error --fail \
