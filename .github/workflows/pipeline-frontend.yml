@@ -106,19 +106,21 @@ jobs:
             echo "✏️ $SWA_FRONTEND_DEV already exists."
           fi
 
-      - name: Fetch FQDNs
+      - name: Fetch FQDN from Frontend
+        id: swa-host
+        run: |
+          FQDN=$(az staticwebapp show \
+             -g ${{ env.AZURE_RESOURCE_GROUP }}\
+             -n ${{ vars.SWA_FRONTEND_DEV }} \
+             --query defaultHostname -o tsv)
+          echo "🔖 Frontend FQDN: $FQDN"
+          echo "FRONTEND_HOSTNAME=$HOST" >> $GITHUB_OUTPUT
+
+      - name: Fetch FQDNs from API
         uses: azure/cli@v1
         with:
           azcliversion: latest
           inlineScript: |
-
-            FQDN=$(az staticwebapp show \
-                     -g ${{ env.AZURE_RESOURCE_GROUP }}\
-                     -n ${{ vars.SWA_FRONTEND_DEV }} \
-                     --query defaultHostname -o tsv)
-            echo "🔖 Frontend FQDN: $FQDN"
-            echo "FRONTEND_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
             FQDN=$(az containerapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
               -n ${{ vars.ACA_PROPERTIES_DEV }} \
