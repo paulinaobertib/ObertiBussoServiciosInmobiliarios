@@ -1,0 +1,154 @@
+name: CI/CD - Frontend
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/pipeline
+
+# --------------------------------------------------------------
+# VARIABLES GLOBALES
+# --------------------------------------------------------------
+env:
+  # Azure
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+  # Properties-specific
+  SWA_LOCATION: westus2
+
+  # Utils
+  VITE_API_URL_DEV: "https://${{ vars.ACA_PROPERTIES_DEV }}/api"
+  VITE_BASE_URL_DEV: "https://${{ vars.SWA_FRONTEND_DEV }}.azurestaticapps.net"
+  VITE_API_URL_PROD: "https://${{ vars.ACA_PROPERTIES_PROD }}/api"
+  VITE_BASE_URL_PROD: "https://${{ vars.SWA_FRONTEND_PROD }}.azurestaticapps.net"
+
+jobs:
+  build:
+    name: Build · Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
+
+      # - name: Run Unit Tests
+      #   working-directory: ./frontend
+      #   run: npm test # Ajusta este comando según tu script de pruebas definido en package.json
+
+      # - name: Upload test report (opcional)
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: test-report
+      #     path: frontend/test-results # Ajusta ruta si tus tests generan reportes en otro directorio
+
+      - name: Build
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: "__API_URL_PLACEHOLDER__"
+          VITE_BASE_URL: "__BASE_URL_PLACEHOLDER__"
+          CI: "true"
+        run: npm run build -- --mode production
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  deploy:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - name: Ensure Static Web App Exists
+        run: |
+          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_FRONTEND_DEV" &>/dev/null; then
+            echo "🚀 Creating $SWA_FRONTEND_DEV..."
+            az staticwebapp create \
+              -g "$AZURE_RESOURCE_GROUP" \
+              -n "$SWA_FRONTEND_DEV" \
+              --location "$SWA_LOCATION" \
+              --app-location frontend \
+              --output-location frontend/dist \
+              --sku Free
+          else
+            echo "✏️ $SWA_FRONTEND_DEV already exists."
+            az staticwebapp update \
+              --name "$SWA_FRONTEND_DEV" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --sku Free
+          fi
+
+      - name: Insert DEV URLs
+        shell: bash
+        run: |
+          echo "API_URL → $VITE_API_URL_DEV"
+          echo "BASE_URL → $VITE_BASE_URL_DEV"
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__API_URL_PLACEHOLDER__#$VITE_API_URL_DEV#g"   {} +
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__BASE_URL_PLACEHOLDER__#$VITE_BASE_URL_DEV#g" {} +
+
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli@latest
+
+      - name: Deploy to SWA
+        run: |
+          DEPLOY_TOKEN=$(az staticwebapp secrets list \
+            --name "$SWA_FRONTEND_DEV" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --query properties.apiKey -o tsv)
+          swa deploy \
+            --app-name "$SWA_FRONTEND_DEV" \
+            --env production \
+            --source frontend/dist \
+            --deployment-token $DEPLOY_TOKEN
+
+      - name: Health Check
+        run: |
+          URL="https://$SWA_FRONTEND_DEV.azurestaticapps.net"
+          echo "🩺 Checking health at $URL"
+          for i in $(seq 1 10); do
+            HTTP=$(curl --silent --show-error --fail \
+                         --connect-timeout 10 \
+                         --max-time 20 \
+                         -w "%{http_code}" \
+                         -o /dev/null \
+                         $URL) || true
+            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
+              echo "✅ MS Users is healthy (status $HTTP)"
+              exit 0
+            fi
+            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
+            sleep 10
+          done
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
