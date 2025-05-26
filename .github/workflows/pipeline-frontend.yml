@@ -17,12 +17,14 @@ env:
 
   # Properties-specific
   SWA_LOCATION: westus2
+  SWA_FRONTEND_DEV: ${{ vars.SWA_FRONTEND_DEV }}
+  SWA_FRONTEND_PROD: ${{ vars.SWA_FRONTEND_PROD }}
 
   # Utils
   VITE_API_URL_DEV: "https://${{ vars.ACA_PROPERTIES_DEV }}/api"
-  VITE_BASE_URL_DEV: "https://${{ vars.SWA_FRONTEND_DEV }}.azurestaticapps.net"
+  VITE_BASE_URL_DEV: "https://${SWA_FRONTEND_DEV}.azurestaticapps.net"
   VITE_API_URL_PROD: "https://${{ vars.ACA_PROPERTIES_PROD }}/api"
-  VITE_BASE_URL_PROD: "https://${{ vars.SWA_FRONTEND_PROD }}.azurestaticapps.net"
+  VITE_BASE_URL_PROD: "https://${SWA_FRONTEND_PROD}.azurestaticapps.net"
 
 jobs:
   build:
@@ -37,7 +39,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "22"
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
@@ -102,10 +104,6 @@ jobs:
               --sku Free
           else
             echo "✏️ $SWA_FRONTEND_DEV already exists."
-            az staticwebapp update \
-              --name "$SWA_FRONTEND_DEV" \
-              --resource-group "$AZURE_RESOURCE_GROUP" \
-              --sku Free
           fi
 
       - name: Insert DEV URLs
