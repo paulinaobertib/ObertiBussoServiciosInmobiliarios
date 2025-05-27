@@ -1,6 +1,5 @@
 package pi.ms_users.service.impl;
 
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -69,7 +68,7 @@ public class UserService {
 
         } catch (ClientErrorException e) {
             int status = e.getResponse().getStatus();
-            String errorBody = "";
+            String errorBody;
             try {
                 errorBody = e.getResponse().readEntity(String.class);
             } catch (Exception ex) {
