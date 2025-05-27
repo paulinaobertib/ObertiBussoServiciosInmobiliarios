@@ -141,15 +141,17 @@ jobs:
             fi
 
       # 4️⃣ Exportar la definición a YAML
-      - name: Export Container App YAML
+      - name: Export Container App template to YAML
         uses: azure/cli@v1
         with:
+          azcliversion: latest
           inlineScript: |
             az containerapp show \
               --name $ACA_KEYCLOAK_DEV \
               --resource-group $AZURE_RESOURCE_GROUP \
+              --query properties.template \
               -o yaml > app.yaml
-            echo "📝 app.yaml exportado."
+            echo "📝 Sólo properties.template exportado a app.yaml."
   
       # 5️⃣ Inyectar volumen y mount con yq
       - name: Inject AzureFile volume & mount
