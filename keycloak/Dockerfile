@@ -13,8 +13,6 @@ ENV KC_PROXY_HEADERS=xforwarded
 ENV KC_DB=h2
 ENV KC_DB_URL=jdbc:h2:/opt/keycloak/data/h2/keycloakdb
 
-ENV KEYCLOAK_ADMIN=admin
-ENV KEYCLOAK_ADMIN_PASSWORD=admin
 
 VOLUME ["/opt/keycloak/data", "/opt/keycloak/data/import"]
 
