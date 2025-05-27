@@ -7,7 +7,7 @@ ENV KC_HEALTH_ENABLED=true \
     KC_HTTP_PORT=8080 \
     KC_PROXY=edge \
     KC_DB=dev-file \
-    KC_SPI_DBLOCK_DEFAULT=noop \
+    KC_SPI_DB_LOCK_DEFAULT=noop \
     KC_CACHE=local \
     KC_DB_URL=jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE
 
