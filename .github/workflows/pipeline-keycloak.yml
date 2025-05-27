@@ -155,31 +155,19 @@ jobs:
       - name: Inject AzureFile volume & mount
         run: |
           set -e
+          # Instala yq si falta
           if ! command -v yq >/dev/null; then
             sudo wget -qO /usr/local/bin/yq \
               https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64
             sudo chmod +x /usr/local/bin/yq
-          fi
-  
-          VOL=${{ env.FILE_VOLUME_NAME }}
-          
-          yq -i '
-            .template.spec.volumes +=
-              [{"name":env(VOL),"storageType":"AzureFile","storageName":env(VOL)}] |
-            .template.spec.containers[0].volumeMounts +=
-              [{"name":env(VOL),"mountPath":"/opt/keycloak/data"}]
-          ' app.yaml
-  
-          # Mount
-          yq eval '
-            .template.spec.containers[0].volumeMounts |=
-            ( . // [] ) |
-            ( map(select(.name == "'"$VOL"'")) | length ) == 0
-            then . + [{"name":"'"$VOL"'","mountPath":"/opt/keycloak/data"}]
-            else .
-          ' -i app.yaml
-  
-          echo "✅ Volumen y mount listos."
+          fi    
+          # Usa la variable de entorno provista por GitHub Actions
+          VOL=${{ env.FILE_VOLUME_NAME }}    
+          # 1) Añadir el AzureFile volume
+          yq -i '.template.spec.volumes += [{"name":"'"$VOL"'","storageType":"AzureFile","storageName":"'"$VOL"'"}]' app.yaml    
+          # 2) Añadir el volumeMount en /opt/keycloak/data
+          yq -i '.template.spec.containers[0].volumeMounts += [{"name":"'"$VOL"'","mountPath":"/opt/keycloak/data"}]' app.yaml    
+          echo "✅ Volumen y mount inyectados en app.yaml."
   
       # 6️⃣ Aplicar el YAML modificado
       - name: Apply YAML to Container App
