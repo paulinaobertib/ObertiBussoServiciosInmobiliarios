@@ -60,14 +60,20 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
                 </Grid>
                 <Grid size={6}><TextField disabled={action === 'delete'} fullWidth label="Ciudad" value={form.city} onChange={set('city')} /></Grid>
                 <Grid size={12}>
-                    <FormControl fullWidth
+                    <FormControl fullWidth>
+                    <InputLabel id="neighborhood-type-label">Tipo</InputLabel>
+                    <Select
+                        labelId="neighborhood-type-label"  // <-- agregar este
+                        id="neighborhood-type"             // <-- agregar este
+                        disabled={action === 'delete'}
+                        value={form.type}
+                        label="Tipo"
+                        onChange={set('type')}
                     >
-                        <InputLabel>Tipo</InputLabel>
-                        <Select disabled={action === 'delete'} value={form.type} label="Tipo" onChange={set('type')}>
-                            <MenuItem value={NeighborhoodType.CERRADO}>Cerrado</MenuItem>
-                            <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi cerrado</MenuItem>
-                            <MenuItem value={NeighborhoodType.ABIERTO}>Abierto</MenuItem>
-                        </Select>
+                        <MenuItem value={NeighborhoodType.CERRADO}>Cerrado</MenuItem>
+                        <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi cerrado</MenuItem>
+                        <MenuItem value={NeighborhoodType.ABIERTO}>Abierto</MenuItem>
+                    </Select>
                     </FormControl>
                 </Grid>
             </Grid>

@@ -223,8 +223,9 @@ function PropertyCatalog({
                       fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
                     }}
                   >
-                    ${property.price?.toLocaleString('es-AR') ?? '0'}{' '}
-                    {property.currency}
+                    {property.showPrice
+                      ? `$${property.price.toLocaleString('es-AR')} ${property.currency}`
+                      : 'Consultar precio'}
                   </Typography>
                 </CardContent>
 
