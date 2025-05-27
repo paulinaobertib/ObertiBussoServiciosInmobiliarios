@@ -22,6 +22,10 @@ export default function PropertyMaintenancePage() {
         pickedItem, pickItem, refreshMaintenances,
     } = usePropertyCrud();
 
+    const handleBack = () => {
+        navigate('/panel'); 
+    };
+
     const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; formKey?: string; item?: any } | null>(null);
 
     useEffect(() => {
@@ -38,7 +42,12 @@ export default function PropertyMaintenancePage() {
     }, [propertyId, pickedItem, pickItem, navigate]);
 
     return (
-        <BasePage>
+        <BasePage maxWidth={false}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
+                <Button variant="contained" color="primary" onClick={handleBack}>
+                    VOLVER
+                </Button>
+            </Box>
             <Box sx={{
                 height: '100%',
                 display: 'flex',
@@ -48,7 +57,7 @@ export default function PropertyMaintenancePage() {
 
                 <Box sx={{
                     px: 3,
-                    py: 2,
+                    py: 3,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
