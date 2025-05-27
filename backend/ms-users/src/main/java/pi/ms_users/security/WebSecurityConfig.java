@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.Locale;
+
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 public class WebSecurityConfig {
@@ -23,6 +25,10 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/appointments/create").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "notices/getById/{id}",
+                                "notices/getAll",
+                                "notices/search").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
