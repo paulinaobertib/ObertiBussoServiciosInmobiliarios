@@ -79,13 +79,6 @@ jobs:
           creds: ${{ env.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
-      - name: Install Container Apps extension
-        uses: azure/cli@v1
-        with: 
-          azcliversion: latest
-          inlineScript: |
-            az extension add --name containerapp --upgrade
-
       - name: Ensure Azure File Share is registered in ACA Environment
         uses: azure/cli@v1
         with:
@@ -97,10 +90,12 @@ jobs:
             SHARE=${{ env.AZURE_FILE_SHARE }}
             VOL_NAME=${{ env.FILE_VOLUME_NAME }}
 
+            az extension add --name containerapp --upgrade
+
             COUNT=$(az containerapp env storage list \
               --resource-group $RG \
               --name $ENV \
-              --query "[?storageName=='$VOL_NAME'] | length(@)" -o tsv)
+              --query "[?name=='$VOL_NAME'] | length(@)" -o tsv)
 
             if [ "$COUNT" -eq "0" ]; then
               echo "🚀 Registrando Azure File Share '$SHARE' como volumen '$VOL_NAME'..."
@@ -201,6 +196,8 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
 
+            az extension add --name containerapp --upgrade
+            
             echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
             az containerapp update \
               --name $ACA_KEYCLOAK_DEV \
