@@ -29,7 +29,7 @@ import { SearchParams } from '../types/searchParams';
 
 export type Category = 'amenity' | 'owner' | 'type' | 'neighborhood';
 /* ---------- selección GENÉRICA ---------- */
-type Picked =
+export type Picked =
   | { type: 'category'; value: Category | null }
   | { type: 'property'; value: Property | null }
   | { type: 'maintenance'; value: Maintenance | null }

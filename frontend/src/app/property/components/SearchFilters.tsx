@@ -127,12 +127,26 @@ export default function SearchFilters({ onSearch }: Props) {
       financing: params.financing ? true : undefined,
     };
 
-    const sp = buildSearchParams(filters);
+    // Si rooms es 3, borramos rooms del filtro para no limitar backend a solo 3 ambientes
+    if (params.rooms === 3) {
+      delete filters.rooms;
+    } else if (params.rooms && params.rooms > 0) {
+      filters.rooms = params.rooms;
+    }
 
+    const sp = buildSearchParams(filters);
     console.log("Filtros a enviar:", sp);
 
     const res = await getPropertiesByFilters(sp as SearchParams);
-    onSearch(res);
+
+    // Ahora filtro local para +3 ambientes
+    let filteredResults = res;
+    if (params.rooms === 3) {
+      filteredResults = res.filter(p => Number(p.rooms) >= 3);
+    }
+
+    onSearch(filteredResults);
+
   };
 
   const handleCancel = async () => {
@@ -176,7 +190,7 @@ export default function SearchFilters({ onSearch }: Props) {
 
   const anyOption = (
     <MenuItem key="any" value="">
-      Cualquiera
+      Todos
     </MenuItem>
   );
 
@@ -202,8 +216,11 @@ export default function SearchFilters({ onSearch }: Props) {
         <Collapse in={openFilters} timeout="auto" unmountOnExit sx={{ p: 1 }}>
 
           <FormControl fullWidth size="small">
-            <InputLabel>Operación</InputLabel>
+            <InputLabel id="operation-select-label">Operación</InputLabel>
             <Select
+              labelId="operation-select-label" 
+              id="operation-select"  
+              data-testid="operation-select"
               value={params.operation || ''}
               label="Operación"
               onChange={handleSelect('operation')}
@@ -216,7 +233,7 @@ export default function SearchFilters({ onSearch }: Props) {
               ))}
             </Select>
           </FormControl>
-
+          
           <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 2 }}>
             {params.operation === 'VENTA' && (
               <>
@@ -298,15 +315,17 @@ export default function SearchFilters({ onSearch }: Props) {
                 {anyOption}
                 {countOptions.map((n) => (
                   <MenuItem key={n} value={n.toString()}>
-                    {n === 0 ? 'Cualquiera' : n < 3 ? `${n}` : '3+'}
+                    {n === 0 ? 'Todos' : n < 3 ? `${n}` : '+3'}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
 
             <FormControl fullWidth size="small">
-              <InputLabel>Ciudad</InputLabel>
+              <InputLabel id="city-select-label">Ciudad</InputLabel>
               <Select
+                labelId="city-select-label"
+                id="city-select"
                 value={params.city || ''}
                 label="Ciudad"
                 onChange={e => {
@@ -314,13 +333,9 @@ export default function SearchFilters({ onSearch }: Props) {
                   setParams(p => ({ ...p, city }));
                 }}
               >
-                <MenuItem value="">
-                  Cualquiera
-                </MenuItem>
+                <MenuItem value="">Todos</MenuItem>
                 {cities.map(c => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
+                  <MenuItem key={c} value={c}>{c}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -358,18 +373,20 @@ export default function SearchFilters({ onSearch }: Props) {
             </FormControl>
 
             <FormControl fullWidth size="small">
-              <InputLabel>Servicios</InputLabel>
+              <InputLabel id="amenities-select-label">Características</InputLabel>
               <Select
+                labelId="amenities-select-label"
+                id="amenities-select"
                 multiple
                 value={selected.amenities.map(a => a.toString())}
-                label="Servicios"
-                renderValue={vals =>
+                label="Características"
+                renderValue={(vals) =>
                   (vals as string[]).length === 0
-                    ? 'Cualquiera'
+                    ? 'Todos'
                     : (vals as string[])
-                      .map(v => amenitiesList.find(a => a.id === Number(v))?.name)
-                      .filter(Boolean)
-                      .join(', ')
+                        .map(v => amenitiesList.find(a => a.id === Number(v))?.name)
+                        .filter(Boolean)
+                        .join(', ')
                 }
                 onChange={e => {
                   const vals = (e.target.value as string[]).filter(v => v !== '');
@@ -378,14 +395,14 @@ export default function SearchFilters({ onSearch }: Props) {
               >
                 <MenuItem
                   value=""
-                  onMouseDown={event => {
+                  onMouseDown={(event) => {
                     event.preventDefault();
                     setSelected({ ...selected, amenities: [] });
                   }}
                 >
-                  Cualquiera
+                  Todos
                 </MenuItem>
-                {amenitiesList.map(a => (
+                {amenitiesList.map((a) => (
                   <MenuItem key={a.id} value={a.id.toString()}>
                     {a.name}
                   </MenuItem>
@@ -485,4 +502,3 @@ export default function SearchFilters({ onSearch }: Props) {
     </Card>
   );
 }
-
