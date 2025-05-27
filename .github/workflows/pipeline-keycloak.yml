@@ -104,7 +104,6 @@ jobs:
                 --registry-password $DOCKERHUB_TOKEN \
                 --cpu 2.5 --memory 5Gi \
                 --env-vars KC_DB=dev-file \
-                           KC_SPI_DBLOCK_PROVIDER=noop \
                            KC_CACHE=local \
                            KC_DB_URL='jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE' \
                            KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
@@ -165,7 +164,7 @@ jobs:
             sudo wget -qO /usr/local/bin/yq \
               https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64
             sudo chmod +x /usr/local/bin/yq
-          fi    
+          fi
           # Usa la variable de entorno provista por GitHub Actions
           VOL=${{ env.FILE_VOLUME_NAME }}    
           # 1) Añadir el AzureFile volume
@@ -215,7 +214,6 @@ jobs:
               --min-replicas 1 \
               --set-env-vars KC_HOSTNAME=$KEYCLOAK_HOSTNAME \
                              KC_DB=dev-file \
-                             KC_SPI_DBLOCK_PROVIDER=noop \
                              KC_CACHE=local \
                              KC_DB_URL='jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE' \
                              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
