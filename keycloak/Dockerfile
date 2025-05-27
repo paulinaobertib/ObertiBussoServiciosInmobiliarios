@@ -10,7 +10,7 @@ ENV KC_PROXY=edge
 ENV KC_HOSTNAME_STRICT=false
 ENV KC_PROXY_HEADERS=xforwarded
 
-ENV KC_DB=h2
+ENV KC_DB=dev-file
 ENV KC_DB_URL=jdbc:h2:/opt/keycloak/data/h2/keycloakdb
 
 
@@ -18,4 +18,4 @@ VOLUME ["/opt/keycloak/data", "/opt/keycloak/data/import"]
 
 EXPOSE 8080
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm", "--http-port=8080"]
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev", "--http-port=8080"]
