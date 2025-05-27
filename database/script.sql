@@ -149,13 +149,12 @@ CREATE TABLE Appointment (
     comment VARCHAR(250)
 );
 
-CREATE TABLE New (
+CREATE TABLE Notice (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(30) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
-    description VARCHAR(2000) NOT NULL,
-    image VARCHAR(255)
+    description VARCHAR(2000) NOT NULL
 );
 
 CREATE TABLE Inquiry (
