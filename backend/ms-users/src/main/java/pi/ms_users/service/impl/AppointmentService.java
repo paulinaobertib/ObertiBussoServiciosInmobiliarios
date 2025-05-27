@@ -29,7 +29,7 @@ public class AppointmentService implements IAppointmentService {
     @Override
     public ResponseEntity<Appointment> create(Appointment appointment) {
         try {
-            Optional<User> optionalUser = Optional.empty();
+            Optional<User> optionalUser;
             try {
                 optionalUser = userRepository.findById(appointment.getUserId());
             } catch (NotFoundException e) {
@@ -53,7 +53,6 @@ public class AppointmentService implements IAppointmentService {
 
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
