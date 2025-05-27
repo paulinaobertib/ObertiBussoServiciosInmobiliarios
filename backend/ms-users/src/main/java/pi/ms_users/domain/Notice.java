@@ -1,5 +1,6 @@
 package pi.ms_users.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class Notice {
     private String userId;
 
     @Column(name = "date", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime date;
 
     @Column(name = "title", nullable = false)
