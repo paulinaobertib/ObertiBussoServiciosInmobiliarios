@@ -55,6 +55,7 @@ export default function FloatingButtons({
             >
                 <div>
                     <Fab
+                        aria-label="Comparar propiedades"
                         color="primary"
                         disabled={disabledCompare}
                         onClick={onCompare}
@@ -67,6 +68,7 @@ export default function FloatingButtons({
             {/* FAB Selección */}
             <Tooltip title={selectionMode ? 'Cancelar selección' : 'Seleccionar'} arrow>
                 <Fab
+                    aria-label={selectionMode ? 'Cancelar selección' : 'Seleccionar'}
                     color={selectionMode ? 'secondary' : 'primary'}
                     onClick={toggleSelectionMode}
                     sx={{ width: size, height: size }}
@@ -103,6 +105,7 @@ export default function FloatingButtons({
                         <SpeedDialAction
                             key={a.name}
                             icon={a.icon}
+                            aria-label={a.name}
                             tooltipTitle={a.name}
                             onClick={() => onAction(a.action)}
                             FabProps={{
@@ -118,6 +121,6 @@ export default function FloatingButtons({
                     ))}
                 </SpeedDial>
             </Box>
-        </Box >
+        </Box>
     );
 }

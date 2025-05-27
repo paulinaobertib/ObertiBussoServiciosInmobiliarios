@@ -1,4 +1,3 @@
-// src/app/property/components/CategoryItems.tsx
 import {
   Box, CircularProgress, IconButton, Typography, Tooltip,
 } from '@mui/material';
@@ -160,6 +159,7 @@ export default function CategoryItems() {
                         {/* editar */}
                         <Tooltip title="Editar">
                           <IconButton
+                            aria-label="editar"
                             size="small"
                             onClick={() =>
                               navigate(buildRoute(ROUTES.EDIT_PROPERTY, { id: it.id }))}
@@ -171,6 +171,7 @@ export default function CategoryItems() {
 
                         <Tooltip title="Eliminar">
                           <IconButton
+                            aria-label="eliminar"
                             size="small"
                             onClick={() =>
                               ask(`¿Eliminar "${it.title}"?`, async () => {
@@ -188,6 +189,7 @@ export default function CategoryItems() {
 
                         <Tooltip title="Ver propiedad">
                           <IconButton
+                            aria-label="ver propiedad"
                             size="small"
                             onClick={() => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, { id: it.id }))}
                             sx={{ color: '#EF6C00' }}
@@ -205,10 +207,10 @@ export default function CategoryItems() {
                         return <Typography key={col.key}>{val}</Typography>;
                       })}
                       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
-                        <IconButton size="small" onClick={() => setModal({ action: 'edit', formKey: category, item: it })} sx={{ color: '#EF6C00' }}>
+                        <IconButton size="small" aria-label="editar" onClick={() => setModal({ action: 'edit', formKey: category, item: it })} sx={{ color: '#EF6C00' }}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" onClick={() => setModal({ action: 'delete', formKey: category, item: it })} sx={{ color: '#EF6C00' }}>
+                        <IconButton size="small" aria-label="eliminar" onClick={() => setModal({ action: 'delete', formKey: category, item: it })} sx={{ color: '#EF6C00' }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>

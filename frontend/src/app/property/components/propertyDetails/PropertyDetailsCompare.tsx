@@ -2,7 +2,7 @@ import { Box, Container, Typography, useMediaQuery, useTheme } from '@mui/materi
 import ImageCarousel from './PropertyCarousel';
 import PropertyInfoCompare from './PropertyInfoCompare';
 import { Property } from '../../types/property';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -144,6 +144,15 @@ export default function PropertyDetailsCompare({ comparisonItems }: PropertyDeta
                           : `${property.street} ${property.number}, Buenos Aires`}
                       </Popup>
                     </Marker>
+                    <Circle
+                      center={center}
+                      radius={300}
+                      pathOptions={{
+                        stroke: false,
+                        fillColor: '#1565c0',
+                        fillOpacity: 0.3,
+                      }}
+                    />
                   </MapContainer>
                 </Box>
               ) : (
