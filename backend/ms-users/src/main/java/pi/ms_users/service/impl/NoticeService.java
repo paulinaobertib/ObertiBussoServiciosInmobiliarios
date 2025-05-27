@@ -13,6 +13,7 @@ import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.INoticeService;
 import pi.ms_users.specification.NoticeSpecification;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ public class NoticeService implements INoticeService {
             }
             List<String> role = userRepository.getUserRoles(notice.getUserId());
             if (role.contains("app_admin")) {
+                notice.setDate(LocalDateTime.now());
                 noticeRepository.save(notice);
                 return ResponseEntity.ok("Se ha guardado la noticia");
             } else {
@@ -59,6 +61,7 @@ public class NoticeService implements INoticeService {
             }
             List<String> role = userRepository.getUserRoles(notice.getUserId());
             if (role.contains("app_admin")) {
+                notice.setDate(LocalDateTime.now());
                 noticeRepository.save(notice);
                 return ResponseEntity.ok("Se ha actualizado la noticia");
             } else {

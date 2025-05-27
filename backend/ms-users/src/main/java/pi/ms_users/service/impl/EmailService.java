@@ -1,6 +1,5 @@
 package pi.ms_users.service.impl;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +28,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando se crea un turno
-    public void sendAppointmentRequest(EmailDTO emailDTO) throws MessagingException {
+    public void sendAppointmentRequest(EmailDTO emailDTO) {
         try {
             Context context = new Context();
             context.setVariable("message", emailDTO.getDescription());
