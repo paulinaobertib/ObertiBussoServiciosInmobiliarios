@@ -162,15 +162,13 @@ jobs:
           fi
   
           VOL=${{ env.FILE_VOLUME_NAME }}
-  
-          # Volumen
-          yq eval '
-            .template.spec.volumes |=
-            ( . // [] ) |
-            ( map(select(.name == "'"$VOL"'")) | length ) == 0
-            then . + [{"name":"'"$VOL"'","storageType":"AzureFile","storageName":"'"$VOL"'"}]
-            else .
-          ' -i app.yaml
+          
+          yq -i '
+            .template.spec.volumes +=
+              [{"name":env(VOL),"storageType":"AzureFile","storageName":env(VOL)}] |
+            .template.spec.containers[0].volumeMounts +=
+              [{"name":env(VOL),"mountPath":"/opt/keycloak/data"}]
+          ' app.yaml
   
           # Mount
           yq eval '
