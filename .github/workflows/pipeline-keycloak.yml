@@ -81,7 +81,7 @@ jobs:
 
       - name: Install Container Apps extension
         uses: azure/cli@v1
-        with:
+        with: 
           azcliversion: latest
           inlineScript: |
             az extension add --name containerapp --upgrade
@@ -110,13 +110,13 @@ jobs:
                      --query '[0].value' -o tsv)
               az containerapp env storage set \
                 --resource-group $RG \
-                --name $ENV \
-                --storage-name $VOL_NAME \
-                --storage-type AzureFile \
-                --azure-file-account-name $ACCOUNT \
-                --azure-file-account-key $KEY \
-                --azure-file-share-name $SHARE \
-                --access-mode ReadWrite
+                --name               $ENV \
+                --storage-name       $VOL_NAME \
+                --access-mode        ReadWrite \
+                --azure-file-account-name  $ACCOUNT \
+                --azure-file-account-key   $KEY \
+                --azure-file-share-name    $SHARE
+
             else
               echo "✅ Volumen '$VOL_NAME' ya registrado en el Environment."
             fi
