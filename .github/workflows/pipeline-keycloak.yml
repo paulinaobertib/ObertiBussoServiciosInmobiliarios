@@ -15,6 +15,8 @@ env:
   ACA_ENVIRONMENT: ${{ secrets.ACA_ENVIRONMENT }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  AZURE_KEYCLOAK_ACCOUNT: storagekeycloak
+  AZURE_FILE_SHARE: keycloak-data
 
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -27,6 +29,7 @@ env:
   IMAGE_NAME: keycloak
   ACA_KEYCLOAK_DEV: ${{ vars.ACA_KEYCLOAK_DEV }}
   ACA_KEYCLOAK_PROD: ${{ vars.ACA_KEYCLOAK_PROD }}
+  FILE_VOLUME_NAME: keycloakstorage
   REALM_FILE_PATH: ./realm/realm-obertibussoserviciosinmobiliarios.json
   SERVICE_PORT: 8080
 
@@ -76,6 +79,48 @@ jobs:
           creds: ${{ env.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
+      - name: Install Container Apps extension
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az extension add --name containerapp --upgrade
+
+      - name: Ensure Azure File Share is registered in ACA Environment
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            RG=${{ env.AZURE_RESOURCE_GROUP }}
+            ENV=${{ env.ACA_ENVIRONMENT }}
+            ACCOUNT=${{ env.AZURE_KEYCLOAK_ACCOUNT }}
+            SHARE=${{ env.AZURE_FILE_SHARE }}
+            VOL_NAME=${{ env.FILE_VOLUME_NAME }}
+
+            COUNT=$(az containerapp env storage list \
+              --resource-group $RG \
+              --name $ENV \
+              --query "[?storageName=='$VOL_NAME'] | length(@)" -o tsv)
+
+            if [ "$COUNT" -eq "0" ]; then
+              echo "🚀 Registrando Azure File Share '$SHARE' como volumen '$VOL_NAME'..."
+              KEY=$(az storage account keys list \
+                     --resource-group $RG \
+                     --account-name $ACCOUNT \
+                     --query '[0].value' -o tsv)
+              az containerapp env storage set \
+                --resource-group $RG \
+                --name $ENV \
+                --storage-name $VOL_NAME \
+                --storage-type AzureFile \
+                --azure-file-account-name $ACCOUNT \
+                --azure-file-account-key $KEY \
+                --azure-file-share-name $SHARE \
+                --access-mode ReadWrite
+            else
+              echo "✅ Volumen '$VOL_NAME' ya registrado en el Environment."
+            fi
+
       - name: Ensure Container App Exists
         uses: azure/cli@v1
         with:
@@ -97,9 +142,15 @@ jobs:
                 --registry-server docker.io \
                 --registry-username $DOCKERHUB_USERNAME \
                 --registry-password $DOCKERHUB_TOKEN \
+                --azure-file-volume $FILE_VOLUME_NAME \
+                --azure-file-volume-mount-path /opt/keycloak/data \
                 --cpu 2.5 \
                 --memory 5Gi \
-                --env-vars KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+                --env-vars \
+                   KC_DB=dev-file \
+                   KC_DB_URL=jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb \
+                   KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
+                   KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
 
             else
               echo "✏️ $ACA_KEYCLOAK_DEV already exists."
@@ -156,8 +207,12 @@ jobs:
               --resource-group $AZURE_RESOURCE_GROUP \
               --image $IMAGE \
               --min-replicas 1 \
+              --azure-file-volume $FILE_VOLUME_NAME \
+              --azure-file-volume-mount-path /opt/keycloak/data \
               --set-env-vars \
-                KC_HOSTNAME=$KEYCLOAK_HOSTNAME
+                KC_DB=dev-file \
+                KC_DB_URL=jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb \
+                KC_HOSTNAME=$KEYCLOAK_HOSTNAME \
                 KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
                 KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
 
@@ -302,7 +357,7 @@ jobs:
               --image $IMAGE \
               --min-replicas 1 \
               --set-env-vars \
-                KC_HOSTNAME=$KEYCLOAK_HOSTNAME
+                KC_HOSTNAME=$KEYCLOAK_HOSTNAME \
                 KC_BOOTSTRAP_ADMIN_USERNAME="${{ secrets.KEYCLOAK_ADMIN }}" \
                 KC_BOOTSTRAP_ADMIN_PASSWORD="${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
 
