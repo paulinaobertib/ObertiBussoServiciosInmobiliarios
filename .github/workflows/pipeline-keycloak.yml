@@ -104,7 +104,7 @@ jobs:
                 --registry-password $DOCKERHUB_TOKEN \
                 --cpu 2.5 --memory 5Gi \
                 --env-vars KC_DB=dev-file \
-                           KC_SPI_DB_LOCK_DEFAULT_PROVIDER=noop \
+                           KC_SPI_DBLOCK_PROVIDER=noop \
                            KC_CACHE=local \
                            KC_DB_URL='jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE' \
                            KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
@@ -215,7 +215,7 @@ jobs:
               --min-replicas 1 \
               --set-env-vars KC_HOSTNAME=$KEYCLOAK_HOSTNAME \
                              KC_DB=dev-file \
-                             KC_SPI_DB_LOCK_DEFAULT_PROVIDER=noop \
+                             KC_SPI_DBLOCK_PROVIDER=noop \
                              KC_CACHE=local \
                              KC_DB_URL='jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE' \
                              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
