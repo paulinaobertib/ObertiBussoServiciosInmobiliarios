@@ -167,11 +167,10 @@ jobs:
             sudo chmod +x /usr/local/bin/yq
           fi
           # Usa la variable de entorno provista por GitHub Actions
-          VOL=${{ env.FILE_VOLUME_NAME }}    
-          # 1) Añadir el AzureFile volume
-          yq -i '.template.spec.volumes += [{"name":"'"$VOL"'","storageType":"AzureFile","storageName":"'"$VOL"'"}]' app.yaml    
-          # 2) Añadir el volumeMount en /opt/keycloak/data
-          yq -i '.template.spec.containers[0].volumeMounts += [{"name":"'"$VOL"'","mountPath":"/opt/keycloak/data"}]' app.yaml    
+          VOL=${{ env.FILE_VOLUME_NAME }}
+
+          yq -i '.volumes += [{"name":"'"$VOL"'","storageType":"AzureFile","storageName":"'"$VOL"'"}]' app.yaml
+          yq -i '.containers[0].volumeMounts += [{"name":"'"$VOL"'","mountPath":"/opt/keycloak/data"}]' app.yaml   
           echo "✅ Volumen y mount inyectados en app.yaml."
 
       # 6️⃣ Aplicar el YAML modificado
