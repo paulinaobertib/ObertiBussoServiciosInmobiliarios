@@ -21,9 +21,9 @@ EXPOSE 8080
 
 # 4) Arranque en modo producción optimizado y HTTP plano
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", \
-           "--db", "dev-file", \
-           "--spi-dblock-provider=jpa", \
-           "--import-realm", \
-           "--http-enabled", \
-           "--http-port=8080", \
-           "--optimized"]
+    "--db", "dev-file", \
+    "--spi-dblock-provider=jpa", \
+    "--import-realm", \
+    "--http-enabled=true", \
+    "--http-port=8080", \
+    "--optimized"]
