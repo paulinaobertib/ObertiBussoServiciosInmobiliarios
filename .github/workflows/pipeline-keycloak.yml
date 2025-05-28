@@ -97,16 +97,22 @@ jobs:
                 --access-mode ReadWrite
             fi
 
-      - name: Force single revision + 1 replica
+      - name: Force single revision + limit replicas
         uses: azure/cli@v1
         with:
           inlineScript: |
-            RG=${{ env.AZURE_RESOURCE_GROUP }}
-            NAME=${{ env.ACA_KEYCLOAK_DEV }}
-            az containerapp update -g $RG -n $NAME \
-              --revisions-mode Single \
-              --scale-min-replicas 1 \
-              --scale-max-replicas 1
+            # Pone el modo de revisiones en Single
+            az containerapp revision set-mode \
+              --resource-group Obertibussoserviciosinmobiliarios \
+              --name aca-keycloak-dev \
+              --mode Single
+      
+            # Fija min y max replicas a 1
+            az containerapp update \
+              --resource-group Obertibussoserviciosinmobiliarios \
+              --name aca-keycloak-dev \
+              --min-replicas 1 \
+              --max-replicas 1
 
       # 3️⃣ Exportar template a app.yaml
       - name: Export Container App template to YAML
