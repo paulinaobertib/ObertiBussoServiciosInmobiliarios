@@ -57,12 +57,13 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
             RG=${{ env.AZURE_RESOURCE_GROUP }}
-            NAME=${{ secrets.ACA_ENVIRONMENT }}
-
+            ENV=${{ secrets.ACA_ENVIRONMENT }}  
+            NAME=${{ env.ACA_KEYCLOAK_DEV }}    
+   
             if ! az containerapp show -g $RG -n $NAME &>/dev/null; then
               az containerapp create \
                 -g $RG -n $NAME \
-                --environment ${{ secrets.ACA_ENVIRONMENT }} \
+                --environment $ENV \
                 --image $IMAGE \
                 --ingress external \
                 --target-port $SERVICE_PORT \
@@ -70,7 +71,12 @@ jobs:
                 --registry-username ${{ env.DOCKERHUB_USERNAME }} \
                 --registry-password ${{ env.DOCKERHUB_TOKEN }} \
                 --cpu 2.5 --memory 5Gi
+            else
+              az containerapp update \
+                -g $RG -n $NAME \
+                --image $IMAGE
             fi
+
 
       # 2️⃣ Registrar Azure File Share
       - name: Register Azure File Share
@@ -101,16 +107,17 @@ jobs:
         uses: azure/cli@v1
         with:
           inlineScript: |
-            # Pone el modo de revisiones en Single
+            RG=${{ env.AZURE_RESOURCE_GROUP }}
+            NAME=${{ env.ACA_KEYCLOAK_DEV }}
+   
             az containerapp revision set-mode \
-              --resource-group Obertibussoserviciosinmobiliarios \
-              --name aca-keycloak-dev \
+              --resource-group $RG \
+              --name $NAME \
               --mode Single
-
-            # Fija min y max replicas a 1
+   
             az containerapp update \
-              --resource-group Obertibussoserviciosinmobiliarios \
-              --name aca-keycloak-dev \
+              --resource-group $RG \
+              --name $NAME \
               --min-replicas 1 \
               --max-replicas 1
 
