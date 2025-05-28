@@ -57,13 +57,12 @@ jobs:
             TAG=${{ needs.build-and-push.outputs.tag }}
             IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
             RG=${{ env.AZURE_RESOURCE_GROUP }}
-            NAME=${{ env.ACA_KEYCLOAK_DEV }}
+            NAME=${{ secrets.ACA_ENVIRONMENT }}
 
-            
             if ! az containerapp show -g $RG -n $NAME &>/dev/null; then
               az containerapp create \
                 -g $RG -n $NAME \
-                --environment ${{ env.ACA_KEYCLOAK_DEV }} \
+                --environment ${{ secrets.ACA_ENVIRONMENT }} \
                 --image $IMAGE \
                 --ingress external \
                 --target-port $SERVICE_PORT \
@@ -107,7 +106,7 @@ jobs:
               --resource-group Obertibussoserviciosinmobiliarios \
               --name aca-keycloak-dev \
               --mode Single
-      
+
             # Fija min y max replicas a 1
             az containerapp update \
               --resource-group Obertibussoserviciosinmobiliarios \
