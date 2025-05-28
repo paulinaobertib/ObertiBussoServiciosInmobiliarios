@@ -59,6 +59,7 @@ jobs:
             RG=${{ env.AZURE_RESOURCE_GROUP }}
             NAME=${{ env.ACA_KEYCLOAK_DEV }}
 
+            
             if ! az containerapp show -g $RG -n $NAME &>/dev/null; then
               az containerapp create \
                 -g $RG -n $NAME \
