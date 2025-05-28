@@ -108,7 +108,8 @@ jobs:
                            KC_SPI_DBLOCK_PROVIDER=jpa \
                            KC_DB_URL='jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE' \
                            KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
-                           KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+                           KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+                           KC_HOSTNAME_STRICT=false
             else
               echo "✏️ $ACA_KEYCLOAK_DEV ya existe."
             fi
@@ -218,7 +219,8 @@ jobs:
                              KC_CACHE=local \
                              KC_DB_URL='jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE' \
                              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
-                             KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+                             KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+                             KC_HOSTNAME_STRICT=false
 
       # 8️⃣ (Opcional) Reiniciar para forzar nueva revisión
       - name: Restart revision
