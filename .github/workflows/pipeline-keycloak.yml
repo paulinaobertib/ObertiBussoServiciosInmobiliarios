@@ -97,6 +97,17 @@ jobs:
                 --access-mode ReadWrite
             fi
 
+      - name: Force single revision + 1 replica
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            RG=${{ env.AZURE_RESOURCE_GROUP }}
+            NAME=${{ env.ACA_KEYCLOAK_DEV }}
+            az containerapp update -g $RG -n $NAME \
+              --revisions-mode Single \
+              --scale-min-replicas 1 \
+              --scale-max-replicas 1
+
       # 3️⃣ Exportar template a app.yaml
       - name: Export Container App template to YAML
         uses: azure/cli@v1
@@ -131,7 +142,6 @@ jobs:
           yq -i '.containers[0].env +=
             [{"name":"KC_HOSTNAME","value":"'"$FQDN"'"},
              {"name":"KC_DB","value":"dev-file"},
-             {"name":"KC_SPI_DBLOCK_PROVIDER","value":"jpa"},
              {"name":"KC_DB_URL","value":"jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE"},
              {"name":"KC_BOOTSTRAP_ADMIN_USERNAME","value":"'"${{ secrets.KEYCLOAK_ADMIN }}"'"},
              {"name":"KC_BOOTSTRAP_ADMIN_PASSWORD","value":"'"${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"'"},
@@ -139,11 +149,8 @@ jobs:
              {"name":"KC_HEALTH_ENABLED","value":"true"},
              {"name":"KC_METRICS_ENABLED","value":"true"}]' app.yaml
 
-          # montar volumen AzureFile
-          yq -i '.volumes += [{"name":"'"$VOL"'","storageType":"AzureFile","storageName":"'"$VOL"'"}]' app.yaml
-
-          # montar volumeMount en container
-          yq -i '.containers[0].volumeMounts += [{"name":"'"$VOL"'","mountPath":"/opt/keycloak/data"}]' app.yaml
+             yq -i 'del(.containers[0].env[] | select(.name=="KC_SPI_DBLOCK_PROVIDER"))' app.yaml
+             yq -i 'del(.containers[0].env[] | select(.name=="KC_DB_URL"))'              app.yaml
 
       # 5️⃣ Aplicar app.yaml y reiniciar revision
       - name: Apply YAML and Restart Revision
