@@ -15,7 +15,10 @@ RUN mkdir -p /opt/keycloak/data/h2
 EXPOSE 8080
 
 # Arranca en modo desarrollo (dev-mode) con JPA lock funcionando sobre H2
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh","start-dev", \
-    "--spi-dblock-provider=jpa",\
-    "--import-realm",\
-    "--http-port=8080"]
+ENTRYPOINT [ \
+  "/opt/keycloak/bin/kc.sh", \
+  "start-dev", \
+  "--spi-dblock-provider=jpa", \
+  "--import-realm", \
+  "--http-port=8080" \
+]
