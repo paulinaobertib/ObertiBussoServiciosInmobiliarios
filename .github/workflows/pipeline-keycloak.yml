@@ -154,8 +154,8 @@ jobs:
               {"name":"KC_HOSTNAME","value":"'"$FQDN"'"},
               {"name":"KC_DB","value":"dev-file"},
               {"name":"KC_DB_FILE_DIR","value":"/opt/keycloak/data/h2"},
-              {"name":"KC_BOOTSTRAP_ADMIN_USERNAME","value":"'"${{ secrets.KEYCLOAK_ADMIN }}"'"},
-              {"name":"KC_BOOTSTRAP_ADMIN_PASSWORD","value":"'"${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"'"},
+              {"name":"KEYCLOAK_ADMIN","value":"'"${{ secrets.KEYCLOAK_ADMIN }}"'"},
+              {"name":"KEYCLOAK_ADMIN_PASSWORD","value":"'"${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"'"},
               {"name":"KC_HTTP_PORT","value":"8080"},
               {"name":"KC_HEALTH_ENABLED","value":"true"},
               {"name":"KC_METRICS_ENABLED","value":"true"}
