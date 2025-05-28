@@ -59,7 +59,7 @@ jobs:
             RG=${{ env.AZURE_RESOURCE_GROUP }}
             ENV=${{ secrets.ACA_ENVIRONMENT }}  
             NAME=${{ env.ACA_KEYCLOAK_DEV }}    
-   
+
             if ! az containerapp show -g $RG -n $NAME &>/dev/null; then
               az containerapp create \
                 -g $RG -n $NAME \
@@ -76,7 +76,6 @@ jobs:
                 -g $RG -n $NAME \
                 --image $IMAGE
             fi
-
 
       # 2️⃣ Registrar Azure File Share
       - name: Register Azure File Share
@@ -109,12 +108,12 @@ jobs:
           inlineScript: |
             RG=${{ env.AZURE_RESOURCE_GROUP }}
             NAME=${{ env.ACA_KEYCLOAK_DEV }}
-   
+
             az containerapp revision set-mode \
               --resource-group $RG \
               --name $NAME \
               --mode Single
-   
+
             az containerapp update \
               --resource-group $RG \
               --name $NAME \
@@ -138,32 +137,29 @@ jobs:
         run: |
           RG=${{ env.AZURE_RESOURCE_GROUP }}
           NAME=${{ env.ACA_KEYCLOAK_DEV }}
-          VOL=${{ env.FILE_VOLUME_NAME }}
 
-          # obtener FQDN
+          # FQDN público de la Container App
           FQDN=$(az containerapp show -g $RG -n $NAME \
-                  --query properties.configuration.ingress.fqdn -o tsv)
+                   --query properties.configuration.ingress.fqdn -o tsv)
 
-          # instala yq si hace falta
+          # Instala yq si aún no está
           if ! command -v yq >/dev/null; then
             sudo wget -qO /usr/local/bin/yq \
               https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64
             sudo chmod +x /usr/local/bin/yq
           fi
 
-          # inyectar variables de entorno
           yq -i '.containers[0].env +=
-            [{"name":"KC_HOSTNAME","value":"'"$FQDN"'"},
-             {"name":"KC_DB","value":"dev-file"},
-             {"name":"KC_DB_URL","value":"jdbc:h2:file:/opt/keycloak/data/h2/keycloakdb;MODE=MySQL;DATABASE_TO_UPPER=FALSE;NON_KEYWORDS=VALUE"},
-             {"name":"KC_BOOTSTRAP_ADMIN_USERNAME","value":"'"${{ secrets.KEYCLOAK_ADMIN }}"'"},
-             {"name":"KC_BOOTSTRAP_ADMIN_PASSWORD","value":"'"${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"'"},
-             {"name":"KC_HTTP_PORT","value":"8080"},
-             {"name":"KC_HEALTH_ENABLED","value":"true"},
-             {"name":"KC_METRICS_ENABLED","value":"true"}]' app.yaml
-
-             yq -i 'del(.containers[0].env[] | select(.name=="KC_SPI_DBLOCK_PROVIDER"))' app.yaml
-             yq -i 'del(.containers[0].env[] | select(.name=="KC_DB_URL"))'              app.yaml
+            [
+              {"name":"KC_HOSTNAME","value":"'"$FQDN"'"},
+              {"name":"KC_DB","value":"dev-file"},
+              {"name":"KC_DB_FILE_DIR","value":"/opt/keycloak/data/h2"},
+              {"name":"KC_BOOTSTRAP_ADMIN_USERNAME","value":"'"${{ secrets.KEYCLOAK_ADMIN }}"'"},
+              {"name":"KC_BOOTSTRAP_ADMIN_PASSWORD","value":"'"${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"'"},
+              {"name":"KC_HTTP_PORT","value":"8080"},
+              {"name":"KC_HEALTH_ENABLED","value":"true"},
+              {"name":"KC_METRICS_ENABLED","value":"true"}
+            ]' app.yaml
 
       # 5️⃣ Aplicar app.yaml y reiniciar revision
       - name: Apply YAML and Restart Revision
