@@ -12,9 +12,9 @@ ENV KC_DB=dev-file \
 EXPOSE 8080
 
 ENTRYPOINT ["sh","-c","\
-  mkdir -p /opt/keycloak/data/h2 && \
-  rm -f /opt/keycloak/data/h2/*.lock.db /opt/keycloak/data/h2/DATABASECHANGELOGLOCK* && \
-  exec /opt/keycloak/bin/kc.sh start \
+    mkdir -p /opt/keycloak/data/h2 && \
+    rm -f /opt/keycloak/data/h2/*.lock.db /opt/keycloak/data/h2/DATABASECHANGELOGLOCK* && \
+    exec /opt/keycloak/bin/kc.sh start-dev \
     --http-port=8080 \
-    --bootstrap-admin-user=${KEYCLOAK_ADMIN} \
+    --bootstrap-admin-username=${KEYCLOAK_ADMIN} \
     --bootstrap-admin-password=${KEYCLOAK_ADMIN_PASSWORD}"]
