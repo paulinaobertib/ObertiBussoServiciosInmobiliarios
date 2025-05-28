@@ -79,7 +79,7 @@ jobs:
           azcliversion: latest
           inlineScript: |
             RG=${{ env.AZURE_RESOURCE_GROUP }}
-            ENV=${{ env.ACA_KEYCLOAK_DEV }}
+            ENV=${{ secrets.ACA_ENVIRONMENT  }}
             VOL=${{ env.FILE_VOLUME_NAME }}
             ACCOUNT=${{ env.AZURE_KEYCLOAK_ACCOUNT }}
             SHARE=${{ env.AZURE_FILE_SHARE }}
