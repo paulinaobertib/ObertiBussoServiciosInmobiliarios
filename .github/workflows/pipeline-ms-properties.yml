@@ -144,6 +144,16 @@ jobs:
             --plan ${{ secrets.APP_SERVICE_PLAN_DEV }} \
             --name ${{ env.APP_NAME_DEV }} || true
 
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --docker-custom-image-name $IMAGE \
+            --docker-registry-server-url https://index.docker.io \
+            --docker-registry-server-user ${{ env.DOCKERHUB_USERNAME }} \
+            --docker-registry-server-password ${{ env.DOCKERHUB_TOKEN }}
+
       - name: Ensure App Service Is Running
         run: |
           echo "Verificando estado del App Service..."
@@ -169,16 +179,6 @@ jobs:
             --query properties.configuration.ingress.fqdn -o tsv)
           echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
-
-      - name: Configure Web App container
-        run: |
-          az webapp config container set \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --docker-custom-image-name $IMAGE \
-            --docker-registry-server-url https://index.docker.io \
-            --docker-registry-server-user ${{ env.DOCKERHUB_USERNAME }} \
-            --docker-registry-server-password ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Set environment variables (App Settings Dev)
         run: |
