@@ -130,9 +130,8 @@ jobs:
           az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --plan ${{ secrets.APP_SERVICE_PLAN_DEV }} \
-            --name ${{ env.APP_GATEWAY_DEV }} \
-            --deployment-container-image-name $IMAGE || true
-            
+            --name ${{ env.APP_GATEWAY_DEV }} || true
+
       - name: Ensure App Service Is Running
         run: |
           echo "Verificando estado del App Service..."
@@ -158,7 +157,7 @@ jobs:
             --query properties.configuration.ingress.fqdn -o tsv)
           echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
-      
+
       - name: Configure Web App container
         run: |
           az webapp config container set \
@@ -186,7 +185,7 @@ jobs:
         run: |
           az webapp log config \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ vars.APP_EUREKA_DEV }} \
+            --name ${{ env.APP_GATEWAY_DEV }} \
             --docker-container-logging filesystem
 
       - name: Health Check with Retries
