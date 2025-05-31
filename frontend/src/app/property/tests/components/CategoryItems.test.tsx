@@ -1,10 +1,11 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CategoryItems from '../../components/CategoryItems';
 import type { Amenity } from '../../types/amenity';
 import type { Property } from '../../types/property';
 import * as propertyService from '../../services/property.service';
 import { emptyProperty } from '../../types/property';
+import type { Owner } from '../../types/owner';
 
 // Mock react-router-dom navigate
 const mockNavigate = vi.fn();
@@ -15,7 +16,7 @@ vi.mock('react-router-dom', () => ({
 // Mocks del contexto y utilidades
 const mockUsePropertyCrud = {
   currentCategory: 'amenity' as 'amenity' | 'owner' | 'neighborhood' | 'type' | 'property' | null,
-  data: [] as Amenity[] | Property[],
+  data: [] as Amenity[] | Property[] | Owner[] ,
   categoryLoading: false,
   selected: {
     amenities: [] as number[],
@@ -78,7 +79,7 @@ describe('CategoryItems', () => {
     mockUsePropertyCrud.currentCategory = null;
     const { container } = render(<CategoryItems />);
     expect(container).toBeEmptyDOMElement();
-    mockUsePropertyCrud.currentCategory = 'amenity'; // reset
+    mockUsePropertyCrud.currentCategory = 'amenity';
   });
 
   it('muestra loader cuando categoryLoading es true', () => {
@@ -92,6 +93,25 @@ describe('CategoryItems', () => {
     mockUsePropertyCrud.data = [];
     render(<CategoryItems />);
     expect(screen.getByText(/no hay datos disponibles/i)).toBeInTheDocument();
+  });
+
+  it('navega a los detalles de la propiedad al hacer clic en el botón "ver propiedad"', async () => {
+    mockUsePropertyCrud.currentCategory = 'property';
+    mockUsePropertyCrud.data = [
+      {
+        id: 1,
+        title: 'Propiedad 1',
+        firstName: '',
+        lastName: '',
+      } as any,
+    ];
+
+    render(<CategoryItems />);
+
+    const viewButton = await screen.findByLabelText(/ver propiedad/i);
+    fireEvent.click(viewButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/properties/1'); // Asegúrate que esta ruta sea correcta en tu ROUTES
   });
 
   it('muestra lista de items y columnas para categoría amenity', () => {
@@ -186,7 +206,7 @@ it('error al eliminar propiedad muestra alerta error', async () => {
 
   render(<CategoryItems />);
 
-  screen.debug();  // <-- mira el DOM renderizado
+  screen.debug();  
 
   const deleteBtn = screen.getByLabelText(/eliminar/i);
   fireEvent.click(deleteBtn);
@@ -200,6 +220,29 @@ it('error al eliminar propiedad muestra alerta error', async () => {
   });
 });
 
+it('muestra SearchBarOwner solo si la categoría es "owner"', () => {
+  mockUsePropertyCrud.currentCategory = 'owner';
+  mockUsePropertyCrud.data = [];
+
+  render(<CategoryItems />);
+  expect(screen.getByRole('textbox', { name: /buscar propietario/i })).toBeInTheDocument();
+
+  cleanup();
+
+  mockUsePropertyCrud.currentCategory = 'amenity';
+  render(<CategoryItems />);
+  expect(screen.queryByRole('textbox', { name: /buscar propietario/i })).not.toBeInTheDocument();
+});
+
+it('marca fila con fondo si está seleccionada', () => {
+  mockUsePropertyCrud.currentCategory = 'amenity';
+  mockUsePropertyCrud.data = [{ id: 99, name: 'Piscina' }];
+  mockUsePropertyCrud.selected.amenities = [99];
+
+  render(<CategoryItems />);
+  const row = screen.getByText('Piscina').closest('div');
+  expect(row).toHaveStyle('background-color: #FFE0B2');
+});
 
 });
 

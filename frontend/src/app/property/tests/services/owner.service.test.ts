@@ -7,6 +7,7 @@ import {
   getAllOwners,
   getOwnerById,
   getOwnerByPropertyId,
+  getOwnersByText,
 } from "../../services/owner.service";
 import { Owner, OwnerCreate } from "../../types/owner";
 
@@ -149,5 +150,25 @@ describe("owner.service", () => {
     mockedAxios.get.mockRejectedValue(new Error("Error de red"));
 
     await expect(getOwnerByPropertyId(1)).rejects.toThrow("Error de red");
+  });
+
+  // GET BY TEXT success
+  it("busca propietarios por texto", async () => {
+    mockedAxios.get.mockResolvedValue({ data: [sampleOwner] });
+
+    const result = await getOwnersByText("María");
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(
+      `${apiUrl}/properties/owner/search`,
+      { params: { search: "María" } }
+    );
+    expect(result).toEqual([sampleOwner]);
+  });
+
+  // GET BY TEXT error
+  it("lanza error al buscar propietarios por texto", async () => {
+    mockedAxios.get.mockRejectedValue(new Error("Error de red"));
+
+    await expect(getOwnersByText("algo")).rejects.toThrow("Error de red");
   });
 });
