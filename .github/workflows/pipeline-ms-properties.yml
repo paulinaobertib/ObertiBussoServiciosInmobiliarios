@@ -197,17 +197,17 @@ jobs:
       - name: Set environment variables (App Settings Dev)
         run: |
           az webapp config appsettings set \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name "${{ env.APP_NAME_DEV }}" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
             --settings \
-              SERVICE_PORT=${{ env.SERVICE_PORT }} \
-              WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-              EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net  \
-              KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
-              DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }} \
-              DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }} \
-              DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }} \
-              AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }} \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net" \
+              "KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME" \
+              "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
+              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
+              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
+              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}"
 
@@ -223,7 +223,6 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_DEV }} \
             --docker-container-logging filesystem
-
 
       - name: Health Check with Retries
         run: |
