@@ -157,10 +157,10 @@ jobs:
           az webapp config container set \
             --name ${{ env.APP_EUREKA_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --docker-custom-image-name $IMAGE \
-            --docker-registry-server-url https://index.docker.io \
-            --docker-registry-server-user ${{ env.DOCKERHUB_USERNAME }} \
-            --docker-registry-server-password ${{ env.DOCKERHUB_TOKEN }}
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Set environment variables (app settings)
         run: |
@@ -170,6 +170,13 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME }}
+
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_EUREKA_DEV }} \
+            --docker-container-logging filesystem
 
       - name: Health Check with Retries
         run: |
