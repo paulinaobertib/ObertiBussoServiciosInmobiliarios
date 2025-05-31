@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -12,7 +12,6 @@ on:
 env:
   # Azure
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-  ACA_ENVIRONMENT: ${{ secrets.ACA_ENVIRONMENT }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
 
@@ -25,8 +24,8 @@ env:
 
   # Gateway-specific
   IMAGE_NAME: ms-gateway
-  ACA_GATEWAY_DEV: ${{ vars.ACA_GATEWAY_DEV }}
-  ACA_GATEWAY_PROD: ${{ vars.ACA_GATEWAY_PROD }}
+  APP_GATEWAY_DEV: ${{ vars.APP_GATEWAY_DEV }}
+  APP_GATEWAY_PROD: ${{ vars.APP_GATEWAY_PROD }}
   SERVICE_PORT: 8090
 
 jobs:
@@ -38,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      tag: ${{ steps.build-image.outputs.tag }}
+      tag: ${{ steps.set-tag.outputs.tag }}
 
     steps:
       - name: Checkout code
@@ -92,14 +91,18 @@ jobs:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Build & Push Docker Image
-        id: build-image
+      - name: Set Docker image tag
+        id: set-tag
         run: |
           TAG=${GITHUB_SHA::8}
-          IMAGE="docker.io/${{env.DOCKERHUB_USERNAME}}/${{ env.IMAGE_NAME }}:$TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build & Push Docker image
+        run: |
+          TAG=${{ steps.set-tag.outputs.tag }}
+          IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
           docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
           docker push $IMAGE
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   # --------------------------------------------------------------
   # JOB 2: Deploy to Development
@@ -117,147 +120,78 @@ jobs:
           creds: ${{ env.AZURE_CREDENTIALS }}
           enable-AzPSSession: true
 
-      - name: Ensure Container App Exists
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
 
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_GATEWAY_DEV &>/dev/null; then
-              echo "🚀 Creating $ACA_GATEWAY_DEV..."
-              az containerapp create \
-                -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_GATEWAY_DEV \
-                --environment $ACA_ENVIRONMENT \
-                --image $IMAGE \
-                --ingress external \
-                --target-port $SERVICE_PORT \
-                --registry-server docker.io \
-                --registry-username $DOCKERHUB_USERNAME \
-                --registry-password $DOCKERHUB_TOKEN \
-                --cpu 0.25 \
-                --memory 0.5Gi
-            else
-              echo "✏️ $ACA_GATEWAY_DEV already exists."
-            fi
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ secrets.APP_SERVICE_PLAN_DEV }} \
+            --name ${{ env.APP_GATEWAY_DEV }} \
+            --deployment-container-image-name $IMAGE || true
+            
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_GATEWAY_DEV }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_GATEWAY_DEV }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
 
-      - name: Ensure Container App Is Running
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: latest
-          inlineScript: |
-            # Leemos el estado actual
-            $status = (az containerapp show `
-              --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name $Env:ACA_GATEWAY_DEV `
-              --query properties.runningStatus `
-              -o tsv).Trim()
-            Write-Host "Current runningStatus (via CLI): $status"
+      - name: Fetch Keycloak FQDN
+        run: |
+          KEYCLOAK_FQDN=$(az containerapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ vars.ACA_KEYCLOAK_DEV }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
+          echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
+      
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_GATEWAY_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --docker-custom-image-name $IMAGE \
+            --docker-registry-server-url https://index.docker.io \
+            --docker-registry-server-user ${{ env.DOCKERHUB_USERNAME }} \
+            --docker-registry-server-password ${{ env.DOCKERHUB_TOKEN }}
 
-            if ($status -ne 'Running') {
-              Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
-              Start-AzContainerApp `
-                -Name $Env:ACA_GATEWAY_DEV `
-                -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
-                -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
-            }
-            else {
-              Write-Host "✅ Container App is already Running."
-            }
+      - name: Set environment variables (App Settings Dev)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_GATEWAY_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net \
+                       KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
+                       KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
+                       KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
+                       GATEWAY_HOSTNAME=${{ env.APP_GATEWAY_DEV }}.azurewebsites.net
 
-      - name: Fetch FQDNs
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_EUREKA_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Eureka FQDN: $FQDN"
-            # Lo subimos a GitHub Env para todo el job
-            echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
-
-            # FQDN=$(az containerapp show \
-            #   -g ${{ env.AZURE_RESOURCE_GROUP }} \
-            #   -n ${{ vars.ACA_PROPERTIES_DEV }} \
-            #   --query properties.configuration.ingress.fqdn -o tsv)
-            # echo "🔖 Properties FQDN: $FQDN"
-            # echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            # FQDN=$(az containerapp show \
-            #   -g ${{ env.AZURE_RESOURCE_GROUP }} \
-            #   -n ${{ vars.ACA_USERS_DEV }} \
-            #   --query properties.configuration.ingress.fqdn -o tsv)
-            # echo "🔖 Users FQDN: $FQDN"
-            # echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_KEYCLOAK_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Keycloak FQDN: $FQDN"
-            echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_GATEWAY_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Gateway FQDN: $FQDN"
-            echo "GATEWAY_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-      - name: Update Image & Scale
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-
-            echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
-            az containerapp update \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_GATEWAY_DEV \
-              --image $IMAGE \
-              --min-replicas 1 \
-              --set-env-vars \
-                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
-                KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
-                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME \
-                SERVICE_PORT=$SERVICE_PORT \
-                KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
-                KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
-
-      - name: Restart to apply Changes
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            # Obtenemos la última revisión lista (lista y lista de nuevo)
-            REVISION=$(az containerapp show \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_GATEWAY_DEV \
-              --query properties.latestReadyRevisionName \
-              -o tsv)
-
-            if [[ -n "$REVISION" ]]; then
-              echo "🔄 Restarting revision $REVISION..."
-              az containerapp revision restart \
-                -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_GATEWAY_DEV \
-                --revision "$REVISION"
-            else
-              echo "ℹ️ No ready revision found, skipping restart."
-            fi
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ vars.APP_EUREKA_DEV }} \
+            --docker-container-logging filesystem
 
       - name: Health Check with Retries
         run: |
-          URL="https://$GATEWAY_HOSTNAME${HEALTH_PATH}"
+          URL="http://${{ vars.APP_GATEWAY_DEV }}.azurewebsites.net${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl --silent --show-error --fail \
@@ -267,7 +201,7 @@ jobs:
                          -o /dev/null \
                          $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ MS Gateway is healthy (status $HTTP)"
+              echo "✅ Eureka Server is healthy (status $HTTP)"
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
@@ -279,174 +213,10 @@ jobs:
   # --------------------------------------------------------------
   # JOB 3: Deploy to Production
   # --------------------------------------------------------------
-  deploy-prod:
-    name: Deploy to Production
-    needs: [deploy-dev, build-and-push]
-    runs-on: ubuntu-latest
-    environment: production
+  # deploy-prod:
+  #   name: Deploy to Production
+  #   needs: [deploy-dev, build-and-push]
+  #   runs-on: ubuntu-latest
+  #   environment: production
 
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ env.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-
-      - name: Ensure Container App Exists
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-
-            if ! az containerapp show -g $AZURE_RESOURCE_GROUP -n $ACA_GATEWAY_PROD &>/dev/null; then
-              echo "🚀 Creating $ACA_GATEWAY_PROD..."
-              az containerapp create \
-                -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_GATEWAY_PROD \
-                --environment $ACA_ENVIRONMENT \
-                --image $IMAGE \
-                --ingress external \
-                --target-port $SERVICE_PORT \
-                --registry-server docker.io \
-                --registry-username $DOCKERHUB_USERNAME \
-                --registry-password $DOCKERHUB_TOKEN \
-                --cpu 0.25 \
-                --memory 0.5Gi
-            else
-              echo "✏️ $ACA_GATEWAY_PROD already exists."
-            fi
-
-      - name: Ensure Container App Is Running
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: latest
-          inlineScript: |
-            # Leemos el estado actual
-            $status = (az containerapp show `
-              --resource-group $Env:AZURE_RESOURCE_GROUP `
-              --name $Env:ACA_GATEWAY_PROD `
-              --query properties.runningStatus `
-              -o tsv).Trim()
-            Write-Host "Current runningStatus (via CLI): $status"
-
-            if ($status -ne 'Running') {
-              Write-Host "🔄 Starting Container App via Start-AzContainerApp..."
-              Start-AzContainerApp `
-                -Name $Env:ACA_GATEWAY_PROD `
-                -ResourceGroupName $Env:AZURE_RESOURCE_GROUP `
-                -SubscriptionId $Env:AZURE_SUBSCRIPTION_ID
-            }
-            else {
-              Write-Host "✅ Container App is already Running."
-            }
-
-      - name: Fetch FQDNs
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_EUREKA_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Eureka FQDN: $FQDN"
-            # Lo subimos a GitHub Env para todo el job
-            echo "EUREKA_HOSTNAME=$FQDN"    >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_USERS_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Users FQDN: $FQDN"
-            echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_KEYCLOAK_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Keycloak FQDN: $FQDN"
-            echo "KEYCLOAK_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_GATEWAY_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Gateway FQDN: $FQDN"
-            echo "GATEWAY_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-      - name: Update Image & Scale
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-
-            echo "🔄 Updating image to $IMAGE and setting min-replicas=1..."
-            az containerapp update \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_PROPERTIES_PROD \
-              --image $IMAGE \
-              --min-replicas 1 \
-              --set-env-vars \
-                EUREKA_HOSTNAME=$EUREKA_HOSTNAME \
-                KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
-                GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME \
-                SERVICE_PORT=$SERVICE_PORT \
-                KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
-                KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
-
-      - name: Restart to apply Changes
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -e
-            # Obtenemos la última revisión lista (lista y lista de nuevo)
-            REVISION=$(az containerapp show \
-              -g $AZURE_RESOURCE_GROUP \
-              -n $ACA_GATEWAY_PROD \
-              --query properties.latestReadyRevisionName \
-              -o tsv)
-
-            if [[ -n "$REVISION" ]]; then
-              echo "🔄 Restarting revision $REVISION..."
-              az containerapp revision restart \
-                -g $AZURE_RESOURCE_GROUP \
-                -n $ACA_GATEWAY_PROD \
-                --revision "$REVISION"
-            else
-              echo "ℹ️ No ready revision found, skipping restart."
-            fi
-
-      - name: Health Check with Retries
-        run: |
-          URL="https://$GATEWAY_HOSTNAME${HEALTH_PATH}"
-          echo "🩺 Checking health at $URL"
-          for i in $(seq 1 10); do
-            HTTP=$(curl --silent --show-error --fail \
-                         --connect-timeout 10 \
-                         --max-time 20 \
-                         -w "%{http_code}" \
-                         -o /dev/null \
-                         $URL) || true
-            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ MS Gateway is healthy (status $HTTP)"
-              exit 0
-            fi
-            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 10
-          done
-          echo "❌ Health check failed after 10 attempts"
-          exit 1
+  #   steps:
