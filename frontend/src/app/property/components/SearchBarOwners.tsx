@@ -37,6 +37,7 @@ export default function SearchBarOwner({ onSearch, debounceMs = 300 }: Props) {
 
   return (
     <TextField
+      label="Buscar propietario"
       size="small"
       placeholder="Buscar propietario…"
       value={query}

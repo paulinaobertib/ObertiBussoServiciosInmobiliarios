@@ -98,7 +98,7 @@ export default function CategoryItems() {
           </Typography>
 
           {category === 'owner' && (
-            <SearchBarOwner onSearch={setFilteredOwners} />
+            <SearchBarOwner aria-label="Buscar propietario" onSearch={setFilteredOwners} />
           )}
 
           <Tooltip title={`Agregar nuevo ${translate(category)}`}>
@@ -207,6 +207,7 @@ export default function CategoryItems() {
 
                         <Tooltip title="Ver propiedad">
                           <IconButton
+                            aria-label="ver propiedad"
                             size="small"
                             onClick={() => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, { id: it.id }))}
                             sx={{ color: '#EF6C00' }}
