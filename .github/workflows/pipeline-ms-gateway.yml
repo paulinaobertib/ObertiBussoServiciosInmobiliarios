@@ -142,8 +142,7 @@ jobs:
             --container-registry-url https://index.docker.io \
             --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
             --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
-
-  
+          
       - name: Ensure App Service Is Running
         run: |
           echo "Verificando estado del App Service..."
@@ -170,7 +169,6 @@ jobs:
           echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
 
-
       - name: Set environment variables (App Settings Dev)
         run: |
           az webapp config appsettings set \
@@ -184,6 +182,12 @@ jobs:
                        KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
 
+      - name: Reiniciar Web App para aplicar los App Settings
+        run: |
+          az webapp restart \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+            
       - name: Enable Container Logs
         run: |
           az webapp log config \
