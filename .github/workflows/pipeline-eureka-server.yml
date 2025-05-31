@@ -134,6 +134,16 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --deployment-container-image-name $IMAGE || true
 
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+            
       - name: Ensure App Service Is Running
         run: |
           echo "Verificando estado del App Service..."
@@ -151,15 +161,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Configure Web App container
-        run: |
-          az webapp config container set \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name $IMAGE \
-            --container-registry-url https://index.docker.io \
-            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
-            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Set environment variables (app settings)
         run: |
