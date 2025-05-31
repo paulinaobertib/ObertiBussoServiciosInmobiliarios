@@ -26,7 +26,6 @@ env:
   IMAGE_NAME: eureka-server
   APP_EUREKA_DEV: ${{ vars.APP_EUREKA_DEV }}
   APP_EUREKA_PROD: ${{ vars.APP_EUREKA_PROD }}
-  EUREKA_HOSTNAME: ${{ vars.APP_EUREKA_DEV }}.azurewebsites.net
 
   SERVICE_PORT: 8761
 
@@ -131,7 +130,7 @@ jobs:
         run: |
           az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ secrets.APP_SERVICE_PLAN }} \
+            --plan ${{ secrets.APP_SERVICE_PLAN_DEV }} \
             --name ${{ env.APP_EUREKA_DEV }} \
             --deployment-container-image-name $IMAGE || true
 
@@ -169,7 +168,7 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME }}
+                       EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net
 
       - name: Enable Container Logs
         run: |
@@ -180,7 +179,7 @@ jobs:
 
       - name: Health Check with Retries
         run: |
-          URL="http://$EUREKA_HOSTNAME${HEALTH_PATH}"
+          URL="http://${{ vars.APP_EUREKA_DEV }}.azurewebsites.net${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl --silent --show-error --fail \
