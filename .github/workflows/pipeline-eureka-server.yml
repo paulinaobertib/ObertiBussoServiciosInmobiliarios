@@ -173,7 +173,7 @@ jobs:
 
       - name: Health Check with Retries
         run: |
-          URL="https://$EUREKA_HOSTNAME${HEALTH_PATH}"
+          URL="http://$EUREKA_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl --silent --show-error --fail \
