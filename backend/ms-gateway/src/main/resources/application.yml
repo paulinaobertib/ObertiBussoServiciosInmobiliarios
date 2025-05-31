@@ -9,7 +9,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+      defaultZone: http://${EUREKA_HOSTNAME}/eureka/
 
 # Momentaneo mientras se hacen los pipelines
 management:
@@ -29,7 +29,7 @@ spring:
       client:
         provider:
           keycloak-client:
-            issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+            issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
         registration:
           keycloak-client:
             client-id: ${KEYCLOAK_CLIENT_ID}
@@ -37,7 +37,7 @@ spring:
             scope:
               - openid
             authorization-grant-type: authorization_code
-            redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
+            redirect-uri: http://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
   cloud:
     gateway:
