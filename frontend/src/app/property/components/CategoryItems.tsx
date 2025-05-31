@@ -6,7 +6,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { usePropertyCrud } from '../context/PropertiesContext';
@@ -19,17 +18,28 @@ import { useConfirmDialog } from '../utils/ConfirmDialog';
 import { deleteProperty } from '../services/property.service';
 import { useGlobalAlert } from '../context/AlertContext';
 
+import { useEffect, useState } from 'react';
+import SearchBarOwner from './SearchBarOwners';
+import { Owner } from '../types/owner';
+
 export default function CategoryItems() {
   const navigate = useNavigate();
   const {
     currentCategory: category,
-    data, categoryLoading,
+    data: rawData, categoryLoading,
     selected, toggleSelect, refresh,
   } = usePropertyCrud();
 
   const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; formKey?: string; item?: any } | null>(null);
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
+
+  const [filteredOwners, setFilteredOwners] = useState<Owner[]>([]);
+  useEffect(() => {
+    if (category === 'owner') {
+      setFilteredOwners((rawData as Owner[]) ?? []);
+    }
+  }, [rawData, category]);
 
   if (!category) return null;
 
@@ -71,6 +81,10 @@ export default function CategoryItems() {
 
   const columns = isProperty ? categoryFields.property : (categoryFields[category] ?? []);
 
+  const data = category === 'owner'
+    ? filteredOwners
+    : rawData ?? [];
+
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -82,6 +96,10 @@ export default function CategoryItems() {
           <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00' }}>
             {translate(category)}
           </Typography>
+
+          {category === 'owner' && (
+            <SearchBarOwner aria-label="Buscar propietario" onSearch={setFilteredOwners} />
+          )}
 
           <Tooltip title={`Agregar nuevo ${translate(category)}`}>
             <IconButton
@@ -225,7 +243,7 @@ export default function CategoryItems() {
         </Box>
 
         <ModalItem info={modal} close={() => setModal(null)} />
-      </Box>
+      </Box >
 
       {DialogUI}
     </>
