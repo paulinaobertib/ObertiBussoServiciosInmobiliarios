@@ -26,6 +26,7 @@ env:
   IMAGE_NAME: eureka-server
   APP_EUREKA_DEV: ${{ vars.APP_EUREKA_DEV }}
   APP_EUREKA_PROD: ${{ vars.APP_EUREKA_PROD }}
+  EUREKA_HOSTNAME: ${{ vars.APP_EUREKA_DEV }}.azurewebsites.net
 
   SERVICE_PORT: 8761
 
@@ -166,11 +167,13 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_EUREKA_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} WEBSITES_PORT=${{ env.SERVICE_PORT }}
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME }}
 
       - name: Health Check with Retries
         run: |
-          URL="https://${{env.APP_EUREKA_DEV}}.azurewebsites.net${HEALTH_PATH}"
+          URL="https://$EUREKA_HOSTNAME${HEALTH_PATH}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl --silent --show-error --fail \
