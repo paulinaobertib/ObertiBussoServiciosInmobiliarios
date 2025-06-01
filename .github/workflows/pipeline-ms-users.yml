@@ -184,17 +184,17 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
-                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net \
-                       KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
-                       DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }} \
-                       DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }} \
-                       DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }} \
-                       EMAIL_USERNAME=${{ env.EMAIL_USERNAME }} \
-                       EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }} \ 
-                       KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }} \
-                       KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}
+            --settings "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+                       "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+                       "EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net" \
+                       "KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME" \
+                       "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
+                       "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
+                       "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
+                       "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
+                       "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \ 
+                       "KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }}" \
+                       "KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}"
 
       - name: Restart Web App to apply App Settings
         run: |
@@ -240,4 +240,3 @@ jobs:
   #   environment: production
 
   #   steps:
- 
