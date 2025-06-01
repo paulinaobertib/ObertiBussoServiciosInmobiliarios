@@ -122,20 +122,6 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_USERS_DEV }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Users FQDN: $FQDN"
-            echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
             FQDN=$(az staticwebapp show \
               -g ${{ env.AZURE_RESOURCE_GROUP }} \
               -n "${{ vars.SWA_FRONTEND_DEV }}" \
@@ -146,19 +132,17 @@ jobs:
       - name: Insert DEV URLs
         shell: bash
         run: |
-          URL="https://${PROPERTIES_HOSTNAME}/api"
-          VITE_API_URL_DEV=${URL//\//\\/}
+          echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_DEV"
+          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por $BASE_URL_DEV"
 
-          URL="https://${FRONTEND_HOSTNAME}"
-          VITE_BASE_URL_DEV=${URL//\//\\/}
-
-          echo "API URL: $VITE_API_URL_DEV"
-          echo "BASE URL: $VITE_BASE_URL_DEV"
+          API_ESCAPED=${API_URL_DEV//\//\\/}
+          BASE_ESCAPED=${BASE_URL_DEV//\//\\/}
 
           find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__API_URL_PLACEHOLDER__#$VITE_API_URL_DEV#g"   {} +
+            sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
+
           find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__BASE_URL_PLACEHOLDER__#$VITE_BASE_URL_DEV#g" {} +
+            sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
 
       - name: Install SWA CLI
         run: npm install -g @azure/static-web-apps-cli@latest
@@ -199,113 +183,10 @@ jobs:
   # JOB 3: Deploy to Production
   # --------------------------------------------------------------
 
-  deploy-prod:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [deploy-dev, build-and-push]
-    environment: production
+  # deploy-prod:
+  #   name: Deploy to Production
+  #   runs-on: ubuntu-latest
+  #   needs: [deploy-dev, build-and-push]
+  #   environment: production
 
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ env.AZURE_CREDENTIALS }}
-
-      - name: Ensure Static Web App Exists
-        run: |
-          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_FRONTEND_PROD" &>/dev/null; then
-            echo "🚀 Creating $SWA_FRONTEND_PROD..."
-            az staticwebapp create \
-              -g "$AZURE_RESOURCE_GROUP" \
-              -n "${{ vars.SWA_FRONTEND_PROD }}" \
-              --location "$SWA_LOCATION" \
-              --app-location frontend \
-              --output-location frontend/dist \
-              --sku Free
-          else
-            echo "✏️ $SWA_FRONTEND_PROD already exists."
-          fi
-
-      - name: Fetch FQDNs
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_PROPERTIES_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Properties FQDN: $FQDN"
-            echo "PROPERTIES_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az containerapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n ${{ vars.ACA_USERS_PROD }} \
-              --query properties.configuration.ingress.fqdn -o tsv)
-            echo "🔖 Users FQDN: $FQDN"
-            echo "USERS_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-            FQDN=$(az staticwebapp show \
-              -g ${{ env.AZURE_RESOURCE_GROUP }} \
-              -n "${{ vars.SWA_FRONTEND_PROD }}" \
-              --query defaultHostname -o tsv)
-            echo "🔖 Frontend FQDN: $FQDN"
-            echo "FRONTEND_HOSTNAME=$FQDN" >> $GITHUB_ENV
-
-      - name: Insert PROD URLs
-        shell: bash
-        run: |
-          URL="https://${PROPERTIES_HOSTNAME}/api"
-          VITE_API_URL_PROD=${URL//\//\\/}
-
-          URL="https://${FRONTEND_HOSTNAME}"
-          VITE_BASE_URL_PROD=${URL//\//\\/}
-
-          echo "API URL: $VITE_API_URL_PROD"
-          echo "BASE URL: $VITE_BASE_URL_PROD"
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__API_URL_PLACEHOLDER__#$VITE_API_URL_PROD#g"   {} +
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__BASE_URL_PLACEHOLDER__#$VITE_BASE_URL_PROD#g" {} +
-
-      - name: Install SWA CLI
-        run: npm install -g @azure/static-web-apps-cli@latest
-
-      - name: Deploy to SWA
-        run: |
-          DEPLOY_TOKEN=$(az staticwebapp secrets list \
-            --name "$SWA_FRONTEND_PROD" \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --query properties.apiKey -o tsv)
-          swa deploy frontend/dist \
-            --app-name "$SWA_FRONTEND_PROD" \
-            --env production \
-            --deployment-token "$DEPLOY_TOKEN"
-
-      - name: Health Check
-        run: |
-          URL="https://${FRONTEND_HOSTNAME}"
-          echo "🩺 Checking health at $URL"
-          for i in $(seq 1 10); do
-            HTTP=$(curl --silent --show-error --fail \
-                         --connect-timeout 10 \
-                         --max-time 20 \
-                         -w "%{http_code}" \
-                         -o /dev/null \
-                         $URL) || true
-            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ MS Users is healthy (status $HTTP)"
-              exit 0
-            fi
-            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 10
-          done
-          echo "❌ Health check failed after 10 attempts"
-          exit 1
+  #   steps:
