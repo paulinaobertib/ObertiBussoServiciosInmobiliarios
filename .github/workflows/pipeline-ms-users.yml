@@ -200,8 +200,8 @@ jobs:
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
-            --name ${{ env.APP_NAME_DEV }} \
+          --name ${{ env.APP_NAME_DEV }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Enable Container Logs
         run: |
