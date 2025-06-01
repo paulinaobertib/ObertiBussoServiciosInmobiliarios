@@ -170,7 +170,7 @@ jobs:
                          -o /dev/null \
                          $URL) || true
             if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ MS Users is healthy (status $HTTP)"
+              echo "✅ Frontend is healthy (status $HTTP)"
               exit 0
             fi
             echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
