@@ -139,7 +139,6 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             # --container-image-name $IMAGE \
-            --docker-custom-image-name "$IMAGE" \
             --container-registry-url https://index.docker.io \
             --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
             --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
