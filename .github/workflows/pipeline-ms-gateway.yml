@@ -160,14 +160,21 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch Keycloak FQDN
+      - name: Fetch FQDNs
         run: |
           KEYCLOAK_FQDN=$(az containerapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ vars.ACA_KEYCLOAK_DEV }} \
             --query properties.configuration.ingress.fqdn -o tsv)
-          echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
+          echo "🔖 Keycloak FQDN (Dev): $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
+
+          FRONTEND_FQDN=$(az containerapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ vars.SWA_FRONTEND_DEV }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          echo "🔖 Frontend FQDN (Dev): $KEYCLOAK_FQDN"
+          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
 
       - name: Set environment variables (App Settings Dev)
         run: |
@@ -181,7 +188,7 @@ jobs:
                        KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
-                       SWA_FRONTEND=${{ vars.SWA_FRONTEND_DEV}}.azurestaticapps.net
+                       SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
