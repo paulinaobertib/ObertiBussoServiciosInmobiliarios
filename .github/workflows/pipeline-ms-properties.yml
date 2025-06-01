@@ -195,7 +195,7 @@ jobs:
                        DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }} \
                        AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }} \
                        EMAIL_USERNAME=${{ env.EMAIL_USERNAME }} \
-                       EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}"
+                       EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
