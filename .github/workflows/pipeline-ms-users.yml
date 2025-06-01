@@ -192,7 +192,7 @@ jobs:
                        DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }} \
                        DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }} \
                        EMAIL_USERNAME=${{ env.EMAIL_USERNAME }} \
-                       EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \ 
+                       EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }} \ 
                        KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }} \
                        KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}
 
