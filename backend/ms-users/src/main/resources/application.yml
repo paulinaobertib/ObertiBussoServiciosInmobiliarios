@@ -7,7 +7,7 @@ eureka:
     # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
   client:
     service-url:
-      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+      defaultZone: http://${EUREKA_HOSTNAME}/eureka/
 
 spring:
   application:
@@ -34,7 +34,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
 
 # Momentaneo mientras se hacen los pipelines
 management:
@@ -55,7 +55,7 @@ frontend:
 
 pi:
   keycloak:
-    serverUrl: https://${KEYCLOAK_HOSTNAME}/
+    serverUrl: http://${KEYCLOAK_HOSTNAME}/
     realm: obertibussoserviciosinmobiliarios
     clientId: ${KEYCLOAK_SB_CLIENT_ID}
     clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}

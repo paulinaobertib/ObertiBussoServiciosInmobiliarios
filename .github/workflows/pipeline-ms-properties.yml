@@ -181,35 +181,21 @@ jobs:
           echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
 
-      - name: Mostrar valores antes de inyectar App Settings
-        run: |
-          echo "SERVICE_PORT='${{ env.SERVICE_PORT }}'"
-          echo "APP_NAME_DEV='${{ env.APP_NAME_DEV }}'"
-          echo "EUREKA_HOSTNAME='${{ vars.APP_EUREKA_DEV }}.azurewebsites.net'"
-          echo "KEYCLOAK_HOSTNAME='$KEYCLOAK_HOSTNAME'"
-          echo "DATASOURCE_URL='${{ env.DATASOURCE_URL_DEV }}'"
-          echo "DATASOURCE_USERNAME='${{ env.DATASOURCE_USERNAME }}'"
-          echo "DATASOURCE_PASSWORD='${{ env.DATASOURCE_PASSWORD }}'"
-          echo "AZURE_BLOB_CONNECTION_STRING='${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}'"
-          echo "EMAIL_USERNAME='${{ env.EMAIL_USERNAME }}'"
-          echo "EMAIL_PASSWORD='${{ env.EMAIL_PASSWORD }}'"
-
       - name: Set environment variables (App Settings Dev)
         run: |
           az webapp config appsettings set \
-            --name "${{ env.APP_NAME_DEV }}" \
-            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
-            --settings \
-              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net" \
-              "KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME" \
-              "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
-              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
-              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
-              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
-              "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
-              "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}"
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net \
+                       KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
+                       DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }} \
+                       DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }} \
+                       DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }} \
+                       AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }} \
+                       EMAIL_USERNAME=${{ env.EMAIL_USERNAME }} \
+                       EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}"
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
