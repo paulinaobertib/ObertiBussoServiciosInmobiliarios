@@ -213,7 +213,7 @@ jobs:
 
       - name: Health Check with Retries
         run: |
-          URL="https://${{ env.APP_NAME_DEV }}.azurewebsites.net${{ env.HEALTH_PATH }}"
+          URL="http://${{ env.APP_NAME_DEV }}.azurewebsites.net${{ env.HEALTH_PATH }}"
           echo "🩺 Checking health at $URL"
           for i in $(seq 1 10); do
             HTTP=$(curl --silent --show-error --fail \
