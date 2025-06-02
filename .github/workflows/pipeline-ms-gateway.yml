@@ -19,11 +19,9 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  # Health-check
-  HEALTH_PATH: /actuator/health
-
   # Gateway-specific
   IMAGE_NAME: ms-gateway
+  APP_PLAN: ${{ secrets.APP_PLAN_GATEWAY }}
   APP_NAME_DEV: ${{ vars.APP_GATEWAY_DEV }}
   APP_NAME_PROD: ${{ vars.APP_GATEWAY_PROD }}
   SERVICE_PORT: 8090
@@ -129,7 +127,7 @@ jobs:
         run: |
           az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ secrets.APP_SERVICE_PLAN_DEV }} \
+            --plan ${{ env.APP_PLAN }} \
             --name ${{ env.APP_NAME_DEV }} \
             --deployment-container-image-name $IMAGE || true
 
@@ -202,27 +200,6 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_DEV }} \
             --docker-container-logging filesystem
-
-      - name: Health Check with Retries
-        run: |
-          URL="http://${{ env.APP_NAME_DEV }}.azurewebsites.net${{ env.HEALTH_PATH }}"
-          echo "🩺 Checking health at $URL"
-          for i in $(seq 1 10); do
-            HTTP=$(curl --silent --show-error --fail \
-                         --connect-timeout 10 \
-                         --max-time 20 \
-                         -w "%{http_code}" \
-                         -o /dev/null \
-                         $URL) || true
-            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Eureka Server is healthy (status $HTTP)"
-              exit 0
-            fi
-            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 10
-          done
-          echo "❌ Health check failed after 10 attempts"
-          exit 1
 
   # --------------------------------------------------------------
   # JOB 3: Deploy to Production

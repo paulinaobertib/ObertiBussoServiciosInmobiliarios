@@ -2,9 +2,9 @@ name: CI/CD - Keycloak
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 env:
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
@@ -180,24 +180,3 @@ jobs:
             az containerapp revision restart \
               -g $RG -n $NAME \
               --revision $REV
-
-      # 6️⃣ Health-check
-      - name: Health Check Keycloak
-        run: |
-          RG=${{ env.AZURE_RESOURCE_GROUP }}
-          NAME=${{ env.ACA_KEYCLOAK_DEV }}
-
-          FQDN=$(az containerapp show -g $RG -n $NAME \
-                  --query properties.configuration.ingress.fqdn -o tsv)
-
-          URL="https://$FQDN/realms/obertibussoserviciosinmobiliarios/.well-known/openid-configuration"
-          echo "Checking $URL"
-          for i in $(seq 1 10); do
-            HTTP=$(curl -sSf -w "%{http_code}" -o /dev/null "$URL") || HTTP=000
-            if [ "$HTTP" -ge 200 ] && [ "$HTTP" -lt 300 ]; then
-              echo "✅ Keycloak healthy ($HTTP)" && exit 0
-            fi
-            echo "⏳ Attempt $i failed (status $HTTP)" 
-            sleep 5
-          done
-          echo "❌ Health-check failed" && exit 1
