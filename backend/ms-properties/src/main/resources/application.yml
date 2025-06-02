@@ -63,4 +63,4 @@ email:
   password: ${EMAIL_PASSWORD}
 
 frontend:
-  base-url: ${FRONTEND_BASE_URL:}
+  base-url: ${SWA_FRONTEND}
