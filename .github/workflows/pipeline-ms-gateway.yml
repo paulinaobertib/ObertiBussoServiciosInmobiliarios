@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -166,14 +166,14 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ vars.ACA_KEYCLOAK_DEV }} \
             --query properties.configuration.ingress.fqdn -o tsv)
-          echo "🔖 Keycloak FQDN (Dev): $KEYCLOAK_FQDN"
+          echo "🔖 Keycloak FQDN: $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
 
-          FRONTEND_FQDN=$(az containerapp show \
+          FRONTEND_FQDN=$(az staticwebapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ vars.SWA_FRONTEND_DEV }} \
-            --query properties.configuration.ingress.fqdn -o tsv)
-          echo "🔖 Frontend FQDN (Dev): $KEYCLOAK_FQDN"
+            --query defaultHostname -o tsv)
+          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
           echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
 
       - name: Set environment variables (App Settings Dev)
