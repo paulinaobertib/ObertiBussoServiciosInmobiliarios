@@ -42,16 +42,6 @@ spring:
         jwt:
           issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
 
-# Momentaneo mientras se hacen los pipelines
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,env,mappings
-  endpoint:
-    health:
-      show-details: always
-
 # configuracion de azure
 azure:
   blob-storage:
