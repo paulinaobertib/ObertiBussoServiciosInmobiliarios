@@ -22,9 +22,7 @@ env:
 
   # Utils
   API_URL_DEV: "https://${{ vars.APP_PROPERTIES_DEV }}.azurewebsites.net/api"
-  BASE_URL_DEV: "https://${{ vars.SWA_FRONTEND_DEV }}.azurestaticapps.net"
   API_URL_PROD: "https://${{ vars.APP_PROPERTIES_PROD }}.azurewebsites.net/api"
-  BASE_URL_PROD: "https://${{ vars.SWA_FRONTEND_PROD }}.azurestaticapps.net"
 
 jobs:
   # --------------------------------------------------------------
@@ -133,10 +131,10 @@ jobs:
         shell: bash
         run: |
           echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_DEV"
-          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por $BASE_URL_DEV"
+          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
 
           API_ESCAPED=${API_URL_DEV//\//\\/}
-          BASE_ESCAPED=${BASE_URL_DEV//\//\\/}
+          BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
 
           find frontend/dist -type f -name '*.js' -exec \
             sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
