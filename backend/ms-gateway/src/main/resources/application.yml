@@ -11,16 +11,6 @@ eureka:
     service-url:
       defaultZone: http://${EUREKA_HOSTNAME}/eureka/
 
-# Momentaneo mientras se hacen los pipelines
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,env
-  endpoint:
-    health:
-      show-details: always
-
 spring:
   application:
     name: ms-gateway
