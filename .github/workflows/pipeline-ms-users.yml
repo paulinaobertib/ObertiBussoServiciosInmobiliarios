@@ -2,9 +2,9 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -179,6 +179,13 @@ jobs:
           echo "🔖 Keycloak FQDN (Prod): $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
 
+          FRONTEND_FQDN=$(az containerapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ vars.SWA_FRONTEND_DEV }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          echo "🔖 Frontend FQDN (Dev): $KEYCLOAK_FQDN"
+          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
+
       - name: Set environment variables (App Settings Dev)
         run: |
           az webapp config appsettings set \
@@ -195,7 +202,8 @@ jobs:
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }}" \
-              "KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}"
+              "KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}" \ 
+              "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
 
       - name: Restart Web App to apply App Settings
         run: |
