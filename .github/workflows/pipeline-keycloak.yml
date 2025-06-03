@@ -54,7 +54,7 @@ jobs:
         run: |
           TAG=${{ steps.set-tag.outputs.tag }}
           IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-          docker build -t $IMAGE -f keycloak/Dockerfile .
+          docker build --no-cache -t $IMAGE -f keycloak/Dockerfile .
           docker push $IMAGE
 
   # --------------------------------------------------------------
