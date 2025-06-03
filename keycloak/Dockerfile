@@ -32,3 +32,4 @@ ENTRYPOINT ["sh","-c","\
     --http-port=${KC_HTTP_PORT} \
     --bootstrap-admin-username=${KEYCLOAK_ADMIN} \
     --bootstrap-admin-password=${KEYCLOAK_ADMIN_PASSWORD}"]
+    
