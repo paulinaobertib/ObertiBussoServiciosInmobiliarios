@@ -25,10 +25,11 @@ RUN mkdir -p /home/data/h2 && \
 USER 1000
 
 # ─── 4) ENTRY POINT ORIGINAL, PERO APUNTA A /home/data/h2 EN LUGAR DE /opt/... ──
-ENTRYPOINT ["sh","-c","\
-    rm -f /home/data/h2/*.lock.db /home/data/h2/DATABASECHANGELOGLOCK* && \
-    exec /opt/keycloak/bin/kc.sh start \
+ENTRYPOINT ["sh","-c", "\
+  mkdir -p /home/data/h2 && \
+  rm -f /home/data/h2/*.lock.db /home/data/h2/DATABASECHANGELOGLOCK* || true && \
+  exec /opt/keycloak/bin/kc.sh start \
     --http-port=${KC_HTTP_PORT} \
     --bootstrap-admin-username=${KEYCLOAK_ADMIN} \
     --bootstrap-admin-password=${KEYCLOAK_ADMIN_PASSWORD} \
-    "]
+    --optimized"]
