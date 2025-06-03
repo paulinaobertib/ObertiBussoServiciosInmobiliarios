@@ -84,14 +84,14 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --plan ${{ env.APP_PLAN }} \
             --name ${{ env.APP_NAME_DEV }} \
-            --deployment-container-image-name $IMAGE
+            --deployment-container-image-name $IMAGE || true
 
       - name: Configure Web App container
         run: |
           az webapp config container set \
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name $IMAGE \
+            --docker-custom-image-name $IMAGE \
             --container-registry-url https://index.docker.io \
             --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
             --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
@@ -157,5 +157,3 @@ jobs:
   #   environment: production
 
   #   steps:
-
-    
