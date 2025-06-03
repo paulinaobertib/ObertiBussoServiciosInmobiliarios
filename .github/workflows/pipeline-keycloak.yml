@@ -18,7 +18,8 @@ env:
 
   # Properties-specific
   IMAGE_NAME: keycloak
-  APP_PLAN: ${{ secrets.APP_PLAN_USERS }} # CAMBIAR CAMBIAR CAMBIAR CAMBIAR USERS POR KEYCLOAK
+  # APP_PLAN: ${{ secrets.APP_PLAN_KEYCLOAK }}
+  APP_PLAN: "plan-backup"
   APP_NAME_DEV: ${{ vars.APP_KEYCLOAK_DEV }}
   APP_NAME_PROD: ${{ vars.APP_KEYCLOAK_PROD }}
   SERVICE_PORT: 8080
