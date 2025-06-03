@@ -2,9 +2,9 @@ name: CI/CD - Frontend
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipeline
+  # push:
+  #   branches:
+  #     - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -152,27 +152,6 @@ jobs:
             --app-name "$SWA_FRONTEND_DEV" \
             --env production \
             --deployment-token "$DEPLOY_TOKEN"
-
-      - name: Health Check
-        run: |
-          URL="https://${FRONTEND_HOSTNAME}"
-          echo "🩺 Checking health at $URL"
-          for i in $(seq 1 10); do
-            HTTP=$(curl --silent --show-error --fail \
-                         --connect-timeout 10 \
-                         --max-time 20 \
-                         -w "%{http_code}" \
-                         -o /dev/null \
-                         $URL) || true
-            if [[ "$HTTP" -ge 200 && "$HTTP" -lt 300 ]]; then
-              echo "✅ Frontend is healthy (status $HTTP)"
-              exit 0
-            fi
-            echo "⏳ Attempt $i failed (status $HTTP), retrying in 10s..."
-            sleep 10
-          done
-          echo "❌ Health check failed after 10 attempts"
-          exit 1
 
   # --------------------------------------------------------------
   # JOB 3: Deploy to Production

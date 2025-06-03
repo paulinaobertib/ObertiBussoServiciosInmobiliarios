@@ -7,176 +7,153 @@ on:
       - feature/pipeline
 
 env:
+  # Azure
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  AZURE_KEYCLOAK_ACCOUNT: storagekeycloak
-  AZURE_FILE_SHARE: keycloak-data
+
+  # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # Properties-specific
   IMAGE_NAME: keycloak
-  ACA_KEYCLOAK_DEV: ${{ vars.ACA_KEYCLOAK_DEV }}
-  FILE_VOLUME_NAME: keycloakstorage
+  APP_PLAN: ${{ secrets.APP_PLAN_KEYCLOAK }}
+  APP_NAME_DEV: ${{ vars.APP_KEYCLOAK_DEV }}
+  APP_NAME_PROD: ${{ vars.APP_KEYCLOAK_PROD }}
   SERVICE_PORT: 8080
 
 jobs:
+  # --------------------------------------------------------------
+  # JOB 1: Build · Test · Docker
+  # --------------------------------------------------------------
   build-and-push:
+    name: Build · Test · Docker
     runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.build-image.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: docker/login-action@v2
+    outputs:
+      tag: ${{ steps.set-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - id: build-image
+      - name: Set Docker image tag
+        id: set-tag
         run: |
           TAG=${GITHUB_SHA::8}
-          IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-          docker build --no-cache -t $IMAGE -f keycloak/Dockerfile .
-          docker push $IMAGE
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
+      - name: Build & Push Docker image
+        run: |
+          TAG=${{ steps.set-tag.outputs.tag }}
+          IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
+          docker build -t $IMAGE -f keycloak/Dockerfile .
+          docker push $IMAGE
+
+  # --------------------------------------------------------------
+  # JOB 2: Deploy to Development
+  # --------------------------------------------------------------
   deploy-dev:
     name: Deploy to Development
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: development
+
     steps:
-      - uses: azure/login@v1
+      - name: Azure Login
+        uses: azure/login@v1
         with:
           creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
 
-      # 1️⃣ Asegura Container App o créala
-      - name: Ensure Container App Exists
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            TAG=${{ needs.build-and-push.outputs.tag }}
-            IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-            RG=${{ env.AZURE_RESOURCE_GROUP }}
-            ENV=${{ secrets.ACA_ENVIRONMENT }}  
-            NAME=${{ env.ACA_KEYCLOAK_DEV }}    
-
-            if ! az containerapp show -g $RG -n $NAME &>/dev/null; then
-              az containerapp create \
-                -g $RG -n $NAME \
-                --environment $ENV \
-                --image $IMAGE \
-                --ingress external \
-                --target-port $SERVICE_PORT \
-                --registry-server docker.io \
-                --registry-username ${{ env.DOCKERHUB_USERNAME }} \
-                --registry-password ${{ env.DOCKERHUB_TOKEN }} \
-                --cpu 2.5 --memory 5Gi
-            else
-              az containerapp update \
-                -g $RG -n $NAME \
-                --image $IMAGE
-            fi
-
-      # 2️⃣ Registrar Azure File Share
-      - name: Register Azure File Share
-        uses: azure/cli@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            RG=${{ env.AZURE_RESOURCE_GROUP }}
-            ENV=${{ secrets.ACA_ENVIRONMENT  }}
-            VOL=${{ env.FILE_VOLUME_NAME }}
-            ACCOUNT=${{ env.AZURE_KEYCLOAK_ACCOUNT }}
-            SHARE=${{ env.AZURE_FILE_SHARE }}
-
-            az extension add --name containerapp --upgrade
-            if ! az containerapp env storage list -g $RG -n $ENV \
-                  --query "[?name=='$VOL']" -o tsv | grep -q "$VOL"; then
-              KEY=$(az storage account keys list -g $RG -n $ACCOUNT --query '[0].value' -o tsv)
-              az containerapp env storage set \
-                --resource-group $RG --name $ENV \
-                --storage-name $VOL --storage-type AzureFile \
-                --azure-file-account-name $ACCOUNT \
-                --azure-file-account-key  $KEY \
-                --azure-file-share-name   $SHARE \
-                --access-mode ReadWrite
-            fi
-
-      - name: Force single revision + limit replicas
-        uses: azure/cli@v1
-        with:
-          inlineScript: |
-            RG=${{ env.AZURE_RESOURCE_GROUP }}
-            NAME=${{ env.ACA_KEYCLOAK_DEV }}
-
-            az containerapp revision set-mode \
-              --resource-group $RG \
-              --name $NAME \
-              --mode Single
-
-            az containerapp update \
-              --resource-group $RG \
-              --name $NAME \
-              --min-replicas 1 \
-              --max-replicas 1
-
-      # 3️⃣ Exportar template a app.yaml
-      - name: Export Container App template to YAML
-        uses: azure/cli@v1
-        with:
-          inlineScript: |
-            RG=${{ env.AZURE_RESOURCE_GROUP }}
-            NAME=${{ env.ACA_KEYCLOAK_DEV }}
-            az containerapp show \
-              -g $RG -n $NAME \
-              --query properties.template \
-              -o yaml > app.yaml
-
-      # 4️⃣ Inyectar env-vars + volumen + mount con yq
-      - name: Inject settings into app.yaml
+      - name: Set variables
+        id: vars
         run: |
-          RG=${{ env.AZURE_RESOURCE_GROUP }}
-          NAME=${{ env.ACA_KEYCLOAK_DEV }}
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
 
-          # FQDN público de la Container App
-          FQDN=$(az containerapp show -g $RG -n $NAME \
-                   --query properties.configuration.ingress.fqdn -o tsv)
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --deployment-container-image-name $IMAGE || true
 
-          # Instala yq si aún no está
-          if ! command -v yq >/dev/null; then
-            sudo wget -qO /usr/local/bin/yq \
-              https://github.com/mikefarah/yq/releases/download/v4.42.1/yq_linux_amd64
-            sudo chmod +x /usr/local/bin/yq
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_DEV }}
+          else
+            echo "✅ App Service ya está en ejecución."
           fi
 
-          yq -i '.containers[0].env +=
-            [
-              {"name":"KC_HOSTNAME","value":"'"$FQDN"'"},
-              {"name":"KC_DB","value":"dev-file"},
-              {"name":"KC_DB_FILE_DIR","value":"/opt/keycloak/data/h2"},
-              {"name":"KEYCLOAK_ADMIN","value":"'"${{ secrets.KEYCLOAK_ADMIN }}"'"},
-              {"name":"KEYCLOAK_ADMIN_PASSWORD","value":"'"${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}"'"},
-              {"name":"KC_HTTP_PORT","value":"8080"},
-              {"name":"KC_HEALTH_ENABLED","value":"true"},
-              {"name":"KC_METRICS_ENABLED","value":"true"}
-            ]' app.yaml
+      - name: Set environment variables (App Settings Dev)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "KC_DB=dev-file" \
+              "KC_DB_FILE_DIR=/home/data/h2" \
+              "KC_HTTP_PORT=${{ env.SERVICE_PORT }}" \
+              "KC_HEALTH_ENABLED=true" \
+              "KC_METRICS_ENABLED=true" \
+              "KC_PROXY=edge" \
+              "KC_HOSTNAME_STRICT=false" \
+              "KC_PROXY_HEADERS=xforwarded" \
+              "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" \
+              "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
+              "KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net"
 
-      # 5️⃣ Aplicar app.yaml y reiniciar revision
-      - name: Apply YAML and Restart Revision
-        uses: azure/cli@v1
-        with:
-          inlineScript: |
-            RG=${{ env.AZURE_RESOURCE_GROUP }}
-            NAME=${{ env.ACA_KEYCLOAK_DEV }}
+      - name: Reiniciar Web App para aplicar los App Settings
+        run: |
+          az webapp restart \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
-            az containerapp update \
-              -g $RG -n $NAME \
-              --yaml app.yaml
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --docker-container-logging filesystem
 
-            REV=$(az containerapp show \
-              -g $RG -n $NAME \
-              --query properties.latestReadyRevisionName -o tsv)
+  # --------------------------------------------------------------
+  # JOB 3: Deploy to Production
+  # --------------------------------------------------------------
+  # deploy-prod:
+  #   name: Deploy to Production
+  #   needs: [deploy-dev, build-and-push]
+  #   runs-on: ubuntu-latest
+  #   environment: production
 
-            az containerapp revision restart \
-              -g $RG -n $NAME \
-              --revision $REV
+  #   steps:
