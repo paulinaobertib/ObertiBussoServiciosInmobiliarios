@@ -2,9 +2,9 @@ name: CI/CD - Frontend
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -21,7 +21,7 @@ env:
   SWA_FRONTEND_PROD: ${{ vars.SWA_FRONTEND_PROD }}
 
   # Utils
-  API_URL_DEV: "https://${{ vars.APP_PROPERTIES_DEV }}.azurewebsites.net/api"
+  API_URL_DEV: "https://${{ vars.APP_GATEWAY_DEV }}.azurewebsites.net/api"
   API_URL_PROD: "https://${{ vars.APP_PROPERTIES_PROD }}.azurewebsites.net/api"
 
 jobs:
@@ -117,12 +117,12 @@ jobs:
 
       - name: Fetch FQDNs
         run: |
-            FRONTEND_FQDN=$(az staticwebapp show \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --name ${{ vars.SWA_FRONTEND_DEV }} \
-              --query defaultHostname -o tsv)
-            echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-            echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
+          FRONTEND_FQDN=$(az staticwebapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ vars.SWA_FRONTEND_DEV }} \
+            --query defaultHostname -o tsv)
+          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
+          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
 
       - name: Insert DEV URLs
         shell: bash
