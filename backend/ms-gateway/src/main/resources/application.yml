@@ -34,9 +34,10 @@ spring:
       globalcors:
         corsConfigurations:
           "[/**]":
-            allowedOrigins: 
+            allowedOrigins:
             - "http://localhost:5173"
-            - "https://${SWA_FRONTEND}.azurestaticapps.net"
+            # - "https://${SWA_FRONTEND}.azurestaticapps.net"
+            - "https://nice-ground-01cabe81e.6.azurestaticapps.net"
             allowedHeaders: "*"
             allowedMethods:
               - GET
