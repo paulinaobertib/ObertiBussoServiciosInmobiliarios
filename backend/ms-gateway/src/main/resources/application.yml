@@ -15,19 +15,19 @@ spring:
   application:
     name: ms-gateway
   # security:
-    # oauth2:
-    #   client:
-    #     provider:
-    #       keycloak-client:
-    #         issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
-    #     registration:
-    #       keycloak-client:
-    #         client-id: ${KEYCLOAK_CLIENT_ID}
-    #         client-secret: ${KEYCLOAK_CLIENT_SECRET}
-    #         scope:
-    #           - openid
-    #         authorization-grant-type: authorization_code
-    #         redirect-uri: http://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
+  # oauth2:
+  #   client:
+  #     provider:
+  #       keycloak-client:
+  #         issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+  #     registration:
+  #       keycloak-client:
+  #         client-id: ${KEYCLOAK_CLIENT_ID}
+  #         client-secret: ${KEYCLOAK_CLIENT_SECRET}
+  #         scope:
+  #           - openid
+  #         authorization-grant-type: authorization_code
+  #         redirect-uri: http://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
   cloud:
     gateway:
@@ -35,15 +35,16 @@ spring:
         corsConfigurations:
           "[/**]":
             allowedOrigins:
-            - "http://localhost:5173"
-            # - "https://${SWA_FRONTEND}.azurestaticapps.net"
-            - "https://nice-ground-01cabe81e.6.azurestaticapps.net"
+              - "http://localhost:5173"
+              # - "https://${SWA_FRONTEND}.azurestaticapps.net"
+              - "https://nice-ground-01cabe81e.6.azurestaticapps.net"
             allowedHeaders: "*"
             allowedMethods:
               - GET
               - POST
               - PUT
               - DELETE
+              - OPTIONS
             allowCredentials: true
       routes:
         - id: ms-properties
