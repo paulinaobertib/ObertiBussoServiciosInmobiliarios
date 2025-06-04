@@ -85,8 +85,8 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --plan ${{ env.APP_PLAN }} \
             --name ${{ env.APP_NAME_DEV }} \
-            --deployment-container-image-name $IMAGE || true
-
+            --deployment-container-image-name $IMAGE
+            
       - name: Configure Web App container
         run: |
           az webapp config container set \
