@@ -26,7 +26,7 @@ const loginUrl =
   'http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth?client_id=api-gateway-client&response_type=code&scope=openid&redirect_uri=http://localhost:8090/login/oauth2/code/keycloak';
 
 const registerUrl =
-  'http://localhost:8080/realms/obertibussoserviciosinmobiliarios/login-actions/registration?client_id=api-gateway-client&tab_id=h20-NEdeJzU&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA5MC9sb2dpbi9vYXV0aDIvY29kZS9rZXljbG9hayIsInJ0IjoiY29kZSJ9';
+  'http://localhost:8080/realms/obertibussoserviciosinmobiliarios/login-actions/registration?client_id=api-gateway-client&tab_id=Bpye8TprzBY&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA5MC9sb2dpbi9vYXV0aDIvY29kZS9rZXljbG9hayIsInJ0IjoiY29kZSJ9';
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -46,7 +46,6 @@ export default function NavBar() {
   };
 
   const handleLogout = () => {
-    // Tu lógica de logout aquí
     console.log('Logout clicked');
   };
 
@@ -129,7 +128,7 @@ export default function NavBar() {
                   window.location.href = loginUrl;
                 }}
               >
-                LOGIN
+                INICIAR SESIÓN
               </MenuItem>
               <MenuItem
                 onClick={() => {
@@ -168,7 +167,7 @@ export default function NavBar() {
               onClick={() => window.location.href = loginUrl}
               sx={{ textTransform: 'none' }}
             >
-              LOGIN
+              INICIAR SESIÓN
             </Button>
             <Button
               color="inherit"
