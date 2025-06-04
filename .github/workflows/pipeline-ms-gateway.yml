@@ -160,13 +160,6 @@ jobs:
 
       - name: Fetch FQDNs
         run: |
-          KEYCLOAK_FQDN=$(az containerapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ vars.APP_KEYCLOAK_DEV }} \
-            --query properties.configuration.ingress.fqdn -o tsv)
-          echo "🔖 Keycloak FQDN: $KEYCLOAK_FQDN"
-          echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
-
           FRONTEND_FQDN=$(az staticwebapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ vars.SWA_FRONTEND_DEV }} \
@@ -182,7 +175,7 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net \
-                       KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME \
+                       KEYCLOAK_HOSTNAME=${{ vars.APP_KEYCLOAK_DEV }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
