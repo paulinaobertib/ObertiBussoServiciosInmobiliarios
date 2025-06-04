@@ -162,7 +162,7 @@ jobs:
         run: |
           KEYCLOAK_FQDN=$(az containerapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ vars.ACA_KEYCLOAK_DEV }} \
+            --name ${{ vars.APP_KEYCLOAK_DEV }} \
             --query properties.configuration.ingress.fqdn -o tsv)
           echo "🔖 Keycloak FQDN: $KEYCLOAK_FQDN"
           echo "KEYCLOAK_HOSTNAME=$KEYCLOAK_FQDN" >> $GITHUB_ENV
