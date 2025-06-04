@@ -18,8 +18,7 @@ env:
 
   # Properties-specific
   IMAGE_NAME: keycloak
-  # APP_PLAN: ${{ secrets.APP_PLAN_KEYCLOAK }}
-  APP_PLAN: "plan-backup"
+  APP_PLAN: ${{ secrets.APP_PLAN_KEYCLOAK }}
   APP_NAME_DEV: ${{ vars.APP_KEYCLOAK_DEV }}
   APP_NAME_PROD: ${{ vars.APP_KEYCLOAK_PROD }}
   SERVICE_PORT: 8080
@@ -86,7 +85,7 @@ jobs:
             --plan ${{ env.APP_PLAN }} \
             --name ${{ env.APP_NAME_DEV }} \
             --deployment-container-image-name $IMAGE
-            
+
       - name: Configure Web App container
         run: |
           az webapp config container set \
