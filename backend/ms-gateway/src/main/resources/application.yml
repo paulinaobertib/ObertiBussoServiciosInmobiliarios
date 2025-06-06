@@ -3,8 +3,8 @@ server:
 
 eureka:
   instance:
-    hostname: ${WEBSITES_HOSTNAME}
-    non-secure-port: 80 
+    hostname: ${WEBSITED_HOSTNAME}
+    nonSecurePort: 80 
   client:
     register-with-eureka: true
     fetch-registry: true
