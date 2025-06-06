@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipeline
+  # push:
+  #   branches:
+  #     - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -163,7 +163,7 @@ jobs:
         run: |
           FRONTEND_FQDN=$(az staticwebapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ vars.SWA_FRONTEND_DEV }} \
+            --name ${{ secrets.SWA_FRONTEND_DEV }} \
             --query defaultHostname -o tsv)
           echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
           echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
@@ -183,7 +183,7 @@ jobs:
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
 
-      - name: Reiniciar Web App para aplicar los App Settings
+      - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
             --name ${{ env.APP_NAME_DEV }} \
@@ -256,7 +256,7 @@ jobs:
         run: |
           FRONTEND_FQDN=$(az staticwebapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ vars.SWA_FRONTEND_PROD }} \
+            --name ${{ secrets.SWA_FRONTEND_PROD }} \
             --query defaultHostname -o tsv)
           echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
           echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
@@ -276,7 +276,7 @@ jobs:
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
 
-      - name: Reiniciar Web App para aplicar los App Settings
+      - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
             --name ${{ env.APP_NAME_PROD }} \
