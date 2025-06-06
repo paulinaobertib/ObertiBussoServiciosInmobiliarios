@@ -177,7 +177,7 @@ jobs:
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net \
-                       KEYCLOAK_HOSTNAME=${{ vars.APP_KEYCLOAK_DEV }}.azurewebsites.net \
+                       KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
