@@ -1,12 +1,14 @@
 package pi.ms_users.repository.UserRepository;
 
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +34,44 @@ public class KeycloakUserRepository implements IUserRepository {
             phone = attributes.get("phone").getFirst();
         }
         return new User(userRepresentation.getId(), userRepresentation.getUsername(), userRepresentation.getEmail(), userRepresentation.getFirstName(), userRepresentation.getLastName(), phone);
+    }
+
+    @Override
+    public void createUser(String name, String lastName, String email, String phone) {
+        UserRepresentation user = new UserRepresentation();
+        String username = (name + lastName).toLowerCase();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setFirstName(name);
+        user.setLastName(lastName);
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+
+        Map<String, List<String>> attributes = new HashMap<>();
+        attributes.put("phone", List.of(phone));
+        user.setAttributes(attributes);
+
+        user.setRequiredActions(List.of("UPDATE_PASSWORD"));
+
+        Response response = keycloak.realm(realm).users().create(user);
+
+        if (response.getStatus() == 201) {
+            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+
+            CredentialRepresentation passwordCred = new CredentialRepresentation();
+            passwordCred.setTemporary(true);
+            passwordCred.setType(CredentialRepresentation.PASSWORD);
+            String generatedPassword = PasswordGenerator.generateRandomPassword();
+            passwordCred.setValue(generatedPassword);
+
+            keycloak.realm(realm)
+                    .users()
+                    .get(userId)
+                    .resetPassword(passwordCred);
+        } else {
+            System.err.println("Error al crear usuario: " + response.getStatus());
+        }
+        response.close();
     }
 
     @Override

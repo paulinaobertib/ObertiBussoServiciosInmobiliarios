@@ -7,7 +7,6 @@ import pi.ms_users.dto.EmailPropertyDTO;
 import java.time.LocalDateTime;
 
 public interface IEmailService {
-
     void sendAppointmentRequest(EmailDTO emailDTO) throws MessagingException;
 
     void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date);

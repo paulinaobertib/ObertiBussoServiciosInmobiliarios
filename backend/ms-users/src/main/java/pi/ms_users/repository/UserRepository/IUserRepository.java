@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IUserRepository {
+    void createUser(String name, String lastName, String email, String phone);
     Optional<User> findById(String id);
     List<User> findAll();
     void deleteUserById(String id);

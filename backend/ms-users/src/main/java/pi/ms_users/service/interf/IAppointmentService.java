@@ -7,7 +7,6 @@ import pi.ms_users.domain.AppointmentStatus;
 import java.util.List;
 
 public interface IAppointmentService {
-
     ResponseEntity<Appointment> create(Appointment appointment);
 
     ResponseEntity<String> delete(Long id);
