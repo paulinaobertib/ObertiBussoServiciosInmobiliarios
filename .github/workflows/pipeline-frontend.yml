@@ -16,7 +16,7 @@ env:
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
 
   # Properties-specific
-  SWA_LOCATION: chilecentral
+  SWA_LOCATION: eastus2
   SWA_FRONTEND_DEV: ${{ secrets.SWA_FRONTEND_DEV }}
   SWA_FRONTEND_PROD: ${{ secrets.SWA_FRONTEND_PROD }}
 
