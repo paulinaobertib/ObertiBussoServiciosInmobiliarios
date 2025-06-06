@@ -7,7 +7,6 @@ import pi.ms_users.dto.NotificationDTO;
 import java.util.List;
 
 public interface INotificationService {
-
     ResponseEntity<String> createProperty(NotificationDTO notificationDTO, Long propertyId);
 
     ResponseEntity<Notification> getById(Long id);
