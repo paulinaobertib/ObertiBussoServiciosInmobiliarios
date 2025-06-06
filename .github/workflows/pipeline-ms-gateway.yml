@@ -174,7 +174,7 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       WEBSITE_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
+                       APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
                        EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ vars.APP_KEYCLOAK_DEV }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
