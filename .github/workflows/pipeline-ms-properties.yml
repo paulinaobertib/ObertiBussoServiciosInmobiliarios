@@ -2,9 +2,9 @@ name: CI/CD - MS Properties
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -25,8 +25,8 @@ env:
   IMAGE_NAME: ms-properties
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_CORE_PROD }}
-  APP_NAME_DEV: ${{ vars.APP_PROPERTIES_DEV }}
-  APP_NAME_PROD: ${{ vars.APP_PROPERTIES_PROD }}
+  APP_NAME_DEV: ${{ secrets.APP_PROPERTIES_DEV }}
+  APP_NAME_PROD: ${{ secrets.APP_PROPERTIES_PROD }}
   SERVICE_PORT: 8083
 
   # Utils
@@ -174,7 +174,7 @@ jobs:
         run: |
           FRONTEND_FQDN=$(az staticwebapp show \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ vars.SWA_FRONTEND_DEV }} \
+            --name ${{ secrets.SWA_FRONTEND_DEV }} \
             --query defaultHostname -o tsv)
           echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
           echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
@@ -198,7 +198,7 @@ jobs:
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
 
-      - name: Reiniciar Web App para aplicar los App Settings
+      - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
             --name ${{ env.APP_NAME_DEV }} \
@@ -214,10 +214,96 @@ jobs:
   # --------------------------------------------------------------
   # JOB 3: Deploy to Production
   # --------------------------------------------------------------
-  # deploy-prod:
-  #   name: Deploy to Production
-  #   needs: [deploy-dev, build-and-push]
-  #   runs-on: ubuntu-latest
-  #   environment: production
+  deploy-prod:
+    name: Deploy to Production
+    needs: [deploy-dev, build-and-push]
+    runs-on: ubuntu-latest
+    environment: production
 
-  #   steps:
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
+
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_PROD }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --deployment-container-image-name $IMAGE || true
+
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_PROD }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
+
+      - name: Fetch FQDNs
+        run: |
+          FRONTEND_FQDN=$(az staticwebapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ secrets.SWA_FRONTEND_PROD }} \
+            --query defaultHostname -o tsv)
+          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
+          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
+
+      - name: Set environment variables (App Settings)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
+              "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
+              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
+              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
+              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
+              "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
+              "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
+
+      - name: Restart Web App to apply App Settings
+        run: |
+          az webapp restart \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --docker-container-logging filesystem
