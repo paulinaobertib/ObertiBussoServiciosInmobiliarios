@@ -21,7 +21,7 @@ env:
 
   # Eureka-specific
   IMAGE_NAME: eureka-server
-  APP_PLAN: ${{ secrets.APP_EUREKA_SERVER }}
+  APP_PLAN: ${{ secrets.APP_PLAN_EDGE }}
   APP_NAME_DEV: ${{ vars.APP_EUREKA_DEV }}
   APP_NAME_PROD: ${{ vars.APP_EUREKA_PROD }}
 

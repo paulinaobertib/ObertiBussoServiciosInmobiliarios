@@ -23,7 +23,7 @@ env:
   
   # Properties-specific
   IMAGE_NAME: ms-properties
-  APP_PLAN: ${{ secrets.APP_PLAN_PROPERTIES }}
+  APP_PLAN: ${{ secrets.APP_PLAN_CORE }}
   APP_NAME_DEV: ${{ vars.APP_PROPERTIES_DEV }}
   APP_NAME_PROD: ${{ vars.APP_PROPERTIES_PROD }}
   SERVICE_PORT: 8083

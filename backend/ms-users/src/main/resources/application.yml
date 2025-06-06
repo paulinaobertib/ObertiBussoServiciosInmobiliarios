@@ -3,8 +3,8 @@ server:
 
 eureka:
   instance:
-    hostname: ${EUREKA_HOSTNAME}
-    # instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    hostname: ${WEBSITES_HOSTNAME}
+    non-secure-port: 80 
   client:
     service-url:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
@@ -14,8 +14,8 @@ spring:
     name: ms-users
 
   # MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
-  config:
-    ignore-unresolvable-placeholders: true
+  # config:
+  #   ignore-unresolvable-placeholders: true
 
   # configuracion de la base de datos
   datasource:
