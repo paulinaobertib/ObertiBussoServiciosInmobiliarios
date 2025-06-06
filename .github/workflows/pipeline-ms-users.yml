@@ -187,7 +187,7 @@ jobs:
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "KEYCLOAK_HOSTNAME=${{ vars.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
+              "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
               "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
               "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
