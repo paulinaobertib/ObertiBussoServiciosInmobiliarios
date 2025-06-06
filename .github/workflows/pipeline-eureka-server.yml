@@ -2,9 +2,9 @@ name: CI/CD - Eureka Server
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -21,9 +21,10 @@ env:
 
   # Eureka-specific
   IMAGE_NAME: eureka-server
-  APP_PLAN: ${{ secrets.APP_PLAN_EDGE }}
-  APP_NAME_DEV: ${{ vars.APP_EUREKA_DEV }}
-  APP_NAME_PROD: ${{ vars.APP_EUREKA_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
+  APP_NAME_DEV: ${{ secrets.APP_EUREKA_DEV }}
+  APP_NAME_PROD: ${{ secrets.APP_EUREKA_PROD }}
 
   SERVICE_PORT: 8761
 
@@ -128,7 +129,7 @@ jobs:
         run: |
           az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ env.APP_PLAN }} \
+            --plan ${{ env.APP_PLAN_DEV }} \
             --name ${{ env.APP_NAME_DEV }} \
             --deployment-container-image-name $IMAGE || true
 
@@ -184,10 +185,77 @@ jobs:
   # --------------------------------------------------------------
   # JOB 3: Deploy to Production
   # --------------------------------------------------------------
-  # deploy-prod:
-  #   name: Deploy to Production
-  #   needs: [deploy-dev, build-and-push]
-  #   runs-on: ubuntu-latest
-  #   environment: production
+  deploy-prod:
+    name: Deploy to Production
+    needs: [deploy-dev, build-and-push]
+    runs-on: ubuntu-latest
+    environment: production
 
-  #   steps:
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
+
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_PROD }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --deployment-container-image-name $IMAGE || true
+
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_PROD }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
+
+      - name: Set environment variables (app settings)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       EUREKA_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net
+
+      - name: Reiniciar Web App para aplicar los App Settings
+        run: |
+          az webapp restart \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+            
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --docker-container-logging filesystem

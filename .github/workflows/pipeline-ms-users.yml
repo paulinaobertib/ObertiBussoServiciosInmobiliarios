@@ -2,9 +2,9 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipeline
+  # push:
+  #   branches:
+  #     - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -21,7 +21,8 @@ env:
 
   # Properties-specific
   IMAGE_NAME: ms-users
-  APP_PLAN: ${{ secrets.APP_PLAN_CORE }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
   APP_NAME_DEV: ${{ vars.APP_USERS_DEV }}
   APP_NAME_PROD: ${{ vars.APP_USERS_PROD }}
   SERVICE_PORT: 8081
@@ -136,7 +137,7 @@ jobs:
         run: |
           az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ env.APP_PLAN }} \
+            --plan ${{ env.APP_PLAN_DEV }} \
             --name ${{ env.APP_NAME_DEV }} \
             --deployment-container-image-name $IMAGE || true
 
@@ -184,7 +185,7 @@ jobs:
             --settings \
               "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "EUREKA_HOSTNAME=${{ vars.APP_EUREKA_DEV }}.azurewebsites.net" \
+              "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ vars.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
