@@ -17,31 +17,31 @@ public class UserNotificationPreferenceController {
 
     private final IUserNotificationPreferenceService userNotificationPreferenceService;
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody UserNotificationPreference preference) {
         return userNotificationPreferenceService.create(preference);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @PutMapping("/update/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestParam Boolean enabled) {
         return userNotificationPreferenceService.update(id, enabled);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<UserNotificationPreference> getById(@PathVariable Long id) {
         return userNotificationPreferenceService.getById(id);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<UserNotificationPreference>> getByUser(@PathVariable String userId) {
         return userNotificationPreferenceService.getByUser(userId);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/active")
     public ResponseEntity<List<String>> getByTypeAndTrue(@RequestParam NotificationType type) {
         return userNotificationPreferenceService.getByTypeAndTrue(type);

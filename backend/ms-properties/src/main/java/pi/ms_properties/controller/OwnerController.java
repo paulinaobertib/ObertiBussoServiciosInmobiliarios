@@ -16,43 +16,43 @@ public class OwnerController {
 
     private final OwnerService ownerService;
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createOwner(@RequestBody Owner owner) {
         return ownerService.createOwner(owner);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteOwner(@PathVariable Long id) {
         return ownerService.deleteOwner(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
     public ResponseEntity<Owner> updateOwner(@RequestBody Owner owner) {
         return ownerService.updateOwner(owner);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByProperty/{id}")
     public ResponseEntity<Owner> getByPropertyId(@PathVariable Long id) {
         return ownerService.getByPropertyId(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<Owner>> getAll() {
         return ownerService.getAll();
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Owner> getById(@PathVariable Long id) {
         return ownerService.getById(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/search")
     public ResponseEntity<List<Owner>> searchOwners(@RequestParam String search) {
         return ownerService.findBy(search);

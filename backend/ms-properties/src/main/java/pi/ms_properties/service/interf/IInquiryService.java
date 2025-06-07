@@ -5,9 +5,6 @@ import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.dto.InquirySaveDTO;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;

@@ -1,8 +1,8 @@
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import ImageCarousel from './PropertyCarousel';
-import PropertyInfoCompare from './PropertyInfoCompare';
+import ImageCarousel from './PropertyCarousel'; 
+import PropertyInfo from './PropertyInfo';
 import { Property } from '../../types/property';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -86,7 +86,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
           />
         </Box>
         <Box sx={{ width: isMobile ? '100%' : '50%' }}>
-          <PropertyInfoCompare property={property} />
+          <PropertyInfo property={property} />
         </Box>
       </Box>
 
@@ -117,6 +117,11 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
                 {address}
               </Popup>
             </Marker>
+            <Circle
+              center={coordinates}
+              radius={300} // 100 metros ~ una cuadra típica
+              pathOptions={{ stroke: false, fillColor: '#1565c0', fillOpacity: 0.3 }}
+            />
           </MapContainer>
         ) : (
           <Box

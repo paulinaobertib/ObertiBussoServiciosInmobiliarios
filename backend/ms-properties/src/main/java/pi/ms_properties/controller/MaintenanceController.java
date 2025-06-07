@@ -16,31 +16,31 @@ public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createMaintenance(@RequestBody MaintenanceDTO maintenanceDTO) {
         return maintenanceService.createMaintenance(maintenanceDTO);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
     public ResponseEntity<MaintenanceDTO> updateMaintenance(@PathVariable Long id, @RequestBody MaintenanceDTO maintenanceDTO) {
         return  maintenanceService.updateMaintenance(id, maintenanceDTO);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteMaintenance(@PathVariable Long id) {
         return maintenanceService.deleteMaintenance(id);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<MaintenanceDTO> getById(@PathVariable Long id) {
         return maintenanceService.getById(id);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getByPropertyId/{id}")
     public ResponseEntity<List<MaintenanceDTO>> getByPropertyId(@PathVariable Long id) {
         return maintenanceService.getByPropertyId(id);

@@ -100,6 +100,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
           {allImages.length > 1 && (
             <>
               <IconButton
+                aria-label="Imagen anterior"
                 onClick={prevImage}
                 sx={{
                   position: 'absolute',
@@ -118,6 +119,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
                 <ArrowBackIosNewIcon fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
               <IconButton
+                aria-label="Siguiente imagen"
                 onClick={nextImage}
                 sx={{
                   position: 'absolute',

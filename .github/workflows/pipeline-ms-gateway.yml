@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline
+  push:
+    branches:
+      - feature/pipeline
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -178,8 +178,8 @@ jobs:
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net \
-                       KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
-                       KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
+                       KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
+                       KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
 
@@ -271,8 +271,8 @@ jobs:
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net \
-                       KEYCLOAK_CLIENT_ID=${{ vars.KEYCLOAK_CLIENT_ID }} \
-                       KEYCLOAK_CLIENT_SECRET=${{ vars.KEYCLOAK_CLIENT_SECRET }} \
+                       KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
+                       KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
 
