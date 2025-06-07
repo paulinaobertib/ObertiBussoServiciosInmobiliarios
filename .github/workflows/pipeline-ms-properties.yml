@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/pipeline
+      - main
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
