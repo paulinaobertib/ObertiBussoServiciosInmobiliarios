@@ -12,23 +12,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "Payment")
-public class Payment {
+@Table(name = "Contract_Increase")
+public class ContractIncrease {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "currency", nullable = false)
-    private PaymentCurrency paymentCurrency;
-
-    @Column(name = "amount", nullable = false)
-    private BigDecimal amount;
-
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "description", nullable = false)
-    private String description;
+    @Column(name = "currency", nullable = false)
+    private ContractIncreaseCurrency currency;
+
+    @Column(name = "amount", nullable = false)
+    private BigDecimal amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contract_id", nullable = false)

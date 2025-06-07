@@ -28,6 +28,9 @@ public class UserService {
     public ResponseEntity<?> createUser(String name, String lastName, String email, String phone) {
         try {
           userRepository.createUser(name, lastName, email, phone);
+
+          // aca mandar mail
+
           return ResponseEntity.ok("Se ha creado el usuario con exito");
 
         } catch (DataIntegrityViolationException e) {

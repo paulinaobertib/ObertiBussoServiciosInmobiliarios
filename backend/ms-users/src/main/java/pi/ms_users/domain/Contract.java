@@ -41,7 +41,10 @@ public class Contract {
     private float increase;
 
     @Column(name = "increase_frequency", nullable = false)
-    private float increaseFrequency;
+    private Long increaseFrequency;
+
+    @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContractIncrease> contractIncrease = new ArrayList<>();
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();

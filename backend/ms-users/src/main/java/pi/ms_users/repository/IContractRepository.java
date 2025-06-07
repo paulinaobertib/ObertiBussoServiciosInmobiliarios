@@ -24,4 +24,7 @@ public interface IContractRepository extends JpaRepository<Contract, Long> {
 
     @Query("select c from Contract c where c.id = ?1 and c.startDate between ?2 and ?3 or c.endDate between ?2 and ?3")
     List<Contract> findByDateBetween(Long contractId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("select c from Contract  c where c.contractStatus = ?1 and c.endDate > ?2")
+    List<Contract> findByStatusAndEndDateAfter(ContractStatus status, LocalDateTime now);
 }

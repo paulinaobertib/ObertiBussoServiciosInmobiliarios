@@ -7,15 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionSystemException;
-import pi.ms_users.domain.Contract;
-import pi.ms_users.domain.ContractStatus;
-import pi.ms_users.domain.ContractType;
+import pi.ms_users.domain.*;
 import pi.ms_users.domain.feign.Property;
+import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.service.interf.IContractIncreaseService;
 import pi.ms_users.service.interf.IContractService;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,13 +27,34 @@ public class ContractService implements IContractService {
 
     private final IContractRepository contractRepository;
 
+    private final IContractIncreaseService contractIncreaseService;
+
     private final IUserRepository userRepository;
 
     private final PropertyRepository propertyRepository;
 
+    //  @RequestParam("amount") float amount, @RequestParam("currency")ContractIncreaseCurrency currency
     @Override
-    public ResponseEntity<?> create(Contract contract) {
+    public ResponseEntity<?> create(Contract contract, BigDecimal amount, ContractIncreaseCurrency currency) {
         try {
+            Property property = propertyRepository.getById(contract.getPropertyId());
+            Boolean existUser = userRepository.exist(contract.getUserId());
+            if (!existUser) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No se ha encontrado el usuario.");
+            }
+
+            contractRepository.save(contract);
+
+            // aca mandar mail
+
+            ContractIncrease contractIncrease = new ContractIncrease();
+            contractIncrease.setAmount(amount);
+            contractIncrease.setCurrency(currency);
+            contractIncrease.setDate(contract.getStartDate());
+            contractIncrease.setContract(contract);
+            contractIncreaseService.create(contractIncrease);
+
+            return ResponseEntity.ok("Se ha creado el contrato.");
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
