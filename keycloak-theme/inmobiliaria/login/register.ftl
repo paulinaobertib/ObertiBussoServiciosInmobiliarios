@@ -17,12 +17,12 @@
         <div class="login-box register-box">
             <img src="${url.resourcesPath}/logo.png" alt="Logo" class="login-logo" />
             <h2>Crear una cuenta</h2>
-            <form id="registerForm">
+            <form id="registerForm" action="${url.registrationAction}" method="post">
                 <input type="text" name="firstName" placeholder="Nombre" required />
                 <input type="text" name="lastName" placeholder="Apellido" required />
                 <input type="text" name="username" placeholder="Nombre de usuario" required />
                 <input type="email" name="email" placeholder="Correo Electrónico" required />
-                <input type="tel" name="phoneNumber" placeholder="Teléfono" />
+                <input type="tel" name="phone" placeholder="Teléfono" required />
 
                 <div class="password-wrapper">
                     <input type="password" name="password" id="password" placeholder="Contraseña" required />
