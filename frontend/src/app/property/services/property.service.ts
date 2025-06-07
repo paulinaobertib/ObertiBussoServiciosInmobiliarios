@@ -111,7 +111,7 @@ export const getPropertiesByText = async (value: string) => {
     );
     return data;
   } catch (error) {
-    console.error("Error buscando por texto:", error);
+    console.error("Error searching by text:", error);
     throw error;
   }
 };

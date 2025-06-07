@@ -193,8 +193,8 @@ jobs:
               "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
-              "KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }}" \
-              "KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}" \
+              "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
+              "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
 
       - name: Restart Web App to apply App Settings
@@ -291,8 +291,8 @@ jobs:
               "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
-              "KEYCLOAK_SB_CLIENT_ID=${{ vars.KEYCLOAK_SB_CLIENT_ID }}" \
-              "KEYCLOAK_SB_CLIENT_SECRET=${{ vars.KEYCLOAK_SB_CLIENT_SECRET }}" \
+              "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
+              "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
 
       - name: Restart Web App to apply App Settings

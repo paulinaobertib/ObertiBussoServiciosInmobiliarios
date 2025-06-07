@@ -17,55 +17,55 @@ public class UserController {
 
     private final UserService userService;
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
         return userService.findById(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<User>> findAll() {
         return userService.findAll();
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/role/{id}")
     public ResponseEntity<List<String>> findRoles(@PathVariable String id) {
         return userService.getUserRoles(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/findUser")
     public ResponseEntity<List<User>> searchUsersByText(@RequestParam String searchTerm) {
         return userService.searchUsersByText(searchTerm);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable String id) {
         return userService.deleteUserById(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/role/{id}")
     public ResponseEntity<String> deleteRoleToUser(@PathVariable String id, @RequestParam String role) {
         return userService.deleteRoleToUser(id, role);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @PutMapping("/update")
     public ResponseEntity<?> update(@RequestBody User user) {
         return userService.updateUser(user);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/role/{id}")
     public ResponseEntity<List<String>> addRoleToUser(@PathVariable String id, @RequestParam String role) {
         return userService.addRoleToUser(id, role);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/exist/{id}")
     public Boolean exist(@PathVariable String id) {
         return userService.exist(id);

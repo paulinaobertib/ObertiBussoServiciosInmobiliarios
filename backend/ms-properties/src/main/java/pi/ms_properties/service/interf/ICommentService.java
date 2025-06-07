@@ -1,7 +1,6 @@
 package pi.ms_properties.service.interf;
 
 import org.springframework.http.ResponseEntity;
-import pi.ms_properties.domain.Comment;
 import pi.ms_properties.dto.CommentDTO;
 
 import java.util.List;

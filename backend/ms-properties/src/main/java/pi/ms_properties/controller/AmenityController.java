@@ -16,19 +16,19 @@ public class AmenityController {
 
     private final AmenityService amenityService;
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createAmenity(@RequestParam String name) {
         return amenityService.createAmenity(name);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteAmenity(@PathVariable Long id) {
         return amenityService.deleteAmenity(id);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
     public ResponseEntity<Amenity> updateAmenity(@RequestBody Amenity amenity) {
         return amenityService.updateAmenity(amenity);
@@ -42,10 +42,5 @@ public class AmenityController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<Amenity> getById(@PathVariable Long id) {
         return amenityService.getById(id);
-    }
-
-    @GetMapping("/getByName")
-    public ResponseEntity<Amenity> getByName(@RequestParam String name) {
-        return amenityService.getByName(name);
     }
 }

@@ -75,3 +75,16 @@ export const getOwnerByPropertyId = async (id: number) => {
   }
 };
 
+export const getOwnersByText = async (search: string) => {
+  try {
+    const { data } = await axios.get<Owner[]>(
+      `${apiUrl}/properties/owner/search`,
+      { params: { search } }
+    );
+    return data;
+  } catch (error) {
+    console.error("Error searching by text:", error);
+    throw error;
+  }
+};
+

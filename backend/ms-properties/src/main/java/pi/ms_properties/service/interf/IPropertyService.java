@@ -24,11 +24,10 @@ public interface IPropertyService {
 
     ResponseEntity<PropertyDTO> getById(Long id);
 
-    ResponseEntity<List<PropertyDTO>> getByTitle(String title);
-
     ResponseEntity<List<PropertyDTO>> getByStatus(Status status);
 
     ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float coveredAreaFrom, float coveredAreaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType, Boolean credit, Boolean financing);
+
     ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value);
 
     // feign

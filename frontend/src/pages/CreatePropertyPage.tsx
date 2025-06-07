@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 /* hooks, contextos y servicios (sin cambios) */
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useConfirmDialog } from '../app/property/utils/confirmDialog';
+import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 import PropertyForm from '../app/property/components/forms/PropertyForm';
 import PropertyPreview from '../app/property/components/PropertyPreview';
