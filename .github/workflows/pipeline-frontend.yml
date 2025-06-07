@@ -1,0 +1,229 @@
+name: CI/CD - Frontend
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      # - feature/pipeline
+      - main
+
+# --------------------------------------------------------------
+# VARIABLES GLOBALES
+# --------------------------------------------------------------
+env:
+  # Azure
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+  # Properties-specific
+  SWA_LOCATION: eastus2
+  SWA_FRONTEND_DEV: ${{ secrets.SWA_FRONTEND_DEV }}
+  SWA_FRONTEND_PROD: ${{ secrets.SWA_FRONTEND_PROD }}
+
+  # Utils
+  API_URL_DEV: "https://${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net/api"
+  API_URL_PROD: "https://${{ secrets.APP_GATEWAY_PROD }}.azurewebsites.net/api"
+
+jobs:
+  # --------------------------------------------------------------
+  # JOB 1: Build · Test
+  # --------------------------------------------------------------
+  build-and-push:
+    name: Build · Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      # - name: Lint
+      #   working-directory: ./frontend
+      #   run: npm run lint
+
+      # - name: Run Unit Tests
+      #   working-directory: ./frontend
+      #   run: npm test # Ajusta este comando según tu script de pruebas definido en package.json
+
+      # - name: Upload test report (opcional)
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: test-report
+      #     path: frontend/test-results # Ajusta ruta si tus tests generan reportes en otro directorio
+
+      - name: Build
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: "__API_URL_PLACEHOLDER__"
+          VITE_BASE_URL: "__BASE_URL_PLACEHOLDER__"
+          CI: "true"
+        run: npm run build -- --mode production
+
+      - name: Copy staticwebapp.config.json to dist
+        run: |
+          cp frontend/staticwebapp.config.json frontend/dist/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  # --------------------------------------------------------------
+  # JOB 2: Deploy to Development
+  # --------------------------------------------------------------
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: development
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - name: Ensure Static Web App Exists
+        run: |
+          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_FRONTEND_DEV" &>/dev/null; then
+            echo "🚀 Creating $SWA_FRONTEND_DEV..."
+            az staticwebapp create \
+              -g "$AZURE_RESOURCE_GROUP" \
+              -n "${{ env.SWA_FRONTEND_DEV }}" \
+              --location "$SWA_LOCATION" \
+              --app-location frontend \
+              --output-location frontend/dist \
+              --sku Free
+          else
+            echo "✏️ $SWA_FRONTEND_DEV already exists."
+          fi
+
+      - name: Fetch FQDNs
+        run: |
+          FRONTEND_FQDN=$(az staticwebapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.SWA_FRONTEND_DEV }} \
+            --query defaultHostname -o tsv)
+          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
+          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
+
+      - name: Insert DEV URLs
+        shell: bash
+        run: |
+          echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_DEV"
+          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
+
+          API_ESCAPED=${API_URL_DEV//\//\\/}
+          BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
+
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
+
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
+
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli@latest
+
+      - name: Deploy to SWA
+        run: |
+          DEPLOY_TOKEN=$(az staticwebapp secrets list \
+            --name "$SWA_FRONTEND_DEV" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --query properties.apiKey -o tsv)
+          swa deploy frontend/dist \
+            --app-name "$SWA_FRONTEND_DEV" \
+            --env production \
+            --deployment-token "$DEPLOY_TOKEN"
+
+  # --------------------------------------------------------------
+  # JOB 3: Deploy to Production
+  # --------------------------------------------------------------
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-dev, build-and-push]
+    environment: production
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - name: Ensure Static Web App Exists
+        run: |
+          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_FRONTEND_PROD" &>/dev/null; then
+            echo "🚀 Creating $SWA_FRONTEND_PROD..."
+            az staticwebapp create \
+              -g "$AZURE_RESOURCE_GROUP" \
+              -n "${{ env.SWA_FRONTEND_PROD }}" \
+              --location "$SWA_LOCATION" \
+              --app-location frontend \
+              --output-location frontend/dist \
+              --sku Free
+          else
+            echo "✏️ $SWA_FRONTEND_PROD already exists."
+          fi
+
+      - name: Fetch FQDNs
+        run: |
+          FRONTEND_FQDN=$(az staticwebapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.SWA_FRONTEND_PROD }} \
+            --query defaultHostname -o tsv)
+          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
+          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
+
+      - name: Insert DEV URLs
+        shell: bash
+        run: |
+          echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_PROD"
+          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
+
+          API_ESCAPED=${API_URL_DEV//\//\\/}
+          BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
+
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
+
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
+
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli@latest
+
+      - name: Deploy to SWA
+        run: |
+          DEPLOY_TOKEN=$(az staticwebapp secrets list \
+            --name "$SWA_FRONTEND_PROD" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --query properties.apiKey -o tsv)
+          swa deploy frontend/dist \
+            --app-name "$SWA_FRONTEND_PROD" \
+            --env production \
+            --deployment-token "$DEPLOY_TOKEN"
