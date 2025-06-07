@@ -1,0 +1,5 @@
+/* Hace posible que % y flex‑grow funcionen a todo lo largo de la app */
+html, body, #root {
+    height: 100%;
+    margin: 0;      /* evita que el margin por defecto del body introduzca scroll */
+  }
