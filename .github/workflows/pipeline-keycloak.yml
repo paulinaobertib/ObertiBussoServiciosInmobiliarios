@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - feature/pipeline
-
+      - main
 env:
   # Azure
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
