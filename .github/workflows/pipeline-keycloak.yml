@@ -6,6 +6,10 @@ on:
     branches:
       - feature/pipeline
       - main
+      
+# --------------------------------------------------------------
+# VARIABLES GLOBALES
+# --------------------------------------------------------------
 env:
   # Azure
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
