@@ -1,6 +1,5 @@
 package pi.ms_properties.domain;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 

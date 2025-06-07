@@ -14,7 +14,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { getAllProperties, deleteProperty } from '../services/property.service';
 import { Property } from '../types/property';
 import { useGlobalAlert } from '../context/AlertContext';
-import { useConfirmDialog } from '../utils/confirmDialog';
+import { useConfirmDialog } from '../utils/ConfirmDialog';
 
 export type CatalogMode = 'normal' | 'edit' | 'delete';
 
@@ -223,8 +223,9 @@ function PropertyCatalog({
                       fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
                     }}
                   >
-                    ${property.price?.toLocaleString('es-AR') ?? '0'}{' '}
-                    {property.currency}
+                    {property.showPrice
+                      ? `$${property.price.toLocaleString('es-AR')} ${property.currency}`
+                      : 'Consultar precio'}
                   </Typography>
                 </CardContent>
 

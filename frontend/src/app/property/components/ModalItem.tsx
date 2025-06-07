@@ -1,4 +1,3 @@
-// src/app/property/components/ModalItem.tsx
 import {
     Dialog,
     DialogContent,
@@ -24,6 +23,13 @@ interface Info {
     item?: any;
 }
 
+export function handleClose(reason: string | undefined, close: () => void) {
+  if (reason !== 'backdropClick') {
+    close();
+  }
+}
+
+
 export default function ModalItem({
     info,
     close,
@@ -46,10 +52,11 @@ export default function ModalItem({
     if (info.action === 'edit-status') {
         return (
             <Dialog
+                data-testid="modal"
                 open
                 fullWidth
                 maxWidth="sm"
-                onClose={(_, r) => r !== 'backdropClick' && close()}
+                onClose={(_, r) => handleClose(r, close)}
                 PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
             >
                 <DialogTitle
@@ -64,7 +71,7 @@ export default function ModalItem({
                     }}
                 >
                     Editar estado
-                    <IconButton onClick={close} sx={{ color: '#EF6C00' }}>
+                    <IconButton onClick={close} sx={{ color: '#EF6C00' }} aria-label="cerrar modal">
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
@@ -88,10 +95,11 @@ export default function ModalItem({
 
     return (
         <Dialog
+            data-testid="modal"
             open
             fullWidth
             maxWidth="sm"
-            onClose={(_, r) => r !== 'backdropClick' && close()}
+            onClose={(_, r) => handleClose(r, close)}
             PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
         >
             <DialogTitle
@@ -106,7 +114,7 @@ export default function ModalItem({
                 }}
             >
                 {title}
-                <IconButton onClick={close} sx={{ color: '#EF6C00' }}>
+                <IconButton onClick={close} sx={{ color: '#EF6C00' }} aria-label="cerrar modal">
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>

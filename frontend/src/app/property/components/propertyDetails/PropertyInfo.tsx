@@ -4,6 +4,7 @@ import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
+import FoundationIcon from '@mui/icons-material/Foundation';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
 import ModalItem from '../ModalItem';
@@ -15,7 +16,7 @@ interface PropertyInfoProps {
 }
 
 // Función para mostrar singular/plural o "-"
-const formatFeatureLabel = (
+export const formatFeatureLabel = (
   value: number | null | undefined,
   singular: string,
   plural: string
@@ -44,6 +45,10 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       label: property.area && property.area > 0 ? `${property.area} m²` : '-',
       icon: <SquareFootIcon color="primary" />,
     },
+    {
+      label: property.coveredArea && property.coveredArea > 0 ? `${property.coveredArea} m² cubiertos` : '-',
+      icon: <FoundationIcon color="primary" />,
+    }
   ].filter((feature) => feature.label !== '-'); // Filtra características no válidas
 
 
@@ -73,9 +78,11 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
           </Typography>
         </Box>
 
-        <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
-          {formatPrice(property.price, property.currency)}
-        </Typography>
+      <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
+        {property.showPrice && property.price > 0
+          ? formatPrice(property.price, property.currency)
+          : 'Consultar precio'}
+      </Typography>
 
         <Box
           sx={{
@@ -105,6 +112,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
             }}
           />
           <IconButton
+            aria-label="editar estado"
             size="small"
             onClick={() =>
               setStatusModal({

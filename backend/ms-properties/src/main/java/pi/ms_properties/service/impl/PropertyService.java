@@ -270,20 +270,6 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
-    public ResponseEntity<List<PropertyDTO>> getByTitle(String title) {
-        try {
-            List<Property> properties = propertyRepository.findByTitle(title);
-            List<PropertyDTO> propertyDTOS = properties.stream()
-                    .map(this::toDTO)
-                    .toList();
-
-            return ResponseEntity.ok(propertyDTOS);
-        } catch (Exception e){
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @Override
     public ResponseEntity<List<PropertyDTO>> getByStatus(Status status) {
         try {
             List<Property> properties = propertyRepository.findByStatus(status);

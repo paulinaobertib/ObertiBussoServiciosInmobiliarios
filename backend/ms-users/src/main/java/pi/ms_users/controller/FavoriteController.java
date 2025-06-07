@@ -16,25 +16,25 @@ public class FavoriteController {
 
     private final FavoriteService favoriteService;
 
-    // @PreAutAuthorize("hasRole('user') and !hasRole('admin')")
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<Favorite> create(@RequestBody Favorite favorite) {
         return favoriteService.create(favorite);
     }
 
-    // @PreAutAuthorize("hasRole('user') and !hasRole('admin')")
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return favoriteService.delete(id);
     }
 
-    // @PreAutAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Favorite>> getByUserId(@PathVariable String userId) {
         return favoriteService.findByUserId(userId);
     }
 
-    // @PreAutAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
     public ResponseEntity<List<Favorite>> getByPropertyId(@PathVariable Long propertyId) {
         return favoriteService.findByPropertyId(propertyId);

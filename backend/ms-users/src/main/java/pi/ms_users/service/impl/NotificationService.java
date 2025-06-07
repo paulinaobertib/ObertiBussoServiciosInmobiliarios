@@ -2,12 +2,10 @@ package pi.ms_users.service.impl;
 
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.configuration.components.AppProperties;
-import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;

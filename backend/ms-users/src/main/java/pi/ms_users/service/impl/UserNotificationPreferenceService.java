@@ -48,7 +48,7 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
             } else if (usersIdTrue.contains(userNotificationPreference.getUserId())) {
                 return ResponseEntity.badRequest().body("El usuario ya esta guardado con la preferencia en este tipo de notificacion");
             } else {
-                UserNotificationPreference saved = userNotificationPreferenceRepository.save(userNotificationPreference);
+                userNotificationPreferenceRepository.save(userNotificationPreference);
             }
 
             return ResponseEntity.ok("Se ha guardado la preferencia de notificacion");
@@ -115,7 +115,6 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
             List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(type);
             return ResponseEntity.ok(usersId);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }

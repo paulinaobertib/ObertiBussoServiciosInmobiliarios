@@ -12,6 +12,7 @@ import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.service.interf.INeighborhoodService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,13 @@ public class NeighborhoodService implements INeighborhoodService {
         try {
             Neighborhood neighborhood = new Neighborhood();
             neighborhood.setName(neighborhoodDTO.getName());
+
+            if (neighborhoodDTO.getType() == null ||
+                    Arrays.stream(NeighborhoodType.values())
+                            .noneMatch(t -> t.name().equalsIgnoreCase(neighborhoodDTO.getType()))) {
+                throw new IllegalArgumentException("Tipo de barrio inválido: " + neighborhoodDTO.getType());
+            }
+
             neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
             neighborhood.setCity(neighborhoodDTO.getCity());
             neighborhoodRepository.save(neighborhood);
@@ -35,6 +43,8 @@ public class NeighborhoodService implements INeighborhoodService {
             return ResponseEntity.ok("Se ha guardado el barrio");
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("El barrio '" + neighborhoodDTO.getName() + "' ya existe");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)

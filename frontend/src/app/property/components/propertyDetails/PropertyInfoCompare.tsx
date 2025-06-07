@@ -4,6 +4,7 @@ import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
+import FoundationIcon from '@mui/icons-material/Foundation';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
 import { usePropertyCrud } from '../../context/PropertiesContext';
@@ -27,7 +28,7 @@ const PropertyInfoCompare = ({ property }: PropertyInfoProps) => {
   const { comparisonItems } = usePropertyCrud();
 
   // Definir las claves numéricas para las características
-  type NumericFeatureKey = 'bedrooms' | 'bathrooms' | 'rooms' | 'area';
+  type NumericFeatureKey = 'bedrooms' | 'bathrooms' | 'rooms' | 'area' | 'coveredArea';
 
   // Determinar qué características mostrar
   const getCommonFeatures = () => {
@@ -52,6 +53,11 @@ const PropertyInfoCompare = ({ property }: PropertyInfoProps) => {
         label: property.area && property.area > 0 ? `${property.area} m²` : '- m²',
         icon: <SquareFootIcon color="primary" />,
       },
+      {
+        key: 'coveredArea',
+        label: property.coveredArea && property.coveredArea > 0 ? `${property.coveredArea} m² cubiertos` : '-',
+        icon: <FoundationIcon color="primary" />,
+      }
     ];
 
     // Si solo hay una propiedad, mostrarlas todas
@@ -107,8 +113,10 @@ const PropertyInfoCompare = ({ property }: PropertyInfoProps) => {
       </Box>
 
       {/* Precio */}
-      <Typography variant="h4" color="primary" fontWeight="bold">
-        {formatPrice(property.price, property.currency)}
+      <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
+        {property.showPrice && property.price > 0
+          ? formatPrice(property.price, property.currency)
+          : 'Consultar precio'}
       </Typography>
 
       {/* Operación y Estado */}

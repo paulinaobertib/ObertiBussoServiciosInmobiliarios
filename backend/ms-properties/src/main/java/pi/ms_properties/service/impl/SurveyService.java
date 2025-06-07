@@ -11,13 +11,10 @@ import pi.ms_properties.dto.SurveyDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.ISurveyRepository;
 import pi.ms_properties.service.interf.IEmailService;
-import pi.ms_properties.service.interf.IInquiryService;
 import pi.ms_properties.service.interf.ISurveyService;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
@@ -63,7 +60,6 @@ public class SurveyService implements ISurveyService {
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
