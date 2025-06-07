@@ -91,13 +91,22 @@ CREATE TABLE Contract (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(30) NOT NULL,
     property_id BIGINT NOT NULL,
-    type ENUM('ANUAL', 'SEMESTRAL') NOT NULL,
+    type ENUM('TEMPORAL', 'VIVIENDA', 'COMERCIAL') NOT NULL,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
     status ENUM('ACTIVO', 'INACTIVO') NOT NULL,
-    increase DECIMAL(5,2),
-    increase_frequency VARCHAR(50),
+    increase DECIMAL(5,2) NOT NULL,
+    increase_frequency BIGINT NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Contract_Increase (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    contract_id BIGINT NOT NULL,
+    date DATETIME NOT NULL,
+    currency ENUM('USD', 'ARS') NOT NULL,
+	amount DECIMAL(15,2) NOT NULL,
+    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Payment (
