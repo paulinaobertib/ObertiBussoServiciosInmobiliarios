@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function TypeForm({ action, item, onDone }: Props) {
-    const { refresh, refreshTypes } = usePropertyCrud();
+    const { refresh } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Type>({
@@ -38,7 +38,8 @@ export default function TypeForm({ action, item, onDone }: Props) {
     const save = async () => {
         try {
             if (action === 'add') {
-                await postType({ ...form } as TypeCreate);
+                const { id, ...payload } = form;
+                await postType(payload as TypeCreate);
                 showAlert('Tipo de propiedad creado con éxito!', 'success');
             }
             if (action === 'edit' && item) {
@@ -51,7 +52,6 @@ export default function TypeForm({ action, item, onDone }: Props) {
             }
 
             await refresh();
-            await refreshTypes();
             onDone();
 
         } catch {

@@ -22,31 +22,31 @@ public class AppointmentController {
         return appointmentService.create(appointment);
     }
 
-    @PreAuthorize("hasRole('user') and !hasRole('admin')")
+    // @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
         return appointmentService.delete(id);
     }
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @PutMapping("/status/{id}")
     public ResponseEntity<String> updateAppointmentStatus(@PathVariable Long id, @RequestParam AppointmentStatus status) {
         return appointmentService.updateStatus(id, status);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    // @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
         return appointmentService.findById(id);
     }
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<Appointment>> getAllAppointments() {
         return appointmentService.findAll();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    // @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Appointment>> getAppointmentsByUserId(@PathVariable String userId) {
         return appointmentService.findByUserId(userId);
