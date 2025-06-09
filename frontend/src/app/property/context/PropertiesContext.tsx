@@ -54,6 +54,7 @@ interface Ctx {
   typesList: Type[];
   maintenancesList: Maintenance[];
   commentsList: Comment[];
+  propertiesList: Property[];
 
   operationsList: string[];
 
@@ -73,11 +74,10 @@ interface Ctx {
   /* data de categoría */
   data: any[] | null;
   categoryLoading: boolean;
-  refresh: () => Promise<void>;
 
   /* helpers */
+  refresh: () => Promise<void>;
   refreshAllCatalogs: () => Promise<void>;
-  refreshTypes: () => void;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
 
   // propiedades / comparación 
@@ -99,12 +99,13 @@ const Context = createContext<Ctx | null>(null);
 export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   /* — catálogos — */
   const [amenitiesList, setAmenities] = useState<Amenity[]>([]);
-  const [ownersList, setOwners] = useState<Owner[]>([]);
+  const [ownersList, setOwnersList] = useState<Owner[]>([]);
   const [neighborhoodsList, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [typesList, setTypes] = useState<Type[]>([]);
   const [maintenancesList, setMaintenances] = useState<Maintenance[]>([]);
   const [commentsList, setComments] = useState<Maintenance[]>([]);
   const [operationsList, setOperations] = useState<string[]>([]);
+  const [propertiesList, setPropertiesList] = useState<Property[]>([]);
 
   /* — picked genérico — */
   const [pickedItem, setPickedItem] = useState<Picked | null>(null);
@@ -195,29 +196,33 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   /* — refresco global — */
   const refreshAllCatalogs = useCallback(async () => {
     try {
-      const [am, ow, nh, tp, pr] = await Promise.all([
+      const [amRaw, nhRaw, tpRaw, owRaw, prRaw] = await Promise.all([
         getAllAmenities(),
-        getAllOwners(),
         getAllNeighborhoods(),
         getAllTypes(),
+        getAllOwners(),
         getAllProperties(),
       ]);
 
+      const am = Array.isArray(amRaw) ? amRaw : [];
+      const nh = Array.isArray(nhRaw) ? nhRaw : [];
+      const tp = Array.isArray(tpRaw) ? tpRaw : [];
+      const ow = Array.isArray(owRaw) ? owRaw : [];
+      const pr = Array.isArray(prRaw) ? prRaw : [];
+
       setAmenities(am);
-      setOwners(ow);
       setNeighborhoods(nh);
       setTypes(tp);
+      setOwnersList(ow);
+      setPropertiesList(pr);
 
-      const ops = Array.from(
-        new Set((pr as Property[]).map((p: Property) => p.operation))
-      ).filter((o): o is string => !!o);
-
+      const ops = Array.from(new Set(pr.map(p => p.operation)))
+        .filter((o): o is string => !!o);
       setOperations(ops);
     } catch (e) {
       console.error('refreshAllCatalogs', e);
     }
   }, []);
-
 
   const refresh = useCallback(async () => {
     if (!currentCategory || !(currentCategory in fetchers)) return;
@@ -225,11 +230,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     try { setData(await fetchers[currentCategory]() as any[]); }
     finally { setCatLoading(false); }
   }, [currentCategory]);
-
-
-  const refreshTypes = async () => {
-    try { setTypes(await getAllTypes()); } catch { setTypes([]); }
-  };
 
   /* — buildSearchParams — */
   const buildSearchParams = useCallback(
@@ -313,14 +313,14 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   return (
     <Context.Provider value={{
       amenitiesList, ownersList, neighborhoodsList, typesList,
-      maintenancesList, operationsList, commentsList,
+      maintenancesList, operationsList, commentsList, propertiesList,
 
       pickedItem, pickItem, currentCategory,
 
       selected, setSelected, toggleSelect, resetSelected,
 
       data, categoryLoading, refresh,
-      refreshAllCatalogs, refreshTypes, buildSearchParams,
+      refreshAllCatalogs, buildSearchParams,
       refreshMaintenances, refreshComments,
 
       currentProperty, loadProperty, loadingProperty, errorProperty,

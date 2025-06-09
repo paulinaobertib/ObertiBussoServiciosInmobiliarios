@@ -16,19 +16,19 @@ public class TypeController {
 
     private final TypeService typeService;
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createType(@RequestBody Type type) {
         return typeService.createType(type);
     }
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
     public ResponseEntity<Type> updateType(@RequestBody Type type) {
         return typeService.updateType(type);
     }
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteType(@PathVariable Long id) {
         return typeService.deleteType(id);
