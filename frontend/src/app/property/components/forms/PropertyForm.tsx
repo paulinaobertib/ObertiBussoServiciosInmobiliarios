@@ -136,6 +136,10 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
     const handleGallery = (fs: File[]) =>
         handleGalleryImages(fs, form, setField, onImageSelect);
 
+useEffect(() => {
+  console.log('📝 Estado actual del formulario:', form);
+}, [form]);
+
     return (
         <Box component="form" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}
         >
@@ -154,7 +158,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                         error={!!fieldErrors.currency}
                         size='small'
                     >
-                        <MenuItem value="ARG">Peso Argentino</MenuItem>
+                        <MenuItem value="ARS">Peso Argentino</MenuItem>
                         <MenuItem value="USD">Dólar</MenuItem>
                     </TextField>
                 </Grid>

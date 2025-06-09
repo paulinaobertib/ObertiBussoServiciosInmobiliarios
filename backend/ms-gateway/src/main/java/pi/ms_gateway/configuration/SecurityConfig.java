@@ -1,3 +1,26 @@
+// package pi.ms_gateway.configuration;
+
+// import org.springframework.context.annotation.Bean;
+// import org.springframework.context.annotation.Configuration;
+// import org.springframework.security.config.web.server.ServerHttpSecurity;
+// import org.springframework.security.web.server.SecurityWebFilterChain;
+
+// @Configuration
+// public class SecurityConfig {
+
+//     @Bean
+//     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity server) {
+//         server
+//                 .authorizeExchange(authorize -> authorize
+//                         .anyExchange().permitAll()
+//                 )
+//                 .oauth2Login();
+//         return server.build();
+//     }
+// }
+
+
+// SIN SEGURIDAD
 package pi.ms_gateway.configuration;
 
 import org.springframework.context.annotation.Bean;
@@ -9,12 +32,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity server) {
-        server
-                .authorizeExchange(authorize -> authorize
-                        .anyExchange().permitAll()
-                )
-                .oauth2Login();
-        return server.build();
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+            .cors().and()
+            .csrf().disable()
+            .authorizeExchange(ex -> ex.anyExchange().permitAll())
+            .build();          // sin oauth2Login, sin resource-server
     }
 }

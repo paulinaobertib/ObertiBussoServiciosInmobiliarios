@@ -16,19 +16,19 @@ public class NoticeController {
 
     private final NoticeService noticeService;
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody Notice notice) {
         return noticeService.create(notice);
     }
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
     public ResponseEntity<String> update(@RequestBody Notice notice) {
         return noticeService.update(notice);
     }
 
-    @PreAuthorize("hasRole('admin')")
+    // @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return noticeService.delete(id);
