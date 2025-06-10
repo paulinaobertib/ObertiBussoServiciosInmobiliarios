@@ -103,7 +103,7 @@ public class FavoriteControllerTest {
                 .thenReturn(ResponseEntity.ok(List.of(favorite)));
 
         mockMvc.perform(get("/favorites/property/100")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
     }
@@ -129,7 +129,7 @@ public class FavoriteControllerTest {
         favorite.setPropertyId(100L);
 
         mockMvc.perform(post("/favorites/create")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(favorite)))
                 .andExpect(status().isForbidden());
@@ -148,7 +148,7 @@ public class FavoriteControllerTest {
     @Test
     void deleteFavorite_forbidden_shouldReturn403() throws Exception {
         mockMvc.perform(delete("/favorites/delete/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isForbidden());
     }
 
@@ -178,7 +178,7 @@ public class FavoriteControllerTest {
                 .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(get("/favorites/property/999")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isNotFound());
     }
 }

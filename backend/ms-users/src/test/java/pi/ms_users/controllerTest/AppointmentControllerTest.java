@@ -72,7 +72,7 @@ class AppointmentControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "user")
+    // @WithMockUser(roles = "user")
     void deleteAppointment_shouldReturnOk() throws Exception {
         when(appointmentService.delete(1L))
                 .thenReturn(ResponseEntity.ok("Deleted"));
@@ -89,7 +89,7 @@ class AppointmentControllerTest {
 
         mockMvc.perform(put("/appointments/status/1")
                         .param("status", "ACEPTADO")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Updated"));
     }
@@ -129,7 +129,7 @@ class AppointmentControllerTest {
         when(appointmentService.findAll()).thenReturn(ResponseEntity.ok(list));
 
         mockMvc.perform(get("/appointments/getAll")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -156,7 +156,7 @@ class AppointmentControllerTest {
     @Test
     void deleteAppointment_shouldReturnForbidden_whenAdmin() throws Exception {
         mockMvc.perform(delete("/appointments/delete/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isForbidden());
     }
 

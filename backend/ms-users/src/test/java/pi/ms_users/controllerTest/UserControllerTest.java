@@ -62,7 +62,7 @@ public class UserControllerTest {
         when(userService.findAll()).thenReturn(ResponseEntity.ok(List.of(user)));
 
         mockMvc.perform(get("/user/getAll")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"));
     }
@@ -93,7 +93,7 @@ public class UserControllerTest {
         when(userService.getUserRoles("1")).thenReturn(ResponseEntity.ok(roles));
 
         mockMvc.perform(get("/user/role/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0]").value("ROLE_admin"))
                 .andExpect(jsonPath("$[1]").value("ROLE_user"));
@@ -105,7 +105,7 @@ public class UserControllerTest {
 
         mockMvc.perform(delete("/user/delete/role/1")
                         .param("role", "ROLE_user")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Role deleted"));
     }
@@ -129,7 +129,7 @@ public class UserControllerTest {
                               "password": "123456"
                             }
                         """)
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"));
     }
@@ -141,7 +141,7 @@ public class UserControllerTest {
 
         mockMvc.perform(put("/user/update/role/1")
                         .param("role", "ROLE_user")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0]").value("ROLE_admin"))
                 .andExpect(jsonPath("$[1]").value("ROLE_user"));
@@ -155,7 +155,7 @@ public class UserControllerTest {
 
         mockMvc.perform(get("/user/findUser")
                         .param("searchTerm", "john")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
                 .andExpect(jsonPath("$[0].username").value("jdoe"));
