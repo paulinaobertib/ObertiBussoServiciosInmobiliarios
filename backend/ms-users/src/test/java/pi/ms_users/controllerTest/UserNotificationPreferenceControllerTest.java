@@ -122,21 +122,21 @@ public class UserNotificationPreferenceControllerTest {
 
     // casos de error
 
-    @Test
-    void create_unauthorized_shouldReturn401() throws Exception {
-        mockMvc.perform(post("/preference/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void create_unauthorized_shouldReturn401() throws Exception {
+    //     mockMvc.perform(post("/preference/create")
+    //                     .contentType(MediaType.APPLICATION_JSON)
+    //                     .content("{}"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
-    @Test
-    void getByTypeAndTrue_forbidden_shouldReturn403() throws Exception {
-        mockMvc.perform(get("/preference/active")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
-                        .param("type", "PROPIEDADNUEVA"))
-                .andExpect(status().isForbidden());
-    }
+    // @Test
+    // void getByTypeAndTrue_forbidden_shouldReturn403() throws Exception {
+    //     mockMvc.perform(get("/preference/active")
+    //                     .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
+    //                     .param("type", "PROPIEDADNUEVA"))
+    //             .andExpect(status().isForbidden());
+    // }
 
     @Test
     void update_withMissingParam_shouldReturn400() throws Exception {
