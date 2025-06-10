@@ -104,6 +104,8 @@ jobs:
         if: always()
         run: |
           echo "### Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY 
+          echo "---" >> $GITHUB_STEP_SUMMARY
           echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
