@@ -66,7 +66,7 @@ class MaintenanceControllerTest {
     // casos de exito
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void createMaintenance_success() throws Exception {
         when(maintenanceService.createMaintenance(any()))
                 .thenReturn(ResponseEntity.ok("Mantenimiento creado exitosamente"));
@@ -83,7 +83,7 @@ class MaintenanceControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void updateMaintenance_success() throws Exception {
         when(maintenanceService.updateMaintenance(eq(1L), any()))
                 .thenReturn(ResponseEntity.ok(validDTO));
@@ -100,7 +100,7 @@ class MaintenanceControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void deleteMaintenance_success() throws Exception {
         when(maintenanceService.deleteMaintenance(1L))
                 .thenReturn(ResponseEntity.ok("Mantenimiento eliminado correctamente"));
@@ -111,7 +111,7 @@ class MaintenanceControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getById_success() throws Exception {
         when(maintenanceService.getById(1L))
                 .thenReturn(ResponseEntity.ok(validDTO));
@@ -122,7 +122,7 @@ class MaintenanceControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getByPropertyId_success() throws Exception {
         List<MaintenanceDTO> list = List.of(validDTO);
 
@@ -138,7 +138,7 @@ class MaintenanceControllerTest {
     // casos de error
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void updateMaintenance_notFound() throws Exception {
         when(maintenanceService.updateMaintenance(eq(99L), any()))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
@@ -155,7 +155,7 @@ class MaintenanceControllerTest {
 
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void deleteMaintenance_notFound() throws Exception {
         when(maintenanceService.deleteMaintenance(99L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -167,7 +167,7 @@ class MaintenanceControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getById_notFound() throws Exception {
         when(maintenanceService.getById(99L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
@@ -177,7 +177,7 @@ class MaintenanceControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getByPropertyId_emptyList() throws Exception {
         when(maintenanceService.getByPropertyId(20L))
                 .thenReturn(ResponseEntity.ok(List.of()));

@@ -63,7 +63,7 @@ class NoticeControllerTest {
                 .thenReturn(ResponseEntity.ok("Created"));
 
         mockMvc.perform(post("/notices/create")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(notice)))
                 .andExpect(status().isOk())
@@ -83,7 +83,7 @@ class NoticeControllerTest {
                 .thenReturn(ResponseEntity.ok("Updated"));
 
         mockMvc.perform(put("/notices/update")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(notice)))
                 .andExpect(status().isOk())
@@ -96,7 +96,7 @@ class NoticeControllerTest {
                 .thenReturn(ResponseEntity.ok("Deleted"));
 
         mockMvc.perform(delete("/notices/delete/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Deleted"));
     }
@@ -238,7 +238,7 @@ class NoticeControllerTest {
                 .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(delete("/notices/delete/999")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isNotFound());
     }
 

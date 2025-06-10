@@ -59,7 +59,7 @@ class ImageControllerTest {
     // casos de exito
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void uploadImage_success() throws Exception {
         Mockito.when(imageService.uploadImageToProperty(any(), eq(1L), eq(false)))
                 .thenReturn("https://example.com/test.jpg");
@@ -72,7 +72,7 @@ class ImageControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void deleteImage_success() throws Exception {
         Mockito.when(imageService.deleteImage(1L)).thenReturn(ResponseEntity.ok("Imagen eliminada"));
 
@@ -104,7 +104,7 @@ class ImageControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void uploadImage_missingFile() throws Exception {
         mockMvc.perform(multipart("/image/upload")
                         .param("propertyId", "1"))
@@ -127,7 +127,7 @@ class ImageControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void deleteImage_notFound() throws Exception {
         Mockito.when(imageService.deleteImage(999L)).thenReturn(ResponseEntity.notFound().build());
 

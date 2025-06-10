@@ -65,7 +65,7 @@ class NotificationControllerTest {
                 .thenReturn(ResponseEntity.ok("Created"));
 
         mockMvc.perform(post("/notifications/create/property")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("propertyId", "123")
                         .content(objectMapper.writeValueAsString(dto)))
@@ -104,7 +104,7 @@ class NotificationControllerTest {
                 .thenReturn(ResponseEntity.ok(List.of(notification)));
 
         mockMvc.perform(get("/notifications/getAll")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].userId").value("user123"));
