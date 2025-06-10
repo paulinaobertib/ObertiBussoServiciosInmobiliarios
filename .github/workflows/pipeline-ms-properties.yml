@@ -105,8 +105,6 @@ jobs:
 
       - name: Summarize code coverage
         uses: jeantessier/code-coverage-summary-action@v1
-        with:
-          paths: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
 
 
       - name: Build & Package JAR
