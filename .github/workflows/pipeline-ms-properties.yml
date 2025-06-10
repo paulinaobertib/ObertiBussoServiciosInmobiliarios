@@ -100,24 +100,11 @@ jobs:
           minimum_coverage: 80
           publish_only_summary: false
 
-      - name: Code Coverage Summary
-        uses: irongut/CodeCoverageSummary@v1.3.0
+      - name: Summarize code coverage
+        uses: jeantessier/code-coverage-summary-action@v1
         with:
-          filename: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          format: markdown
-          output: file
-          fail_below_min: false
+          paths: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
 
-      - name: Write Coverage to Summary
-        run: |
-          cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload JaCoCo HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-html-report
-          path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco
-          if-no-files-found: warn
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
