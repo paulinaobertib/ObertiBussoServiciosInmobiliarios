@@ -89,25 +89,35 @@ jobs:
         with:
           paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - name: Code Coverage Summary
-        uses: irongut/CodeCoverageSummary@v1.3.0
+      - name: Publish JaCoCo Coverage
+        id: jacoco             # le damos un ID para leer sus outputs
+        uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
-          filename: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          format: markdown
-          output: file
-          fail_below_min: false
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: false
 
-      - name: Write Coverage to Summary
-        run: |
-          # vuelca el markdown generado en el summary del job
-          cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+      # - name: Code Coverage Summary
+      #   uses: irongut/CodeCoverageSummary@v1.3.0
+      #   with:
+      #     filename: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+      #     format: markdown
+      #     output: file
+      #     fail_below_min: false
 
-      - name: Upload JaCoCo HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-html-report
-          path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco
-          if-no-files-found: warn
+      # - name: Write Coverage to Summary
+      #   run: |
+      #     cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+      # - name: Upload JaCoCo HTML Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: jacoco-html-report
+      #     path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco
+      #     if-no-files-found: warn
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
