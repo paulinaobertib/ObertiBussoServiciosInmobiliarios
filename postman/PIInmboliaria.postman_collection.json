@@ -5928,6 +5928,263 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "me",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/user/me",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"user",
+										"me"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "name",
+											"value": "Paulina",
+											"type": "text"
+										},
+										{
+											"key": "lastName",
+											"value": "Oberti Busso",
+											"type": "text"
+										},
+										{
+											"key": "email",
+											"value": "p10@gmail.com",
+											"type": "text"
+										},
+										{
+											"key": "phone",
+											"value": "12346789279",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost:8081/user/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"user",
+										"create"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Paulina",
+											"disabled": true
+										},
+										{
+											"key": "lastName",
+											"value": "ObertiBusso",
+											"disabled": true
+										},
+										{
+											"key": "email",
+											"value": "pauobertibussoprueba@gmail.com",
+											"disabled": true
+										},
+										{
+											"key": "phone",
+											"value": "1234567829",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getTenants",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/user/getTenants",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"user",
+										"getTenants"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -7478,6 +7735,1715 @@
 											"key": "text",
 											"value": "prog"
 										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Payment",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"paymentCurrency\": \"USD\",\r\n  \"amount\": 1500.50,\r\n  \"date\": \"2025-06-09T10:30:00\",\r\n  \"description\": \"Pago mensual de alquiler\",\r\n  \"contract\": {\r\n    \"id\": 1\r\n  }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 75000,\r\n  \"date\": \"2025-06-09T12:00:00\",\r\n  \"description\": \"Pago actualizado\",\r\n  \"contract\": {\r\n    \"id\": 1\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getById/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getById",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByContract",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/contract/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"contract",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDate",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByDate?contract=1&date=2025-06-09T12:00:00",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByDate"
+									],
+									"query": [
+										{
+											"key": "contract",
+											"value": "1"
+										},
+										{
+											"key": "date",
+											"value": "2025-06-09T12:00:00"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDateBetween",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByDateBetween?contractId=1&start=2025-06-01T00:00:00&end=2025-06-30T23:59:59",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByDateBetween"
+									],
+									"query": [
+										{
+											"key": "contractId",
+											"value": "1"
+										},
+										{
+											"key": "start",
+											"value": "2025-06-01T00:00:00"
+										},
+										{
+											"key": "end",
+											"value": "2025-06-30T23:59:59"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Contract",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"96856721-9ae7-49d8-92f0-c4231b7109a6\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-06-01T00:00:00\",\r\n  \"endDate\": \"2026-06-01T00:00:00\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"increase\": 5.0,\r\n  \"increaseFrequency\": 12\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/create?amount=100000&currency=ARS",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"create"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Paulina",
+											"disabled": true
+										},
+										{
+											"key": "lastName",
+											"value": "ObertiBusso",
+											"disabled": true
+										},
+										{
+											"key": "email",
+											"value": "pauobertibussoprueba@gmail.com",
+											"disabled": true
+										},
+										{
+											"key": "phone",
+											"value": "1234567829",
+											"disabled": true
+										},
+										{
+											"key": "amount",
+											"value": "100000"
+										},
+										{
+											"key": "currency",
+											"value": "ARS"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"userId\": \"96856721-9ae7-49d8-92f0-c4231b7109a6\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"TEMPORAL\",\r\n  \"startDate\": \"2025-07-01T00:00:00\",\r\n  \"endDate\": \"2026-07-01T00:00:00\",\r\n  \"contractStatus\": \"INACTIVO\",\r\n  \"increase\": 7.0,\r\n  \"increaseFrequency\": 6\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"update"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Paulina",
+											"disabled": true
+										},
+										{
+											"key": "lastName",
+											"value": "ObertiBusso",
+											"disabled": true
+										},
+										{
+											"key": "email",
+											"value": "pauobertibussoprueba@gmail.com",
+											"disabled": true
+										},
+										{
+											"key": "phone",
+											"value": "1234567829",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "updateStatus",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/updateStatus/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"updateStatus",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByUser",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/user/96856721-9ae7-49d8-92f0-c4231b7109a6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"user",
+										"96856721-9ae7-49d8-92f0-c4231b7109a6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByProperty",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/property/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"property",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByType",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/type?type=VIVIENDA",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"type"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "VIVIENDA"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByStatus",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/status?status=ACTIVO",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"status"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "ACTIVO"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDateRange",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/dateRange?start=2025-01-01T00:00:00&end=2025-12-31T23:59:59",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"dateRange"
+									],
+									"query": [
+										{
+											"key": "start",
+											"value": "2025-01-01T00:00:00"
+										},
+										{
+											"key": "end",
+											"value": "2025-12-31T23:59:59"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/getById/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getById",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getAll",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/getAll",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getAll"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ContractIncreases",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"date\": \"2025-06-09T10:30:00\",\r\n  \"amount\": 10000,\r\n  \"currency\": \"ARS\",\r\n  \"contractId\": 1\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/delete/4",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"delete",
+										"4"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/getById/3",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"getById",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByContract",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/contract/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"contract",
+										"1"
 									]
 								}
 							},

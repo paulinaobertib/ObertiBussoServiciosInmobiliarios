@@ -5,10 +5,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.domain.ContractStatus;
 import pi.ms_users.domain.ContractType;
+import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.service.interf.IContractService;
 
 import java.math.BigDecimal;
@@ -23,14 +23,14 @@ public class ContractController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<?> createContract(@RequestBody Contract contract, @RequestParam BigDecimal amount, @RequestParam ContractIncreaseCurrency currency) {
-        return contractService.create(contract, amount, currency);
+    public ResponseEntity<?> createContract(@RequestBody ContractDTO contractDTO, @RequestParam BigDecimal amount, @RequestParam ContractIncreaseCurrency currency) {
+        return contractService.create(contractDTO, amount, currency);
     }
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
-    public ResponseEntity<?> updateContract(@RequestBody Contract contract) {
-        return contractService.update(contract);
+    public ResponseEntity<?> updateContract(@RequestBody ContractDTO contractDTO) {
+        return contractService.update(contractDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
@@ -49,6 +49,12 @@ public class ContractController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<?> getContractById(@PathVariable Long id) {
         return contractService.getById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/getAll")
+    public ResponseEntity<?> getAll() {
+        return contractService.getAll();
     }
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
@@ -76,9 +82,9 @@ public class ContractController {
     }
 
     @PreAuthorize("hasRole('admin')")
-    @GetMapping("/dateRange/{contractId}")
-    public ResponseEntity<?> getContractsByDateRange(@PathVariable Long contractId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        return contractService.getByDateBetween(contractId, start, end);
+    @GetMapping("/dateRange")
+    public ResponseEntity<?> getContractsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        return contractService.getByDateBetween(start, end);
     }
 }
 

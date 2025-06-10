@@ -1,5 +1,7 @@
 package pi.ms_users.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,7 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.*;
 import pi.ms_users.domain.feign.Property;
-import pi.ms_users.repository.IContractIncreaseRepository;
+import pi.ms_users.dto.ContractDTO;
+import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -20,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,15 +37,43 @@ public class ContractService implements IContractService {
 
     private final PropertyRepository propertyRepository;
 
-    //  @RequestParam("amount") float amount, @RequestParam("currency")ContractIncreaseCurrency currency
+    private final ObjectMapper objectMapper;
+
+    public ContractDTO mapToDTO(Contract contract) {
+        ContractDTO dto = new ContractDTO();
+        dto.setId(contract.getId());
+        dto.setUserId(contract.getUserId());
+        dto.setPropertyId(contract.getPropertyId());
+        dto.setContractType(contract.getContractType());
+        dto.setStartDate(contract.getStartDate());
+        dto.setEndDate(contract.getEndDate());
+        dto.setContractStatus(contract.getContractStatus());
+        dto.setIncrease(contract.getIncrease());
+        dto.setIncreaseFrequency(contract.getIncreaseFrequency());
+
+        List<ContractIncreaseDTO> increases = contract.getContractIncrease().stream().map(increase -> {
+            ContractIncreaseDTO increaseDTO = new ContractIncreaseDTO();
+            increaseDTO.setId(increase.getId());
+            increaseDTO.setDate(increase.getDate());
+            increaseDTO.setAmount(increase.getAmount());
+            increaseDTO.setCurrency(increase.getCurrency());
+            return increaseDTO;
+        }).collect(Collectors.toList());
+
+        dto.setContractIncrease(increases);
+        return dto;
+    }
+
     @Override
-    public ResponseEntity<?> create(Contract contract, BigDecimal amount, ContractIncreaseCurrency currency) {
+    public ResponseEntity<?> create(ContractDTO contractDTO, BigDecimal amount, ContractIncreaseCurrency currency) {
         try {
-            Property property = propertyRepository.getById(contract.getPropertyId());
-            Boolean existUser = userRepository.exist(contract.getUserId());
+            Property property = propertyRepository.getById(contractDTO.getPropertyId());
+            Boolean existUser = userRepository.exist(contractDTO.getUserId());
             if (!existUser) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No se ha encontrado el usuario.");
             }
+
+            Contract contract = objectMapper.convertValue(contractDTO, Contract.class);
 
             contractRepository.save(contract);
 
@@ -50,9 +82,12 @@ public class ContractService implements IContractService {
             ContractIncrease contractIncrease = new ContractIncrease();
             contractIncrease.setAmount(amount);
             contractIncrease.setCurrency(currency);
-            contractIncrease.setDate(contract.getStartDate());
+            contractIncrease.setDate(contractDTO.getStartDate());
             contractIncrease.setContract(contract);
-            contractIncreaseService.create(contractIncrease);
+
+            ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
+
+            contractIncreaseService.create(contractIncreaseDTO);
 
             return ResponseEntity.ok("Se ha creado el contrato.");
 
@@ -72,14 +107,31 @@ public class ContractService implements IContractService {
     // ver el caso de renovacion de contrato
 
     @Override
-    public ResponseEntity<?> update(Contract contract) {
+    public ResponseEntity<?> update(ContractDTO contractDTO) {
         try {
-            Optional<Contract> contractOptional = contractRepository.findById(contract.getId());
+            Optional<Contract> contractOptional = contractRepository.findById(contractDTO.getId());
             if (contractOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el contrato.");
             }
 
             Contract contractGet = contractOptional.get();
+
+            contractGet.setContractStatus(contractDTO.getContractStatus());
+            contractGet.setContractType(contractDTO.getContractType());
+
+            List<ContractIncrease> contractIncrease = objectMapper.convertValue(
+                    contractDTO.getContractIncrease(),
+                    new TypeReference<List<ContractIncrease>>() {}
+            );
+
+            contractGet.setContractIncrease(contractIncrease);
+            contractGet.setIncrease(contractDTO.getIncrease());
+            contractGet.setStartDate(contractDTO.getStartDate());
+            contractGet.setEndDate(contractDTO.getEndDate());
+            contractGet.setUserId(contractDTO.getUserId());
+            contractGet.setIncreaseFrequency(contractDTO.getIncreaseFrequency());
+            contractGet.setPropertyId(contractDTO.getPropertyId());
+
             contractRepository.save(contractGet);
             return ResponseEntity.ok("Se ha actualizado el contrato");
 
@@ -157,7 +209,10 @@ public class ContractService implements IContractService {
             if (contract.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el contrato.");
             }
-            return ResponseEntity.ok(contract.get());
+
+            ContractDTO contractDTO = mapToDTO(contract.get());
+
+            return ResponseEntity.ok(contractDTO);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -180,7 +235,12 @@ public class ContractService implements IContractService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No se ha encontrado el usuario.");
             }
             List<Contract> contracts = contractRepository.findByUserId(userId);
-            return ResponseEntity.ok(contracts);
+
+            List<ContractDTO> contractDTOs = contracts.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            return ResponseEntity.ok(contractDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -200,7 +260,11 @@ public class ContractService implements IContractService {
         try {
             Property property = propertyRepository.getById(propertyId);
             List<Contract> contracts = contractRepository.findByPropertyId(property.getId());
-            return ResponseEntity.ok(contracts);
+            List<ContractDTO> contractDTOs = contracts.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            return ResponseEntity.ok(contractDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -219,7 +283,11 @@ public class ContractService implements IContractService {
     public ResponseEntity<?> getByType(ContractType type) {
         try {
             List<Contract> contracts = contractRepository.findByType(type);
-            return ResponseEntity.ok(contracts);
+            List<ContractDTO> contractDTOs = contracts.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            return ResponseEntity.ok(contractDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -238,7 +306,11 @@ public class ContractService implements IContractService {
     public ResponseEntity<?> getByStatus(ContractStatus status) {
         try {
             List<Contract> contracts = contractRepository.findByStatus(status);
-            return ResponseEntity.ok(contracts);
+            List<ContractDTO> contractDTOs = contracts.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            return ResponseEntity.ok(contractDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -254,14 +326,14 @@ public class ContractService implements IContractService {
     }
 
     @Override
-    public ResponseEntity<?> getByDateBetween(Long contractId, LocalDateTime start, LocalDateTime end) {
+    public ResponseEntity<?> getByDateBetween(LocalDateTime start, LocalDateTime end) {
         try {
-            Optional<Contract> contract = contractRepository.findById(contractId);
-            if (contract.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el contrato.");
-            }
-            List<Contract> contracts = contractRepository.findByDateBetween(contractId, start, end);
-            return ResponseEntity.ok(contracts);
+            List<Contract> contracts = contractRepository.findByDateBetween(start, end);
+            List<ContractDTO> contractDTOs = contracts.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            return ResponseEntity.ok(contractDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -280,7 +352,11 @@ public class ContractService implements IContractService {
     public ResponseEntity<?> getAll() {
         try {
             List<Contract> contracts = contractRepository.findAll();
-            return ResponseEntity.ok(contracts);
+            List<ContractDTO> contractDTOs = contracts.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            return ResponseEntity.ok(contractDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");

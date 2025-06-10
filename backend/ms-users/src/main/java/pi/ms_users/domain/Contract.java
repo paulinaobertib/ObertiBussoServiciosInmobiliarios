@@ -25,6 +25,7 @@ public class Contract {
     @Column(name = "property_id", nullable = false)
     private Long propertyId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private ContractType contractType;
 
@@ -34,6 +35,7 @@ public class Contract {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ContractStatus contractStatus;
 
