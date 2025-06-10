@@ -7,6 +7,10 @@ on:
       - feature/pipeline-test
       # - main
 
+permissions:
+  contents: read
+  checks: write
+
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
 # --------------------------------------------------------------
@@ -60,7 +64,7 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      - name: Run Backend Tests
+      - name: Run Backend Unit Tests
         working-directory: backend/${{ env.IMAGE_NAME }}
         run: mvn -B clean test -Dmaven.test.failure.ignore=false
 
