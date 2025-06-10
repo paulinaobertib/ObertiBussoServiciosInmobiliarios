@@ -15,6 +15,8 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import pi.ms_users.domain.User;
+import pi.ms_users.dto.EmailNewUserDTO;
+import pi.ms_users.service.impl.EmailService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 public class KeycloakUserRepository implements IUserRepository {
 
     private final Keycloak keycloak;
+
+    private final EmailService emailService;
 
     @Value("${pi.keycloak.realm}")
     private String realm;
@@ -121,6 +125,14 @@ public class KeycloakUserRepository implements IUserRepository {
                             .roles()
                             .clientLevel(clientUuid)
                             .add(List.of(userRole, tenantRole));
+
+                    EmailNewUserDTO emailData = new EmailNewUserDTO();
+                    emailData.setTo(user.getEmail());
+                    emailData.setTitle("¡Bienvenido a Oberti Busso Servicios Inmobiliarios!");
+                    emailData.setName(user.getFirstName());
+                    emailData.setUserName(username);
+                    emailData.setPassword(generatedPassword);
+                    emailService.sendNewUserCredentialsEmail(emailData);
 
                     return Response.status(Response.Status.CREATED).build();
                 } else {

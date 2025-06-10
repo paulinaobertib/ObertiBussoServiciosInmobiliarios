@@ -11,8 +11,8 @@ public class ContractIncreaseScheduler {
 
     private final ContractIncreaseService contractIncreaseService;
 
-    // todos los dias a las 4 am
-    @Scheduled(cron = "0 0 4 * * *")
+    // todos los 20 de cada mes a las 8 am
+    @Scheduled(cron = "0 0 8 20 * ?")
     public void scheduledIncreaseJob() {
         contractIncreaseService.applyScheduledIncreases();
     }

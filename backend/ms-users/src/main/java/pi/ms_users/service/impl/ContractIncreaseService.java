@@ -12,10 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncrease;
 import pi.ms_users.domain.ContractStatus;
+import pi.ms_users.domain.User;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.ContractIncreaseDTOContractGet;
+import pi.ms_users.dto.EmailContractIncreaseDTO;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
+import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.IContractIncreaseService;
 
 import java.math.BigDecimal;
@@ -34,6 +37,10 @@ public class ContractIncreaseService implements IContractIncreaseService {
     private final IContractRepository contractRepository;
 
     private final ObjectMapper objectMapper;
+
+    private final IUserRepository userRepository;
+
+    private final EmailService emailService;
 
     @Override
     public ResponseEntity<?> create(ContractIncreaseDTO contractIncreaseDTO) {
@@ -148,9 +155,28 @@ public class ContractIncreaseService implements IContractIncreaseService {
 
             if (lastIncreaseOpt.isPresent()) {
                 ContractIncrease lastIncrease = lastIncreaseOpt.get();
-
                 LocalDateTime nextIncreaseDate = lastIncrease.getDate().plusDays(contract.getIncreaseFrequency());
 
+                // Verificar si la fecha de aumento está exactamente a 10 días
+                LocalDateTime tenDaysFromNow = LocalDateTime.now().plusDays(10).withHour(0).withMinute(0).withSecond(0).withNano(0);
+                LocalDateTime nextIncreaseDateStart = nextIncreaseDate.withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+                if (nextIncreaseDateStart.isEqual(tenDaysFromNow)) {
+                    // Enviar correo de notificación
+                    User user = userRepository.findById(contract.getUserId())
+                            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+                    EmailContractIncreaseDTO emailData = getEmailContractIncreaseDTO(contract, user, lastIncrease);
+
+                    try {
+                        emailService.sendContractIncreaseEmail(emailData);
+                    } catch (Exception e) {
+                        // Loggear el error pero no interrumpir el proceso
+                        System.err.println("Error al enviar correo de aumento: " + e.getMessage());
+                    }
+                }
+
+                // Aplicar el aumento si la fecha ya pasó o es hoy
                 if (!nextIncreaseDate.isAfter(LocalDateTime.now())) {
                     BigDecimal newAmount = lastIncrease.getAmount().multiply(BigDecimal.valueOf(1 + contract.getIncrease() / 100.0));
 
@@ -160,11 +186,20 @@ public class ContractIncreaseService implements IContractIncreaseService {
                     newIncrease.setAmount(newAmount.setScale(2, RoundingMode.HALF_UP));
                     newIncrease.setCurrency(lastIncrease.getCurrency());
 
-                    // aca tengo que mandar el mail
-
                     contractIncreaseRepository.save(newIncrease);
                 }
             }
         }
+    }
+
+    private static EmailContractIncreaseDTO getEmailContractIncreaseDTO(Contract contract, User user, ContractIncrease lastIncrease) {
+        EmailContractIncreaseDTO emailData = new EmailContractIncreaseDTO();
+        emailData.setTo(user.getMail());
+        emailData.setTitle("Notificación de Aumento de Contrato");
+        emailData.setName(user.getFirstName());
+        emailData.setAmount(lastIncrease.getAmount());
+        emailData.setFrequency(contract.getIncreaseFrequency());
+        emailData.setIncrease(contract.getIncrease());
+        return emailData;
     }
 }

@@ -14,6 +14,7 @@ import pi.ms_users.domain.*;
 import pi.ms_users.domain.feign.Property;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractIncreaseDTO;
+import pi.ms_users.dto.EmailContractDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -39,6 +40,8 @@ public class ContractService implements IContractService {
     private final PropertyRepository propertyRepository;
 
     private final ObjectMapper objectMapper;
+
+    private final EmailService emailService;
 
     public ContractDTO mapToDTO(Contract contract) {
         ContractDTO dto = new ContractDTO();
@@ -69,8 +72,8 @@ public class ContractService implements IContractService {
     public ResponseEntity<?> create(ContractDTO contractDTO, BigDecimal amount, ContractIncreaseCurrency currency) {
         try {
             Property property = propertyRepository.getById(contractDTO.getPropertyId());
-            Boolean existUser = userRepository.exist(contractDTO.getUserId());
-            if (!existUser) {
+            Optional<User> user = userRepository.findById(contractDTO.getUserId());
+            if (user.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No se ha encontrado el usuario.");
             }
 
@@ -78,7 +81,12 @@ public class ContractService implements IContractService {
 
             contractRepository.save(contract);
 
-            // aca mandar mail
+            EmailContractDTO emailData = new EmailContractDTO();
+            emailData.setTo(user.get().getMail());
+            emailData.setTitle("¡Tu contrato está listo!");
+            emailData.setName(user.get().getFirstName());
+
+            emailService.sendNewContractEmail(emailData);
 
             ContractIncrease contractIncrease = new ContractIncrease();
             contractIncrease.setAmount(amount);

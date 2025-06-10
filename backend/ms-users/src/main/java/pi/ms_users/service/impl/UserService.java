@@ -31,8 +31,6 @@ public class UserService {
         int status = response.getStatus();
 
         if (status == 201) {
-            // aca mandar mail
-
             return ResponseEntity.ok("Se ha creado el usuario con éxito");
         } else if (status == 409) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
