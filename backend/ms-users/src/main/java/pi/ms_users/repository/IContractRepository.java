@@ -41,4 +41,8 @@ public interface IContractRepository extends JpaRepository<Contract, Long> {
     @EntityGraph(attributePaths = {"contractIncrease"})
     @Query("select c from Contract  c where c.contractStatus = ?1 and c.endDate > ?2")
     List<Contract> findByStatusAndEndDateAfter(ContractStatus status, LocalDateTime now);
+
+    @Query("select c from Contract c where c.contractStatus = ?1 and c.endDate = ?2")
+    List<Contract> findByStatusAndEndDateToday(ContractStatus status, LocalDateTime now);
+
 }

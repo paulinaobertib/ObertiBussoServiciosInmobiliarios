@@ -2596,6 +2596,77 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "getContracts",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/owner/getContracts/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"owner",
+										"getContracts",
+										"1"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -5446,7 +5517,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/role/9b91445d-7e61-4f0e-82af-f3c4cf9a2d46",
+									"raw": "http://localhost:8081/user/role/8e75cbea-b7cc-4a3a-a1bc-787ba39821ca",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -5455,7 +5526,7 @@
 									"path": [
 										"user",
 										"role",
-										"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46"
+										"8e75cbea-b7cc-4a3a-a1bc-787ba39821ca"
 									]
 								}
 							},

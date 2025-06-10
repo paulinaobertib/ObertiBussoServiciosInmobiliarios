@@ -13,6 +13,7 @@ import pi.ms_users.service.interf.IContractService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/contracts")
@@ -65,7 +66,7 @@ public class ContractController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
-    public ResponseEntity<?> getContractsByPropertyId(@PathVariable Long propertyId) {
+    public ResponseEntity<List<ContractDTO>> getContractsByPropertyId(@PathVariable Long propertyId) {
         return contractService.getByPropertyId(propertyId);
     }
 

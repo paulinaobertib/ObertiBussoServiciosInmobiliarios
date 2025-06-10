@@ -139,7 +139,6 @@ public class ContractIncreaseService implements IContractIncreaseService {
     }
 
     // Para actualizar automaticamente el monto del contrato
-
     @Transactional
     public void applyScheduledIncreases() {
         List<Contract> activeContracts = contractRepository.findByStatusAndEndDateAfter(ContractStatus.ACTIVO, LocalDateTime.now());
