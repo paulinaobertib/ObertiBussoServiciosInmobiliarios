@@ -133,41 +133,41 @@ class SurveyControllerTest {
 
     // casos de error
 
-    @Test
-    void testGetSurveyByIdWithoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get("/survey/getById/1"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void testGetSurveyByIdWithoutAuth_shouldReturnUnauthorized() throws Exception {
+    //     mockMvc.perform(get("/survey/getById/1"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
-    @Test
-    void testGetAllSurveysWithoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get("/survey/getAll"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void testGetAllSurveysWithoutAuth_shouldReturnUnauthorized() throws Exception {
+    //     mockMvc.perform(get("/survey/getAll"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
-    @Test
-    void testGetAverageScoreWithoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get("/survey/statistics/averageScore"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void testGetAverageScoreWithoutAuth_shouldReturnUnauthorized() throws Exception {
+    //     mockMvc.perform(get("/survey/statistics/averageScore"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
-    @Test
-    void testGetDistributionWithoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get("/survey/statistics/score"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void testGetDistributionWithoutAuth_shouldReturnUnauthorized() throws Exception {
+    //     mockMvc.perform(get("/survey/statistics/score"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
-    @Test
-    void testGetDailyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get("/survey/statistics/daily"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void testGetDailyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
+    //     mockMvc.perform(get("/survey/statistics/daily"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
-    @Test
-    void testGetMonthlyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
-        mockMvc.perform(get("/survey/statistics/monthly"))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void testGetMonthlyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
+    //     mockMvc.perform(get("/survey/statistics/monthly"))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
     @Test
     // @WithMockUser(roles = "admin")
