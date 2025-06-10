@@ -55,7 +55,7 @@ class TypeControllerTest {
     // casos de exito
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void testCreateTypeSuccess() throws Exception {
         Mockito.when(typeService.createType(any())).thenReturn(ResponseEntity.status(201).body("Created"));
 
@@ -67,7 +67,7 @@ class TypeControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void testUpdateTypeSuccess() throws Exception {
         Mockito.when(typeService.updateType(any())).thenReturn(ResponseEntity.ok(sampleType));
 
@@ -79,7 +79,7 @@ class TypeControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void testDeleteTypeSuccess() throws Exception {
         Mockito.when(typeService.deleteType(1L)).thenReturn(ResponseEntity.ok("Deleted"));
 

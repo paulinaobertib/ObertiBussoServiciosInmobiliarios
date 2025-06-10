@@ -86,7 +86,7 @@ class InquiryControllerTest {
     // casos de exito
 
     @Test
-    @WithMockUser(roles = "user")
+    // @WithMockUser(roles = "user")
     void createInquiry_success() throws Exception {
         Mockito.when(inquiryService.create(any())).thenReturn(ResponseEntity.ok("Creada"));
 
@@ -110,7 +110,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void updateStatus_success() throws Exception {
         Mockito.when(inquiryService.updateStatus(1L))
                 .thenReturn(ResponseEntity.ok("Actualizada"));
@@ -121,7 +121,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "user")
+    // @WithMockUser(roles = "user")
     void getById_success() throws Exception {
         Mockito.when(inquiryService.getById(1L))
                 .thenReturn(ResponseEntity.ok(sampleInquiry));
@@ -131,7 +131,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getAll_success() throws Exception {
         Mockito.when(inquiryService.getAll())
                 .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
@@ -142,7 +142,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "user")
+    // @WithMockUser(roles = "user")
     void getByUserId_success() throws Exception {
         Mockito.when(inquiryService.getByUserId("user123"))
                 .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
@@ -153,7 +153,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getByStatus_success() throws Exception {
         Mockito.when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
                 .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
@@ -165,7 +165,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getInquiriesPerMonth_success() throws Exception {
         Map<YearMonth, Long> stats = Map.of(YearMonth.of(2024, 5), 12L);
         Mockito.when(inquiryService.getInquiriesPerMonth())
@@ -177,7 +177,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getInquiryStatusDistribution_success() throws Exception {
         Map<String, Long> data = Map.of("ABIERTA", 5L, "CERRADA", 3L);
         Mockito.when(inquiryService.getInquiryStatusDistribution()).thenReturn(ResponseEntity.ok(data));
@@ -189,7 +189,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_success() throws Exception {
         Map<String, Long> data = Map.of("MONDAY", 4L, "TUESDAY", 2L);
         Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek()).thenReturn(ResponseEntity.ok(data));
@@ -200,7 +200,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getInquiriesGroupedByTimeRange_success() throws Exception {
         Map<String, Long> data = Map.of("08:00-12:00", 10L);
         Mockito.when(inquiryService.getInquiriesGroupedByTimeRange()).thenReturn(ResponseEntity.ok(data));
@@ -211,7 +211,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getMostConsultedProperties_success() throws Exception {
         Map<String, Long> data = Map.of("Casa en Córdoba", 7L);
         Mockito.when(inquiryService.getMostConsultedProperties()).thenReturn(ResponseEntity.ok(data));
@@ -222,7 +222,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getAverageInquiryResponseTime_success() throws Exception {
         Mockito.when(inquiryService.getAverageInquiryResponseTime())
                 .thenReturn(ResponseEntity.ok("3 días promedio"));
@@ -260,7 +260,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_internalServerError() throws Exception {
         Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek())
                 .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
@@ -270,7 +270,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "user")
+    // @WithMockUser(roles = "user")
     void createInquiry_internalServerError() throws Exception {
         Mockito.when(inquiryService.create(any()))
                 .thenReturn(ResponseEntity.internalServerError().build());
@@ -282,7 +282,7 @@ class InquiryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "admin")
+    // @WithMockUser(roles = "admin")
     void getById_notFound() throws Exception {
         Mockito.when(inquiryService.getById(999L))
                 .thenReturn(ResponseEntity.notFound().build());

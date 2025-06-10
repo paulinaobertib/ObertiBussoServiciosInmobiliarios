@@ -70,7 +70,7 @@ public class UserNotificationPreferenceControllerTest {
         Mockito.when(service.update(eq(1L), eq(true))).thenReturn(ResponseEntity.ok("Updated"));
 
         mockMvc.perform(put("/preference/update/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .param("enabled", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Updated"));
@@ -114,7 +114,7 @@ public class UserNotificationPreferenceControllerTest {
                 .thenReturn(ResponseEntity.ok(List.of("user1", "user2")));
 
         mockMvc.perform(get("/preference/active")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .param("type", "PROPIEDADNUEVA"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0]").value("user1"));
@@ -151,7 +151,7 @@ public class UserNotificationPreferenceControllerTest {
                 .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(put("/preference/update/999")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .param("enabled", "true"))
                 .andExpect(status().isNotFound());
     }
@@ -177,7 +177,7 @@ public class UserNotificationPreferenceControllerTest {
     @Test
     void getByTypeAndTrue_invalidEnum_shouldReturn400() throws Exception {
         mockMvc.perform(get("/preference/active")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .param("type", "INVALID_TYPE"))
                 .andExpect(status().isBadRequest());
     }
