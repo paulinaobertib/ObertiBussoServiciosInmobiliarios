@@ -24,11 +24,11 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST,
                                 "/appointments/create",
-                                "user/login").permitAll()
+                                "/user/login").permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "notices/getById/{id}",
-                                "notices/getAll",
-                                "notices/search").permitAll()
+                                "/notices/getById/{id}",
+                                "/notices/getAll",
+                                "/notices/search").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

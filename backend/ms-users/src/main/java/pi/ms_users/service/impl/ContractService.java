@@ -15,6 +15,7 @@ import pi.ms_users.domain.feign.Property;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.EmailContractDTO;
+import pi.ms_users.dto.EmailExpirationContract;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -22,7 +23,9 @@ import pi.ms_users.service.interf.IContractIncreaseService;
 import pi.ms_users.service.interf.IContractService;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -95,6 +98,7 @@ public class ContractService implements IContractService {
             contractIncrease.setContract(contract);
 
             ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
+            contractIncreaseDTO.setContractId(contract.getId());
 
             contractIncreaseService.create(contractIncreaseDTO);
 
@@ -378,9 +382,39 @@ public class ContractService implements IContractService {
     // Para actualizar automaticamente el status del contrato a inactivo
     @Transactional
     public void applyScheduledInactive() {
-        List<Contract> contracts = contractRepository.findByStatusAndEndDateToday(ContractStatus.ACTIVO, LocalDateTime.now());
+        List<Contract> contracts = contractRepository.findContractsEndingToday(ContractStatus.ACTIVO);
         for (Contract contract : contracts) {
             contract.setContractStatus(ContractStatus.INACTIVO);
+            contractRepository.save(contract);
         }
     }
+
+    // Para avisar que faltan 30 dias para terminar el contrato
+    @Transactional
+    public void applyScheduledSoonInactive() {
+        LocalDate targetDate = LocalDate.now().plusDays(30);
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plusDays(1).atStartOfDay().minusNanos(1);
+
+        List<Contract> contracts = contractRepository.findByStatusAndEndDateBetween(ContractStatus.ACTIVO, startOfDay, endOfDay);
+
+        for (Contract contract : contracts) {
+            Optional<User> user = userRepository.findById(contract.getUserId());
+            if (user.isEmpty()) continue;
+
+            EmailExpirationContract emailData = new EmailExpirationContract();
+            emailData.setTo(user.get().getMail());
+            emailData.setTitle("Tu contrato está por finalizar");
+            emailData.setName(user.get().getFirstName());
+            emailData.setEndDate(contract.getEndDate());
+
+            try {
+                emailService.sendContractExpirationReminder(emailData);
+            } catch (Exception e) {
+                System.err.println("Error al enviar recordatorio de vencimiento: " + e.getMessage());
+            }
+        }
+    }
+
+
 }

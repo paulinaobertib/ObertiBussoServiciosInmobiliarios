@@ -12,7 +12,14 @@ public class ContractScheduler {
 
     // todos los dias a las 2 am
     @Scheduled(cron = "0 0 2 * * *")
-    public void scheduledIncreaseJob() {
+    public void scheduledInactive() {
         contractService.applyScheduledInactive();
+    }
+
+    // todos los dias a las 8 am
+    @Scheduled(cron = "0 0 8 * * *")
+    public void scheduledEndDate() {
+        System.out.println("ejecutandoooooo");
+        contractService.applyScheduledSoonInactive();
     }
 }
