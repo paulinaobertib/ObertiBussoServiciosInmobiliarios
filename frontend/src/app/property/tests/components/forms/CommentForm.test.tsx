@@ -28,7 +28,7 @@ vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
   pickedItem: mockPickedItem,
   refreshComments: vi.fn(),
   commentsList: [],
-
+  propertiesList: [],
   amenitiesList: [],
   ownersList: [],
   neighborhoodsList: [],
@@ -50,7 +50,6 @@ vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
   data: [],
   categoryLoading: false,
   refreshAllCatalogs: vi.fn(),
-  refreshTypes: vi.fn(),
 
   // **Agrega este método que falta**
   refreshMaintenances: vi.fn(),
