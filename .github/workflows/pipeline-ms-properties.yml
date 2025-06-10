@@ -62,7 +62,16 @@ jobs:
 
       - name: Run Backend Tests
         working-directory: backend/${{ env.IMAGE_NAME }}
-        run: mvn -B test
+        run: mvn -B clean test -Dmaven.test.failure.ignore=false
+
+      - name: Show first failing report (debug)
+        if: failure()                      # solo si fallan los tests
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: |
+          ls -1 target/surefire-reports | head -n 5
+          echo "─── FIRST REPORT ───"
+          FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
+          cat "$FIRST" | head -n 120
 
       - name: Publish JUnit Results
         uses: EnricoMi/publish-unit-test-result-action@v2
