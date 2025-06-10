@@ -89,23 +89,27 @@ jobs:
         with:
           paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - name: Publish JaCoCo Coverage
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: true
-
       - name: Publish JaCoCo Coverage
-        uses: irongut/CodeCoverageSummary@v1.3.0
+        id: jacoco             # le damos un ID para leer sus outputs
+        uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
-          filename: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          format: markdown
-          output: summary
-          fail_below_min: false
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: true
+
+      - name: Add Coverage to Job Summary
+        run: |
+          echo "## 📊 Code Coverage"                            >> $GITHUB_STEP_SUMMARY
+          echo ""                                              >> $GITHUB_STEP_SUMMARY
+          echo "| Metric               | Value |"               >> $GITHUB_STEP_SUMMARY
+          echo "| -------------------- | -----:|"               >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage %           | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lines Covered        | ${{ steps.jacoco.outputs.covered_lines }} |"       >> $GITHUB_STEP_SUMMARY
+          echo "| Lines Missed         | ${{ steps.jacoco.outputs.missed_lines }} |"        >> $GITHUB_STEP_SUMMARY
+          echo "| Total Lines          | ${{ steps.jacoco.outputs.total_lines }} |"          >> $GITHUB_STEP_SUMMARY
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
