@@ -56,10 +56,7 @@ jobs:
         id: vitest
         working-directory: ./frontend
         run: |
-          npx vitest run \
-            --coverage \
-            --reporter=junit \
-            --outputFile=vitest-report.xml
+          npx vitest run --coverage --reporter=junit --outputFile=vitest-report.xml
 
       - name: Publish JUnit Results
         uses: EnricoMi/publish-unit-test-result-action@v2
