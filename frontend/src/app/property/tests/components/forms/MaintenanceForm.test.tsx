@@ -29,6 +29,7 @@ describe('MaintenanceForm', () => {
       commentsList: [],
       amenitiesList: [],
       ownersList: [],
+      propertiesList: [],
       neighborhoodsList: [],
       typesList: [],
       maintenancesList: [],
@@ -48,7 +49,6 @@ describe('MaintenanceForm', () => {
       data: [],
       categoryLoading: false,
       refreshAllCatalogs: vi.fn(),
-      refreshTypes: vi.fn(),
       refreshMaintenances: vi.fn(),
 
       buildSearchParams: vi.fn(),
