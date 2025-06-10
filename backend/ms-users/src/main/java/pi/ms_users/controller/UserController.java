@@ -28,7 +28,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('admin')")
-    @GetMapping("/create")
+    @PostMapping("/create")
     public ResponseEntity<?> createUser(@RequestParam("name") String name, @RequestParam("lastName") String lastName, @RequestParam("email") String email, @RequestParam("phone") String phone) {
         return userService.createUser(name, lastName, email, phone);
     }
@@ -37,6 +37,12 @@ public class UserController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
         return userService.findById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/getTenants")
+    public ResponseEntity<?> findTenants() {
+        return userService.findTenat();
     }
 
     @PreAuthorize("hasRole('admin')")

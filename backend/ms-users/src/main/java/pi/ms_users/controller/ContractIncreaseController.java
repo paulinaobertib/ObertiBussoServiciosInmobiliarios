@@ -4,8 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pi.ms_users.domain.ContractIncrease;
-import pi.ms_users.domain.ContractIncreaseCurrency;
+import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.service.interf.IContractIncreaseService;
 
 @RestController
@@ -17,8 +16,8 @@ public class ContractIncreaseController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody ContractIncrease contractIncrease) {
-        return contractIncreaseService.create(contractIncrease);
+    public ResponseEntity<?> create(@RequestBody ContractIncreaseDTO contractIncreaseDTO) {
+        return contractIncreaseService.create(contractIncreaseDTO);
     }
 
     @PreAuthorize("hasRole('admin')")

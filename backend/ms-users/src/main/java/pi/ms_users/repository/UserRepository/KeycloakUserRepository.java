@@ -8,6 +8,7 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -27,6 +28,9 @@ public class KeycloakUserRepository implements IUserRepository {
     @Value("${pi.keycloak.realm}")
     private String realm;
 
+    @Value("${pi.keycloak.clientId}")
+    private String clientId;
+
     private User toUser(UserRepresentation userRepresentation) {
         Map<String, List<String>> attributes = userRepresentation.getAttributes();
         String phone = null;
@@ -36,16 +40,31 @@ public class KeycloakUserRepository implements IUserRepository {
         return new User(userRepresentation.getId(), userRepresentation.getUsername(), userRepresentation.getEmail(), userRepresentation.getFirstName(), userRepresentation.getLastName(), phone);
     }
 
+    private String generateUniqueUsername(String baseUsername) {
+        String username = baseUsername;
+        int counter = 1;
+
+        while (!keycloak.realm(realm)
+                .users()
+                .search(username, true)
+                .isEmpty()) {
+            username = baseUsername + counter;
+            counter++;
+        }
+
+        return username;
+    }
+
     @Override
-    public void createUser(String name, String lastName, String email, String phone) {
+    public Response createUser(String name, String lastName, String email, String phone) {
         UserRepresentation user = new UserRepresentation();
-        String username = (name + lastName).toLowerCase();
+        String baseUsername = (name + lastName).toLowerCase().replaceAll("\\s+", "");
+        String username = generateUniqueUsername(baseUsername);
         user.setUsername(username);
         user.setEmail(email);
         user.setFirstName(name);
         user.setLastName(lastName);
         user.setEnabled(true);
-        user.setEmailVerified(true);
 
         Map<String, List<String>> attributes = new HashMap<>();
         attributes.put("phone", List.of(phone));
@@ -53,31 +72,95 @@ public class KeycloakUserRepository implements IUserRepository {
 
         user.setRequiredActions(List.of("UPDATE_PASSWORD"));
 
-        Response response = keycloak.realm(realm).users().create(user);
+        Response response = null;
 
-        if (response.getStatus() == 201) {
-            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+        try {
+            response = keycloak.realm(realm).users().create(user);
+            int status = response.getStatus();
 
-            CredentialRepresentation passwordCred = new CredentialRepresentation();
-            passwordCred.setTemporary(true);
-            passwordCred.setType(CredentialRepresentation.PASSWORD);
-            String generatedPassword = PasswordGenerator.generateRandomPassword();
-            passwordCred.setValue(generatedPassword);
+            if (status == 201) {
+                String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 
-            keycloak.realm(realm)
-                    .users()
-                    .get(userId)
-                    .resetPassword(passwordCred);
-        } else {
-            System.err.println("Error al crear usuario: " + response.getStatus());
+                CredentialRepresentation passwordCred = new CredentialRepresentation();
+                passwordCred.setTemporary(true);
+                passwordCred.setType(CredentialRepresentation.PASSWORD);
+                String generatedPassword = PasswordGenerator.generateRandomPassword();
+                passwordCred.setValue(generatedPassword);
+
+                keycloak.realm(realm)
+                        .users()
+                        .get(userId)
+                        .resetPassword(passwordCred);
+
+                System.out.println("Usuario creado con éxito: " + username);
+
+                List<ClientRepresentation> clients = keycloak.realm(realm).clients().findByClientId(clientId);
+                if (!clients.isEmpty()) {
+                    String clientUuid = clients.getFirst().getId();
+                    if (clients.isEmpty()) {
+                        return Response.status(Response.Status.NOT_FOUND).build();
+                    }
+
+                    RoleRepresentation userRole = keycloak.realm(realm)
+                            .clients()
+                            .get(clientUuid)
+                            .roles()
+                            .get("user")
+                            .toRepresentation();
+
+                    RoleRepresentation tenantRole = keycloak.realm(realm)
+                            .clients()
+                            .get(clientUuid)
+                            .roles()
+                            .get("tenant")
+                            .toRepresentation();
+
+                    keycloak.realm(realm)
+                            .users()
+                            .get(userId)
+                            .roles()
+                            .clientLevel(clientUuid)
+                            .add(List.of(userRole, tenantRole));
+
+                    return Response.status(Response.Status.CREATED).build();
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
+            } else {
+                return Response.status(status).build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error al crear usuario: " + e.getMessage())
+                    .build();
         }
-        response.close();
     }
 
     @Override
     public Optional<User> findById(String id) {
         UserRepresentation userRepresentation = keycloak.realm(realm).users().get(id).toRepresentation();
         return Optional.of(toUser(userRepresentation));
+    }
+
+    @Override
+    public List<User> findByRoleTenant() {
+        ClientRepresentation client = keycloak.realm(realm)
+                .clients()
+                .findByClientId(clientId)
+                .getFirst();
+
+        String clientUuid = client.getId();
+
+        List<UserRepresentation> usersWithRole = keycloak.realm(realm)
+                .clients()
+                .get(clientUuid)
+                .roles()
+                .get("tenant")
+                .getUserMembers();
+
+        return usersWithRole.stream()
+                .map(this::toUser)
+                .collect(Collectors.toList());
     }
 
     @Override

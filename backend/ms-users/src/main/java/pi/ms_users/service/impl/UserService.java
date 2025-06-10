@@ -3,6 +3,7 @@ package pi.ms_users.service.impl;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -26,23 +27,21 @@ public class UserService {
     private final IUserRepository userRepository;
 
     public ResponseEntity<?> createUser(String name, String lastName, String email, String phone) {
-        try {
-          userRepository.createUser(name, lastName, email, phone);
+        Response response = userRepository.createUser(name, lastName, email, phone);
+        int status = response.getStatus();
 
-          // aca mandar mail
+        if (status == 201) {
+            // aca mandar mail
 
-          return ResponseEntity.ok("Se ha creado el usuario con exito");
-
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
-        } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
+            return ResponseEntity.ok("Se ha creado el usuario con éxito");
+        } else if (status == 409) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
+        } else if (status == 400) {
+            return ResponseEntity.badRequest().body("Datos inválidos enviados a Keycloak");
+        } else {
+            String error = response.readEntity(String.class);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error inesperado en Keycloak: " + error);
         }
     }
 
@@ -52,7 +51,7 @@ public class UserService {
         String name = jwt.getClaimAsString("given_name");
         String lastName = jwt.getClaimAsString("family_name");
         String email = jwt.getClaimAsString("email");
-        String phone = jwt.getClaimAsString("phone");
+        String phone = jwt.getClaimAsString("phone_number");
         Map<String, String> userInfo = new LinkedHashMap<>();
         userInfo.put("id", id);
         userInfo.put("userName", userName);
@@ -74,6 +73,17 @@ public class UserService {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    public ResponseEntity<?> findTenat() {
+        try {
+            List<User> user = userRepository.findByRoleTenant();
+            return ResponseEntity.ok(user);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se han encontrado inquilinos.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e);
         }
     }
 

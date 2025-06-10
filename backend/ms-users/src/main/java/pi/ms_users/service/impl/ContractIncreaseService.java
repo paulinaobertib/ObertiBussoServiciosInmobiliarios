@@ -1,17 +1,19 @@
 package pi.ms_users.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncrease;
 import pi.ms_users.domain.ContractStatus;
+import pi.ms_users.dto.ContractIncreaseDTO;
+import pi.ms_users.dto.ContractIncreaseDTOContractGet;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.service.interf.IContractIncreaseService;
@@ -21,6 +23,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,13 +33,18 @@ public class ContractIncreaseService implements IContractIncreaseService {
 
     private final IContractRepository contractRepository;
 
+    private final ObjectMapper objectMapper;
+
     @Override
-    public ResponseEntity<?> create(ContractIncrease contractIncrease) {
+    public ResponseEntity<?> create(ContractIncreaseDTO contractIncreaseDTO) {
         try {
-            Optional<Contract> contractOptional = contractRepository.findById(contractIncrease.getContract().getId());
+            Optional<Contract> contractOptional = contractRepository.findById(contractIncreaseDTO.getContractId());
             if (contractOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el contrato.");
             }
+
+            ContractIncrease contractIncrease = objectMapper.convertValue(contractIncreaseDTO, ContractIncrease.class);
+            contractIncrease.setContract(contractOptional.get());
 
             contractIncreaseRepository.save(contractIncrease);
             return ResponseEntity.ok("Se ha guardado el monto del contrato");
@@ -85,7 +93,9 @@ public class ContractIncreaseService implements IContractIncreaseService {
             if (contractIncrease.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el monto.");
             } else {
-                return ResponseEntity.ok(contractIncrease.get());
+                ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
+                contractIncreaseDTO.setContractId(contractIncrease.get().getContract().getId());
+                return ResponseEntity.ok(contractIncreaseDTO);
             }
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");
@@ -109,7 +119,11 @@ public class ContractIncreaseService implements IContractIncreaseService {
             }
 
             List<ContractIncrease> contractIncreases = contractIncreaseRepository.findByContractId(contractId);
-            return ResponseEntity.ok(contractIncreases);
+            List<ContractIncreaseDTOContractGet> contractIncreaseDTOs = contractIncreases.stream()
+                    .map(increase -> objectMapper.convertValue(increase, ContractIncreaseDTOContractGet.class))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(contractIncreaseDTOs);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body("Violación de integridad de datos");

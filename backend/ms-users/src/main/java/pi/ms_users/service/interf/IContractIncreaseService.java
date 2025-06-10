@@ -1,10 +1,10 @@
 package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
-import pi.ms_users.domain.ContractIncrease;
+import pi.ms_users.dto.ContractIncreaseDTO;
 
 public interface IContractIncreaseService {
-    ResponseEntity<?> create(ContractIncrease contractIncrease);
+    ResponseEntity<?> create(ContractIncreaseDTO contractIncreaseDTO);
 
     ResponseEntity<?> delete(Long id);
 

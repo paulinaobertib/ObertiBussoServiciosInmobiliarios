@@ -1,5 +1,6 @@
 package pi.ms_users.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class ContractIncrease {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false)
     private ContractIncreaseCurrency currency;
 
@@ -29,5 +31,6 @@ public class ContractIncrease {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contract_id", nullable = false)
+    @JsonIgnore
     private Contract contract;
 }
