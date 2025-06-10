@@ -100,6 +100,9 @@ jobs:
           minimum_coverage: 80
           publish_only_summary: false
 
+      - name: Move JaCoCo XML to root
+        run: cp backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml jacoco.xml
+
       - name: Summarize code coverage
         uses: jeantessier/code-coverage-summary-action@v1
         with:
