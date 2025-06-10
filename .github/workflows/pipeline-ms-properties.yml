@@ -103,7 +103,8 @@ jobs:
       - name: Generate JaCoCo badge & summary
         uses: cicirello/jacoco-badge-generator@v2
         with:
-          badges-directory: badges/           # aquí se guardan los badges (puedes ignorarlo si no los usas)
+          jacoco-csv-file: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.csv
+          badges-directory: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/badges
           generate-summary: true             # genera un archivo summary
           generate-branches-badge: true      # badge para cobertura de ramas
     
