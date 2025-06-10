@@ -61,7 +61,7 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      - name: Run Backend Unit Tests
+      - name: Run Unit Tests
         working-directory: backend/${{ env.IMAGE_NAME }}
         run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
 
