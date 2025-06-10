@@ -19,4 +19,6 @@ public interface IOwnerService {
     ResponseEntity<Owner> getById(Long id);
 
     ResponseEntity<List<Owner>> findBy(String search);
+
+    ResponseEntity<?> findContracts(Long id);
 }

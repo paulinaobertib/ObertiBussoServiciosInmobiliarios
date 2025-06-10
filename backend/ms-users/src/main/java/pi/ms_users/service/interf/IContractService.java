@@ -1,6 +1,7 @@
 package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
+import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.domain.ContractStatus;
 import pi.ms_users.domain.ContractType;
@@ -8,6 +9,7 @@ import pi.ms_users.dto.ContractDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface IContractService {
     ResponseEntity<?> create(ContractDTO contractDTO, BigDecimal amount, ContractIncreaseCurrency currency);
@@ -22,7 +24,7 @@ public interface IContractService {
 
     ResponseEntity<?> getByUserId(String userId);
 
-    ResponseEntity<?> getByPropertyId(Long propertyId);
+    ResponseEntity<List<ContractDTO>> getByPropertyId(Long propertyId);
 
     ResponseEntity<?> getByType(ContractType type);
 

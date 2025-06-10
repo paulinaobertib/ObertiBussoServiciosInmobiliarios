@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionSystemException;
+import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.domain.feign.Property;
 import pi.ms_users.dto.ContractDTO;
@@ -103,8 +104,6 @@ public class ContractService implements IContractService {
             return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
-
-    // ver el caso de renovacion de contrato
 
     @Override
     public ResponseEntity<?> update(ContractDTO contractDTO) {
@@ -256,9 +255,10 @@ public class ContractService implements IContractService {
     }
 
     @Override
-    public ResponseEntity<?> getByPropertyId(Long propertyId) {
+    public ResponseEntity<List<ContractDTO>> getByPropertyId(Long propertyId) {
         try {
             Property property = propertyRepository.getById(propertyId);
+            // puedo tener varios, porque puede haber tanto activos como inactivos
             List<Contract> contracts = contractRepository.findByPropertyId(property.getId());
             List<ContractDTO> contractDTOs = contracts.stream()
                     .map(this::mapToDTO)
@@ -266,16 +266,12 @@ public class ContractService implements IContractService {
 
             return ResponseEntity.ok(contractDTOs);
 
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (DataIntegrityViolationException | ConstraintViolationException | IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -368,6 +364,15 @@ public class ContractService implements IContractService {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
+        }
+    }
+
+    // Para actualizar automaticamente el status del contrato a inactivo
+    @Transactional
+    public void applyScheduledInactive() {
+        List<Contract> contracts = contractRepository.findByStatusAndEndDateToday(ContractStatus.ACTIVO, LocalDateTime.now());
+        for (Contract contract : contracts) {
+            contract.setContractStatus(ContractStatus.INACTIVO);
         }
     }
 }
