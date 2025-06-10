@@ -6,7 +6,7 @@ on:
     branches:
       - feature/pipeline-test
       # - main
-      
+
 permissions:
   contents: read
   checks: write
@@ -63,7 +63,7 @@ jobs:
 
       - name: Run Backend Unit Tests
         working-directory: backend/${{ env.IMAGE_NAME }}
-        run: mvn -B clean test -Dmaven.test.failure.ignore=false
+        run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
 
       - name: Publish JUnit Results
         uses: EnricoMi/publish-unit-test-result-action@v2
