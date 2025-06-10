@@ -21,11 +21,11 @@ env:
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
   AZURE_BLOB_CONNECTION_STRING_DEV: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_DEV }}
   AZURE_BLOB_CONNECTION_STRING_PROD: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_PROD }}
-  
+
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  
+
   # Properties-specific
   IMAGE_NAME: ms-properties
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
@@ -89,23 +89,34 @@ jobs:
         with:
           paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - name: Publish JaCoCo Coverage
-        id: jacoco             # le damos un ID para leer sus outputs
-        uses: PavanMudigonda/jacoco-reporter@v5.0
+      # - name: Publish JaCoCo Coverage
+      #   id: jacoco
+      #   uses: PavanMudigonda/jacoco-reporter@v5.0
+      #   with:
+      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+      #     coverage_report_name: Code Coverage
+      #     coverage_report_title: "JaCoCo Coverage"
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     minimum_coverage: 80
+      #     publish_only_summary: false
+
+      - name: Generate JaCoCo badge & summary
+        uses: cicirello/jacoco-badge-generator@v2
         with:
-          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          coverage_report_name: Code Coverage
-          coverage_report_title: "JaCoCo Coverage"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_coverage: 80
-          publish_only_summary: false
-
-      - name: Move JaCoCo XML to root
-        run: cp backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml jacoco.xml
-
-      - name: Summarize code coverage
-        uses: jeantessier/code-coverage-summary-action@v1
-
+          badges-directory: badges/           # aquí se guardan los badges (puedes ignorarlo si no los usas)
+          generate-summary: true             # genera un archivo summary
+          generate-branches-badge: true      # badge para cobertura de ramas
+    
+      - name: Upload Coverage Summary to Job Summary
+        run: |
+          cat badges/coverage-summary.txt >> $GITHUB_STEP_SUMMARY
+    
+      - name: Upload JaCoCo HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-html-report
+          path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco
+          if-no-files-found: warn
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
@@ -329,4 +340,3 @@ jobs:
   #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
   #           --name ${{ env.APP_NAME_PROD }} \
   #           --docker-container-logging filesystem
-            
