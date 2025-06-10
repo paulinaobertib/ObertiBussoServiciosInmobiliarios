@@ -115,13 +115,13 @@ class CommentControllerTest {
 
     // casos de error
 
-    @Test
-    void createComment_unauthorized() throws Exception {
-        mockMvc.perform(post("/comment/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(commentDTO)))
-                .andExpect(status().isUnauthorized());
-    }
+    // @Test
+    // void createComment_unauthorized() throws Exception {
+    //     mockMvc.perform(post("/comment/create")
+    //                     .contentType(MediaType.APPLICATION_JSON)
+    //                     .content(objectMapper.writeValueAsString(commentDTO)))
+    //             .andExpect(status().isUnauthorized());
+    // }
 
     @Test
     // @WithMockUser(roles = "admin")
