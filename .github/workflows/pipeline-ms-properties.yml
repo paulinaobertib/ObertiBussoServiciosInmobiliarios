@@ -89,35 +89,25 @@ jobs:
         with:
           paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - name: Publish JaCoCo Coverage
-      #   id: jacoco
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: false
+      - name: Publish JaCoCo Coverage
+        id: jacoco
+        uses: PavanMudigonda/jacoco-reporter@v5.0
+        with:
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: false
 
-      - name: Generate JaCoCo badge & summary
+      - name: Publish JaCoCo Coverage on Summary
         uses: cicirello/jacoco-badge-generator@v2
         with:
           jacoco-csv-file: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.csv
           badges-directory: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/badges
-          generate-summary: true             # genera un archivo summary
-          generate-branches-badge: true      # badge para cobertura de ramas
-    
-      - name: Upload Coverage Summary to Job Summary
-        run: |
-          cat badges/coverage-summary.txt >> $GITHUB_STEP_SUMMARY
-    
-      - name: Upload JaCoCo HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-html-report
-          path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco
-          if-no-files-found: warn
+          generate-summary: true
+          generate-branches-badge: true
+
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
