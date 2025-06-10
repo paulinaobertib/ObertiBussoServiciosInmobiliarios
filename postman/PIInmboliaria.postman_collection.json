@@ -5517,7 +5517,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/role/8e75cbea-b7cc-4a3a-a1bc-787ba39821ca",
+									"raw": "http://localhost:8081/user/role/e54611c2-0add-474f-8513-dd555c0e4943",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -5526,7 +5526,7 @@
 									"path": [
 										"user",
 										"role",
-										"8e75cbea-b7cc-4a3a-a1bc-787ba39821ca"
+										"e54611c2-0add-474f-8513-dd555c0e4943"
 									]
 								}
 							},
@@ -6140,7 +6140,7 @@
 										},
 										{
 											"key": "email",
-											"value": "p10@gmail.com",
+											"value": "paulinaobertibusso2@gmail.com",
 											"type": "text"
 										},
 										{
@@ -8413,7 +8413,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"userId\": \"96856721-9ae7-49d8-92f0-c4231b7109a6\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-06-01T00:00:00\",\r\n  \"endDate\": \"2026-06-01T00:00:00\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"increase\": 5.0,\r\n  \"increaseFrequency\": 12\r\n}",
+									"raw": "{\r\n  \"userId\": \"9c028d7c-76a8-430a-83b5-9a2f5caefae6\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-05-31T00:00:00\",\r\n  \"endDate\": \"2025-07-10T00:00:00\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"increase\": 10.0,\r\n  \"increaseFrequency\": 20\r\n}\r\n\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -9285,7 +9285,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"date\": \"2025-06-09T10:30:00\",\r\n  \"amount\": 10000,\r\n  \"currency\": \"ARS\",\r\n  \"contractId\": 1\r\n}\r\n",
+									"raw": "{\r\n  \"contractId\": 9, \r\n  \"date\": \"2025-06-09T00:00:00\",\r\n  \"amount\": 100000,\r\n  \"currency\": \"ARS\"\r\n}\r\n\r\n",
 									"options": {
 										"raw": {
 											"language": "json"

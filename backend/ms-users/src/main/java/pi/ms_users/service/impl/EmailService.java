@@ -164,7 +164,6 @@ public class EmailService implements IEmailService {
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(emailData.getFrom());
             helper.setTo(emailData.getTo());
             helper.setSubject(emailData.getTitle());
 
@@ -189,7 +188,6 @@ public class EmailService implements IEmailService {
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(emailData.getFrom());
             helper.setTo(emailData.getTo());
             helper.setSubject(emailData.getTitle());
 
@@ -199,6 +197,28 @@ public class EmailService implements IEmailService {
             javaMailSender.send(message);
         } catch (Exception e) {
             throw new RuntimeException("Error al enviar el correo de aumento de contrato: " + e.getMessage(), e);
+        }
+    }
+
+    // cuando el contrato esta cerca a vencer
+    public void sendContractExpirationReminder(EmailExpirationContract emailData) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", emailData.getName());
+            context.setVariable("endDate", emailData.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailData.getTo());
+            helper.setSubject(emailData.getTitle());
+
+            String content = templateEngine.process("email_contract_expiration", context);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar recordatorio de vencimiento: " + e.getMessage(), e);
         }
     }
 }

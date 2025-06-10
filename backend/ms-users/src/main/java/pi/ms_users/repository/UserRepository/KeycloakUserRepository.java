@@ -66,6 +66,7 @@ public class KeycloakUserRepository implements IUserRepository {
         String username = generateUniqueUsername(baseUsername);
         user.setUsername(username);
         user.setEmail(email);
+        user.setEmailVerified(true);
         user.setFirstName(name);
         user.setLastName(lastName);
         user.setEnabled(true);
