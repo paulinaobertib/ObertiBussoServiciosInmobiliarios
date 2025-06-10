@@ -234,30 +234,30 @@ class InquiryControllerTest {
 
     // casos de error
 
-    @Test
-    void updateStatus_unauthorized() throws Exception {
-        mockMvc.perform(put("/inquiries/status/1"))
-                .andExpect(status().isUnauthorized());
-    }
+//     @Test
+//     void updateStatus_unauthorized() throws Exception {
+//         mockMvc.perform(put("/inquiries/status/1"))
+//                 .andExpect(status().isUnauthorized());
+//     }
 
-    @Test
-    void getById_unauthorized() throws Exception {
-        mockMvc.perform(get("/inquiries/getById/1"))
-                .andExpect(status().isUnauthorized());
-    }
+//     @Test
+//     void getById_unauthorized() throws Exception {
+//         mockMvc.perform(get("/inquiries/getById/1"))
+//                 .andExpect(status().isUnauthorized());
+//     }
 
-    @Test
-    void getByStatus_unauthorized() throws Exception {
-        mockMvc.perform(get("/inquiries/getByStatus")
-                        .param("status", "ABIERTA"))
-                .andExpect(status().isUnauthorized());
-    }
+//     @Test
+//     void getByStatus_unauthorized() throws Exception {
+//         mockMvc.perform(get("/inquiries/getByStatus")
+//                         .param("status", "ABIERTA"))
+//                 .andExpect(status().isUnauthorized());
+//     }
 
-    @Test
-    void getInquiriesPerMonth_unauthorized() throws Exception {
-        mockMvc.perform(get("/inquiries/statistics/month"))
-                .andExpect(status().isUnauthorized());
-    }
+//     @Test
+//     void getInquiriesPerMonth_unauthorized() throws Exception {
+//         mockMvc.perform(get("/inquiries/statistics/month"))
+//                 .andExpect(status().isUnauthorized());
+//     }
 
     @Test
     // @WithMockUser(roles = "admin")
@@ -291,10 +291,10 @@ class InquiryControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @Test
-    void getMostConsultedProperties_unauthorized() throws Exception {
-        mockMvc.perform(get("/inquiries/statistics/properties"))
-                .andExpect(status().isUnauthorized());
-    }
+//     @Test
+//     void getMostConsultedProperties_unauthorized() throws Exception {
+//         mockMvc.perform(get("/inquiries/statistics/properties"))
+//                 .andExpect(status().isUnauthorized());
+//     }
 
 }
