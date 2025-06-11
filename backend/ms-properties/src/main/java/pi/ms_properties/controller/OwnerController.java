@@ -57,4 +57,10 @@ public class OwnerController {
     public ResponseEntity<List<Owner>> searchOwners(@RequestParam String search) {
         return ownerService.findBy(search);
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/getContracts/{id}")
+    public ResponseEntity<?> getContracts(@PathVariable Long id) {
+        return ownerService.findContracts(id);
+    }
 }
