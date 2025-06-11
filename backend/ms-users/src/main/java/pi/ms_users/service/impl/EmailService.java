@@ -61,12 +61,15 @@ public class EmailService implements IEmailService {
     }
 
     // cuando la inmobiliaria decide aceptarlo o rechazarlo
-    public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date) {
+    public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
         try {
             Context context = new Context();
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
             context.setVariable("firstName", firstName);
             context.setVariable("date", formatDate(date));
+            if (!address.isEmpty()) {
+                context.setVariable("address", address);
+            }
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

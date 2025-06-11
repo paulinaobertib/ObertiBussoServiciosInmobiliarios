@@ -11,7 +11,7 @@ public interface IAppointmentService {
 
     ResponseEntity<String> delete(Long id);
 
-    ResponseEntity<String> updateStatus(Long id, AppointmentStatus status);
+    ResponseEntity<String> updateStatus(Long id, AppointmentStatus status, String address);
 
     ResponseEntity<Appointment> findById(Long id);
 

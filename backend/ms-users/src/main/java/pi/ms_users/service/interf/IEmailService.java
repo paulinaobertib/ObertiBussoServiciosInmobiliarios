@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public interface IEmailService {
     void sendAppointmentRequest(EmailDTO emailDTO) throws MessagingException;
 
-    void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date);
+    void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address);
 
     void sendAppointmentCancelledMail(EmailDTO emailDTO);
 
