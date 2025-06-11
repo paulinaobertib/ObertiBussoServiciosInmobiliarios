@@ -1,13 +1,17 @@
 package pi.ms_users.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.User;
 import pi.ms_users.service.impl.UserService;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -18,9 +22,27 @@ public class UserController {
     private final UserService userService;
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
+    @GetMapping("/me")
+    public Map<String, String> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+        return userService.getUserInfo(jwt);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @PostMapping("/create")
+    public ResponseEntity<?> createUser(@RequestParam("name") String name, @RequestParam("lastName") String lastName, @RequestParam("email") String email, @RequestParam("phone") String phone) {
+        return userService.createUser(name, lastName, email, phone);
+    }
+
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
         return userService.findById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/getTenants")
+    public ResponseEntity<?> findTenants() {
+        return userService.findTenat();
     }
 
     @PreAuthorize("hasRole('admin')")

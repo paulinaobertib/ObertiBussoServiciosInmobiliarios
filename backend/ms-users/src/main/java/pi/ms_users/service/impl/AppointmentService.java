@@ -85,7 +85,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ResponseEntity<String> updateStatus(Long id, AppointmentStatus status) {
+    public ResponseEntity<String> updateStatus(Long id, AppointmentStatus status, String address) {
         try {
             Optional<Appointment> search = appointmentRepository.findById(id);
             if (search.isEmpty()) {
@@ -109,9 +109,9 @@ public class AppointmentService implements IAppointmentService {
             emailDTO.setDate(appointment.getDate());
 
             if (status == AppointmentStatus.ACEPTADO) {
-                emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), appointment.getDate());
+                emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), appointment.getDate(), address);
             } else if (status == AppointmentStatus.RECHAZADO) {
-                emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), appointment.getDate());
+                emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), appointment.getDate(), null);
             }
 
             return ResponseEntity.ok("Se ha actualizado el estado del turno");
