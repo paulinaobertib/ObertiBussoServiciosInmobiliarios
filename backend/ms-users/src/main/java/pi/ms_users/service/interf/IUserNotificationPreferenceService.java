@@ -7,13 +7,13 @@ import pi.ms_users.domain.UserNotificationPreference;
 import java.util.List;
 
 public interface IUserNotificationPreferenceService {
-    ResponseEntity<String> create(UserNotificationPreference userNotificationPreference);
+    ResponseEntity<?> create(UserNotificationPreference userNotificationPreference);
 
-    ResponseEntity<String> update(Long id, Boolean enabled);
+    ResponseEntity<?> update(Long id, Boolean enabled);
 
-    ResponseEntity<UserNotificationPreference> getById(Long id);
+    ResponseEntity<?> getById(Long id);
 
-    ResponseEntity<List<UserNotificationPreference>> getByUser(String userId);
+    ResponseEntity<?> getByUser(String userId);
 
-    ResponseEntity<List<String>> getByTypeAndTrue(NotificationType type);
+    ResponseEntity<?> getByTypeAndTrue(NotificationType type);
 }

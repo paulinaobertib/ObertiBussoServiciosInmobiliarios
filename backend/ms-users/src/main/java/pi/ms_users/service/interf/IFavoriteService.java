@@ -6,11 +6,11 @@ import pi.ms_users.domain.Favorite;
 import java.util.List;
 
 public interface IFavoriteService {
-    ResponseEntity<Favorite> create(Favorite favorite);
+    ResponseEntity<?> create(Favorite favorite);
 
-    ResponseEntity<String> delete(Long id);
+    ResponseEntity<?> delete(Long id);
 
-    ResponseEntity<List<Favorite>> findByUserId(String userId);
+    ResponseEntity<?> findByUserId(String userId);
 
-    ResponseEntity<List<Favorite>> findByPropertyId(Long propertyId);
+    ResponseEntity<?> findByPropertyId(Long propertyId);
 }

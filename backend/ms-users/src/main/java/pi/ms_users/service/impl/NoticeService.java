@@ -1,11 +1,13 @@
 package pi.ms_users.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.Notice;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.INoticeRepository;
@@ -26,7 +28,7 @@ public class NoticeService implements INoticeService {
     private final IUserRepository userRepository;
 
     @Override
-    public ResponseEntity<String> create(Notice notice) {
+    public ResponseEntity<?> create(Notice notice) {
         try {
             Optional<User> user = userRepository.findById(notice.getUserId());
             if (user.isEmpty()) {
@@ -41,14 +43,20 @@ public class NoticeService implements INoticeService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este usuario no tiene permiso para crear una noticia");
             }
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> update(Notice notice) {
+    public ResponseEntity<?> update(Notice notice) {
         try {
             Optional<User> user = userRepository.findById(notice.getUserId());
             if (user.isEmpty()) {
@@ -68,14 +76,20 @@ public class NoticeService implements INoticeService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este usuario no tiene permiso para actualizar una noticia");
             }
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> delete(Long id) {
+    public ResponseEntity<?> delete(Long id) {
         try {
             Optional<Notice> noticeOptional = noticeRepository.findById(id);
             if (noticeOptional.isEmpty()) {
@@ -85,15 +99,22 @@ public class NoticeService implements INoticeService {
             Notice notice = noticeOptional.get();
             noticeRepository.delete(notice);
             return ResponseEntity.ok("Se ha eliminado la noticia");
+
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<Notice> getById(Long id) {
+    public ResponseEntity<?> getById(Long id) {
         try {
             Optional<Notice> noticeOptional = noticeRepository.findById(id);
             if (noticeOptional.isEmpty()) {
@@ -103,34 +124,53 @@ public class NoticeService implements INoticeService {
                 return ResponseEntity.ok(notice);
             }
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Notice>> getAll() {
+    public ResponseEntity<?> getAll() {
         try {
             List<Notice> notices = noticeRepository.findAll();
             return ResponseEntity.ok(notices);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Notice>> search(String search) {
+    public ResponseEntity<?> search(String search) {
         try {
             Specification<Notice> specification = NoticeSpecification.textSearch(search);
             List<Notice> notices = noticeRepository.findAll(specification);
             return ResponseEntity.ok(notices);
+
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 }

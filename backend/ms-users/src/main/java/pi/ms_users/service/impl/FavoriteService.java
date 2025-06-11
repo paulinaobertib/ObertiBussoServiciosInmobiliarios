@@ -1,10 +1,13 @@
 package pi.ms_users.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.feign.Property;
@@ -27,7 +30,7 @@ public class FavoriteService implements IFavoriteService {
     private final PropertyRepository propertyRepository;
 
     @Override
-    public ResponseEntity<Favorite> create(Favorite favorite) {
+    public ResponseEntity<?> create(Favorite favorite) {
         try {
             Optional<User> user = Optional.empty();
             try {
@@ -39,14 +42,20 @@ public class FavoriteService implements IFavoriteService {
             Favorite saved = favoriteRepository.save(favorite);
             return ResponseEntity.ok(saved);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> delete(Long id) {
+    public ResponseEntity<?> delete(Long id) {
         try {
             Optional<Favorite> favorite = favoriteRepository.findById(id);
             if (favorite.isEmpty()) {
@@ -54,13 +63,21 @@ public class FavoriteService implements IFavoriteService {
             }
             favoriteRepository.delete(favorite.get());
             return ResponseEntity.ok("Se ha eliminado la propiedad de favoritos");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Favorite>> findByUserId(String userId) {
+    public ResponseEntity<?> findByUserId(String userId) {
         try {
             Optional<User> user = Optional.empty();
             try {
@@ -71,13 +88,21 @@ public class FavoriteService implements IFavoriteService {
 
             List<Favorite> favorites = favoriteRepository.findByUserId(userId);
             return ResponseEntity.ok(favorites);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Favorite>> findByPropertyId(Long propertyId) {
+    public ResponseEntity<?> findByPropertyId(Long propertyId) {
         try {
             Property property = propertyRepository.getById(propertyId);
             if (property == null) {
@@ -85,8 +110,16 @@ public class FavoriteService implements IFavoriteService {
             }
             List<Favorite> favorites = favoriteRepository.findByPropertyId(propertyId);
             return ResponseEntity.ok(favorites);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 }

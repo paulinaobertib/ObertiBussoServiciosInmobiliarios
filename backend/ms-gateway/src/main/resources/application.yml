@@ -1,51 +1,47 @@
 server:
-  port: ${SERVICE_PORT}
+  port: 8090
 
 eureka:
   instance:
-    hostname: ${WEBSITE_HOSTNAME}
-    nonSecurePort: 80 
+    hostname: localhost
+    prefer-ip-address: true
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+      defaultZone: http://localhost:8761/eureka
 
 spring:
   application:
     name: ms-gateway
   security:
-  oauth2:
-    client:
-      provider:
-        keycloak-client:
-          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
-      registration:
-        keycloak-client:
-          client-id: ${KEYCLOAK_CLIENT_ID}
-          client-secret: ${KEYCLOAK_CLIENT_SECRET}
-          scope:
-            - openid
-          authorization-grant-type: authorization_code
-          redirect-uri: http://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
+    oauth2:
+      client:
+        provider:
+          keycloak-client:
+            issuer-uri: http://localhost:8080/realms/obertibussoserviciosinmobiliarios
+        registration:
+          keycloak-client:
+            client-id: api-gateway-client
+            client-secret: jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP
+            scope:
+              - openid
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:8090/login/oauth2/code/keycloak
 
   cloud:
     gateway:
       globalcors:
         corsConfigurations:
-          "[/**]":
-            allowedOrigins:
-              - "http://localhost:5173"
-              # - "https://${SWA_FRONTEND}.azurestaticapps.net"
-              - "https://nice-ground-01cabe81e.6.azurestaticapps.net"
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
             allowedHeaders: "*"
             allowedMethods:
               - GET
               - POST
               - PUT
+              - PATCH
               - DELETE
-              - OPTIONS
-            allowCredentials: true
       routes:
         - id: ms-properties
           uri: lb://ms-properties

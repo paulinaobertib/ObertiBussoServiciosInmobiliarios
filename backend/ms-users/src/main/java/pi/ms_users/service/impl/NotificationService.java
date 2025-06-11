@@ -1,10 +1,13 @@
 package pi.ms_users.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
@@ -103,31 +106,43 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public ResponseEntity<Notification> getById(Long id) {
+    public ResponseEntity<?> getById(Long id) {
         try {
             Optional<Notification> notification = notificationRepository.findById(id);
             return notification.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Notification>> getAll() {
+    public ResponseEntity<?> getAll() {
         try {
             List<Notification> notifications = notificationRepository.findAll();
             return ResponseEntity.ok(notifications);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Notification>> getByUserId(String userId) {
+    public ResponseEntity<?> getByUserId(String userId) {
         try {
             Optional<User> user = Optional.empty();
             try {
@@ -139,9 +154,15 @@ public class NotificationService implements INotificationService {
             List<Notification> notifications = notificationRepository.findByUserId(userId);
             return ResponseEntity.ok(notifications);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 }

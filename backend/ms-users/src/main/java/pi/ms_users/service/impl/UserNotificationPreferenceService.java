@@ -1,10 +1,13 @@
 package pi.ms_users.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
@@ -25,7 +28,7 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
     private final IUserRepository userRepository;
 
     @Override
-    public ResponseEntity<String> create(UserNotificationPreference userNotificationPreference) {
+    public ResponseEntity<?> create(UserNotificationPreference userNotificationPreference) {
         try {
             Optional<User> user = Optional.empty();
             try {
@@ -53,14 +56,20 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
 
             return ResponseEntity.ok("Se ha guardado la preferencia de notificacion");
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> update(Long id, Boolean enabled) {
+    public ResponseEntity<?> update(Long id, Boolean enabled) {
         try {
             Optional<UserNotificationPreference> userNotificationPreference = userNotificationPreferenceRepository.findById(id);
             if (userNotificationPreference.isEmpty()) {
@@ -72,26 +81,38 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
             userNotificationPreferenceRepository.save(preference);
             return ResponseEntity.ok("Se ha guardado la preferencia de notificacion");
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<UserNotificationPreference> getById(Long id) {
+    public ResponseEntity<?> getById(Long id) {
         try {
             Optional<UserNotificationPreference> userNotificationPreference = userNotificationPreferenceRepository.findById(id);
             return userNotificationPreference.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<UserNotificationPreference>> getByUser(String userId) {
+    public ResponseEntity<?> getByUser(String userId) {
         try {
             Optional<User> user = Optional.empty();
             try {
@@ -103,19 +124,33 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
             List<UserNotificationPreference> list = userNotificationPreferenceRepository.findByUserId(userId);
             return ResponseEntity.ok(list);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<String>> getByTypeAndTrue(NotificationType type) {
+    public ResponseEntity<?> getByTypeAndTrue(NotificationType type) {
         try {
             List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(type);
             return ResponseEntity.ok(usersId);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 }

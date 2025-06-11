@@ -80,31 +80,55 @@ public class UserService {
             return ResponseEntity.ok(user);
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se han encontrado inquilinos.");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e);
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
-    public ResponseEntity<List<User>> findAll() {
+    public ResponseEntity<?> findAll() {
         try {
             List<User> users = userRepository.findAll();
             if (users.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(users);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
-    public ResponseEntity<String> deleteUserById(String id) {
+    public ResponseEntity<?> deleteUserById(String id) {
         try {
             userRepository.deleteUserById(id);
             return ResponseEntity.ok("Se ha eliminado el usuario");
         } catch (NotFoundException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el usuario");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
@@ -135,13 +159,20 @@ public class UserService {
             return ResponseEntity.status(status)
                     .body("Error al actualizar el usuario en Keycloak: " + errorBody);
 
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al actualizar el usuario: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
-    public ResponseEntity<List<String>> getUserRoles(String id) {
+    public ResponseEntity<?> getUserRoles(String id) {
         try {
             Optional<User> users = userRepository.findById(id);
             if (users.isEmpty()) {
@@ -152,12 +183,20 @@ public class UserService {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(roles);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
-    public ResponseEntity<List<String>> addRoleToUser(String id, String role) {
+    public ResponseEntity<?> addRoleToUser(String id, String role) {
         try {
             Optional<User> users = userRepository.findById(id);
             if (users.isEmpty()) {
@@ -168,12 +207,20 @@ public class UserService {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(roles);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
-    public ResponseEntity<String> deleteRoleToUser(String id, String role) {
+    public ResponseEntity<?> deleteRoleToUser(String id, String role) {
         try {
             Optional<User> users = userRepository.findById(id);
             if (users.isEmpty()) {
@@ -181,8 +228,16 @@ public class UserService {
             }
             userRepository.deleteRoleToUser(id, role);
             return ResponseEntity.ok("Se le ha eliminado el rol seleccionado al usuario");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
@@ -191,7 +246,7 @@ public class UserService {
                 field.toLowerCase().contains(searchTerm.toLowerCase());
     }
 
-    public ResponseEntity<List<User>> searchUsersByText(String searchTerm) {
+    public ResponseEntity<?> searchUsersByText(String searchTerm) {
         try {
             List<User> allUsers = userRepository.findAll();
 
@@ -209,8 +264,16 @@ public class UserService {
 
             return ResponseEntity.ok(filteredUsers);
 
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 

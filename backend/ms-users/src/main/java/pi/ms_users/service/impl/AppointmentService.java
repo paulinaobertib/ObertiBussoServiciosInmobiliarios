@@ -1,10 +1,13 @@
 package pi.ms_users.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
 import pi.ms_users.domain.User;
@@ -27,7 +30,7 @@ public class AppointmentService implements IAppointmentService {
     private final EmailService emailService;
 
     @Override
-    public ResponseEntity<Appointment> create(Appointment appointment) {
+    public ResponseEntity<?> create(Appointment appointment) {
         try {
             Optional<User> optionalUser;
             try {
@@ -52,13 +55,21 @@ public class AppointmentService implements IAppointmentService {
             emailService.sendAppointmentRequest(emailDTO);
 
             return ResponseEntity.ok(saved);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> delete(Long id) {
+    public ResponseEntity<?> delete(Long id) {
         try {
             Optional<Appointment> appointment = appointmentRepository.findById(id);
             if (appointment.isEmpty()) {
@@ -79,13 +90,21 @@ public class AppointmentService implements IAppointmentService {
                 emailService.sendAppointmentCancelledMail(emailDTO);
             }
             return ResponseEntity.ok("Se ha eliminado el turno");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<String> updateStatus(Long id, AppointmentStatus status, String address) {
+    public ResponseEntity<?> updateStatus(Long id, AppointmentStatus status, String address) {
         try {
             Optional<Appointment> search = appointmentRepository.findById(id);
             if (search.isEmpty()) {
@@ -115,38 +134,70 @@ public class AppointmentService implements IAppointmentService {
             }
 
             return ResponseEntity.ok("Se ha actualizado el estado del turno");
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<Appointment> findById(Long id) {
+    public ResponseEntity<?> findById(Long id) {
         try {
             Optional<Appointment> search = appointmentRepository.findById(id);
             return search.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Appointment>> findAll() {
+    public ResponseEntity<?> findAll() {
         try {
             List<Appointment> appointments = appointmentRepository.findAll();
             return ResponseEntity.ok(appointments);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 
     @Override
-    public ResponseEntity<List<Appointment>> findByUserId(String userId) {
+    public ResponseEntity<?> findByUserId(String userId) {
         try {
             List<Appointment> appointments = appointmentRepository.findByUserId(userId);
             return ResponseEntity.ok(appointments);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 }

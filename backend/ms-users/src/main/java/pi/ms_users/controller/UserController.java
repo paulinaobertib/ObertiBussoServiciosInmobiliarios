@@ -23,7 +23,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/me")
-    public Map<String, String> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
         return userService.getUserInfo(jwt);
     }
 
@@ -47,31 +47,31 @@ public class UserController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
-    public ResponseEntity<List<User>> findAll() {
+    public ResponseEntity<?> findAll() {
         return userService.findAll();
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/role/{id}")
-    public ResponseEntity<List<String>> findRoles(@PathVariable String id) {
+    public ResponseEntity<?> findRoles(@PathVariable String id) {
         return userService.getUserRoles(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/findUser")
-    public ResponseEntity<List<User>> searchUsersByText(@RequestParam String searchTerm) {
+    public ResponseEntity<?> searchUsersByText(@RequestParam String searchTerm) {
         return userService.searchUsersByText(searchTerm);
     }
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> delete(@PathVariable String id) {
+    public ResponseEntity<?> delete(@PathVariable String id) {
         return userService.deleteUserById(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/role/{id}")
-    public ResponseEntity<String> deleteRoleToUser(@PathVariable String id, @RequestParam String role) {
+    public ResponseEntity<?> deleteRoleToUser(@PathVariable String id, @RequestParam String role) {
         return userService.deleteRoleToUser(id, role);
     }
 
@@ -83,7 +83,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/role/{id}")
-    public ResponseEntity<List<String>> addRoleToUser(@PathVariable String id, @RequestParam String role) {
+    public ResponseEntity<?> addRoleToUser(@PathVariable String id, @RequestParam String role) {
         return userService.addRoleToUser(id, role);
     }
 

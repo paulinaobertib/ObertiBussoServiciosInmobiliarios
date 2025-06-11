@@ -18,34 +18,34 @@ public class NoticeController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<String> create(@RequestBody Notice notice) {
+    public ResponseEntity<?> create(@RequestBody Notice notice) {
         return noticeService.create(notice);
     }
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
-    public ResponseEntity<String> update(@RequestBody Notice notice) {
+    public ResponseEntity<?> update(@RequestBody Notice notice) {
         return noticeService.update(notice);
     }
 
     @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         return noticeService.delete(id);
     }
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Notice> getById(@PathVariable Long id) {
+    public ResponseEntity<?> getById(@PathVariable Long id) {
         return noticeService.getById(id);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<Notice>> getAll() {
+    public ResponseEntity<?> getAll() {
         return noticeService.getAll();
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Notice>> search(@RequestParam String text) {
+    public ResponseEntity<?> search(@RequestParam String text) {
         return noticeService.search(text);
     }
 }

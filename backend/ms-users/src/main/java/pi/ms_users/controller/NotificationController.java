@@ -25,19 +25,19 @@ public class NotificationController {
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Notification> getById(@PathVariable Long id) {
+    public ResponseEntity<?> getById(@PathVariable Long id) {
         return notificationService.getById(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
-    public ResponseEntity<List<Notification>> getAll() {
+    public ResponseEntity<?> getAll() {
         return notificationService.getAll();
     }
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Notification>> getByUserId(@PathVariable String userId) {
+    public ResponseEntity<?> getByUserId(@PathVariable String userId) {
         return notificationService.getByUserId(userId);
     }
 }

@@ -6,15 +6,15 @@ import pi.ms_users.domain.Notice;
 import java.util.List;
 
 public interface INoticeService {
-    ResponseEntity<String> create(Notice notice);
+    ResponseEntity<?> create(Notice notice);
 
-    ResponseEntity<String> update(Notice notice);
+    ResponseEntity<?> update(Notice notice);
 
-    ResponseEntity<String> delete(Long id);
+    ResponseEntity<?> delete(Long id);
 
-    ResponseEntity<Notice> getById(Long id);
+    ResponseEntity<?> getById(Long id);
 
-    ResponseEntity<List<Notice>> getAll();
+    ResponseEntity<?> getAll();
 
-    ResponseEntity<List<Notice>> search(String search);
+    ResponseEntity<?> search(String search);
 }
