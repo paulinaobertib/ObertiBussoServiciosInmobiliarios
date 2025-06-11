@@ -1,18 +1,23 @@
 package pi.ms_properties.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_properties.domain.Owner;
 import pi.ms_properties.domain.Property;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.repository.IOwnerRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.feign.ContractRepository;
 import pi.ms_properties.service.interf.IOwnerService;
 import pi.ms_properties.specification.OwnerSpecification;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +28,22 @@ public class OwnerService implements IOwnerService {
     private final IOwnerRepository ownerRepository;
 
     private final IPropertyRepository propertyRepository;
+
+    private final ContractRepository contractRepository;
+
+    private static ContractDTO getContractDTO(ContractDTO contract) {
+        ContractDTO contractDTO = new ContractDTO();
+        contractDTO.setId(contract.getId());
+        contractDTO.setPropertyId(contract.getPropertyId());
+        contractDTO.setContractStatus(contract.getContractStatus());
+        contractDTO.setContractType(contract.getContractType());
+        contractDTO.setIncrease(contract.getIncrease());
+        contractDTO.setStartDate(contract.getStartDate());
+        contractDTO.setEndDate(contract.getEndDate());
+        contractDTO.setUserId(contract.getUserId());
+        contractDTO.setIncreaseFrequency(contract.getIncreaseFrequency());
+        return contractDTO;
+    }
 
     @Override
     public ResponseEntity<String> createOwner(Owner owner) {
@@ -126,6 +147,41 @@ public class OwnerService implements IOwnerService {
             return ResponseEntity.ok(find);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> findContracts(Long id) {
+        try {
+            Optional<Owner> owner = ownerRepository.findById(id);
+            if (owner.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado al propietario");
+            }
+            List<Property> properties = propertyRepository.findByOwner(id);
+
+            List<ContractDTO> contractDTOS = new ArrayList<>();
+
+            for (Property property : properties) {
+                List<ContractDTO> contracts = contractRepository.findByPropertyId(property.getId());
+
+                for (ContractDTO contract : contracts) {
+                    ContractDTO contractDTO = getContractDTO(contract);
+                    contractDTOS.add(contractDTO);
+                }
+            }
+
+            return ResponseEntity.ok(contractDTOS);
+
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
+        } catch (TransactionSystemException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
     }
 }

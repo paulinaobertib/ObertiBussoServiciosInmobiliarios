@@ -26,6 +26,7 @@ public class Appointment {
     @Column(name = "comment", nullable = true)
     private String comment;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AppointmentStatus status;
 }

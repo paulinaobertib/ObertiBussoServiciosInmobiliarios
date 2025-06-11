@@ -89,22 +89,31 @@ CREATE TABLE Image (
 
 CREATE TABLE Contract (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     property_id BIGINT NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    type ENUM('TEMPORAL', 'VIVIENDA', 'COMERCIAL') NOT NULL,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
-    amount DECIMAL(15,2) NOT NULL,
-    currency VARCHAR(10) NOT NULL,
-    status ENUM('activo', 'inactivo') NOT NULL,
-    increase DECIMAL(5,2),
-    increase_frequency VARCHAR(50),
+    status ENUM('ACTIVO', 'INACTIVO') NOT NULL,
+    increase DECIMAL(5,2) NOT NULL,
+    increase_frequency BIGINT NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Contract_Increase (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    contract_id BIGINT NOT NULL,
+    date DATETIME NOT NULL,
+    currency ENUM('USD', 'ARS') NOT NULL,
+	amount DECIMAL(15,2) NOT NULL,
+    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Payment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     contract_id BIGINT NOT NULL,
+    currency ENUM('USD', 'ARS') NOT NULL,
+	amount DECIMAL(15,2) NOT NULL,
     date DATETIME NOT NULL,
     description VARCHAR(2000) NOT NULL,
     FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
@@ -120,14 +129,14 @@ CREATE TABLE User_Notification_Preference (
 
 CREATE TABLE Notification (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     type ENUM('PROPIEDADNUEVA', 'PROPIEDADINTERES', 'ALQUILER', 'ACTUALIZACION') NOT NULL,
     date DATETIME NOT NULL
 );
 
 CREATE TABLE Favorite (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     property_id BIGINT NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
@@ -143,7 +152,7 @@ CREATE TABLE Maintenance (
 
 CREATE TABLE Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     date DATETIME NOT NULL,
     status ENUM('ACEPTADO', 'RECHAZADO', 'ESPERA') NOT NULL,
     comment VARCHAR(250)
@@ -151,7 +160,7 @@ CREATE TABLE Appointment (
 
 CREATE TABLE Notice (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30) NOT NULL,
+    user_id VARCHAR(100) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL
@@ -159,7 +168,7 @@ CREATE TABLE Notice (
 
 CREATE TABLE Inquiry (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(30),
+    user_id VARCHAR(100),
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(2000) NOT NULL,

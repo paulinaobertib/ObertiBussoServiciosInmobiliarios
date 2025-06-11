@@ -7,12 +7,11 @@ import pi.ms_users.domain.AppointmentStatus;
 import java.util.List;
 
 public interface IAppointmentService {
-
     ResponseEntity<Appointment> create(Appointment appointment);
 
     ResponseEntity<String> delete(Long id);
 
-    ResponseEntity<String> updateStatus(Long id, AppointmentStatus status);
+    ResponseEntity<String> updateStatus(Long id, AppointmentStatus status, String address);
 
     ResponseEntity<Appointment> findById(Long id);
 
