@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act, waitFor, renderHook } from '@testing-library/react';
 import { PropertyCrudProvider, usePropertyCrud } from '../../context/PropertiesContext';
 
 /* Mocks de servicios */
@@ -213,5 +213,43 @@ describe('PropertyCrudProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('error')).toHaveTextContent('No se pudo cargar');
     });
+  });
+
+  it('refresca datos de categoría y actualiza `data` y `categoryLoading`', async () => {
+    // preparamos el mock para getAllTypes
+
+    // Creamos un consumidor ad hoc para probar refresh()
+    const CatConsumer = () => {
+      const { pickItem, refresh, data, categoryLoading } = usePropertyCrud();
+      return (
+        <>
+          <button onClick={() => { pickItem('category', 'type'); refresh(); }}>
+            Refresh
+          </button>
+          <div data-testid="data">{data?.[0]?.name}</div>
+          <div data-testid="loading">{categoryLoading.toString()}</div>
+        </>
+      );
+    };
+
+    render(
+      <PropertyCrudProvider>
+        <CatConsumer />
+      </PropertyCrudProvider>
+    );
+
+    act(() => screen.getByText('Refresh').click());
+
+    await waitFor(() => {
+      expect(screen.getByTestId('data')).toHaveTextContent('Departamento');
+      expect(screen.getByTestId('loading')).toHaveTextContent('false');
+    });
+  });
+
+  it('buildSearchParams convierte IDs de amenities a nombres', async () => {
+    const { result } = renderHook(() => usePropertyCrud(), { wrapper: PropertyCrudProvider });
+    await act(async () => result.current.refreshAllCatalogs());
+    act(() => result.current.setSelected({ owner: null, neighborhood: null, type: null, amenities: [1] }));
+    expect(result.current.buildSearchParams({}).amenities).toEqual(['Piscina']);
   });
 });
