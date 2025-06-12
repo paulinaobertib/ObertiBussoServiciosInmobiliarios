@@ -235,4 +235,34 @@ describe('SearchFilters component', () => {
       expect(screen.getByText(/Piscina/)).toBeInTheDocument();
     });
   });
+  it('filtra correctamente propiedades con +3 ambientes (rooms = 3)', async () => {
+    mockGetPropertiesByFilters.mockResolvedValue([
+      { id: 1, rooms: 2, title: 'P2' },
+      { id: 2, rooms: 4, title: 'P4' },
+    ]);
+
+    renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
+    const user = userEvent.setup();
+
+    // Obtenemos todos los combobox (selects)
+    const comboboxes = screen.getAllByRole('combobox');
+
+    // Según el orden, el de "Ambientes" suele ser el segundo o tercero:
+    // Puedes inspeccionar el HTML del test y ajustar el índice si es necesario.
+    // Por ejemplo, probemos con el segundo:
+    const selAmb = comboboxes[2]; // ← este SÍ es "Ambientes"
+    await user.click(selAmb);
+
+    // Elegimos "+3"
+    const opt3 = await screen.findByText('+3');
+    await user.click(opt3);
+
+    // Disparamos la búsqueda y comprobamos
+    fireEvent.click(screen.getByRole('button', { name: /Buscar/i }));
+    await waitFor(() => {
+      expect(onSearchMock).toHaveBeenCalledWith([
+        { id: 2, rooms: 4, title: 'P4' },
+      ]);
+    });
+  });
 });
