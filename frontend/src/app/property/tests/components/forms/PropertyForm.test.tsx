@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, expect, it } from 'vitest';
-import React from 'react';
+import React, { act } from 'react';
 import PropertyForm, { PropertyFormHandle } from '../../../components/forms/PropertyForm';
 
 const mockSetField = vi.fn();
@@ -238,5 +238,26 @@ describe('PropertyForm', () => {
     // Checkbox Mostrar precio
     const chk = screen.getByLabelText(/Mostrar precio/i) as HTMLInputElement;
     expect(chk.checked).toBe(true);
+  });
+
+  it('reset limpia los campos del formulario', async () => {
+    const ref = React.createRef<PropertyFormHandle>();
+    render(<PropertyForm ref={ref} />);
+
+    const titulo = screen.getByLabelText(/Título/i) as HTMLInputElement;
+    fireEvent.change(titulo, { target: { value: 'Casa Test' } });
+    expect(titulo).toHaveValue('Casa Test');
+
+    act(() => ref.current?.reset());
+    expect(titulo).toHaveValue('');
+  });
+
+  it('setField actualiza dinámicamente el valor de un campo', async () => {
+    const ref = React.createRef<PropertyFormHandle>();
+    render(<PropertyForm ref={ref} />);
+
+    await waitFor(() => expect(ref.current).toBeDefined());
+    act(() => ref.current?.setField('title', 'Nuevo Título'));
+    expect(screen.getByLabelText(/Título/i)).toHaveValue('Nuevo Título');
   });
 });

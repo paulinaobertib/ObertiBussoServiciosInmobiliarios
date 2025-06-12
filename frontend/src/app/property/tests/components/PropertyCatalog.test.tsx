@@ -13,7 +13,7 @@ const catalogState = {
 
 vi.mock('../../context/PropertiesContext', () => ({
   PropertyCrudProvider: ({ children }: any) => children,
-    usePropertyCrud: () => {
+  usePropertyCrud: () => {
     // Simulamos la llamada al montar:
     stubGetAll();
     return catalogState;
@@ -180,5 +180,16 @@ describe('PropertyCatalog', () => {
     );
 
     expect(screen.queryByTestId('CheckIcon')).toBeNull();
+  });
+
+  it('muestra mensaje cuando no hay propiedades disponibles', () => {
+    render(
+      <MemoryRouter>
+        <PropertyCatalog mode="normal" onFinishAction={() => { }} properties={[]} />
+      </MemoryRouter>
+    );
+    expect(
+      screen.getByText('No hay propiedades disponibles.')
+    ).toBeInTheDocument();
   });
 });
