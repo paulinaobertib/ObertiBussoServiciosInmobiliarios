@@ -98,20 +98,26 @@ export default function CreatePropertyPage() {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',
+        overflow: { xs: 'auto', md: 'hidden' },
       }}>
         <Container
           maxWidth={false}
-          sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, minHeight: 0, overflow: 'hidden' }}
+          sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, minHeight: 0, overflow: { xs: 'auto', md: 'hidden' } }}
         >
 
           {/* ------- barra superior (stepper + botones) ------- */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, flexShrink: 0 }}>
+          <Box sx={{ justifyContent: 'center', display: 'flex', alignItems: 'center', mb: 1, flexShrink: 0 }}>
+            <Button variant="contained" onClick={() => setActiveStep(0)} sx={{ mr: 2, display: { xs: "flex", md: "none" } }}>
+              Volver
+            </Button>
+
             <Button variant="outlined" onClick={cancel} sx={{ mr: 2 }}>
               CANCELAR
             </Button>
 
-            <Box sx={{ flexGrow: 1 }}>
+            <Box sx={{
+              display: { xs: 'none', md: 'block' }, flexGrow: 1
+            }}>
               <Stepper activeStep={activeStep} alternativeLabel>
                 <Step><StepLabel>Categorías</StepLabel></Step>
                 <Step><StepLabel>Formulario</StepLabel></Step>
@@ -121,6 +127,7 @@ export default function CreatePropertyPage() {
             <Button variant="contained" onClick={save} disabled={!formReady}>
               GUARDAR
             </Button>
+
           </Box>
 
           {/* ------- STEP 0 : categorías ------- */}
@@ -132,7 +139,17 @@ export default function CreatePropertyPage() {
               </Typography>
 
               {/* botones categoría */}
-              <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mb: 2 }}>
+              <Stack direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{
+                  mb: 2,
+                  overflowX: 'auto',
+                  flexWrap: 'nowrap',
+                  minHeight: 46,
+                  '& > *': { flexShrink: 0 },
+                  justifyContent: { xs: 'flex-start', md: 'center' }
+                }}>
                 {categories.map((cat, i) => (
                   <Box key={cat} sx={{ display: 'flex', alignItems: 'center' }}>
                     <CategoryButton category={cat} />
@@ -140,6 +157,7 @@ export default function CreatePropertyPage() {
                   </Box>
                 ))}
               </Stack>
+
 
               {/* panel items */}
               <Box sx={{
@@ -163,6 +181,7 @@ export default function CreatePropertyPage() {
           {/* ------- STEP 1 : formulario + preview ------- */}
           {activeStep === 1 && (
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
+
               <Box sx={{
                 flexGrow: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' },
                 gap: 2, minHeight: 0,
@@ -170,7 +189,9 @@ export default function CreatePropertyPage() {
                 {/* formulario */}
                 <Box sx={{
                   flex: 2, display: 'flex', flexDirection: 'column',
-                  p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper'
+                  p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
+                  overflowY: { xs: 'visible', md: 'auto' },     // scroll interno SOLO en md+
+                  maxHeight: { md: '100vh' },                   // altura máxima en md+
                 }}>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
                     {title}
@@ -192,9 +213,10 @@ export default function CreatePropertyPage() {
 
                 {/* preview */}
                 <Box sx={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
+                  display: 'flex', flexDirection: 'column',
                   p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
                   overflow: 'hidden', minHeight: 0,
+                  flex: { xs: 'none', md: 1 },
                 }}>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
                     Previsualización de Imágenes
@@ -207,7 +229,7 @@ export default function CreatePropertyPage() {
               </Box>
 
               {/* Verificar si selected.type tiene el valor correcto en el segundo paso */}
-              <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+              <Box sx={{ mt: 1, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
                 <Button variant="contained" onClick={() => {
                   console.log("Tipo seleccionado en el paso 2:", selected.type); // Agrega este log
                   setActiveStep(0);  // Si se desea volver al primer paso
@@ -220,7 +242,7 @@ export default function CreatePropertyPage() {
 
           {DialogUI}
         </Container>
-      </Box>
-    </BasePage>
+      </Box >
+    </BasePage >
   );
 }

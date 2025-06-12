@@ -147,7 +147,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     />
                 </Grid>
 
-                <Grid size={{ xs: 3 }}>
+                <Grid size={{ xs: 12, md: 3 }}>
                     <TextField fullWidth select label="Moneda" value={form.currency}
                         onChange={(e) => setField('currency', e.target.value)} required
                         error={!!fieldErrors.currency}
@@ -158,7 +158,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     </TextField>
                 </Grid>
 
-                <Grid size={{ xs: 6 }}>
+                <Grid size={{ xs: 6, md: 6 }}>
                     <TextField fullWidth label="Precio" value={form.price === 0 ? "" : form.price}
                         onChange={num('price')} required
                         error={!!fieldErrors.price}
@@ -167,7 +167,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     />
                 </Grid>
 
-                <Grid size={{ xs: 3 }}>
+                <Grid size={{ xs: 6, md: 3 }}>
                     <FormControlLabel
                         sx={{
                             width: 'auto', m: 0, py: 0,
@@ -202,7 +202,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     />
                 </Grid>
 
-                <Grid size={{ xs: 8 }}>
+                <Grid size={{ xs: 6, md: 8 }}>
                     <TextField fullWidth label="Calle" value={form.street}
                         onChange={(e) => setField('street', e.target.value)} required
                         error={!!fieldErrors.street}
@@ -210,7 +210,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     />
                 </Grid>
 
-                <Grid size={{ xs: 4 }}>
+                <Grid size={{ xs: 6, md: 4 }}>
                     <TextField
                         fullWidth
                         label="Número"
