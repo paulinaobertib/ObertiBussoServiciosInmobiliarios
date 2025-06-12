@@ -55,6 +55,9 @@ describe('MaintenanceForm', () => {
       currentProperty: null,
       loadProperty: vi.fn(),
       loadingProperty: false,
+      propertiesLoading: false,
+      commentsLoading: false,
+      maintenancesLoading: false,
       errorProperty: null,
       comparisonItems: [],
       selectedPropertyIds: [],
@@ -89,7 +92,7 @@ describe('MaintenanceForm', () => {
   it('llama a postMaintenance al guardar en add', async () => {
     vi.spyOn(maintenanceService, 'postMaintenance').mockResolvedValue({});
     render(<MaintenanceForm action="add" onDone={mockOnDone} />);
-    
+
     fireEvent.change(screen.getByLabelText(/título/i), { target: { value: 'Mantenimiento 1' } });
     fireEvent.change(screen.getByLabelText(/fecha/i), { target: { value: '2025-05-25T12:00' } });
     fireEvent.change(screen.getByLabelText(/descripción/i), { target: { value: 'Descripción de mantenimiento' } });
