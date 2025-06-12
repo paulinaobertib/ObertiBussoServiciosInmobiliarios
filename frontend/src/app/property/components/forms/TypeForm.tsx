@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { TextField, Box, Button, FormControlLabel, Checkbox, Grid } from '@mui/material';
+import { TextField, Box, FormControlLabel, Checkbox, Grid } from '@mui/material';
 import { Type, TypeCreate } from '../../types/type';
 import { postType, putType, deleteType } from '../../services/type.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
+
+import { LoadingButton } from '@mui/lab';
+import { useLoading } from '../../utils/useLoading';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -51,7 +54,7 @@ export default function TypeForm({ action, item, onDone }: Props) {
                 showAlert('Tipo de propiedad eliminado con éxito!', 'success');
             }
 
-            await refresh();
+            refresh();
             onDone();
 
         } catch {
@@ -59,8 +62,24 @@ export default function TypeForm({ action, item, onDone }: Props) {
         }
     };
 
+    const { loading, run } = useLoading(save);
     return (
         <>
+            {loading && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    zIndex={theme => theme.zIndex.modal + 1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                </Box>
+            )}
+
             <Grid size={6}>
                 <TextField
                     fullWidth
@@ -115,14 +134,15 @@ export default function TypeForm({ action, item, onDone }: Props) {
             />
 
             <Box textAlign="right">
-                <Button
+                <LoadingButton
+                    onClick={() => run()}
+                    loading={loading}
+                    disabled={invalid || loading}
                     variant="contained"
-                    onClick={save}
-                    disabled={invalid}
                     color={action === 'delete' ? 'error' : 'primary'}
                 >
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
-                </Button>
+                </LoadingButton>
             </Box>
         </>
     );

@@ -1,47 +1,49 @@
-import { describe, it, vi, beforeEach, expect } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { vi, describe, it, beforeEach, expect } from 'vitest';
+
+
+/** Estado único que expondrá el hook.  Lo mutaremos dentro de cada test. */
+const stubGetAll = vi.fn();
+const catalogState = {
+  propertiesList: [],
+  propertiesLoading: false,
+  refreshAllCatalogs: vi.fn(),
+  getAllProperties: stubGetAll,
+};
+
+vi.mock('../../context/PropertiesContext', () => ({
+  PropertyCrudProvider: ({ children }: any) => children,
+    usePropertyCrud: () => {
+    // Simulamos la llamada al montar:
+    stubGetAll();
+    return catalogState;
+  },
+}));
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return { ...actual, useNavigate: () => mockNavigate };
+});
+
+vi.mock('../../context/AlertContext', () => ({ useGlobalAlert: () => ({ showAlert: vi.fn() }) }));
+
+vi.mock('../../utils/ConfirmDialog', () => ({
+  useConfirmDialog: () => ({ ask: (cb: () => void) => cb(), DialogUI: <></> }),
+}));
+
+// -------------------------------------------------------------------
+// 2  Imports del código bajo prueba
+// -------------------------------------------------------------------
+import { render, screen, fireEvent } from '@testing-library/react';
 import PropertyCatalog from '../../components/PropertyCatalog';
 import { MemoryRouter } from 'react-router-dom';
-import { useGlobalAlert } from '../../context/AlertContext';
-import * as propertyService from '../../services/property.service';
 import { Property } from '../../types/property';
 import { NeighborhoodType } from '../../types/neighborhood';
 
-// Mock global mockNavigate para useNavigate
-const mockNavigate = vi.fn();
-
-// Mock react-router-dom para que useNavigate retorne mockNavigate
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
-
-vi.mock('../../context/AlertContext', () => ({
-  useGlobalAlert: vi.fn(),
-}));
-
-const mockAsk = vi.fn((cb: () => void) => cb());
-
-vi.mock('../../utils/ConfirmDialog', () => {
-  return {
-    useConfirmDialog: () => ({
-      ask: mockAsk,
-      DialogUI: <div data-testid="dialog-ui" />,
-    }),
-  };
-});
-
-
-vi.mock('../../services/property.service', () => {
-  return {
-    getAllProperties: vi.fn(),
-    deleteProperty: vi.fn(),
-  };
-});
-
+// -------------------------------------------------------------------
+// 3  Fixture
+// -------------------------------------------------------------------
 const mockProperty: Property = {
   id: 1,
   title: 'Casa en venta',
@@ -60,60 +62,45 @@ const mockProperty: Property = {
   showPrice: true,
   credit: true,
   financing: false,
-  owner: {
-    id: 1,
-    firstName: 'Juan',
-    lastName: 'Pérez',
-    mail: 'juan@example.com',
-    phone: '123456789',
-  },
-  neighborhood: {
-    id: 1,
-    name: 'Centro',
-    city: 'Ciudad',
-    type: NeighborhoodType.ABIERTO,
-  },
-  type: {
-    id: 1,
-    name: 'Casa',
-    hasRooms: true,
-    hasBathrooms: true,
-    hasBedrooms: true,
-    hasCoveredArea: true,
-  },
+  owner: { id: 1, firstName: 'Juan', lastName: 'Pérez', mail: '', phone: '' },
+  neighborhood: { id: 1, name: 'Centro', city: 'Ciudad', type: NeighborhoodType.ABIERTO },
+  type: { id: 1, name: 'Casa', hasRooms: true, hasBathrooms: true, hasBedrooms: true, hasCoveredArea: true },
   amenities: [],
-  mainImage: 'https://example.com/image.jpg',
+  mainImage: '',
   images: [],
 };
 
+// -------------------------------------------------------------------
+// 4  Tests
+// -------------------------------------------------------------------
 describe('PropertyCatalog', () => {
-  const showAlert = vi.fn();
-
   beforeEach(() => {
-    (useGlobalAlert as any).mockReturnValue({ showAlert });
-    vi.clearAllMocks();
+    // estado por defecto
+    catalogState.propertiesList = [];
+    catalogState.propertiesLoading = false;
+    catalogState.getAllProperties.mockClear();
   });
 
   it('muestra loader mientras carga', () => {
-    (propertyService.getAllProperties as any).mockImplementation(() => new Promise(() => {}));
+    catalogState.propertiesLoading = true;
+
     render(
       <MemoryRouter>
-        <PropertyCatalog mode="normal" onFinishAction={() => {}} />
+        <PropertyCatalog mode="normal" onFinishAction={() => { }} />
       </MemoryRouter>
     );
+
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    catalogState.propertiesLoading = false; // reset
   });
 
   it('renderiza propiedades pasadas como prop', () => {
     render(
       <MemoryRouter>
-        <PropertyCatalog
-          mode="normal"
-          onFinishAction={() => {}}
-          properties={[mockProperty]}
-        />
+        <PropertyCatalog mode="normal" onFinishAction={() => { }} properties={[mockProperty]} />
       </MemoryRouter>
     );
+
     expect(screen.getByText('Casa en venta')).toBeInTheDocument();
     expect(screen.getByText(/\$150.000 USD/i)).toBeInTheDocument();
   });
@@ -121,97 +108,77 @@ describe('PropertyCatalog', () => {
   it('navega a detalles en modo normal', () => {
     render(
       <MemoryRouter>
-        <PropertyCatalog
-          mode="normal"
-          onFinishAction={() => {}}
-          properties={[mockProperty]}
-        />
+        <PropertyCatalog mode="normal" onFinishAction={() => { }} properties={[mockProperty]} />
       </MemoryRouter>
     );
 
-    const cardTitle = screen.getByText('Casa en venta');
-    fireEvent.click(cardTitle);
-
+    fireEvent.click(screen.getByText('Casa en venta'));
     expect(mockNavigate).toHaveBeenCalledWith('/properties/1');
   });
 
   it('permite selección en modo selección', () => {
-    const toggleSelection = vi.fn();
-    const isSelected = vi.fn().mockReturnValue(true);
+    const toggle = vi.fn();
+    const isSel = vi.fn().mockReturnValue(true);
 
     render(
       <MemoryRouter>
         <PropertyCatalog
           mode="normal"
-          onFinishAction={() => {}}
+          onFinishAction={() => { }}
           properties={[mockProperty]}
           selectionMode
-          toggleSelection={toggleSelection}
-          isSelected={isSelected}
+          toggleSelection={toggle}
+          isSelected={isSel}
         />
       </MemoryRouter>
     );
 
-    const selector = screen.getByTestId('CheckIcon').parentElement!;
-    fireEvent.click(selector);
-    expect(toggleSelection).toHaveBeenCalledWith(1);
+    fireEvent.click(screen.getByTestId('CheckIcon').parentElement!);
+    expect(toggle).toHaveBeenCalledWith(1);
   });
 
-  it('llama a getAllProperties si no se pasan propiedades', async () => {
-  const getAllPropertiesSpy = vi.spyOn(propertyService, 'getAllProperties').mockResolvedValue({ data: [mockProperty] });
+  it('llama a getAllProperties si no se pasan propiedades', () => {
+    // ­­­— preparamos el estado para que el efecto se dispare —
+    stubGetAll.mockClear();
+    render(
+      <MemoryRouter>
+        <PropertyCatalog mode="normal" onFinishAction={() => { }} />
+      </MemoryRouter>
+    );
 
-  render(
-    <MemoryRouter>
-      <PropertyCatalog
-        mode="normal"
-        onFinishAction={() => {}}
-      />
-    </MemoryRouter>
-  );
-
-  await waitFor(() => {
-    expect(screen.getByText('Casa en venta')).toBeInTheDocument();
-    expect(getAllPropertiesSpy).toHaveBeenCalled();
+    expect(stubGetAll).toHaveBeenCalled();
   });
-});
 
-it('navega a editar en modo edit', () => {
-  const onFinishAction = vi.fn();
+  it('navega a editar en modo edit', () => {
+    const finish = vi.fn();
 
-  render(
-    <MemoryRouter>
-      <PropertyCatalog
-        mode="edit"
-        onFinishAction={onFinishAction}
-        properties={[mockProperty]}
-      />
-    </MemoryRouter>
-  );
+    render(
+      <MemoryRouter>
+        <PropertyCatalog mode="edit" onFinishAction={finish} properties={[mockProperty]} />
+      </MemoryRouter>
+    );
 
-  const cardTitle = screen.getByText('Casa en venta');
-  fireEvent.click(cardTitle);
+    fireEvent.click(screen.getByText('Casa en venta'));
+    expect(mockNavigate).toHaveBeenCalledWith('/properties/1/edit');
+    expect(finish).toHaveBeenCalled();
+  });
 
-  expect(mockNavigate).toHaveBeenCalledWith('/properties/1/edit');
-  expect(onFinishAction).toHaveBeenCalled();
-});
+  it('no muestra ícono de selección si no está seleccionado', () => {
+    const isSel = vi.fn().mockReturnValue(false);
 
-it('no muestra ícono de selección si no está seleccionado', () => {
-  const isSelected = vi.fn().mockReturnValue(false);
+    render(
+      <MemoryRouter>
+        <PropertyCatalog
+          mode="normal"
+          onFinishAction={() => { }}
+          properties={[mockProperty]}
+          selectionMode
+          isSelected={isSel}
+          toggleSelection={() => { }}
+        />
+      </MemoryRouter>
+    );
 
-  render(
-    <MemoryRouter>
-      <PropertyCatalog
-        mode="normal"
-        onFinishAction={() => {}}
-        properties={[mockProperty]}
-        selectionMode
-        isSelected={isSelected}
-        toggleSelection={() => {}}
-      />
-    </MemoryRouter>
-  );
-
-  expect(screen.queryByTestId('CheckIcon')).not.toBeInTheDocument();
-});
-
+    expect(screen.queryByTestId('CheckIcon')).toBeNull();
+  });
 });

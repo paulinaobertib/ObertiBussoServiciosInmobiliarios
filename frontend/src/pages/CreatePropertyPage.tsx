@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Box, Button, CircularProgress, Container, Stack,
+  Box, Button, Container, Stack,
   Step, StepLabel, Stepper, Typography
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -23,7 +23,7 @@ export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
   const {
     formRef, gallery, setGallery, setMain, main,
-    deleteImgFile, handleImages, loading, setLoading
+    deleteImgFile, handleImages, /*loading, setLoading*/
   } = useCreateProperty();
   const { selected, typesList, resetSelected, pickItem } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
@@ -54,9 +54,9 @@ export default function CreatePropertyPage() {
         try {
           const data = formRef.current?.getCreateData();
           if (data) {
-            setLoading(true);
+            // setLoading(true);
             await postProperty(data);
-            setLoading(false);
+            // setLoading(false);
           }
           showAlert('¡Propiedad creada correctamente!', 'success');
           formRef.current?.reset();
@@ -76,7 +76,7 @@ export default function CreatePropertyPage() {
     });
 
   const cancel = () =>
-    ask('¿Cancelar los cambios?', () => {
+    ask('¿Cancelar los cambios?', async () => {
       formRef.current?.reset();
       resetSelected();
       setMain(null);
@@ -85,7 +85,6 @@ export default function CreatePropertyPage() {
       navigate(ROUTES.HOME_APP);
     });
 
-  /* nombre del tipo de propiedad (para el título) ------------------ */
   const selectedTypeName =
     typesList.find(t => t.id === Number(selected.type))?.name ?? '';
 
@@ -93,16 +92,13 @@ export default function CreatePropertyPage() {
     ? `Formulario de Creación de ${selectedTypeName}`
     : 'Formulario de Creación';
 
-  /* ---------------- ⬇  UI  ⬇ ------------------------------------- */
   return (
     <BasePage maxWidth={true}>
-
-      {/* wrapper que ocupa EXACTAMENTE la pantalla restante */}
       <Box sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',          /* no scroll exterior */
+        overflow: 'hidden',
       }}>
         <Container
           maxWidth={false}
@@ -126,17 +122,6 @@ export default function CreatePropertyPage() {
               GUARDAR
             </Button>
           </Box>
-
-          {/* loader central */}
-          {loading && (
-            <Box sx={{
-              position: 'absolute', inset: 0, zIndex: 10,
-              bgcolor: 'rgba(255,255,255,0.7)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <CircularProgress size={48} />
-            </Box>
-          )}
 
           {/* ------- STEP 0 : categorías ------- */}
           {activeStep === 0 && (

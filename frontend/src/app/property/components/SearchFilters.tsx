@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  useMediaQuery,
-  Collapse,
-  TextField,
-  Card,
-  CardContent, Checkbox, FormControlLabel,
-  Typography,
+  Box, Button, FormControl, InputLabel, Select, MenuItem, useMediaQuery, Collapse,
+  TextField, Card, CardContent, Checkbox, FormControlLabel, Typography,
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -23,6 +13,8 @@ import { SearchParams } from '../types/searchParams';
 import { Property } from '../types/property';
 import { NeighborhoodType } from '../types/neighborhood';
 import { useGlobalAlert } from '../context/AlertContext';
+import { useLoading } from '../utils/useLoading';
+import { LoadingButton } from '@mui/lab';
 
 const countOptions = [1, 2, 3];
 
@@ -194,8 +186,25 @@ export default function SearchFilters({ onSearch }: Props) {
     </MenuItem>
   );
 
+  const { loading: loadingSearch, run: runSearch } = useLoading(handleSearch);
+  const { loading: loadingCancel, run: runCancel } = useLoading(handleCancel);
+  const loading = loadingSearch || loadingCancel;
   return (
-    <Card sx={{ borderRadius: 3, width: isMobile ? '100%' : 300 }} elevation={3}>
+    <Card sx={{ position: 'relative', borderRadius: 3, width: isMobile ? '100%' : 300 }} elevation={3}>
+      {loading && (
+        <Box
+          position="absolute"
+          top={0}
+          left={0}
+          width="100%"
+          height="100%"
+          zIndex={theme => theme.zIndex.modal + 1000}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+        </Box>
+      )}
       <CardContent>
         <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
           Filtros de Búsqueda
@@ -218,8 +227,8 @@ export default function SearchFilters({ onSearch }: Props) {
           <FormControl fullWidth size="small">
             <InputLabel id="operation-select-label">Operación</InputLabel>
             <Select
-              labelId="operation-select-label" 
-              id="operation-select"  
+              labelId="operation-select-label"
+              id="operation-select"
               data-testid="operation-select"
               value={params.operation || ''}
               label="Operación"
@@ -233,7 +242,7 @@ export default function SearchFilters({ onSearch }: Props) {
               ))}
             </Select>
           </FormControl>
-          
+
           <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 2 }}>
             {params.operation === 'VENTA' && (
               <>
@@ -384,9 +393,9 @@ export default function SearchFilters({ onSearch }: Props) {
                   (vals as string[]).length === 0
                     ? 'Todos'
                     : (vals as string[])
-                        .map(v => amenitiesList.find(a => a.id === Number(v))?.name)
-                        .filter(Boolean)
-                        .join(', ')
+                      .map(v => amenitiesList.find(a => a.id === Number(v))?.name)
+                      .filter(Boolean)
+                      .join(', ')
                 }
                 onChange={e => {
                   const vals = (e.target.value as string[]).filter(v => v !== '');
@@ -483,18 +492,25 @@ export default function SearchFilters({ onSearch }: Props) {
             </FormControl>
 
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
+              <LoadingButton
                 variant="outlined"
                 fullWidth
                 size="medium"
                 startIcon={<RefreshIcon />}
-                onClick={handleCancel}
+                onClick={() => runCancel()}
+                loading={loadingCancel}
               >
                 Cancelar
-              </Button>
-              <Button variant="contained" fullWidth size="medium" onClick={handleSearch}>
+              </LoadingButton>
+              <LoadingButton
+                variant="contained"
+                fullWidth
+                size="medium"
+                onClick={() => runSearch()}
+                loading={loadingSearch}
+              >
                 Buscar
-              </Button>
+              </LoadingButton>
             </Box>
           </Box>
         </Collapse>

@@ -83,6 +83,10 @@ interface Ctx {
   // propiedades / comparación 
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
+
+  propertiesLoading: boolean;
+  commentsLoading: boolean;
+  maintenancesLoading: boolean;
   loadingProperty: boolean;
   errorProperty: string | null;
 
@@ -106,6 +110,10 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [commentsList, setComments] = useState<Maintenance[]>([]);
   const [operationsList, setOperations] = useState<string[]>([]);
   const [propertiesList, setPropertiesList] = useState<Property[]>([]);
+  const [propertiesLoading, setPropertiesLoading] = useState(true);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [maintenancesLoading, setMaintenancesLoading] = useState(true);
+
 
   /* — picked genérico — */
   const [pickedItem, setPickedItem] = useState<Picked | null>(null);
@@ -156,13 +164,25 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   /* — mantenimiento vinculado a propiedad — */
   const loadMaintenances = useCallback(async (propertyId: number) => {
-    try { setMaintenances(await getMaintenanceByPropertyId(propertyId)); }
-    catch { setMaintenances([]); }
+    setMaintenancesLoading(true);
+    try {
+      setMaintenances(await getMaintenanceByPropertyId(propertyId));
+    } catch {
+      setMaintenances([]);
+    } finally {
+      setMaintenancesLoading(false);
+    }
   }, []);
 
   const loadComments = useCallback(async (propertyId: number) => {
-    try { setComments(await getCommentsByPropertyId(propertyId)); }
-    catch { setComments([]); }
+    setCommentsLoading(true);
+    try {
+      setComments(await getCommentsByPropertyId(propertyId));
+    } catch {
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
   }, []);
 
   const refreshMaintenances = useCallback(async () => {
@@ -196,6 +216,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   /* — refresco global — */
   const refreshAllCatalogs = useCallback(async () => {
     try {
+      setPropertiesLoading(true);
       const [amRaw, nhRaw, tpRaw, owRaw, prRaw] = await Promise.all([
         getAllAmenities(),
         getAllNeighborhoods(),
@@ -221,16 +242,41 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       setOperations(ops);
     } catch (e) {
       console.error('refreshAllCatalogs', e);
+    } finally {
+      setPropertiesLoading(false);
+
     }
   }, []);
 
   const refresh = useCallback(async () => {
     if (!currentCategory || !(currentCategory in fetchers)) return;
     setCatLoading(true);
-    try { setData(await fetchers[currentCategory]() as any[]); }
-    finally { setCatLoading(false); }
-  }, [currentCategory]);
 
+    try {
+      const items = (await fetchers[currentCategory]()) as any[];
+      setData(items);
+
+      switch (currentCategory) {
+        case 'type':
+          setTypes(items as Type[]);
+          break;
+        case 'amenity':
+          setAmenities(items as Amenity[]);
+          break;
+        case 'owner':
+          setOwnersList(items as Owner[]);
+          break;
+        case 'neighborhood':
+          setNeighborhoods(items as Neighborhood[]);
+          break;
+      }
+    } catch (e) {
+      console.error(`Error al refrescar ${currentCategory}`, e);
+    } finally {
+      setCatLoading(false);
+    }
+
+  }, [currentCategory]);
   /* — buildSearchParams — */
   const buildSearchParams = useCallback(
     (numeric: Partial<SearchParams>) => {
@@ -253,9 +299,13 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   const loadProperty = useCallback(async (id: number) => {
     setLoadingProperty(true);
-    try { setCurrentProperty(await getPropertyById(id)); setErrorProperty(null); }
-    catch { setErrorProperty('No se pudo cargar'); }
-    finally { setLoadingProperty(false); }
+    try {
+      setCurrentProperty(await getPropertyById(id)); setErrorProperty(null);
+    } catch {
+      setErrorProperty('No se pudo cargar');
+    } finally {
+      setLoadingProperty(false);
+    }
   }, []);
   useEffect(() => {
     async function syncComparisonItems() {
@@ -323,8 +373,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       refreshAllCatalogs, buildSearchParams,
       refreshMaintenances, refreshComments,
 
-      currentProperty, loadProperty, loadingProperty, errorProperty,
-      comparisonItems, selectedPropertyIds,
+      currentProperty, loadProperty, loadingProperty, errorProperty, propertiesLoading,
+      comparisonItems, selectedPropertyIds, commentsLoading, maintenancesLoading,
       toggleCompare, addToComparison, clearComparison,
     }}>
       {children}
