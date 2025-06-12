@@ -2,10 +2,10 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipeline-test
-  #     # - main
+  push:
+    branches:
+      - feature/pipeline-test
+      # - main
       
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
