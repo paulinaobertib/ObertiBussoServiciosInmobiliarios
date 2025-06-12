@@ -11,10 +11,11 @@ import {
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { getAllProperties, deleteProperty } from '../services/property.service';
+import { deleteProperty } from '../services/property.service';
 import { Property } from '../types/property';
 import { useGlobalAlert } from '../context/AlertContext';
 import { useConfirmDialog } from '../utils/ConfirmDialog';
+import { usePropertyCrud } from '../context/PropertiesContext';
 
 export type CatalogMode = 'normal' | 'edit' | 'delete';
 
@@ -43,27 +44,13 @@ function PropertyCatalog({
   const { ask, DialogUI } = useConfirmDialog();
 
   const [internalProperties, setInternalProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchProperties = async () => {
-    try {
-      const resp = await getAllProperties();
-      const data = Array.isArray(resp?.data) ? resp.data : resp;
-      setInternalProperties(data as Property[]);
-    } catch {
-      showAlert('Error cargando propiedades', 'error');
-      setInternalProperties([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { propertiesList, propertiesLoading, refreshAllCatalogs } = usePropertyCrud();
 
   useEffect(() => {
     if (properties.length > 0) {
       setInternalProperties(properties);
-      setLoading(false);
     } else {
-      fetchProperties();
+      setInternalProperties(propertiesList);
     }
   }, [properties]);
 
@@ -78,7 +65,7 @@ function PropertyCatalog({
           try {
             await deleteProperty(property);
             showAlert('Propiedad eliminada', 'success');
-            await fetchProperties();
+            await refreshAllCatalogs();
           } catch {
             showAlert('Error al eliminar propiedad', 'error');
           }
@@ -96,11 +83,20 @@ function PropertyCatalog({
     toggleSelection(propertyId);
   };
 
-  if (loading) {
+  if (propertiesLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
         <CircularProgress size={48} />
       </Box>
+    );
+  }
+
+  // 2) Si ya cargó y no hay datos
+  if (!propertiesLoading && internalProperties.length === 0) {
+    return (
+      <Typography sx={{ mt: 10, textAlign: 'center', color: 'text.secondary' }}>
+        No hay propiedades disponibles.
+      </Typography>
     );
   }
 

@@ -76,7 +76,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
         }
     }, [selected.neighborhood, neighborhoodsList, setField, form.neighborhood.id]);
 
-
     useEffect(() => {
         const t = typesList.find(t => t.id === selected.type);
         if (t && form.type.id !== t.id) {
@@ -135,10 +134,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
         handleMainImage(f, form, setField, onImageSelect);
     const handleGallery = (fs: File[]) =>
         handleGalleryImages(fs, form, setField, onImageSelect);
-
-useEffect(() => {
-  console.log('📝 Estado actual del formulario:', form);
-}, [form]);
 
     return (
         <Box component="form" noValidate onSubmit={(e) => { e.preventDefault(); submit(); }}

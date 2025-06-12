@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Box, Typography, IconButton, Stack, Tooltip, Button,
+    CircularProgress,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -20,12 +21,12 @@ export default function PropertyMaintenancePage() {
     const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; formKey?: string; item?: any } | null>(null);
 
     const {
-        commentsList,
+        commentsList, commentsLoading,
         pickedItem, pickItem, refreshComments,
     } = usePropertyCrud();
 
     const handleBack = () => {
-        navigate('/panel'); 
+        navigate('/panel');
     };
 
     useEffect(() => {
@@ -82,7 +83,11 @@ export default function PropertyMaintenancePage() {
                     flexGrow: 1,
                     overflowY: 'auto',
                 }}>
-                    {commentsList.length === 0 ? (
+                    {commentsLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : commentsList.length === 0 ? (
                         <Typography color="text.secondary">
                             No hay comentarios registrados.
                         </Typography>
