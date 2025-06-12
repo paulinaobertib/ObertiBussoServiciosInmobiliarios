@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
     Box, Typography, IconButton, Stack, Tooltip, Button,
+    CircularProgress,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -18,12 +19,12 @@ export default function PropertyMaintenancePage() {
     const navigate = useNavigate();
 
     const {
-        maintenancesList,
+        maintenancesList, maintenancesLoading,
         pickedItem, pickItem, refreshMaintenances,
     } = usePropertyCrud();
 
     const handleBack = () => {
-        navigate('/panel'); 
+        navigate('/panel');
     };
 
     const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; formKey?: string; item?: any } | null>(null);
@@ -82,9 +83,13 @@ export default function PropertyMaintenancePage() {
                     flexGrow: 1,
                     overflowY: 'auto',
                 }}>
-                    {maintenancesList.length === 0 ? (
+                    {maintenancesLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : maintenancesList.length === 0 ? (
                         <Typography color="text.secondary">
-                            No hay mantenimientos registrados.
+                            No hay comentarios registrados.
                         </Typography>
                     ) : (
                         <Stack spacing={2}>

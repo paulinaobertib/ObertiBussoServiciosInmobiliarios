@@ -14,6 +14,7 @@ import StatusForm from './forms/StatusForm';
 import PropertyForm from './forms/PropertyForm';
 import MaintenanceForm from './forms/MaintenanceForm';
 import CommentForm from './forms/CommentForm';
+import { translate } from '../utils/translate';
 
 type Action = 'add' | 'edit' | 'delete' | 'edit-status';
 
@@ -86,12 +87,13 @@ export default function ModalItem({
     const Form = registry[formKey as keyof typeof registry]
         ?? PropertyForm;
 
+    const label = translate(formKey);
     const title =
-        info.action === 'add'
-            ? `Crear ${formKey}`
-            : info.action === 'edit'
-                ? `Editar ${formKey}`
-                : `Eliminar ${formKey}`;
+      info.action === 'add'
+        ? `Crear ${label}`
+        : info.action === 'edit'
+          ? `Editar ${label}`
+          : `Eliminar ${label}`;
 
     return (
         <Dialog

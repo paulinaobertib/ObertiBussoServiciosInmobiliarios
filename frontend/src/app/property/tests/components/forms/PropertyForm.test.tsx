@@ -4,39 +4,27 @@ import { vi, describe, expect, it } from 'vitest';
 import React from 'react';
 import PropertyForm, { PropertyFormHandle } from '../../../components/forms/PropertyForm';
 
-vi.mock('../../../context/PropertiesContext', async () => {
-  const actual = await vi.importActual<typeof import('../../../context/PropertiesContext')>(
-    '../../../context/PropertiesContext'
-  );
+const mockSetField = vi.fn();
+const crudStub = {
+  fields: { title: '', currency: '', price: 0 },
+  setField: mockSetField,
+  selected: { owner: 0, neighborhood: 0, type: 1, amenities: [] },
+  ownersList: [],
+  neighborhoodsList: [],
+  typesList: [
+    { id: 1, hasRooms: true, hasBedrooms: true, hasBathrooms: true, hasCoveredArea: true },
+  ],
+  amenitiesList: [],
+  refreshCatalogs: vi.fn(),
+  loadProperties: vi.fn(),
+  pickedItem: null,
+};
 
-  return {
-    ...actual,
-    usePropertyCrud: vi.fn(() => ({
-      selected: {
-        owner: 0,
-        neighborhood: 0,
-        type: 1,
-        amenities: [],
-      },
-      ownersList: [],
-      neighborhoodsList: [],
-      typesList: [
-        {
-          id: 1,
-          hasRooms: true,
-          hasBedrooms: true,
-          hasBathrooms: true,
-          hasCoveredArea: true,
-        },
-      ],
-      amenitiesList: [],
-      refreshCatalogs: vi.fn(),
-      loadProperties: vi.fn(),
-      pickedItem: null,
-    })),
-    PropertyCrudProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  };
-});
+vi.mock('../../../context/PropertiesContext', () => ({
+  // devuelve SIEMPRE el mismo objeto ➜ no se disparan renders infinitos
+  usePropertyCrud: vi.fn(() => crudStub),
+  PropertyCrudProvider: ({ children }: any) => children,
+}));
 
 // Ajustar ruta del mock a la correcta
 vi.mock('../../../hooks/useImageHandlersCreate', () => ({
@@ -62,11 +50,11 @@ describe('PropertyForm', () => {
     expect(screen.getByLabelText(/Número/i)).toBeInTheDocument();
   });
 
-  it('llama a setField cuando cambian los inputs', async () => {
+  it('permite escribir en el título (sin userEvent)', () => {
     render(<PropertyForm />);
-    const inputTitulo = screen.getByLabelText(/Título/i);
-    await userEvent.type(inputTitulo, 'Casa bonita');
-    expect(inputTitulo).toHaveValue('Casa bonita');
+    const input = screen.getByLabelText(/Título/i);
+    fireEvent.change(input, { target: { value: 'Casa bonita' } });
+    expect(input).toHaveValue('Casa bonita');
   });
 
   it('muestra campos extras para ambientes, dormitorios, baños y superficie cubierta según el tipo', () => {
