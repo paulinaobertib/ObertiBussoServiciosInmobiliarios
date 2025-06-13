@@ -20,7 +20,6 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
   AZURE_BLOB_CONNECTION_STRING_DEV: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_DEV }}
-  AZURE_BLOB_CONNECTION_STRING_PROD: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_DEV }}
 
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -112,7 +111,6 @@ jobs:
           echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
-
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
