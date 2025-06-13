@@ -42,7 +42,6 @@ env:
   DATASOURCE_PASSWORD_PROD: ${{ secrets.DATASOURCE_PASSWORD_PROD }}
   EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
   EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-  # FRONTEND_BASE_URL:
 
 jobs:
   # --------------------------------------------------------------
@@ -314,9 +313,9 @@ jobs:
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
-              "DATASOURCE_URL=${{ env.DATASOURCE_URL_PROD }}" \
-              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME_PROD }}" \
-              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD_PROD }}" \
+              "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
+              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME_DEV }}" \
+              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD_DEV }}" \
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
