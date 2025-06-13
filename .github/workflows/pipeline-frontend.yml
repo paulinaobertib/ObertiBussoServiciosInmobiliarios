@@ -225,7 +225,7 @@ jobs:
           echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_PROD"
           echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
 
-          API_ESCAPED=${API_URL_DEV//\//\\/}
+          API_ESCAPED=${API_URL_PROD//\//\\/}
           BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
 
           find frontend/dist -type f -name '*.js' -exec \
