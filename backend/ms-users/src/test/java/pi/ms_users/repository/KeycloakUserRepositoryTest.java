@@ -1,11 +1,14 @@
 package pi.ms_users.repository;
 
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.*;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.InjectMocks;
@@ -14,11 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.KeycloakUserRepository;
+import pi.ms_users.service.impl.EmailService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.net.URI;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -50,18 +52,22 @@ class KeycloakUserRepositoryTest {
     @Mock
     private RoleResource roleResource;
 
+    @Mock
+    private ClientsResource clientsResource;
+
     @InjectMocks
     private KeycloakUserRepository repository;
 
     @BeforeEach
     void setup() {
         ReflectionTestUtils.setField(repository, "realm", "test-realm");
-        when(keycloak.realm("test-realm")).thenReturn(realmResource);
-        when(realmResource.users()).thenReturn(usersResource);
+        ReflectionTestUtils.setField(repository, "clientId", "example-client-id");
+        lenient().when(keycloak.realm("test-realm")).thenReturn(realmResource);
+        lenient().when(realmResource.users()).thenReturn(usersResource);
     }
 
     // casos de exito
-
+    
     @Test
     void testFindById_success() {
         String userId = "user123";
@@ -132,14 +138,21 @@ class KeycloakUserRepositoryTest {
         RoleRepresentation role = new RoleRepresentation();
         role.setName("admin");
 
+        ClientRepresentation clientRepresentation = new ClientRepresentation();
+        clientRepresentation.setId("client-uuid-123");  // ID ficticio
+        clientRepresentation.setClientId("example-client-id");
+
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of(clientRepresentation));
         when(usersResource.get("123")).thenReturn(userResource);
         when(userResource.roles()).thenReturn(roleMappingResource);
         when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(roleMappingResource.clientLevel("client-uuid-123")).thenReturn(roleScopeResource);
         when(roleScopeResource.listAll()).thenReturn(List.of(role));
 
         List<String> roles = repository.getUserRoles("123");
 
-        assertEquals(List.of("admin"), roles);
+        assertEquals(List.of("admin", "admin"), roles);
     }
 
     @Test
@@ -185,6 +198,34 @@ class KeycloakUserRepositoryTest {
         when(userResource.toRepresentation()).thenReturn(ur);
 
         assertTrue(repository.exist("123"));
+    }
+
+    @Test
+    void findByRoleTenant_success() {
+        ClientRepresentation client = new ClientRepresentation();
+        client.setId("client-uuid");
+
+        UserRepresentation ur = new UserRepresentation();
+        ur.setId("123");
+        ur.setUsername("tenantuser");
+
+        when(realmResource.clients()).thenReturn(mock(ClientsResource.class));
+        ClientsResource clientsResource = realmResource.clients();
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of(client));
+        when(clientsResource.get("client-uuid")).thenReturn(mock(ClientResource.class));
+        ClientResource clientResource = clientsResource.get("client-uuid");
+
+        RolesResource roles = mock(RolesResource.class);
+        when(clientResource.roles()).thenReturn(roles);
+
+        RoleResource tenantRole = mock(RoleResource.class);
+        when(roles.get("tenant")).thenReturn(tenantRole);
+        when(tenantRole.getUserMembers()).thenReturn(List.of(ur));
+
+        List<User> result = repository.findByRoleTenant();
+
+        assertEquals(1, result.size());
+        assertEquals("tenantuser", result.getFirst().getUsername());
     }
 
     // casos de error
@@ -252,6 +293,23 @@ class KeycloakUserRepositoryTest {
     void exist_error() {
         when(usersResource.get("error")).thenThrow(new RuntimeException("Unexpected"));
         assertThrows(RuntimeException.class, () -> repository.exist("error"));
+    }
+
+    @Test
+    void createUser_failureOnCreate() {
+        when(usersResource.create(any())).thenThrow(new RuntimeException("Keycloak error"));
+
+        Response response = repository.createUser("Jane", "Smith", "jane@example.com", "987654");
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+        assertTrue(response.getEntity().toString().contains("Error al crear usuario"));
+    }
+
+    @Test
+    void findByRoleTenant_noClientsFound() {
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of());
+
+        assertThrows(NoSuchElementException.class, () -> repository.findByRoleTenant());
     }
 }
 
