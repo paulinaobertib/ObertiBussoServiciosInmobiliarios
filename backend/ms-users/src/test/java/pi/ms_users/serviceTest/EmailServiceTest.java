@@ -78,7 +78,7 @@ class EmailServiceTest {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_accepted"), any())).thenReturn("contenido");
 
-        emailService.sendAppointmentDecisionToClient("cliente@mail.com", true, "Juan", LocalDateTime.now());
+        emailService.sendAppointmentDecisionToClient("cliente@mail.com", true, "Juan", LocalDateTime.now(), "Calle");
 
         verify(javaMailSender).send(any(MimeMessage.class));
     }
@@ -88,7 +88,7 @@ class EmailServiceTest {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_declined"), any())).thenReturn("contenido");
 
-        emailService.sendAppointmentDecisionToClient("cliente@mail.com", false, "Juan", LocalDateTime.now());
+        emailService.sendAppointmentDecisionToClient("cliente@mail.com", false, "Juan", LocalDateTime.now(), null);
 
         verify(javaMailSender).send(any(MimeMessage.class));
     }
@@ -130,7 +130,7 @@ class EmailServiceTest {
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> emailService.sendAppointmentDecisionToClient("mail", true, "Juan", LocalDateTime.now()));
+                () -> emailService.sendAppointmentDecisionToClient("mail", true, "Juan", LocalDateTime.now(), null));
 
         assertTrue(ex.getMessage().contains("Error al enviar el correo de respuesta"));
     }

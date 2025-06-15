@@ -14,6 +14,7 @@ import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.service.interf.IFavoriteService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -28,65 +29,34 @@ public class FavoriteService implements IFavoriteService {
 
     @Override
     public ResponseEntity<Favorite> create(Favorite favorite) {
-        try {
-            Optional<User> user = Optional.empty();
-            try {
-                user = userRepository.findById(favorite.getUserId());
-            } catch (NotFoundException e) {
-                return ResponseEntity.notFound().build();
-            }
+        User user = userRepository.findById(favorite.getUserId())
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
-            Favorite saved = favoriteRepository.save(favorite);
-            return ResponseEntity.ok(saved);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Favorite saved = favoriteRepository.save(favorite);
+        return ResponseEntity.ok(saved);
     }
 
     @Override
     public ResponseEntity<String> delete(Long id) {
-        try {
-            Optional<Favorite> favorite = favoriteRepository.findById(id);
-            if (favorite.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            favoriteRepository.delete(favorite.get());
-            return ResponseEntity.ok("Se ha eliminado la propiedad de favoritos");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Favorite favorite = favoriteRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Favorito no encontrado"));
+        favoriteRepository.delete(favorite);
+        return ResponseEntity.ok("Se ha eliminado la propiedad de favoritos");
     }
 
     @Override
     public ResponseEntity<List<Favorite>> findByUserId(String userId) {
-        try {
-            Optional<User> user = Optional.empty();
-            try {
-                user = userRepository.findById(userId);
-            } catch (NotFoundException e) {
-                return ResponseEntity.notFound().build();
-            }
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
-            List<Favorite> favorites = favoriteRepository.findByUserId(userId);
-            return ResponseEntity.ok(favorites);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        List<Favorite> favorites = favoriteRepository.findByUserId(userId);
+        return ResponseEntity.ok(favorites);
     }
 
     @Override
     public ResponseEntity<List<Favorite>> findByPropertyId(Long propertyId) {
-        try {
-            Property property = propertyRepository.getById(propertyId);
-            if (property == null) {
-                return ResponseEntity.notFound().build();
-            }
-            List<Favorite> favorites = favoriteRepository.findByPropertyId(propertyId);
-            return ResponseEntity.ok(favorites);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Property property = propertyRepository.getById(propertyId);
+        List<Favorite> favorites = favoriteRepository.findByPropertyId(propertyId);
+        return ResponseEntity.ok(favorites);
     }
 }

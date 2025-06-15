@@ -1,13 +1,9 @@
 package pi.ms_users.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncrease;
@@ -25,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -43,106 +40,48 @@ public class ContractIncreaseService implements IContractIncreaseService {
     private final EmailService emailService;
 
     @Override
-    public ResponseEntity<?> create(ContractIncreaseDTO contractIncreaseDTO) {
-        try {
-            Optional<Contract> contractOptional = contractRepository.findById(contractIncreaseDTO.getContractId());
-            if (contractOptional.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el contrato.");
-            }
+    public ResponseEntity<String> create(ContractIncreaseDTO contractIncreaseDTO) {
+        Contract contract = contractRepository.findById(contractIncreaseDTO.getContractId())
+                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el contrato."));
 
-            ContractIncrease contractIncrease = objectMapper.convertValue(contractIncreaseDTO, ContractIncrease.class);
-            contractIncrease.setContract(contractOptional.get());
+        ContractIncrease contractIncrease = objectMapper.convertValue(contractIncreaseDTO, ContractIncrease.class);
+        contractIncrease.setContract(contract);
+        contractIncreaseRepository.save(contractIncrease);
 
-            contractIncreaseRepository.save(contractIncrease);
-            return ResponseEntity.ok("Se ha guardado el monto del contrato");
-
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
-        } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
-        }
+        return ResponseEntity.ok("Se ha guardado el monto del contrato");
     }
 
     @Override
-    public ResponseEntity<?> delete(Long id) {
-        try {
-            Optional<ContractIncrease> contractIncrease = contractIncreaseRepository.findById(id);
-            if (contractIncrease.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el monto.");
-            }
+    public ResponseEntity<String> delete(Long id) {
+        ContractIncrease contractIncrease = contractIncreaseRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el monto."));
 
-            contractIncreaseRepository.delete(contractIncrease.get());
-            return ResponseEntity.ok("Se ha eliminado el monto.");
-
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
-        } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
-        }
+        contractIncreaseRepository.delete(contractIncrease);
+        return ResponseEntity.ok("Se ha eliminado el monto.");
     }
 
     @Override
-    public ResponseEntity<?> getById(Long id) {
-        try {
-            Optional<ContractIncrease> contractIncrease = contractIncreaseRepository.findById(id);
-            if (contractIncrease.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el monto.");
-            } else {
-                ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
-                contractIncreaseDTO.setContractId(contractIncrease.get().getContract().getId());
-                return ResponseEntity.ok(contractIncreaseDTO);
-            }
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
-        } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
-        }
+    public ResponseEntity<ContractIncreaseDTO> getById(Long id) {
+        ContractIncrease contractIncrease = contractIncreaseRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el monto."));
+
+        ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
+        contractIncreaseDTO.setContractId(contractIncrease.getContract().getId());
+
+        return ResponseEntity.ok(contractIncreaseDTO);
     }
 
     @Override
-    public ResponseEntity<?> getByContract(Long contractId) {
-        try {
-            Optional<Contract> contractOptional = contractRepository.findById(contractId);
-            if (contractOptional.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el contrato.");
-            }
+    public ResponseEntity<List<ContractIncreaseDTOContractGet>> getByContract(Long contractId) {
+        Contract contract = contractRepository.findById(contractId)
+                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el contrato."));
 
-            List<ContractIncrease> contractIncreases = contractIncreaseRepository.findByContractId(contractId);
-            List<ContractIncreaseDTOContractGet> contractIncreaseDTOs = contractIncreases.stream()
-                    .map(increase -> objectMapper.convertValue(increase, ContractIncreaseDTOContractGet.class))
-                    .collect(Collectors.toList());
+        List<ContractIncrease> contractIncreases = contractIncreaseRepository.findByContractId(contractId);
+        List<ContractIncreaseDTOContractGet> contractIncreaseDTOs = contractIncreases.stream()
+                .map(increase -> objectMapper.convertValue(increase, ContractIncreaseDTOContractGet.class))
+                .collect(Collectors.toList());
 
-            return ResponseEntity.ok(contractIncreaseDTOs);
-
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
-        } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
-        }
+        return ResponseEntity.ok(contractIncreaseDTOs);
     }
 
     // Para actualizar automaticamente el monto del contrato
