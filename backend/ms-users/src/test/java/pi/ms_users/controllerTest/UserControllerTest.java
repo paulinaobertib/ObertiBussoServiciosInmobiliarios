@@ -17,7 +17,6 @@ import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.UserService;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -48,7 +47,7 @@ public class UserControllerTest {
     @Test
     void findById_shouldReturnOk() throws Exception {
         User user = new User("1", "jdoe", "jdoe@mail.com", "John", "Doe", "123456");
-        when(userService.findById("1")).thenReturn(ResponseEntity.ok(Optional.of(user)));
+        when(userService.findById("1")).thenReturn(ResponseEntity.ok(user));
 
         mockMvc.perform(get("/user/getById/1")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))

@@ -86,24 +86,8 @@ public class UserService {
         userRepository.findById(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-        try {
-            User updated = userRepository.updateUser(user);
-            return ResponseEntity.ok(updated);
-        } catch (ClientErrorException e) {
-            int status = e.getResponse().getStatus();
-            String errorBody;
-            try {
-                errorBody = e.getResponse().readEntity(String.class);
-            } catch (Exception ex) {
-                errorBody = "No se pudo leer el cuerpo de la respuesta de Keycloak.";
-            }
-
-            if (status == 409) {
-                throw new IllegalArgumentException("Conflicto al actualizar el usuario: " + errorBody);
-            }
-
-            throw new RuntimeException("Error al actualizar el usuario en Keycloak: " + errorBody);
-        }
+        User updated = userRepository.updateUser(user);
+        return ResponseEntity.ok(updated);
     }
 
     public ResponseEntity<List<String>> getUserRoles(String id) {
@@ -123,6 +107,10 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
         List<String> roles = userRepository.addRoleToUser(id, role);
+        if (roles == null || roles.isEmpty()) {
+            throw new EntityNotFoundException("No se agregaron roles al usuario");
+        }
+
         return ResponseEntity.ok(roles);
     }
 
