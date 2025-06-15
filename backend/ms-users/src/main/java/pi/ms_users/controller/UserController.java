@@ -35,7 +35,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
+    public ResponseEntity<User> findById(@PathVariable String id) {
         return userService.findById(id);
     }
 
