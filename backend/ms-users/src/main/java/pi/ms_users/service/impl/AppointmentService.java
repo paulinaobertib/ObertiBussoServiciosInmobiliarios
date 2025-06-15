@@ -1,8 +1,7 @@
 package pi.ms_users.service.impl;
 
-import jakarta.ws.rs.NotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Appointment;
@@ -14,7 +13,6 @@ import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.IAppointmentService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,125 +26,87 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     public ResponseEntity<Appointment> create(Appointment appointment) {
-        try {
-            Optional<User> optionalUser;
-            try {
-                optionalUser = userRepository.findById(appointment.getUserId());
-            } catch (NotFoundException e) {
-                return ResponseEntity.notFound().build();
-            }
+        User user = userRepository.findById(appointment.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario"));
 
-            User user = optionalUser.get();
+        Appointment saved = appointmentRepository.save(appointment);
 
-            Appointment saved = appointmentRepository.save(appointment);
+        EmailDTO emailDTO = new EmailDTO();
+        emailDTO.setTo(user.getMail());
+        emailDTO.setTitle("Solicitud de turno");
+        emailDTO.setDescription("Gracias por solicitar un turno. Recibirás una confirmación por este medio.");
+        emailDTO.setPhone(user.getPhone());
+        emailDTO.setFirstName(user.getFirstName());
+        emailDTO.setLastName(user.getLastName());
+        emailDTO.setDate(appointment.getDate());
 
-            EmailDTO emailDTO = new EmailDTO();
-            emailDTO.setTo(user.getMail());
-            emailDTO.setTitle("Solicitud de turno");
-            emailDTO.setDescription("Gracias por solicitar un turno. Recibirás una confirmación por este medio.");
-            emailDTO.setPhone(user.getPhone());
-            emailDTO.setFirstName(user.getFirstName());
-            emailDTO.setLastName(user.getLastName());
-            emailDTO.setDate(appointment.getDate());
+        emailService.sendAppointmentRequest(emailDTO);
 
-            emailService.sendAppointmentRequest(emailDTO);
-
-            return ResponseEntity.ok(saved);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(saved);
     }
 
     @Override
     public ResponseEntity<String> delete(Long id) {
-        try {
-            Optional<Appointment> appointment = appointmentRepository.findById(id);
-            if (appointment.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el turno");
-            }
-            appointmentRepository.delete(appointment.get());
-            Optional<User> userOpt = userRepository.findById(appointment.get().getUserId());
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
 
-                EmailDTO emailDTO = new EmailDTO();
-                emailDTO.setFirstName(user.getFirstName());
-                emailDTO.setLastName(user.getLastName());
-                emailDTO.setPhone(user.getPhone());
-                emailDTO.setTo(user.getMail());
-                emailDTO.setDate(appointment.get().getDate());
+        appointmentRepository.delete(appointment);
 
-                emailService.sendAppointmentCancelledMail(emailDTO);
-            }
-            return ResponseEntity.ok("Se ha eliminado el turno");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        User user = userRepository.findById(appointment.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario"));
+
+        EmailDTO emailDTO = new EmailDTO();
+        emailDTO.setFirstName(user.getFirstName());
+        emailDTO.setLastName(user.getLastName());
+        emailDTO.setPhone(user.getPhone());
+        emailDTO.setTo(user.getMail());
+        emailDTO.setDate(appointment.getDate());
+
+        emailService.sendAppointmentCancelledMail(emailDTO);
+
+        return ResponseEntity.ok("Se ha eliminado el turno");
     }
 
     @Override
     public ResponseEntity<String> updateStatus(Long id, AppointmentStatus status, String address) {
-        try {
-            Optional<Appointment> search = appointmentRepository.findById(id);
-            if (search.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado el turno");
-            }
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
 
-            Appointment appointment = search.get();
-            appointment.setStatus(status);
+        appointment.setStatus(status);
 
-            Optional<User> optionalUser = userRepository.findById(search.get().getUserId());
+        User user = userRepository.findById(appointment.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
 
-            if (optionalUser.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado al usuario");
-            }
+        EmailDTO emailDTO = new EmailDTO();
+        emailDTO.setTo(user.getMail());
+        emailDTO.setFirstName(user.getFirstName());
+        emailDTO.setDate(appointment.getDate());
 
-            User user = optionalUser.get();
-
-            EmailDTO emailDTO = new EmailDTO();
-            emailDTO.setTo(user.getMail());
-            emailDTO.setFirstName(user.getFirstName());
-            emailDTO.setDate(appointment.getDate());
-
-            if (status == AppointmentStatus.ACEPTADO) {
-                emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), appointment.getDate(), address);
-            } else if (status == AppointmentStatus.RECHAZADO) {
-                emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), appointment.getDate(), null);
-            }
-
-            return ResponseEntity.ok("Se ha actualizado el estado del turno");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (status == AppointmentStatus.ACEPTADO) {
+            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), appointment.getDate(), address);
+        } else if (status == AppointmentStatus.RECHAZADO) {
+            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), appointment.getDate(), null);
         }
+
+        return ResponseEntity.ok("Se ha actualizado el estado del turno");
     }
 
     @Override
     public ResponseEntity<Appointment> findById(Long id) {
-        try {
-            Optional<Appointment> search = appointmentRepository.findById(id);
-            return search.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
+        return ResponseEntity.ok(appointment);
     }
 
     @Override
     public ResponseEntity<List<Appointment>> findAll() {
-        try {
-            List<Appointment> appointments = appointmentRepository.findAll();
-            return ResponseEntity.ok(appointments);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        List<Appointment> appointments = appointmentRepository.findAll();
+        return ResponseEntity.ok(appointments);
     }
 
     @Override
     public ResponseEntity<List<Appointment>> findByUserId(String userId) {
-        try {
-            List<Appointment> appointments = appointmentRepository.findByUserId(userId);
-            return ResponseEntity.ok(appointments);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        List<Appointment> appointments = appointmentRepository.findByUserId(userId);
+        return ResponseEntity.ok(appointments);
     }
 }

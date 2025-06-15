@@ -98,11 +98,11 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha actualizado el estado del turno", response.getBody());
-        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), true, "Ana", appointment.getDate());
+        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), true, "Ana", appointment.getDate(), "Address");
     }
 
     @Test
@@ -119,10 +119,10 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), false, "Ana", appointment.getDate());
+        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), false, "Ana", appointment.getDate(), null);
     }
 
     @Test
@@ -230,7 +230,7 @@ class AppointmentServiceTest {
     void updateStatus_appointmentNotFound() {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("No se ha encontrado el turno", response.getBody());
@@ -245,7 +245,7 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("No se ha encontrado al usuario", response.getBody());
@@ -260,7 +260,7 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
