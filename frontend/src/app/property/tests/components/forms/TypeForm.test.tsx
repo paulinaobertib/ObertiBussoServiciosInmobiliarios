@@ -11,7 +11,6 @@ vi.mock('../../../context/AlertContext');
 
 describe('TypeForm', () => {
   const mockRefresh = vi.fn();
-  const mockRefreshTypes = vi.fn();
   const mockShowAlert = vi.fn();
   const mockOnDone = vi.fn();
 
@@ -19,7 +18,6 @@ describe('TypeForm', () => {
     vi.clearAllMocks();
     (usePropertyCrud as any).mockReturnValue({
       refresh: mockRefresh,
-      refreshTypes: mockRefreshTypes,
     });
     (useGlobalAlert as any).mockReturnValue({
       showAlert: mockShowAlert,
@@ -39,7 +37,6 @@ describe('TypeForm', () => {
 
     await waitFor(() => {
       expect(postType).toHaveBeenCalledWith({
-        id: 0,
         name: 'Casa',
         hasRooms: true,
         hasBedrooms: true,
@@ -48,7 +45,6 @@ describe('TypeForm', () => {
       });
       expect(mockShowAlert).toHaveBeenCalledWith('Tipo de propiedad creado con éxito!', 'success');
       expect(mockRefresh).toHaveBeenCalled();
-      expect(mockRefreshTypes).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
   });
@@ -78,7 +74,6 @@ describe('TypeForm', () => {
       });
       expect(mockShowAlert).toHaveBeenCalledWith('Tipo de propiedad editado con éxito!', 'success');
       expect(mockRefresh).toHaveBeenCalled();
-      expect(mockRefreshTypes).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
   });
@@ -104,7 +99,6 @@ describe('TypeForm', () => {
       expect(deleteType).toHaveBeenCalledWith(item);
       expect(mockShowAlert).toHaveBeenCalledWith('Tipo de propiedad eliminado con éxito!', 'success');
       expect(mockRefresh).toHaveBeenCalled();
-      expect(mockRefreshTypes).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
   });
