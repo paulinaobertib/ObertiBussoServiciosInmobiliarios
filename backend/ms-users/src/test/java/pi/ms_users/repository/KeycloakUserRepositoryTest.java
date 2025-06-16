@@ -8,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.*;
 import org.keycloak.representations.idm.ClientRepresentation;
-import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.InjectMocks;
@@ -55,6 +54,9 @@ class KeycloakUserRepositoryTest {
     @Mock
     private ClientsResource clientsResource;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private KeycloakUserRepository repository;
 
@@ -67,7 +69,52 @@ class KeycloakUserRepositoryTest {
     }
 
     // casos de exito
-    
+
+    @Test
+    void createUser_shouldReturnCreated_whenSuccessful() {
+        String name = "John";
+        String lastName = "Doe";
+        String email = "john.doe@example.com";
+        String phone = "123456789";
+        String userId = "generated-user-id";
+        String clientUuid = "client-uuid";
+
+        Response response = mock(Response.class);
+        UserResource userResource = mock(UserResource.class);
+        RoleRepresentation userRole = mock(RoleRepresentation.class);
+        RoleRepresentation tenantRole = mock(RoleRepresentation.class);
+        ClientRepresentation clientRepresentation = mock(ClientRepresentation.class);
+        ClientResource clientResource = mock(ClientResource.class);
+        RoleResource roleResource = mock(RoleResource.class);
+
+        when(usersResource.create(any())).thenReturn(response);
+        when(response.getStatus()).thenReturn(201);
+        when(response.getLocation()).thenReturn(URI.create("http://localhost/users/" + userId));
+        when(usersResource.get(userId)).thenReturn(userResource);
+
+        doNothing().when(userResource).resetPassword(any());
+
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of(clientRepresentation));
+        when(clientRepresentation.getId()).thenReturn(clientUuid);
+        when(clientsResource.get(clientUuid)).thenReturn(clientResource);
+
+        when(clientResource.roles()).thenReturn(rolesResource);
+        when(rolesResource.get("user")).thenReturn(roleResource);
+        when(rolesResource.get("tenant")).thenReturn(roleResource);
+        when(roleResource.toRepresentation()).thenReturn(userRole, tenantRole);
+
+        when(userResource.roles()).thenReturn(roleMappingResource);
+        when(roleMappingResource.clientLevel(clientUuid)).thenReturn(roleScopeResource);
+        doNothing().when(roleScopeResource).add(List.of(userRole, tenantRole));
+
+        doNothing().when(emailService).sendNewUserCredentialsEmail(any());
+
+        Response result = repository.createUser(name, lastName, email, phone);
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), result.getStatus());
+    }
+
     @Test
     void testFindById_success() {
         String userId = "user123";

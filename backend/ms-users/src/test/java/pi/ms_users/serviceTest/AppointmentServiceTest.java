@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -165,55 +166,45 @@ class AppointmentServiceTest {
     // casos de error
 
     @Test
-    void create_userNotFound() {
+    void create_userNotFound_shouldThrowNoSuchElementException() {
         Appointment appointment = new Appointment();
         appointment.setUserId("user123");
 
-        when(userRepository.findById("user123")).thenThrow(new RuntimeException("User not found"));
+        when(userRepository.findById("user123")).thenThrow(new NoSuchElementException("User not found"));
 
-        ResponseEntity<Appointment> response = appointmentService.create(appointment);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(NoSuchElementException.class, () -> appointmentService.create(appointment));
     }
 
     @Test
-    void create_shouldReturnNotFoundWhenUserRepositoryThrowsNotFoundException() {
+    void create_shouldThrowEntityNotFoundException() {
         Appointment appointment = new Appointment();
         appointment.setUserId("user123");
 
-        when(userRepository.findById("user123")).thenThrow(new NotFoundException("User not found"));
+        when(userRepository.findById("user123")).thenThrow(new EntityNotFoundException("User not found"));
 
-        ResponseEntity<Appointment> response = appointmentService.create(appointment);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.create(appointment));
     }
 
-
     @Test
-    void create_generalException() {
+    void create_generalException_shouldThrowRuntimeException() {
         Appointment appointment = new Appointment();
         appointment.setUserId("user123");
 
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(appointmentRepository.save(appointment)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<Appointment> response = appointmentService.create(appointment);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> appointmentService.create(appointment));
     }
 
     @Test
-    void delete_notFound() {
+    void delete_notFound_shouldThrowNoSuchElementException() {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = appointmentService.delete(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el turno", response.getBody());
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.delete(1L));
     }
 
     @Test
-    void delete_generalException() {
+    void delete_generalException_shouldThrowRuntimeException() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
@@ -221,23 +212,19 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         doThrow(new RuntimeException("error")).when(appointmentRepository).delete(appointment);
 
-        ResponseEntity<String> response = appointmentService.delete(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> appointmentService.delete(1L));
     }
 
     @Test
-    void updateStatus_appointmentNotFound() {
+    void updateStatus_appointmentNotFound_shouldThrowNoSuchElementException() {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el turno", response.getBody());
+        assertThrows(EntityNotFoundException.class, () ->
+                appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address"));
     }
 
     @Test
-    void updateStatus_userNotFound() {
+    void updateStatus_userNotFound_shouldThrowNoSuchElementException() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
@@ -245,14 +232,12 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado al usuario", response.getBody());
+        assertThrows(EntityNotFoundException.class, () ->
+                appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address"));
     }
 
     @Test
-    void updateStatus_generalException() {
+    void updateStatus_generalException_shouldThrowRuntimeException() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
@@ -260,45 +245,37 @@ class AppointmentServiceTest {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () ->
+                appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address"));
     }
 
     @Test
-    void findById_notFound() {
+    void findById_notFound_shouldThrowNoSuchElementException() {
         when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<Appointment> response = appointmentService.findById(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.findById(1L));
     }
 
     @Test
-    void findById_generalException() {
+    void findById_generalException_shouldThrowRuntimeException() {
         when(appointmentRepository.findById(1L)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<Appointment> response = appointmentService.findById(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> appointmentService.findById(1L));
     }
 
     @Test
-    void findAll_generalException() {
+    void findAll_generalException_shouldThrowRuntimeException() {
         when(appointmentRepository.findAll()).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<Appointment>> response = appointmentService.findAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> appointmentService.findAll());
     }
 
     @Test
-    void findByUserId_generalException() {
+    void findByUserId_generalException_shouldThrowRuntimeException() {
         when(appointmentRepository.findByUserId("user123")).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<Appointment>> response = appointmentService.findByUserId("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> appointmentService.findByUserId("user123"));
     }
+
 }
 
