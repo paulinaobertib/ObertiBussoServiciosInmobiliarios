@@ -176,7 +176,7 @@ export default function EditPropertyPage() {
 
   // cancelar edición
   const cancel = () =>
-    ask('¿Cancelar los cambios?', () => {
+    ask('¿Cancelar los cambios?', async () => {
       formRef.current?.reset();
       resetSelected();
       setMain(null);

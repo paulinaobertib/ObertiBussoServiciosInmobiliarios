@@ -30,8 +30,8 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/status/{id}")
-    public ResponseEntity<String> updateAppointmentStatus(@PathVariable Long id, @RequestParam AppointmentStatus status) {
-        return appointmentService.updateStatus(id, status);
+    public ResponseEntity<String> updateAppointmentStatus(@PathVariable Long id, @RequestParam AppointmentStatus status, @RequestParam(required = false) String address) {
+        return appointmentService.updateStatus(id, status, address);
     }
 
     @PreAuthorize("hasAnyRole('admin', 'user')")

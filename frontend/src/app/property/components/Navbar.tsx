@@ -18,15 +18,9 @@ import logo from '../../../assets/logoJPG.png';
 import { usePropertyCrud } from '../context/PropertiesContext'; 
 
 const pages = [
-  { label: 'CONTACTO', route: `/contact` },
-  { label: 'NOTICIAS', route: `/news` },
+  { label: 'CONTACTO', route: `/contact`},
+  { label: 'NOTICIAS',  route: `/news`   },
 ];
-
-const loginUrl =
-  'http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth?client_id=api-gateway-client&response_type=code&scope=openid&redirect_uri=http://localhost:8090/login/oauth2/code/keycloak';
-
-const registerUrl =
-  'http://localhost:8080/realms/obertibussoserviciosinmobiliarios/login-actions/registration?client_id=api-gateway-client&tab_id=Bpye8TprzBY&client_data=eyJydSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA5MC9sb2dpbi9vYXV0aDIvY29kZS9rZXljbG9hayIsInJ0IjoiY29kZSJ9';
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -43,10 +37,6 @@ export default function NavBar() {
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
-  };
-
-  const handleLogout = () => {
-    console.log('Logout clicked');
   };
 
   return (
@@ -74,13 +64,13 @@ export default function NavBar() {
               cursor: 'pointer',
             }}
             onClick={() => {
-              clearComparison();
-              navigate(ROUTES.HOME_APP);
-            }}
-          />
+                clearComparison();
+                navigate(ROUTES.HOME_APP);}
+                }
+          />
 
           {/* Menu mobile y logo */}
-          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center',  }}>
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
             <IconButton
               size="large"
               onClick={handleOpenNavMenu}
@@ -98,9 +88,9 @@ export default function NavBar() {
               sx={{ height: 40, objectFit: 'contain', cursor: 'pointer' }}
               onClick={() => {
                 clearComparison();
-                navigate(ROUTES.HOME_APP);
-              }}
-            />
+                navigate(ROUTES.HOME_APP);}
+                }
+            />
 
             <Menu
               anchorEl={anchorElNav}
@@ -121,28 +111,11 @@ export default function NavBar() {
                   {label}
                 </MenuItem>
               ))}
-
-              <MenuItem
-                onClick={() => {
-                  handleCloseNavMenu();
-                  window.location.href = loginUrl;
-                }}
-              >
-                INICIAR SESIÓN
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  handleCloseNavMenu();
-                  window.location.href = registerUrl;
-                }}
-              >
-                REGISTRO
-              </MenuItem>
-            </Menu>
+            </Menu>
           </Box>
 
           {/* Desktop links */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4, }}>
             {pages.map(({ label, route }) => (
               <Button
                 key={label}
@@ -161,38 +134,16 @@ export default function NavBar() {
             ))}
           </Box>
 
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, ml: 'auto' }}>
-            <Button
-              color="inherit"
-              onClick={() => window.location.href = loginUrl}
-              sx={{ textTransform: 'none' }}
-            >
-              INICIAR SESIÓN
-            </Button>
-            <Button
-              color="inherit"
-              onClick={() => window.location.href = registerUrl}
-              sx={{ textTransform: 'none' }}
-            >
-              REGISTRO
-            </Button>
-          </Box>
-
+          {/* Profile & logout */}
           <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
             <IconButton
               color="inherit"
               aria-label="profile"
               onClick={() => navigate(ROUTES.ADMIN_PANEL)}
-              sx={{ fontSize: { xs: 28, sm: 28 } }}
             >
               <AccountCircleIcon sx={{ fontSize: 28 }} />
             </IconButton>
-            <IconButton
-              color="inherit"
-              aria-label="logout"
-              onClick={handleLogout}
-              sx={{ fontSize: { xs: 28, sm: 28 } }}
-            >
+            <IconButton color="inherit" aria-label="logout">
               <LogoutIcon sx={{ fontSize: 28 }} />
             </IconButton>
           </Box>

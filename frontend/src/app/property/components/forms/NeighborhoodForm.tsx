@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { TextField, Grid, Box, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { TextField, Grid, Box, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { Neighborhood, NeighborhoodCreate, NeighborhoodType } from '../../types/neighborhood';
 import { postNeighborhood, putNeighborhood, deleteNeighborhood } from '../../services/neighborhood.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
+import { LoadingButton } from '@mui/lab';
+import { useLoading } from '../../utils/useLoading';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -51,8 +53,23 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
         }
     };
 
+    const { loading, run } = useLoading(save);
     return (
         <>
+            {loading && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    zIndex={theme => theme.zIndex.modal + 1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                </Box>
+            )}
 
             <Grid container spacing={2} mb={2} >
                 <Grid size={6}>
@@ -61,28 +78,34 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
                 <Grid size={6}><TextField disabled={action === 'delete'} fullWidth label="Ciudad" value={form.city} onChange={set('city')} /></Grid>
                 <Grid size={12}>
                     <FormControl fullWidth>
-                    <InputLabel id="neighborhood-type-label">Tipo</InputLabel>
-                    <Select
-                        labelId="neighborhood-type-label"  // <-- agregar este
-                        id="neighborhood-type"             // <-- agregar este
-                        disabled={action === 'delete'}
-                        value={form.type}
-                        label="Tipo"
-                        onChange={set('type')}
-                    >
-                        <MenuItem value={NeighborhoodType.CERRADO}>Cerrado</MenuItem>
-                        <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi cerrado</MenuItem>
-                        <MenuItem value={NeighborhoodType.ABIERTO}>Abierto</MenuItem>
-                    </Select>
+                        <InputLabel id="neighborhood-type-label">Tipo</InputLabel>
+                        <Select
+                            labelId="neighborhood-type-label"  // <-- agregar este
+                            id="neighborhood-type"             // <-- agregar este
+                            disabled={action === 'delete'}
+                            value={form.type}
+                            label="Tipo"
+                            onChange={set('type')}
+                        >
+                            <MenuItem value={NeighborhoodType.CERRADO}>Cerrado</MenuItem>
+                            <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi cerrado</MenuItem>
+                            <MenuItem value={NeighborhoodType.ABIERTO}>Abierto</MenuItem>
+                        </Select>
                     </FormControl>
                 </Grid>
             </Grid>
 
 
             <Box textAlign="right">
-                <Button variant="contained" onClick={save} disabled={invalid} color={action === 'delete' ? 'error' : 'primary'}>
+                <LoadingButton
+                    onClick={() => run()}
+                    loading={loading}
+                    disabled={invalid || loading}
+                    variant="contained"
+                    color={action === 'delete' ? 'error' : 'primary'}
+                >
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
-                </Button>
+                </LoadingButton>
             </Box>
         </>
     );

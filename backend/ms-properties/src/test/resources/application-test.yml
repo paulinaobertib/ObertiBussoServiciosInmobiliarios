@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost/mock
+          issuer-uri: http://localhost/mock
+  cloud:
+    discovery:
+      enabled: false
+
+server:
+  port: 0
+
+eureka:
+  client:
+    enabled: false
+  instance:
+    enabled: false
+
+azure:
+  blob-storage:
+    connection-string: Dummy
+    container-name: Dummy
+
+email:
+  username: test
+  password: test
+
+frontend:
+  base-url: http://localhost
