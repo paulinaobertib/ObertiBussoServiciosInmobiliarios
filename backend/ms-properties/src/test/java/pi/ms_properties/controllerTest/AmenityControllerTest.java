@@ -53,8 +53,7 @@ class AmenityControllerTest {
 
         mockMvc.perform(post("/amenity/create")
                         .param("name", "WiFi")
-                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
-        )
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Amenity created"));
     }
@@ -65,8 +64,7 @@ class AmenityControllerTest {
                 .thenReturn(ResponseEntity.ok("Amenity deleted"));
 
         mockMvc.perform(delete("/amenity/delete/1")
-                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
-        )
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Amenity deleted"));
     }
@@ -83,7 +81,7 @@ class AmenityControllerTest {
         String body = "{\"id\":1, \"name\":\"WiFi\"}";
 
         mockMvc.perform(put("/amenity/update")
-                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
@@ -111,7 +109,7 @@ class AmenityControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getById_shouldReturnOk() throws Exception {
         Amenity amenity = new Amenity();
         amenity.setId(1L);
@@ -128,40 +126,39 @@ class AmenityControllerTest {
 
     // casos de error
 
-//     @Test
-//     void createAmenity_shouldReturnUnauthorized_whenNoUser() throws Exception {
-//         mockMvc.perform(post("/amenity/create").param("name", "WiFi"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void createAmenity_shouldReturnUnauthorized_whenNoUser() throws Exception {
+        mockMvc.perform(post("/amenity/create").param("name", "WiFi"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     // @WithMockUser(roles = "user") // no admin
-//     void deleteAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
-//         mockMvc.perform(delete("/amenity/delete/1"))
-//                 .andExpect(status().isForbidden());
-//     }
+    @Test
+    @WithMockUser(roles = "user") // no admin
+    void deleteAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(delete("/amenity/delete/1"))
+                .andExpect(status().isForbidden());
+    }
 
-//     @Test
-//     // @WithMockUser(roles = "user")
-//     void updateAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
-//         mockMvc.perform(put("/amenity/update")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content("{\"id\": 1, \"name\": \"WiFi\"}"))
-//                 .andExpect(status().isForbidden());
-//     }
+    @Test
+    @WithMockUser(roles = "user")
+    void updateAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(put("/amenity/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\": 1, \"name\": \"WiFi\"}"))
+                .andExpect(status().isForbidden());
+    }
 
     @Test
     void createAmenity_shouldReturnBadRequest_whenNameMissing() throws Exception {
         mockMvc.perform(post("/amenity/create")
-                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
-        )
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void updateAmenity_shouldReturnBadRequest_whenBodyInvalid() throws Exception {
         mockMvc.perform(put("/amenity/update")
-                        // .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("")) // cuerpo vacío
                 .andExpect(status().isBadRequest());

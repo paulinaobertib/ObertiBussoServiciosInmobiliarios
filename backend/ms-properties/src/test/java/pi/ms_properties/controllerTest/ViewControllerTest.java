@@ -40,7 +40,7 @@ class ViewControllerTest {
     // casos de exito
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByPropertySuccess() throws Exception {
         Mockito.when(viewService.getViewsByProperty())
                 .thenReturn(ResponseEntity.ok(Map.of("Property1", 10L)));
@@ -51,7 +51,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByPropertyTypeSuccess() throws Exception {
         Mockito.when(viewService.getViewsByPropertyType())
                 .thenReturn(ResponseEntity.ok(Map.of("Apartment", 5L)));
@@ -62,7 +62,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByDaySuccess() throws Exception {
         Mockito.when(viewService.getViewsByDay())
                 .thenReturn(ResponseEntity.ok(Map.of("2025-05-20", 7L)));
@@ -73,7 +73,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByMonthSuccess() throws Exception {
         Mockito.when(viewService.getViewsByMonth())
                 .thenReturn(ResponseEntity.ok(Map.of("2025-05", 12L)));
@@ -84,7 +84,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByNeighborhoodSuccess() throws Exception {
         Mockito.when(viewService.getViewsByNeighborhood())
                 .thenReturn(ResponseEntity.ok(Map.of("Downtown", 8L)));
@@ -95,7 +95,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByNeighborhoodTypeSuccess() throws Exception {
         Mockito.when(viewService.getViewsByNeighborhoodType())
                 .thenReturn(ResponseEntity.ok(Map.of("Residential", 6L)));
@@ -106,7 +106,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetViewsByStatusSuccess() throws Exception {
         Mockito.when(viewService.getViewsByStatus())
                 .thenReturn(ResponseEntity.ok(Map.of("Available", 4L)));
@@ -117,7 +117,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetViewsByStatusAndTypeSuccess() throws Exception {
         Map<String, Long> innerMap = Map.of("Apartment", 3L);
         Mockito.when(viewService.getViewsByStatusAndType())
@@ -129,7 +129,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByOperationSuccess() throws Exception {
         Mockito.when(viewService.getViewsByOperation())
                 .thenReturn(ResponseEntity.ok(Map.of("Rent", 9L)));
@@ -140,7 +140,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByRoomsSuccess() throws Exception {
         Mockito.when(viewService.getViewsByRooms())
                 .thenReturn(ResponseEntity.ok(Map.of(3.0f, 5L)));
@@ -151,7 +151,7 @@ class ViewControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByAmenitySuccess() throws Exception {
         Mockito.when(viewService.getViewsByAmenity())
                 .thenReturn(ResponseEntity.ok(Map.of("Pool", 7L)));
@@ -163,70 +163,70 @@ class ViewControllerTest {
 
     // casos de error
 
-//     @Test
-//     void testGetByPropertyWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/property"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByPropertyWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/property"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByPropertyTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/propertyType"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByPropertyTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/propertyType"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByDayWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/day"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByDayWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/day"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByMonthWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/month"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByMonthWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/month"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByNeighborhoodWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/neighborhood"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByNeighborhoodWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/neighborhood"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByNeighborhoodTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/neighborhoodType"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByNeighborhoodTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/neighborhoodType"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByStatusWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/status"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByStatusWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/status"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByStatusAndTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/statusAndType"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByStatusAndTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/statusAndType"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByOperationWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/operation"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByOperationWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/operation"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByRoomsWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/rooms"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByRoomsWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/rooms"))
+                .andExpect(status().isUnauthorized());
+    }
 
-//     @Test
-//     void testGetByAmenityWithoutAuth_shouldReturnUnauthorized() throws Exception {
-//         mockMvc.perform(get("/view/amenity"))
-//                 .andExpect(status().isUnauthorized());
-//     }
+    @Test
+    void testGetByAmenityWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/view/amenity"))
+                .andExpect(status().isUnauthorized());
+    }
 }
 

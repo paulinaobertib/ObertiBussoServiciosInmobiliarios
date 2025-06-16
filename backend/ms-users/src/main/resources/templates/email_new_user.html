@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenido a Oberti Busso</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+<div style="max-width: 600px; margin: auto; background-color: #FFF; border-radius: 8px; box-shadow: 0 0 10px #eee;">
+    <div style="background-color: #EE671E; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; width: auto; display: block; margin: 0 auto;">
+        <h1 style="color: white; margin-top: 10px;">¡Nos alegra que formes parte!</h1>
+    </div>
+    <div style="padding: 30px; background-color: #FFF;">
+        <p>Hola <span th:text="${name}">Usuario</span>,</p>
+        <p>Un administrador ha creado una cuenta para que puedas acceder al sistema de Oberti Busso Servicios Inmobiliarios.</p>
+        <p>Estos son tus datos de acceso:</p>
+        <ul>
+            <li><strong>Usuario:</strong> <span th:text="${username}">nombre.usuario</span></li>
+            <li><strong>Contraseña:</strong> <span th:text="${password}">contraseña123</span></li>
+        </ul>
+        <p>Te recomendamos cambiar la contraseña una vez que ingreses al sistema.</p>
+        <p>¡Gracias por elegirnos, <span th:text="${name}">Usuario</span>!</p>
+    </div>
+    <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
+        <small>Oberti Busso Servicios Inmobiliarios</small>
+    </div>
+</div>
+</body>
+</html>

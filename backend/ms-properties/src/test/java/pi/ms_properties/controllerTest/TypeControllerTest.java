@@ -55,7 +55,7 @@ class TypeControllerTest {
     // casos de exito
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testCreateTypeSuccess() throws Exception {
         Mockito.when(typeService.createType(any())).thenReturn(ResponseEntity.status(201).body("Created"));
 
@@ -67,7 +67,7 @@ class TypeControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testUpdateTypeSuccess() throws Exception {
         Mockito.when(typeService.updateType(any())).thenReturn(ResponseEntity.ok(sampleType));
 
@@ -79,7 +79,7 @@ class TypeControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testDeleteTypeSuccess() throws Exception {
         Mockito.when(typeService.deleteType(1L)).thenReturn(ResponseEntity.ok("Deleted"));
 
@@ -109,27 +109,27 @@ class TypeControllerTest {
 
     // casos de error
 
-    // @Test
-    // void testCreateTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(post("/type/create")
-    //                     .contentType(MediaType.APPLICATION_JSON)
-    //                     .content(objectMapper.writeValueAsString(sampleType)))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    void testCreateTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(post("/type/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleType)))
+                .andExpect(status().isUnauthorized());
+    }
 
-    // @Test
-    // void testUpdateTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(put("/type/update")
-    //                     .contentType(MediaType.APPLICATION_JSON)
-    //                     .content(objectMapper.writeValueAsString(sampleType)))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    void testUpdateTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(put("/type/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleType)))
+                .andExpect(status().isUnauthorized());
+    }
 
-    // @Test
-    // void testDeleteTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(delete("/type/delete/1"))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    void testDeleteTypeWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(delete("/type/delete/1"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
     void testGetTypeByIdNotFound_shouldReturn404() throws Exception {

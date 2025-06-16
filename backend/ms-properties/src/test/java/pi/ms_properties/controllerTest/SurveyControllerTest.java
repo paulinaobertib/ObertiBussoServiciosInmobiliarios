@@ -27,7 +27,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @WebMvcTest(SurveyController.class)
 @Import({SurveyControllerTest.Config.class, WebSecurityConfig.class})
 class SurveyControllerTest {
@@ -70,7 +69,7 @@ class SurveyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetSurveyByIdAsAdmin() throws Exception {
         Mockito.when(surveyService.getById(1L)).thenReturn(ResponseEntity.ok(sampleSurvey));
 
@@ -81,7 +80,7 @@ class SurveyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetAllSurveysAsAdmin() throws Exception {
         Mockito.when(surveyService.getAll()).thenReturn(ResponseEntity.ok(List.of(sampleSurvey)));
 
@@ -91,7 +90,7 @@ class SurveyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetAverageScore() throws Exception {
         Mockito.when(surveyService.getAverageScore()).thenReturn(ResponseEntity.ok(4.5f));
 
@@ -101,7 +100,7 @@ class SurveyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetScoreDistribution() throws Exception {
         Mockito.when(surveyService.getScoreDistribution()).thenReturn(ResponseEntity.ok(Map.of(5, 3L)));
 
@@ -111,7 +110,7 @@ class SurveyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetDailyAverageScore() throws Exception {
         Mockito.when(surveyService.getDailyAverageScore()).thenReturn(ResponseEntity.ok(Map.of("lunes", 4.2)));
 
@@ -121,7 +120,7 @@ class SurveyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetMonthlyAverageScore() throws Exception {
         Mockito.when(surveyService.getMonthlyAverageScore())
                 .thenReturn(ResponseEntity.ok(Map.of(YearMonth.of(2024, 5), 4.7)));
@@ -133,44 +132,44 @@ class SurveyControllerTest {
 
     // casos de error
 
-    // @Test
-    // void testGetSurveyByIdWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(get("/survey/getById/1"))
-    //             .andExpect(status().isUnauthorized());
-    // }
-
-    // @Test
-    // void testGetAllSurveysWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(get("/survey/getAll"))
-    //             .andExpect(status().isUnauthorized());
-    // }
-
-    // @Test
-    // void testGetAverageScoreWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(get("/survey/statistics/averageScore"))
-    //             .andExpect(status().isUnauthorized());
-    // }
-
-    // @Test
-    // void testGetDistributionWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(get("/survey/statistics/score"))
-    //             .andExpect(status().isUnauthorized());
-    // }
-
-    // @Test
-    // void testGetDailyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(get("/survey/statistics/daily"))
-    //             .andExpect(status().isUnauthorized());
-    // }
-
-    // @Test
-    // void testGetMonthlyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
-    //     mockMvc.perform(get("/survey/statistics/monthly"))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    void testGetSurveyByIdWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/survey/getById/1"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    void testGetAllSurveysWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/survey/getAll"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetAverageScoreWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/survey/statistics/averageScore"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetDistributionWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/survey/statistics/score"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetDailyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/survey/statistics/daily"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetMonthlyAverageWithoutAuth_shouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/survey/statistics/monthly"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
     void testSurveyNotFound_shouldReturn404() throws Exception {
         Mockito.when(surveyService.getById(eq(99L)))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());

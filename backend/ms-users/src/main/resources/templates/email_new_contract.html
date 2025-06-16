@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Contrato Disponible - Oberti Busso</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
+<div style="max-width: 600px; margin: auto; background-color: #FFF; border-radius: 8px; box-shadow: 0 0 10px #eee;">
+    <div style="background-color: #EE671E; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; width: auto; display: block; margin: 0 auto;">
+        <h1 style="color: white; margin-top: 10px;">¡Te damos la bienvenida a tu nuevo hogar!</h1>
+    </div>
+    <div style="padding: 30px; background-color: #FFF;">
+        <p>Estimado/a, <span th:text="${name}">Usuario</span></p>
+        <p>En Oberti Busso Servicios Inmobiliarios estamos encantados de darte la bienvenida como inquilino/a de una de las propiedades que administramos. Nos complace informarte que el contrato de alquiler ya está disponible para que lo consultes en nuestro portal.</p>
+        <p>Accede al contrato en el siguiente enlace: <a th:href="${contractUrl}" href="https://www.obertibusso.com/contratos">Ver contrato</a></p>
+        <p>Si necesitas asistencia o tienes alguna consulta sobre la propiedad o el contrato, no dudes en contactarnos. Estamos aquí para acompañarte en esta nueva etapa.</p>
+        <p>¡Gracias por elegirnos, <span th:text="${name}">Usuario</span>!</p>
+    </div>
+    <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
+        <small>Oberti Busso Servicios Inmobiliarios</small>
+    </div>
+</div>
+</body>
+</html>

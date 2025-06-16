@@ -60,7 +60,7 @@ class OwnerControllerTest {
     // casos de exito
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void createOwner_success() throws Exception {
         Mockito.when(ownerService.createOwner(any()))
                 .thenReturn(ResponseEntity.ok("Propietario creado correctamente"));
@@ -73,7 +73,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void deleteOwner_success() throws Exception {
         Mockito.when(ownerService.deleteOwner(1L))
                 .thenReturn(ResponseEntity.ok("Propietario eliminado correctamente"));
@@ -84,7 +84,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateOwner_success() throws Exception {
         Mockito.when(ownerService.updateOwner(any()))
                 .thenReturn(ResponseEntity.ok(validOwner));
@@ -97,7 +97,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getByPropertyId_success() throws Exception {
         Mockito.when(ownerService.getByPropertyId(1L))
                 .thenReturn(ResponseEntity.ok(validOwner));
@@ -108,7 +108,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getAll_success() throws Exception {
         Mockito.when(ownerService.getAll())
                 .thenReturn(ResponseEntity.ok(List.of(validOwner)));
@@ -119,7 +119,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getById_success() throws Exception {
         Mockito.when(ownerService.getById(1L))
                 .thenReturn(ResponseEntity.ok(validOwner));
@@ -130,7 +130,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void searchOwners_success() throws Exception {
         Mockito.when(ownerService.findBy("juan"))
                 .thenReturn(ResponseEntity.ok(List.of(validOwner)));
@@ -143,7 +143,7 @@ class OwnerControllerTest {
     // casos de error
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getById_notFound_returnsNotFound() throws Exception {
         Mockito.when(ownerService.getById(99L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -153,7 +153,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void deleteOwner_notFound_returnsNotFound() throws Exception {
         Mockito.when(ownerService.deleteOwner(99L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Propietario no encontrado"));
@@ -164,7 +164,7 @@ class OwnerControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateOwner_invalid_returnsBadRequest() throws Exception {
         Owner invalid = new Owner();
         invalid.setId(1L);

@@ -30,73 +30,73 @@ public class InquiryController {
         return inquiryService.createWithoutUser(inquirySaveDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/status/{id}")
     public ResponseEntity<String> updateStatus(@PathVariable Long id) {
         return inquiryService.updateStatus(id);
     }
 
-    // @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<Inquiry> getById(@PathVariable Long id) {
         return inquiryService.getById(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<Inquiry>> getAll() {
         return inquiryService.getAll();
     }
 
-    // @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Inquiry>> getByUserId(@PathVariable String userId) {
         return inquiryService.getByUserId(userId);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
     public ResponseEntity<List<Inquiry>> getByPropertyId(@PathVariable Long propertyId) {
         return inquiryService.getByPropertyId(propertyId);
     }
 
-    // @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getByStatus")
     public ResponseEntity<List<Inquiry>> getByStatus(@RequestParam InquiryStatus status) {
         return inquiryService.getByStatus(status);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/duration")
     public ResponseEntity<String> getAverageInquiryResponseTime() {
         return inquiryService.getAverageInquiryResponseTime();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/status")
     public ResponseEntity<Map<String, Long>> getInquiryStatusDistribution() {
         return inquiryService.getInquiryStatusDistribution();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/week")
     public ResponseEntity<Map<String, Long>> getInquiriesGroupedByDayOfWeek() {
         return inquiryService.getInquiriesGroupedByDayOfWeek();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/time")
     public ResponseEntity<Map<String, Long>> getInquiriesGroupedByTimeRange() {
         return inquiryService.getInquiriesGroupedByTimeRange();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/month")
     public ResponseEntity<Map<YearMonth, Long>> getInquiriesPerMonth() {
         return inquiryService.getInquiriesPerMonth();
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/statistics/properties")
     public ResponseEntity<Map<String, Long>> getMostConsultedProperties() {
         return inquiryService.getMostConsultedProperties();
