@@ -1,4 +1,4 @@
-package pi.ms_users.errorTest;
+package pi.ms_properties.errorTest;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
@@ -15,16 +15,24 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.TransactionSystemException;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import pi.ms_users.error.GlobalExceptionHandler;
+import pi.ms_properties.error.GlobalExceptionHandler;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
@@ -37,13 +45,25 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void testHandleNotFoundException() {
-        NotFoundException ex = new NotFoundException("Recurso no encontrado");
+    void testHandleMissingServletRequestPartException() {
+        MissingServletRequestPartException ex = new MissingServletRequestPartException("data");
+        ResponseEntity<String> response = handler.handleMissingServletRequestPart(ex);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().contains("Falta parte requerida de la petición: data"));
+    }
 
-        ResponseEntity<String> response = handler.handleNotFoundException(ex);
+    @Test
+    void testHandleValidationExceptions() {
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getAllErrors()).thenReturn(List.of(new ObjectError("field", "Campo inválido")));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Recurso no encontrado", response.getBody());
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+
+        ResponseEntity<String> response = handler.handleValidationExceptions(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().contains("Errores de validación: Campo inválido"));
     }
 
     @Test
@@ -158,14 +178,6 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void testHandleMissingServletRequestPartException() {
-        MissingServletRequestPartException ex = new MissingServletRequestPartException("data");
-        ResponseEntity<String> response = handler.handleMissingServletRequestPart(ex);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Falta parte requerida de la petición: data"));
-    }
-
-    @Test
     void testHandleHttpMessageNotReadable() {
         Throwable cause = new IllegalArgumentException("JSON parse error");
         HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON request", cause);
@@ -175,5 +187,15 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertTrue(response.getBody().contains("Invalid or missing request body"));
         assertTrue(response.getBody().contains("JSON parse error"));
+    }
+
+    @Test
+    void testHandleIOException() {
+        IOException ex = new IOException("Error leyendo archivo");
+
+        ResponseEntity<String> response = handler.handleIOException(ex);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error al manejar archivo: Error leyendo archivo", response.getBody());
     }
 }

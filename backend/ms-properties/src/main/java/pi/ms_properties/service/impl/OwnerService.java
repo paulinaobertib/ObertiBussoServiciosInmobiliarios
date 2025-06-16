@@ -1,12 +1,11 @@
 package pi.ms_properties.service.impl;
 
-import jakarta.validation.ConstraintViolationException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionSystemException;
 import pi.ms_properties.domain.Owner;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.feign.ContractDTO;
@@ -19,16 +18,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class OwnerService implements IOwnerService {
 
     private final IOwnerRepository ownerRepository;
-
     private final IPropertyRepository propertyRepository;
-
     private final ContractRepository contractRepository;
 
     private static ContractDTO getContractDTO(ContractDTO contract) {
@@ -49,139 +45,80 @@ public class OwnerService implements IOwnerService {
     public ResponseEntity<String> createOwner(Owner owner) {
         try {
             ownerRepository.save(owner);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario");
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("El mail '" + owner.getMail() + "' ya existe");
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("No se ha podido guardar el propietario" + e);
+            throw new IllegalArgumentException("El mail '" + owner.getMail() + "' ya existe");
         }
+        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario");
     }
 
     @Override
     public ResponseEntity<String> deleteOwner(Long id) {
-        try {
-            Optional<Owner> exist = ownerRepository.findById(id);
+        Owner owner = ownerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el propietario con ID: " + id));
 
-            if (exist.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-
-            ownerRepository.deleteById(id);
-
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("No se ha podido eliminar el propietario" + e);
-        }
+        ownerRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Owner> updateOwner(Owner owner) {
-        try {
-            Optional<Owner> exist = ownerRepository.findById(owner.getId());
+        ownerRepository.findById(owner.getId())
+                .orElseThrow(() -> new EntityNotFoundException("No existe el propietario con ID: " + owner.getId()));
 
-            if (exist.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-
-            ownerRepository.save(owner);
-
-            return ResponseEntity.ok(owner);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        Owner updated = ownerRepository.save(owner);
+        return ResponseEntity.ok(updated);
     }
 
     @Override
     public ResponseEntity<Owner> getByPropertyId(Long id) {
-        try {
-            Optional<Property> property = propertyRepository.findById(id);
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe la propiedad con ID: " + id));
 
-            if (property.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+        Owner owner = ownerRepository.findById(property.getOwner().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el propietario para la propiedad"));
 
-            Optional<Owner> exist = ownerRepository.findById(property.get().getOwner().getId());
-
-            return exist.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return ResponseEntity.ok(owner);
     }
 
     @Override
     public ResponseEntity<List<Owner>> getAll() {
-        try {
-            List<Owner> owners = ownerRepository.findAll();
-
-            if (owners.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            } else {
-                return ResponseEntity.ok(owners);
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        List<Owner> owners = ownerRepository.findAll();
+        if (owners.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(owners);
     }
 
     @Override
     public ResponseEntity<Owner> getById(Long id) {
-        try {
-            Optional<Owner> owner = ownerRepository.findById(id);
-            return owner.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Owner owner = ownerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el propietario con ID: " + id));
+
+        return ResponseEntity.ok(owner);
     }
 
     @Override
     public ResponseEntity<List<Owner>> findBy(String search) {
-        try {
-            Specification<Owner> specification = OwnerSpecification.textSearch(search);
-            List<Owner> find = ownerRepository.findAll(specification);
-            return ResponseEntity.ok(find);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Specification<Owner> specification = OwnerSpecification.textSearch(search);
+        List<Owner> result = ownerRepository.findAll(specification);
+        return ResponseEntity.ok(result);
     }
 
     @Override
-    public ResponseEntity<?> findContracts(Long id) {
-        try {
-            Optional<Owner> owner = ownerRepository.findById(id);
-            if (owner.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado al propietario");
+    public ResponseEntity<List<ContractDTO>> findContracts(Long id) {
+        Owner owner = ownerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al propietario con ID: " + id));
+
+        List<Property> properties = propertyRepository.findByOwner(id);
+        List<ContractDTO> contractDTOS = new ArrayList<>();
+
+        for (Property property : properties) {
+            List<ContractDTO> contracts = contractRepository.findByPropertyId(property.getId());
+            for (ContractDTO contract : contracts) {
+                contractDTOS.add(getContractDTO(contract));
             }
-            List<Property> properties = propertyRepository.findByOwner(id);
-
-            List<ContractDTO> contractDTOS = new ArrayList<>();
-
-            for (Property property : properties) {
-                List<ContractDTO> contracts = contractRepository.findByPropertyId(property.getId());
-
-                for (ContractDTO contract : contracts) {
-                    ContractDTO contractDTO = getContractDTO(contract);
-                    contractDTOS.add(contractDTO);
-                }
-            }
-
-            return ResponseEntity.ok(contractDTOS);
-
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("Violación de integridad de datos");
-        } catch (ConstraintViolationException e) {
-            return ResponseEntity.badRequest().body("Datos inválidos: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Argumento inválido: " + e.getMessage());
-        } catch (TransactionSystemException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error en la transacción: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error interno: " + e.getMessage());
         }
+
+        return ResponseEntity.ok(contractDTOS);
     }
 }
