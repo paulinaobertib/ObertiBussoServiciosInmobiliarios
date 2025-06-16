@@ -1,65 +1,67 @@
+server:
+  port: ${SERVICE_PORT}
+
+eureka:
+  instance:
+    hostname: ${WEBSITE_HOSTNAME}
+    nonSecurePortEnabled: true
+    nonSecurePort: 80
+    securePortEnabled: false
+  client:
+    service-url:
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
 spring:
   application:
     name: ms-users
+
+  # MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
+  # config:
+  #   ignore-unresolvable-placeholders: true
+
   # configuracion de la base de datos
   datasource:
-    url: jdbc:mysql://localhost:3306/obertibussoserviciosinmobiliarios
-    username: root
-    password: lmcpauli1
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     open-in-view: false
     show-sql: true
     hibernate:
       ddl-auto: update
-    jpa:
-      hibernate:
-        ddl-auto: create-drop
-      show-sql: true
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
 
-server:
-  port: 8081
+email:
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
 
-eureka:
-  instance:
-    hostname: localhost
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
+frontend:
+  base-url: ${SWA_FRONTEND}
 
 pi:
   keycloak:
-    serverUrl: http://localhost:8080/
+    serverUrl: http://${KEYCLOAK_HOSTNAME}/
     realm: obertibussoserviciosinmobiliarios
-    clientId: springboot-keycloak-client
-    clientSecret: bqUqMGlePOEkIQxC4c3k7LgHiJALnEM7
-
-email:
-  username: desarrolloinmobertibusso@gmail.com
-  password: gian ovac cerv btzf
-
-frontend:
-  base-url: http://localhost:5173
+    clientId: ${KEYCLOAK_SB_CLIENT_ID}
+    clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
 
 ---
 
 # Configuración para perfil "test"
 spring:
-  config:
-    activate:
-      on-profile: test
+  profiles: test
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
     password:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.H2Dialect
