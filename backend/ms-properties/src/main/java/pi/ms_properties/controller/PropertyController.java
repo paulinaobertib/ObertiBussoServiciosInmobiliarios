@@ -21,7 +21,7 @@ public class PropertyController {
 
     private final PropertyService propertyService;
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createProperty(@RequestPart("data") PropertySaveDTO propertySaveDTO, @RequestPart("mainImage") MultipartFile mainImage, @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         propertySaveDTO.setMainImage(mainImage);
@@ -29,26 +29,26 @@ public class PropertyController {
         return propertyService.createProperty(propertySaveDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteProperty(@PathVariable Long id) {
         return propertyService.deleteProperty(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
     public ResponseEntity<PropertyDTO> updateProperty(@PathVariable Long id, @RequestPart("data") PropertyUpdateDTO propertyUpdateDTO, @RequestPart(value = "mainImage", required = false) MultipartFile mainImage) {
         propertyUpdateDTO.setMainImageUpdated(mainImage);
         return propertyService.updateProperty(id, propertyUpdateDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/status/{id}")
     public ResponseEntity<String> updatePropertyStatus(@PathVariable Long id, @RequestParam Status status) {
         return propertyService.updateStatus(id, status);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<PropertyDTO>> getAll() {
         return propertyService.getAll();
@@ -64,7 +64,7 @@ public class PropertyController {
         return propertyService.getById(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByStatus")
     public ResponseEntity<List<PropertyDTO>> getByStatus(@RequestParam Status status) {
         return propertyService.getByStatus(status);

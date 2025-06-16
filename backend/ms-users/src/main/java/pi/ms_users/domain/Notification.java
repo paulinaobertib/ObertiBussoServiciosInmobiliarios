@@ -20,6 +20,7 @@ public class Notification {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private NotificationType type;
 

@@ -13,5 +13,4 @@ public class NotificationRepository {
     public void createNotification(NotificationDTO notificationDTO, Long propertyId) {
         feignUserRepository.createProperty(notificationDTO, propertyId);
     }
-
 }

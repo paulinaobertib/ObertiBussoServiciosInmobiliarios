@@ -66,7 +66,7 @@ class PropertyControllerTest {
     // casos de exito
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testCreateProperty() {
         PropertySaveDTO dto = new PropertySaveDTO();
         MultipartFile mainImage = new MockMultipartFile("main", new byte[]{});
@@ -82,7 +82,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testDeleteProperty() {
         when(propertyService.deleteProperty(1L)).thenReturn(ResponseEntity.ok("Deleted"));
         ResponseEntity<String> response = propertyController.deleteProperty(1L);
@@ -90,7 +90,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testUpdateProperty() {
         PropertyUpdateDTO dto = new PropertyUpdateDTO();
         MultipartFile mainImage = new MockMultipartFile("main", new byte[]{});
@@ -102,7 +102,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testUpdatePropertyStatus() {
         when(propertyService.updateStatus(1L, Status.DISPONIBLE)).thenReturn(ResponseEntity.ok("Status updated"));
         ResponseEntity<String> response = propertyController.updatePropertyStatus(1L, Status.DISPONIBLE);
@@ -110,7 +110,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetAll() {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAll()).thenReturn(ResponseEntity.ok(list));
@@ -135,7 +135,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void testGetByStatus() {
         when(propertyService.getByStatus(Status.DISPONIBLE)).thenReturn(ResponseEntity.ok(List.of()));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getByStatus(Status.DISPONIBLE);
@@ -172,7 +172,7 @@ class PropertyControllerTest {
     // casos de error
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void createProperty_shouldReturnBadRequest_whenMainImageMissing() throws Exception {
         PropertySaveDTO dto = new PropertySaveDTO();
         MockMultipartFile data = new MockMultipartFile("data", "", "application/json", objectMapper.writeValueAsBytes(dto));
@@ -183,7 +183,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateProperty_shouldReturnBadRequest_whenNoData() throws Exception {
         MockMultipartFile data = new MockMultipartFile("data", "", "application/json", "".getBytes());
 
@@ -197,7 +197,7 @@ class PropertyControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updatePropertyStatus_shouldReturnBadRequest_whenStatusMissing() throws Exception {
         mockMvc.perform(put("/property/status/1"))
                 .andExpect(status().isBadRequest());
@@ -212,23 +212,23 @@ class PropertyControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
-    // @Test
-    // void createProperty_shouldReturnUnauthorized_whenNoUser() throws Exception {
-    //     mockMvc.perform(multipart("/property/create"))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    void createProperty_shouldReturnUnauthorized_whenNoUser() throws Exception {
+        mockMvc.perform(multipart("/property/create"))
+                .andExpect(status().isUnauthorized());
+    }
 
-    // @Test
-    // // @WithMockUser(roles = "user")
-    // void deleteProperty_shouldReturnForbidden_whenUserIsNotAdmin() throws Exception {
-    //     mockMvc.perform(delete("/property/delete/1"))
-    //             .andExpect(status().isForbidden());
-    // }
+    @Test
+    @WithMockUser(roles = "user")
+    void deleteProperty_shouldReturnForbidden_whenUserIsNotAdmin() throws Exception {
+        mockMvc.perform(delete("/property/delete/1"))
+                .andExpect(status().isForbidden());
+    }
 
-    // @Test
-    // // @WithMockUser(roles = "user")
-    // void getByStatus_shouldReturnForbidden_whenNotAdmin() throws Exception {
-    //     mockMvc.perform(get("/property/getByStatus").param("status", "DISPONIBLE"))
-    //             .andExpect(status().isForbidden());
-    // }
+    @Test
+    @WithMockUser(roles = "user")
+    void getByStatus_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(get("/property/getByStatus").param("status", "DISPONIBLE"))
+                .andExpect(status().isForbidden());
+    }
 }

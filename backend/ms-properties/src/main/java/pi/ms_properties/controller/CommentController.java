@@ -16,31 +16,31 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody CommentDTO commentDTO) {
         return commentService.create(commentDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
     public ResponseEntity<String> update(@RequestBody CommentDTO commentDTO) {
         return commentService.update(commentDTO);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return commentService.delete(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<CommentDTO> getById(@PathVariable Long id) {
         return commentService.getById(id);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
     public ResponseEntity<List<CommentDTO>> getByPropertyId(@PathVariable Long propertyId) {
         return commentService.getByPropertyId(propertyId);
