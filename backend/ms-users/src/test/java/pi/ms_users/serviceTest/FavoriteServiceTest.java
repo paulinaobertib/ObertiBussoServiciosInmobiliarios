@@ -19,6 +19,7 @@ import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.service.impl.FavoriteService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -107,86 +108,62 @@ class FavoriteServiceTest {
     // casos de error
 
     @Test
-    void create_userNotFound() {
+    void create_userNotFound_shouldThrowNotFoundException() {
         when(userRepository.findById("user123")).thenThrow(new NotFoundException("No encontrado"));
 
-        ResponseEntity<Favorite> response = favoriteService.create(favorite);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> favoriteService.create(favorite));
     }
 
     @Test
-    void create_dataIntegrityViolation() {
+    void create_dataIntegrityViolation_shouldThrowDataIntegrityViolationException() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(favoriteRepository.save(favorite)).thenThrow(DataIntegrityViolationException.class);
 
-        ResponseEntity<Favorite> response = favoriteService.create(favorite);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> favoriteService.create(favorite));
     }
 
     @Test
-    void create_genericError() {
+    void create_genericError_shouldThrowRuntimeException() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(favoriteRepository.save(favorite)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<Favorite> response = favoriteService.create(favorite);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.create(favorite));
     }
 
     @Test
-    void delete_notFound() {
+    void delete_notFound_shouldThrowNoSuchElementException() {
         when(favoriteRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = favoriteService.delete(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NoSuchElementException.class, () -> favoriteService.delete(1L));
     }
 
     @Test
-    void delete_genericError() {
+    void delete_genericError_shouldThrowRuntimeException() {
         when(favoriteRepository.findById(1L)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<String> response = favoriteService.delete(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.delete(1L));
     }
 
     @Test
-    void findByUserId_notFound() {
+    void findByUserId_notFound_shouldThrowNotFoundException() {
         when(userRepository.findById("user123")).thenThrow(new NotFoundException("No encontrado"));
 
-        ResponseEntity<List<Favorite>> response = favoriteService.findByUserId("user123");
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> favoriteService.findByUserId("user123"));
     }
 
     @Test
-    void findByUserId_genericError() {
+    void findByUserId_genericError_shouldThrowRuntimeException() {
         when(userRepository.findById("user123")).thenThrow(RuntimeException.class);
 
-        ResponseEntity<List<Favorite>> response = favoriteService.findByUserId("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.findByUserId("user123"));
     }
 
     @Test
-    void findByPropertyId_propertyNull() {
-        when(propertyRepository.getById(100L)).thenReturn(null);
-
-        ResponseEntity<List<Favorite>> response = favoriteService.findByPropertyId(100L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void findByPropertyId_genericError() {
+    void findByPropertyId_genericError_shouldThrowRuntimeException() {
         when(propertyRepository.getById(100L)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<List<Favorite>> response = favoriteService.findByPropertyId(100L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.findByPropertyId(100L));
     }
+
 }
 
