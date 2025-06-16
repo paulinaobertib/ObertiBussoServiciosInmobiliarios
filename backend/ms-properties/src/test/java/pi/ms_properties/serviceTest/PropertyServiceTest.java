@@ -1,6 +1,7 @@
 package pi.ms_properties.serviceTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,10 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.domain.Currency;
 import pi.ms_properties.dto.*;
+import pi.ms_properties.dto.feign.NotificationDTO;
 import pi.ms_properties.repository.*;
+import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.impl.AzureBlobStorage;
 import pi.ms_properties.service.impl.ImageService;
 import pi.ms_properties.service.impl.PropertyService;
@@ -33,11 +37,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class PropertyServiceTest {
 
-    @InjectMocks
-    private PropertyService propertyService;
-
     @Mock
     private IPropertyRepository propertyRepository;
+
+    @Mock
+    private NotificationRepository notificationRepository;
 
     @Mock
     private IImageRepository imageRepository;
@@ -65,6 +69,9 @@ public class PropertyServiceTest {
 
     @Mock
     private ViewService viewService;
+
+    @InjectMocks
+    private PropertyService propertyService;
 
     private Property property;
     private PropertyDTO propertyDTO;
@@ -289,7 +296,7 @@ public class PropertyServiceTest {
 
         when(imageService.uploadImageToProperty(
                 eq(propertySaveDTO.getMainImage()),
-                anyLong(), // acepta cualquier ID de propiedad
+                anyLong(),
                 eq(true)))
                 .thenReturn("https://example.com/mainImage.jpg");
 
@@ -298,6 +305,8 @@ public class PropertyServiceTest {
                 anyLong(),
                 eq(false))
         ).thenReturn("https://example.com/extra.jpg");
+
+        doNothing().when(notificationRepository).createNotification(any(NotificationDTO.class), anyLong());
 
         ResponseEntity<String> response = propertyService.createProperty(propertySaveDTO);
 
@@ -550,13 +559,13 @@ public class PropertyServiceTest {
         when(mapper.convertValue(propertyUpdateDTO, Property.class))
                 .thenReturn(property);
 
-        when(propertyRepository.save(ArgumentMatchers.<Property>any()))
+        when(propertyRepository.save(any(Property.class)))
                 .thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<String> response = propertyService.createProperty(propertySaveDTO);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.createProperty(propertySaveDTO));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido guardar la propiedad"));
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
@@ -572,15 +581,15 @@ public class PropertyServiceTest {
         when(amenityRepository.findById(1L)).thenReturn(Optional.of(amenities.iterator().next()));
 
         property.setId(1L);
-        when(propertyRepository.save(ArgumentMatchers.<Property>any())).thenReturn(property);
+        when(propertyRepository.save(any(Property.class))).thenReturn(property);
 
         when(imageService.uploadImageToProperty(eq(propertySaveDTO.getMainImage()), anyLong(), eq(true)))
                 .thenThrow(new RuntimeException("Falló subida imagen principal"));
 
-        ResponseEntity<String> response = propertyService.createProperty(propertySaveDTO);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.createProperty(propertySaveDTO));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido guardar la propiedad"));
+        assertEquals("Falló subida imagen principal", ex.getMessage());
     }
 
     @Test
@@ -589,9 +598,10 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = propertyService.deleteProperty(propertyId);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                () -> propertyService.deleteProperty(propertyId));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertTrue(ex.getMessage().contains("Propiedad no encontrada"));
 
         verify(propertyRepository, never()).deleteById(anyLong());
     }
@@ -605,14 +615,13 @@ public class PropertyServiceTest {
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
         doThrow(new RuntimeException("DB error")).when(propertyRepository).deleteById(propertyId);
 
-        ResponseEntity<String> response = propertyService.deleteProperty(propertyId);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.deleteProperty(propertyId));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido eliminar la propiedad"));
+        assertEquals("DB error", ex.getMessage());
 
         verify(propertyRepository, times(1)).deleteById(propertyId);
     }
-
 
     @Test
     void testUpdateProperty_notFound() {
@@ -620,9 +629,9 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenReturn(Optional.empty());
 
-        ResponseEntity<PropertyDTO> response = propertyService.updateProperty(id, propertyUpdateDTO);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                () -> propertyService.updateProperty(id, propertyUpdateDTO));
+        assertTrue(ex.getMessage().contains("Propiedad no encontrada"));
     }
 
     @Test
@@ -631,9 +640,10 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<PropertyDTO> response = propertyService.updateProperty(id, propertyUpdateDTO);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.updateProperty(id, propertyUpdateDTO));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
@@ -643,10 +653,10 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = propertyService.updateStatus(id, newStatus);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                () -> propertyService.updateStatus(id, newStatus));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-
+        assertTrue(ex.getMessage().contains("Propiedad no encontrada"));
         verify(propertyRepository).findById(id);
     }
 
@@ -657,106 +667,112 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<String> response = propertyService.updateStatus(id, newStatus);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.updateStatus(id, newStatus));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
 
         verify(propertyRepository).findById(id);
     }
 
     @Test
-    void testGetAllProperties_exceptionThrown_returnsInternalServerError() {
+    void testGetAllProperties_exceptionThrown_throwsRuntimeException() {
         when(propertyRepository.findAll()).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<PropertyDTO>> response = propertyService.getAll();
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.getAll());
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
-    void testGetAllUsers_exceptionThrown_returnsInternalServerError() {
-        when(propertyRepository.findByStatus(Status.DISPONIBLE))
-                .thenThrow(new RuntimeException("Error en DB"));
+    void testGetAllUsers_exceptionThrown_throwsRuntimeException() {
+        when(propertyRepository.findByStatus(Status.DISPONIBLE)).thenThrow(new RuntimeException("Error en DB"));
 
-        ResponseEntity<List<PropertyDTO>> response = propertyService.getAllUsers();
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.getAllUsers());
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error en DB", ex.getMessage());
     }
 
     @Test
     void testGetById_notFound() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<PropertyDTO> response = propertyService.getById(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> propertyService.getById(1L));
+        assertTrue(ex.getMessage().contains("404 NOT_FOUND \"Propiedad no encontrada\""));
     }
 
     @Test
-    void testGetById_exceptionThrown_returnsInternalServerError() {
+    void testGetById_exceptionThrown_throwsRuntimeException() {
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<PropertyDTO> response = propertyService.getById(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.getById(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
-    void testGetByStatus_exceptionThrown_returnsInternalServerError() {
-        when(propertyRepository.findByStatus(Status.DISPONIBLE))
-                .thenThrow(new RuntimeException("DB error"));
+    void testGetByStatus_exceptionThrown_throwsRuntimeException() {
+        when(propertyRepository.findByStatus(Status.DISPONIBLE)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<PropertyDTO>> response = propertyService.getByStatus(Status.DISPONIBLE);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.getByStatus(Status.DISPONIBLE));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
     void testFindBy_internalServerError() {
-        when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any())).thenThrow(new RuntimeException("DB error"));
+        when(propertyRepository.findAll(any(Specification.class))).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<PropertyDTO>> response = propertyService.findBy(
-                0, 1000000,
-                0, 1000,
-                0, 500,
-                3,
-                "VENTA",
-                "CASA",
-                List.of("Pileta"),
-                "CABA",
-                "Palermo",
-                "ABIERTO",
-                true,
-                false
-        );
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.findBy(
+                        0, 1000000,
+                        0, 1000,
+                        0, 500,
+                        3,
+                        "VENTA",
+                        "CASA",
+                        List.of("Pileta"),
+                        "CABA",
+                        "Palermo",
+                        "ABIERTO",
+                        true,
+                        false
+                ));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
     void testFindByTitleDescription_internalServerError() {
-        when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any())).thenThrow(new RuntimeException("DB error"));
+        when(propertyRepository.findAll(any(Specification.class))).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<PropertyDTO>> response = propertyService.findByTitleDescription("moderno");
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.findByTitleDescription("moderno"));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
     void testGetSimpleById_notFound() {
         when(propertyRepository.findById(999L)).thenReturn(Optional.empty());
 
-        ResponseEntity<PropertySimpleDTO> response = propertyService.getSimpleById(999L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                () -> propertyService.getSimpleById(999L));
+        assertTrue(ex.getMessage().contains("404 NOT_FOUND \"Propiedad no encontrada\""));
     }
 
     @Test
     void testGetSimpleById_exception() {
         when(propertyRepository.findById(anyLong())).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<PropertySimpleDTO> response = propertyService.getSimpleById(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> propertyService.getSimpleById(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 }

@@ -1,3 +1,5 @@
 .vscode/
 
 *.yml
+**/application*.yml
+**/application.yml
