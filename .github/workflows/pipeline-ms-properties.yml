@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-      # - feature/pipeline
+      # - feature/pipeline-test
       - main
+
+permissions:
+  contents: read
+  checks: write
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -16,12 +20,11 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
   AZURE_BLOB_CONNECTION_STRING_DEV: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_DEV }}
-  AZURE_BLOB_CONNECTION_STRING_PROD: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_PROD }}
-  
+
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  
+
   # Properties-specific
   IMAGE_NAME: ms-properties
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
@@ -31,13 +34,11 @@ env:
   SERVICE_PORT: 8083
 
   # Utils
-  DATASOURCE_URL_DEV: ${{ secrets.DATASOURCE_URL_DEV }}
-  DATASOURCE_URL_PROD: ${{ secrets.DATASOURCE_URL_PROD }}
-  DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-  DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
+  SPRING_DATASOURCE_URL_DEV: ${{ secrets.DATASOURCE_URL_DEV }}
+  SPRING_DATASOURCE_USERNAME_DEV: ${{ secrets.DATASOURCE_USERNAME_DEV }}
+  SPRING_DATASOURCE_PASSWORD_DEV: ${{ secrets.DATASOURCE_PASSWORD_DEV }}
   EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
   EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-  # FRONTEND_BASE_URL:
 
 jobs:
   # --------------------------------------------------------------
@@ -60,31 +61,52 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      # - name: Run Backend Tests
+      - name: Run Unit Tests
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
+
+      # - name: Show first failing report (debug)
+      #   if: failure()
       #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B test
+      #   run: |
+      #     ls -1 target/surefire-reports | head -n 5
+      #     echo "─── FIRST REPORT ───"
+      #     FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
+      #     cat "$FIRST" | head -n 120
 
-      # - name: Publish JUnit Results
-      #   uses: EnricoMi/publish-unit-test-result-action@v2
-      #   if: always()
-      #   with:
-      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      - name: Publish JUnit Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - name: Test Summary
-      #   uses: test-summary/action@v2
-      #   if: always()
-      #   with:
-      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        if: always()
+        with:
+          paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - name: Publish JaCoCo Coverage
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "📈 JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: true
+      - name: Publish JaCoCo Coverage
+        id: jacoco
+        uses: PavanMudigonda/jacoco-reporter@v5.0
+        with:
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: false
+
+      - name: Publish JaCoCo Coverage on Summary
+        if: always()
+        run: |
+          echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
@@ -115,9 +137,9 @@ jobs:
           docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
           docker push $IMAGE
 
-  # --------------------------------------------------------------
-  # JOB 2: Deploy to Development
-  # --------------------------------------------------------------
+  # # --------------------------------------------------------------
+  # # JOB 2: Deploy to Development
+  # # --------------------------------------------------------------
   deploy-dev:
     name: Deploy to Development
     needs: build-and-push
@@ -191,9 +213,9 @@ jobs:
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
-              "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
-              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
-              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
+              "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME_DEV }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD_DEV }}" \
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
@@ -212,9 +234,9 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --docker-container-logging filesystem
 
-  # --------------------------------------------------------------
-  # JOB 3: Deploy to Production
-  # --------------------------------------------------------------
+  # # --------------------------------------------------------------
+  # # JOB 3: Deploy to Production
+  # # --------------------------------------------------------------
   deploy-prod:
     name: Deploy to Production
     needs: [deploy-dev, build-and-push]
@@ -288,9 +310,9 @@ jobs:
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
-              "DATASOURCE_URL=${{ env.DATASOURCE_URL_DEV }}" \
-              "DATASOURCE_USERNAME=${{ env.DATASOURCE_USERNAME }}" \
-              "DATASOURCE_PASSWORD=${{ env.DATASOURCE_PASSWORD }}" \
+              "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME_DEV }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD_DEV }}" \
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
@@ -308,4 +330,3 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
             --docker-container-logging filesystem
-            

@@ -1,16 +1,10 @@
 import { useState } from 'react';
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, } from '@mui/material';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
 import { putPropertyStatus } from '../../services/property.service';
+import { LoadingButton } from '@mui/lab';
+import { useLoading } from '../../utils/useLoading';
 
 interface Props {
   item: { id: number; status: string };
@@ -39,8 +33,24 @@ export default function StatusForm({ item, onDone }: Props) {
     }
   };
 
+  const { loading, run } = useLoading(save);
   return (
     <Box display="flex" flexDirection="column" gap={2}>
+      {loading && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          width="100%"
+          height="100%"
+          zIndex={theme => theme.zIndex.modal + 1000}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+        </Box>
+      )}
+
       <FormControl fullWidth>
         <InputLabel id="status-select-label">Estado</InputLabel>
         <Select
@@ -58,13 +68,14 @@ export default function StatusForm({ item, onDone }: Props) {
       </FormControl>
 
       <Box textAlign="right">
-        <Button
+        <LoadingButton
+          onClick={() => run()}
+          loading={loading}
           variant="contained"
-          onClick={save}
           disabled={status === item.status}
         >
           Guardar
-        </Button>
+        </LoadingButton>
       </Box>
     </Box>
   );
