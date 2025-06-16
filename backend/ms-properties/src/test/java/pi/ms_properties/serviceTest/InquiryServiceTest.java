@@ -1,5 +1,6 @@
 package pi.ms_properties.serviceTest;
 
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -123,7 +124,7 @@ class InquiryServiceTest {
     }
 
     @Test
-    void updateStatus_success() {
+    void updateStatus_success() throws MessagingException {
         Inquiry inquiry = getSampleInquiry();
 
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
@@ -389,7 +390,7 @@ class InquiryServiceTest {
     }
 
     @Test
-    void updateStatus_notFound() {
+    void updateStatus_notFound() throws MessagingException {
         when(inquiryRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResponseEntity<String> response = inquiryService.updateStatus(1L);
@@ -398,7 +399,7 @@ class InquiryServiceTest {
     }
 
     @Test
-    void testUpdateStatus_DataIntegrityViolationException() {
+    void testUpdateStatus_DataIntegrityViolationException() throws MessagingException {
         Long id = 1L;
         Inquiry inquiry = new Inquiry();
         inquiry.setId(id);
@@ -412,7 +413,7 @@ class InquiryServiceTest {
     }
 
     @Test
-    void testUpdateStatus_GeneralException() {
+    void testUpdateStatus_GeneralException() throws MessagingException {
         Long id = 1L;
         Inquiry inquiry = new Inquiry();
         inquiry.setId(id);
