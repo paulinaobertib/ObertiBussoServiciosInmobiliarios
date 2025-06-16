@@ -116,5 +116,4 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         return ResponseEntity.badRequest().body("Errores de validación: " + errors);
     }
-
 }
