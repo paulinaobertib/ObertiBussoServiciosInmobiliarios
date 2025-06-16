@@ -8,8 +8,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import pi.ms_users.dto.EmailDTO;
-import pi.ms_users.dto.EmailPropertyDTO;
+import pi.ms_users.dto.*;
 import pi.ms_users.service.interf.IEmailService;
 
 import java.time.LocalDateTime;
@@ -62,12 +61,15 @@ public class EmailService implements IEmailService {
     }
 
     // cuando la inmobiliaria decide aceptarlo o rechazarlo
-    public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date) {
+    public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
         try {
             Context context = new Context();
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
             context.setVariable("firstName", firstName);
             context.setVariable("date", formatDate(date));
+            if (!address.isEmpty()) {
+                context.setVariable("address", address);
+            }
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -131,6 +133,95 @@ public class EmailService implements IEmailService {
             javaMailSender.send(message);
         } catch (Exception e) {
             throw new RuntimeException("Error al enviar correo de nueva propiedad: " + e.getMessage(), e);
+        }
+    }
+
+    // cuando el administrador le crea un usuario al inquilino
+    public void sendNewUserCredentialsEmail(EmailNewUserDTO emailData) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", emailData.getName());
+            context.setVariable("username", emailData.getUserName());
+            context.setVariable("password", emailData.getPassword());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailData.getTo());
+            helper.setSubject(emailData.getTitle());
+
+            String content = templateEngine.process("email_new_user", context);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar el correo de creación de usuario: " + e.getMessage(), e);
+        }
+    }
+
+    // cuando el administrador crea un contrato
+    public void sendNewContractEmail(EmailContractDTO emailData) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", emailData.getName());
+            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailData.getTo());
+            helper.setSubject(emailData.getTitle());
+
+            String content = templateEngine.process("email_new_contract", context);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar el correo de nuevo contrato: " + e.getMessage(), e);
+        }
+    }
+
+    // cuando aumenta el contrato segun el indice de aumento
+    public void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", emailData.getName());
+            context.setVariable("amount", emailData.getAmount());
+            context.setVariable("frequency", emailData.getFrequency());
+            context.setVariable("increase", emailData.getIncrease());
+            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailData.getTo());
+            helper.setSubject(emailData.getTitle());
+
+            String content = templateEngine.process("email_contract_increase", context);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar el correo de aumento de contrato: " + e.getMessage(), e);
+        }
+    }
+
+    // cuando el contrato esta cerca a vencer
+    public void sendContractExpirationReminder(EmailExpirationContract emailData) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", emailData.getName());
+            context.setVariable("endDate", emailData.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailData.getTo());
+            helper.setSubject(emailData.getTitle());
+
+            String content = templateEngine.process("email_contract_expiration", context);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar recordatorio de vencimiento: " + e.getMessage(), e);
         }
     }
 }

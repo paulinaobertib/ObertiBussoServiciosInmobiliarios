@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { TextField, Grid, Box, Button } from '@mui/material';
+import { TextField, Grid, Box } from '@mui/material';
 import { Owner, OwnerCreate } from '../../types/owner';
 import { postOwner, putOwner, deleteOwner } from '../../services/owner.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
+import { LoadingButton } from '@mui/lab';
+import { useLoading } from '../../utils/useLoading';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -52,8 +54,23 @@ export default function OwnerForm({ action, item, onDone }: Props) {
         }
     };
 
+    const { loading, run } = useLoading(save);
     return (
         <>
+            {loading && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    zIndex={theme => theme.zIndex.modal + 1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                </Box>
+            )}
 
             <Grid container spacing={2} mb={2}>
                 <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Nombre" value={form.firstName} onChange={set('firstName')} /></Grid>
@@ -64,9 +81,15 @@ export default function OwnerForm({ action, item, onDone }: Props) {
 
 
             <Box textAlign="right">
-                <Button variant="contained" onClick={save} disabled={invalid} color={action === 'delete' ? 'error' : 'primary'}>
+                <LoadingButton
+                    onClick={() => run()}
+                    loading={loading}
+                    disabled={invalid || loading}
+                    variant="contained"
+                    color={action === 'delete' ? 'error' : 'primary'}
+                >
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
-                </Button>
+                </LoadingButton>
             </Box>
         </>
     );

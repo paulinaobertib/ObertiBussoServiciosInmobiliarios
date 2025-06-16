@@ -78,7 +78,7 @@ describe('SearchFilters component', () => {
 
   it('renderiza correctamente con filtros iniciales', () => {
     renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
-    
+
     expect(screen.getByText('Filtros de Búsqueda')).toBeInTheDocument();
     expect(screen.getByTestId('operation-select')).toBeInTheDocument();
   });
@@ -132,39 +132,39 @@ describe('SearchFilters component', () => {
   });
 
   it('muestra y permite seleccionar los checkboxes "Apto Crédito" y "Apto Financiamiento" cuando operación es VENTA', async () => {
-  renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
-  const user = userEvent.setup();
+    renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
+    const user = userEvent.setup();
 
-  // Seleccionar operación "VENTA"
-  const selectOperacion = screen.getByLabelText(/operación/i);
-  await user.click(selectOperacion);
-  const optionVenta = await screen.findByText(/^Venta$/i);
-  await user.click(optionVenta);
+    // Seleccionar operación "VENTA"
+    const selectOperacion = screen.getByLabelText(/operación/i);
+    await user.click(selectOperacion);
+    const optionVenta = await screen.findByText(/^Venta$/i);
+    await user.click(optionVenta);
 
-  // Los checkboxes deberían estar visibles
-  expect(screen.getByLabelText(/Apto Crédito/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/Apto Financiamiento/i)).toBeInTheDocument();
+    // Los checkboxes deberían estar visibles
+    expect(screen.getByLabelText(/Apto Crédito/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Apto Financiamiento/i)).toBeInTheDocument();
 
-  // Interactuar con los checkboxes
-  await user.click(screen.getByLabelText(/Apto Crédito/i));
-  await user.click(screen.getByLabelText(/Apto Financiamiento/i));
-});
-
-it('muestra alerta si areaFrom es mayor a areaTo', async () => {
-  renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
-  const [inputAreaFrom] = screen.getAllByPlaceholderText('Desde');
-  const [inputAreaTo] = screen.getAllByPlaceholderText('Hasta');
-
-  fireEvent.change(inputAreaFrom, { target: { name: 'areaFrom', value: '100' } });
-  fireEvent.change(inputAreaTo, { target: { name: 'areaTo', value: '50' } });
-
-  fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
-
-  await waitFor(() => {
-    expect(screen.getByText('La superficie DESDE no puede ser mayor a la superficie HASTA')).toBeInTheDocument();
-    expect(mockGetPropertiesByFilters).not.toHaveBeenCalled();
+    // Interactuar con los checkboxes
+    await user.click(screen.getByLabelText(/Apto Crédito/i));
+    await user.click(screen.getByLabelText(/Apto Financiamiento/i));
   });
-});
+
+  it('muestra alerta si areaFrom es mayor a areaTo', async () => {
+    renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
+    const [inputAreaFrom] = screen.getAllByPlaceholderText('Desde');
+    const [inputAreaTo] = screen.getAllByPlaceholderText('Hasta');
+
+    fireEvent.change(inputAreaFrom, { target: { name: 'areaFrom', value: '100' } });
+    fireEvent.change(inputAreaTo, { target: { name: 'areaTo', value: '50' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('La superficie DESDE no puede ser mayor a la superficie HASTA')).toBeInTheDocument();
+      expect(mockGetPropertiesByFilters).not.toHaveBeenCalled();
+    });
+  });
 
   it('muestra alerta si coveredAreaFrom es mayor a coveredAreaTo', async () => {
     renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
@@ -197,43 +197,72 @@ it('muestra alerta si areaFrom es mayor a areaTo', async () => {
     });
   });
 
-it('permite seleccionar una ciudad', async () => {
-  renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
-  const user = userEvent.setup();
+  it('permite seleccionar una ciudad', async () => {
+    renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
+    const user = userEvent.setup();
 
-  // Usa el label asociado correctamente
-  const ciudadSelect = screen.getByLabelText('Ciudad');
-  await user.click(ciudadSelect);
+    // Usa el label asociado correctamente
+    const ciudadSelect = screen.getByLabelText('Ciudad');
+    await user.click(ciudadSelect);
 
-  // Selecciona la opción "Ciudad"
-  const ciudadOption = await screen.findByRole('option', { name: 'Ciudad' });
-  await user.click(ciudadOption);
+    // Selecciona la opción "Ciudad"
+    const ciudadOption = await screen.findByRole('option', { name: 'Ciudad' });
+    await user.click(ciudadOption);
 
-  // Verifica que se haya seleccionado correctamente
-  await waitFor(() => {
-    expect(ciudadSelect).toHaveTextContent('Ciudad');
+    // Verifica que se haya seleccionado correctamente
+    await waitFor(() => {
+      expect(ciudadSelect).toHaveTextContent('Ciudad');
+    });
   });
-});
 
-it('permite seleccionar características (amenities)', async () => {
-  renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
-  const user = userEvent.setup();
+  it('permite seleccionar características (amenities)', async () => {
+    renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
+    const user = userEvent.setup();
 
-  // Abre el select
-  const selectAmenities = screen.getByLabelText(/Características/i);
-  await user.click(selectAmenities);
+    // Abre el select
+    const selectAmenities = screen.getByLabelText(/Características/i);
+    await user.click(selectAmenities);
 
-  // Click en "Piscina"
-  const amenityOption = await screen.findByText(/Piscina/i);
-  await user.click(amenityOption);
+    // Click en "Piscina"
+    const amenityOption = await screen.findByText(/Piscina/i);
+    await user.click(amenityOption);
 
-  // Cierra el dropdown haciendo click afuera
-  await user.click(document.body);
+    // Cierra el dropdown haciendo click afuera
+    await user.click(document.body);
 
-  // Verifica que el texto renderizado en el Select incluye "Piscina"
-  await waitFor(() => {
-    expect(screen.getByText(/Piscina/)).toBeInTheDocument();
+    // Verifica que el texto renderizado en el Select incluye "Piscina"
+    await waitFor(() => {
+      expect(screen.getByText(/Piscina/)).toBeInTheDocument();
+    });
   });
-});
+  it('filtra correctamente propiedades con +3 ambientes (rooms = 3)', async () => {
+    mockGetPropertiesByFilters.mockResolvedValue([
+      { id: 1, rooms: 2, title: 'P2' },
+      { id: 2, rooms: 4, title: 'P4' },
+    ]);
 
+    renderWithProviders(<SearchFilters onSearch={onSearchMock} />);
+    const user = userEvent.setup();
+
+    // Obtenemos todos los combobox (selects)
+    const comboboxes = screen.getAllByRole('combobox');
+
+    // Según el orden, el de "Ambientes" suele ser el segundo o tercero:
+    // Puedes inspeccionar el HTML del test y ajustar el índice si es necesario.
+    // Por ejemplo, probemos con el segundo:
+    const selAmb = comboboxes[2]; // ← este SÍ es "Ambientes"
+    await user.click(selAmb);
+
+    // Elegimos "+3"
+    const opt3 = await screen.findByText('+3');
+    await user.click(opt3);
+
+    // Disparamos la búsqueda y comprobamos
+    fireEvent.click(screen.getByRole('button', { name: /Buscar/i }));
+    await waitFor(() => {
+      expect(onSearchMock).toHaveBeenCalledWith([
+        { id: 2, rooms: 4, title: 'P4' },
+      ]);
+    });
+  });
 });

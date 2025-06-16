@@ -1,15 +1,22 @@
 package pi.ms_users.service.impl;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,6 +25,40 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final IUserRepository userRepository;
+
+    public ResponseEntity<?> createUser(String name, String lastName, String email, String phone) {
+        Response response = userRepository.createUser(name, lastName, email, phone);
+        int status = response.getStatus();
+
+        if (status == 201) {
+            return ResponseEntity.ok("Se ha creado el usuario con éxito");
+        } else if (status == 409) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
+        } else if (status == 400) {
+            return ResponseEntity.badRequest().body("Datos inválidos enviados a Keycloak");
+        } else {
+            String error = response.readEntity(String.class);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error inesperado en Keycloak: " + error);
+        }
+    }
+
+    public Map<String, String> getUserInfo(Jwt jwt) {
+        String id = jwt.getClaimAsString("sub");
+        String userName = jwt.getClaimAsString("preferred_username");
+        String name = jwt.getClaimAsString("given_name");
+        String lastName = jwt.getClaimAsString("family_name");
+        String email = jwt.getClaimAsString("email");
+        String phone = jwt.getClaimAsString("phone_number");
+        Map<String, String> userInfo = new LinkedHashMap<>();
+        userInfo.put("id", id);
+        userInfo.put("userName", userName);
+        userInfo.put("name", name);
+        userInfo.put("lastName", lastName);
+        userInfo.put("email", email);
+        userInfo.put("phone", phone);
+        return userInfo;
+    }
 
     public ResponseEntity<Optional<User>> findById(String id) {
         try {
@@ -30,6 +71,17 @@ public class UserService {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    public ResponseEntity<?> findTenat() {
+        try {
+            List<User> user = userRepository.findByRoleTenant();
+            return ResponseEntity.ok(user);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se han encontrado inquilinos.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e);
         }
     }
 

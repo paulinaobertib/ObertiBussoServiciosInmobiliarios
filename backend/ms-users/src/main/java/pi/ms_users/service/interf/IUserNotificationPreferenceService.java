@@ -7,7 +7,6 @@ import pi.ms_users.domain.UserNotificationPreference;
 import java.util.List;
 
 public interface IUserNotificationPreferenceService {
-
     ResponseEntity<String> create(UserNotificationPreference userNotificationPreference);
 
     ResponseEntity<String> update(Long id, Boolean enabled);

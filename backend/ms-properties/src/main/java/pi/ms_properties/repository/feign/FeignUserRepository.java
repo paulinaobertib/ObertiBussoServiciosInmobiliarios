@@ -4,9 +4,11 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.configuration.feign.FeignInterceptor;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.dto.feign.NotificationDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 
+import java.util.List;
 import java.util.Optional;
 
 @FeignClient(name = "ms-users", url = "http://localhost:8081", configuration = FeignInterceptor.class)
@@ -20,4 +22,7 @@ public interface FeignUserRepository {
 
     @RequestMapping(method = RequestMethod.GET, value = "/user/exist/{id}")
     Boolean exist(@PathVariable String id);
+
+    @RequestMapping(method = RequestMethod.GET, value = "/contracts/property/{propertyId}")
+    ResponseEntity<List<ContractDTO>> getContractsByPropertyId(@PathVariable Long propertyId);
 }
