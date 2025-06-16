@@ -1,10 +1,9 @@
 package pi.ms_properties.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,6 +17,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.OwnerController;
 import pi.ms_properties.domain.Owner;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.OwnerService;
 
@@ -140,6 +140,20 @@ class OwnerControllerTest {
                 .andExpect(jsonPath("$.length()").value(1));
     }
 
+    @Test
+    @WithMockUser(roles = "admin")
+    void getContracts_success() throws Exception {
+        Long ownerId = 1L;
+        List<ContractDTO> contracts = List.of(new ContractDTO());
+        ResponseEntity<List<ContractDTO>> responseEntity = ResponseEntity.ok(contracts);
+
+        Mockito.when(ownerService.findContracts(ownerId)).thenReturn(responseEntity);
+
+        mockMvc.perform(get("/owner/getContracts/{id}", ownerId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(contracts.size()));
+    }
+
     // casos de error
 
     @Test
@@ -176,5 +190,18 @@ class OwnerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void getContracts_ownerNotFound() throws Exception {
+        Long ownerId = 999L;
+
+        Mockito.when(ownerService.findContracts(ownerId))
+                .thenThrow(new EntityNotFoundException("No se ha encontrado al propietario con ID: " + ownerId));
+
+        mockMvc.perform(get("/owner/getContracts/{id}", ownerId))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("No se ha encontrado al propietario con ID: " + ownerId));
     }
 }

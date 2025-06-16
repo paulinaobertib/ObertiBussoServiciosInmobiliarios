@@ -1,56 +1,51 @@
-server:
-  port: ${SERVICE_PORT}
-
-eureka:
-  instance:
-    hostname: ${WEBSITE_HOSTNAME}
-    nonSecurePortEnabled: true
-    nonSecurePort: 80
-    securePortEnabled: false
-  client:
-    service-url:
-      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
-
 spring:
   application:
     name: ms-users
-
-  # MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
-  # config:
-  #   ignore-unresolvable-placeholders: true
-
   # configuracion de la base de datos
   datasource:
-    url: ${DATASOURCE_URL}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
+    url: jdbc:mysql://localhost:3306/obertibussoserviciosinmobiliarios
+    username: root
+    password: lmcpauli1
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   jpa:
     open-in-view: false
     show-sql: true
     hibernate:
       ddl-auto: update
-
+    jpa:
+      hibernate:
+        ddl-auto: create-drop
+      show-sql: true
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: http://localhost:8080/realms/obertibussoserviciosinmobiliarios
 
-email:
-  username: ${EMAIL_USERNAME}
-  password: ${EMAIL_PASSWORD}
+server:
+  port: 8081
 
-frontend:
-  base-url: ${SWA_FRONTEND}
+eureka:
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
 
 pi:
   keycloak:
-    serverUrl: http://${KEYCLOAK_HOSTNAME}/
+    serverUrl: http://localhost:8080/
     realm: obertibussoserviciosinmobiliarios
-    clientId: ${KEYCLOAK_SB_CLIENT_ID}
-    clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
+    clientId: springboot-keycloak-client
+    clientSecret: bqUqMGlePOEkIQxC4c3k7LgHiJALnEM7
+
+email:
+  username: desarrolloinmobertibusso@gmail.com
+  password: gian ovac cerv btzf
+
+frontend:
+  base-url: http://localhost:5173
 
 ---
 

@@ -1,5 +1,6 @@
 package pi.ms_properties.controller;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,7 +33,7 @@ public class InquiryController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/status/{id}")
-    public ResponseEntity<String> updateStatus(@PathVariable Long id) {
+    public ResponseEntity<String> updateStatus(@PathVariable Long id) throws MessagingException {
         return inquiryService.updateStatus(id);
     }
 

@@ -143,13 +143,12 @@ class NotificationServiceTest {
     @Test
     void createProperty_shouldThrowIllegalArgumentException_ifWrongType() {
         NotificationDTO dto = new NotificationDTO();
-        dto.setType(NotificationType.ALQUILER);
+        dto.setType(NotificationType.PROPIEDADNUEVA);
         dto.setDate(LocalDateTime.now());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> notificationService.createProperty(dto, 1L));
-
-        assertTrue(exception.getMessage().contains("Endpoint incorrecto"));
+        assertTrue(exception.getMessage().contains("No hay usuarios suscriptos a este tipo de notificación"));
     }
 
     @Test
