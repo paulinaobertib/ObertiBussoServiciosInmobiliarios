@@ -387,4 +387,33 @@ class ContractServiceTest {
         assertEquals("Email service failure", ex.getMessage());
     }
 
+    @Test
+    void applyScheduledSoonInactive_shouldLogErrorButNotThrow_whenEmailServiceThrowsException() {
+        LocalDate targetDate = LocalDate.now().plusDays(30);
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plusDays(1).atStartOfDay().minusNanos(1);
+
+        Contract contract = new Contract();
+        contract.setUserId("user123");
+        contract.setEndDate(endOfDay);
+
+        User user = new User();
+        user.setId("user123");
+        user.setMail("test@example.com");
+        user.setFirstName("Test");
+
+        when(contractRepository.findByStatusAndEndDateBetween(
+                eq(ContractStatus.ACTIVO), eq(startOfDay), eq(endOfDay)))
+                .thenReturn(List.of(contract));
+
+        when(userRepository.findById("user123"))
+                .thenReturn(Optional.of(user));
+
+        doThrow(new RuntimeException("SMTP error"))
+                .when(emailService).sendContractExpirationReminder(any(EmailExpirationContract.class));
+
+        assertDoesNotThrow(() -> contractService.applyScheduledSoonInactive());
+
+        verify(emailService, times(1)).sendContractExpirationReminder(any(EmailExpirationContract.class));
+    }
 }
