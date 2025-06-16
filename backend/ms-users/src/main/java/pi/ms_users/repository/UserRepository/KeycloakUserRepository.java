@@ -7,6 +7,7 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,9 @@ public class KeycloakUserRepository implements IUserRepository {
 
     @Value("${pi.keycloak.realm}")
     private String realm;
+
+    @Value("${pi.keycloak.clientId}")
+    private String clientId;
 
     private User toUser(UserRepresentation userRepresentation) {
         Map<String, List<String>> attributes = userRepresentation.getAttributes();
@@ -80,11 +84,28 @@ public class KeycloakUserRepository implements IUserRepository {
     public List<String> getUserRoles(String userId) {
         RealmResource realmResource = keycloak.realm(realm);
         UsersResource usersResource = realmResource.users();
-        List<RoleRepresentation> userRoles = usersResource.get(userId).roles().realmLevel().listAll();
-        return userRoles.stream()
-                .map(RoleRepresentation::getName)
-                .collect(Collectors.toList());
+
+        List<RoleRepresentation> realmRoles = usersResource.get(userId).roles().realmLevel().listAll();
+
+        ClientRepresentation client = realmResource.clients()
+                .findByClientId(clientId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado: " + clientId));
+
+        List<RoleRepresentation> clientRoles = usersResource
+                .get(userId)
+                .roles()
+                .clientLevel(client.getId())
+                .listAll();
+
+        List<String> allRoles = new ArrayList<>();
+        allRoles.addAll(realmRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
+        allRoles.addAll(clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
+
+        return allRoles;
     }
+
 
     @Override
     public List<String> addRoleToUser(String id, String role) {
