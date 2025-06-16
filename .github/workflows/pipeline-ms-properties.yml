@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/pipeline-test
-      # - main
+      # - feature/pipeline-test
+      - main
 
 permissions:
   contents: read

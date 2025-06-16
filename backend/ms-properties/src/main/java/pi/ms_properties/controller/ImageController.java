@@ -18,14 +18,14 @@ public class ImageController {
 
     private final ImageService imageService;
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/upload")
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestParam("propertyId") Long propertyId) {
         String url = imageService.uploadImageToProperty(file, propertyId, false);
         return ResponseEntity.status(HttpStatus.CREATED).body(url);
     }
 
-    // @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return imageService.deleteImage(id);

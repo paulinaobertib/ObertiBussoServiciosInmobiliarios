@@ -27,4 +27,8 @@ public interface IPropertyRepository extends JpaRepository<Property, Long>, JpaS
 
     @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images"})
     List<Property> findAll(@Nullable Specification<Property> specification);
+
+    @Query("select p from Property p where p.owner.id = ?1")
+    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images"})
+    List<Property> findByOwner(Long ownerId);
 }

@@ -59,7 +59,7 @@ class CommentControllerTest {
     // casos de exito
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void createComment_success() throws Exception {
         Mockito.when(commentService.create(any())).thenReturn(ResponseEntity.ok("Comentario creado"));
 
@@ -71,7 +71,7 @@ class CommentControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateComment_success() throws Exception {
         Mockito.when(commentService.update(any())).thenReturn(ResponseEntity.ok("Comentario actualizado"));
 
@@ -83,7 +83,7 @@ class CommentControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void deleteComment_success() throws Exception {
         Mockito.when(commentService.delete(1L)).thenReturn(ResponseEntity.ok("Comentario eliminado"));
 
@@ -93,7 +93,7 @@ class CommentControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getCommentById_success() throws Exception {
         Mockito.when(commentService.getById(1L)).thenReturn(ResponseEntity.ok(commentDTO));
 
@@ -103,7 +103,7 @@ class CommentControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getByPropertyId_success() throws Exception {
         List<CommentDTO> comments = Collections.singletonList(commentDTO);
         Mockito.when(commentService.getByPropertyId(100L)).thenReturn(ResponseEntity.ok(comments));
@@ -115,16 +115,16 @@ class CommentControllerTest {
 
     // casos de error
 
-    // @Test
-    // void createComment_unauthorized() throws Exception {
-    //     mockMvc.perform(post("/comment/create")
-    //                     .contentType(MediaType.APPLICATION_JSON)
-    //                     .content(objectMapper.writeValueAsString(commentDTO)))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    void createComment_unauthorized() throws Exception {
+        mockMvc.perform(post("/comment/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commentDTO)))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void createComment_missingField() throws Exception {
         commentDTO.setDescription(null);
 
@@ -135,7 +135,7 @@ class CommentControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateComment_serviceThrowsException() throws Exception {
         Mockito.when(commentService.update(any()))
                 .thenReturn(ResponseEntity.internalServerError().build());
@@ -147,7 +147,7 @@ class CommentControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getById_notFound() throws Exception {
         Mockito.when(commentService.getById(999L)).thenReturn(ResponseEntity.notFound().build());
 

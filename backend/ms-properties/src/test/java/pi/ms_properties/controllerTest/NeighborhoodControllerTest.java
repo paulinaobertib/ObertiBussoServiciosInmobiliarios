@@ -59,7 +59,7 @@ class NeighborhoodControllerTest {
     // casos de exito
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void createNeighborhood_success() throws Exception {
         Mockito.when(neighborhoodService.createNeighborhood(any()))
                 .thenReturn(ResponseEntity.ok("Barrio creado correctamente"));
@@ -72,7 +72,7 @@ class NeighborhoodControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void deleteNeighborhood_success() throws Exception {
         Mockito.when(neighborhoodService.deleteNeighborhood(1L))
                 .thenReturn(ResponseEntity.ok("Barrio eliminado correctamente"));
@@ -83,7 +83,7 @@ class NeighborhoodControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateNeighborhood_success() throws Exception {
         Mockito.when(neighborhoodService.updateNeighborhood(eq(1L), any()))
                 .thenReturn(ResponseEntity.ok(validDTO));
@@ -108,7 +108,7 @@ class NeighborhoodControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getById_success() throws Exception {
         Mockito.when(neighborhoodService.getById(1L))
                 .thenReturn(ResponseEntity.ok(validDTO));
@@ -121,7 +121,7 @@ class NeighborhoodControllerTest {
     // casos de error
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void deleteNeighborhood_notFound_returnsNotFound() throws Exception {
         Mockito.when(neighborhoodService.deleteNeighborhood(99L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Barrio no encontrado"));
@@ -132,7 +132,7 @@ class NeighborhoodControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void updateNeighborhood_notFound_returnsNotFound() throws Exception {
         Mockito.when(neighborhoodService.updateNeighborhood(eq(99L), any()))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -144,7 +144,7 @@ class NeighborhoodControllerTest {
     }
 
     @Test
-    // @WithMockUser(roles = "admin")
+    @WithMockUser(roles = "admin")
     void getById_notFound_returnsNotFound() throws Exception {
         Mockito.when(neighborhoodService.getById(99L))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
