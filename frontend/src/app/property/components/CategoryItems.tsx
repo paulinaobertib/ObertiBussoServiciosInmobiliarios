@@ -116,7 +116,7 @@ export default function CategoryItems() {
         </Box>
 
         <Box sx={{
-          display: 'grid',
+          display: { xs: 'none', sm: 'grid' }, // Esconde el header en XS/móvil
           gridTemplateColumns: `${columns.length > 0 ? `repeat(${columns.length},1fr)` : ''} auto`,
           alignItems: 'center', px: 2, py: 1,
           bgcolor: '#f9f9f9', fontSize: 14, fontWeight: 600,
@@ -148,24 +148,55 @@ export default function CategoryItems() {
                   key={it.id}
                   onClick={isProperty ? undefined : () => toggleSelect(it.id)}
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: `${columns.length > 0 ? `repeat(${columns.length},1fr)` : ''} auto`,
-                    alignItems: 'center', p: 1, mb: 0.5, borderRadius: 1,
-                    bgcolor: isSel(it.id) ? '#FFE0B2' : 'transparent',
-                    transition: 'background-color .2s',
-                    ...(isProperty ? {} : {
-                      cursor: 'pointer',
-                      '&:hover': { bgcolor: isSel(it.id) ? '#FFD699' : '#f5f5f5' }
-                    }),
+                    bgcolor: isSel(it.id) ? '#FFE0B2' : '#fff',
+                    border: '1px solid #eee',
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 1,
+                    mx: 0,
+                    display: { xs: 'block', sm: 'grid' },
+                    gridTemplateColumns: { sm: `${columns.length > 0 ? `repeat(${columns.length},1fr)` : ''} auto` },
+                    transition: 'background-color .2s, border-color .2s',
+                    '&:hover': { borderColor: '#EF6C00' }
                   }}
                 >
                   {isProperty ? (
+                    /* ------------- FILA “PROPIEDAD” ------------- */
                     <>
                       {propCols.map((v, i) => (
-                        <Typography key={i}>{v ?? '-'}</Typography>
+                        <Box
+                          key={i}
+                          sx={{
+                            display: { xs: 'flex', sm: 'block' },
+                            gap: 1,
+                            alignItems: 'baseline',
+                            mb: { xs: 0.5, sm: 0 },
+                            
+                          }}
+                        >
+                          {/* label SOLO visible en XS */}
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              display: { xs: 'inline', sm: 'none' },
+                              minWidth: 90,
+                            }}
+                          >
+                            {categoryFields.property[i].label}:
+                          </Typography>
+
+                          {/* el valor */}
+                          <Typography sx={{ display: 'inline' }}>
+                            {v ?? '-'}
+                          </Typography>
+                        </Box>
                       ))}
 
-                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
+                      {/* única columna de acciones --------------- */}
+                      <Box
+                        sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}
+                        onClick={e => e.stopPropagation()}
+                      >
                         {extraActions.map(({ label, icon, onClick }, i) => (
                           <Tooltip key={i} title={label}>
                             <IconButton size="small" onClick={onClick} sx={{ color: '#EF6C00' }}>
@@ -174,13 +205,13 @@ export default function CategoryItems() {
                           </Tooltip>
                         ))}
 
-                        {/* editar */}
+                        {/* Editar / Eliminar / Ver */}
                         <Tooltip title="Editar">
                           <IconButton
-                            aria-label="editar"
                             size="small"
                             onClick={() =>
-                              navigate(buildRoute(ROUTES.EDIT_PROPERTY, { id: it.id }))}
+                              navigate(buildRoute(ROUTES.EDIT_PROPERTY, { id: it.id }))
+                            }
                             sx={{ color: '#EF6C00' }}
                           >
                             <EditIcon fontSize="small" />
@@ -189,7 +220,6 @@ export default function CategoryItems() {
 
                         <Tooltip title="Eliminar">
                           <IconButton
-                            aria-label="eliminar"
                             size="small"
                             onClick={() =>
                               ask(`¿Eliminar "${it.title}"?`, async () => {
@@ -197,8 +227,11 @@ export default function CategoryItems() {
                                   await deleteProperty(it);
                                   showAlert('Propiedad eliminada', 'success');
                                   refresh();
-                                } catch { showAlert('Error al eliminar', 'error'); }
-                              })}
+                                } catch {
+                                  showAlert('Error al eliminar', 'error');
+                                }
+                              })
+                            }
                             sx={{ color: '#EF6C00' }}
                           >
                             <DeleteIcon fontSize="small" />
@@ -207,9 +240,10 @@ export default function CategoryItems() {
 
                         <Tooltip title="Ver propiedad">
                           <IconButton
-                            aria-label="ver propiedad"
                             size="small"
-                            onClick={() => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, { id: it.id }))}
+                            onClick={() =>
+                              navigate(buildRoute(ROUTES.PROPERTY_DETAILS, { id: it.id }))
+                            }
                             sx={{ color: '#EF6C00' }}
                           >
                             <VisibilityIcon fontSize="small" />
@@ -218,17 +252,59 @@ export default function CategoryItems() {
                       </Box>
                     </>
                   ) : (
+                    /* ------------- FILA resto de categorías ------------- */
                     <>
                       {columns.map(col => {
                         const raw = itemData[col.key];
-                        const val = typeof raw === 'boolean' ? (raw ? 'Sí' : 'No') : (raw ?? '-');
-                        return <Typography key={col.key}>{val}</Typography>;
+                        const val =
+                          typeof raw === 'boolean' ? (raw ? 'Sí' : 'No') : raw ?? '-';
+                        return (
+                          <Box
+                            key={col.key}
+                            sx={{
+                              display: { xs: 'flex', sm: 'block' },
+                              gap: 1,
+                              alignItems: 'baseline',
+                              mb: { xs: 0.5, sm: 0 },
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                display: { xs: 'inline', sm: 'none' },
+                                minWidth: 90,
+                              }}
+                            >
+                              {col.label}:
+                            </Typography>
+                            <Typography sx={{ display: 'inline' }}>{val}</Typography>
+                          </Box>
+                        );
                       })}
-                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
-                        <IconButton size="small" aria-label="editar" onClick={() => setModal({ action: 'edit', formKey: category, item: it })} sx={{ color: '#EF6C00' }}>
+
+                      {/* acciones para owner / barrio / etc. -------- */}
+                      <Box
+                        sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <IconButton
+                          size="small"
+                          aria-label="editar"
+                          onClick={() =>
+                            setModal({ action: 'edit', formKey: category, item: it })
+                          }
+                          sx={{ color: '#EF6C00' }}
+                        >
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" aria-label="eliminar" onClick={() => setModal({ action: 'delete', formKey: category, item: it })} sx={{ color: '#EF6C00' }}>
+                        <IconButton
+                          size="small"
+                          aria-label="eliminar"
+                          onClick={() =>
+                            setModal({ action: 'delete', formKey: category, item: it })
+                          }
+                          sx={{ color: '#EF6C00' }}
+                        >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Box>
