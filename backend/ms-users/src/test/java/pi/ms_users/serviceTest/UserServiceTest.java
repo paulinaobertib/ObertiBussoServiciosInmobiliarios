@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
@@ -8,11 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.UserService;
 
 import java.util.*;
@@ -47,10 +52,9 @@ class UserServiceTest {
     @Test
     void findById_shouldReturnUser_whenFound() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
-        ResponseEntity<Optional<User>> response = userService.findById("user123");
+        ResponseEntity<User> response = userService.findById("user123");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().isPresent());
     }
 
     @Test
@@ -137,68 +141,170 @@ class UserServiceTest {
         assertFalse(userService.exist("unknown"));
     }
 
+    @Test
+    void getUserInfo_shouldReturnCorrectMap() {
+        Jwt jwt = mock(Jwt.class);
+
+        when(jwt.getClaimAsString("sub")).thenReturn("user123");
+        when(jwt.getClaimAsString("preferred_username")).thenReturn("jdoe");
+        when(jwt.getClaimAsString("given_name")).thenReturn("John");
+        when(jwt.getClaimAsString("family_name")).thenReturn("Doe");
+        when(jwt.getClaimAsString("email")).thenReturn("jdoe@example.com");
+        when(jwt.getClaimAsString("phone_number")).thenReturn("1234567890");
+
+        Map<String, String> userInfo = userService.getUserInfo(jwt);
+
+        assertEquals("user123", userInfo.get("id"));
+        assertEquals("jdoe", userInfo.get("userName"));
+        assertEquals("John", userInfo.get("name"));
+        assertEquals("Doe", userInfo.get("lastName"));
+        assertEquals("jdoe@example.com", userInfo.get("email"));
+        assertEquals("1234567890", userInfo.get("phone"));
+    }
+
+    @Test
+    void findTenat_shouldReturnUsers_whenFound() {
+        List<User> tenants = List.of(user);
+        when(userRepository.findByRoleTenant()).thenReturn(tenants);
+
+        ResponseEntity<List<User>> response = userService.findTenat();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(tenants, response.getBody());
+    }
+
+    @Test
+    void createUser_shouldReturnOk_whenStatus201() {
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(201);
+        when(userRepository.createUser(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(response);
+
+        ResponseEntity<String> resp = userService.createUser("John", "Doe", "jdoe@example.com", "1234567890");
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals("Se ha creado el usuario con éxito", resp.getBody());
+    }
+
     // casos de error
 
     @Test
-    void findById_shouldReturnNotFound_whenUserNotExists() {
+    void findById_shouldThrowNotFoundException_whenUserNotExists() {
         when(userRepository.findById("unknown")).thenReturn(Optional.empty());
-        ResponseEntity<Optional<User>> response = userService.findById("unknown");
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.findById("unknown");
+        });
+
+        assertEquals("No se encontró el usuario con ID: unknown", ex.getMessage());
     }
 
     @Test
-    void findById_shouldReturnInternalError_whenExceptionThrown() {
+    void findById_shouldThrowRuntimeException_whenExceptionThrown() {
         when(userRepository.findById("x")).thenThrow(new RuntimeException());
-        ResponseEntity<Optional<User>> response = userService.findById("x");
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> userService.findById("x"));
     }
 
     @Test
-    void findAll_shouldReturnNotFound_whenEmptyList() {
-        when(userRepository.findAll()).thenReturn(List.of());
-        ResponseEntity<List<User>> response = userService.findAll();
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void findAll_shouldReturnInternalError_whenExceptionThrown() {
+    void findAll_shouldThrowRuntimeException_whenExceptionThrown() {
         when(userRepository.findAll()).thenThrow(new RuntimeException());
-        ResponseEntity<List<User>> response = userService.findAll();
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> userService.findAll());
     }
 
     @Test
-    void deleteUserById_shouldReturnNotFound_whenNotFoundExceptionThrown() {
+    void deleteUserById_shouldThrowNotFoundException_whenNotFoundExceptionThrown() {
         doThrow(new NotFoundException("Not found")).when(userRepository).deleteUserById("id");
-        ResponseEntity<String> response = userService.deleteUserById("id");
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            userService.deleteUserById("id");
+        });
+
+        assertEquals("Not found", ex.getMessage());
     }
 
     @Test
-    void deleteUserById_shouldReturnInternalError_whenExceptionThrown() {
+    void deleteUserById_shouldThrowRuntimeException_whenExceptionThrown() {
         doThrow(new RuntimeException()).when(userRepository).deleteUserById("id");
-        ResponseEntity<String> response = userService.deleteUserById("id");
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> userService.deleteUserById("id"));
     }
 
     @Test
-    void updateUser_shouldReturnNotFound_whenUserMissing() {
+    void findTenat_shouldThrow_whenNoUsersFound() {
+        when(userRepository.findByRoleTenant()).thenReturn(Collections.emptyList());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+                () -> userService.findTenat());
+
+        assertEquals("No se han encontrado inquilinos.", ex.getMessage());
+    }
+
+    @Test
+    void createUser_shouldReturnConflict_whenStatus409() {
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(409);
+        when(userRepository.createUser(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(response);
+
+        ResponseEntity<String> resp = userService.createUser("John", "Doe", "jdoe@example.com", "1234567890");
+
+        assertEquals(HttpStatus.CONFLICT, resp.getStatusCode());
+        assertEquals("El usuario ya existe", resp.getBody());
+    }
+
+    @Test
+    void createUser_shouldReturnBadRequest_whenStatus400() {
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(400);
+        when(userRepository.createUser(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(response);
+
+        ResponseEntity<String> resp = userService.createUser("John", "Doe", "jdoe@example.com", "1234567890");
+
+        assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+        assertEquals("Datos inválidos enviados a Keycloak", resp.getBody());
+    }
+
+    @Test
+    void createUser_shouldReturnInternalServerError_whenOtherStatus() {
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(500);
+        when(response.readEntity(String.class)).thenReturn("Internal Server Error");
+        when(userRepository.createUser(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(response);
+
+        ResponseEntity<String> resp = userService.createUser("John", "Doe", "jdoe@example.com", "1234567890");
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, resp.getStatusCode());
+        assertTrue(resp.getBody().contains("Error inesperado en Keycloak: Internal Server Error"));
+    }
+
+    @Test
+    void findAll_shouldThrowNotFoundException_whenEmptyList() {
+        when(userRepository.findAll()).thenReturn(Collections.emptyList());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.findAll();
+        });
+
+        assertEquals("No se encontraron usuarios.", ex.getMessage());
+    }
+
+    @Test
+    void updateUser_shouldThrowNotFoundException_whenUserMissing() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = userService.updateUser(user);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.updateUser(user);
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("Usuario no encontrado"));
+        assertTrue(ex.getMessage().contains("Usuario no encontrado"));
     }
 
     @Test
-    void updateUser_shouldHandleConflict_whenClientError409() {
+    void updateUser_shouldThrowClientErrorException_whenConflict409() {
         ClientErrorException ex = mock(ClientErrorException.class);
         Response mockResponse = mock(Response.class);
         when(ex.getResponse()).thenReturn(mockResponse);
@@ -208,168 +314,221 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         doThrow(ex).when(userRepository).updateUser(user);
 
-        ResponseEntity<?> response = userService.updateUser(user);
+        ClientErrorException thrown = assertThrows(ClientErrorException.class, () -> {
+            userService.updateUser(user);
+        });
 
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("Conflicto"));
+        assertEquals(409, thrown.getResponse().getStatus());
+        assertTrue(thrown.getResponse().readEntity(String.class).contains("Duplicado"));
     }
 
     @Test
-    void updateUser_shouldHandleGenericClientError() {
-        ClientErrorException ex = mock(ClientErrorException.class);
-        Response mockResponse = mock(Response.class);
-        when(ex.getResponse()).thenReturn(mockResponse);
-        when(mockResponse.getStatus()).thenReturn(403);
-        when(mockResponse.readEntity(String.class)).thenThrow(new RuntimeException());
-
-        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
-        doThrow(ex).when(userRepository).updateUser(user);
-
-        ResponseEntity<?> response = userService.updateUser(user);
-
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("Keycloak"));
-    }
-
-    @Test
-    void updateUser_shouldReturnInternalError_onException() {
+    void updateUser_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(userRepository.updateUser(user)).thenThrow(new RuntimeException("error"));
 
-        ResponseEntity<?> response = userService.updateUser(user);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            userService.updateUser(user);
+        });
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("error", ex.getMessage());
     }
 
     @Test
-    void getUserRoles_shouldReturnNotFound_whenUserOrRolesMissing() {
+    void getUserRoles_shouldThrowNotFoundException_whenRolesMissing() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(userRepository.getUserRoles("user123")).thenReturn(List.of());
 
-        ResponseEntity<List<String>> response = userService.getUserRoles("user123");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.getUserRoles("user123");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("El usuario no tiene roles asignados", ex.getMessage());
     }
 
     @Test
-    void getUserRoles_shouldReturnInternalError_onException() {
+    void getUserRoles_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException());
 
-        ResponseEntity<List<String>> response = userService.getUserRoles("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            userService.getUserRoles("user123");
+        });
     }
 
     @Test
-    void addRoleToUser_shouldReturnNotFound_whenRolesEmpty() {
+    void addRoleToUser_shouldThrowNotFoundException_whenRolesEmpty() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
-        when(userRepository.addRoleToUser("user123", "MOD")).thenReturn(List.of());
+        when(userRepository.addRoleToUser("user123", "MOD")).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<String>> response = userService.addRoleToUser("user123", "MOD");
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(EntityNotFoundException.class, () -> {
+            userService.addRoleToUser("user123", "MOD");
+        });
     }
 
     @Test
-    void addRoleToUser_shouldReturnInternalError_onException() {
+    void addRoleToUser_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException());
 
-        ResponseEntity<List<String>> response = userService.addRoleToUser("user123", "MOD");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            userService.addRoleToUser("user123", "MOD");
+        });
     }
 
     @Test
-    void deleteRoleToUser_shouldReturnInternalError_onException() {
+    void deleteRoleToUser_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException());
 
-        ResponseEntity<String> response = userService.deleteRoleToUser("user123", "MOD");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            userService.deleteRoleToUser("user123", "MOD");
+        });
     }
 
     @Test
-    void searchUsersByText_shouldReturnNotFound_whenNoMatch() {
+    void searchUsersByText_shouldThrowNotFoundException_whenNoMatch() {
         when(userRepository.findAll()).thenReturn(List.of(user));
 
-        ResponseEntity<List<User>> response = userService.searchUsersByText("nope");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.searchUsersByText("nope");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se encontraron usuarios que coincidan con la búsqueda.", ex.getMessage());
     }
 
     @Test
-    void searchUsersByText_shouldReturnInternalError_onException() {
+    void searchUsersByText_shouldThrowRuntimeException_onException() {
         when(userRepository.findAll()).thenThrow(new RuntimeException());
 
-        ResponseEntity<List<User>> response = userService.searchUsersByText("jdoe");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            userService.searchUsersByText("jdoe");
+        });
     }
 
     @Test
-    void findById_shouldReturnInternalServerErrorWhenUnexpectedExceptionThrown() {
+    void findById_shouldThrowRuntimeExceptionWhenUnexpectedExceptionThrown() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<Optional<User>> response = userService.findById("user123");
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            userService.findById("user123");
+        });
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", ex.getMessage());
     }
 
     @Test
-    void getUserRoles_shouldReturnNotFoundWhenUserDoesNotExist() {
+    void getUserRoles_shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<List<String>> response = userService.getUserRoles("user123");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.getUserRoles("user123");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Usuario no encontrado", ex.getMessage());
     }
 
     @Test
-    void getUserRoles_shouldReturnNotFoundWhenUserHasNoRoles() {
+    void getUserRoles_shouldThrowNotFoundExceptionWhenUserHasNoRoles() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(userRepository.getUserRoles("user123")).thenReturn(List.of());
 
-        ResponseEntity<List<String>> response = userService.getUserRoles("user123");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.getUserRoles("user123");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("El usuario no tiene roles asignados", ex.getMessage());
     }
 
     @Test
-    void addRoleToUser_shouldReturnNotFoundWhenUserDoesNotExist() {
+    void addRoleToUser_shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<List<String>> response = userService.addRoleToUser("user123", "ADMIN");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.addRoleToUser("user123", "ADMIN");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Usuario no encontrado", ex.getMessage());
     }
 
     @Test
-    void addRoleToUser_shouldReturnNotFoundWhenNoRolesAdded() {
+    void addRoleToUser_shouldThrowNotFoundExceptionWhenNoRolesAdded() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(userRepository.addRoleToUser("user123", "ADMIN")).thenReturn(List.of());
 
-        ResponseEntity<List<String>> response = userService.addRoleToUser("user123", "ADMIN");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.addRoleToUser("user123", "ADMIN");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se agregaron roles al usuario", ex.getMessage());
     }
 
     @Test
-    void deleteRoleToUser_shouldReturnNotFoundWhenUserDoesNotExist() {
+    void deleteRoleToUser_shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = userService.deleteRoleToUser("user123", "ADMIN");
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
+            userService.deleteRoleToUser("user123", "ADMIN");
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Usuario no encontrado", ex.getMessage());
     }
 
     @Test
-    void findById_shouldReturnNotFound_whenNotFoundExceptionIsThrown() {
+    void findById_shouldThrowNotFoundException_whenNotFoundExceptionIsThrown() {
         String userId = "user123";
 
         when(userRepository.findById(userId)).thenThrow(new NotFoundException("Usuario no encontrado"));
 
-        ResponseEntity<Optional<User>> response = userService.findById(userId);
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            userService.findById(userId);
+        });
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Usuario no encontrado", ex.getMessage());
+    }
+
+    @Test
+    void getUserRoles_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.getUserRoles("user123"));
+        }
+    }
+
+    @Test
+    void deleteUserById_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.deleteUserById("user123"));
+        }
+    }
+
+    @Test
+    void updateUser_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.updateUser(user));
+        }
+    }
+
+    @Test
+    void exist_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.exist("user123"));
+        }
     }
 }

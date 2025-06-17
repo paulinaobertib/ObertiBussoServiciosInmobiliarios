@@ -1,6 +1,7 @@
 package pi.ms_properties.serviceTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -101,7 +103,7 @@ class MaintenanceServiceTest {
     @Test
     void testGetById_Success() {
         when(maintenanceRepository.findById(1L)).thenReturn(Optional.of(sampleEntity));
-        when(objectMapper.convertValue(Optional.of(sampleEntity), MaintenanceDTO.class)).thenReturn(sampleDto);
+        when(objectMapper.convertValue(sampleEntity, MaintenanceDTO.class)).thenReturn(sampleDto);
 
         ResponseEntity<MaintenanceDTO> response = maintenanceService.getById(1L);
 
@@ -127,56 +129,67 @@ class MaintenanceServiceTest {
     @Test
     void testCreateMaintenance_PropertyNotFound() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
-        when(objectMapper.convertValue(sampleDto, Maintenance.class)).thenReturn(sampleEntity);
 
-        ResponseEntity<String> response = maintenanceService.createMaintenance(sampleDto);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                maintenanceService.createMaintenance(sampleDto)
+        );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Propiedad no encontrada con ID: 1", exception.getMessage());
     }
 
     @Test
     void testUpdateMaintenance_NotFound() {
         when(maintenanceRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<MaintenanceDTO> response = maintenanceService.updateMaintenance(1L, sampleDto);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                maintenanceService.updateMaintenance(1L, sampleDto)
+        );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Mantenimiento no encontrado con ID: 1", exception.getMessage());
     }
 
     @Test
     void testDeleteMaintenance_NotFound() {
         when(maintenanceRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = maintenanceService.deleteMaintenance(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                maintenanceService.deleteMaintenance(1L)
+        );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Mantenimiento no encontrado con ID: 1", exception.getMessage());
     }
 
     @Test
     void testGetById_NotFound() {
         when(maintenanceRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<MaintenanceDTO> response = maintenanceService.getById(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                maintenanceService.getById(1L)
+        );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Mantenimiento no encontrado con ID: 1", exception.getMessage());
     }
 
     @Test
     void testGetByPropertyId_PropertyNotFound() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<List<MaintenanceDTO>> response = maintenanceService.getByPropertyId(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+                maintenanceService.getByPropertyId(1L)
+        );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Propiedad no encontrada con ID: 1", exception.getMessage());
     }
 
     @Test
     void testCreateMaintenance_InternalError() {
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("DB down"));
 
-        ResponseEntity<String> response = maintenanceService.createMaintenance(sampleDto);
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                maintenanceService.createMaintenance(sampleDto)
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB down", exception.getMessage());
     }
 
     @Test
@@ -184,9 +197,11 @@ class MaintenanceServiceTest {
         when(maintenanceRepository.findById(1L)).thenReturn(Optional.of(sampleEntity));
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<MaintenanceDTO> response = maintenanceService.updateMaintenance(1L, sampleDto);
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                maintenanceService.updateMaintenance(1L, sampleDto)
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("DB error", exception.getMessage());
     }
 
     @Test
@@ -194,18 +209,22 @@ class MaintenanceServiceTest {
         when(maintenanceRepository.findById(1L)).thenReturn(Optional.of(sampleEntity));
         doThrow(new RuntimeException("Failed")).when(maintenanceRepository).deleteById(1L);
 
-        ResponseEntity<String> response = maintenanceService.deleteMaintenance(1L);
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                maintenanceService.deleteMaintenance(1L)
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Failed", exception.getMessage());
     }
 
     @Test
     void testGetById_InternalError() {
         when(maintenanceRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<MaintenanceDTO> response = maintenanceService.getById(1L);
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                maintenanceService.getById(1L)
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Unexpected", exception.getMessage());
     }
 
     @Test
@@ -213,9 +232,11 @@ class MaintenanceServiceTest {
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(sampleProperty));
         when(maintenanceRepository.findByPropertyId(1L)).thenThrow(new RuntimeException("Error"));
 
-        ResponseEntity<List<MaintenanceDTO>> response = maintenanceService.getByPropertyId(1L);
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                maintenanceService.getByPropertyId(1L)
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error", exception.getMessage());
     }
 }
 

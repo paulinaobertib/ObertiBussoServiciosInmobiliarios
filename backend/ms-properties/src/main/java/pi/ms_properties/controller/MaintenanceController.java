@@ -34,13 +34,13 @@ public class MaintenanceController {
         return maintenanceService.deleteMaintenance(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<MaintenanceDTO> getById(@PathVariable Long id) {
         return maintenanceService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByPropertyId/{id}")
     public ResponseEntity<List<MaintenanceDTO>> getByPropertyId(@PathVariable Long id) {
         return maintenanceService.getByPropertyId(id);

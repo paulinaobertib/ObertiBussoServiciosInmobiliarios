@@ -60,7 +60,9 @@ export const deleteProperty = async (data: Property) => {
 
 export const getAllProperties = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/property/getAll`);
+    const response = await axios.get(`${apiUrl}/properties/property/getAll`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching properties:", error);
@@ -111,7 +113,7 @@ export const getPropertiesByText = async (value: string) => {
     );
     return data;
   } catch (error) {
-    console.error("Error searching by text:", error);
+    console.error("Error searching by text:", error);
     throw error;
   }
 };

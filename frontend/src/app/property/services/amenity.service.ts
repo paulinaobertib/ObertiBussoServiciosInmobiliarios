@@ -5,7 +5,9 @@ import { Amenity, AmenityCreate } from "../types/amenity";
 
 export const getAllAmenities = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/amenity/getAll`);
+    const response = await axios.get(`${apiUrl}/properties/amenity/getAll`, {
+      withCredentials: false,
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching amenities:", error);
@@ -67,4 +69,3 @@ export const deleteAmenity = async (amenityData: Amenity) => {
     throw error;
   }
 };
-

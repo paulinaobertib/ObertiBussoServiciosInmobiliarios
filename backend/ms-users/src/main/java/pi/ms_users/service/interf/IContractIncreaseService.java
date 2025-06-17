@@ -2,13 +2,16 @@ package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
 import pi.ms_users.dto.ContractIncreaseDTO;
+import pi.ms_users.dto.ContractIncreaseDTOContractGet;
+
+import java.util.List;
 
 public interface IContractIncreaseService {
-    ResponseEntity<?> create(ContractIncreaseDTO contractIncreaseDTO);
+    ResponseEntity<String> create(ContractIncreaseDTO contractIncreaseDTO);
 
-    ResponseEntity<?> delete(Long id);
+    ResponseEntity<String> delete(Long id);
 
-    ResponseEntity<?> getById(Long id);
+    ResponseEntity<ContractIncreaseDTO> getById(Long id);
 
-    ResponseEntity<?> getByContract(Long contractId);
+    ResponseEntity<List<ContractIncreaseDTOContractGet>> getByContract(Long contractId);
 }

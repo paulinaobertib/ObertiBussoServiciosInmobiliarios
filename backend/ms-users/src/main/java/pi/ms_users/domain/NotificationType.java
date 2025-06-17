@@ -5,9 +5,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 public enum NotificationType {
     PROPIEDADNUEVA,
-    PROPIEDADINTERES,
-    ALQUILER,
-    ACTUALIZACION;
+    PROPIEDADINTERES;
 
     public static NotificationType fromString(String value) {
         try {
