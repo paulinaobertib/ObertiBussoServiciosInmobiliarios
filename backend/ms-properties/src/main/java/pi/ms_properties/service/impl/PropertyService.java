@@ -13,6 +13,7 @@ import pi.ms_properties.domain.*;
 import pi.ms_properties.dto.*;
 import pi.ms_properties.dto.feign.NotificationDTO;
 import pi.ms_properties.dto.feign.NotificationType;
+import pi.ms_properties.recommendation.service.RecommendationService;
 import pi.ms_properties.repository.*;
 import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IPropertyService;
@@ -47,6 +48,8 @@ public class PropertyService implements IPropertyService {
     private final NotificationRepository notificationRepository;
 
     private final AzureBlobStorage azureBlobStorage;
+
+    private final RecommendationService recommendationService;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -129,6 +132,8 @@ public class PropertyService implements IPropertyService {
         } catch (Exception e) {
             throw new RuntimeException("Error al crear la notificación", e);
         }
+
+        recommendationService.evaluateNewProperty(property);
 
         return ResponseEntity.ok("Se ha guardado la propiedad");
     }
