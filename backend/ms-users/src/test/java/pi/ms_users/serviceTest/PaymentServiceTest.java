@@ -6,13 +6,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_users.domain.*;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IPaymentRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.PaymentService;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -229,5 +232,65 @@ class PaymentServiceTest {
             paymentService.getByDateBetween(contract.getId(), start, end);
         });
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
+    }
+
+    @Test
+    void getById_shouldThrowAccessDeniedException_whenUserIsTenantAndNotOwner() {
+        payment.getContract().setUserId("user-id");
+
+        when(paymentRepository.findById(payment.getId())).thenReturn(Optional.of(payment));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isTenant).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("user-ok");
+
+            assertThrows(AccessDeniedException.class, () -> paymentService.getById(payment.getId()));
+        }
+    }
+
+    @Test
+    void getByContractId_shouldThrowAccessDeniedException_whenUserIsTenantAndNotOwner() {
+        contract.setUserId("user-id");
+
+        when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isTenant).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("user-ok");
+
+            assertThrows(AccessDeniedException.class, () -> paymentService.getByContractId(contract.getId()));
+        }
+    }
+
+    @Test
+    void getByDate_shouldThrowAccessDeniedException_whenUserIsTenantAndNotOwner() {
+        contract.setUserId("user-id");
+
+        when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isTenant).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("user-ok");
+
+            assertThrows(AccessDeniedException.class, () -> paymentService.getByDate(contract.getId(), LocalDateTime.now()));
+        }
+    }
+
+    @Test
+    void getByDateBetween_shouldThrowAccessDeniedException_whenUserIsTenantAndNotOwner() {
+        contract.setUserId("user-id");
+
+        when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isTenant).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("user-ok");
+
+            assertThrows(AccessDeniedException.class, () -> paymentService.getByDateBetween(
+                    contract.getId(),
+                    LocalDateTime.now().minusDays(5),
+                    LocalDateTime.now()
+            ));
+        }
     }
 }

@@ -3,6 +3,7 @@ package pi.ms_users.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
@@ -10,6 +11,7 @@ import pi.ms_users.domain.User;
 import pi.ms_users.dto.EmailDTO;
 import pi.ms_users.repository.IAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IAppointmentService;
 
 import java.util.List;
@@ -49,6 +51,11 @@ public class AppointmentService implements IAppointmentService {
     public ResponseEntity<String> delete(Long id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
+
+        if (SecurityUtils.isUser() &&
+                !appointment.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
 
         appointmentRepository.delete(appointment);
 
@@ -95,6 +102,12 @@ public class AppointmentService implements IAppointmentService {
     public ResponseEntity<Appointment> findById(Long id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !appointment.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return ResponseEntity.ok(appointment);
     }
 
@@ -107,6 +120,12 @@ public class AppointmentService implements IAppointmentService {
     @Override
     public ResponseEntity<List<Appointment>> findByUserId(String userId) {
         List<Appointment> appointments = appointmentRepository.findByUserId(userId);
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !userId.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return ResponseEntity.ok(appointments);
     }
 }

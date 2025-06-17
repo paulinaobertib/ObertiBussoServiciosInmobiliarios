@@ -6,10 +6,12 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -78,6 +80,12 @@ public class UserService {
     }
 
     public ResponseEntity<String> deleteUserById(String id) {
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         userRepository.deleteUserById(id);
         return ResponseEntity.ok("Se ha eliminado el usuario");
     }
@@ -86,6 +94,11 @@ public class UserService {
         userRepository.findById(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !user.getId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         User updated = userRepository.updateUser(user);
         return ResponseEntity.ok(updated);
     }
@@ -93,6 +106,11 @@ public class UserService {
     public ResponseEntity<List<String>> getUserRoles(String id) {
         userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
 
         List<String> roles = userRepository.getUserRoles(id);
         if (roles.isEmpty()) {
@@ -146,6 +164,11 @@ public class UserService {
     }
 
     public Boolean exist(String id) {
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return userRepository.exist(id);
     }
 }

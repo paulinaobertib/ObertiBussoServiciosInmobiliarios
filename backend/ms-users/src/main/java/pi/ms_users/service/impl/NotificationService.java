@@ -3,6 +3,7 @@ package pi.ms_users.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
@@ -15,6 +16,7 @@ import pi.ms_users.repository.INotificationRepository;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IEmailService;
 import pi.ms_users.service.interf.INotificationService;
 
@@ -90,6 +92,12 @@ public class NotificationService implements INotificationService {
     public ResponseEntity<Notification> getById(Long id) {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la notificación con ID: " + id));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !notification.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return ResponseEntity.ok(notification);
     }
 
@@ -103,6 +111,11 @@ public class NotificationService implements INotificationService {
     public ResponseEntity<List<Notification>> getByUserId(String userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario con ID: " + userId));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !userId.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
 
         List<Notification> notifications = notificationRepository.findByUserId(userId);
         return ResponseEntity.ok(notifications);

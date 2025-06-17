@@ -130,7 +130,7 @@ class ContractControllerTest {
                 .thenReturn(ResponseEntity.ok(dto));
 
         mockMvc.perform(get("/contracts/getById/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
     }
@@ -152,7 +152,7 @@ class ContractControllerTest {
                 .thenReturn(ResponseEntity.ok(List.of(buildSampleContract())));
 
         mockMvc.perform(get("/contracts/user/user123")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }
@@ -230,7 +230,7 @@ class ContractControllerTest {
                 .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(get("/contracts/getById/999")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isNotFound());
     }
 

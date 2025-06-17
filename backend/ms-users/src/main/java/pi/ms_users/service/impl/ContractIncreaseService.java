@@ -3,6 +3,7 @@ package pi.ms_users.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
@@ -15,6 +16,7 @@ import pi.ms_users.dto.EmailContractIncreaseDTO;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractIncreaseService;
 
 import java.math.BigDecimal;
@@ -65,6 +67,11 @@ public class ContractIncreaseService implements IContractIncreaseService {
         ContractIncrease contractIncrease = contractIncreaseRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el monto."));
 
+        if (SecurityUtils.isTenant() &&
+                !contractIncrease.getContract().getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
         contractIncreaseDTO.setContractId(contractIncrease.getContract().getId());
 
@@ -75,6 +82,11 @@ public class ContractIncreaseService implements IContractIncreaseService {
     public ResponseEntity<List<ContractIncreaseDTOContractGet>> getByContract(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el contrato."));
+
+        if (SecurityUtils.isTenant() &&
+                !contract.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
 
         List<ContractIncrease> contractIncreases = contractIncreaseRepository.findByContractId(contractId);
         List<ContractIncreaseDTOContractGet> contractIncreaseDTOs = contractIncreases.stream()
