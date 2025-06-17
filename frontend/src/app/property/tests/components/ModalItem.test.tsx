@@ -45,7 +45,7 @@ describe('ModalItem', () => {
   it('renderiza el formulario por defecto si no hay formKey', () => {
     render(<ModalItem info={{ action: 'add' }} close={() => {}} />);
     expect(screen.getByTestId('property-form')).toHaveTextContent('add property');
-    expect(screen.getByText(/crear property/i)).toBeInTheDocument();
+    expect(screen.getByText(/crear propiedad/i)).toBeInTheDocument();
   });
 
   it('renderiza StatusForm si action es edit-status', () => {
@@ -99,7 +99,7 @@ describe('ModalItem', () => {
 
   it('muestra el título correcto cuando action es "delete"', () => {
     render(<ModalItem info={{ action: 'delete', formKey: 'property' }} close={() => {}} />);
-    expect(screen.getByText(/eliminar property/i)).toBeInTheDocument();
+    expect(screen.getByText(/eliminar propiedad/i)).toBeInTheDocument();
   });
 
   it('usa PropertyForm si formKey no está en el registro', () => {
