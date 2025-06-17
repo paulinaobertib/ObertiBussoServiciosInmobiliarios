@@ -1,0 +1,40 @@
+1a- Making a report
+a- Do you know what her plans were for today?
+b- Did you notice anything unusual about her?
+c- How long has your aunt been missing?
+d- Where were you?
+e- Can you describe her?
+f- Was there anything unusual about the house tonight?
+g- Can you give me some idea of her normal routine?
+h- When did you last see her?
+i- Do you remember what she was wearing?
+j- Is there anything else?
+
+1b- 
+e
+h
+d
+i
+b
+a
+g
+f
+j
+
+2a- 
+a- I'm all right
+b- Thanks for letting me stay
+c- Listen carefully
+d- It's a message from
+e- I have no idea
+f- What does it mean?
+
+2b-
+e
+c
+f
+a
+d
+b
+
+
