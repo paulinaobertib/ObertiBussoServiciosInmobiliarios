@@ -1,6 +1,7 @@
 package pi.ms_properties.serviceTest;
 
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,8 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -157,9 +157,9 @@ class SurveyServiceTest {
     void sendSurvey_internalServerError() throws MessagingException {
         doThrow(RuntimeException.class).when(emailService).sendEmailSurvey(anyString(), anyLong());
 
-        ResponseEntity<String> response = surveyService.sendSurvey("fail@example.com", 1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> {
+            surveyService.sendSurvey("fail@example.com", 1L);
+        });
     }
 
     @Test
@@ -168,10 +168,9 @@ class SurveyServiceTest {
 
         SurveyDTO dto = new SurveyDTO(null, 3, "Normal", 1L);
 
-        ResponseEntity<String> response = surveyService.create(dto);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado la consulta", response.getBody());
+        assertThrows(EntityNotFoundException.class, () -> {
+            surveyService.create(dto);
+        });
     }
 
     @Test
@@ -180,41 +179,42 @@ class SurveyServiceTest {
         doThrow(DataIntegrityViolationException.class).when(surveyRepository).save(any(Survey.class));
 
         SurveyDTO dto = new SurveyDTO(null, 3, "Normal", 1L);
-        ResponseEntity<String> response = surveyService.create(dto);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            surveyService.create(dto);
+        });
     }
 
     @Test
     void getById_notFound() {
         when(surveyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<SurveyDTO> response = surveyService.getById(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(EntityNotFoundException.class, () -> {
+            surveyService.getById(1L);
+        });
     }
 
     @Test
     void getAll_internalServerError() {
         when(surveyRepository.findAll()).thenThrow(RuntimeException.class);
 
-        ResponseEntity<List<SurveyDTO>> response = surveyService.getAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> {
+            surveyService.getAll();
+        });
     }
 
     @Test
-    void sendSurvey_shouldReturnBadRequest_whenDataIntegrityViolationException() throws MessagingException {
+    void sendSurvey_shouldThrowDataIntegrityViolationException() throws MessagingException {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(emailService).sendEmailSurvey(anyString(), anyLong());
 
-        ResponseEntity<String> response = surveyService.sendSurvey("test@mail.com", 1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            surveyService.sendSurvey("test@mail.com", 1L);
+        });
     }
 
     @Test
-    void create_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+    void create_shouldThrowDataIntegrityViolationException() {
         SurveyDTO surveyDTO = new SurveyDTO(null, 5, "Comentario", 1L);
         Inquiry inquiry = new Inquiry();
         inquiry.setId(1L);
@@ -223,28 +223,28 @@ class SurveyServiceTest {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(surveyRepository).save(any(Survey.class));
 
-        ResponseEntity<String> response = surveyService.create(surveyDTO);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            surveyService.create(surveyDTO);
+        });
     }
 
     @Test
-    void getById_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+    void getById_shouldThrowDataIntegrityViolationException() {
         when(surveyRepository.findById(1L))
                 .thenThrow(new DataIntegrityViolationException("Violation"));
 
-        ResponseEntity<SurveyDTO> response = surveyService.getById(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            surveyService.getById(1L);
+        });
     }
 
     @Test
-    void getAll_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+    void getAll_shouldThrowDataIntegrityViolationException() {
         when(surveyRepository.findAll())
                 .thenThrow(new DataIntegrityViolationException("Violation"));
 
-        ResponseEntity<List<SurveyDTO>> response = surveyService.getAll();
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            surveyService.getAll();
+        });
     }
 }

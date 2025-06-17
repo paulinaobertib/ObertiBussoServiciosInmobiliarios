@@ -84,7 +84,7 @@ class AppointmentControllerTest {
 
     @Test
     void updateStatus_shouldReturnOk() throws Exception {
-        when(appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO))
+        when(appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, null))
                 .thenReturn(ResponseEntity.ok("Updated"));
 
         mockMvc.perform(put("/appointments/status/1")

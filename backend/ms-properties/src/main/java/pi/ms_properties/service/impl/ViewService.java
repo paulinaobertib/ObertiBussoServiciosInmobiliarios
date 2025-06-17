@@ -23,8 +23,7 @@ import java.util.stream.Collectors;
 public class ViewService implements IViewService {
 
     private final IViewRepository viewRepository;
-
-    private  final IPropertyRepository propertyRepository;
+    private final IPropertyRepository propertyRepository;
 
     @Override
     public void createView(Property property, LocalDateTime date) {
@@ -66,7 +65,8 @@ public class ViewService implements IViewService {
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
-                        v -> v.getDate().getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")),
+                        v -> v.getDate().getDayOfWeek()
+                                .getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")),
                         Collectors.counting()
                 ));
 
@@ -79,7 +79,8 @@ public class ViewService implements IViewService {
 
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
-                        v -> v.getDate().getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")),
+                        v -> v.getDate().getMonth()
+                                .getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es")),
                         Collectors.counting()
                 ));
 
@@ -116,17 +117,20 @@ public class ViewService implements IViewService {
     public ResponseEntity<Map<String, Long>> getViewsByStatus() {
         List<Property> properties = propertyRepository.findAll();
 
-        Map<String, Long> statusCount = properties.stream()
-                .collect(Collectors.groupingBy(p -> p.getStatus().name(), Collectors.counting()));
+        Map<String, Long> result = properties.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getStatus().name(),
+                        Collectors.counting()
+                ));
 
-        return ResponseEntity.ok(statusCount);
+        return ResponseEntity.ok(result);
     }
 
     @Override
     public ResponseEntity<Map<String, Map<String, Long>>> getViewsByStatusAndType() {
         List<Property> properties = propertyRepository.findAll();
 
-        Map<String, Map<String, Long>> statusAndTypeCount = properties.stream()
+        Map<String, Map<String, Long>> result = properties.stream()
                 .collect(Collectors.groupingBy(
                         property -> property.getStatus().name(),
                         Collectors.groupingBy(
@@ -135,12 +139,13 @@ public class ViewService implements IViewService {
                         )
                 ));
 
-        return ResponseEntity.ok(statusAndTypeCount);
+        return ResponseEntity.ok(result);
     }
 
     @Override
     public ResponseEntity<Map<String, Long>> getViewsByOperation() {
         List<View> views = viewRepository.findAll();
+
         Map<String, Long> result = views.stream()
                 .collect(Collectors.groupingBy(
                         v -> v.getProperty().getOperation().toString(),
@@ -164,19 +169,14 @@ public class ViewService implements IViewService {
     }
 
     @Override
-    // para que la seccion con la bd se mantenga abierta y pueda buscar las amenities
     @Transactional
     public ResponseEntity<Map<String, Long>> getViewsByAmenity() {
         List<View> views = viewRepository.findAll();
 
         Map<String, Long> result = views.stream()
-                // recorremos todas las amenities de cada propiedad
-                // flat lo que hace es abrir el set y mostrar lo que hay
                 .flatMap(view -> view.getProperty().getAmenities().stream())
-                // con collect junto los resultados
                 .collect(Collectors.groupingBy(
                         Amenity::getName,
-                        // contamos cuantos hay
                         Collectors.counting()
                 ));
 

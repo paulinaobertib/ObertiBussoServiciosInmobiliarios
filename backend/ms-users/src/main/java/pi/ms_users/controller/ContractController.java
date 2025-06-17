@@ -24,43 +24,43 @@ public class ContractController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<?> createContract(@RequestBody ContractDTO contractDTO, @RequestParam BigDecimal amount, @RequestParam ContractIncreaseCurrency currency) {
+    public ResponseEntity<String> createContract(@RequestBody ContractDTO contractDTO, @RequestParam BigDecimal amount, @RequestParam ContractIncreaseCurrency currency) {
         return contractService.create(contractDTO, amount, currency);
     }
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
-    public ResponseEntity<?> updateContract(@RequestBody ContractDTO contractDTO) {
+    public ResponseEntity<String> updateContract(@RequestBody ContractDTO contractDTO) {
         return contractService.update(contractDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
     @PatchMapping("/updateStatus/{id}")
-    public ResponseEntity<?> updateContractStatus(@PathVariable Long id) {
+    public ResponseEntity<String> updateContractStatus(@PathVariable Long id) {
         return contractService.updateStatus(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteContract(@PathVariable Long id) {
+    public ResponseEntity<String> deleteContract(@PathVariable Long id) {
         return contractService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<?> getContractById(@PathVariable Long id) {
+    public ResponseEntity<ContractDTO> getContractById(@PathVariable Long id) {
         return contractService.getById(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
-    public ResponseEntity<?> getAll() {
+    public ResponseEntity<List<ContractDTO>> getAll() {
         return contractService.getAll();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getContractsByUserId(@PathVariable String userId) {
+    public ResponseEntity<List<ContractDTO>> getContractsByUserId(@PathVariable String userId) {
         return contractService.getByUserId(userId);
     }
 
@@ -72,19 +72,19 @@ public class ContractController {
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/type")
-    public ResponseEntity<?> getContractsByType(@RequestParam ContractType type) {
+    public ResponseEntity<List<ContractDTO>> getContractsByType(@RequestParam ContractType type) {
         return contractService.getByType(type);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/status")
-    public ResponseEntity<?> getContractsByStatus(@RequestParam ContractStatus status) {
+    public ResponseEntity<List<ContractDTO>> getContractsByStatus(@RequestParam ContractStatus status) {
         return contractService.getByStatus(status);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/dateRange")
-    public ResponseEntity<?> getContractsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+    public ResponseEntity<List<ContractDTO>> getContractsByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         return contractService.getByDateBetween(start, end);
     }
 }

@@ -2,6 +2,7 @@ package pi.ms_properties.service.impl;
 
 import com.azure.storage.blob.*;
 import com.azure.storage.blob.models.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -78,66 +79,42 @@ public class ImageService implements IImageService {
 
     @Override
     public ResponseEntity<String> deleteImage(Long id) {
-        Optional<Image> imageOptional = imageRepository.findById(id);
-
-        if (imageOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Imagen no encontrada");
-        }
-
-        Image image = imageOptional.get();
+        Image image = imageRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Imagen no encontrada"));
 
         String blobUrl = image.getUrl();
         String containerUrl = blobContainerClient.getBlobContainerUrl();
-        // tenemos que tomar de la url solo el nombre de la imagen, sacando el path al contenedor
         String path = blobUrl.replace(containerUrl + "/", "");
+
         Storage storage = new Storage();
         storage.setPath(path);
 
-        try {
-            azureBlobStorage.delete(storage);
-            imageRepository.delete(image);
-            return ResponseEntity.ok("Imagen eliminada correctamente");
-        } catch (BlobStorageException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen del blob storage");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al eliminar la imagen");
-        }
+        azureBlobStorage.delete(storage);
+        imageRepository.delete(image);
+
+        return ResponseEntity.ok("Imagen eliminada correctamente");
     }
 
     @Override
     public void deleteImageByName(String url) {
         Storage storage = new Storage();
         storage.setPath(url);
-        try {
-            azureBlobStorage.delete(storage);
-            ResponseEntity.ok("Imagen eliminada correctamente");
-        } catch (BlobStorageException e) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen del blob storage");
-        } catch (Exception e) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado al eliminar la imagen");
-        }
+        azureBlobStorage.delete(storage);
     }
-
 
     @Override
     public ResponseEntity<List<Image>> getAllByPropertyId(Long propertyId) {
-        try {
-            Optional<Property> property = propertyRepository.findById(propertyId);
-            if (property.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new EntityNotFoundException("Propiedad no encontrada"));
 
-            List<Image> images = imageRepository.findAllByPropertyId(propertyId);
+        List<Image> images = imageRepository.findAllByPropertyId(propertyId);
 
-            for (Image image : images) {
-                String blobPath = image.getUrl();
-                String signedUrl = azureBlobStorage.getImageUrl(blobPath);
-                image.setUrl(signedUrl);
-            }
-
-            return ResponseEntity.ok(images);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        for (Image image : images) {
+            String blobPath = image.getUrl();
+            String signedUrl = azureBlobStorage.getImageUrl(blobPath);
+            image.setUrl(signedUrl);
         }
+
+        return ResponseEntity.ok(images);
     }
 }

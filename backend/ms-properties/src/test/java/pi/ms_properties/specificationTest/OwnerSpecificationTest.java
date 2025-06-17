@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.ActiveProfiles;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.repository.IOwnerRepository;
 import pi.ms_properties.specification.OwnerSpecification;
@@ -15,6 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class OwnerSpecificationTest {
 
     @Autowired

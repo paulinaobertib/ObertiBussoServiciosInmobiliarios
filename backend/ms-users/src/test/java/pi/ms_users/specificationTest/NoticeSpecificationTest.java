@@ -5,8 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
 import pi.ms_users.domain.Notice;
+import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.INoticeRepository;
 import pi.ms_users.specification.NoticeSpecification;
 
@@ -16,6 +21,14 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
+@EnableJpaRepositories(
+        basePackages = "pi.ms_users.repository",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = IContractRepository.class
+        )
+)
+@ActiveProfiles("test")
 class NoticeSpecificationTest {
 
     @Autowired
