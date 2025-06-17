@@ -46,7 +46,7 @@ public class ContractController {
         return contractService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractDTO> getContractById(@PathVariable Long id) {
         return contractService.getById(id);
@@ -58,7 +58,7 @@ public class ContractController {
         return contractService.getAll();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ContractDTO>> getContractsByUserId(@PathVariable String userId) {
         return contractService.getByUserId(userId);

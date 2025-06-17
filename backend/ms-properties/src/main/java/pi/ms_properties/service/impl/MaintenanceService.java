@@ -10,6 +10,7 @@ import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.MaintenanceDTO;
 import pi.ms_properties.repository.IMaintenanceRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.service.interf.IMaintenanceService;
 
 import java.util.List;

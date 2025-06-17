@@ -6,10 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
@@ -21,6 +24,7 @@ import pi.ms_users.repository.INotificationRepository;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.NotificationService;
 import pi.ms_users.service.interf.IEmailService;
 
@@ -277,5 +281,35 @@ class NotificationServiceTest {
                 .thenThrow(new DataIntegrityViolationException("Constraint error"));
 
         assertThrows(DataIntegrityViolationException.class, () -> notificationService.createProperty(dto, 1L));
+    }
+
+    @Test
+    void getById_withDifferentUser_throwsAccessDenied() {
+        Notification notification = new Notification();
+        notification.setUserId("user123");
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> notificationService.getById(1L));
+        }
+    }
+
+    @Test
+    void getByUserId_withDifferentUser_throwsAccessDenied() {
+        String userId = "user123";
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> notificationService.getByUserId(userId));
+        }
     }
 }

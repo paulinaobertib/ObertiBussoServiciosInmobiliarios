@@ -8,6 +8,7 @@ import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.ContractIncreaseDTOContractGet;
 import pi.ms_users.service.interf.IContractIncreaseService;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -29,13 +30,13 @@ public class ContractIncreaseController {
         return contractIncreaseService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractIncreaseDTO> getById(@PathVariable Long id) {
         return contractIncreaseService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/contract/{contractId}")
     public ResponseEntity<List<ContractIncreaseDTOContractGet>> getByContract(@PathVariable Long contractId) {
         return contractIncreaseService.getByContract(contractId);

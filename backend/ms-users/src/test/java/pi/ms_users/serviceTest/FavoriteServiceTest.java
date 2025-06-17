@@ -6,16 +6,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.feign.Property;
 import pi.ms_users.repository.IFavoriteRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.FavoriteService;
 
 import java.util.List;
@@ -165,5 +169,41 @@ class FavoriteServiceTest {
         assertThrows(RuntimeException.class, () -> favoriteService.findByPropertyId(100L));
     }
 
+    @Test
+    void create_withDifferentUser_throwsAccessDenied() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> favoriteService.create(favorite));
+        }
+    }
+
+    @Test
+    void delete_withDifferentUser_throwsAccessDenied() {
+        when(favoriteRepository.findById(1L)).thenReturn(Optional.of(favorite));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> favoriteService.delete(1L));
+        }
+    }
+
+    @Test
+    void findByUserId_withDifferentUser_throwsAccessDenied() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> favoriteService.findByUserId("user123"));
+        }
+    }
 }
 

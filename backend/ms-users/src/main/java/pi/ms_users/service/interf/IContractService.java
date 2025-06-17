@@ -1,7 +1,6 @@
 package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
-import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.domain.ContractStatus;
 import pi.ms_users.domain.ContractType;
