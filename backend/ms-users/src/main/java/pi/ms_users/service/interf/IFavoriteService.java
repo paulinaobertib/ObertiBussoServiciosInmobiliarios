@@ -13,4 +13,6 @@ public interface IFavoriteService {
     ResponseEntity<List<Favorite>> findByUserId(String userId);
 
     ResponseEntity<List<Favorite>> findByPropertyId(Long propertyId);
+
+    List<String> findAllUsers();
 }

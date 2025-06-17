@@ -35,6 +35,12 @@ public class FavoriteController {
     }
 
     @PreAuthorize("hasRole('admin')")
+    @GetMapping("/internal/allUser")
+    public List<String> getAllUsers() {
+        return favoriteService.findAllUsers();
+    }
+
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
     public ResponseEntity<List<Favorite>> getByPropertyId(@PathVariable Long propertyId) {
         return favoriteService.findByPropertyId(propertyId);
