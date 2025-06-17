@@ -1,9 +1,9 @@
 package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Neighborhood;
@@ -14,119 +14,85 @@ import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class NeighborhoodService implements INeighborhoodService {
 
     private final INeighborhoodRepository neighborhoodRepository;
-
     private final ObjectMapper mapper;
 
     @Override
     public ResponseEntity<String> createNeighborhood(NeighborhoodDTO neighborhoodDTO) {
-        try {
-            Neighborhood neighborhood = new Neighborhood();
-            neighborhood.setName(neighborhoodDTO.getName());
-
-            if (neighborhoodDTO.getType() == null ||
-                    Arrays.stream(NeighborhoodType.values())
-                            .noneMatch(t -> t.name().equalsIgnoreCase(neighborhoodDTO.getType()))) {
-                throw new IllegalArgumentException("Tipo de barrio inválido: " + neighborhoodDTO.getType());
-            }
-
-            neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
-            neighborhood.setCity(neighborhoodDTO.getCity());
-            neighborhoodRepository.save(neighborhood);
-
-            return ResponseEntity.ok("Se ha guardado el barrio");
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("El barrio '" + neighborhoodDTO.getName() + "' ya existe");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("No se ha podido guardar el barrio" + e);
+        if (neighborhoodDTO.getType() == null ||
+                Arrays.stream(NeighborhoodType.values())
+                        .noneMatch(t -> t.name().equalsIgnoreCase(neighborhoodDTO.getType()))) {
+            throw new IllegalArgumentException("Tipo de barrio inválido: " + neighborhoodDTO.getType());
         }
+
+        Neighborhood neighborhood = new Neighborhood();
+        neighborhood.setName(neighborhoodDTO.getName());
+        neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
+        neighborhood.setCity(neighborhoodDTO.getCity());
+
+        try {
+            neighborhoodRepository.save(neighborhood);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("El barrio '" + neighborhoodDTO.getName() + "' ya existe");
+        }
+
+        return ResponseEntity.ok("Se ha guardado el barrio");
     }
 
     @Override
     public ResponseEntity<String> deleteNeighborhood(Long id) {
-        try {
-            Optional<Neighborhood> neighborhood = neighborhoodRepository.findById(id);
+        Neighborhood neighborhood = neighborhoodRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el barrio con ID: " + id));
 
-            if (neighborhood.isEmpty()) {
-                return ResponseEntity.badRequest().body("No existe el barrio");
-            } else {
-                neighborhoodRepository.deleteById(id);
-                return ResponseEntity.ok("Se ha eliminado el barrio");
-            }
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("No se ha podido eliminar el barrio" + e);
-        }
+        neighborhoodRepository.deleteById(id);
+        return ResponseEntity.ok("Se ha eliminado el barrio");
     }
 
     @Override
     public ResponseEntity<NeighborhoodDTO> updateNeighborhood(Long id, NeighborhoodDTO neighborhoodDTO) {
-        try {
-            Optional<Neighborhood> optionalNeighborhood = neighborhoodRepository.findById(id);
+        Neighborhood neighborhood = neighborhoodRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el barrio con ID: " + id));
 
-            if (optionalNeighborhood.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
+        neighborhood.setName(neighborhoodDTO.getName());
+        neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
+        neighborhood.setCity(neighborhoodDTO.getCity());
 
-            Neighborhood neighborhood = optionalNeighborhood.get();
-            neighborhood.setName(neighborhoodDTO.getName());
-            neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
-            neighborhood.setCity(neighborhoodDTO.getCity());
+        Neighborhood update = neighborhoodRepository.save(neighborhood);
+        NeighborhoodDTO updateDTO = mapper.convertValue(update, NeighborhoodDTO.class);
 
-            Neighborhood update = neighborhoodRepository.save(neighborhood);
-
-            NeighborhoodDTO updateDTO = mapper.convertValue(update, NeighborhoodDTO.class);
-
-            return ResponseEntity.ok(updateDTO);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(updateDTO);
     }
 
     @Override
     public ResponseEntity<List<NeighborhoodDTO>> getAll() {
-        try {
-            List<Neighborhood> neighborhoods = neighborhoodRepository.findAll();
+        List<Neighborhood> neighborhoods = neighborhoodRepository.findAll();
 
-            if (neighborhoods.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-
-            List<NeighborhoodDTO> neighborhoodDTOS = neighborhoods.stream()
-                    .map(neighborhood -> new NeighborhoodDTO(neighborhood.getId(), neighborhood.getName(), String.valueOf(neighborhood.getType()), neighborhood.getCity()))
-                    .toList();
-
-            return ResponseEntity.ok(neighborhoodDTOS);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (neighborhoods.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+
+        List<NeighborhoodDTO> neighborhoodDTOS = neighborhoods.stream()
+                .map(neighborhood -> new NeighborhoodDTO(
+                        neighborhood.getId(),
+                        neighborhood.getName(),
+                        String.valueOf(neighborhood.getType()),
+                        neighborhood.getCity()))
+                .toList();
+
+        return ResponseEntity.ok(neighborhoodDTOS);
     }
 
     @Override
     public ResponseEntity<NeighborhoodDTO> getById(Long id) {
-        try {
-            Optional<Neighborhood> neighborhood = neighborhoodRepository.findById(id);
+        Neighborhood neighborhood = neighborhoodRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No existe el barrio con ID: " + id));
 
-            if (neighborhood.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            NeighborhoodDTO neighborhoodDTO = mapper.convertValue(neighborhood.get(), NeighborhoodDTO.class);
-
-            return ResponseEntity.ok(neighborhoodDTO);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        NeighborhoodDTO neighborhoodDTO = mapper.convertValue(neighborhood, NeighborhoodDTO.class);
+        return ResponseEntity.ok(neighborhoodDTO);
     }
 }
