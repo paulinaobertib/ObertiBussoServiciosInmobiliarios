@@ -217,9 +217,9 @@ public class KeycloakUserRepository implements IUserRepository {
         RealmResource realmResource = keycloak.realm(realm);
         UsersResource usersResource = realmResource.users();
 
-        List<RoleRepresentation> realmRoles = usersResource.get(userId).roles().realmLevel().listAll();
+        // List<RoleRepresentation> realmRoles = usersResource.get(userId).roles().realmLevel().listAll();
 
-       ClientRepresentation client = realmResource.clients()
+        ClientRepresentation client = realmResource.clients()
                 .findByClientId(clientId)
                 .stream()
                 .findFirst()
@@ -232,7 +232,7 @@ public class KeycloakUserRepository implements IUserRepository {
                 .listAll();
 
         List<String> allRoles = new ArrayList<>();
-        allRoles.addAll(realmRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
+        // allRoles.addAll(realmRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
         allRoles.addAll(clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
 
         return allRoles;

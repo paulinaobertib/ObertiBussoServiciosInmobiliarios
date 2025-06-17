@@ -1,9 +1,9 @@
 package pi.ms_users.service.impl;
 
-import jakarta.ws.rs.NotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
@@ -16,13 +16,13 @@ import pi.ms_users.repository.INotificationRepository;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IEmailService;
 import pi.ms_users.service.interf.INotificationService;
 
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,89 +59,65 @@ public class NotificationService implements INotificationService {
 
     @Override
     public ResponseEntity<String> createProperty(NotificationDTO notificationDTO, Long propertyId) {
-        try {
-            if (notificationDTO.getType() != NotificationType.PROPIEDADNUEVA) {
-                return ResponseEntity.badRequest().body("Endpoint incorrecto para este tipo de notificacion");
-            }
-
-            List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(notificationDTO.getType());
-
-            if (usersId.isEmpty()) {
-                return ResponseEntity.badRequest().body("No hay usuarios suscriptos a este tipo de notificacion");
-            }
-
-            Property property = propertyRepository.getById(propertyId);
-
-            for (String userId : usersId) {
-                Optional<User> optionalUser = userRepository.findById(userId);
-
-                if (optionalUser.isEmpty()) {
-                    return ResponseEntity.badRequest().body("El usuario con ID " + userId + " no existe");
-                }
-
-                User user = optionalUser.get();
-
-                EmailPropertyDTO dto = getEmailPropertyDTO(notificationDTO, user, property);
-
-                emailService.sendNotificationNewProperty(dto);
-
-                // guardamos la notificacion que enviamos
-                Notification notification = new Notification();
-                notification.setUserId(user.getId());
-                notification.setType(notificationDTO.getType());
-                notification.setDate(notificationDTO.getDate());
-
-                notificationRepository.save(notification);
-            }
-
-            return ResponseEntity.ok("Se han enviado las notificaciones correctamente");
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (notificationDTO.getType() != NotificationType.PROPIEDADNUEVA) {
+            throw new IllegalArgumentException("Endpoint incorrecto para este tipo de notificación");
         }
+
+        List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(notificationDTO.getType());
+        if (usersId.isEmpty()) {
+            throw new IllegalArgumentException("No hay usuarios suscriptos a este tipo de notificación");
+        }
+
+        Property property = propertyRepository.getById(propertyId);
+
+        for (String userId : usersId) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("El usuario con ID " + userId + " no existe"));
+
+            EmailPropertyDTO dto = getEmailPropertyDTO(notificationDTO, user, property);
+            emailService.sendNotificationNewProperty(dto);
+
+            Notification notification = new Notification();
+            notification.setUserId(user.getId());
+            notification.setType(notificationDTO.getType());
+            notification.setDate(notificationDTO.getDate());
+
+            notificationRepository.save(notification);
+        }
+
+        return ResponseEntity.ok("Se han enviado las notificaciones correctamente");
     }
 
     @Override
     public ResponseEntity<Notification> getById(Long id) {
-        try {
-            Optional<Notification> notification = notificationRepository.findById(id);
-            return notification.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la notificación con ID: " + id));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !notification.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
+
+        return ResponseEntity.ok(notification);
     }
 
     @Override
     public ResponseEntity<List<Notification>> getAll() {
-        try {
-            List<Notification> notifications = notificationRepository.findAll();
-            return ResponseEntity.ok(notifications);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        List<Notification> notifications = notificationRepository.findAll();
+        return ResponseEntity.ok(notifications);
     }
 
     @Override
     public ResponseEntity<List<Notification>> getByUserId(String userId) {
-        try {
-            Optional<User> user = Optional.empty();
-            try {
-                user = userRepository.findById(userId);
-            } catch (NotFoundException e) {
-                return ResponseEntity.notFound().build();
-            }
+        userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario con ID: " + userId));
 
-            List<Notification> notifications = notificationRepository.findByUserId(userId);
-            return ResponseEntity.ok(notifications);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !userId.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
+
+        List<Notification> notifications = notificationRepository.findByUserId(userId);
+        return ResponseEntity.ok(notifications);
     }
 }

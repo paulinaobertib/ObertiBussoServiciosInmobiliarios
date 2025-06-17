@@ -4,19 +4,20 @@ import org.springframework.http.ResponseEntity;
 import pi.ms_users.domain.Payment;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface IPaymentService {
-    ResponseEntity<?> createPayment(Payment payment);
+    ResponseEntity<String> createPayment(Payment payment);
 
-    ResponseEntity<?> updatePayment(Payment payment);
+    ResponseEntity<String> updatePayment(Payment payment);
 
-    ResponseEntity<?> deletePayment(Long id);
+    ResponseEntity<String> deletePayment(Long id);
 
-    ResponseEntity<?> getById(Long id);
+    ResponseEntity<Payment> getById(Long id);
 
-    ResponseEntity<?> getByContractId(Long contractId);
+    ResponseEntity<List<Payment>> getByContractId(Long contractId);
 
-    ResponseEntity<?> getByDate(Long contractId, LocalDateTime date);
+    ResponseEntity<List<Payment>> getByDate(Long contractId, LocalDateTime date);
 
-    ResponseEntity<?> getByDateBetween(Long contractId, LocalDateTime start, LocalDateTime end);
+    ResponseEntity<List<Payment>> getByDateBetween(Long contractId, LocalDateTime start, LocalDateTime end);
 }

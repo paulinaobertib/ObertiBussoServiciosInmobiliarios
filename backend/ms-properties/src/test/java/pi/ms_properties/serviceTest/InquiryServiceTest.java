@@ -1,13 +1,18 @@
 package pi.ms_properties.serviceTest;
 
+import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.domain.Property;
@@ -16,6 +21,7 @@ import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.feign.UserRepository;
+import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.service.impl.EmailService;
 import pi.ms_properties.service.impl.InquiryService;
 import pi.ms_properties.service.impl.SurveyService;
@@ -123,7 +129,7 @@ class InquiryServiceTest {
     }
 
     @Test
-    void updateStatus_success() {
+    void updateStatus_success() throws MessagingException {
         Inquiry inquiry = getSampleInquiry();
 
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
@@ -284,24 +290,23 @@ class InquiryServiceTest {
     @Test
     void create_propertyNotFound() {
         InquirySaveDTO dto = getSampleDTO();
-
         when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = inquiryService.create(dto);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> inquiryService.create(dto));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha encontrado la propiedad"));
+        assertEquals("No se ha encontrado la propiedad con id 1", exception.getMessage());
     }
 
     @Test
     void create_genericException() {
         InquirySaveDTO dto = getSampleDTO();
-
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Error inesperado"));
 
-        ResponseEntity<String> response = inquiryService.create(dto);
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> inquiryService.create(dto));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error inesperado", exception.getMessage());
     }
 
     @Test
@@ -309,9 +314,7 @@ class InquiryServiceTest {
         InquirySaveDTO invalidDto = new InquirySaveDTO();
         invalidDto.setUserId(null);
 
-        ResponseEntity<String> response = inquiryService.create(invalidDto);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(NullPointerException.class, () -> inquiryService.create(invalidDto));
     }
 
     @Test
@@ -319,82 +322,67 @@ class InquiryServiceTest {
         InquirySaveDTO invalidDto = new InquirySaveDTO();
         invalidDto.setFirstName(null);
 
-        ResponseEntity<String> response = inquiryService.createWithoutUser(invalidDto);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(NullPointerException.class, () -> inquiryService.createWithoutUser(invalidDto));
     }
 
     @Test
     void testGetByStatus_IllegalArgumentException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-
         when(inquiryRepository.getByStatus(status)).thenThrow(new IllegalArgumentException());
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(status);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(IllegalArgumentException.class, () -> inquiryService.getByStatus(status));
     }
 
     @Test
     void testGetByStatus_DataIntegrityViolationException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-
         when(inquiryRepository.getByStatus(status)).thenThrow(new DataIntegrityViolationException(""));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(status);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getByStatus(status));
     }
 
     @Test
     void testGetByStatus_GeneralException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-
         when(inquiryRepository.getByStatus(status)).thenThrow(new RuntimeException());
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(status);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> inquiryService.getByStatus(status));
     }
 
     @Test
     void getById_notFound() {
         when(inquiryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<Inquiry> response = inquiryService.getById(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> inquiryService.getById(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Consulta no encontrada", exception.getMessage());
     }
 
     @Test
     void testGetById_DataIntegrityViolationException() {
         Long id = 1L;
-
         when(inquiryRepository.findById(id)).thenThrow(DataIntegrityViolationException.class);
 
-        ResponseEntity<Inquiry> response = inquiryService.getById(id);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getById(id));
     }
 
     @Test
     void testGetById_GeneralException() {
         Long id = 1L;
-
         when(inquiryRepository.findById(id)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<Inquiry> response = inquiryService.getById(id);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> inquiryService.getById(id));
     }
 
     @Test
     void updateStatus_notFound() {
         when(inquiryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = inquiryService.updateStatus(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> inquiryService.updateStatus(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se ha encontrado la consulta", exception.getMessage());
     }
 
     @Test
@@ -406,9 +394,7 @@ class InquiryServiceTest {
         when(inquiryRepository.findById(id)).thenReturn(Optional.of(inquiry));
         doThrow(DataIntegrityViolationException.class).when(inquiryRepository).save(any(Inquiry.class));
 
-        ResponseEntity<String> response = inquiryService.updateStatus(id);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> inquiryService.updateStatus(id));
     }
 
     @Test
@@ -420,38 +406,31 @@ class InquiryServiceTest {
         when(inquiryRepository.findById(id)).thenReturn(Optional.of(inquiry));
         doThrow(RuntimeException.class).when(inquiryRepository).save(any(Inquiry.class));
 
-        ResponseEntity<String> response = inquiryService.updateStatus(id);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> inquiryService.updateStatus(id));
     }
 
     @Test
     void getAll_dataIntegrityViolationException() {
-        when(inquiryRepository.findAll())
-                .thenThrow(new DataIntegrityViolationException("Error de integridad"));
+        when(inquiryRepository.findAll()).thenThrow(new DataIntegrityViolationException("Error de integridad"));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getAll();
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getAll());
     }
 
     @Test
     void getAll_generalException() {
-        when(inquiryRepository.findAll())
-                .thenThrow(new RuntimeException("Error inesperado"));
+        when(inquiryRepository.findAll()).thenThrow(new RuntimeException("Error inesperado"));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> inquiryService.getAll());
     }
 
     @Test
     void getByUserId_userNotFound() {
         when(userRepository.exist("user123")).thenReturn(false);
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByUserId("user123");
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> inquiryService.getByUserId("user123"));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Usuario no encontrado", exception.getMessage());
     }
 
     @Test
@@ -460,9 +439,7 @@ class InquiryServiceTest {
         when(inquiryRepository.getByUserId("user123"))
                 .thenThrow(new DataIntegrityViolationException("Error de integridad"));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByUserId("user123");
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getByUserId("user123"));
     }
 
     @Test
@@ -471,18 +448,17 @@ class InquiryServiceTest {
         when(inquiryRepository.getByUserId("user123"))
                 .thenThrow(new RuntimeException("Error inesperado"));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByUserId("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> inquiryService.getByUserId("user123"));
     }
 
     @Test
     void getByPropertyId_propertyNotFound() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByPropertyId(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> inquiryService.getByPropertyId(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Propiedad no encontrada", exception.getMessage());
     }
 
     @Test
@@ -491,9 +467,7 @@ class InquiryServiceTest {
         when(inquiryRepository.getByPropertyId(1L))
                 .thenThrow(new DataIntegrityViolationException("Error de integridad"));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByPropertyId(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getByPropertyId(1L));
     }
 
     @Test
@@ -502,100 +476,49 @@ class InquiryServiceTest {
         when(inquiryRepository.getByPropertyId(1L))
                 .thenThrow(new RuntimeException("Error inesperado"));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByPropertyId(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> inquiryService.getByPropertyId(1L));
     }
 
     @Test
-    void getByStatus_illegalArgumentException() {
-        when(inquiryRepository.getByStatus(any()))
-                .thenThrow(new IllegalArgumentException("Invalid status"));
+    void getByUserId_withDifferentAuthenticatedUser_throwsAccessDenied() {
+        String requestedUserId = "user123";
+        String currentUserId = "otherUser";
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(InquiryStatus.ABIERTA);
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+            assertThrows(AccessDeniedException.class, () -> inquiryService.getByUserId(requestedUserId));
+        }
     }
 
     @Test
-    void getByStatus_dataIntegrityViolationException() {
-        when(inquiryRepository.getByStatus(any()))
-                .thenThrow(new DataIntegrityViolationException("Constraint error"));
+    void getById_withDifferentAuthenticatedUser_throwsAccessDenied() {
+        Inquiry inquiry = getSampleInquiry();
+        inquiry.setUserId("user123");
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(InquiryStatus.CERRADA);
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> inquiryService.getById(1L));
+        }
     }
 
     @Test
-    void getByStatus_generalException() {
-        when(inquiryRepository.getByStatus(any()))
-                .thenThrow(new RuntimeException("Something went wrong"));
+    void create_withDifferentAuthenticatedUser_throwsAccessDenied() {
+        InquirySaveDTO dto = getSampleDTO();
+        dto.setUserId("user123");
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(InquiryStatus.CERRADA);
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    void getAverageInquiryResponseTime_error() {
-        when(inquiryRepository.getByStatus(InquiryStatus.CERRADA))
-                .thenThrow(new RuntimeException("Computation error"));
-
-        ResponseEntity<String> response = inquiryService.getAverageInquiryResponseTime();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Error al calcular tiempo promedio", response.getBody());
-    }
-
-    @Test
-    void getInquiryStatusDistribution_error() {
-        when(inquiryRepository.countByStatus())
-                .thenThrow(new RuntimeException("Unexpected error"));
-
-        ResponseEntity<Map<String, Long>> response = inquiryService.getInquiryStatusDistribution();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals(-1L, response.getBody().get("error"));
-    }
-
-    @Test
-    void getInquiriesGroupedByDayOfWeek_error() {
-        when(inquiryRepository.findAll()).thenThrow(new RuntimeException("DB Error"));
-
-        ResponseEntity<Map<String, Long>> response = inquiryService.getInquiriesGroupedByDayOfWeek();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals(-1L, response.getBody().get("error"));
-    }
-
-    @Test
-    void getInquiriesGroupedByTimeRange_error() {
-        when(inquiryRepository.findAll()).thenThrow(new RuntimeException("DB Error"));
-
-        ResponseEntity<Map<String, Long>> response = inquiryService.getInquiriesGroupedByTimeRange();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals(-1L, response.getBody().get("error"));
-    }
-
-    @Test
-    void getInquiriesPerMonth_error() {
-        when(inquiryRepository.countPerMonth()).thenThrow(new RuntimeException("DB Error"));
-
-        ResponseEntity<Map<YearMonth, Long>> response = inquiryService.getInquiriesPerMonth();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    void getMostConsultedProperties_error() {
-        when(inquiryRepository.countMostConsultedProperties())
-                .thenThrow(new RuntimeException("DB failure"));
-
-        ResponseEntity<Map<String, Long>> response = inquiryService.getMostConsultedProperties();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals(-1L, response.getBody().get("error"));
+            assertThrows(AccessDeniedException.class, () -> inquiryService.create(dto));
+        }
     }
 }

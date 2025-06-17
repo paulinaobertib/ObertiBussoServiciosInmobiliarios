@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,10 +122,10 @@ class NoticeServiceTest {
     void testCreateNotice_UserNotFound() {
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = noticeService.create(notice);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> noticeService.create(notice));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el usuario", response.getBody());
+        assertEquals("No se ha encontrado el usuario", exception.getMessage());
     }
 
     @Test
@@ -132,20 +133,20 @@ class NoticeServiceTest {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(userRepository.getUserRoles("user1")).thenReturn(List.of("user"));
 
-        ResponseEntity<String> response = noticeService.create(notice);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> noticeService.create(notice));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Este usuario no tiene permiso para crear una noticia", response.getBody());
+        assertEquals("Este usuario no tiene permiso para crear una noticia", exception.getMessage());
     }
 
     @Test
     void testUpdateNotice_UserNotFound() {
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = noticeService.update(notice);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> noticeService.update(notice));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el usuario", response.getBody());
+        assertEquals("No se ha encontrado el usuario", exception.getMessage());
     }
 
     @Test
@@ -153,10 +154,10 @@ class NoticeServiceTest {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(noticeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = noticeService.update(notice);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> noticeService.update(notice));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado una noticia con ese id", response.getBody());
+        assertEquals("No se ha encontrado una noticia con ese id", exception.getMessage());
     }
 
     @Test
@@ -165,152 +166,137 @@ class NoticeServiceTest {
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
         when(userRepository.getUserRoles("user1")).thenReturn(List.of("user"));
 
-        ResponseEntity<String> response = noticeService.update(notice);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> noticeService.update(notice));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Este usuario no tiene permiso para actualizar una noticia", response.getBody());
+        assertEquals("Este usuario no tiene permiso para actualizar una noticia", exception.getMessage());
     }
 
     @Test
     void testDeleteNotice_NotFound() {
         when(noticeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = noticeService.delete(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> noticeService.delete(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado una noticia con ese id", response.getBody());
+        assertEquals("No se ha encontrado una noticia con ese id", exception.getMessage());
     }
 
     @Test
     void testGetById_NotFound() {
         when(noticeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<Notice> response = noticeService.getById(1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> noticeService.getById(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se ha encontrado una noticia con ese id", exception.getMessage());
     }
 
     @Test
-    void create_shouldReturnBadRequest_onDataIntegrityViolation() {
-        Notice notice = new Notice();
+    void create_shouldThrowDataIntegrityViolationException() {
         notice.setUserId("admin123");
 
         when(userRepository.findById("admin123")).thenThrow(new DataIntegrityViolationException("Error"));
 
-        ResponseEntity<String> response = noticeService.create(notice);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class,
+                () -> noticeService.create(notice));
     }
 
     @Test
-    void create_shouldReturnInternalServerError_onUnexpectedException() {
-        Notice notice = new Notice();
+    void create_shouldThrowUnexpectedException() {
         notice.setUserId("admin123");
 
         when(userRepository.findById("admin123")).thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<String> response = noticeService.create(notice);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class,
+                () -> noticeService.create(notice));
     }
 
     @Test
-    void update_shouldReturnBadRequest_onDataIntegrityViolation() {
-        Notice notice = new Notice();
+    void update_shouldThrowDataIntegrityViolationException() {
         notice.setUserId("admin123");
         notice.setId(1L);
 
         when(userRepository.findById("admin123")).thenThrow(new DataIntegrityViolationException("Error"));
 
-        ResponseEntity<String> response = noticeService.update(notice);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class,
+                () -> noticeService.update(notice));
     }
 
     @Test
-    void update_shouldReturnInternalServerError_onUnexpectedException() {
-        Notice notice = new Notice();
+    void update_shouldThrowUnexpectedException() {
         notice.setUserId("admin123");
         notice.setId(1L);
 
         when(userRepository.findById("admin123")).thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<String> response = noticeService.update(notice);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class,
+                () -> noticeService.update(notice));
     }
 
     @Test
-    void delete_shouldReturnBadRequest_onDataIntegrityViolation() {
+    void delete_shouldThrowDataIntegrityViolationException() {
         when(noticeRepository.findById(1L)).thenThrow(new DataIntegrityViolationException("Error"));
 
-        ResponseEntity<String> response = noticeService.delete(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class,
+                () -> noticeService.delete(1L));
     }
 
     @Test
-    void delete_shouldReturnInternalServerError_onUnexpectedException() {
+    void delete_shouldThrowUnexpectedException() {
         when(noticeRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<String> response = noticeService.delete(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class,
+                () -> noticeService.delete(1L));
     }
 
     @Test
-    void getById_shouldReturnBadRequest_onDataIntegrityViolation() {
+    void getById_shouldThrowDataIntegrityViolationException() {
         when(noticeRepository.findById(1L)).thenThrow(new DataIntegrityViolationException("Error"));
 
-        ResponseEntity<Notice> response = noticeService.getById(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class,
+                () -> noticeService.getById(1L));
     }
 
     @Test
-    void getById_shouldReturnInternalServerError_onUnexpectedException() {
+    void getById_shouldThrowUnexpectedException() {
         when(noticeRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<Notice> response = noticeService.getById(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class,
+                () -> noticeService.getById(1L));
     }
 
     @Test
-    void getAll_shouldReturnBadRequest_onDataIntegrityViolation() {
+    void getAll_shouldThrowDataIntegrityViolationException() {
         when(noticeRepository.findAll()).thenThrow(new DataIntegrityViolationException("Error"));
 
-        ResponseEntity<List<Notice>> response = noticeService.getAll();
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class,
+                () -> noticeService.getAll());
     }
 
     @Test
-    void getAll_shouldReturnInternalServerError_onUnexpectedException() {
+    void getAll_shouldThrowUnexpectedException() {
         when(noticeRepository.findAll()).thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<List<Notice>> response = noticeService.getAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class,
+                () -> noticeService.getAll());
     }
 
     @Test
-    void search_shouldReturnBadRequest_onDataIntegrityViolation() {
+    void search_shouldThrowDataIntegrityViolationException() {
         when(noticeRepository.findAll(any(Specification.class)))
                 .thenThrow(new DataIntegrityViolationException("Error"));
 
-        ResponseEntity<List<Notice>> response = noticeService.search("test");
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class,
+                () -> noticeService.search("test"));
     }
 
     @Test
-    void search_shouldReturnInternalServerError_onUnexpectedException() {
+    void search_shouldThrowUnexpectedException() {
         when(noticeRepository.findAll(any(Specification.class)))
                 .thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<List<Notice>> response = noticeService.search("test");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class,
+                () -> noticeService.search("test"));
     }
 }

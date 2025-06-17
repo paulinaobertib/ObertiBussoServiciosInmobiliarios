@@ -1,23 +1,21 @@
 package pi.ms_users.service.impl;
 
-import jakarta.validation.ConstraintViolationException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.ClientErrorException;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionSystemException;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,21 +24,20 @@ public class UserService {
 
     private final IUserRepository userRepository;
 
-    public ResponseEntity<?> createUser(String name, String lastName, String email, String phone) {
+    public ResponseEntity<String> createUser(String name, String lastName, String email, String phone) {
         Response response = userRepository.createUser(name, lastName, email, phone);
         int status = response.getStatus();
 
-        if (status == 201) {
-            return ResponseEntity.ok("Se ha creado el usuario con éxito");
-        } else if (status == 409) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
-        } else if (status == 400) {
-            return ResponseEntity.badRequest().body("Datos inválidos enviados a Keycloak");
-        } else {
-            String error = response.readEntity(String.class);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error inesperado en Keycloak: " + error);
-        }
+        return switch (status) {
+            case 201 -> ResponseEntity.ok("Se ha creado el usuario con éxito");
+            case 409 -> ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
+            case 400 -> ResponseEntity.badRequest().body("Datos inválidos enviados a Keycloak");
+            default -> {
+                String error = response.readEntity(String.class);
+                yield ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error inesperado en Keycloak: " + error);
+            }
+        };
     }
 
     public Map<String, String> getUserInfo(Jwt jwt) {
@@ -60,130 +57,87 @@ public class UserService {
         return userInfo;
     }
 
-    public ResponseEntity<Optional<User>> findById(String id) {
-        try {
-            Optional<User> user = userRepository.findById(id);
-            if (user.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(user);
-        } catch (NotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<User> findById(String id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario con ID: " + id));
+        return ResponseEntity.ok(user);
     }
 
-    public ResponseEntity<?> findTenat() {
-        try {
-            List<User> user = userRepository.findByRoleTenant();
-            return ResponseEntity.ok(user);
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se han encontrado inquilinos.");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e);
+    public ResponseEntity<List<User>> findTenat() {
+        List<User> users = userRepository.findByRoleTenant();
+        if (users.isEmpty()) {
+            throw new EntityNotFoundException("No se han encontrado inquilinos.");
         }
+        return ResponseEntity.ok(users);
     }
 
     public ResponseEntity<List<User>> findAll() {
-        try {
-            List<User> users = userRepository.findAll();
-            if (users.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            throw new EntityNotFoundException("No se encontraron usuarios.");
         }
+        return ResponseEntity.ok(users);
     }
 
     public ResponseEntity<String> deleteUserById(String id) {
-        try {
-            userRepository.deleteUserById(id);
-            return ResponseEntity.ok("Se ha eliminado el usuario");
-        } catch (NotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
+
+        userRepository.deleteUserById(id);
+        return ResponseEntity.ok("Se ha eliminado el usuario");
     }
 
-    public ResponseEntity<?> updateUser(User user) {
-        try {
-            Optional<User> users = userRepository.findById(user.getId());
-            if (users.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
-            }
+    public ResponseEntity<User> updateUser(User user) {
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
-            User updated = userRepository.updateUser(user);
-            return ResponseEntity.ok(updated);
-
-        } catch (ClientErrorException e) {
-            int status = e.getResponse().getStatus();
-            String errorBody;
-            try {
-                errorBody = e.getResponse().readEntity(String.class);
-            } catch (Exception ex) {
-                errorBody = "No se pudo leer el cuerpo de la respuesta de Keycloak.";
-            }
-
-            if (status == 409) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Conflicto al actualizar el usuario: " + errorBody);
-            }
-
-            return ResponseEntity.status(status)
-                    .body("Error al actualizar el usuario en Keycloak: " + errorBody);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al actualizar el usuario: " + e.getMessage());
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !user.getId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
+
+        User updated = userRepository.updateUser(user);
+        return ResponseEntity.ok(updated);
     }
 
     public ResponseEntity<List<String>> getUserRoles(String id) {
-        try {
-            Optional<User> users = userRepository.findById(id);
-            if (users.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            List<String> roles = userRepository.getUserRoles(id);
-            if (roles.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(roles);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
+
+        List<String> roles = userRepository.getUserRoles(id);
+        if (roles.isEmpty()) {
+            throw new EntityNotFoundException("El usuario no tiene roles asignados");
+        }
+
+        return ResponseEntity.ok(roles);
     }
 
     public ResponseEntity<List<String>> addRoleToUser(String id, String role) {
-        try {
-            Optional<User> users = userRepository.findById(id);
-            if (users.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            List<String> roles = userRepository.addRoleToUser(id, role);
-            if (roles.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(roles);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        List<String> roles = userRepository.addRoleToUser(id, role);
+        if (roles == null || roles.isEmpty()) {
+            throw new EntityNotFoundException("No se agregaron roles al usuario");
         }
+
+        return ResponseEntity.ok(roles);
     }
 
     public ResponseEntity<String> deleteRoleToUser(String id, String role) {
-        try {
-            Optional<User> users = userRepository.findById(id);
-            if (users.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            userRepository.deleteRoleToUser(id, role);
-            return ResponseEntity.ok("Se le ha eliminado el rol seleccionado al usuario");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+
+        userRepository.deleteRoleToUser(id, role);
+        return ResponseEntity.ok("Se le ha eliminado el rol seleccionado al usuario");
     }
 
     private boolean contains(String field, String searchTerm) {
@@ -192,29 +146,29 @@ public class UserService {
     }
 
     public ResponseEntity<List<User>> searchUsersByText(String searchTerm) {
-        try {
-            List<User> allUsers = userRepository.findAll();
+        List<User> allUsers = userRepository.findAll();
 
-            List<User> filteredUsers = allUsers.stream()
-                    .filter(user -> contains(user.getUsername(), searchTerm) ||
-                            contains(user.getMail(), searchTerm) ||
-                            contains(user.getFirstName(), searchTerm) ||
-                            contains(user.getLastName(), searchTerm) ||
-                            contains(user.getPhone(), searchTerm))
-                    .collect(Collectors.toList());
+        List<User> filteredUsers = allUsers.stream()
+                .filter(user -> contains(user.getUsername(), searchTerm) ||
+                        contains(user.getMail(), searchTerm) ||
+                        contains(user.getFirstName(), searchTerm) ||
+                        contains(user.getLastName(), searchTerm) ||
+                        contains(user.getPhone(), searchTerm))
+                .collect(Collectors.toList());
 
-            if (filteredUsers.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            return ResponseEntity.ok(filteredUsers);
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (filteredUsers.isEmpty()) {
+            throw new EntityNotFoundException("No se encontraron usuarios que coincidan con la búsqueda.");
         }
+
+        return ResponseEntity.ok(filteredUsers);
     }
 
     public Boolean exist(String id) {
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return userRepository.exist(id);
     }
 }
