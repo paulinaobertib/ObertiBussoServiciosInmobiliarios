@@ -1,20 +1,23 @@
 package pi.ms_users.serviceTest;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
 import pi.ms_users.domain.User;
 import pi.ms_users.dto.EmailDTO;
 import pi.ms_users.repository.IAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.AppointmentService;
 import pi.ms_users.service.impl.EmailService;
 
@@ -277,5 +280,52 @@ class AppointmentServiceTest {
         assertThrows(RuntimeException.class, () -> appointmentService.findByUserId("user123"));
     }
 
+    @Test
+    void findById_withDifferentUser_throwsAccessDenied() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> appointmentService.findById(1L));
+        }
+    }
+
+    @Test
+    void findByUserId_withDifferentUser_throwsAccessDenied() {
+        String requestedUserId = "user123";
+
+        when(appointmentRepository.findByUserId(requestedUserId)).thenReturn(List.of());
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> appointmentService.findByUserId(requestedUserId));
+        }
+    }
+
+    @Test
+    void delete_withDifferentUser_throwsAccessDenied() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> appointmentService.delete(1L));
+        }
+    }
 }
 

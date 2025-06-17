@@ -9,12 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.UserService;
 
 import java.util.*;
@@ -481,4 +484,51 @@ class UserServiceTest {
         assertEquals("Usuario no encontrado", ex.getMessage());
     }
 
+    @Test
+    void getUserRoles_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.getUserRoles("user123"));
+        }
+    }
+
+    @Test
+    void deleteUserById_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.deleteUserById("user123"));
+        }
+    }
+
+    @Test
+    void updateUser_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.updateUser(user));
+        }
+    }
+
+    @Test
+    void exist_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.exist("user123"));
+        }
+    }
 }

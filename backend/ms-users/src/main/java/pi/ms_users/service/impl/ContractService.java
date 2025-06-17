@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
@@ -15,6 +16,7 @@ import pi.ms_users.dto.EmailExpirationContract;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractIncreaseService;
 import pi.ms_users.service.interf.IContractService;
 
@@ -151,6 +153,11 @@ public class ContractService implements IContractService {
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el contrato."));
 
+        if (SecurityUtils.isTenant() &&
+                !contract.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         ContractDTO contractDTO = mapToDTO(contract);
         return ResponseEntity.ok(contractDTO);
     }
@@ -160,6 +167,12 @@ public class ContractService implements IContractService {
         if (!userRepository.exist(userId)) {
             throw new NoSuchElementException("No se ha encontrado el usuario.");
         }
+
+        if (SecurityUtils.isTenant() &&
+                !userId.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         List<Contract> contracts = contractRepository.findByUserId(userId);
         List<ContractDTO> contractDTOs = contracts.stream()
                 .map(this::mapToDTO)

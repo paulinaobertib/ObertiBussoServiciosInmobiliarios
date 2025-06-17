@@ -97,7 +97,7 @@ class ContractIncreaseControllerTest {
                 .thenReturn(ResponseEntity.ok(dto));
 
         mockMvc.perform(get("/contractIncreases/getById/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.amount").value(1000));
@@ -115,7 +115,7 @@ class ContractIncreaseControllerTest {
                 .thenReturn(ResponseEntity.ok(List.of(dto)));
 
         mockMvc.perform(get("/contractIncreases/contract/123")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(1))

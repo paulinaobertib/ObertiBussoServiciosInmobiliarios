@@ -8,9 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.*;
 import pi.ms_users.domain.feign.Property;
 import pi.ms_users.dto.ContractDTO;
@@ -20,6 +23,7 @@ import pi.ms_users.dto.EmailExpirationContract;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.ContractService;
 import pi.ms_users.service.impl.EmailService;
 import pi.ms_users.service.interf.IContractIncreaseService;
@@ -415,5 +419,29 @@ class ContractServiceTest {
         assertDoesNotThrow(() -> contractService.applyScheduledSoonInactive());
 
         verify(emailService, times(1)).sendContractExpirationReminder(any(EmailExpirationContract.class));
+    }
+
+    @Test
+    void getById_withDifferentTenantUser_throwsAccessDenied() {
+        when(contractRepository.findById(1L)).thenReturn(Optional.of(contract));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isTenant).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> contractService.getById(1L));
+        }
+    }
+
+    @Test
+    void getByUserId_withDifferentTenantUser_throwsAccessDenied() {
+        when(userRepository.exist("user123")).thenReturn(true);
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isTenant).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> contractService.getByUserId("user123"));
+        }
     }
 }

@@ -193,13 +193,12 @@ class KeycloakUserRepositoryTest {
         when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of(clientRepresentation));
         when(usersResource.get("123")).thenReturn(userResource);
         when(userResource.roles()).thenReturn(roleMappingResource);
-        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
         when(roleMappingResource.clientLevel("client-uuid-123")).thenReturn(roleScopeResource);
         when(roleScopeResource.listAll()).thenReturn(List.of(role));
 
         List<String> roles = repository.getUserRoles("123");
 
-        assertEquals(List.of("admin", "admin"), roles);
+        assertEquals(List.of("admin"), roles);
     }
 
     @Test
@@ -308,7 +307,6 @@ class KeycloakUserRepositoryTest {
 
     @Test
     void getUserRoles_error() {
-        when(usersResource.get("fail")).thenThrow(new RuntimeException("Error"));
         assertThrows(RuntimeException.class, () -> repository.getUserRoles("fail"));
     }
 

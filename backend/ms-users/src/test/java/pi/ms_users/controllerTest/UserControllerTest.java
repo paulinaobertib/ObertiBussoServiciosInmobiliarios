@@ -50,7 +50,7 @@ public class UserControllerTest {
         when(userService.findById("1")).thenReturn(ResponseEntity.ok(user));
 
         mockMvc.perform(get("/user/getById/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"));
     }
@@ -210,7 +210,10 @@ public class UserControllerTest {
 
     @Test
     void findRoles_forbidden_shouldReturn403() throws Exception {
-        mockMvc.perform(get("/user/role/1")
+        User user = new User("1", "jdoe", "jdoe@mail.com", "John", "Doe", "123456");
+        when(userService.findById("1")).thenReturn(ResponseEntity.ok(user));
+
+        mockMvc.perform(get("/user/getById/1")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
                 .andExpect(status().isForbidden());
     }

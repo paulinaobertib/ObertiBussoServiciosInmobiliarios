@@ -6,10 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.domain.Property;
@@ -18,6 +21,7 @@ import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.feign.UserRepository;
+import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.service.impl.EmailService;
 import pi.ms_properties.service.impl.InquiryService;
 import pi.ms_properties.service.impl.SurveyService;
@@ -473,5 +477,48 @@ class InquiryServiceTest {
                 .thenThrow(new RuntimeException("Error inesperado"));
 
         assertThrows(RuntimeException.class, () -> inquiryService.getByPropertyId(1L));
+    }
+
+    @Test
+    void getByUserId_withDifferentAuthenticatedUser_throwsAccessDenied() {
+        String requestedUserId = "user123";
+        String currentUserId = "otherUser";
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn(currentUserId);
+
+            assertThrows(AccessDeniedException.class, () -> inquiryService.getByUserId(requestedUserId));
+        }
+    }
+
+    @Test
+    void getById_withDifferentAuthenticatedUser_throwsAccessDenied() {
+        Inquiry inquiry = getSampleInquiry();
+        inquiry.setUserId("user123");
+
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> inquiryService.getById(1L));
+        }
+    }
+
+    @Test
+    void create_withDifferentAuthenticatedUser_throwsAccessDenied() {
+        InquirySaveDTO dto = getSampleDTO();
+        dto.setUserId("user123");
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> inquiryService.create(dto));
+        }
     }
 }

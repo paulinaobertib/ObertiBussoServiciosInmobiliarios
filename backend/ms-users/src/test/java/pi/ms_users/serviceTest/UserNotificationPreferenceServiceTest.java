@@ -7,15 +7,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.UserNotificationPreferenceService;
 
 import java.util.List;
@@ -307,5 +310,57 @@ class UserNotificationPreferenceServiceTest {
                 .thenThrow(new DataIntegrityViolationException("error"));
 
         assertThrows(DataIntegrityViolationException.class, () -> service.getByUser("user1"));
+    }
+
+    @Test
+    void create_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(userRepository.findById("userTest")).thenReturn(Optional.of(new User()));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otroUsuario");
+
+            assertThrows(AccessDeniedException.class, () -> service.create(defaultPreference));
+        }
+    }
+
+    @Test
+    void update_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(preferenceRepository.findById(10L)).thenReturn(Optional.of(disabledPreference));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otroUsuario");
+
+            assertThrows(AccessDeniedException.class, () -> service.update(10L, true));
+        }
+    }
+
+    @Test
+    void getById_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(preferenceRepository.findById(10L)).thenReturn(Optional.of(disabledPreference));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otroUsuario");
+
+            assertThrows(AccessDeniedException.class, () -> service.getById(10L));
+        }
+    }
+
+    @Test
+    void getByUser_shouldThrowAccessDeniedException_whenUserIsNotAdminAndNotOwner() {
+        when(userRepository.findById("userTest")).thenReturn(Optional.of(new User()));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otroUsuario");
+
+            assertThrows(AccessDeniedException.class, () -> service.getByUser("userTest"));
+        }
     }
 }

@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_properties.domain.Inquiry;
@@ -15,6 +16,7 @@ import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.feign.UserRepository;
+import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.service.interf.IInquiryService;
 
 import java.time.*;
@@ -80,6 +82,11 @@ public class InquiryService implements IInquiryService {
     @Override
     @Transactional
     public ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO) {
+        if (SecurityUtils.isUser() &&
+                !inquirySaveDTO.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         Inquiry inquiry = saveInquiry(inquirySaveDTO);
 
         if (userRepository.exist(inquirySaveDTO.getUserId())) {
@@ -123,6 +130,12 @@ public class InquiryService implements IInquiryService {
     public ResponseEntity<Inquiry> getById(Long id) {
         Inquiry inquiry = inquiryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Consulta no encontrada"));
+
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !inquiry.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return ResponseEntity.ok(inquiry);
     }
 
@@ -133,9 +146,15 @@ public class InquiryService implements IInquiryService {
 
     @Override
     public ResponseEntity<List<Inquiry>> getByUserId(String userId) {
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !userId.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         if (!userRepository.exist(userId)) {
             throw new EntityNotFoundException("Usuario no encontrado");
         }
+
         List<Inquiry> inquiries = inquiryRepository.getByUserId(userId);
         return ResponseEntity.ok(inquiries);
     }

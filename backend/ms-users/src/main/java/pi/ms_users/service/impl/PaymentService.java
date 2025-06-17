@@ -8,7 +8,9 @@ import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.Payment;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IPaymentRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IPaymentService;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,6 +55,12 @@ public class PaymentService implements IPaymentService {
     public ResponseEntity<Payment> getById(Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el pago solicitado"));
+
+        if (SecurityUtils.isTenant() &&
+                !payment.getContract().getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         return ResponseEntity.ok(payment);
     }
 
@@ -60,6 +68,12 @@ public class PaymentService implements IPaymentService {
     public ResponseEntity<List<Payment>> getByContractId(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato"));
+
+        if (SecurityUtils.isTenant() &&
+                !contract.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         List<Payment> payments = paymentRepository.findByContractId(contractId);
         return ResponseEntity.ok(payments);
     }
@@ -68,6 +82,12 @@ public class PaymentService implements IPaymentService {
     public ResponseEntity<List<Payment>> getByDate(Long contractId, LocalDateTime date) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato"));
+
+        if (SecurityUtils.isTenant() &&
+                !contract.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         List<Payment> payments = paymentRepository.findByDate(contractId, date);
         return ResponseEntity.ok(payments);
     }
@@ -76,6 +96,12 @@ public class PaymentService implements IPaymentService {
     public ResponseEntity<List<Payment>> getByDateBetween(Long contractId, LocalDateTime start, LocalDateTime end) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato"));
+
+        if (SecurityUtils.isTenant() &&
+                !contract.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         List<Payment> payments = paymentRepository.findByDateBetween(contractId, start, end);
         return ResponseEntity.ok(payments);
     }

@@ -5,14 +5,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.ContractIncreaseDTOContractGet;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.ContractIncreaseService;
 import pi.ms_users.service.impl.EmailService;
 
@@ -173,5 +177,41 @@ class ContractIncreaseServiceTest {
         when(contractRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> service.create(dto));
+    }
+
+    @Test
+    void getById_withDifferentTenantUser_throwsAccessDenied() {
+        Contract contract = new Contract();
+        contract.setId(1L);
+        contract.setUserId("user123");
+
+        ContractIncrease increase = new ContractIncrease();
+        increase.setId(5L);
+        increase.setContract(contract);
+
+        when(contractIncreaseRepository.findById(5L)).thenReturn(Optional.of(increase));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isTenant).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> service.getById(5L));
+        }
+    }
+
+    @Test
+    void getByContract_withDifferentTenantUser_throwsAccessDenied() {
+        Contract contract = new Contract();
+        contract.setId(1L);
+        contract.setUserId("user123");
+
+        when(contractRepository.findById(1L)).thenReturn(Optional.of(contract));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isTenant).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> service.getByContract(1L));
+        }
     }
 }

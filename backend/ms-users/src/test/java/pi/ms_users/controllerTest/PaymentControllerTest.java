@@ -105,7 +105,7 @@ public class PaymentControllerTest {
         Mockito.when(paymentService.getById(1L)).thenReturn(ResponseEntity.ok(payment));
 
         mockMvc.perform(get("/payments/getById/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1));
     }
@@ -116,7 +116,7 @@ public class PaymentControllerTest {
         Mockito.when(paymentService.getByContractId(10L)).thenReturn(ResponseEntity.ok(List.of(payment)));
 
         mockMvc.perform(get("/payments/contract/10")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
     }
@@ -128,7 +128,7 @@ public class PaymentControllerTest {
         Mockito.when(paymentService.getByDate(10L, date)).thenReturn(ResponseEntity.ok(List.of(payment)));
 
         mockMvc.perform(get("/payments/getByDate")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .param("contract", "10")
                         .param("date", date.toString()))
                 .andExpect(status().isOk())
@@ -143,7 +143,7 @@ public class PaymentControllerTest {
         Mockito.when(paymentService.getByDateBetween(10L, start, end)).thenReturn(ResponseEntity.ok(List.of(payment)));
 
         mockMvc.perform(get("/payments/getByDateBetween")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
                         .param("contractId", "10")
                         .param("start", start.toString())
                         .param("end", end.toString()))
@@ -173,7 +173,7 @@ public class PaymentControllerTest {
         Mockito.when(paymentService.getById(99L)).thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(get("/payments/getById/99")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isNotFound());
     }
 
