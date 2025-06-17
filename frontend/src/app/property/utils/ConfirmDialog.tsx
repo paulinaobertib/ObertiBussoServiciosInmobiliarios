@@ -1,19 +1,35 @@
-import { useState, ReactNode } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { useState, ReactNode, useCallback } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography
+} from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { useLoading } from '../utils/useLoading';
 
 export function useConfirmDialog() {
   const [open, setOpen] = useState(false);
   const [message, setMsg] = useState<ReactNode>('');
-  const [onYes, setYes] = useState<() => void>(() => { });
+  const [onYes, setYes] = useState<() => Promise<void>>(() => async () => {});
 
-  const ask = (msg: ReactNode, yes: () => void) => {
-    setMsg(msg); setYes(() => yes); setOpen(true);
+  const { loading, run: runConfirm } = useLoading(useCallback(async () => {
+    await onYes();
+    setOpen(false);
+  }, [onYes]));
+
+  const ask = (msg: ReactNode, yes: () => Promise<void>) => {
+    setMsg(msg);
+    setYes(() => yes);
+    setOpen(true);
   };
 
   const DialogUI = (
     <Dialog
       open={open}
-      onClose={() => setOpen(false)}
+      onClose={() => { if (!loading) setOpen(false); }}
       PaperProps={{
         sx: {
           borderRadius: 3,
@@ -44,17 +60,25 @@ export function useConfirmDialog() {
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: 'center', gap: 2, mt: 1 }}>
-        <Button variant="outlined" color="inherit" onClick={() => setOpen(false)}>
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={() => setOpen(false)}
+          disabled={loading}
+        >
           Cancelar
         </Button>
-        <Button variant="contained" color="warning" onClick={() => { onYes(); setOpen(false); }}>
+        <LoadingButton
+          variant="contained"
+          color="warning"
+          loading={loading}
+          onClick={() => runConfirm()}
+        >
           Confirmar
-        </Button>
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );
 
-
   return { ask, DialogUI };
 }
-

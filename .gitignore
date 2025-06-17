@@ -1,5 +1,2 @@
 .vscode/
-
-*.yml
-**/application*.yml
-**/application.yml
+**/application-local.yml
