@@ -33,9 +33,9 @@ public class UserController {
         return userService.createUser(name, lastName, email, phone);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Optional<User>> findById(@PathVariable String id) {
+    public ResponseEntity<User> findById(@PathVariable String id) {
         return userService.findById(id);
     }
 
@@ -51,7 +51,7 @@ public class UserController {
         return userService.findAll();
     }
 
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAnyRole('admin', 'user', 'tenant')")
     @GetMapping("/role/{id}")
     public ResponseEntity<List<String>> findRoles(@PathVariable String id) {
         return userService.getUserRoles(id);

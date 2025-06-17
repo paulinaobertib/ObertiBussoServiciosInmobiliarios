@@ -1,5 +1,6 @@
 package pi.ms_properties.controller;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ public class InquiryController {
 
     private final IInquiryService inquiryService;
 
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody InquirySaveDTO inquirySaveDTO) {
         return inquiryService.create(inquirySaveDTO);
@@ -32,7 +34,7 @@ public class InquiryController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/status/{id}")
-    public ResponseEntity<String> updateStatus(@PathVariable Long id) {
+    public ResponseEntity<String> updateStatus(@PathVariable Long id) throws MessagingException {
         return inquiryService.updateStatus(id);
     }
 
@@ -60,7 +62,7 @@ public class InquiryController {
         return inquiryService.getByPropertyId(propertyId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByStatus")
     public ResponseEntity<List<Inquiry>> getByStatus(@RequestParam InquiryStatus status) {
         return inquiryService.getByStatus(status);

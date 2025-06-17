@@ -5,6 +5,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CompareIcon from '@mui/icons-material/Compare';
+import { useIsAdmin } from "../../user/context/AuthContext";
 
 type Props = {
     onAction: (a: 'create' | 'edit' | 'delete') => void;
@@ -31,6 +32,7 @@ export default function FloatingButtons({
     const gap = 2;
     const off = 16;
     const disabledCompare = compareCount < 2 || compareCount > 3;
+    const isAdmin = useIsAdmin();
 
     return (
         <Box
@@ -77,50 +79,52 @@ export default function FloatingButtons({
                 </Fab>
             </Tooltip>
 
-            <Box
-                sx={{
-                    position: 'relative',
-                    width: size,
-                    height: size,
-                }}
-            >
-                <SpeedDial
-                    ariaLabel="Acciones de Propiedad"
-                    icon={<Settings />}
-                    direction="up"
+            {isAdmin && (
+                <Box
                     sx={{
-                        position: 'absolute',
-                        bottom: 0,
-                        right: 0,
-                        '& .MuiFab-primary': {
-                            width: size,
-                            height: size,
-                            bgcolor: 'primary.main',
-                            color: '#fff',
-                            '&:hover': { bgcolor: 'primary.dark' },
-                        },
+                        position: 'relative',
+                        width: size,
+                        height: size,
                     }}
                 >
-                    {actions.map(a => (
-                        <SpeedDialAction
-                            key={a.name}
-                            icon={a.icon}
-                            aria-label={a.name}
-                            tooltipTitle={a.name}
-                            onClick={() => onAction(a.action)}
-                            FabProps={{
-                                sx: {
-                                    width: size,
-                                    height: size,
-                                    bgcolor: 'primary.main',
-                                    color: '#fff',
-                                    '&:hover': { bgcolor: 'primary.dark' },
-                                },
-                            }}
-                        />
-                    ))}
-                </SpeedDial>
-            </Box>
+                    <SpeedDial
+                        ariaLabel="Acciones de Propiedad"
+                        icon={<Settings />}
+                        direction="up"
+                        sx={{
+                            position: 'absolute',
+                            bottom: 0,
+                            right: 0,
+                            '& .MuiFab-primary': {
+                                width: size,
+                                height: size,
+                                bgcolor: 'primary.main',
+                                color: '#fff',
+                                '&:hover': { bgcolor: 'primary.dark' },
+                            },
+                        }}
+                    >
+                        {actions.map(a => (
+                            <SpeedDialAction
+                                key={a.name}
+                                icon={a.icon}
+                                aria-label={a.name}
+                                tooltipTitle={a.name}
+                                onClick={() => onAction(a.action)}
+                                FabProps={{
+                                    sx: {
+                                        width: size,
+                                        height: size,
+                                        bgcolor: 'primary.main',
+                                        color: '#fff',
+                                        '&:hover': { bgcolor: 'primary.dark' },
+                                    },
+                                }}
+                            />
+                        ))}
+                    </SpeedDial>
+                </Box>
+            )}
         </Box>
     );
 }

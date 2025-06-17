@@ -1,5 +1,6 @@
 package pi.ms_properties.service.interf;
 
+import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
@@ -14,7 +15,7 @@ public interface IInquiryService {
 
     ResponseEntity<String> createWithoutUser(InquirySaveDTO inquirySaveDTO);
 
-    ResponseEntity<String> updateStatus(Long id);
+    ResponseEntity<String> updateStatus(Long id) throws MessagingException;
 
     ResponseEntity<Inquiry> getById(Long id);
 

@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -15,12 +16,15 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
-import { usePropertyCrud } from '../context/PropertiesContext'; 
+import { usePropertyCrud } from '../context/PropertiesContext';
 
 const pages = [
-  { label: 'CONTACTO', route: `/contact`},
-  { label: 'NOTICIAS',  route: `/news`   },
+  { label: 'CONTACTO', route: `/contact` },
+  { label: 'NOTICIAS', route: `/news` },
 ];
+
+const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
+const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -29,7 +33,7 @@ export default function NavBar() {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const { clearComparison } = usePropertyCrud(); 
+  const { clearComparison } = usePropertyCrud();
 
   const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(e.currentTarget);
@@ -37,6 +41,10 @@ export default function NavBar() {
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
+  };
+
+  const handleLogout = () => {
+    console.log('Logout clicked');
   };
 
   return (
@@ -64,13 +72,13 @@ export default function NavBar() {
               cursor: 'pointer',
             }}
             onClick={() => {
-                clearComparison();
-                navigate(ROUTES.HOME_APP);}
-                }
-          />
+              clearComparison();
+              navigate(ROUTES.HOME_APP);
+            }}
+          />
 
           {/* Menu mobile y logo */}
-          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', }}>
             <IconButton
               size="large"
               onClick={handleOpenNavMenu}
@@ -88,9 +96,9 @@ export default function NavBar() {
               sx={{ height: 40, objectFit: 'contain', cursor: 'pointer' }}
               onClick={() => {
                 clearComparison();
-                navigate(ROUTES.HOME_APP);}
-                }
-            />
+                navigate(ROUTES.HOME_APP);
+              }}
+            />
 
             <Menu
               anchorEl={anchorElNav}
@@ -111,11 +119,28 @@ export default function NavBar() {
                   {label}
                 </MenuItem>
               ))}
-            </Menu>
+
+              <MenuItem
+                onClick={() => {
+                  handleCloseNavMenu();
+                  window.location.href = loginUrl;
+                }}
+              >
+                INICIAR SESIÓN
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleCloseNavMenu();
+                  // window.location.assign(registerUrl)
+                }}
+              >
+                REGISTRO
+              </MenuItem>
+            </Menu>
           </Box>
 
           {/* Desktop links */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4, }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
             {pages.map(({ label, route }) => (
               <Button
                 key={label}
@@ -134,16 +159,38 @@ export default function NavBar() {
             ))}
           </Box>
 
-          {/* Profile & logout */}
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, ml: 'auto' }}>
+            <Button
+              color="inherit"
+              onClick={() => window.location.href = loginUrl}
+              sx={{ textTransform: 'none' }}
+            >
+              INICIAR SESIÓN
+            </Button>
+            <Button
+              color="inherit"
+              // onClick={() => window.location.href = registerUrl}
+              sx={{ textTransform: 'none' }}
+            >
+              REGISTRO
+            </Button>
+          </Box>
+
           <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
             <IconButton
               color="inherit"
               aria-label="profile"
               onClick={() => navigate(ROUTES.ADMIN_PANEL)}
+              sx={{ fontSize: { xs: 28, sm: 28 } }}
             >
               <AccountCircleIcon sx={{ fontSize: 28 }} />
             </IconButton>
-            <IconButton color="inherit" aria-label="logout">
+            <IconButton
+              color="inherit"
+              aria-label="logout"
+              onClick={handleLogout}
+              sx={{ fontSize: { xs: 28, sm: 28 } }}
+            >
               <LogoutIcon sx={{ fontSize: 28 }} />
             </IconButton>
           </Box>

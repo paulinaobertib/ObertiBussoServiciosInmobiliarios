@@ -61,3 +61,6 @@ spring:
           filters:
             - StripPrefix=2
       default-filters: TokenRelay
+
+frontend:
+  base-url: ${SWA_FRONTEND}

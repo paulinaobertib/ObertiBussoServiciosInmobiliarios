@@ -1,11 +1,7 @@
-// const BASE_URL = import.meta.env.VITE_BASE_URL;
-// console.log("Base URL del frontend:", BASE_URL);
-
 export const ROUTES = {
   HOME_APP: "/",
   NEW_PROPERTY: `/properties/new`,
   EDIT_PROPERTY: `/properties/:id/edit`,
-  LOGIN: `/login`,
   COMPARE: "/properties/compare",
   PROPERTY_DETAILS: "/properties/:id",
   ADMIN_PANEL: "/panel",

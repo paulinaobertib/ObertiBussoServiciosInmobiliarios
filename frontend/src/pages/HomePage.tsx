@@ -12,6 +12,7 @@ import { useGlobalAlert } from '../app/property/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { useAuth, useHasRole } from "../app/user/context/AuthContext";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function Home() {
   const [properties, _] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [goCompare, setGoCompare] = useState(false);
+
 
   useEffect(() => {
     refreshAllCatalogs();
@@ -89,8 +91,16 @@ export default function Home() {
     setGoCompare(true);
   };
 
+  const auth = useAuth();          // { id, userName, roles } | null
+  const isAdmin = useHasRole("ADMIN");
+  console.log("AuthInfo:", auth);
+
   return (
     <BasePage maxWidth={false}>
+      <nav>
+        {isAdmin && <a href="/owners">Propietarios</a>}
+        {auth && <span>Hola {auth.roles}</span>}
+      </nav>
 
       <Box sx={{ p: 2 }}>
         <ImageCarousel />

@@ -1,14 +1,18 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
@@ -20,6 +24,7 @@ import pi.ms_users.repository.INotificationRepository;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.NotificationService;
 import pi.ms_users.service.interf.IEmailService;
 
@@ -140,19 +145,18 @@ class NotificationServiceTest {
     // casos de error
 
     @Test
-    void createProperty_shouldReturnBadRequest_ifWrongType() {
+    void createProperty_shouldThrowIllegalArgumentException_ifWrongType() {
         NotificationDTO dto = new NotificationDTO();
-        dto.setType(NotificationType.ALQUILER);
+        dto.setType(NotificationType.PROPIEDADNUEVA);
         dto.setDate(LocalDateTime.now());
 
-        ResponseEntity<String> response = notificationService.createProperty(dto, 1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Endpoint incorrecto"));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> notificationService.createProperty(dto, 1L));
+        assertTrue(exception.getMessage().contains("No hay usuarios suscriptos a este tipo de notificación"));
     }
 
     @Test
-    void createProperty_shouldReturnBadRequest_ifNoSubscribers() {
+    void createProperty_shouldThrowIllegalArgumentException_ifNoSubscribers() {
         NotificationDTO dto = new NotificationDTO();
         dto.setType(NotificationType.PROPIEDADNUEVA);
         dto.setDate(LocalDateTime.now());
@@ -160,14 +164,14 @@ class NotificationServiceTest {
         when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
                 .thenReturn(Collections.emptyList());
 
-        ResponseEntity<String> response = notificationService.createProperty(dto, 1L);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> notificationService.createProperty(dto, 1L));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("No hay usuarios suscriptos"));
+        assertTrue(exception.getMessage().contains("No hay usuarios suscriptos"));
     }
 
     @Test
-    void createProperty_shouldReturnBadRequest_ifUserNotFound() {
+    void createProperty_shouldThrowNotFoundException_ifUserNotFound() {
         NotificationDTO dto = new NotificationDTO();
         dto.setType(NotificationType.PROPIEDADNUEVA);
         dto.setDate(LocalDateTime.now());
@@ -178,131 +182,134 @@ class NotificationServiceTest {
         when(propertyRepository.getById(1L)).thenReturn(new Property());
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = notificationService.createProperty(dto, 1L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> notificationService.createProperty(dto, 1L));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("no existe"));
+        assertTrue(exception.getMessage().contains("no existe"));
     }
 
     @Test
-    void getById_shouldReturnNotFound_whenNotExists() {
+    void getById_shouldThrowNotFoundException_whenNotExists() {
         when(notificationRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<Notification> response = notificationService.getById(99L);
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> notificationService.getById(99L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se ha encontrado la notificación con ID: 99", exception.getMessage());
     }
 
     @Test
-    void getAll_shouldReturnInternalServerError_onException() {
+    void getAll_shouldThrowRuntimeException_onException() {
         when(notificationRepository.findAll()).thenThrow(new RuntimeException("Error"));
 
-        ResponseEntity<List<Notification>> response = notificationService.getAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> notificationService.getAll());
     }
 
     @Test
-    void getByUserId_shouldReturnNotFound_whenUserRepositoryThrowsNotFoundException() {
+    void getAll_shouldThrowDataIntegrityViolationException_onConstraintViolation() {
+        when(notificationRepository.findAll())
+                .thenThrow(new DataIntegrityViolationException("Violation"));
+
+        assertThrows(DataIntegrityViolationException.class, () -> notificationService.getAll());
+    }
+
+    @Test
+    void getByUserId_shouldThrowNotFoundException_whenUserNotFound() {
         when(userRepository.findById("missing")).thenThrow(new NotFoundException("Not found"));
 
-        ResponseEntity<List<Notification>> response = notificationService.getByUserId("missing");
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> notificationService.getByUserId("missing"));
     }
 
     @Test
-    void getByUserId_shouldReturnInternalServerError_onUnexpectedError() {
+    void getByUserId_shouldThrowRuntimeException_onUnexpectedError() {
         when(userRepository.findById("any")).thenThrow(new RuntimeException("DB error"));
 
-        ResponseEntity<List<Notification>> response = notificationService.getByUserId("any");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> notificationService.getByUserId("any"));
     }
 
     @Test
-    void getByUserId_shouldReturnInternalServerErrorOnUnexpectedException() {
+    void getByUserId_shouldThrowRuntimeException_onRepositoryError() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(notificationRepository.findByUserId("user123"))
                 .thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<List<Notification>> response = notificationService.getByUserId("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> notificationService.getByUserId("user123"));
     }
 
     @Test
-    void getByUserId_shouldReturnBadRequestOnDataIntegrityViolation() {
+    void getByUserId_shouldThrowDataIntegrityViolationException_onRepositoryConstraint() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(notificationRepository.findByUserId("user123"))
                 .thenThrow(new DataIntegrityViolationException("Violation"));
 
-        ResponseEntity<List<Notification>> response = notificationService.getByUserId("user123");
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> notificationService.getByUserId("user123"));
     }
 
     @Test
-    void getAll_shouldReturnInternalServerErrorOnUnexpectedException() {
-        when(notificationRepository.findAll())
-                .thenThrow(new RuntimeException("Unexpected"));
-
-        ResponseEntity<List<Notification>> response = notificationService.getAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    void getAll_shouldReturnBadRequestOnDataIntegrityViolation() {
-        when(notificationRepository.findAll())
-                .thenThrow(new DataIntegrityViolationException("Violation"));
-
-        ResponseEntity<List<Notification>> response = notificationService.getAll();
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    void getById_shouldReturnInternalServerErrorOnUnexpectedException() {
+    void getById_shouldThrowRuntimeException_onUnexpectedException() {
         when(notificationRepository.findById(1L))
                 .thenThrow(new RuntimeException("Unexpected"));
 
-        ResponseEntity<Notification> response = notificationService.getById(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> notificationService.getById(1L));
     }
 
     @Test
-    void getById_shouldReturnBadRequestOnDataIntegrityViolation() {
+    void getById_shouldThrowDataIntegrityViolationException_onConstraintError() {
         when(notificationRepository.findById(1L))
                 .thenThrow(new DataIntegrityViolationException("Constraint"));
 
-        ResponseEntity<Notification> response = notificationService.getById(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> notificationService.getById(1L));
     }
 
     @Test
-    void createProperty_shouldReturnInternalServerErrorOnUnexpectedException() {
+    void createProperty_shouldThrowRuntimeException_onUnexpectedError() {
         NotificationDTO dto = new NotificationDTO();
         dto.setType(NotificationType.PROPIEDADNUEVA);
-        when(userNotificationPreferenceRepository.usersIdByTypeTrue(NotificationType.PROPIEDADNUEVA))
+
+        when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
-        ResponseEntity<String> response = notificationService.createProperty(dto, 1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> notificationService.createProperty(dto, 1L));
     }
 
     @Test
-    void createProperty_shouldReturnBadRequestOnDataIntegrityViolation() {
+    void createProperty_shouldThrowDataIntegrityViolationException_onConstraintError() {
         NotificationDTO dto = new NotificationDTO();
         dto.setType(NotificationType.PROPIEDADNUEVA);
-        when(userNotificationPreferenceRepository.usersIdByTypeTrue(NotificationType.PROPIEDADNUEVA))
-                    .thenThrow(new DataIntegrityViolationException("Constraint error"));
 
-        ResponseEntity<String> response = notificationService.createProperty(dto, 1L);
+        when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
+                .thenThrow(new DataIntegrityViolationException("Constraint error"));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> notificationService.createProperty(dto, 1L));
+    }
+
+    @Test
+    void getById_withDifferentUser_throwsAccessDenied() {
+        Notification notification = new Notification();
+        notification.setUserId("user123");
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> notificationService.getById(1L));
+        }
+    }
+
+    @Test
+    void getByUserId_withDifferentUser_throwsAccessDenied() {
+        String userId = "user123";
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> notificationService.getByUserId(userId));
+        }
     }
 }

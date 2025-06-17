@@ -4,6 +4,7 @@ import Routes from './Routes';
 import { BrowserRouter } from 'react-router-dom';
 import { PropertyCrudProvider } from './app/property/context/PropertiesContext';
 import { AlertProvider } from './app/property/context/AlertContext';
+import { AuthProvider } from "./app/user/context/AuthContext";
 import "./index.css"
 
 function App() {
@@ -15,13 +16,15 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <AlertProvider>
-        <PropertyCrudProvider>
-          <BrowserRouter>
-            <Routes />
-          </BrowserRouter>
-        </PropertyCrudProvider>
-      </AlertProvider>
+      <AuthProvider>
+        <AlertProvider>
+          <PropertyCrudProvider>
+            <BrowserRouter>
+              <Routes />
+            </BrowserRouter>
+          </PropertyCrudProvider>
+        </AlertProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
