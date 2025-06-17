@@ -11,61 +11,63 @@ describe('CommentForm', () => {
   const mockShowAlert = vi.fn();
   const mockOnDone = vi.fn();
 
-// Define mockPickedItem con el tipo correcto Picked
-const mockPickedItem = {
-type: 'property' as const,
-value: {
-    ...emptyProperty,
-    id: 99,
-},
-};
+  // Define mockPickedItem con el tipo correcto Picked
+  const mockPickedItem = {
+    type: 'property' as const,
+    value: {
+      ...emptyProperty,
+      id: 99,
+    },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
-  refresh: mockRefresh,
-  pickedItem: mockPickedItem,
-  refreshComments: vi.fn(),
-  commentsList: [],
+    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+      refresh: mockRefresh,
+      pickedItem: mockPickedItem,
+      refreshComments: vi.fn(),
+      commentsList: [],
+      propertiesList: [],
+      amenitiesList: [],
+      ownersList: [],
+      neighborhoodsList: [],
+      typesList: [],
+      maintenancesList: [],
+      operationsList: [],
 
-  amenitiesList: [],
-  ownersList: [],
-  neighborhoodsList: [],
-  typesList: [],
-  maintenancesList: [],
-  operationsList: [],
+      pickItem: vi.fn(),
+      currentCategory: null,
+      selected: {
+        owner: null,
+        neighborhood: null,
+        type: null,
+        amenities: [],
+      },
+      setSelected: vi.fn(),
+      toggleSelect: vi.fn(),
+      resetSelected: vi.fn(),
+      data: [],
+      categoryLoading: false,
+      refreshAllCatalogs: vi.fn(),
 
-  pickItem: vi.fn(),
-  currentCategory: null,
-  selected: {
-    owner: null,
-    neighborhood: null,
-    type: null,
-    amenities: [],
-  },
-  setSelected: vi.fn(),
-  toggleSelect: vi.fn(),
-  resetSelected: vi.fn(),
-  data: [],
-  categoryLoading: false,
-  refreshAllCatalogs: vi.fn(),
-  refreshTypes: vi.fn(),
+      // **Agrega este método que falta**
+      refreshMaintenances: vi.fn(),
 
-  // **Agrega este método que falta**
-  refreshMaintenances: vi.fn(),
-
-  buildSearchParams: vi.fn(),
-  currentProperty: null,
-  loadProperty: vi.fn(),
-  loadingProperty: false,
-  errorProperty: null,
-  comparisonItems: [],
-  selectedPropertyIds: [],
-  toggleCompare: vi.fn(),
-  addToComparison: vi.fn(),
-  clearComparison: vi.fn(),
-});
+      buildSearchParams: vi.fn(),
+      currentProperty: null,
+      loadProperty: vi.fn(),
+      loadingProperty: false,
+      propertiesLoading: false,
+      commentsLoading: false,
+      maintenancesLoading: false,
+      errorProperty: null,
+      comparisonItems: [],
+      selectedPropertyIds: [],
+      toggleCompare: vi.fn(),
+      addToComparison: vi.fn(),
+      clearComparison: vi.fn(),
+    });
 
 
     vi.spyOn(AlertContext, 'useGlobalAlert').mockReturnValue({

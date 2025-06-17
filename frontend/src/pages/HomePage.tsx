@@ -8,51 +8,38 @@ import FiltersSidebar from '../app/property/components/SearchFilters';
 import PropertyCatalog from '../app/property/components/PropertyCatalog';
 import FloatingButtons from '../app/property/components/FloatingButtons';
 
-import { getAllProperties } from '../app/property/services/property.service';
 import { useGlobalAlert } from '../app/property/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
-import { ROUTES } from '../lib';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
-  const { refreshAllCatalogs, selectedPropertyIds, toggleCompare, clearComparison } = usePropertyCrud();
+  const { selectedPropertyIds, toggleCompare, clearComparison, refreshAllCatalogs, propertiesList } = usePropertyCrud();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
 
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, _] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [goCompare, setGoCompare] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const resp = await getAllProperties();
-        const data = Array.isArray(resp?.data) ? resp.data : resp;
-
-        const normalized = (data as Property[]).map(p => ({ ...p, status: p.status ?? 'Desconocido' }));
-        setProperties(normalized);
-        setResults(normalized);
-
-      } catch (err) {
-        setProperties([]);
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    refreshAllCatalogs();
+  }, [location.pathname, refreshAllCatalogs]);
 
   useEffect(() => {
-    if (location.pathname === ROUTES.HOME_APP) {
-      refreshAllCatalogs();
-    }
-  }, [location.pathname, refreshAllCatalogs]);
+    const normalized = propertiesList.map(p => ({
+      ...p,
+      status: p.status ?? 'Desconocido'
+    }));
+    setResults(normalized);
+    setLoading(false);
+  }, [propertiesList]);
+
 
   useEffect(() => {
     if (goCompare) {

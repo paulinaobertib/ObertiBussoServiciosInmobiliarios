@@ -1,21 +1,11 @@
 import { useState } from 'react';
-import {
-    Grid, TextField, Box, Button,
-} from '@mui/material';
-
+import { Grid, TextField, Box } from '@mui/material';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useGlobalAlert } from '../../context/AlertContext';
-
-import {
-    postComment,
-    putComment,
-    deleteComment,
-} from '../../services/comment.service';
-
-import {
-    Comment,
-    CommentCreate,
-} from '../../types/comment';
+import { postComment, putComment, deleteComment, } from '../../services/comment.service';
+import { Comment, CommentCreate, } from '../../types/comment';
+import { LoadingButton } from '@mui/lab';
+import { useLoading } from '../../utils/useLoading';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -65,8 +55,24 @@ export default function CommentForm({ action, item, onDone }: Props) {
         }
     };
 
+    const { loading, run } = useLoading(save);
     return (
         <>
+            {loading && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    zIndex={theme => theme.zIndex.modal + 1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                </Box>
+            )}
+
             <Grid container spacing={2} mb={2}>
 
                 <Grid size={12}>
@@ -81,14 +87,15 @@ export default function CommentForm({ action, item, onDone }: Props) {
             </Grid>
 
             <Box textAlign="right">
-                <Button
+                <LoadingButton
+                    onClick={() => run()}
+                    loading={loading}
+                    disabled={invalid || loading}
                     variant="contained"
                     color={action === 'delete' ? 'error' : 'primary'}
-                    disabled={invalid}
-                    onClick={save}
                 >
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
-                </Button>
+                </LoadingButton>
             </Box>
         </>
     );
