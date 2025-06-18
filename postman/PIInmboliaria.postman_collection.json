@@ -377,7 +377,7 @@
 									"formdata": [
 										{
 											"key": "data",
-											"value": "{\n  \"title\": \"Departamento en Nueva Córdoba 2\",\n  \"street\": \"Independencia\",\n  \"number\": \"123\",\n  \"rooms\": 3.0,\n  \"bathrooms\": 2.0,\n  \"bedrooms\": 2.0,\n  \"area\": 80.0,\n  \"coveredArea\": 90.0,\n  \"price\": 120000.0,\n  \"showPrice\": true,\n  \"expenses\":12.0\n\n  \"credit\": false,\n  \"financing\": false,\n  \"description\": \"Departamento moderno con excelente vista.\",\n  \"status\": \"DISPONIBLE\",\n  \"operation\": \"ALQUILER\",\n  \"currency\": \"ARS\",\n  \"ownerId\": 1,\n  \"neighborhoodId\": 1,\n  \"typeId\": 1,\n  \"amenitiesIds\": [1]\n}",
+											"value": "{\n  \"ownerId\": 1,\n  \"neighborhoodId\": 11, \n  \"typeId\": 2,   \n  \"status\": \"DISPONIBLE\",\n  \"operation\": \"VENTA\",\n  \"currency\": \"USD\",\n  \"title\": \"Casa en zona nueva pero cercana\",\n  \"street\": \"Belgrano\",\n  \"number\": \"987\",\n  \"rooms\": 4,\n  \"bathrooms\": 2,\n  \"bedrooms\": 3,\n  \"area\": 120.00,\n  \"coveredArea\": 100.00,\n  \"price\": 150000.00,\n  \"showPrice\": true,\n  \"expenses\": 0.00,\n  \"description\": \"A estrenar, en un nuevo barrio residencial.\",\n  \"credit\": true,\n  \"financing\": false,\n  \"amenitiesIds\": [1, 2]\n}",
 											"contentType": "application/json",
 											"type": "text"
 										},
@@ -3830,7 +3830,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/inquiries/user/f135f4b2-f24e-40d6-80cd-27ed880c5387",
+									"raw": "http://localhost:8083/inquiries/user/9c028d7c-76a8-430a-83b5-9a2f5caefae6",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3839,7 +3839,7 @@
 									"path": [
 										"inquiries",
 										"user",
-										"f135f4b2-f24e-40d6-80cd-27ed880c5387"
+										"9c028d7c-76a8-430a-83b5-9a2f5caefae6"
 									]
 								}
 							},
@@ -5304,6 +5304,90 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "UserView",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"8e75cbea-b7cc-4a3a-a1bc-787ba39821ca\",\r\n  \"property\": {\r\n    \"id\": 1\r\n  }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/userViews/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"userViews",
+										"create"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		},
@@ -6401,7 +6485,7 @@
 									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"propertyId\": 1\r\n}\r\n"
 								},
 								"url": {
-									"raw": "http://localhost:8081/favorites/delete/2",
+									"raw": "http://localhost:8081/favorites/delete/1",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -6410,7 +6494,7 @@
 									"path": [
 										"favorites",
 										"delete",
-										"2"
+										"1"
 									]
 								}
 							},
@@ -6479,7 +6563,7 @@
 									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"propertyId\": 1\r\n}\r\n"
 								},
 								"url": {
-									"raw": "http://localhost:8081/favorites/user/9b91445d-7e61-4f0e-82af-f3c4cf9a2d46",
+									"raw": "http://localhost:8081/favorites/user/a1e8d160-5fda-47c5-bbcf-53762bc77ae6",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -6488,7 +6572,7 @@
 									"path": [
 										"favorites",
 										"user",
-										"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46"
+										"a1e8d160-5fda-47c5-bbcf-53762bc77ae6"
 									]
 								}
 							},
@@ -7039,7 +7123,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"userId\": \"f135f4b2-f24e-40d6-80cd-27ed880c5387\",\r\n  \"type\": \"PROPIEDADNUEVA\",\r\n  \"enabled\": true\r\n}",
+									"raw": "{\r\n  \"userId\": \"9c028d7c-76a8-430a-83b5-9a2f5caefae6\",\r\n  \"type\": \"PROPIEDADNUEVA\",\r\n  \"enabled\": true\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"

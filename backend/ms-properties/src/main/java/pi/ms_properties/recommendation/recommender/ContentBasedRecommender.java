@@ -21,7 +21,7 @@ public class ContentBasedRecommender {
     private final INeighborhoodRepository neighborhoodRepository;
 
     public double calculate(Property nueva, List<FavoriteDTO> favs) {
-        Neighborhood nuevaN = neighborhoodRepository.findById(nueva.getId()).orElse(null);
+        Neighborhood nuevaN = neighborhoodRepository.findById(nueva.getNeighborhood().getId()).orElse(null);
         if (nuevaN == null) return 0.0;
 
         double best = 0.0;
