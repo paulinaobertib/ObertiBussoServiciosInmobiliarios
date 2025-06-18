@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.dto.*;
+import org.thymeleaf.context.Context;
 import pi.ms_users.service.impl.EmailService;
 
 import java.math.BigDecimal;
@@ -185,6 +187,18 @@ class EmailServiceTest {
         verify(javaMailSender).send(any(MimeMessage.class));
     }
 
+    @Test
+    void sendNotificationNewInterestProperty_shouldSendEmailSuccessfully() {
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email content</html>");
+
+        emailService.sendNotificationNewInterestProperty(emailPropertyDTO);
+
+        verify(javaMailSender).createMimeMessage();
+        verify(templateEngine).process(eq("email_new_interest_property.html"), any(Context.class));
+        verify(javaMailSender).send(mimeMessage);
+    }
+
     // casos de error
 
     @Test
@@ -269,5 +283,18 @@ class EmailServiceTest {
 
         assertTrue(ex.getMessage().contains("Error al enviar recordatorio de vencimiento"));
     }
-}
 
+    @Test
+    void sendNotificationNewInterestProperty_shouldThrowRuntimeException_whenSendFails() {
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email content</html>");
+
+        doThrow(new RuntimeException(new MessagingException("Error al enviar"))).when(javaMailSender).send(mimeMessage);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                emailService.sendNotificationNewInterestProperty(emailPropertyDTO)
+        );
+
+        assertTrue(ex.getMessage().contains("Error al enviar correo de nueva propiedad"));
+    }
+}

@@ -74,6 +74,24 @@ class NotificationControllerTest {
     }
 
     @Test
+    void createPropertyInterest_adminRole_shouldReturnOk() throws Exception {
+        String userId = "user123";
+        NotificationType type = NotificationType.PROPIEDADNUEVA;
+        Long propertyId = 123L;
+
+        when(notificationService.propertyInterest(userId, type, propertyId))
+                .thenReturn(ResponseEntity.ok("Interés creado"));
+
+        mockMvc.perform(post("/notifications/create/interestProperty")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        .param("userId", userId)
+                        .param("type", type.name())
+                        .param("propertyId", propertyId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Interés creado"));
+    }
+
+    @Test
     void getById_success_userRole_shouldReturnNotification() throws Exception {
         Notification notification = new Notification();
         notification.setId(1L);
@@ -198,6 +216,25 @@ class NotificationControllerTest {
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void createPropertyInterest_nonAdminRole_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(post("/notifications/create/interestProperty")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
+                        .param("userId", "user123")
+                        .param("type", "PROPIEDADNUEVA")
+                        .param("propertyId", "123"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createPropertyInterest_missingUserId_shouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post("/notifications/create/interestProperty")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        .param("type", "PROPIEDADNUEVA")
+                        .param("propertyId", "123"))
+                .andExpect(status().isBadRequest());
     }
 }
 
