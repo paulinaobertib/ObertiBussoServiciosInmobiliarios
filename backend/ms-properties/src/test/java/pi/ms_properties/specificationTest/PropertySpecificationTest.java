@@ -50,6 +50,8 @@ class PropertySpecificationTest {
         neighborhood.setName("Centro");
         neighborhood.setCity("Córdoba");
         neighborhood.setType(NeighborhoodType.ABIERTO);
+        neighborhood.setLatitude(-34.6037);
+        neighborhood.setLongitude(-58.3816);
         entityManager.persist(neighborhood);
 
         Amenity pileta = new Amenity();
