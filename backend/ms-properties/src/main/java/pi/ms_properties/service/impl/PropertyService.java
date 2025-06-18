@@ -21,6 +21,7 @@ import pi.ms_properties.specification.PropertySpecification;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,13 +59,18 @@ public class PropertyService implements IPropertyService {
         property.setOperation(Operation.fromString(propertyDTO.getOperation()));
         property.setCurrency(Currency.fromString(propertyDTO.getCurrency()));
 
-        property.setOwner(ownerRepository.findById(propertyDTO.getOwnerId()).orElseThrow());
-        property.setNeighborhood(neighborhoodRepository.findById(propertyDTO.getNeighborhoodId()).orElseThrow());
-        property.setType(typeRepository.findById(propertyDTO.getTypeId()).orElseThrow());
+        property.setOwner(ownerRepository.findById(propertyDTO.getOwnerId())
+                .orElseThrow(() -> new NoSuchElementException("No se encontró el Owner con ID: " + propertyDTO.getOwnerId())));
+
+        property.setNeighborhood(neighborhoodRepository.findById(propertyDTO.getNeighborhoodId())
+                .orElseThrow(() -> new NoSuchElementException("No se encontró el Neighborhood con ID: " + propertyDTO.getNeighborhoodId())));
+
+        property.setType(typeRepository.findById(propertyDTO.getTypeId())
+                .orElseThrow(() -> new NoSuchElementException("No se encontró el Type con ID: " + propertyDTO.getTypeId())));
 
         Set<Amenity> amenities = propertyDTO.getAmenitiesIds().stream()
                 .map(id -> amenityRepository.findById(id)
-                        .orElseThrow())
+                        .orElseThrow(() -> new NoSuchElementException("No se encontró el Amenity con ID: " + id)))
                 .collect(Collectors.toSet());
         property.setAmenities(amenities);
 
@@ -130,6 +136,7 @@ public class PropertyService implements IPropertyService {
             notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
             notificationRepository.createNotification(notificationDTO, property.getId());
         } catch (Exception e) {
+            System.out.println("ERROR " + e);
             throw new RuntimeException("Error al crear la notificación", e);
         }
 

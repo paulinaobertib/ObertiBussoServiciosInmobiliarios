@@ -25,6 +25,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET,
                                 "/property/get",
+                                "/property/getAll",
                                 "/property/getById/**",
                                 "/property/getByTitle",
                                 "/property/search",
