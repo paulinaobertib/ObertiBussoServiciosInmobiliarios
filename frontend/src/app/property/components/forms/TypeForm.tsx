@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function TypeForm({ action, item, onDone }: Props) {
-    const { refresh } = usePropertyCrud();
+    const { refreshTypes } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Type>({
@@ -54,11 +54,12 @@ export default function TypeForm({ action, item, onDone }: Props) {
                 showAlert('Tipo de propiedad eliminado con éxito!', 'success');
             }
 
-            refresh();
+            refreshTypes();
             onDone();
 
-        } catch {
-            showAlert('Error al trabajar con el tipo de propiedad', 'error');
+        } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
         }
     };
 

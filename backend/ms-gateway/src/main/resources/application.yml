@@ -46,6 +46,7 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
+              - PATCH
             allowCredentials: true
       routes:
         - id: ms-properties

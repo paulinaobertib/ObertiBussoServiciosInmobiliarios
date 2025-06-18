@@ -23,8 +23,12 @@ public class SecurityConfig {
         var logoutHandler = new RedirectServerLogoutSuccessHandler();
         logoutHandler.setLogoutSuccessUrl(URI.create(frontUrl));
 
-        http.authorizeExchange(ex -> ex.anyExchange().permitAll())
+        http
+            .cors().and()
+            .csrf().disable()
+            .authorizeExchange(ex -> ex.anyExchange().permitAll())
             .oauth2Login(o -> o.authenticationSuccessHandler(successHandler))
+            .oauth2Client(o -> {})
             .logout(l -> l.logoutSuccessHandler(logoutHandler));
 
         return http.build();

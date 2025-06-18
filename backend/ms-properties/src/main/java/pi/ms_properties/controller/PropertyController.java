@@ -48,7 +48,6 @@ public class PropertyController {
         return propertyService.updateStatus(id, status);
     }
 
-    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<PropertyDTO>> getAll() {
         return propertyService.getAll();

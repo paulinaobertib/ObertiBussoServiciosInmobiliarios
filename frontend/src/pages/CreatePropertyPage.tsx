@@ -58,7 +58,7 @@ export default function CreatePropertyPage() {
             await postProperty(data);
             // setLoading(false);
           }
-          showAlert('¡Propiedad creada correctamente!', 'success');
+          showAlert('Propiedad creada correctamente!', 'success');
           formRef.current?.reset();
           resetSelected();
           setMain(null);
@@ -67,11 +67,12 @@ export default function CreatePropertyPage() {
           /* redirige al catálogo */
           navigate(ROUTES.HOME_APP);
 
-        } catch {
-          showAlert('Error al guardar la propiedad', 'error');
-        }
+          } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
+          }
       } else {
-        showAlert('Formulario inválido', 'error');
+        showAlert('Formulario inválido, faltan datos', 'error');
       }
     });
 

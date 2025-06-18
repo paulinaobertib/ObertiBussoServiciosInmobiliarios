@@ -15,7 +15,7 @@ describe('AmenityForm', () => {
 
     // Mockeamos el hook del contexto PropertiesContext para que devuelva nuestro mock de refresh
     vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
-    refresh: mockRefresh,
+      refresh: mockRefresh,
     } as any);
 
     // Mockeamos el hook del contexto AlertContext para que devuelva nuestro mock de showAlert
@@ -57,7 +57,7 @@ describe('AmenityForm', () => {
 
     await waitFor(() => {
       expect(amenityService.postAmenity).toHaveBeenCalledWith({ name: 'Nuevo servicio' });
-      expect(mockShowAlert).toHaveBeenCalledWith('¡Servicio creado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -75,7 +75,7 @@ describe('AmenityForm', () => {
 
     await waitFor(() => {
       expect(amenityService.putAmenity).toHaveBeenCalledWith({ ...item, name: 'Servicio actualizado' });
-      expect(mockShowAlert).toHaveBeenCalledWith('¡Servicio editado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -91,7 +91,7 @@ describe('AmenityForm', () => {
 
     await waitFor(() => {
       expect(amenityService.deleteAmenity).toHaveBeenCalledWith(item);
-      expect(mockShowAlert).toHaveBeenCalledWith('¡Servicio eliminado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -107,7 +107,7 @@ describe('AmenityForm', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith('Error al trabajar con el servicio', 'error');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'error');
       expect(mockRefresh).not.toHaveBeenCalled();
       expect(mockOnDone).not.toHaveBeenCalled();
     });

@@ -99,8 +99,9 @@ export default function EditPropertyPage() {
         // preview
         handleImages(mainUrl, galleryDTO.map(g => g.url));
         setImagesBackend(imgList);
-      } catch {
-        showAlert('Error al cargar la propiedad', 'error');
+      } catch (error: any) {
+        const message = error.response?.data ?? 'Error desconocido';
+        showAlert(message, 'error');
       } finally {
         setLoading(false);
       }
@@ -137,7 +138,7 @@ export default function EditPropertyPage() {
   const save = () =>
     ask('¿Guardar los cambios?', async () => {
       const valid = await formRef.current?.submit();
-      if (!valid) { showAlert('Formulario inválido', 'error'); return; }
+      if (!valid) { showAlert('Formulario inválido, faltan datos', 'error'); return; }
       if (!main) { showAlert('Necesitas una imagen principal', 'error'); return; }
 
       try {
@@ -166,9 +167,9 @@ export default function EditPropertyPage() {
         resetSelected();
         navigate(ROUTES.HOME_APP, { replace: true });
         showAlert('Propiedad actualizada con éxito', 'success');
-      } catch (err) {
-        console.error(err);
-        showAlert('Error al actualizar la propiedad', 'error');
+      } catch (error: any) {
+        const message = error.response?.data ?? 'Error desconocido';
+        showAlert(message, 'error');
       } finally {
         setLoading(false);
       }
