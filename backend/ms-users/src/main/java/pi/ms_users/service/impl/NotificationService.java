@@ -102,6 +102,9 @@ public class NotificationService implements INotificationService {
         }
 
         List<UserNotificationPreference> validUserId = userNotificationPreferenceRepository.findByUserId(userId);
+        if (validUserId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No hay usuarios suscriptos a este tipo de notificacion");
+        }
 
         boolean hasActivePropiedadInteres = validUserId.stream()
                 .anyMatch(pref ->
@@ -109,7 +112,7 @@ public class NotificationService implements INotificationService {
                                 Boolean.TRUE.equals(pref.getEnabled())
                 );
 
-        if (hasActivePropiedadInteres) {
+        if (!hasActivePropiedadInteres) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("El usuario no está suscripto a este tipo de notificación");
         }
 
