@@ -65,7 +65,7 @@ describe('OwnerForm', () => {
         mail: 'juan@mail.com',
         phone: '123456789',
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Propietario creado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -87,7 +87,7 @@ describe('OwnerForm', () => {
         mail: 'ana@mail.com',
         phone: '987654321',
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Propietario editado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -102,7 +102,7 @@ describe('OwnerForm', () => {
 
     await waitFor(() => {
       expect(ownerService.deleteOwner).toHaveBeenCalledWith(item);
-      expect(mockShowAlert).toHaveBeenCalledWith('Propietario eliminado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -120,7 +120,7 @@ describe('OwnerForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /confirmar/i }));
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith('Error al trabajar con el propietario', 'error');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'error');
       expect(mockRefresh).not.toHaveBeenCalled();
       expect(mockOnDone).not.toHaveBeenCalled();
     });

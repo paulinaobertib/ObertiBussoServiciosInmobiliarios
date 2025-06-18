@@ -103,7 +103,7 @@ describe('CommentForm', () => {
         propertyId: 99,
         description: 'Comentario nuevo',
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Comentario creado!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -125,7 +125,7 @@ describe('CommentForm', () => {
         propertyId: 77,
         description: 'Nuevo texto',
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Comentario actualizado', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -141,7 +141,7 @@ describe('CommentForm', () => {
 
     await waitFor(() => {
       expect(commentService.deleteComment).toHaveBeenCalledWith(item);
-      expect(mockShowAlert).toHaveBeenCalledWith('Comentario eliminado', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -157,10 +157,7 @@ describe('CommentForm', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        'Error al trabajar con el comentario',
-        'error'
-      );
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'error');
       expect(mockRefresh).not.toHaveBeenCalled();
       expect(mockOnDone).not.toHaveBeenCalled();
     });

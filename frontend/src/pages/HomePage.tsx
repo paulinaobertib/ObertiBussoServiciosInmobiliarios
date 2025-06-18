@@ -18,7 +18,7 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
-  const { selectedPropertyIds, toggleCompare, clearComparison, refreshAllCatalogs, propertiesList } = usePropertyCrud();
+  const { selectedPropertyIds, toggleCompare, clearComparison, refreshProperties, refreshOperations, propertiesList } = usePropertyCrud();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
@@ -30,8 +30,9 @@ export default function Home() {
 
 
   useEffect(() => {
-    refreshAllCatalogs();
-  }, [location.pathname, refreshAllCatalogs]);
+    refreshProperties();
+    refreshOperations();
+  }, [location.pathname]);
 
   useEffect(() => {
     const normalized = propertiesList.map(p => ({

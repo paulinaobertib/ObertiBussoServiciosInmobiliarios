@@ -171,7 +171,7 @@ export default function CategoryItems() {
                             gap: 1,
                             alignItems: 'baseline',
                             mb: { xs: 0.5, sm: 0 },
-                            
+
                           }}
                         >
                           {/* label SOLO visible en XS */}
@@ -225,10 +225,11 @@ export default function CategoryItems() {
                               ask(`¿Eliminar "${it.title}"?`, async () => {
                                 try {
                                   await deleteProperty(it);
-                                  showAlert('Propiedad eliminada', 'success');
+                                  showAlert('Propiedad eliminada con éxito!', 'success');
                                   refresh();
-                                } catch {
-                                  showAlert('Error al eliminar', 'error');
+                                } catch (error: any) {
+                                  const message = error.response?.data ?? 'Error desconocido';
+                                  showAlert(message, 'error');
                                 }
                               })
                             }

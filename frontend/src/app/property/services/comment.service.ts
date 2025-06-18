@@ -6,7 +6,8 @@ import { Comment, CommentCreate } from "../types/comment";
 export const getCommentById = async (id: number) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/properties/comment/getById/${id}`
+      `${apiUrl}/properties/comment/getById/${id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -18,11 +19,12 @@ export const getCommentById = async (id: number) => {
 export const getCommentsByPropertyId = async (id: number) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/properties/comment/property/${id}`
+      `${apiUrl}/properties/comment/property/${id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
-    console.error(`Error fetching comment with ID ${id}:`, error);
+    console.error(`Error fetching comments for property ID ${id}:`, error);
     throw error;
   }
 };
@@ -33,9 +35,8 @@ export const postComment = async (commentData: CommentCreate) => {
       `${apiUrl}/properties/comment/create`,
       commentData,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       }
     );
     return response.data;
@@ -49,7 +50,8 @@ export const putComment = async (commentData: Comment) => {
   try {
     const response = await axios.put(
       `${apiUrl}/properties/comment/update`,
-      commentData
+      commentData,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -61,7 +63,8 @@ export const putComment = async (commentData: Comment) => {
 export const deleteComment = async (commentData: Comment) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/properties/comment/delete/${commentData.id}`
+      `${apiUrl}/properties/comment/delete/${commentData.id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {

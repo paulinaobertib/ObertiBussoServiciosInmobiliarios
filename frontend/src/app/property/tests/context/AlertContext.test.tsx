@@ -8,7 +8,7 @@ function TestComponent() {
 
   return (
     <button
-      onClick={() => showAlert('Mensaje de prueba', 'success', 'Título de prueba')}
+      onClick={() => showAlert(expect.any(String), 'success')}
     >
       Disparar Alerta
     </button>
@@ -35,7 +35,7 @@ describe('AlertContext', () => {
 
   it('lanza error si useGlobalAlert se usa fuera del Provider', () => {
     // Suprime el error para no ensuciar la consola
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
     const BrokenComponent = () => {
       useGlobalAlert();

@@ -12,19 +12,18 @@ export async function getImagesByPropertyId(
   propId: number
 ): Promise<ImageDTO[]> {
   const { data } = await axios.get<ImageDTO[]>(
-    `${apiUrl}/properties/image/getByProperty/${propId}`
+    `${apiUrl}/properties/image/getByProperty/${propId}`,
+    { withCredentials: true }
   );
   return Array.isArray(data) ? data : [];
 }
 
 /* -------------------- POST imagen -------------------- Solamente de galeria, mainImage se toma como parte del PUT de propiedad */
-
 export async function postImage(
   file: File,
   propertyId: number
 ): Promise<string> {
   const form = new FormData();
-
   form.append("propertyId", String(propertyId));
   form.append("file", file);
 
@@ -32,7 +31,10 @@ export async function postImage(
     const { data: url } = await axios.post<string>(
       `${apiUrl}/properties/image/upload`,
       form,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true
+      }
     );
     return url;
   } catch (error) {
@@ -43,6 +45,8 @@ export async function postImage(
 
 /* -------------------- DELETE -------------------- */
 export async function deleteImageById(id: number) {
-  await axios.delete(`${apiUrl}/properties/image/delete/${id}`);
+  await axios.delete(
+    `${apiUrl}/properties/image/delete/${id}`,
+    { withCredentials: true }
+  );
 }
-

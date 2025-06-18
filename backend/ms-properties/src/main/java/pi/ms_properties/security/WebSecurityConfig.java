@@ -24,7 +24,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET,
-                                "/property/get",
+                                "/property/getAll",
                                 "/property/getById/**",
                                 "/property/getByTitle",
                                 "/property/search",

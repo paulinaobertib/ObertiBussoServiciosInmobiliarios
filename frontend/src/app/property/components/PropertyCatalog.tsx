@@ -44,7 +44,7 @@ function PropertyCatalog({
   const { ask, DialogUI } = useConfirmDialog();
 
   const [internalProperties, setInternalProperties] = useState<Property[]>([]);
-  const { propertiesList, propertiesLoading, refreshAllCatalogs } = usePropertyCrud();
+  const { propertiesList, propertiesLoading, refreshProperties } = usePropertyCrud();
 
   useEffect(() => {
     if (properties.length > 0) {
@@ -64,10 +64,11 @@ function PropertyCatalog({
         async () => {
           try {
             await deleteProperty(property);
-            showAlert('Propiedad eliminada', 'success');
-            await refreshAllCatalogs();
-          } catch {
-            showAlert('Error al eliminar propiedad', 'error');
+            showAlert('Propiedad eliminada con éxito!', 'success');
+            await refreshProperties();
+          } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
           }
           onFinishAction();
         }

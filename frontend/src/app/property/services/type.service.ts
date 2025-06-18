@@ -5,7 +5,9 @@ import { Type, TypeCreate } from "../types/type";
 
 export const getAllTypes = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/type/getAll`);
+    const response = await axios.get(`${apiUrl}/properties/type/getAll`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching types:", error);
@@ -15,7 +17,10 @@ export const getAllTypes = async () => {
 
 export const getTypeById = async (id: number) => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/type/getById/${id}`);
+    const response = await axios.get(
+      `${apiUrl}/properties/type/getById/${id}`,
+      { withCredentials: true }
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching type with ID ${id}:`, error);
@@ -25,11 +30,14 @@ export const getTypeById = async (id: number) => {
 
 export const postType = async (typeData: TypeCreate) => {
   try {
-    const response = await axios.post(`${apiUrl}/properties/type/create`, typeData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.post(
+      `${apiUrl}/properties/type/create`,
+      typeData,
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,              // <— added
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating type:", error);
@@ -39,7 +47,13 @@ export const postType = async (typeData: TypeCreate) => {
 
 export const putType = async (typeData: Type) => {
   try {
-    const response = await axios.put(`${apiUrl}/properties/type/update`, typeData);
+    const response = await axios.put(
+      `${apiUrl}/properties/type/update`,
+      typeData,
+      {
+        withCredentials: true,              // <— added
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error saving type:", error);
@@ -49,11 +63,15 @@ export const putType = async (typeData: Type) => {
 
 export const deleteType = async (typeData: Type) => {
   try {
-    const response = await axios.delete(`${apiUrl}/properties/type/delete/${typeData.id}`);
+    const response = await axios.delete(
+      `${apiUrl}/properties/type/delete/${typeData.id}`,
+      {
+        withCredentials: true,              // <— added
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error deleting type:", error);
     throw error;
   }
 };
-
