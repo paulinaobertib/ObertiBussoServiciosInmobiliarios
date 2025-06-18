@@ -10,7 +10,9 @@ import pi.ms_properties.recommendation.recommender.ContentBasedRecommender;
 import pi.ms_properties.repository.feign.FavoriteRepository;
 import pi.ms_properties.repository.feign.NotificationRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -23,19 +25,24 @@ public class RecommendationService {
 
     public void evaluateNewProperty(Property newProperty) {
         List<String> userIds = favoriteRepository.findAllUserIds();
+        Set<String> notifiedUsers = new HashSet<>();
 
         for (String userId : userIds) {
-            List<FavoriteDTO> favs = favoriteRepository.getFavorites(userId);
+            if (!notifiedUsers.contains(userId)) {
+                List<FavoriteDTO> favs = favoriteRepository.getFavorites(userId);
 
-            double contentScore = contentRecommender.calculate(newProperty, favs);
-            double mlScore = collaborativeRecommender.predictInterest(userId, newProperty.getId());
+                double contentScore = contentRecommender.calculate(newProperty, favs);
+                double mlScore = collaborativeRecommender.predictInterest(userId, newProperty.getId());
 
-            double contentWeight = 0.6;
-            double collaborativeWeight = 0.4;
+                double contentWeight = 0.6;
+                double collaborativeWeight = 0.4;
 
-            double finalScore = contentScore * contentWeight + mlScore * collaborativeWeight;
-            if (finalScore >= 0.7) {
-                notificationRepository.createPropertyInterest(userId, NotificationType.PROPIEDADINTERES, newProperty.getId());
+                double finalScore = contentScore * contentWeight + mlScore * collaborativeWeight;
+
+                if (finalScore >= 0.7) {
+                    notificationRepository.createPropertyInterest(userId, NotificationType.PROPIEDADINTERES, newProperty.getId());
+                    notifiedUsers.add(userId);
+                }
             }
         }
     }

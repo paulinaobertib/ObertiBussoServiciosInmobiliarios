@@ -10,6 +10,6 @@ model = joblib.load("model/svd_model.pkl")
 def predict(user_id: str = Query(...), property_id: int = Query(...)):
     try:
         pred = model.predict(user_id, property_id)
-        return {"score": round(pred.est, 3)}
+        return round(pred.est, 3)
     except Exception as e:
-        return {"error": str(e)}
+        return 0.0

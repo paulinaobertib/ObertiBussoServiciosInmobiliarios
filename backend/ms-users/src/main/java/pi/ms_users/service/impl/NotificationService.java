@@ -2,6 +2,7 @@ package pi.ms_users.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,7 @@ public class NotificationService implements INotificationService {
 
         List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(notificationDTO.getType());
         if (usersId.isEmpty()) {
-            throw new IllegalArgumentException("No hay usuarios suscriptos a este tipo de notificación");
+           return ResponseEntity.ok("No hay usuarios suscriptos. Notificación omitida.");
         }
 
         Property property = propertyRepository.getById(propertyId);
@@ -96,20 +97,20 @@ public class NotificationService implements INotificationService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
 
-        if (!type.equals(NotificationType.PROPIEDADNUEVA)) {
+        if (!type.equals(NotificationType.PROPIEDADINTERES)) {
             throw new NoSuchElementException("Tipo de notificacion incorrecta");
         }
 
         List<UserNotificationPreference> validUserId = userNotificationPreferenceRepository.findByUserId(userId);
 
-        boolean hasActivePropiedadNueva = validUserId.stream()
+        boolean hasActivePropiedadInteres = validUserId.stream()
                 .anyMatch(pref ->
-                        pref.getType() == NotificationType.PROPIEDADNUEVA &&
+                        pref.getType() == NotificationType.PROPIEDADINTERES &&
                                 Boolean.TRUE.equals(pref.getEnabled())
                 );
 
-        if (!hasActivePropiedadNueva) {
-            throw new IllegalArgumentException("El usuario no esta subscripto a este tipo de notificación");
+        if (hasActivePropiedadInteres) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("El usuario no está suscripto a este tipo de notificación");
         }
 
         Property property = propertyRepository.getById(propertyId);
