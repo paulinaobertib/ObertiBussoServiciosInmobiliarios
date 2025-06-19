@@ -12,15 +12,19 @@ export type AuthInfo = (User & { roles: Role[] }) | null;
 
 interface AuthContextValue {
     info: AuthInfo;
+    isLogged: boolean;
     isAdmin: boolean;
     loading: boolean;
+    login: () => void;
     logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
     info: null,
+    isLogged: false,
     isAdmin: false,
     loading: false,
+    login: () => { },
     logout: async () => { },
 });
 
@@ -29,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);  // ← nuevo
 
     const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
+    const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
+
+    const isLogged = !!info;
 
     useEffect(() => {
         let mounted = true;
@@ -51,13 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
 
-    // Aquí la función logout
+    const login = () => {
+        window.location.href = loginUrl;
+    };
+
     const logout = async () => {
         window.location.href = `${GW_URL}/logout`;
     };
 
     return (
-        <AuthContext.Provider value={{ info, isAdmin, loading, logout }}>
+        <AuthContext.Provider value={{ info, isLogged, isAdmin, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

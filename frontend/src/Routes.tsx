@@ -17,6 +17,9 @@ import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/property/context/AlertContext';
+import UserProfilePage from './pages/UserProfile';
+import ContactPage from './pages/ContactPage';
+import NewsPage from './pages/NewsPage';
 
 function RequireAdmin({ children }: { children: ReactNode }) {
     const { isAdmin, loading } = useAuthContext()
@@ -63,6 +66,14 @@ export default function Routes() {
 
             <Route path={ROUTES.COMPARE} element={<Compare />} />
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
+            <Route path={ROUTES.USER_PROFILE} element={<UserProfilePage />} />
+            <Route path={ROUTES.CONTACT} element={<ContactPage />} />
+            <Route path={ROUTES.NEWS} element={<NewsPage />} />
+
+
+
+            <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />
+
         </RoutesDom>
     );
 };

@@ -5,11 +5,12 @@ import BathtubIcon from '@mui/icons-material/Bathtub';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
 import FoundationIcon from '@mui/icons-material/Foundation';
+import EditIcon from '@mui/icons-material/Edit';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
 import ModalItem from '../ModalItem';
 import { useState } from 'react';
-import EditIcon from '@mui/icons-material/Edit';
+import { useAuthContext } from '../../../user/context/AuthContext';
 
 interface PropertyInfoProps {
   property: Property;
@@ -27,6 +28,7 @@ export const formatFeatureLabel = (
 
 const PropertyInfo = ({ property }: PropertyInfoProps) => {
   const [statusModal, setStatusModal] = useState<null | { action: 'edit-status'; item: { id: number; status: string } }>(null);
+  const { isAdmin } = useAuthContext();
 
   const features = [
     {
@@ -49,21 +51,13 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
       label: property.coveredArea && property.coveredArea > 0 ? `${property.coveredArea} m² cubiertos` : '-',
       icon: <FoundationIcon color="primary" />,
     }
-  ].filter((feature) => feature.label !== '-'); // Filtra características no válidas
-
+  ].filter((feature) => feature.label !== '-');
 
   return (
     <Stack spacing={3}>
       {/* Título y ubicación */}
       <Box>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            mb: 1,
-          }}
-        >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
           <Typography variant="h4" component="h1" fontWeight="bold">
             {property.title}
           </Typography>
@@ -78,59 +72,44 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
           </Typography>
         </Box>
 
-      <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
-        {property.showPrice && property.price > 0
-          ? formatPrice(property.price, property.currency)
-          : 'Consultar precio'}
-      </Typography>
+        <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mb: 1 }}>
+          {property.showPrice && property.price > 0
+            ? formatPrice(property.price, property.currency)
+            : 'Consultar precio'}
+        </Typography>
 
-        <Box
-          sx={{
-            display: 'flex',
-            //alignItems: 'center', 
-            gap: 1,
-            mb: 2,
-          }}
-        >
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
           <Chip
             label={property.operation}
-            size="medium" 
+            size="medium"
             color="primary"
             variant="outlined"
-            sx={{
-              height: 32,  
-              fontSize: '0.875rem', 
-            }}
+            sx={{ height: 32, fontSize: '0.875rem' }}
           />
           <Chip
             label={property.status}
             size="medium"
             color="default"
-            sx={{
-              height: 32,
-              fontSize: '0.875rem',
-            }}
+            sx={{ height: 32, fontSize: '0.875rem' }}
           />
-          <IconButton
-            aria-label="editar estado"
-            size="small"
-            onClick={() =>
-              setStatusModal({
-                action: 'edit-status',
-                item: { id: property.id, status: property.status },
-              })
-            }
-            sx={{
-              alignSelf: 'center', // asegura que el botón esté centrado
-            }}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
+          {isAdmin && (
+            <IconButton
+              aria-label="editar estado"
+              size="small"
+              onClick={() =>
+                setStatusModal({ action: 'edit-status', item: { id: property.id, status: property.status } })
+              }
+              sx={{ alignSelf: 'center' }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
-        {statusModal && <ModalItem
-          info={statusModal}
-          close={() => setStatusModal(null)}
-        />}
+
+        {statusModal && (
+          <ModalItem info={statusModal} close={() => setStatusModal(null)} />
+        )}
+
         {/* Características */}
         {features.map((feature, index) => (
           <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -151,6 +130,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
             <Typography variant="body1">{feature.label}</Typography>
           </Box>
         ))}
+
         {/* Descripción */}
         {property.description && (
           <Box>
@@ -163,6 +143,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
           </Box>
         )}
       </Box>
+
       <Button
         variant="contained"
         size="large"
@@ -171,9 +152,7 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
           py: 1.5,
           borderRadius: 2,
           backgroundColor: '#e65100',
-          '&:hover': {
-            backgroundColor: '#d84315',
-          },
+          '&:hover': { backgroundColor: '#d84315' },
         }}
       >
         Contactar al vendedor
