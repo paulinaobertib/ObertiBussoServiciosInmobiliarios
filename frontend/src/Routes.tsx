@@ -1,4 +1,9 @@
-import { Route, Routes as RoutesDom } from 'react-router-dom';
+import { ReactNode } from 'react';
+import {
+    Routes as RoutesDom,
+    Route,
+    Navigate,
+} from 'react-router-dom';
 
 import { ROUTES } from './lib';
 import Home from './pages/HomePage';
@@ -10,17 +15,54 @@ import AdministratorPanel from './pages/AdministratorPanel';
 import PropertyCommentsPage from './pages/PropertyCommentsPage';
 import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 
+import { useAuthContext } from './app/user/context/AuthContext';
+import { useGlobalAlert } from './app/property/context/AlertContext';
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+    const { isAdmin, loading } = useAuthContext()
+
+    const { showAlert } = useGlobalAlert();
+
+    if (loading) {
+        return null; // o un spinner si quieres
+    }
+    // Si no es admin, lo mandamos al home
+    if (!isAdmin) {
+        showAlert('No tienes permisos de administrador', 'error');
+        return <Navigate to={ROUTES.HOME_APP} replace />;
+    }
+
+    return <>{children}</>;
+}
+
 export default function Routes() {
     return (
         <RoutesDom>
             <Route path={ROUTES.HOME_APP} element={<Home />} />
-            <Route path={ROUTES.NEW_PROPERTY} element={<CreatePropertyPage />} />
-            <Route path={ROUTES.EDIT_PROPERTY} element={<EditPropertyPage />} />
+
+            {/* Rutas protegidas para admin */}
+            <Route path={ROUTES.NEW_PROPERTY} element={
+                <RequireAdmin> <CreatePropertyPage /> </RequireAdmin>
+            } />
+
+            <Route path={ROUTES.EDIT_PROPERTY} element={
+                <RequireAdmin> <EditPropertyPage /> </RequireAdmin>
+            } />
+
+            <Route path={ROUTES.ADMIN_PANEL} element={
+                <RequireAdmin> <AdministratorPanel /> </RequireAdmin>
+            } />
+
+            <Route path={ROUTES.PROPERTY_COMMENTS} element={
+                <RequireAdmin> <PropertyCommentsPage /> </RequireAdmin>
+            } />
+
+            <Route path={ROUTES.PROPERTY_MAINTENANCE} element={
+                <RequireAdmin> <PropertyMaintenancePage /> </RequireAdmin>
+            } />
+
             <Route path={ROUTES.COMPARE} element={<Compare />} />
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
-            <Route path={ROUTES.ADMIN_PANEL} element={<AdministratorPanel />} />
-            <Route path={ROUTES.PROPERTY_COMMENTS} element={<PropertyCommentsPage />} />
-            <Route path={ROUTES.PROPERTY_MAINTENANCE} element={<PropertyMaintenancePage />} />
         </RoutesDom>
     );
 };

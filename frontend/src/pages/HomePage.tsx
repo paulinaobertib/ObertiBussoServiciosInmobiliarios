@@ -12,34 +12,26 @@ import { useGlobalAlert } from '../app/property/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useAuth, useHasRole } from "../app/user/context/AuthContext";
 
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
-  const { selectedPropertyIds, toggleCompare, clearComparison, refreshProperties, refreshOperations, propertiesList } = usePropertyCrud();
+  const { selectedPropertyIds, toggleCompare, clearComparison, refreshProperties, propertiesList } = usePropertyCrud();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
 
-  const [properties, _] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [goCompare, setGoCompare] = useState(false);
 
-
   useEffect(() => {
     refreshProperties();
-    refreshOperations();
   }, [location.pathname]);
 
   useEffect(() => {
-    const normalized = propertiesList.map(p => ({
-      ...p,
-      status: p.status ?? 'Desconocido'
-    }));
-    setResults(normalized);
+    setResults(propertiesList.map(p => ({ ...p, status: p.status ?? 'Desconocido' })));
     setLoading(false);
   }, [propertiesList]);
 
@@ -85,23 +77,11 @@ export default function Home() {
   };
 
   const handleCompare = () => {
-    clearComparison();
-    properties
-      .filter(p => selectedPropertyIds.includes(p.id))
-      .forEach(p => toggleCompare(p.id));
-    setGoCompare(true);
+    navigate('/properties/compare');
   };
-
-  const auth = useAuth();          // { id, userName, roles } | null
-  const isAdmin = useHasRole("ADMIN");
-  console.log("AuthInfo:", auth);
 
   return (
     <BasePage maxWidth={false}>
-      <nav>
-        {isAdmin && <a href="/owners">Propietarios</a>}
-        {auth && <span>Hola {auth.roles}</span>}
-      </nav>
 
       <Box sx={{ p: 2 }}>
         <ImageCarousel />

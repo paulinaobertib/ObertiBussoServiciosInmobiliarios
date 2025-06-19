@@ -17,6 +17,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
 import { usePropertyCrud } from '../context/PropertiesContext';
+import { useAuthContext } from '../../user/context/AuthContext';
 
 const pages = [
   { label: 'CONTACTO', route: `/contact` },
@@ -43,8 +44,10 @@ export default function NavBar() {
     setAnchorElNav(null);
   };
 
-  const handleLogout = () => {
-    console.log('Logout clicked');
+  const { logout } = useAuthContext();
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (

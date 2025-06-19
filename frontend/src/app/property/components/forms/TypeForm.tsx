@@ -54,7 +54,7 @@ export default function TypeForm({ action, item, onDone }: Props) {
                 showAlert('Tipo de propiedad eliminado con éxito!', 'success');
             }
 
-            refreshTypes();
+            await refreshTypes();
             onDone();
 
         } catch (error: any) {

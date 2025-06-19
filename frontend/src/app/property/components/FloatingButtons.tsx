@@ -5,7 +5,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CompareIcon from '@mui/icons-material/Compare';
-import { useIsAdmin } from "../../user/context/AuthContext";
+import { useAuthContext } from "../../user/context/AuthContext";
 
 type Props = {
     onAction: (a: 'create' | 'edit' | 'delete') => void;
@@ -32,7 +32,7 @@ export default function FloatingButtons({
     const gap = 2;
     const off = 16;
     const disabledCompare = compareCount < 2 || compareCount > 3;
-    const isAdmin = useIsAdmin();
+    const { isAdmin } = useAuthContext();
 
     return (
         <Box
