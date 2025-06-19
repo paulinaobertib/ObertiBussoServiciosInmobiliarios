@@ -185,7 +185,7 @@ export default function CreatePropertyPage() {
 
           {/* ------- STEP 1 : formulario + preview ------- */}
           {activeStep === 1 && (
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0 }}>
 
               <Box sx={{
                 flexGrow: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' },
@@ -195,8 +195,8 @@ export default function CreatePropertyPage() {
                 <Box sx={{
                   flex: 2, display: 'flex', flexDirection: 'column',
                   p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
-                  overflowY: { xs: 'visible', md: 'auto' },     // scroll interno SOLO en md+
-                  maxHeight: { md: '100vh' },                   // altura máxima en md+
+                  overflowY: { xs: 'visible', md: 'auto' },
+                  maxHeight: { md: '100vh' },
                 }}>
                   <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
                     {title}

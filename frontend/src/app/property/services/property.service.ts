@@ -7,7 +7,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export async function postProperty(data: PropertyCreate) {
   const form = new FormData();
   const { mainImage, images, ...plainFields } = data;
-  
+
   form.append(
     "data",
     new Blob([JSON.stringify(plainFields)], { type: "application/json" })
@@ -23,17 +23,8 @@ export async function postProperty(data: PropertyCreate) {
       { withCredentials: true }
     );
     return created;
-  } catch (error: any) {
-    console.error("Error saving property:", error);
-
-    if (error.response) {
-      console.error("[postProperty] Status:", error.response.status);
-      console.error("[postProperty] Headers:", error.response.headers);
-      console.error(
-        "[postProperty] Body de la respuesta:",
-        error.response.data
-      );
-    }
+  } catch (error) {
+    console.error("Error updating property:", error);
     throw error;
   }
 }

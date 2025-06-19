@@ -78,6 +78,19 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
             : 'Consultar precio'}
         </Typography>
 
+        {property.showPrice && (
+          <Typography
+            variant="h5"
+            color="primary"
+            fontWeight="bold"
+            sx={{ mb: 1 }}
+          >
+            {property.expenses && property.expenses > 0
+              ? formatPrice(property.expenses, 'ARS')
+              : 'Sin expensas'}
+          </Typography>
+        )}
+
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
           <Chip
             label={property.operation}
