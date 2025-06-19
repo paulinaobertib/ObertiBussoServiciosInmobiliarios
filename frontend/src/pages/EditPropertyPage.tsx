@@ -278,7 +278,7 @@ export default function EditPropertyPage() {
 
         {/* STEP 1: Formulario + Preview */}
         {activeStep === 1 && (
-          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0 }}>
 
             <Box sx={{
               flexGrow: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' },

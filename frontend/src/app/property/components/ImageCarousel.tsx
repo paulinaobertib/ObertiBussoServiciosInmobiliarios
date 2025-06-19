@@ -11,7 +11,7 @@ import logo from '../../../assets/logoJPG.png';
 const carouselImages = [carrusel1, carrusel2, carrusel3];
 
 const sliderSettings = {
-  dots: true,
+  dots: false,
   infinite: true,
   speed: 600,
   slidesToShow: 1,
@@ -23,7 +23,7 @@ const sliderSettings = {
 
 const ImageCarousel: React.FC = () => {
   return (
-    <Box sx={{position: 'relative', height: '350px', mb: 4 }}>
+    <Box sx={{ position: 'relative', height: '350px', mb: 4 }}>
       <Slider {...sliderSettings}>
         {carouselImages.map((img, idx) => (
           <Box

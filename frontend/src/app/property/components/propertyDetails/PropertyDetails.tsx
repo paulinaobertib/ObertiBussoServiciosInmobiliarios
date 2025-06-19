@@ -1,23 +1,11 @@
-import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import ImageCarousel from './PropertyCarousel'; 
+import { Box, Button, Container, useMediaQuery, useTheme } from '@mui/material';
+import ImageCarousel from './PropertyCarousel';
 import PropertyInfo from './PropertyInfo';
 import { Property } from '../../types/property';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-
-const customMarkerIcon = new L.Icon({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 interface PropertyDetailsProps {
   property: Property;
@@ -98,31 +86,42 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
           mx: 'auto',
           borderRadius: '8px',
           overflow: 'hidden',
-          cursor: 'pointer',
+          position: 'relative',  // para posicionar el botón
         }}
-        onClick={() => window.open(googleMapsUrl, '_blank')}
       >
         {coordinates ? (
-          <MapContainer
-            center={coordinates}
-            zoom={15}
-            style={{ width: '100%', height: 400 }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
-            />
-            <Marker position={coordinates} icon={customMarkerIcon}>
-              <Popup>
-                {address}
-              </Popup>
-            </Marker>
-            <Circle
+          <>
+            {/* Mapa interactivo */}
+            <MapContainer
               center={coordinates}
-              radius={300} // 100 metros ~ una cuadra típica
-              pathOptions={{ stroke: false, fillColor: '#1565c0', fillOpacity: 0.3 }}
-            />
-          </MapContainer>
+              zoom={15}
+              style={{ width: '100%', height: 400 }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Circle
+                center={coordinates}
+                radius={300}
+                pathOptions={{ stroke: false, fillColor: '#1565c0', fillOpacity: 0.3 }}
+              />
+            </MapContainer>
+
+            {/* Botón “Abrir en Maps” sobre el mapa */}
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                zIndex: 1000,
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                bgcolor: 'white',
+                color: 'text.primary'
+              }}
+              onClick={() => window.open(googleMapsUrl, '_blank')}
+            >
+              Abrir en Maps
+            </Button>
+          </>
         ) : (
           <Box
             sx={{

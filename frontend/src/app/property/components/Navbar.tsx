@@ -144,15 +144,6 @@ export default function NavBar() {
               >
                 {isLogged ? 'SALIR' : 'INICIAR SESIÓN'}
               </MenuItem>
-              {!isLogged && (
-                <MenuItem
-                  onClick={() => {
-                    handleCloseNavMenu();
-                  }}
-                >
-                  REGISTRO
-                </MenuItem>
-              )}
             </Menu>
           </Box>
 
@@ -186,9 +177,6 @@ export default function NavBar() {
               <>
                 <Button color="inherit" onClick={login} sx={{ textTransform: 'none' }}>
                   INICIAR SESIÓN
-                </Button>
-                <Button color="inherit" sx={{ textTransform: 'none' }}>
-                  REGISTRO
                 </Button>
               </>
             )}
