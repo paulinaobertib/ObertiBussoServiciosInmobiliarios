@@ -5,8 +5,11 @@ export const ROUTES = {
   COMPARE: "/properties/compare",
   PROPERTY_DETAILS: "/properties/:id",
   ADMIN_PANEL: "/panel",
+  USER_PROFILE: "/profile",
   PROPERTY_COMMENTS: "/properties/:id/comments",
   PROPERTY_MAINTENANCE: "/properties/:id/maintenance",
+  CONTACT: "/contact",
+  NEWS: "/news",
 };
 
 export const PAGES = [
@@ -16,6 +19,9 @@ export const PAGES = [
   { name: "Comparar Propiedades", url: ROUTES.COMPARE },
   { name: "Detalle de Propiedad", url: ROUTES.PROPERTY_DETAILS },
   { name: "Panel de Administrador", url: ROUTES.ADMIN_PANEL },
+  { name: "Perfil de Usuario", url: ROUTES.USER_PROFILE },
   { name: "Comentarios de Propiedad", url: ROUTES.PROPERTY_COMMENTS },
   { name: "Mantenimiento de Propiedad", url: ROUTES.PROPERTY_MAINTENANCE },
+  { name: "Contacto de la Inmobiliarioa", url: ROUTES.CONTACT },
+  { name: "Noticias", url: ROUTES.NEWS },
 ];
