@@ -1,7 +1,6 @@
-/* src/pages/EditProperty/EditPropertyPage.tsx */
 import { useEffect, useState } from 'react';
 import {
-  Box, Button, CircularProgress, Stack,
+  Box, Button, Stack,
   Step, StepLabel, Stepper, Typography
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -44,7 +43,7 @@ export default function EditPropertyPage() {
   const {
     formRef,
     main, gallery, setMain, setGallery,
-    deleteImgFile, loading, setLoading,
+    deleteImgFile, setLoading,
     handleImages
   } = useCreateProperty();
 
@@ -198,50 +197,67 @@ export default function EditPropertyPage() {
 
   return (
     <BasePage maxWidth={true}>
-      <Box
-        sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, minHeight: 0, overflow: 'hidden' }}
-      >
-        {/* barra superior */}
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, flexShrink: 0 }}>
-          <Button variant="outlined" onClick={cancel} sx={{ mr: 2 }}>CANCELAR</Button>
-          <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: { xs: 'auto', md: 'hidden' },
+      }}>
+        {/* ------- barra superior (stepper + botones) ------- */}
+        <Box sx={{ justifyContent: 'center', display: 'flex', alignItems: 'center', mb: 1, flexShrink: 0 }}>
+
+          <Button variant="contained" onClick={() => setActiveStep(0)} sx={{ mr: 2, display: { xs: "flex", md: "none" } }}>
+            Volver
+          </Button>
+
+          <Button variant="outlined" onClick={cancel} sx={{ mr: 2 }}>
+            CANCELAR
+          </Button>
+
+          <Box sx={{
+            display: { xs: 'none', md: 'block' }, flexGrow: 1
+          }}>
             <Stepper activeStep={activeStep} alternativeLabel>
               <Step><StepLabel>Categorías</StepLabel></Step>
               <Step><StepLabel>Formulario</StepLabel></Step>
             </Stepper>
           </Box>
-          <Button variant="contained" onClick={save} disabled={!formReady}>GUARDAR</Button>
+
+          <Button variant="contained" onClick={save} disabled={!formReady}>
+            GUARDAR
+          </Button>
         </Box>
 
-        {loading && (
-          <Box sx={{
-            position: 'absolute', inset: 0, zIndex: 10,
-            bgcolor: 'rgba(255,255,255,0.7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <CircularProgress size={48} />
-          </Box>
-        )}
-
-        {/* STEP 0: Categorías */}
+        {/* ------- STEP 0 : categorías ------- */}
         {activeStep === 0 && (
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <Typography variant="h6" sx={{
-              fontWeight: 600, color: '#EF6C00',
-              mb: 2, textAlign: 'center'
-            }}>
+            {/* título */}
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
               Gestión de Categorías
             </Typography>
-            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mb: 2 }}>
+
+            {/* botones categoría */}
+            <Stack direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{
+                mb: 2,
+                overflowX: 'auto',
+                flexWrap: 'nowrap',
+                minHeight: 46,
+                '& > *': { flexShrink: 0 },
+                justifyContent: { xs: 'flex-start', md: 'center' }
+              }}>
               {categories.map((cat, i) => (
                 <Box key={cat} sx={{ display: 'flex', alignItems: 'center' }}>
                   <CategoryButton category={cat} />
-                  {i < categories.length - 1 &&
-                    <NavigateNextIcon sx={{ mx: 0.5, color: '#BDBDBD' }} />
-                  }
+                  {i < categories.length - 1 && <NavigateNextIcon sx={{ mx: 0.5, color: '#BDBDBD' }} />}
                 </Box>
               ))}
             </Stack>
+
+
+            {/* panel items */}
             <Box sx={{
               flexGrow: 1, mx: 'auto', width: '100%', maxWidth: '96vw',
               display: 'flex', flexDirection: 'column',
@@ -250,6 +266,8 @@ export default function EditPropertyPage() {
             }}>
               <CategoryItems />
             </Box>
+
+            {/* botón siguiente */}
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
               <Button variant="contained" onClick={() => setActiveStep(1)} disabled={!canProceed}>
                 Siguiente
@@ -260,27 +278,23 @@ export default function EditPropertyPage() {
 
         {/* STEP 1: Formulario + Preview */}
         {activeStep === 1 && (
-          <Box sx={{
-            flexGrow: 1, display: 'flex', flexDirection: 'column',
-            gap: 2, minHeight: 0
-          }}>
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
+
             <Box sx={{
               flexGrow: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' },
-              gap: 2, minHeight: 0
+              gap: 2, minHeight: 0,
             }}>
               {/* Formulario */}
               <Box sx={{
-                flex: 2, p: 2, boxShadow: 5, borderRadius: 4,
-                bgcolor: 'background.paper',
-                display: 'flex', flexDirection: 'column',
-                minHeight: 0, overflowY: 'auto'
+                flex: 2, display: 'flex', flexDirection: 'column',
+                p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
+                overflowY: { xs: 'visible', md: 'auto' },     // scroll interno SOLO en md+
+                maxHeight: { md: '100vh' },                   // altura máxima en md+
               }}>
-                <Typography variant="h6" sx={{
-                  fontWeight: 700,
-                  color: '#EF6C00', mb: 2, textAlign: 'center'
-                }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
                   {title}
                 </Typography>
+
                 {property ? (
                   <PropertyForm
                     ref={formRef}
@@ -300,17 +314,15 @@ export default function EditPropertyPage() {
 
               {/* Preview */}
               <Box sx={{
-                flex: 1, p: 2, boxShadow: 5, borderRadius: 4,
-                bgcolor: 'background.paper',
                 display: 'flex', flexDirection: 'column',
-                overflow: 'hidden', minHeight: 0
+                p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
+                overflow: 'hidden', minHeight: 0,
+                flex: { xs: 'none', md: 1 },
               }}>
-                <Typography variant="h6" sx={{
-                  fontWeight: 700,
-                  color: '#EF6C00', mb: 2, textAlign: 'center'
-                }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
                   Previsualización de Imágenes
                 </Typography>
+
                 <Box sx={{ flexGrow: 1, overflowY: 'auto', minHeight: 0 }}>
                   <PropertyPreview
                     main={main}
@@ -321,7 +333,7 @@ export default function EditPropertyPage() {
               </Box>
             </Box>
 
-            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+            <Box sx={{ mt: 1, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
               <Button variant="contained" onClick={() => setActiveStep(0)}>
                 Volver
               </Button>

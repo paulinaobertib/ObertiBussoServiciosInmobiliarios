@@ -16,7 +16,7 @@ export const getMaintenanceById = async (id: number) => {
   }
 };
 
-export const getMaintenanceByPropertyId = async (id: number) => {
+export const getMaintenancesByPropertyId = async (id: number) => {
   try {
     const response = await axios.get(
       `${apiUrl}/properties/maintenance/getByPropertyId/${id}`,

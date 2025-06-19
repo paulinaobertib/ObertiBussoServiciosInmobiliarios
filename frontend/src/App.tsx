@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import Routes from './Routes';
@@ -15,17 +17,19 @@ function App() {
   console.log('BASE URL en App:', baseUrl);
 
   return (
-    <ThemeProvider theme={theme}>
-      <AuthProvider>
-        <AlertProvider>
-          <PropertyCrudProvider>
-            <BrowserRouter>
-              <Routes />
-            </BrowserRouter>
-          </PropertyCrudProvider>
-        </AlertProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <React.StrictMode>
+      <BrowserRouter>
+        <PropertyCrudProvider>
+          <AuthProvider>
+            <AlertProvider>
+              <ThemeProvider theme={theme}>
+                <Routes />
+              </ThemeProvider>
+            </AlertProvider>
+          </AuthProvider>
+        </PropertyCrudProvider>
+      </BrowserRouter>
+    </React.StrictMode>
   );
 }
 

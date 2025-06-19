@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="Inicia sesión">
+<@common.page title="Inicio de sesión">
     <head>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>

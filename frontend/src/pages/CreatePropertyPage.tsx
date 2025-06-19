@@ -23,9 +23,9 @@ export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
   const {
     formRef, gallery, setGallery, setMain, main,
-    deleteImgFile, handleImages, /*loading, setLoading*/
+    deleteImgFile, handleImages
   } = useCreateProperty();
-  const { selected, typesList, resetSelected, pickItem } = usePropertyCrud();
+  const { selected, typesList, resetSelected, pickItem, refreshTypes } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
 
@@ -40,6 +40,10 @@ export default function CreatePropertyPage() {
     setMain(null);
     setGallery([]);
   }, []);
+
+    useEffect(() => {
+    refreshTypes();
+  }, [refreshTypes]);
 
   /* categorías necesarias para continuar -------------------------- */
   const categories = ['type', 'neighborhood', 'owner', 'amenity'] as const;
@@ -67,10 +71,10 @@ export default function CreatePropertyPage() {
           /* redirige al catálogo */
           navigate(ROUTES.HOME_APP);
 
-          } catch (error: any) {
-            const message = error.response?.data ?? 'Error desconocido';
-            showAlert(message, 'error');
-          }
+        } catch (error: any) {
+          const message = error.response?.data ?? 'Error desconocido';
+          showAlert(message, 'error');
+        }
       } else {
         showAlert('Formulario inválido, faltan datos', 'error');
       }
@@ -232,7 +236,6 @@ export default function CreatePropertyPage() {
               {/* Verificar si selected.type tiene el valor correcto en el segundo paso */}
               <Box sx={{ mt: 1, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
                 <Button variant="contained" onClick={() => {
-                  console.log("Tipo seleccionado en el paso 2:", selected.type); // Agrega este log
                   setActiveStep(0);  // Si se desea volver al primer paso
                 }}>
                   Volver

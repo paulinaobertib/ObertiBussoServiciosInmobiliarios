@@ -34,8 +34,10 @@ export default function AmenityForm({ action, item, onDone }: Props) {
                 await deleteAmenity(item!);
                 showAlert('¡Servicio eliminado con éxito!', 'success');;
             }
+
             await refreshAmenities();
             onDone();
+
         } catch (error: any) {
             const message = error.response?.data ?? 'Error desconocido';
             showAlert(message, 'error');

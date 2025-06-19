@@ -26,9 +26,10 @@ export default function CategoryItems() {
   const navigate = useNavigate();
   const {
     currentCategory: category,
-    data: rawData, categoryLoading,
-    selected, toggleSelect, refresh,
+    data: rawData, loading,
+    selected, toggleSelect,
   } = usePropertyCrud();
+  
 
   const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; formKey?: string; item?: any } | null>(null);
   const { ask, DialogUI } = useConfirmDialog();
@@ -129,7 +130,7 @@ export default function CategoryItems() {
         </Box>
 
         <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 2, py: 1 }}>
-          {categoryLoading ? (
+          {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
               <CircularProgress size={28} sx={{ color: '#EF6C00' }} />
             </Box>
@@ -225,11 +226,9 @@ export default function CategoryItems() {
                               ask(`¿Eliminar "${it.title}"?`, async () => {
                                 try {
                                   await deleteProperty(it);
-                                  showAlert('Propiedad eliminada con éxito!', 'success');
-                                  refresh();
-                                } catch (error: any) {
-                                  const message = error.response?.data ?? 'Error desconocido';
-                                  showAlert(message, 'error');
+                                  showAlert('Propiedad eliminada', 'success');
+                                } catch {
+                                  showAlert('Error al eliminar', 'error');
                                 }
                               })
                             }
