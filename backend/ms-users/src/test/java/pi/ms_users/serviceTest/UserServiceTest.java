@@ -40,8 +40,8 @@ class UserServiceTest {
     void setUp() {
         user = new User();
         user.setId("user123");
-        user.setUsername("jdoe");
-        user.setMail("jdoe@example.com");
+        user.setUserName("jdoe");
+        user.setEmail("jdoe@example.com");
         user.setFirstName("John");
         user.setLastName("Doe");
         user.setPhone("1234567890");
@@ -156,7 +156,7 @@ class UserServiceTest {
 
         assertEquals("user123", userInfo.get("id"));
         assertEquals("jdoe", userInfo.get("userName"));
-        assertEquals("John", userInfo.get("name"));
+        assertEquals("John", userInfo.get("firstName"));
         assertEquals("Doe", userInfo.get("lastName"));
         assertEquals("jdoe@example.com", userInfo.get("email"));
         assertEquals("1234567890", userInfo.get("phone"));

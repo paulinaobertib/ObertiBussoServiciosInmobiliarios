@@ -122,7 +122,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Credenciales");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setUserName("juan123");
         dto.setPassword("pass123");
 
@@ -140,7 +140,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Contrato nuevo");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_new_contract"), any())).thenReturn("contenido");
@@ -156,7 +156,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Aumento de contrato");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setAmount(new BigDecimal("10000"));
         dto.setFrequency(30L);
         dto.setIncrease(10.0f);
@@ -176,7 +176,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Vencimiento de contrato");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setEndDate(LocalDateTime.of(2025, 12, 31, 0, 0));
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -237,7 +237,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Contrato nuevo");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
 
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
 
@@ -253,7 +253,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Aumento");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setAmount(new BigDecimal("10000"));
         dto.setFrequency(30L);
         dto.setIncrease(10.0f);
@@ -273,7 +273,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Vencimiento");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setEndDate(LocalDateTime.of(2025, 12, 31, 0, 0));
 
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));

@@ -34,7 +34,7 @@ public class AppointmentService implements IAppointmentService {
         Appointment saved = appointmentRepository.save(appointment);
 
         EmailDTO emailDTO = new EmailDTO();
-        emailDTO.setTo(user.getMail());
+        emailDTO.setTo(user.getEmail());
         emailDTO.setTitle("Solicitud de turno");
         emailDTO.setDescription("Gracias por solicitar un turno. Recibirás una confirmación por este medio.");
         emailDTO.setPhone(user.getPhone());
@@ -66,7 +66,7 @@ public class AppointmentService implements IAppointmentService {
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setLastName(user.getLastName());
         emailDTO.setPhone(user.getPhone());
-        emailDTO.setTo(user.getMail());
+        emailDTO.setTo(user.getEmail());
         emailDTO.setDate(appointment.getDate());
 
         emailService.sendAppointmentCancelledMail(emailDTO);
@@ -85,7 +85,7 @@ public class AppointmentService implements IAppointmentService {
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
 
         EmailDTO emailDTO = new EmailDTO();
-        emailDTO.setTo(user.getMail());
+        emailDTO.setTo(user.getEmail());
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setDate(appointment.getDate());
 

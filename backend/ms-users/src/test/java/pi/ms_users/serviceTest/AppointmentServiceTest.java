@@ -52,7 +52,7 @@ class AppointmentServiceTest {
         appointment.setStatus(AppointmentStatus.ESPERA);
 
         User user = new User();
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
         user.setPhone("123");
         user.setFirstName("Ana");
         user.setLastName("Perez");
@@ -75,7 +75,7 @@ class AppointmentServiceTest {
         appointment.setDate(LocalDateTime.now());
 
         User user = new User();
-        user.setMail("mail@mail.com");
+        user.setEmail("mail@mail.com");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
@@ -96,7 +96,7 @@ class AppointmentServiceTest {
         appointment.setDate(LocalDateTime.now());
 
         User user = new User();
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
         user.setFirstName("Ana");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
@@ -106,7 +106,7 @@ class AppointmentServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha actualizado el estado del turno", response.getBody());
-        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), true, "Ana", appointment.getDate(), "Address");
+        verify(emailService).sendAppointmentDecisionToClient(user.getEmail(), true, "Ana", appointment.getDate(), "Address");
     }
 
     @Test
@@ -117,7 +117,7 @@ class AppointmentServiceTest {
         appointment.setDate(LocalDateTime.now());
 
         User user = new User();
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
         user.setFirstName("Ana");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
@@ -126,7 +126,7 @@ class AppointmentServiceTest {
         ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), false, "Ana", appointment.getDate(), null);
+        verify(emailService).sendAppointmentDecisionToClient(user.getEmail(), false, "Ana", appointment.getDate(), null);
     }
 
     @Test
