@@ -157,7 +157,7 @@ public class UserControllerTest {
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value("1"))
-                .andExpect(jsonPath("$[0].username").value("jdoe"));
+                .andExpect(jsonPath("$[0].userName").value("jdoe"));
     }
 
     // casos de error

@@ -1,7 +1,6 @@
 package pi.ms_users.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,8 +23,8 @@ public class UserService {
 
     private final IUserRepository userRepository;
 
-    public ResponseEntity<String> createUser(String name, String lastName, String email, String phone) {
-        Response response = userRepository.createUser(name, lastName, email, phone);
+    public ResponseEntity<String> createUser(String firstName, String lastName, String email, String phone) {
+        Response response = userRepository.createUser(firstName, lastName, email, phone);
         int status = response.getStatus();
 
         return switch (status) {
@@ -43,14 +42,14 @@ public class UserService {
     public Map<String, String> getUserInfo(Jwt jwt) {
         String id = jwt.getClaimAsString("sub");
         String userName = jwt.getClaimAsString("preferred_username");
-        String name = jwt.getClaimAsString("given_name");
+        String firstName = jwt.getClaimAsString("given_name");
         String lastName = jwt.getClaimAsString("family_name");
         String email = jwt.getClaimAsString("email");
         String phone = jwt.getClaimAsString("phone_number");
         Map<String, String> userInfo = new LinkedHashMap<>();
         userInfo.put("id", id);
         userInfo.put("userName", userName);
-        userInfo.put("name", name);
+        userInfo.put("firstName", firstName);
         userInfo.put("lastName", lastName);
         userInfo.put("email", email);
         userInfo.put("phone", phone);
@@ -149,8 +148,8 @@ public class UserService {
         List<User> allUsers = userRepository.findAll();
 
         List<User> filteredUsers = allUsers.stream()
-                .filter(user -> contains(user.getUsername(), searchTerm) ||
-                        contains(user.getMail(), searchTerm) ||
+                .filter(user -> contains(user.getUserName(), searchTerm) ||
+                        contains(user.getEmail(), searchTerm) ||
                         contains(user.getFirstName(), searchTerm) ||
                         contains(user.getLastName(), searchTerm) ||
                         contains(user.getPhone(), searchTerm))

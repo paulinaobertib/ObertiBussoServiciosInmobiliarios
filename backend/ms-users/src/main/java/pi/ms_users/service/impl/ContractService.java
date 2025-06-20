@@ -80,9 +80,9 @@ public class ContractService implements IContractService {
         contractRepository.save(contract);
 
         EmailContractDTO emailData = new EmailContractDTO();
-        emailData.setTo(user.getMail());
+        emailData.setTo(user.getEmail());
         emailData.setTitle("¡Tu contrato está listo!");
-        emailData.setName(user.getFirstName());
+        emailData.setFirstName(user.getFirstName());
         emailService.sendNewContractEmail(emailData);
 
         ContractIncrease contractIncrease = new ContractIncrease();
@@ -253,9 +253,9 @@ public class ContractService implements IContractService {
             if (user.isEmpty()) continue;
 
             EmailExpirationContract emailData = new EmailExpirationContract();
-            emailData.setTo(user.get().getMail());
+            emailData.setTo(user.get().getEmail());
             emailData.setTitle("Tu contrato está por finalizar");
-            emailData.setName(user.get().getFirstName());
+            emailData.setFirstName(user.get().getFirstName());
             emailData.setEndDate(contract.getEndDate());
 
             try {

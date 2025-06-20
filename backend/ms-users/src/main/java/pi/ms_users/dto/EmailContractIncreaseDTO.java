@@ -10,7 +10,7 @@ public class EmailContractIncreaseDTO {
     private String from;
     private String to;
     private String title;
-    private String name;
+    private String firstName;
     private BigDecimal amount;
     private Long frequency;
     private float increase;

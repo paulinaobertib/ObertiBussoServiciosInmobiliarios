@@ -144,9 +144,9 @@ public class ContractIncreaseService implements IContractIncreaseService {
 
     private static EmailContractIncreaseDTO getEmailContractIncreaseDTO(Contract contract, User user, BigDecimal newAmount) {
         EmailContractIncreaseDTO emailData = new EmailContractIncreaseDTO();
-        emailData.setTo(user.getMail());
+        emailData.setTo(user.getEmail());
         emailData.setTitle("Notificación de Aumento de Contrato");
-        emailData.setName(user.getFirstName());
+        emailData.setFirstName(user.getFirstName());
         emailData.setAmount(newAmount);
         emailData.setFrequency(contract.getIncreaseFrequency());
         emailData.setIncrease(contract.getIncrease());
