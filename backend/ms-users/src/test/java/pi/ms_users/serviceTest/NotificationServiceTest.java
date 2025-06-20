@@ -86,7 +86,7 @@ class NotificationServiceTest {
 
         User user = new User();
         user.setId(userId);
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
 
         when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
                 .thenReturn(List.of(userId));
@@ -152,7 +152,7 @@ class NotificationServiceTest {
 
         User user = new User();
         user.setId(userId);
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
 
         Property property = new Property();
         property.setId(propertyId);
@@ -219,7 +219,7 @@ class NotificationServiceTest {
 
         User user = new User();
         user.setId(userId);
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userNotificationPreferenceRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
@@ -405,7 +405,7 @@ class NotificationServiceTest {
 
         User user = new User();
         user.setId(userId);
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
 
         UserNotificationPreference pref = new UserNotificationPreference();
         pref.setUserId(userId);

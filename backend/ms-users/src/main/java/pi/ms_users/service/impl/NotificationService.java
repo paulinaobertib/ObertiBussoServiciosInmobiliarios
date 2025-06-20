@@ -46,7 +46,7 @@ public class NotificationService implements INotificationService {
 
     private EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, Property property) {
         EmailPropertyDTO dto = new EmailPropertyDTO();
-        dto.setTo(user.getMail());
+        dto.setTo(user.getEmail());
         dto.setDate(notificationDTO.getDate());
         dto.setPropertyImageUrl(property.getMainImage());
         dto.setPropertyTitle(property.getTitle());
@@ -119,7 +119,7 @@ public class NotificationService implements INotificationService {
         Property property = propertyRepository.getById(propertyId);
 
         EmailPropertyDTO dto = new EmailPropertyDTO();
-        dto.setTo(user.getMail());
+        dto.setTo(user.getEmail());
         dto.setDate(LocalDateTime.now());
         dto.setPropertyTitle(property.getTitle());
         dto.setPropertyLocation(property.getNeighborhood());

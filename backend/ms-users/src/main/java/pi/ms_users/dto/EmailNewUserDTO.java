@@ -7,7 +7,7 @@ public class EmailNewUserDTO {
     private String from;
     private String to;
     private String title;
-    private String name;
+    private String firstName;
     private String userName;
     private String password;
 }

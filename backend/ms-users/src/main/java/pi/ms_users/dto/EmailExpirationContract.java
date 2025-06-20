@@ -9,6 +9,6 @@ public class EmailExpirationContract {
     private String from;
     private String to;
     private String title;
-    private String name;
+    private String firstName;
     private LocalDateTime endDate;
 }

@@ -137,7 +137,7 @@ class KeycloakUserRepositoryTest {
         Optional<User> result = repository.findById(userId);
 
         assertTrue(result.isPresent());
-        assertEquals("prueba", result.get().getUsername());
+        assertEquals("prueba", result.get().getUserName());
         assertEquals("Prueba", result.get().getFirstName());
         assertEquals("123456789", result.get().getPhone());
     }
@@ -177,7 +177,7 @@ class KeycloakUserRepositoryTest {
 
         User updated = repository.updateUser(input);
 
-        assertEquals("email", updated.getMail());
+        assertEquals("email", updated.getEmail());
     }
 
     @Test
@@ -271,7 +271,7 @@ class KeycloakUserRepositoryTest {
         List<User> result = repository.findByRoleTenant();
 
         assertEquals(1, result.size());
-        assertEquals("tenantuser", result.getFirst().getUsername());
+        assertEquals("tenantuser", result.getFirst().getUserName());
     }
 
     // casos de error

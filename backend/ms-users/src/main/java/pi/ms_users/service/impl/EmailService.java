@@ -168,7 +168,7 @@ public class EmailService implements IEmailService {
     public void sendNewUserCredentialsEmail(EmailNewUserDTO emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("username", emailData.getUserName());
             context.setVariable("password", emailData.getPassword());
 
@@ -190,7 +190,7 @@ public class EmailService implements IEmailService {
     public void sendNewContractEmail(EmailContractDTO emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -211,7 +211,7 @@ public class EmailService implements IEmailService {
     public void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("amount", emailData.getAmount());
             context.setVariable("frequency", emailData.getFrequency());
             context.setVariable("increase", emailData.getIncrease());
@@ -235,7 +235,7 @@ public class EmailService implements IEmailService {
     public void sendContractExpirationReminder(EmailExpirationContract emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("endDate", emailData.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
 
