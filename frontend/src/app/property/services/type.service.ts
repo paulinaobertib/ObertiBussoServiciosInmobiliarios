@@ -35,7 +35,7 @@ export const postType = async (typeData: TypeCreate) => {
       typeData,
       {
         headers: { "Content-Type": "application/json" },
-        withCredentials: true,              // <— added
+        withCredentials: true, // <— added
       }
     );
     return response.data;
@@ -51,7 +51,7 @@ export const putType = async (typeData: Type) => {
       `${apiUrl}/properties/type/update`,
       typeData,
       {
-        withCredentials: true,              // <— added
+        withCredentials: true,
       }
     );
     return response.data;
@@ -66,7 +66,7 @@ export const deleteType = async (typeData: Type) => {
     const response = await axios.delete(
       `${apiUrl}/properties/type/delete/${typeData.id}`,
       {
-        withCredentials: true,              // <— added
+        withCredentials: true,
       }
     );
     return response.data;

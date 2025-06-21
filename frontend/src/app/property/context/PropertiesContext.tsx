@@ -311,8 +311,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   // ───────────────────────── comparación (versión fetch por ID)
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
-  console.log('🏷️ Provider montado, selectedPropertyIds =', selectedPropertyIds);
-
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
 
   // llena comparisonItems cada vez que cambia la lista de IDs

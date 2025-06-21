@@ -10,6 +10,7 @@ export const ROUTES = {
   PROPERTY_MAINTENANCE: "/properties/:id/maintenance",
   CONTACT: "/contact",
   NEWS: "/news",
+  FAVORITES: "/favorites"
 };
 
 export const PAGES = [
@@ -24,4 +25,6 @@ export const PAGES = [
   { name: "Mantenimiento de Propiedad", url: ROUTES.PROPERTY_MAINTENANCE },
   { name: "Contacto de la Inmobiliarioa", url: ROUTES.CONTACT },
   { name: "Noticias", url: ROUTES.NEWS },
+  { name: "Favoritos", url: ROUTES.FAVORITES },
+
 ];

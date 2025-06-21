@@ -18,6 +18,7 @@ import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
 import { usePropertyCrud } from '../context/PropertiesContext';
 import { useAuthContext } from '../../user/context/AuthContext';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -136,6 +137,16 @@ export default function NavBar() {
                 </MenuItem>
               )}
 
+              {isLogged && (
+                <MenuItem
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    navigate(ROUTES.FAVORITES);
+                  }}
+                >
+                  MIS FAVORITOS
+                </MenuItem>
+              )}
               <MenuItem
                 onClick={() => {
                   handleCloseNavMenu();
@@ -182,6 +193,11 @@ export default function NavBar() {
             )}
             {isLogged && (
               <>
+                <Tooltip title="Mis Favoritos">
+                  <IconButton color="inherit" aria-label="favorites" onClick={() => navigate(ROUTES.FAVORITES)} >
+                    <FavoriteIcon />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title={isAdmin ? 'Panel de Administrador' : 'Perfil'}>
                   <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
                     <AccountCircleIcon />

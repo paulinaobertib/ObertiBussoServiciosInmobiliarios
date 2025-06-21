@@ -9,10 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.User;
 import pi.ms_users.service.impl.UserService;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,8 +27,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<?> createUser(@RequestParam("name") String name, @RequestParam("lastName") String lastName, @RequestParam("email") String email, @RequestParam("phone") String phone) {
-        return userService.createUser(name, lastName, email, phone);
+    public ResponseEntity<?> createUser(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName, @RequestParam("email") String email, @RequestParam("phone") String phone) {
+        return userService.createUser(firstName, lastName, email, phone);
     }
 
     @PreAuthorize("hasRole('admin')")
