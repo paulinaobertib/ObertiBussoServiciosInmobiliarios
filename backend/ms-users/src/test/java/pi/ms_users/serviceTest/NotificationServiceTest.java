@@ -17,6 +17,7 @@ import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
+import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.domain.feign.Property;
 import pi.ms_users.dto.EmailPropertyDTO;
 import pi.ms_users.dto.NotificationDTO;
@@ -31,6 +32,7 @@ import pi.ms_users.service.interf.IEmailService;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,7 +86,7 @@ class NotificationServiceTest {
 
         User user = new User();
         user.setId(userId);
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
 
         when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
                 .thenReturn(List.of(userId));
@@ -142,32 +144,90 @@ class NotificationServiceTest {
         assertEquals(notifications, response.getBody());
     }
 
+    @Test
+    void propertyInterest_shouldSendNotificationSuccessfully() {
+        String userId = "user123";
+        Long propertyId = 1L;
+        NotificationType type = NotificationType.PROPIEDADINTERES;
+
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("user@mail.com");
+
+        Property property = new Property();
+        property.setId(propertyId);
+        property.setTitle("Depto en Centro");
+        property.setNeighborhood("Centro");
+        property.setPrice(300000f);
+        property.setCurrency("USD");
+        property.setOperation("VENTA");
+        property.setDescription("Departamento amplio");
+        property.setMainImage("image.jpg");
+
+        UserNotificationPreference pref = new UserNotificationPreference();
+        pref.setUserId(userId);
+        pref.setType(NotificationType.PROPIEDADINTERES);
+        pref.setEnabled(true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userNotificationPreferenceRepository.findByUserId(userId)).thenReturn(List.of(pref));
+        when(propertyRepository.getById(propertyId)).thenReturn(property);
+        when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
+
+        ResponseEntity<String> response = notificationService.propertyInterest(userId, type, propertyId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Notificación enviada correctamente", response.getBody());
+        verify(emailService).sendNotificationNewInterestProperty(any(EmailPropertyDTO.class));
+    }
+
     // casos de error
 
     @Test
-    void createProperty_shouldThrowIllegalArgumentException_ifWrongType() {
-        NotificationDTO dto = new NotificationDTO();
-        dto.setType(NotificationType.PROPIEDADNUEVA);
-        dto.setDate(LocalDateTime.now());
+    void propertyInterest_shouldThrow_whenUserNotFound() {
+        String invalidUserId = "invalidUser";
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> notificationService.createProperty(dto, 1L));
-        assertTrue(exception.getMessage().contains("No hay usuarios suscriptos a este tipo de notificación"));
+        when(userRepository.findById(invalidUserId)).thenReturn(Optional.empty());
+
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () ->
+                notificationService.propertyInterest(invalidUserId, NotificationType.PROPIEDADINTERES, 1L)
+        );
+
+        assertEquals("Usuario no encontrado", ex.getMessage());
     }
 
     @Test
-    void createProperty_shouldThrowIllegalArgumentException_ifNoSubscribers() {
-        NotificationDTO dto = new NotificationDTO();
-        dto.setType(NotificationType.PROPIEDADNUEVA);
-        dto.setDate(LocalDateTime.now());
+    void propertyInterest_shouldThrow_whenWrongNotificationType() {
+        String userId = "user123";
+        User user = new User();
+        user.setId(userId);
 
-        when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
-                .thenReturn(Collections.emptyList());
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> notificationService.createProperty(dto, 1L));
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () ->
+                notificationService.propertyInterest(userId, NotificationType.PROPIEDADNUEVA, 1L)
+        );
 
-        assertTrue(exception.getMessage().contains("No hay usuarios suscriptos"));
+        assertEquals("Tipo de notificacion incorrecta", ex.getMessage());
+    }
+
+    @Test
+    void propertyInterest_shouldReturnNotFound_whenNoUserPreferences() {
+        String userId = "user123";
+        Long propertyId = 1L;
+        NotificationType type = NotificationType.PROPIEDADINTERES;
+
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("user@mail.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userNotificationPreferenceRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<String> response = notificationService.propertyInterest(userId, type, propertyId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No hay usuarios suscriptos a este tipo de notificacion", response.getBody());
     }
 
     @Test
@@ -311,5 +371,54 @@ class NotificationServiceTest {
 
             assertThrows(AccessDeniedException.class, () -> notificationService.getByUserId(userId));
         }
+    }
+
+    @Test
+    void propertyInterest_userNotFound_shouldThrowException() {
+        when(userRepository.findById("invalidUser")).thenReturn(Optional.empty());
+
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () ->
+                notificationService.propertyInterest("invalidUser", NotificationType.PROPIEDADINTERES, 1L)
+        );
+
+        assertEquals("Usuario no encontrado", exception.getMessage());
+    }
+
+    @Test
+    void propertyInterest_wrongNotificationType_shouldThrowException() {
+        String userId = "user123";
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () ->
+                notificationService.propertyInterest(userId, NotificationType.PROPIEDADNUEVA, 1L)
+        );
+
+        assertEquals("Tipo de notificacion incorrecta", exception.getMessage());
+    }
+
+    @Test
+    void propertyInterest_userNotSubscribed_shouldReturnForbidden() {
+        String userId = "user123";
+        Long propertyId = 1L;
+        NotificationType type = NotificationType.PROPIEDADINTERES;
+
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("user@mail.com");
+
+        UserNotificationPreference pref = new UserNotificationPreference();
+        pref.setUserId(userId);
+        pref.setType(NotificationType.PROPIEDADINTERES);
+        pref.setEnabled(false);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userNotificationPreferenceRepository.findByUserId(userId)).thenReturn(List.of(pref));
+
+        ResponseEntity<String> response = notificationService.propertyInterest(userId, type, propertyId);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals("El usuario no está suscripto a este tipo de notificación", response.getBody());
+        verify(emailService, never()).sendNotificationNewInterestProperty(any());
     }
 }

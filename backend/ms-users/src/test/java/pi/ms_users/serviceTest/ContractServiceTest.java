@@ -95,7 +95,7 @@ class ContractServiceTest {
 
         user = new User();
         user.setId("user123");
-        user.setMail("test@mail.com");
+        user.setEmail("test@mail.com");
         user.setFirstName("Test");
 
         property = new Property();
@@ -376,7 +376,7 @@ class ContractServiceTest {
     void testCreate_emailServiceThrowsException_shouldPropagate() {
         when(propertyRepository.getById(anyLong())).thenReturn(mock(Property.class));
         User user = new User();
-        user.setMail("test@mail.com");
+        user.setEmail("test@mail.com");
         user.setFirstName("Nombre");
         when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
         doThrow(new RuntimeException("Email service failure"))
@@ -403,7 +403,7 @@ class ContractServiceTest {
 
         User user = new User();
         user.setId("user123");
-        user.setMail("test@example.com");
+        user.setEmail("test@example.com");
         user.setFirstName("Test");
 
         when(contractRepository.findByStatusAndEndDateBetween(

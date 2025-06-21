@@ -136,11 +136,39 @@ public class EmailService implements IEmailService {
         }
     }
 
+    // cuando hay una propiedad que puede ser de interes para el cliente
+    @Override
+    public void sendNotificationNewInterestProperty(EmailPropertyDTO emailPropertyDTO) {
+        try {
+            Context context = new Context();
+            context.setVariable("date", formatDate(emailPropertyDTO.getDate()));
+            context.setVariable("propertyUrl", emailPropertyDTO.getPropertyUrl());
+            context.setVariable("propertyDescription", emailPropertyDTO.getPropertyDescription());
+            context.setVariable("propertyTitle", emailPropertyDTO.getPropertyTitle());
+            context.setVariable("propertyImageUrl", emailPropertyDTO.getPropertyImageUrl());
+            context.setVariable("propertyLocation", emailPropertyDTO.getPropertyLocation());
+            context.setVariable("propertyPrice", emailPropertyDTO.getPropertyPrice());
+            context.setVariable("propertyCurrency", emailPropertyDTO.getPropertyCurrency());
+            context.setVariable("propertyOperation", emailPropertyDTO.getPropertyOperation());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailPropertyDTO.getTo());
+            helper.setSubject("¡Nueva propiedad disponible que podría interesarte!");
+
+            String content = templateEngine.process("email_new_interest_property.html", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar correo de nueva propiedad: " + e.getMessage(), e);
+        }
+    }
+
     // cuando el administrador le crea un usuario al inquilino
     public void sendNewUserCredentialsEmail(EmailNewUserDTO emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("username", emailData.getUserName());
             context.setVariable("password", emailData.getPassword());
 
@@ -162,7 +190,7 @@ public class EmailService implements IEmailService {
     public void sendNewContractEmail(EmailContractDTO emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -183,7 +211,7 @@ public class EmailService implements IEmailService {
     public void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("amount", emailData.getAmount());
             context.setVariable("frequency", emailData.getFrequency());
             context.setVariable("increase", emailData.getIncrease());
@@ -207,7 +235,7 @@ public class EmailService implements IEmailService {
     public void sendContractExpirationReminder(EmailExpirationContract emailData) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getName());
+            context.setVariable("name", emailData.getFirstName());
             context.setVariable("endDate", emailData.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
 

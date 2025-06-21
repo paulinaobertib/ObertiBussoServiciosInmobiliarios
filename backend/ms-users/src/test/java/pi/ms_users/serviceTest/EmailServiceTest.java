@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.dto.*;
+import org.thymeleaf.context.Context;
 import pi.ms_users.service.impl.EmailService;
 
 import java.math.BigDecimal;
@@ -120,7 +122,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Credenciales");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setUserName("juan123");
         dto.setPassword("pass123");
 
@@ -138,7 +140,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Contrato nuevo");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_new_contract"), any())).thenReturn("contenido");
@@ -154,7 +156,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Aumento de contrato");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setAmount(new BigDecimal("10000"));
         dto.setFrequency(30L);
         dto.setIncrease(10.0f);
@@ -174,7 +176,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Vencimiento de contrato");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setEndDate(LocalDateTime.of(2025, 12, 31, 0, 0));
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -183,6 +185,18 @@ class EmailServiceTest {
         emailService.sendContractExpirationReminder(dto);
 
         verify(javaMailSender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendNotificationNewInterestProperty_shouldSendEmailSuccessfully() {
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email content</html>");
+
+        emailService.sendNotificationNewInterestProperty(emailPropertyDTO);
+
+        verify(javaMailSender).createMimeMessage();
+        verify(templateEngine).process(eq("email_new_interest_property.html"), any(Context.class));
+        verify(javaMailSender).send(mimeMessage);
     }
 
     // casos de error
@@ -223,7 +237,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Contrato nuevo");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
 
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
 
@@ -239,7 +253,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Aumento");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setAmount(new BigDecimal("10000"));
         dto.setFrequency(30L);
         dto.setIncrease(10.0f);
@@ -259,7 +273,7 @@ class EmailServiceTest {
         dto.setTo("cliente@mail.com");
         dto.setFrom("inmobiliaria@mail.com");
         dto.setTitle("Vencimiento");
-        dto.setName("Juan");
+        dto.setFirstName("Juan");
         dto.setEndDate(LocalDateTime.of(2025, 12, 31, 0, 0));
 
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
@@ -269,5 +283,18 @@ class EmailServiceTest {
 
         assertTrue(ex.getMessage().contains("Error al enviar recordatorio de vencimiento"));
     }
-}
 
+    @Test
+    void sendNotificationNewInterestProperty_shouldThrowRuntimeException_whenSendFails() {
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email content</html>");
+
+        doThrow(new RuntimeException(new MessagingException("Error al enviar"))).when(javaMailSender).send(mimeMessage);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                emailService.sendNotificationNewInterestProperty(emailPropertyDTO)
+        );
+
+        assertTrue(ex.getMessage().contains("Error al enviar correo de nueva propiedad"));
+    }
+}

@@ -1,4 +1,3 @@
-// src/app/context/AuthContext.tsx
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import { Role, User } from "../types/user";
@@ -12,62 +11,84 @@ export type AuthInfo = (User & { roles: Role[] }) | null;
 
 interface AuthContextValue {
     info: AuthInfo;
+    setInfo: React.Dispatch<React.SetStateAction<AuthInfo>>; // ← nuevo
     isLogged: boolean;
     isAdmin: boolean;
     loading: boolean;
     login: () => void;
-    logout: () => Promise<void>;
+    logout: () => void;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
     info: null,
+    setInfo: () => { },
     isLogged: false,
     isAdmin: false,
     loading: false,
     login: () => { },
-    logout: async () => { },
+    logout: () => { },
+    refreshUser: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [info, setInfo] = useState<AuthInfo>(null);
-    const [loading, setLoading] = useState(true);  // ← nuevo
+    // hidratar desde sessionStorage
+    const stored = sessionStorage.getItem("authInfo");
+    const [info, setInfo] = useState<AuthInfo>(stored ? JSON.parse(stored) : null);
+    const [loading, setLoading] = useState(!stored);
 
     const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
     const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
 
     const isLogged = !!info;
-
-    useEffect(() => {
-        let mounted = true;
-        api.get<User>("/users/user/me")
-            .then(r1 => {
-                const user = r1.data;
-                return api
-                    .get<Role[]>(`/users/user/role/${user.id}`)
-                    .then(r2 => ({
-                        ...user,
-                        roles: r2.data.map(r => r.toUpperCase() as Role),
-                    }));
-            })
-            .then(full => mounted && setInfo(full))
-            .catch(() => mounted && setInfo(null))
-            .finally(() => mounted && setLoading(false));  // ← ponemos loading=false aquí
-
-        return () => { mounted = false; };
-    }, []);
-
     const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
 
-    const login = () => {
-        window.location.href = loginUrl;
+    // sincronizar sessionStorage
+    useEffect(() => {
+        if (info) sessionStorage.setItem("authInfo", JSON.stringify(info));
+        else sessionStorage.removeItem("authInfo");
+    }, [info]);
+
+    // cargar usuario (sigue usando /me → JWT)
+    const loadUserInfo = async () => {
+        setLoading(true);
+        try {
+            // ahora sí devolvemos un `User` completo
+            const userRes = await api.get<User>("/users/user/me");
+            const user = userRes.data;
+
+            // y sacamos los roles
+            const rolesRes = await api.get<Role[]>(`/users/user/role/${user.id}`);
+
+            setInfo({
+                ...user,
+                roles: rolesRes.data.map(r => r.toUpperCase() as Role),
+            });
+        } catch {
+            setInfo(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const logout = async () => {
+
+    // carga inicial
+    useEffect(() => { if (!stored) loadUserInfo(); }, []);
+
+    const login = () => { window.location.href = loginUrl; };
+    const logout = () => {
         window.location.href = `${GW_URL}/logout`;
+        setInfo(null);
+        sessionStorage.removeItem("authInfo");
     };
+
+    const refreshUser = async () => { await loadUserInfo(); };
 
     return (
-        <AuthContext.Provider value={{ info, isLogged, isAdmin, loading, login, logout }}>
+        <AuthContext.Provider value={{
+            info, setInfo, isLogged, isAdmin, loading,
+            login, logout, refreshUser
+        }}>
             {children}
         </AuthContext.Provider>
     );

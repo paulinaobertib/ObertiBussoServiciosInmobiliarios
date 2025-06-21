@@ -14,6 +14,7 @@ import PropertyDetailsPage from './pages/PropertyDetailsPage';
 import AdministratorPanel from './pages/AdministratorPanel';
 import PropertyCommentsPage from './pages/PropertyCommentsPage';
 import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
+import FavoritesPage from './pages/FavoritesPage'
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/property/context/AlertContext';
@@ -29,9 +30,27 @@ function RequireAdmin({ children }: { children: ReactNode }) {
     if (loading) {
         return null; // o un spinner si quieres
     }
+
     // Si no es admin, lo mandamos al home
     if (!isAdmin) {
         showAlert('No tienes permisos de administrador', 'error');
+        return <Navigate to={ROUTES.HOME_APP} replace />;
+    }
+
+    return <>{children}</>;
+}
+
+function RequireLogin({ children }: { children: ReactNode }) {
+    const { loading, isLogged } = useAuthContext()
+
+    const { showAlert } = useGlobalAlert();
+
+    if (loading) {
+        return null; // o un spinner si quieres
+    }
+
+    if (!isLogged) {
+        showAlert('Debes loguearte para acceder', 'error');
         return <Navigate to={ROUTES.HOME_APP} replace />;
     }
 
@@ -66,11 +85,18 @@ export default function Routes() {
 
             <Route path={ROUTES.COMPARE} element={<Compare />} />
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
-            <Route path={ROUTES.USER_PROFILE} element={<UserProfilePage />} />
+
+
+            <Route path={ROUTES.USER_PROFILE} element={
+                <RequireLogin> <UserProfilePage /> </RequireLogin>
+            } />
+
+            <Route path={ROUTES.FAVORITES} element={
+                <RequireLogin> <FavoritesPage /> </RequireLogin>
+            } />
+
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
             <Route path={ROUTES.NEWS} element={<NewsPage />} />
-
-
 
             <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />
 

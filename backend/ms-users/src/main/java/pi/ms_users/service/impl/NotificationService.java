@@ -2,6 +2,7 @@ package pi.ms_users.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
+import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.domain.feign.Property;
 import pi.ms_users.dto.EmailPropertyDTO;
 import pi.ms_users.dto.NotificationDTO;
@@ -21,8 +23,10 @@ import pi.ms_users.service.interf.IEmailService;
 import pi.ms_users.service.interf.INotificationService;
 
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +46,7 @@ public class NotificationService implements INotificationService {
 
     private EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, Property property) {
         EmailPropertyDTO dto = new EmailPropertyDTO();
-        dto.setTo(user.getMail());
+        dto.setTo(user.getEmail());
         dto.setDate(notificationDTO.getDate());
         dto.setPropertyImageUrl(property.getMainImage());
         dto.setPropertyTitle(property.getTitle());
@@ -65,7 +69,7 @@ public class NotificationService implements INotificationService {
 
         List<String> usersId = userNotificationPreferenceRepository.usersIdByTypeTrue(notificationDTO.getType());
         if (usersId.isEmpty()) {
-            throw new IllegalArgumentException("No hay usuarios suscriptos a este tipo de notificación");
+           return ResponseEntity.ok("No hay usuarios suscriptos. Notificación omitida.");
         }
 
         Property property = propertyRepository.getById(propertyId);
@@ -86,6 +90,50 @@ public class NotificationService implements INotificationService {
         }
 
         return ResponseEntity.ok("Se han enviado las notificaciones correctamente");
+    }
+
+    @Override
+    public ResponseEntity<String> propertyInterest(String userId, NotificationType type, Long propertyId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        if (!type.equals(NotificationType.PROPIEDADINTERES)) {
+            throw new NoSuchElementException("Tipo de notificacion incorrecta");
+        }
+
+        List<UserNotificationPreference> validUserId = userNotificationPreferenceRepository.findByUserId(userId);
+        if (validUserId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No hay usuarios suscriptos a este tipo de notificacion");
+        }
+
+        boolean hasActivePropiedadInteres = validUserId.stream()
+                .anyMatch(pref ->
+                        pref.getType() == NotificationType.PROPIEDADINTERES &&
+                                Boolean.TRUE.equals(pref.getEnabled())
+                );
+
+        if (!hasActivePropiedadInteres) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("El usuario no está suscripto a este tipo de notificación");
+        }
+
+        Property property = propertyRepository.getById(propertyId);
+
+        EmailPropertyDTO dto = new EmailPropertyDTO();
+        dto.setTo(user.getEmail());
+        dto.setDate(LocalDateTime.now());
+        dto.setPropertyTitle(property.getTitle());
+        dto.setPropertyLocation(property.getNeighborhood());
+        NumberFormat price = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
+        dto.setPropertyPrice(price.format(property.getPrice()));
+        dto.setPropertyCurrency(property.getCurrency());
+        dto.setPropertyOperation(property.getOperation());
+        dto.setPropertyDescription(property.getDescription());
+        dto.setPropertyImageUrl(property.getMainImage());
+        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + property.getId());
+
+        emailService.sendNotificationNewInterestProperty(dto);
+
+        return ResponseEntity.ok("Notificación enviada correctamente");
     }
 
     @Override

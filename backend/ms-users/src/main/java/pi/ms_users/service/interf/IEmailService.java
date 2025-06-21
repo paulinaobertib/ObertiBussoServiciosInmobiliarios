@@ -14,6 +14,8 @@ public interface IEmailService {
 
     void sendNotificationNewProperty(EmailPropertyDTO emailPropertyDTO);
 
+    void sendNotificationNewInterestProperty(EmailPropertyDTO emailPropertyDTO);
+
     void sendNewUserCredentialsEmail(EmailNewUserDTO emailData);
 
     void sendNewContractEmail(EmailContractDTO emailData);

@@ -44,7 +44,7 @@ public interface IContractRepository extends JpaRepository<Contract, Long> {
     @Query("select c from Contract  c where c.contractStatus = ?1 and c.endDate > ?2")
     List<Contract> findByStatusAndEndDateAfter(ContractStatus status, LocalDateTime now);
 
-    @Query("select c from Contract c where c.contractStatus = :status and DATE(c.endDate) = CURRENT_DATE")
+    @Query(value = "select * from contract c where c.contract_status = :status and DATE(c.end_date) = CURRENT_DATE", nativeQuery = true)
     List<Contract> findContractsEndingToday(@Param("status") ContractStatus status);
 
     @Query("select c from Contract c where c.contractStatus = :status and c.endDate between :start and :end")
