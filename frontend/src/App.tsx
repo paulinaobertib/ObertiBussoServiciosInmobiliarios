@@ -18,8 +18,8 @@ function App() {
 
   return (
     <React.StrictMode>
-      <BrowserRouter>
-        <PropertyCrudProvider>
+      <PropertyCrudProvider>
+        <BrowserRouter>
           <AuthProvider>
             <AlertProvider>
               <ThemeProvider theme={theme}>
@@ -27,8 +27,8 @@ function App() {
               </ThemeProvider>
             </AlertProvider>
           </AuthProvider>
-        </PropertyCrudProvider>
-      </BrowserRouter>
+        </BrowserRouter>
+      </PropertyCrudProvider>
     </React.StrictMode>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
   Box, Button, Container, Stack,
-  Step, StepLabel, Stepper, Typography
+  Step, StepLabel, Stepper, Typography,
+  useTheme
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
@@ -21,16 +22,13 @@ import { BasePage } from './BasePage';
 
 export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
-  const {
-    formRef, gallery, setGallery, setMain, main,
-    deleteImgFile, handleImages
-  } = useCreateProperty();
+  const { formRef, gallery, setGallery, setMain, main, deleteImgFile, handleImages } = useCreateProperty();
   const { selected, typesList, resetSelected, pickItem, refreshTypes } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
-
   const [activeStep, setActiveStep] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const theme = useTheme()
   const navigate = useNavigate();
 
   /* limpiar estado al entrar -------------------------------------- */
@@ -41,7 +39,7 @@ export default function CreatePropertyPage() {
     setGallery([]);
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     refreshTypes();
   }, [refreshTypes]);
 
@@ -139,7 +137,7 @@ export default function CreatePropertyPage() {
           {activeStep === 0 && (
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               {/* título */}
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
                 Gestión de Categorías
               </Typography>
 
@@ -198,7 +196,7 @@ export default function CreatePropertyPage() {
                   overflowY: { xs: 'visible', md: 'auto' },
                   maxHeight: { md: '100vh' },
                 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
                     {title}
                   </Typography>
 

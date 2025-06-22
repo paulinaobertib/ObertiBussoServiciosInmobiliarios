@@ -56,8 +56,8 @@ export default function SearchBar({ onSearch, debounceMs = 300 }: Props) {
           endAdornment: loading ? <CircularProgress size={20} /> : null
         }}
         sx={{
-          maxWidth: '60%',
-          backgroundColor: '#f0f0f0'
+          maxWidth: '80%',
+          backgroundColor: 'white'
         }}
       />
     </Box>

@@ -83,10 +83,6 @@ export default function Routes() {
                 <RequireAdmin> <PropertyMaintenancePage /> </RequireAdmin>
             } />
 
-            <Route path={ROUTES.COMPARE} element={<Compare />} />
-            <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
-
-
             <Route path={ROUTES.USER_PROFILE} element={
                 <RequireLogin> <UserProfilePage /> </RequireLogin>
             } />
@@ -95,6 +91,8 @@ export default function Routes() {
                 <RequireLogin> <FavoritesPage /> </RequireLogin>
             } />
 
+            <Route path={ROUTES.COMPARE} element={<Compare />} />
+            <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
             <Route path={ROUTES.NEWS} element={<NewsPage />} />
 

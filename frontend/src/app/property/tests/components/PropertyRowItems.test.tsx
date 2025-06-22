@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getPropertyRowData } from '../../components/PropertyRowItems';
+import { getPropertyRowData } from '../../components/ActionsRowItems';
 import { ROUTES } from '../../../../lib'; 
 
 vi.mock('@mui/icons-material/Comment', () => ({
