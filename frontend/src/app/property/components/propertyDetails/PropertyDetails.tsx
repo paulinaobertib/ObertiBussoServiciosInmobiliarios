@@ -57,7 +57,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
     <Container maxWidth="xl" sx={{ py: 8 }}>
       <Box
         sx={{
-          backgroundColor: '#ffe0b2',
+          backgroundColor: theme.palette.quaternary.main,
           borderRadius: 2,
           p: 3,
           display: 'flex',
@@ -101,7 +101,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
               <Circle
                 center={coordinates}
                 radius={300}
-                pathOptions={{ stroke: false, fillColor: '#1565c0', fillOpacity: 0.3 }}
+                pathOptions={{ stroke: false, fillColor: theme.palette.secondary.main, fillOpacity: 0.3 }}
               />
             </MapContainer>
 
@@ -129,7 +129,7 @@ const PropertyDetails = ({ property }: PropertyDetailsProps) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: 'white',
               color: 'text.secondary',
               fontSize: '1.2rem',
               fontStyle: 'italic',

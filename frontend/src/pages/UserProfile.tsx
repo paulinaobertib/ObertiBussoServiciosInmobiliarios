@@ -279,6 +279,7 @@ export default function UserProfilePage() {
                                                 }}
                                             >
                                                 <PropertyCard
+                                                    key={prop.id}
                                                     property={prop}
                                                     onClick={() => navigate(`/properties/${prop.id}`)}
                                                 />

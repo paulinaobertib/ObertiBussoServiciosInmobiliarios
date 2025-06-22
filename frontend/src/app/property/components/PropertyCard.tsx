@@ -1,15 +1,10 @@
-import { MouseEvent } from 'react';
-import { Card, Box, Chip, CardContent, Typography, useTheme } from '@mui/material';
+import { Card, Box, Chip, CardContent, Typography, useTheme, Checkbox, } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-
 import FavoriteButton from '../../user/components/FavoriteButtom';
 import { Property } from '../types/property';
 
-export type CatalogMode = 'normal' | 'edit' | 'delete';
-
 export interface PropertyCardProps {
   property: Property;
-  mode?: CatalogMode;
   selectionMode?: boolean;
   isSelected?: (id: number) => boolean;
   toggleSelection?: (id: number) => void;
@@ -18,7 +13,6 @@ export interface PropertyCardProps {
 
 export default function PropertyCard({
   property,
-  mode = 'normal',
   selectionMode = false,
   isSelected = () => false,
   toggleSelection = () => { },
@@ -30,14 +24,28 @@ export default function PropertyCard({
       ? property.mainImage
       : URL.createObjectURL(property.mainImage);
 
-  const handleSelect = (e: MouseEvent) => {
+  // handler con logging
+  const handleSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean
+  ) => {
     e.stopPropagation();
+    console.log('🔲 handleSelect called', {
+      id: property.id,
+      newChecked: checked,
+      previouslySelected: isSelected(property.id),
+    });
     toggleSelection(property.id);
   };
 
+
   return (
     <Card
-      onClick={onClick}
+      onClick={() => {
+        if (!selectionMode) {
+          onClick();
+        }
+      }}
       sx={{
         width: '100%',
         position: 'relative',
@@ -45,18 +53,16 @@ export default function PropertyCard({
         flexDirection: 'column',
         borderRadius: 2,
         boxShadow: 2,
+        cursor: selectionMode ? 'default' : 'pointer',
+        transition: 'transform 0.2s, background-color 0.1s',
         '&:hover': {
-          transform: mode !== 'normal' ? 'scale(1.01)' : undefined,
-          backgroundColor:
-            mode !== 'normal' ? theme.palette.action.hover : undefined,
+          transform: 'scale(1.01)',
+          backgroundColor: theme.palette.action.hover,
         },
-        transition: 'transform 0.2s, background-color 0.2s',
       }}
     >
-      {/* botón favorito */}
       <FavoriteButton propertyId={property.id} />
 
-      {/* imagen */}
       <Box
         component="div"
         sx={{
@@ -70,63 +76,88 @@ export default function PropertyCard({
         }}
       />
 
-      {/* etiqueta de estado */}
       <Chip
         label={property.status || 'Sin Estado'}
         size="small"
         sx={{
           position: 'absolute',
-          top: { xs: 6, sm: 8 },
-          left: { xs: 6, sm: 10 },
+          top: 12,
+          left: 12,
           zIndex: 5,
           fontWeight: 600,
-          fontSize: { xs: '0.6rem', sm: '0.75rem' },
-          px: { xs: 0.5, sm: 1 },
-          py: { xs: 0, sm: 0.5 },
-          borderRadius: 3,
+          fontSize: { xs: '0.75rem' },
           boxShadow: 3,
-          bgcolor: '#e0e0e0',
+          bgcolor: 'white',
           pointerEvents: 'none',
         }}
       />
 
-      {/* contenido */}
-      <CardContent sx={{ textAlign: 'center', backgroundColor: '#fed7aa', p: 2 }}>
-        <Typography variant="h6" noWrap sx={{ fontSize: 'clamp(0.875rem,2vw,1.25rem)' }}>
+      <CardContent
+        sx={{
+          position: 'relative',
+          textAlign: 'center',
+          backgroundColor: theme.palette.quaternary.main,
+        }}
+      >
+        {selectionMode && (
+          <Checkbox
+            checked={isSelected(property.id)}
+            onChange={handleSelect}
+            disableRipple
+            icon={
+              <Box
+                sx={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 1,
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  backgroundColor: 'white',
+                  boxSizing: 'border-box',
+                }}
+              />
+            }
+            checkedIcon={
+              <Box
+                sx={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 1,
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  backgroundColor: theme.palette.primary.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <CheckIcon sx={{ color: 'white', fontSize: 16 }} />
+              </Box>
+            }
+            sx={{
+              position: 'absolute',
+              bottom: 12,
+              left: 12,
+              width: 20,
+              height: 20,
+              p: 0,
+              minWidth: 0,
+              minHeight: 0,
+              zIndex: 10,
+              '&:hover': { backgroundColor: 'transparent' },
+            }}
+            inputProps={{ 'aria-label': 'Seleccionar propiedad' }}
+          />
+        )}
+
+        <Typography variant="h6" noWrap sx={{ mb: 0.5 }}>
           {property.title}
         </Typography>
-        <Typography color="text.secondary" sx={{ fontSize: 'clamp(0.75rem,1.5vw,1rem)' }}>
+        <Typography color="text.primary">
           {property.showPrice
-            ? `$${property.price.toLocaleString('es-AR')} ${property.currency}`
+            ? `${property.currency} $${property.price}`
             : 'Consultar precio'}
         </Typography>
       </CardContent>
-
-      {/* selección */}
-      {selectionMode && (
-        <Box
-          onClick={handleSelect}
-          sx={{
-            position: 'absolute',
-            bottom: 10,
-            left: 10,
-            width: 28,
-            height: 28,
-            borderRadius: 1,
-            border: `2px solid ${theme.palette.primary.main}`,
-            backgroundColor: isSelected(property.id)
-              ? theme.palette.primary.main
-              : '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 10,
-          }}
-        >
-          {isSelected(property.id) && <CheckIcon sx={{ color: '#fff' }} />}
-        </Box>
-      )}
     </Card>
   );
 }

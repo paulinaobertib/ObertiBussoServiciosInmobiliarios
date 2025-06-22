@@ -7,7 +7,11 @@ import { Property } from '../types/property';
 import { useGlobalAlert } from '../context/AlertContext';
 import { useConfirmDialog } from '../utils/ConfirmDialog';
 import { usePropertyCrud } from '../context/PropertiesContext';
-import PropertyCard, { CatalogMode } from '../components/PropertyCard';
+import PropertyCard from '../components/PropertyCard';
+import { buildRoute } from '../../../buildRoute';
+import { ROUTES } from '../../../lib';
+
+type CatalogMode = 'normal' | 'edit' | 'delete';
 
 interface CatalogProps {
   mode: CatalogMode;
@@ -23,7 +27,7 @@ export default function PropertyCatalog({
   onFinishAction,
   properties = [],
   selectionMode = false,
-  toggleSelection = () => {},
+  toggleSelection = () => { },
   isSelected = () => false,
 }: CatalogProps) {
   const navigate = useNavigate();
@@ -38,7 +42,7 @@ export default function PropertyCatalog({
 
   const handleCrudClick = (prop: Property) => {
     if (mode === 'edit') {
-      navigate(`/properties/${prop.id}/edit`);
+      navigate(buildRoute(ROUTES.EDIT_PROPERTY, prop.id))
       onFinishAction();
     } else if (mode === 'delete') {
       ask(`¿Eliminar "${prop.title}"?`, async () => {
@@ -52,7 +56,7 @@ export default function PropertyCatalog({
         onFinishAction();
       });
     } else {
-      navigate(`/properties/${prop.id}`);
+      navigate(buildRoute(ROUTES.PROPERTY_DETAILS, prop.id))
       onFinishAction();
     }
   };
@@ -87,7 +91,6 @@ export default function PropertyCatalog({
             <PropertyCard
               key={prop.id}
               property={prop}
-              mode={mode}
               selectionMode={selectionMode}
               isSelected={isSelected!}
               toggleSelection={toggleSelection!}

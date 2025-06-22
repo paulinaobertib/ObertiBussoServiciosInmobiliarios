@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
   Box, Button, Stack,
-  Step, StepLabel, Stepper, Typography
+  Step, StepLabel, Stepper, Typography,
+  useTheme
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -40,17 +41,13 @@ export default function EditPropertyPage() {
   const navigate = useNavigate();
 
   // hook para manejar imágenes y formulario
-  const {
-    formRef,
-    main, gallery, setMain, setGallery,
-    deleteImgFile, setLoading,
-    handleImages
-  } = useCreateProperty();
+  const { formRef, main, gallery, setMain, setGallery, deleteImgFile, setLoading, handleImages } = useCreateProperty();
 
   // contexto CRUD
   const { selected, setSelected, resetSelected, typesList, pickItem } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
+  const theme = useTheme()
 
   // estado local
   const [property, setProperty] = useState<any | null>(null);
@@ -232,7 +229,7 @@ export default function EditPropertyPage() {
         {activeStep === 0 && (
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             {/* título */}
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
               Gestión de Categorías
             </Typography>
 
@@ -288,10 +285,10 @@ export default function EditPropertyPage() {
               <Box sx={{
                 flex: 2, display: 'flex', flexDirection: 'column',
                 p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
-                overflowY: { xs: 'visible', md: 'auto' },     // scroll interno SOLO en md+
-                maxHeight: { md: '100vh' },                   // altura máxima en md+
+                overflowY: { xs: 'visible', md: 'auto' },
+                maxHeight: { md: '100vh' },
               }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
                   {title}
                 </Typography>
 
@@ -319,7 +316,7 @@ export default function EditPropertyPage() {
                 overflow: 'hidden', minHeight: 0,
                 flex: { xs: 'none', md: 1 },
               }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
                   Previsualización de Imágenes
                 </Typography>
 

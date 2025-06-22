@@ -1,4 +1,4 @@
-import { Box, Typography, Chip, Button, Stack, IconButton } from '@mui/material';
+import { Box, Typography, Chip, Button, Stack, IconButton, useTheme } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -16,7 +16,6 @@ interface PropertyInfoProps {
   property: Property;
 }
 
-// Función para mostrar singular/plural o "-"
 export const formatFeatureLabel = (
   value: number | null | undefined,
   singular: string,
@@ -29,6 +28,7 @@ export const formatFeatureLabel = (
 const PropertyInfo = ({ property }: PropertyInfoProps) => {
   const [statusModal, setStatusModal] = useState<null | { action: 'edit-status'; item: { id: number; status: string } }>(null);
   const { isAdmin } = useAuthContext();
+  const theme = useTheme()
 
   const features = [
     {
@@ -164,8 +164,8 @@ const PropertyInfo = ({ property }: PropertyInfoProps) => {
         sx={{
           py: 1.5,
           borderRadius: 2,
-          backgroundColor: '#e65100',
-          '&:hover': { backgroundColor: '#d84315' },
+          backgroundColor: theme.palette.secondary.main,
+          '&:hover': { backgroundColor: theme.palette.secondary.dark },
         }}
       >
         Contactar al vendedor
