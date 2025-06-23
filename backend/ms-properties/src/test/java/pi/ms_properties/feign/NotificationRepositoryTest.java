@@ -29,7 +29,7 @@ public class NotificationRepositoryTest {
     @Test
     void createNotification_callsFeignClientSuccessfully() {
         NotificationDTO notificationDTO = new NotificationDTO();
-        notificationDTO.setType(NotificationType.ALQUILER);
+        notificationDTO.setType(NotificationType.PROPIEDADNUEVA);
         notificationDTO.setDate(LocalDateTime.now());
 
         notificationRepository.createNotification(notificationDTO, 1L);
@@ -37,12 +37,23 @@ public class NotificationRepositoryTest {
         verify(feignUserRepository, times(1)).createProperty(notificationDTO, 1L);
     }
 
+    @Test
+    void createPropertyInterest_callsFeignClientSuccessfully() {
+        String userId = "user123";
+        NotificationType type = NotificationType.PROPIEDADINTERES;
+        Long propertyId = 10L;
+
+        notificationRepository.createPropertyInterest(userId, type, propertyId);
+
+        verify(feignUserRepository, times(1)).createPropertyInterest(userId, type, propertyId);
+    }
+
     // casos de error
 
     @Test
     void createNotification_handlesFeignClientException() {
         NotificationDTO notificationDTO = new NotificationDTO();
-        notificationDTO.setType(NotificationType.ALQUILER);
+        notificationDTO.setType(NotificationType.PROPIEDADNUEVA);
         notificationDTO.setDate(LocalDateTime.now());
 
         doThrow(new RuntimeException("Feign client error")).when(feignUserRepository).createProperty(notificationDTO, 1L);
@@ -50,5 +61,21 @@ public class NotificationRepositoryTest {
         assertThrows(RuntimeException.class, () -> notificationRepository.createNotification(notificationDTO, 1L));
 
         verify(feignUserRepository, times(1)).createProperty(notificationDTO, 1L);
+    }
+
+    @Test
+    void createPropertyInterest_handlesFeignClientException() {
+        String userId = "user123";
+        NotificationType type = NotificationType.PROPIEDADINTERES;
+        Long propertyId = 20L;
+
+        doThrow(new RuntimeException("Feign client failed"))
+                .when(feignUserRepository).createPropertyInterest(userId, type, propertyId);
+
+        assertThrows(RuntimeException.class, () -> {
+            notificationRepository.createPropertyInterest(userId, type, propertyId);
+        });
+
+        verify(feignUserRepository, times(1)).createPropertyInterest(userId, type, propertyId);
     }
 }

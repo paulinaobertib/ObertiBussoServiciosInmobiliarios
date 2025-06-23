@@ -19,6 +19,7 @@ import pi.ms_properties.domain.*;
 import pi.ms_properties.domain.Currency;
 import pi.ms_properties.dto.*;
 import pi.ms_properties.dto.feign.NotificationDTO;
+import pi.ms_properties.recommendation.service.RecommendationService;
 import pi.ms_properties.repository.*;
 import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.impl.AzureBlobStorage;
@@ -69,6 +70,9 @@ public class PropertyServiceTest {
 
     @Mock
     private ViewService viewService;
+
+    @Mock
+    private RecommendationService recommendationService;
 
     @InjectMocks
     private PropertyService propertyService;

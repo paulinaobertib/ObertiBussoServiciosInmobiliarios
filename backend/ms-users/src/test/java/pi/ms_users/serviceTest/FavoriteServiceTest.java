@@ -22,6 +22,7 @@ import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.FavoriteService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -107,6 +108,35 @@ class FavoriteServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(favorites, response.getBody());
+    }
+
+    @Test
+    void findAllUsers_success_shouldReturnUserList() {
+        List<String> mockUsers = List.of("user1", "user2", "user3");
+
+        when(favoriteRepository.findAllUsers()).thenReturn(mockUsers);
+
+        List<String> result = favoriteService.findAllUsers();
+
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertEquals("user1", result.get(0));
+        assertEquals("user2", result.get(1));
+        assertEquals("user3", result.get(2));
+
+        verify(favoriteRepository, times(1)).findAllUsers();
+    }
+
+    @Test
+    void findAllUsers_noUsers_shouldReturnEmptyList() {
+        when(favoriteRepository.findAllUsers()).thenReturn(Collections.emptyList());
+
+        List<String> result = favoriteService.findAllUsers();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(favoriteRepository).findAllUsers();
     }
 
     // casos de error
@@ -204,6 +234,18 @@ class FavoriteServiceTest {
 
             assertThrows(AccessDeniedException.class, () -> favoriteService.findByUserId("user123"));
         }
+    }
+
+    @Test
+    void findAllUsers_repositoryThrowsException_shouldPropagateException() {
+        when(favoriteRepository.findAllUsers()).thenThrow(new RuntimeException("Error al acceder a la base de datos"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            favoriteService.findAllUsers();
+        });
+
+        assertEquals("Error al acceder a la base de datos", exception.getMessage());
+        verify(favoriteRepository).findAllUsers();
     }
 }
 

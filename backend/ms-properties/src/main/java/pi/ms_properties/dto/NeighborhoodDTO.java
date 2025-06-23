@@ -1,5 +1,6 @@
 package pi.ms_properties.dto;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,4 +13,6 @@ public class NeighborhoodDTO {
     private String name;
     private String type;
     private String city;
+    private Double latitude;
+    private Double longitude;
 }

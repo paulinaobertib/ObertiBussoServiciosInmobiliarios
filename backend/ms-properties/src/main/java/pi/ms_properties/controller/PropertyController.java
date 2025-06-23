@@ -47,8 +47,7 @@ public class PropertyController {
     public ResponseEntity<String> updatePropertyStatus(@PathVariable Long id, @RequestParam Status status) {
         return propertyService.updateStatus(id, status);
     }
-
-    @PreAuthorize("hasRole('admin')")
+    
     @GetMapping("/getAll")
     public ResponseEntity<List<PropertyDTO>> getAll() {
         return propertyService.getAll();

@@ -52,7 +52,9 @@ class NeighborhoodControllerTest {
                 1L,
                 "Altos del Sur",
                 "CERRADO",
-                "Córdoba"
+                "Córdoba",
+                -45.89,
+                78.98
         );
     }
 

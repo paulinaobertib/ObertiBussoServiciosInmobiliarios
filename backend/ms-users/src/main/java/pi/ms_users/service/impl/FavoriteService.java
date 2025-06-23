@@ -74,4 +74,9 @@ public class FavoriteService implements IFavoriteService {
         List<Favorite> favorites = favoriteRepository.findByPropertyId(propertyId);
         return ResponseEntity.ok(favorites);
     }
+
+    @Override
+    public List<String> findAllUsers() {
+        return favoriteRepository.findAllUsers();
+    }
 }

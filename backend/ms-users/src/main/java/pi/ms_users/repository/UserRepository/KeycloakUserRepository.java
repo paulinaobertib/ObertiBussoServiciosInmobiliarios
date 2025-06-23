@@ -60,14 +60,14 @@ public class KeycloakUserRepository implements IUserRepository {
     }
 
     @Override
-    public Response createUser(String name, String lastName, String email, String phone) {
+    public Response createUser(String firstName, String lastName, String email, String phone) {
         UserRepresentation user = new UserRepresentation();
-        String baseUsername = (name + lastName).toLowerCase().replaceAll("\\s+", "");
+        String baseUsername = (firstName + lastName).toLowerCase().replaceAll("\\s+", "");
         String username = generateUniqueUsername(baseUsername);
         user.setUsername(username);
         user.setEmail(email);
         user.setEmailVerified(true);
-        user.setFirstName(name);
+        user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEnabled(true);
 
@@ -130,7 +130,7 @@ public class KeycloakUserRepository implements IUserRepository {
                     EmailNewUserDTO emailData = new EmailNewUserDTO();
                     emailData.setTo(user.getEmail());
                     emailData.setTitle("¡Bienvenido a Oberti Busso Servicios Inmobiliarios!");
-                    emailData.setName(user.getFirstName());
+                    emailData.setFirstName(user.getFirstName());
                     emailData.setUserName(username);
                     emailData.setPassword(generatedPassword);
                     emailService.sendNewUserCredentialsEmail(emailData);
@@ -195,7 +195,7 @@ public class KeycloakUserRepository implements IUserRepository {
         UsersResource usersResource = keycloak.realm(realm).users();
         UserRepresentation userRepresentation = usersResource.get(user.getId()).toRepresentation();
 
-        userRepresentation.setEmail(user.getMail());
+        userRepresentation.setEmail(user.getEmail());
         userRepresentation.setFirstName(user.getFirstName());
         userRepresentation.setLastName(user.getLastName());
 
@@ -208,7 +208,7 @@ public class KeycloakUserRepository implements IUserRepository {
 
         usersResource.get(user.getId()).update(userRepresentation);
 
-        user.setMail(userRepresentation.getEmail());
+        user.setEmail(userRepresentation.getEmail());
         return user;
     }
 
@@ -216,8 +216,6 @@ public class KeycloakUserRepository implements IUserRepository {
     public List<String> getUserRoles(String userId) {
         RealmResource realmResource = keycloak.realm(realm);
         UsersResource usersResource = realmResource.users();
-
-        // List<RoleRepresentation> realmRoles = usersResource.get(userId).roles().realmLevel().listAll();
 
         ClientRepresentation client = realmResource.clients()
                 .findByClientId(clientId)
@@ -231,11 +229,7 @@ public class KeycloakUserRepository implements IUserRepository {
                 .clientLevel(client.getId())
                 .listAll();
 
-        List<String> allRoles = new ArrayList<>();
-        // allRoles.addAll(realmRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
-        allRoles.addAll(clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
-
-        return allRoles;
+        return new ArrayList<>(clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
     }
 
     @Override
