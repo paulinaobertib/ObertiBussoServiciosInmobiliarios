@@ -42,7 +42,8 @@ public class WebSecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/inquiries/createWithoutUser",
-                                "/survey/create")
+                                "/survey/create",
+                                "/compare/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
