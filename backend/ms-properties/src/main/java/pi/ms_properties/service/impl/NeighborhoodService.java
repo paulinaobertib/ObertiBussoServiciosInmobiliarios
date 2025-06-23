@@ -34,6 +34,8 @@ public class NeighborhoodService implements INeighborhoodService {
         neighborhood.setName(neighborhoodDTO.getName());
         neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
         neighborhood.setCity(neighborhoodDTO.getCity());
+        neighborhood.setLatitude(neighborhoodDTO.getLatitude());
+        neighborhood.setLongitude(neighborhoodDTO.getLongitude());
 
         try {
             neighborhoodRepository.save(neighborhood);
@@ -61,6 +63,8 @@ public class NeighborhoodService implements INeighborhoodService {
         neighborhood.setName(neighborhoodDTO.getName());
         neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
         neighborhood.setCity(neighborhoodDTO.getCity());
+        neighborhood.setLatitude(neighborhoodDTO.getLatitude());
+        neighborhood.setLongitude(neighborhood.getLongitude());
 
         Neighborhood update = neighborhoodRepository.save(neighborhood);
         NeighborhoodDTO updateDTO = mapper.convertValue(update, NeighborhoodDTO.class);
@@ -81,7 +85,9 @@ public class NeighborhoodService implements INeighborhoodService {
                         neighborhood.getId(),
                         neighborhood.getName(),
                         String.valueOf(neighborhood.getType()),
-                        neighborhood.getCity()))
+                        neighborhood.getCity(),
+                        neighborhood.getLatitude(),
+                        neighborhood.getLongitude()))
                 .toList();
 
         return ResponseEntity.ok(neighborhoodDTOS);

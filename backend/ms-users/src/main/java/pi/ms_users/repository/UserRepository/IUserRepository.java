@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IUserRepository {
-    Response createUser(String name, String lastName, String email, String phone);
+    Response createUser(String fisrtName, String lastName, String email, String phone);
     Optional<User> findById(String id);
     List<User> findByRoleTenant();
     List<User> findAll();
