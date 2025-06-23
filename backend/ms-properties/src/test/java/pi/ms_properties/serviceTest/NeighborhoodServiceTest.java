@@ -38,8 +38,8 @@ class NeighborhoodServiceTest {
 
     @Test
     void createNeighborhood_success() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Barrio Norte", "CERRADO", "CABA");
-        Neighborhood entity = new Neighborhood(1L, "Barrio Norte", NeighborhoodType.CERRADO, "CABA");
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Barrio Norte", "CERRADO", "CABA", -89.9, 87.90);
+        Neighborhood entity = new Neighborhood(1L, "Barrio Norte", NeighborhoodType.CERRADO, "CABA", -89.9, 87.90);
 
         ResponseEntity<String> response = service.createNeighborhood(dto);
 
@@ -50,7 +50,7 @@ class NeighborhoodServiceTest {
 
     @Test
     void deleteNeighborhood_success() {
-        Neighborhood neighborhood = new Neighborhood(1L, "Sur", NeighborhoodType.ABIERTO, "Córdoba");
+        Neighborhood neighborhood = new Neighborhood(1L, "Sur", NeighborhoodType.ABIERTO, "Córdoba", -89.9, 87.90);
 
         when(repository.findById(1L)).thenReturn(Optional.of(neighborhood));
 
@@ -63,14 +63,14 @@ class NeighborhoodServiceTest {
 
     @Test
     void updateNeighborhood_success() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Palermo", "ABIERTO", "CABA");
-        Neighborhood old = new Neighborhood(1L, "Viejo", NeighborhoodType.CERRADO, "La Plata");
-        Neighborhood updated = new Neighborhood(1L, "Palermo", NeighborhoodType.ABIERTO, "CABA");
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Palermo", "ABIERTO", "CABA", -89.9, 87.90);
+        Neighborhood old = new Neighborhood(1L, "Viejo", NeighborhoodType.CERRADO, "La Plata",-89.9, 87.90);
+        Neighborhood updated = new Neighborhood(1L, "Palermo", NeighborhoodType.ABIERTO, "CABA", -89.9, 87.90);
 
         when(repository.findById(1L)).thenReturn(Optional.of(old));
         when(repository.save(any())).thenReturn(updated);
         when(mapper.convertValue(any(), eq(NeighborhoodDTO.class)))
-                .thenReturn(new NeighborhoodDTO(1L, "Palermo", "ABIERTO", "CABA"));
+                .thenReturn(new NeighborhoodDTO(1L, "Palermo", "ABIERTO", "CABA", -89.9, 87.90));
 
         ResponseEntity<NeighborhoodDTO> response = service.updateNeighborhood(1L, dto);
 
@@ -81,7 +81,7 @@ class NeighborhoodServiceTest {
     @Test
     void getAll_success() {
         List<Neighborhood> entities = List.of(
-                new Neighborhood(1L, "Centro", NeighborhoodType.CERRADO, "Rosario")
+                new Neighborhood(1L, "Centro", NeighborhoodType.CERRADO, "Rosario", -89.9, 87.90)
         );
         when(repository.findAll()).thenReturn(entities);
 
@@ -94,8 +94,8 @@ class NeighborhoodServiceTest {
 
     @Test
     void getById_success() {
-        Neighborhood entity = new Neighborhood(1L, "Sur", NeighborhoodType.SEMICERRADO, "Mendoza");
-        NeighborhoodDTO dto = new NeighborhoodDTO(1L, "Sur", "SEMICERRADO", "Mendoza");
+        Neighborhood entity = new Neighborhood(1L, "Sur", NeighborhoodType.SEMICERRADO, "Mendoza",-89.9, 87.90);
+        NeighborhoodDTO dto = new NeighborhoodDTO(1L, "Sur", "SEMICERRADO", "Mendoza", -89.9, 87.90);
 
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
         when(mapper.convertValue(entity, NeighborhoodDTO.class)).thenReturn(dto);
@@ -119,7 +119,7 @@ class NeighborhoodServiceTest {
 
     @Test
     void createNeighborhood_duplicateName() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Norte", "CERRADO", "CABA");
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Norte", "CERRADO", "CABA", -89.9, 87.90);
 
         doThrow(IllegalArgumentException.class).when(repository).save(any());
 
@@ -184,7 +184,7 @@ class NeighborhoodServiceTest {
 
     @Test
     void updateNeighborhood_notFound() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Nuevo", "CERRADO", "CABA");
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Nuevo", "CERRADO", "CABA", -89.9, 87.90);
 
         when(repository.findById(99L)).thenReturn(Optional.empty());
 

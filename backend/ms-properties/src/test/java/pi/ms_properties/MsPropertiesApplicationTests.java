@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class MsPropertiesApplicationTests {
 
 	@Test
