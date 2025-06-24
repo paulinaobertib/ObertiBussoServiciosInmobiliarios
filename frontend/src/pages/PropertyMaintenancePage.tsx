@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
     Box, Typography, IconButton, Stack, Tooltip, Button,
     CircularProgress,
+    useTheme,
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -10,16 +11,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { BasePage } from './BasePage';
-import ModalItem from '../app/property/components/ModalItem';
+import ModalItem, { Info } from '../app/property/components/ModalItem';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 
 export default function PropertyMaintenancePage() {
     const { id: idParam } = useParams();
+    const theme = useTheme();
     const propertyId = Number(idParam ?? 0);
     const navigate = useNavigate();
 
     const {
-        maintenancesList, maintenancesLoading,
+        maintenancesList, loading,
         pickedItem, pickItem, refreshMaintenances,
     } = usePropertyCrud();
 
@@ -27,7 +29,7 @@ export default function PropertyMaintenancePage() {
         navigate('/panel');
     };
 
-    const [modal, setModal] = useState<{ action: 'add' | 'edit' | 'delete'; formKey?: string; item?: any } | null>(null);
+    const [modal, setModal] = useState<Info | null>(null);
 
     useEffect(() => {
         if (!propertyId) {
@@ -64,13 +66,13 @@ export default function PropertyMaintenancePage() {
                     alignItems: 'center',
                     flexShrink: 0,
                 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#EF6C00' }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                         Mantenimientos
                     </Typography>
                     <Button
                         startIcon={<AddIcon />}
                         variant="contained"
-                        sx={{ bgcolor: '#EF6C00', ':hover': { bgcolor: '#e65100' } }}
+                        sx={{ bgcolor: theme.palette.secondary.main, ':hover': { bgcolor: theme.palette.primary.main } }}
                         onClick={() => setModal({ action: 'add', formKey: 'maintenance' })}
                     >
                         Agregar
@@ -83,7 +85,7 @@ export default function PropertyMaintenancePage() {
                     flexGrow: 1,
                     overflowY: 'auto',
                 }}>
-                    {maintenancesLoading ? (
+                    {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                             <CircularProgress />
                         </Box>
@@ -100,7 +102,7 @@ export default function PropertyMaintenancePage() {
                                         border: '1px solid #ddd',
                                         borderRadius: 2,
                                         p: 2,
-                                        bgcolor: '#fff',
+                                        bgcolor: 'white',
                                         boxShadow: 1,
                                         position: 'relative',
                                     }}
@@ -108,12 +110,12 @@ export default function PropertyMaintenancePage() {
                                     <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
                                         <Tooltip title="Editar">
                                             <IconButton size="small" onClick={() => setModal({ action: 'edit', formKey: 'maintenance', item: m })}>
-                                                <EditIcon fontSize="small" sx={{ color: '#EF6C00' }} />
+                                                <EditIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Eliminar">
                                             <IconButton size="small" onClick={() => setModal({ action: 'delete', formKey: 'maintenance', item: m })}>
-                                                <DeleteIcon fontSize="small" sx={{ color: '#EF6C00' }} />
+                                                <DeleteIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
                                             </IconButton>
                                         </Tooltip>
                                     </Box>
@@ -134,6 +136,8 @@ export default function PropertyMaintenancePage() {
                 <ModalItem
                     info={modal}
                     close={async () => { setModal(null); await refreshMaintenances(); }}
+
+
                 />
             </Box>
         </BasePage>

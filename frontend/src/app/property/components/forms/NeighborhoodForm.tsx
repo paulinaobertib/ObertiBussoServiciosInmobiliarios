@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function NeighborhoodForm({ action, item, onDone }: Props) {
-    const { refresh } = usePropertyCrud();
+    const { refreshNeighborhoods } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Neighborhood>({
@@ -35,21 +35,22 @@ export default function NeighborhoodForm({ action, item, onDone }: Props) {
         try {
             if (action === 'add') {
                 await postNeighborhood({ ...form } as NeighborhoodCreate);
-                showAlert('¡Barrio creado con éxito!', 'success');
+                showAlert('Barrio creado con éxito!', 'success');
             }
             if (action === 'edit' && item) {
                 await putNeighborhood(form);
-                showAlert('¡Barrio editado con éxito!', 'success');
+                showAlert('Barrio editado con éxito!', 'success');
             }
             if (action === 'delete' && item) {
                 await deleteNeighborhood(item);
-                showAlert('¡Barrio eliminado con éxito!', 'success');
+                showAlert('Barrio eliminado con éxito!', 'success');
             }
 
-            await refresh();
+            await refreshNeighborhoods();
             onDone();
-        } catch {
-            showAlert('Error al trabajar con el barrio', 'error');
+        } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
         }
     };
 

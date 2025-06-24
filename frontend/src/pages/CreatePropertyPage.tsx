@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
   Box, Button, Container, Stack,
-  Step, StepLabel, Stepper, Typography
+  Step, StepLabel, Stepper, Typography,
+  useTheme
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
@@ -21,16 +22,13 @@ import { BasePage } from './BasePage';
 
 export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
-  const {
-    formRef, gallery, setGallery, setMain, main,
-    deleteImgFile, handleImages, /*loading, setLoading*/
-  } = useCreateProperty();
-  const { selected, typesList, resetSelected, pickItem } = usePropertyCrud();
+  const { formRef, gallery, setGallery, setMain, main, deleteImgFile, handleImages } = useCreateProperty();
+  const { selected, typesList, resetSelected, pickItem, refreshTypes } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
-
   const [activeStep, setActiveStep] = useState(0);
   const [formReady, setFormReady] = useState(false);
+  const theme = useTheme()
   const navigate = useNavigate();
 
   /* limpiar estado al entrar -------------------------------------- */
@@ -40,6 +38,10 @@ export default function CreatePropertyPage() {
     setMain(null);
     setGallery([]);
   }, []);
+
+  useEffect(() => {
+    refreshTypes();
+  }, [refreshTypes]);
 
   /* categorías necesarias para continuar -------------------------- */
   const categories = ['type', 'neighborhood', 'owner', 'amenity'] as const;
@@ -58,7 +60,7 @@ export default function CreatePropertyPage() {
             await postProperty(data);
             // setLoading(false);
           }
-          showAlert('¡Propiedad creada correctamente!', 'success');
+          showAlert('Propiedad creada correctamente!', 'success');
           formRef.current?.reset();
           resetSelected();
           setMain(null);
@@ -67,11 +69,12 @@ export default function CreatePropertyPage() {
           /* redirige al catálogo */
           navigate(ROUTES.HOME_APP);
 
-        } catch {
-          showAlert('Error al guardar la propiedad', 'error');
+        } catch (error: any) {
+          const message = error.response?.data ?? 'Error desconocido';
+          showAlert(message, 'error');
         }
       } else {
-        showAlert('Formulario inválido', 'error');
+        showAlert('Formulario inválido, faltan datos', 'error');
       }
     });
 
@@ -134,7 +137,7 @@ export default function CreatePropertyPage() {
           {activeStep === 0 && (
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               {/* título */}
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
                 Gestión de Categorías
               </Typography>
 
@@ -180,7 +183,7 @@ export default function CreatePropertyPage() {
 
           {/* ------- STEP 1 : formulario + preview ------- */}
           {activeStep === 1 && (
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2, minHeight: 0 }}>
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0 }}>
 
               <Box sx={{
                 flexGrow: 1, display: 'flex', flexDirection: { xs: 'column', md: 'row' },
@@ -190,10 +193,10 @@ export default function CreatePropertyPage() {
                 <Box sx={{
                   flex: 2, display: 'flex', flexDirection: 'column',
                   p: 2, boxShadow: 5, borderRadius: 4, bgcolor: 'background.paper',
-                  overflowY: { xs: 'visible', md: 'auto' },     // scroll interno SOLO en md+
-                  maxHeight: { md: '100vh' },                   // altura máxima en md+
+                  overflowY: { xs: 'visible', md: 'auto' },
+                  maxHeight: { md: '100vh' },
                 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
                     {title}
                   </Typography>
 
@@ -231,7 +234,6 @@ export default function CreatePropertyPage() {
               {/* Verificar si selected.type tiene el valor correcto en el segundo paso */}
               <Box sx={{ mt: 1, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
                 <Button variant="contained" onClick={() => {
-                  console.log("Tipo seleccionado en el paso 2:", selected.type); // Agrega este log
                   setActiveStep(0);  // Si se desea volver al primer paso
                 }}>
                   Volver

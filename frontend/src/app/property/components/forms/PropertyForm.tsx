@@ -147,7 +147,87 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     />
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 3 }}>
+                <Grid size={{ xs: 6 }}>
+                    <TextField
+                        fullWidth select label="Operación" value={form.operation}
+                        error={!!fieldErrors.operation}
+                        size='small'
+                        onChange={(e) => setField('operation', e.target.value)} required
+                    >
+                        <MenuItem value="VENTA">Venta</MenuItem>
+                        <MenuItem value="ALQUILER">Alquiler</MenuItem>
+                    </TextField>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                    <TextField fullWidth select label="Estado" value={form.status}
+                        error={!!fieldErrors.status}
+                        size='small'
+                        onChange={(e) => setField('status', e.target.value)} required
+                    >
+                        <MenuItem value="DISPONIBLE">Disponible</MenuItem>
+                        <MenuItem value="VENDIDA">Vendida</MenuItem>
+                        <MenuItem value="ALQUILADA">Alquilada</MenuItem>
+                        <MenuItem value="RESERVADA">Reservada</MenuItem>
+                    </TextField>
+                </Grid>
+
+
+                {form.operation === 'VENTA' && (
+                    <>
+                        <Grid size={{ xs: 6 }}>
+                            <FormControlLabel
+                                sx={{
+                                    width: 'auto', m: 0, py: 0,
+                                    display: 'flex',
+                                    alignItems: 'left',
+                                    px: 1,
+                                    border: '1px solid #ccc',
+                                    borderRadius: 1,
+                                    '&:hover': { borderColor: '#444' },
+                                    '& .MuiFormControlLabel-label': {
+                                        color: 'text.secondary',
+                                    },
+                                }}
+                                control={
+                                    <Checkbox
+                                        checked={form.credit}
+                                        onChange={(e) => setField('credit', e.target.checked)}
+                                        size="small"
+                                    />
+                                }
+                                label="Apto Crédito"
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 6 }}>
+                            <FormControlLabel
+                                sx={{
+                                    width: 'auto', m: 0, py: 0,
+                                    display: 'flex',
+                                    alignItems: 'left',
+                                    px: 1,
+                                    border: '1px solid #ccc',
+                                    borderRadius: 1,
+                                    '&:hover': { borderColor: '#444' },
+                                    '& .MuiFormControlLabel-label': {
+                                        color: 'text.secondary',
+                                    },
+                                }}
+                                control={
+                                    <Checkbox
+                                        checked={form.financing}
+                                        onChange={(e) => setField('financing', e.target.checked)}
+                                        size="small"
+                                    />
+                                }
+                                label="Apto Financiamiento"
+                            />
+                        </Grid>
+                    </>
+                )}
+
+                <Grid size={{ xs: 6, md: 6 }}>
                     <TextField fullWidth select label="Moneda" value={form.currency}
                         onChange={(e) => setField('currency', e.target.value)} required
                         error={!!fieldErrors.currency}
@@ -167,7 +247,27 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     />
                 </Grid>
 
-                <Grid size={{ xs: 6, md: 3 }}>
+                <Grid size={{ xs: 6, md: 6 }}>
+                    <TextField
+                        required
+                        fullWidth
+                        label="Expensas"
+                        value="Peso Argentino"
+                        size="small"
+                        disabled
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 6, md: 6 }}>
+                    <TextField fullWidth label="Expensas" value={form.expenses === 0 ? "" : form.expenses}
+                        onChange={num('expenses')} required
+                        error={!!fieldErrors.expenses}
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                        size='small'
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 12 }}>
                     <FormControlLabel
                         sx={{
                             width: 'auto', m: 0, py: 0,
@@ -178,7 +278,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                             borderRadius: 1,
                             '&:hover': { borderColor: '#444' },
                             '& .MuiFormControlLabel-label': {
-                                fontSize: '0.9rem',
                                 color: 'text.secondary',
                             },
                         }}
@@ -189,7 +288,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                                 size="small"
                             />
                         }
-                        label="Mostrar precio"
+                        label={`Mostrar precio de ${form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas`}
 
                     />
                 </Grid>
@@ -289,87 +388,6 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                             onChange={num('coveredArea')} required
                         />
                     </Grid>
-                )}
-
-                <Grid size={{ xs: 6 }}>
-                    <TextField fullWidth select label="Estado" value={form.status}
-                        error={!!fieldErrors.status}
-                        size='small'
-                        onChange={(e) => setField('status', e.target.value)} required
-                    >
-                        <MenuItem value="DISPONIBLE">Disponible</MenuItem>
-                        <MenuItem value="VENDIDA">Vendida</MenuItem>
-                        <MenuItem value="ALQUILADA">Alquilada</MenuItem>
-                        <MenuItem value="RESERVADA">Reservada</MenuItem>
-                    </TextField>
-                </Grid>
-
-                <Grid size={{ xs: 6 }}>
-                    <TextField
-                        fullWidth select label="Operación" value={form.operation}
-                        error={!!fieldErrors.operation}
-                        size='small'
-                        onChange={(e) => setField('operation', e.target.value)} required
-                    >
-                        <MenuItem value="VENTA">Venta</MenuItem>
-                        <MenuItem value="ALQUILER">Alquiler</MenuItem>
-                    </TextField>
-                </Grid>
-
-                {form.operation === 'VENTA' && (
-                    <>
-                        <Grid size={{ xs: 6 }}>
-                            <FormControlLabel
-                                sx={{
-                                    width: 'auto', m: 0, py: 0,
-                                    display: 'flex',
-                                    alignItems: 'left',
-                                    px: 1,
-                                    border: '1px solid #ccc',
-                                    borderRadius: 1,
-                                    '&:hover': { borderColor: '#444' },
-                                    '& .MuiFormControlLabel-label': {
-                                        fontSize: '0.85rem',
-                                        color: 'text.secondary',
-                                    },
-                                }}
-                                control={
-                                    <Checkbox
-                                        checked={form.credit}
-                                        onChange={(e) => setField('credit', e.target.checked)}
-                                        size="small"
-                                    />
-                                }
-                                label="Apto Crédito"
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 6 }}>
-                            <FormControlLabel
-                                sx={{
-                                    width: 'auto', m: 0, py: 0,
-                                    display: 'flex',
-                                    alignItems: 'left',
-                                    px: 1,
-                                    border: '1px solid #ccc',
-                                    borderRadius: 1,
-                                    '&:hover': { borderColor: '#444' },
-                                    '& .MuiFormControlLabel-label': {
-                                        fontSize: '0.85rem',
-                                        color: 'text.secondary',
-                                    },
-                                }}
-                                control={
-                                    <Checkbox
-                                        checked={form.financing}
-                                        onChange={(e) => setField('financing', e.target.checked)}
-                                        size="small"
-                                    />
-                                }
-                                label="Apto Financiamiento"
-                            />
-                        </Grid>
-                    </>
                 )}
 
                 <Grid size={{ xs: 6 }}>

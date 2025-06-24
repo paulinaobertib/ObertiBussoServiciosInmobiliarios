@@ -9,18 +9,16 @@ import {
   MenuItem,
   Button,
   useTheme,
+  Tooltip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
-import { usePropertyCrud } from '../context/PropertiesContext'; 
-
-const pages = [
-  { label: 'CONTACTO', route: `/contact`},
-  { label: 'NOTICIAS',  route: `/news`   },
-];
+import { usePropertyCrud } from '../context/PropertiesContext';
+import { useAuthContext } from '../../user/context/AuthContext';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -28,16 +26,17 @@ export const NAVBAR_HEIGHT_XS = 48;
 export default function NavBar() {
   const { palette } = useTheme();
   const navigate = useNavigate();
+  const { clearComparison } = usePropertyCrud();
+  const { login, logout, isLogged, isAdmin } = useAuthContext();
+
+  // Navegar a admin o perfil
+  const goToProfile = () => {
+    navigate(isAdmin ? ROUTES.ADMIN_PANEL : ROUTES.USER_PROFILE);
+  };
+
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const { clearComparison } = usePropertyCrud(); 
-
-  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(e.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
+  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
+  const handleCloseNavMenu = () => setAnchorElNav(null);
 
   return (
     <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT } }}>
@@ -46,8 +45,7 @@ export default function NavBar() {
           disableGutters
           sx={{
             width: '90%',
-            justifyContent: { xs: 'flex-start', sm: 'space-between' },
-            paddingLeft: { xs: 0, sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'space-between' },
             height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
             minHeight: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
           }}
@@ -64,19 +62,26 @@ export default function NavBar() {
               cursor: 'pointer',
             }}
             onClick={() => {
-                clearComparison();
-                navigate(ROUTES.HOME_APP);}
-                }
-          />
+              clearComparison();
+              navigate(ROUTES.HOME_APP);
+            }}
+          />
 
-          {/* Menu mobile y logo */}
-          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center' }}>
+          {/* Móvil: menú + logo centrado */}
+          <Box
+            sx={{
+              display: { xs: 'flex', sm: 'none' },
+              alignItems: 'center',
+              position: 'relative',
+              width: '100%',
+            }}
+          >
             <IconButton
               size="large"
               onClick={handleOpenNavMenu}
               color="inherit"
               aria-label="open menu"
-              sx={{ mr: 1 }}
+              sx={{ position: 'absolute', left: 0 }}
             >
               <MenuIcon />
             </IconButton>
@@ -85,12 +90,17 @@ export default function NavBar() {
               component="img"
               src={logo}
               alt="Logo"
-              sx={{ height: 40, objectFit: 'contain', cursor: 'pointer' }}
+              sx={{
+                height: 40,
+                objectFit: 'contain',
+                cursor: 'pointer',
+                margin: '0 auto',
+              }}
               onClick={() => {
                 clearComparison();
-                navigate(ROUTES.HOME_APP);}
-                }
-            />
+                navigate(ROUTES.HOME_APP);
+              }}
+            />
 
             <Menu
               anchorEl={anchorElNav}
@@ -98,54 +108,108 @@ export default function NavBar() {
               onClose={handleCloseNavMenu}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-              sx={{ display: { xs: 'block', sm: 'none' } }}
             >
-              {pages.map(({ label, route }) => (
+              <MenuItem
+                onClick={() => {
+                  handleCloseNavMenu();
+                  navigate(ROUTES.CONTACT);
+                }}
+              >
+                CONTACTO
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleCloseNavMenu();
+                  navigate(ROUTES.NEWS);
+                }}
+              >
+                NOTICIAS
+              </MenuItem>
+
+              {isLogged && (
                 <MenuItem
-                  key={label}
                   onClick={() => {
                     handleCloseNavMenu();
-                    navigate(route);
+                    goToProfile();
                   }}
                 >
-                  {label}
+                  {isAdmin ? 'PANEL' : 'PERFIL'}
                 </MenuItem>
-              ))}
-            </Menu>
+              )}
+
+              {isLogged && (
+                <MenuItem
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    navigate(ROUTES.FAVORITES);
+                  }}
+                >
+                  MIS FAVORITOS
+                </MenuItem>
+              )}
+              <MenuItem
+                onClick={() => {
+                  handleCloseNavMenu();
+                  isLogged ? logout() : login();
+                }}
+              >
+                {isLogged ? 'SALIR' : 'INICIAR SESIÓN'}
+              </MenuItem>
+            </Menu>
           </Box>
 
           {/* Desktop links */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4, }}>
-            {pages.map(({ label, route }) => (
-              <Button
-                key={label}
-                onClick={() => {
-                  handleCloseNavMenu();
-                  navigate(route);
-                }}
-                sx={{
-                  color: palette.common.white,
-                  textTransform: 'none',
-                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
-                }}
-              >
-                {label}
-              </Button>
-            ))}
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
+            <Button
+              onClick={() => navigate(ROUTES.CONTACT)}
+              sx={{
+                color: palette.common.white,
+                textTransform: 'none',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+              }}
+            >
+              CONTACTO
+            </Button>
+            <Button
+              onClick={() => navigate(ROUTES.NEWS)}
+              sx={{
+                color: palette.common.white,
+                textTransform: 'none',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+              }}
+            >
+              NOTICIAS
+            </Button>
           </Box>
 
-          {/* Profile & logout */}
-          <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
-            <IconButton
-              color="inherit"
-              aria-label="profile"
-              onClick={() => navigate(ROUTES.ADMIN_PANEL)}
-            >
-              <AccountCircleIcon sx={{ fontSize: 28 }} />
-            </IconButton>
-            <IconButton color="inherit" aria-label="logout">
-              <LogoutIcon sx={{ fontSize: 28 }} />
-            </IconButton>
+          {/* Desktop acciones con Tooltip */}
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, ml: 'auto' }}>
+            {!isLogged && (
+              <>
+                <Button color="inherit" onClick={login} sx={{ textTransform: 'none' }}>
+                  INICIAR SESIÓN
+                </Button>
+              </>
+            )}
+            {isLogged && (
+              <>
+                <Tooltip title="Mis Favoritos">
+                  <IconButton color="inherit" aria-label="favorites" onClick={() => navigate(ROUTES.FAVORITES)} >
+                    <FavoriteIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={isAdmin ? 'Panel de Administrador' : 'Perfil'}>
+                  <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
+                    <AccountCircleIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Salir">
+                  <IconButton color="inherit" aria-label="logout" onClick={logout}>
+                    <LogoutIcon />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
           </Box>
         </Toolbar>
       </Box>

@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function OwnerForm({ action, item, onDone }: Props) {
-    const { refresh } = usePropertyCrud();
+    const { refreshOwners } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Owner>({
@@ -47,10 +47,11 @@ export default function OwnerForm({ action, item, onDone }: Props) {
                 showAlert('Propietario eliminado con éxito!', 'success');
             }
 
-            await refresh();
+            await refreshOwners();
             onDone();
-        } catch {
-            showAlert('Error al trabajar con el propietario', 'error');
+        } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
         }
     };
 

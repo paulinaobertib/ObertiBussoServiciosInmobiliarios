@@ -3,97 +3,65 @@ import {
     DialogContent,
     DialogTitle,
     IconButton,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+    useTheme,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
-import AmenityForm from './forms/AmenityForm';
-import OwnerForm from './forms/OwnerForm';
-import TypeForm from './forms/TypeForm';
-import NeighborhoodForm from './forms/NeighborhoodForm';
-import StatusForm from './forms/StatusForm';
-import PropertyForm from './forms/PropertyForm';
-import MaintenanceForm from './forms/MaintenanceForm';
-import CommentForm from './forms/CommentForm';
-import { translate } from '../utils/translate';
+import AmenityForm from "./forms/AmenityForm";
+import OwnerForm from "./forms/OwnerForm";
+import TypeForm from "./forms/TypeForm";
+import NeighborhoodForm from "./forms/NeighborhoodForm";
+import StatusForm from "./forms/StatusForm";
+import PropertyForm from "./forms/PropertyForm";
+import MaintenanceForm from "./forms/MaintenanceForm";
+import CommentForm from "./forms/CommentForm";
+import { translate } from "../utils/translate";
 
-type Action = 'add' | 'edit' | 'delete' | 'edit-status';
+const registry = {
+    amenity: AmenityForm,
+    owner: OwnerForm,
+    type: TypeForm,
+    neighborhood: NeighborhoodForm,
+    status: StatusForm,
+    property: PropertyForm,
+    maintenance: MaintenanceForm,
+    comment: CommentForm,
+} as const;
+type FormKey = keyof typeof registry;
 
-interface Info {
-    action: Action;
-    formKey?: string;
+type RawAction = "add" | "edit" | "delete" | "edit-status";
+type SimpleAction = Exclude<RawAction, "edit-status">;
+
+const labels: Record<SimpleAction, string> = {
+    add: "Crear",
+    edit: "Editar",
+    delete: "Eliminar",
+};
+
+export interface Info {
+    action: RawAction;
+    formKey?: FormKey;
     item?: any;
 }
 
-export function handleClose(reason: string | undefined, close: () => void) {
-  if (reason !== 'backdropClick') {
-    close();
-  }
-}
-
-
-export default function ModalItem({
-    info,
-    close,
-}: {
+export interface ModalItemProps {
     info: Info | null;
     close: () => void;
-}) {
+}
+
+export default function ModalItem({ info, close }: ModalItemProps) {
     if (!info) return null;
 
-    const registry = {
-        amenity: AmenityForm,
-        owner: OwnerForm,
-        type: TypeForm,
-        neighborhood: NeighborhoodForm,
-        property: PropertyForm,
-        maintenance: MaintenanceForm,
-        comment: CommentForm,
-    } as const;
+    const theme = useTheme();
+    const action: SimpleAction =
+        info.action === "edit-status" ? "edit" : info.action;
+    const formKey: FormKey =
+        info.action === "edit-status"
+            ? "status"
+            : (info.formKey ?? "property") as FormKey;
 
-    if (info.action === 'edit-status') {
-        return (
-            <Dialog
-                data-testid="modal"
-                open
-                fullWidth
-                maxWidth="sm"
-                onClose={(_, r) => handleClose(r, close)}
-                PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
-            >
-                <DialogTitle
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '1.25rem',
-                        color: '#EF6C00',
-                        mb: 1,
-                    }}
-                >
-                    Editar estado
-                    <IconButton onClick={close} sx={{ color: '#EF6C00' }} aria-label="cerrar modal">
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
-                <DialogContent dividers>
-                    <StatusForm item={info.item} onDone={close} />
-                </DialogContent>
-            </Dialog>
-        );
-    }
-
-    const formKey = info.formKey ?? 'property';
-    const Form = registry[formKey as keyof typeof registry]
-        ?? PropertyForm;
-
-    const label = translate(formKey);
-    const title =
-      info.action === 'add'
-        ? `Crear ${label}`
-        : info.action === 'edit'
-          ? `Editar ${label}`
-          : `Eliminar ${label}`;
+    const Form = registry[formKey];
+    const title = `${labels[action]} ${translate(formKey)}`;
 
     return (
         <Dialog
@@ -101,28 +69,34 @@ export default function ModalItem({
             open
             fullWidth
             maxWidth="sm"
-            onClose={(_, r) => handleClose(r, close)}
+            onClose={(_, reason) => {
+                if (reason !== "backdropClick") close();
+            }}
             PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
         >
             <DialogTitle
                 sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '1.25rem',
-                    color: '#EF6C00',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontWeight: "bold",
+                    fontSize: "1.25rem",
+                    color: theme.palette.primary.main,
                     mb: 1,
                 }}
             >
                 {title}
-                <IconButton onClick={close} sx={{ color: '#EF6C00' }} aria-label="cerrar modal">
+                <IconButton
+                    onClick={close}
+                    sx={{ color: theme.palette.primary.main}}
+                    aria-label="cerrar modal"
+                >
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
 
             <DialogContent dividers>
-                <Form action={info.action} item={info.item} onDone={close} />
+                <Form action={action} item={info.item} onDone={close} />
             </DialogContent>
         </Dialog>
     );
