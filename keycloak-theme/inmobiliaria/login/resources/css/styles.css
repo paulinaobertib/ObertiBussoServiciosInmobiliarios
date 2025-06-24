@@ -1,131 +1,159 @@
-body {
-  position: relative;
+/* ============================
+   Reset y fuentes (sin cambios)
+   ============================ */
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-family: sans-serif;
-  color: black;
-  z-index: 0;
+  padding: 0;
+}
 
-}body::before {
+/* — Variables para anchos y paddings comunes — */
+:root {
+  --container-min: 260px;
+  --container-max: 500px;
+  --container-width: clamp(var(--container-min), 90vw, var(--container-max));
+  --container-padding: clamp(1rem, 8vw, 2rem);
+}
+
+html, body {
+  height: 100%;
+  min-height: 100vh;
+  font-family: sans-serif;
+  /* background: #FAB360; */
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('../fondo.jpg') no-repeat center center fixed;
-  background-size: cover;
-  opacity: 0.2;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 214, 168, .274), rgba(255, 198, 133, .274)),
+    url('../fondo1.jpg') center/cover no-repeat;
+  filter: blur(7px);
   z-index: -1;
 }
 
+/* =========================================
+   Layout principal: columna única centrada
+   ========================================= */
+.login-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Contenedor de logo + formulario + frases */
 .login-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  justify-content: center; 
+  height: 100vh; 
+  z-index: 1;
+  padding-top: 1rem;
 }
 
-.login-box {
-  background-color: #FAB360;
-  padding: 2rem;
-  border-radius: 8px;
+/* ==========
+   Logo arriba
+   ========== */
+.login-logo {
+  width: clamp(300px, 30vw, 400px);
+  z-index: 2;
+}
+
+.login-logo img {
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.login-box h2 {
-  margin-bottom: 1.5rem;
-  color: black;
-  text-align: center;
+
+/* ===========================
+   Caja del formulario en medio
+   =========================== */
+
+.login-form-box,
+.phrase-box {
+  width: var(--container-width);
+  padding: var(--container-padding);
+  border-radius: .6rem;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,.13);
+  margin: 0 auto;
+  overflow: hidden;
 }
 
-input[type="text"],
-input[type="password"] {
-  background-color: white;
-  border: 1px solid #ccc;
-  color: black;
-  padding: 10px;
-  margin-bottom: 1rem;
-  width: 100%;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-input[type="email"],
-input[type="tel"] {
-  background-color: white;
-  border: 1px solid #ccc;
-  color: black;
-  padding: 10px;
-  margin-bottom: 1rem;
-  width: 100%;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-input[type="submit"] {
-  background-color: #1e1e1e;
-  border: none;
-  color: white;
-  padding: 10px;
-  width: 100%;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 0.5rem;
-}
-
-input[type="submit"]:hover {
-  background-color: #333;
-}
-
-.forgot-password {
-  margin-bottom: 1rem;
-}
-
-.centered {
-  text-align: center;
-}
-
-.forgot-password a {
-  color: #0000ee;
-  font-size: 0.9rem;
-  text-decoration: underline;
-}
-
-.divider {
-  text-align: center;
-  margin: 1rem 0;
-  font-size: 0.9rem;
-}
-
-.google-button {
-  background: white;
-  border: 1px solid #ccc;
-  padding: 10px;
-  width: 100%;
-  border-radius: 4px;
-  cursor: pointer;
+.login-form-box {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  justify-content: flex-start;
+  overflow-y: auto;
 }
 
-.google-button img {
-  height: 20px;
-}
-
-.register {
-  margin-top: 1rem;
+/* Títulos y descripciones dentro de login-form-box */
+.welcome-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: .3rem;
   text-align: center;
-  font-size: 0.9rem;
+  margin-bottom: 1rem;
 }
 
+.welcome-desc {
+  font-size: 0.9rem;
+  color: #000;
+  margin-bottom: clamp(.9rem, 2vw, 1.35rem);
+  text-align: center;
+  font-weight: 400;
+}
+
+/* — Formularios (login/register) — */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  transition: opacity .18s;
+}
+
+/* Filas de inputs */
+.input-row {
+  display: flex;
+  gap: clamp(0.5rem, 2vw, 1rem);
+}
+
+.input-row > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inputs */
+.auth-form input {
+  width: 100%;
+  font-size: 1rem;
+  padding: .6rem;
+  margin-bottom: .6rem;
+  border: 1px solid #fad6ac;
+  border-radius: 7px;
+  background: #fff9f4;
+  color: #2b2b2b;
+  transition: border-color .18s;
+}
+
+.auth-form input:focus {
+  border-color: #ee671e;
+  outline: none;
+  background: #fffbe7;
+}
+
+/* — Toggle password — */
 .password-wrapper {
   position: relative;
 }
-
 .password-wrapper input {
   width: 100%;
   padding-right: 40px;
@@ -141,56 +169,154 @@ input[type="submit"]:hover {
   cursor: pointer;
   padding: 0;
 }
-
 .material-icons {
   font-size: 10px;
   color: gray;
 }
 
-.login-logo {
-  display: block;
-  margin: 0 auto 20px auto;
-  max-width: 300px;
-  height: auto;
+
+
+/* ================
+   Botones & acciones
+   ================ */
+.form-actions {
+  margin-top: 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
 }
 
-.register-box {
-  max-width: 450px;
+.or-text {
+  text-align: center;
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
-.register-box .login-logo {
-  max-width: 300px;
+.btn-primary,
+.google-btn {
+  width: 100%;
+  min-width: 200px;
+  padding: .73rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.1);
+  transition: background-color .3s;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 2.5rem;
 }
 
-.nav-buttons {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    display: flex;
-    gap: 10px;
+.btn-primary {
+  background: #000000;
+  border: none;
+  color: #fff;
 }
 
-.icon-button {
-    background-color: #FAB360;
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    text-decoration: none;
-    color: black;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: background-color 0.3s;
-    cursor: pointer;
+.btn-primary:hover {
+  background: #383838;
+  border: none;
+  color: #fff;
 }
 
-.icon-button:hover {
-    background-color: #EE671E;
+.google-btn {
+  background: #fff;
+  border: 1px solid #ee671e;
+  color: #000;
+  gap: 1rem;
 }
 
-.material-icons {
-    font-size: 20px;
+.google-btn:hover {
+  background: #dedede;
 }
 
+.google-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* ==========
+   Footer toggle
+   ========== */
+.url-footer {
+  text-align: center;
+  margin-top: 1rem;
+  color: #000;
+}
+.url-footer a {
+  color: #ee671e;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color .2s;
+}
+.url-footer a:hover {
+  color: #d87700;
+}
+
+/* — Olvidaste contraseña — */
+.forgot-password {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.forgot-password a {
+  font-size: .9rem;
+  color: #000;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color .2s;
+}
+.forgot-password a:hover {
+  color: #d87700;
+  text-decoration: underline;
+}
+
+/* ================================
+   Frase rotativa abajo del form
+   ================================ */
+.phrase-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(40px, 10vw, 60px);
+  background: rgba(255,255,255, .8);
+  text-align: center;
+  margin-top: clamp(.5rem, 3vw, 1.5rem);
+    margin-bottom: 1rem;
+
+}
+.phrase-box p {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #554333;
+}
+
+/* =================================
+   Móvil (max-width: 900px) — columna
+   ================================= */
+@media (max-width: 600px) {
+  :root {
+    --container-padding: 1.2rem;
+  }
+}
+
+/* ========== Caja de error con mismo estilo que el login/registro ========== */
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #c04828;
+  margin-bottom: .8rem;
+  text-align: center;
+}
+
+.error-message {
+  color: #272727;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
