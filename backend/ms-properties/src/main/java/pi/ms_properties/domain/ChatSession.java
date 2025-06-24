@@ -1,21 +1,19 @@
 package pi.ms_properties.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Entity
-@Table(name = "Inquiry")
-public class Inquiry {
+@Table(name = "chat_session")
+public class ChatSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,20 +36,14 @@ public class Inquiry {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    @Column(name = "title", nullable = false)
-    private String title;
-
-    @Column(name = "description", nullable = false)
-    private String description;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private InquiryStatus status;
-
     @Column(name = "date_close", nullable = true)
     private LocalDateTime dateClose;
 
-    @ManyToMany(mappedBy = "inquiries")
-    @JsonIgnore
-    private List<Property> properties = new ArrayList<>();
+    @Column(name = "derived", nullable = true)
+    private Boolean derived;
+
+    @ManyToOne
+    @JoinColumn(name = "property_id", nullable = false)
+    @JsonBackReference
+    private Property property;
 }

@@ -16,7 +16,7 @@ public class OwnerSpecification {
                     // creamos la condicion like en la consulta
                     builder.like(builder.lower(root.get("firstName")), likePattern),
                     builder.like(builder.lower(root.get("lastName")), likePattern),
-                    builder.like(builder.lower(root.get("mail")), likePattern),
+                    builder.like(builder.lower(root.get("email")), likePattern),
                     builder.like(builder.lower(root.get("phone")), likePattern)
             );
         };
