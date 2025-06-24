@@ -7,9 +7,8 @@ import { useNavigate } from 'react-router-dom';
 const Compare = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { comparisonItems } = usePropertyCrud();
   const navigate = useNavigate();
-  const { clearComparison } = usePropertyCrud();
+  const { clearComparison, comparisonItems } = usePropertyCrud();
 
   const handleBack = () => {
     clearComparison();
@@ -39,14 +38,17 @@ const Compare = () => {
       </BasePage>
     );
   }
+  
+  const { selectedPropertyIds } = usePropertyCrud();
+  console.log('🔍 ComparePage render', { selectedPropertyIds, comparisonItems });
 
   return (
     <BasePage maxWidth={false}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
-          <Button variant="contained" color="primary" onClick={handleBack}>
-            VOLVER
-          </Button>
-        </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+        <Button variant="contained" color="primary" onClick={handleBack}>
+          VOLVER
+        </Button>
+      </Box>
 
       <Container maxWidth="xl">
         <Box

@@ -5,7 +5,10 @@ import { Neighborhood, NeighborhoodCreate } from "../types/neighborhood";
 
 export const getAllNeighborhoods = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/neighborhood/getAll`);
+    const response = await axios.get(
+      `${apiUrl}/properties/neighborhood/getAll`,
+      { withCredentials: true }
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching property types:", error);
@@ -15,7 +18,10 @@ export const getAllNeighborhoods = async () => {
 
 export const getNeighborhoodById = async (id: number) => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/neighborhood/getById/${id}`);
+    const response = await axios.get(
+      `${apiUrl}/properties/neighborhood/getById/${id}`,
+      { withCredentials: true }
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching neighborhood with ID ${id}:`, error);
@@ -29,7 +35,11 @@ export const postNeighborhood = async (
   try {
     const response = await axios.post(
       `${apiUrl}/properties/neighborhood/create`,
-      neighborhoodData
+      neighborhoodData,
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      }
     );
     return response.data;
   } catch (error) {
@@ -44,9 +54,8 @@ export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
       `${apiUrl}/properties/neighborhood/update/${neighborhoodData.id}`,
       neighborhoodData,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       }
     );
     return response.data;
@@ -59,7 +68,8 @@ export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
 export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/properties/neighborhood/delete/${neighborhoodData.id}`
+      `${apiUrl}/properties/neighborhood/delete/${neighborhoodData.id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -67,4 +77,3 @@ export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
     throw error;
   }
 };
-
