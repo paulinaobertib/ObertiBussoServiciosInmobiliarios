@@ -102,7 +102,7 @@ public class PropertyServiceTest {
         owner.setId(1L);
         owner.setFirstName("John");
         owner.setLastName("Doe");
-        owner.setMail("john.doe@mail.com");
+        owner.setEmail("john.doe@email.com");
         owner.setPhone("123456789");
 
         NeighborhoodDTO neighborhoodDTO = new NeighborhoodDTO();

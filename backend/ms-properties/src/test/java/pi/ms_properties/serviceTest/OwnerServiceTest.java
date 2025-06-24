@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -57,7 +56,7 @@ class OwnerServiceTest {
         owner.setId(1L);
         owner.setFirstName("John");
         owner.setLastName("Doe");
-        owner.setMail("john.doe@mail.com");
+        owner.setEmail("john.doe@email.com");
         owner.setPhone("123456789");
 
         property1 = new Property();
