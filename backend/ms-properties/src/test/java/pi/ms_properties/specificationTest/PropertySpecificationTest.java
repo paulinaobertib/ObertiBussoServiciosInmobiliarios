@@ -34,7 +34,7 @@ class PropertySpecificationTest {
         Owner owner = new Owner();
         owner.setFirstName("Juan");
         owner.setLastName("Pérez");
-        owner.setMail("juan@mail.com");
+        owner.setEmail("juan@email.com");
         owner.setPhone("123456");
         entityManager.persist(owner);
 

@@ -53,7 +53,7 @@ class OwnerControllerTest {
         validOwner.setId(1L);
         validOwner.setFirstName("Juan");
         validOwner.setLastName("Pérez");
-        validOwner.setMail("juan.perez@mail.com");
+        validOwner.setEmail("juan.perez@email.com");
         validOwner.setPhone("3511234567");
     }
 
@@ -104,7 +104,7 @@ class OwnerControllerTest {
 
         mockMvc.perform(get("/owner/getByProperty/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mail").value("juan.perez@mail.com"));
+                .andExpect(jsonPath("$.mail").value("juan.perez@email.com"));
     }
 
     @Test

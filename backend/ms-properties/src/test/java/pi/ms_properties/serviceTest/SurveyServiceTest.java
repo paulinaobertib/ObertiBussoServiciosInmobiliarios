@@ -209,7 +209,7 @@ class SurveyServiceTest {
                 .when(emailService).sendEmailSurvey(anyString(), anyLong());
 
         assertThrows(DataIntegrityViolationException.class, () -> {
-            surveyService.sendSurvey("test@mail.com", 1L);
+            surveyService.sendSurvey("test@email.com", 1L);
         });
     }
 
