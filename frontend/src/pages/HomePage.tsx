@@ -17,36 +17,21 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
-  const { selectedPropertyIds, toggleCompare, clearComparison, refreshAllCatalogs, propertiesList } = usePropertyCrud();
+  const { selectedPropertyIds, toggleCompare, refreshProperties, propertiesList } = usePropertyCrud();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
-
-  const [properties, _] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [goCompare, setGoCompare] = useState(false);
 
   useEffect(() => {
-    refreshAllCatalogs();
-  }, [location.pathname, refreshAllCatalogs]);
+    refreshProperties();
+  }, [location.pathname]);
 
   useEffect(() => {
-    const normalized = propertiesList.map(p => ({
-      ...p,
-      status: p.status ?? 'Desconocido'
-    }));
-    setResults(normalized);
+    setResults(propertiesList.map(p => ({ ...p, status: p.status ?? 'Desconocido' })));
     setLoading(false);
   }, [propertiesList]);
-
-
-  useEffect(() => {
-    if (goCompare) {
-      navigate('/properties/compare');
-      setGoCompare(false);
-    }
-  }, [goCompare, navigate]);
 
   useEffect(() => {
     setMode('normal');
@@ -76,29 +61,27 @@ export default function Home() {
 
   const toggleSelectionMode = () => {
     setSelectionMode(prev => {
-      if (prev) clearComparison();
+      showAlert(
+        prev ? 'Saliendo del modo comparación' : 'Entrando al modo comparación',
+        'info'
+      );
       return !prev;
     });
   };
 
   const handleCompare = () => {
-    clearComparison();
-    properties
-      .filter(p => selectedPropertyIds.includes(p.id))
-      .forEach(p => toggleCompare(p.id));
-    setGoCompare(true);
+    console.log('🚀 Navigating to compare with IDs:', selectedPropertyIds);
+    navigate('/properties/compare');
+    setSelectionMode(false); // Exit selection mode after navigation
   };
 
   return (
     <BasePage maxWidth={false}>
-
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
-
         <Box sx={{ mt: 2 }}>
           <SearchBar onSearch={setResults} />
         </Box>
-
         <Box
           sx={{
             display: 'flex',
@@ -110,7 +93,6 @@ export default function Home() {
           <Box sx={{ width: { xs: '100%', md: 270 } }}>
             <FiltersSidebar onSearch={setResults} />
           </Box>
-
           <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
             {loading ? (
               <Typography>Cargando propiedades...</Typography>
@@ -120,7 +102,6 @@ export default function Home() {
                 mode={mode}
                 onFinishAction={() => setMode('normal')}
                 selectionMode={selectionMode}
-                selectedPropertyIds={selectedPropertyIds}
                 toggleSelection={toggleCompare}
                 isSelected={id => selectedPropertyIds.includes(id)}
               />
@@ -132,7 +113,6 @@ export default function Home() {
           </Box>
         </Box>
       </Box>
-
       <FloatingButtons
         onAction={handleAction}
         selectionMode={selectionMode}
@@ -140,6 +120,6 @@ export default function Home() {
         onCompare={handleCompare}
         compareCount={selectedPropertyIds.length}
       />
-    </BasePage >
+    </BasePage>
   );
 }

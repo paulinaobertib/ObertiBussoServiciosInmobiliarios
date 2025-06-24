@@ -1,0 +1,67 @@
+server:
+  port: ${SERVICE_PORT}
+
+eureka:
+  instance:
+    hostname: ${WEBSITE_HOSTNAME}
+    nonSecurePort: 80 
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
+spring:
+  application:
+    name: ms-gateway
+  security:
+  oauth2:
+    client:
+      provider:
+        keycloak-client:
+          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+      registration:
+        keycloak-client:
+          client-id: ${KEYCLOAK_CLIENT_ID}
+          client-secret: ${KEYCLOAK_CLIENT_SECRET}
+          scope:
+            - openid
+          authorization-grant-type: authorization_code
+          redirect-uri: http://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
+
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins:
+              - "http://localhost:5173"
+              # - "https://${SWA_FRONTEND}.azurestaticapps.net"
+              - "https://victorious-sea-0c1ad030f.6.azurestaticapps.net/"
+              - "https://witty-field-05be4e00f.6.azurestaticapps.net/"
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowCredentials: true
+      routes:
+        - id: ms-properties
+          uri: lb://ms-properties
+          predicates:
+            - Path=/api/properties/**
+          filters:
+            - StripPrefix=2
+        - id: ms-users
+          uri: lb://ms-users
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=2
+      default-filters: TokenRelay
+
+frontend:
+  base-url: ${SWA_FRONTEND}

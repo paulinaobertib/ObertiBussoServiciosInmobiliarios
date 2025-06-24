@@ -18,6 +18,7 @@ export interface Property {
   area: number;
   coveredArea: number;
   price: number;
+  expenses: number;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
@@ -43,6 +44,7 @@ export interface PropertyCreate {
   area: number;
   coveredArea: number;
   price: number;
+  expenses: number;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
@@ -69,6 +71,7 @@ export interface PropertyUpdate {
   area: number;
   coveredArea: number;
   price: number;
+  expenses: number;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
@@ -94,6 +97,7 @@ export const emptyProperty: Property = {
   area: 0,
   coveredArea: 0,
   price: 0,
+  expenses: 0,
   showPrice: false,
   credit: false,
   financing: false,

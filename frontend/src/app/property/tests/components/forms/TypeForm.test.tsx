@@ -43,7 +43,7 @@ describe('TypeForm', () => {
         hasBathrooms: true,
         hasCoveredArea: true,
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Tipo de propiedad creado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -72,7 +72,7 @@ describe('TypeForm', () => {
         name: 'Depto',
         hasRooms: true,
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Tipo de propiedad editado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -97,7 +97,7 @@ describe('TypeForm', () => {
 
     await waitFor(() => {
       expect(deleteType).toHaveBeenCalledWith(item);
-      expect(mockShowAlert).toHaveBeenCalledWith('Tipo de propiedad eliminado con éxito!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });

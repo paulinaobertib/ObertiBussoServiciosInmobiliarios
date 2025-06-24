@@ -7,7 +7,8 @@ export const postOwner = async (ownerData: OwnerCreate) => {
   try {
     const response = await axios.post(
       `${apiUrl}/properties/owner/create`,
-      ownerData
+      ownerData,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -20,7 +21,8 @@ export const putOwner = async (ownerData: Owner) => {
   try {
     const response = await axios.put(
       `${apiUrl}/properties/owner/update`,
-      ownerData
+      ownerData,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -32,7 +34,8 @@ export const putOwner = async (ownerData: Owner) => {
 export const deleteOwner = async (ownerData: Owner) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/properties/owner/delete/${ownerData.id}`
+      `${apiUrl}/properties/owner/delete/${ownerData.id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -43,7 +46,9 @@ export const deleteOwner = async (ownerData: Owner) => {
 
 export const getAllOwners = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/owner/getAll`);
+    const response = await axios.get(`${apiUrl}/properties/owner/getAll`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching owners:", error);
@@ -54,7 +59,8 @@ export const getAllOwners = async () => {
 export const getOwnerById = async (id: number) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/properties/owner/getById/${id}`
+      `${apiUrl}/properties/owner/getById/${id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -66,7 +72,8 @@ export const getOwnerById = async (id: number) => {
 export const getOwnerByPropertyId = async (id: number) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/properties/owner/getByProperty/${id}`
+      `${apiUrl}/properties/owner/getByProperty/${id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -79,7 +86,7 @@ export const getOwnersByText = async (search: string) => {
   try {
     const { data } = await axios.get<Owner[]>(
       `${apiUrl}/properties/owner/search`,
-      { params: { search } }
+      { params: { search }, withCredentials: true }
     );
     return data;
   } catch (error) {
@@ -87,4 +94,3 @@ export const getOwnersByText = async (search: string) => {
     throw error;
   }
 };
-

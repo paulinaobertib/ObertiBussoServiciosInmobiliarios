@@ -28,14 +28,16 @@ export default function ImageUploader({ label, multiple = false, sx, append = fa
                 border: '1px dashed',
                 borderColor: 'grey.500',
                 borderRadius: 1,
-                p: 2,
+                p: 1.2,
                 cursor: 'pointer',
                 maxHeight: { xs: '50%', md: '50%' },
                 ...sx,
             }}
         >
             <input hidden type="file" accept="image/*" multiple={multiple} onChange={onChange} />
-            <Typography variant="body2" sx={{ textAlign: 'center' }}>{label}</Typography>
+            <Typography variant="body2" sx={{
+                textAlign: 'center', color: 'text.secondary'
+            }}>{label}</Typography>
         </Box>
     );
 }

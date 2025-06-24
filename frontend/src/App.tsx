@@ -1,9 +1,12 @@
+import React from 'react';
+
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import Routes from './Routes';
 import { BrowserRouter } from 'react-router-dom';
 import { PropertyCrudProvider } from './app/property/context/PropertiesContext';
 import { AlertProvider } from './app/property/context/AlertContext';
+import { AuthProvider } from "./app/user/context/AuthContext";
 import "./index.css"
 
 function App() {
@@ -14,15 +17,19 @@ function App() {
   console.log('BASE URL en App:', baseUrl);
 
   return (
-    <ThemeProvider theme={theme}>
-      <AlertProvider>
-        <PropertyCrudProvider>
-          <BrowserRouter>
-            <Routes />
-          </BrowserRouter>
-        </PropertyCrudProvider>
-      </AlertProvider>
-    </ThemeProvider>
+    <React.StrictMode>
+      <PropertyCrudProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <AlertProvider>
+              <ThemeProvider theme={theme}>
+                <Routes />
+              </ThemeProvider>
+            </AlertProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </PropertyCrudProvider>
+    </React.StrictMode>
   );
 }
 

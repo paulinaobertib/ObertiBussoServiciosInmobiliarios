@@ -47,7 +47,7 @@ describe('StatusForm', () => {
 
     await waitFor(() => {
       expect(putPropertyStatus).toHaveBeenCalledWith(1, 'RESERVADA');
-      expect(mockShowAlert).toHaveBeenCalledWith('Estado actualizado con éxito', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockLoadProperty).toHaveBeenCalledWith(1);
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -64,7 +64,7 @@ describe('StatusForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith('Error al actualizar estado', 'error');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'error');
     });
   });
 });

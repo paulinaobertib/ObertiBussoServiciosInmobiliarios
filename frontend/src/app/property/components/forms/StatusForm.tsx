@@ -28,8 +28,9 @@ export default function StatusForm({ item, onDone }: Props) {
       showAlert('Estado actualizado con éxito', 'success');
       await loadProperty(item.id);
       onDone();
-    } catch {
-      showAlert('Error al actualizar estado', 'error');
+    } catch (error: any) {
+      const message = error.response?.data ?? 'Error desconocido';
+      showAlert(message, 'error');
     }
   };
 
