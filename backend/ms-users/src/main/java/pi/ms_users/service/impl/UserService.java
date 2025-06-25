@@ -12,6 +12,7 @@ import pi.ms_users.domain.AgentChat;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
+import pi.ms_users.service.interf.IAgentChatService;
 import pi.ms_users.service.interf.IUserService;
 
 import java.util.LinkedHashMap;
@@ -26,7 +27,7 @@ public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
 
-    private final AgentChatService agentChatService;
+    private final IAgentChatService agentChatService;
 
     public ResponseEntity<String> createUser(String firstName, String lastName, String email, String phone) {
         Response response = userRepository.createUser(firstName, lastName, email, phone);
