@@ -93,7 +93,7 @@ public class InquiryService implements IInquiryService {
             UserDTO userDTO = userRepository.findById(inquirySaveDTO.getUserId());
             inquiry.setUserId(userDTO.getId());
             inquiry.setPhone(userDTO.getPhone());
-            inquiry.setEmail(userDTO.getMail());
+            inquiry.setEmail(userDTO.getEmail());
             inquiry.setFirstName(userDTO.getFirstName());
             inquiry.setLastName(userDTO.getLastName());
         }

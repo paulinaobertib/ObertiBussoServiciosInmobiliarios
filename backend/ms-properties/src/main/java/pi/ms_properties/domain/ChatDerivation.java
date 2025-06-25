@@ -15,6 +15,9 @@ public class ChatDerivation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "agent_id", nullable = false)
+    private String agentId;
+
     @OneToOne
     @JoinColumn(name = "session_id", nullable = false)
     private ChatSession chatSession;

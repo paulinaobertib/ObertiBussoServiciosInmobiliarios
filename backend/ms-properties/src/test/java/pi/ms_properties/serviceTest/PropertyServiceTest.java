@@ -27,6 +27,7 @@ import pi.ms_properties.service.impl.ImageService;
 import pi.ms_properties.service.impl.PropertyService;
 import pi.ms_properties.service.impl.ViewService;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -144,9 +145,9 @@ public class PropertyServiceTest {
         property.setBedrooms(3f);
         property.setArea(300f);
         property.setCoveredArea(250f);
-        property.setPrice(150000f);
+        property.setPrice(BigDecimal.valueOf(150000));
         property.setShowPrice(true);
-        property.setExpenses(5000f);
+        property.setExpenses(BigDecimal.valueOf(5000));
         property.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
         property.setDate(LocalDateTime.now());
         property.setMainImage("https://ejemplo.com/mainImage.jpg");
@@ -173,9 +174,9 @@ public class PropertyServiceTest {
         propertyDTO.setBedrooms(3f);
         propertyDTO.setArea(300f);
         propertyDTO.setCoveredArea(250f);
-        propertyDTO.setPrice(150000f);
+        propertyDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertyDTO.setShowPrice(true);
-        propertyDTO.setExpenses(5000f);
+        propertyDTO.setExpenses(BigDecimal.valueOf(5000.0));
         propertyDTO.setCredit(true);
         propertyDTO.setFinancing(false);
         propertyDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
@@ -198,9 +199,9 @@ public class PropertyServiceTest {
         propertySaveDTO.setBedrooms(3f);
         propertySaveDTO.setArea(300f);
         propertySaveDTO.setCoveredArea(250f);
-        propertySaveDTO.setPrice(150000f);
+        propertySaveDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertySaveDTO.setShowPrice(true);
-        propertySaveDTO.setExpenses(5000f);
+        propertySaveDTO.setExpenses(BigDecimal.valueOf(5000.0));
         propertySaveDTO.setCredit(true);
         propertySaveDTO.setFinancing(false);
         propertySaveDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
@@ -252,9 +253,9 @@ public class PropertyServiceTest {
         propertyUpdateDTO.setBedrooms(4f);
         propertyUpdateDTO.setArea(320f);
         propertyUpdateDTO.setCoveredArea(270f);
-        propertyUpdateDTO.setPrice(160000f);
+        propertyUpdateDTO.setPrice(BigDecimal.valueOf(160000.0));
         propertyUpdateDTO.setShowPrice(true);
-        propertyUpdateDTO.setExpenses(5200f);
+        propertyUpdateDTO.setExpenses(BigDecimal.valueOf(5200.0));
         propertyUpdateDTO.setCredit(true);
         propertyUpdateDTO.setFinancing(true);
         propertyUpdateDTO.setDescription("Casa renovada, ideal para familias numerosas.");
@@ -270,7 +271,7 @@ public class PropertyServiceTest {
         propertySimpleDTO = new PropertySimpleDTO();
         propertySimpleDTO.setId(1L);
         propertySimpleDTO.setTitle("Hermosa casa en venta");
-        propertySimpleDTO.setPrice(150000f);
+        propertySimpleDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertySimpleDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
         propertySimpleDTO.setDate(LocalDateTime.now());
         propertySimpleDTO.setMainImage("https://ejemplo.com/mainImage.jpg");

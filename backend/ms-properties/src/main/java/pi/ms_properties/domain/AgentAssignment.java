@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "agent_assigment")
-public class AgentAssigment {
+@Table(name = "agent_assignment")
+public class AgentAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

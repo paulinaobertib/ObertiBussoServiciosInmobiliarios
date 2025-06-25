@@ -13,11 +13,14 @@ import lombok.NoArgsConstructor;
 public class AgentChat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "enabled", nullable = false)
     private Boolean enabled = Boolean.FALSE;
 }
