@@ -17,6 +17,7 @@ public class ChatSessionController {
 
     private final IChatSessionService chatSessionService;
 
+    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/createUser")
     public void createSessionUser(@RequestParam("userId") String userId, @RequestParam("propertyId") Long propertyId) {
         chatSessionService.createFromUser(userId, propertyId);
