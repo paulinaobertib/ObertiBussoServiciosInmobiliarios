@@ -85,7 +85,7 @@ class InquiryServiceTest {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername("user123");
         userDTO.setPhone("123456789");
-        userDTO.setMail("test@email.com");
+        userDTO.setEmail("test@email.com");
         userDTO.setFirstName("John");
         userDTO.setLastName("Doe");
 

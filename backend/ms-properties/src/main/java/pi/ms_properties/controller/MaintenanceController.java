@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.dto.MaintenanceDTO;
-import pi.ms_properties.service.impl.MaintenanceService;
+import pi.ms_properties.service.interf.IMaintenanceService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/maintenance")
 public class MaintenanceController {
 
-    private final MaintenanceService maintenanceService;
+    private final IMaintenanceService maintenanceService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")

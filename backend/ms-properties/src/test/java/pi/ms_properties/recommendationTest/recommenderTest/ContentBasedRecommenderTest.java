@@ -15,6 +15,7 @@ import pi.ms_properties.recommendation.recommender.ContentBasedRecommender;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,13 +63,13 @@ class ContentBasedRecommenderTest {
         nueva.setNeighborhood(neighborhoodNueva);
         nueva.setType(type1);
         nueva.setOperation(Operation.VENTA);
-        nueva.setPrice(100.0F);
+        nueva.setPrice(BigDecimal.valueOf(150000.0));
 
         favProperty = new Property();
         favProperty.setNeighborhood(neighborhoodFav);
         favProperty.setType(type1);
         favProperty.setOperation(Operation.VENTA);
-        favProperty.setPrice(90.0F);
+        favProperty.setPrice(BigDecimal.valueOf(90));
     }
 
     private FavoriteDTO createFavoriteDTO(Long propertyId) {

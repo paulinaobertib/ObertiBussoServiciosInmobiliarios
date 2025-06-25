@@ -43,7 +43,9 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/inquiries/createWithoutUser",
                                 "/survey/create",
-                                "/compare/**")
+                                "/compare/**",
+                                "/chat/message",
+                                "/chatSession/create")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

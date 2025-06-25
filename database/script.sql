@@ -210,7 +210,7 @@ CREATE TABLE Chat_Session (
     user_id VARCHAR(100),
     date DATETIME NOT NULL,
     date_close DATETIME,
-    derived BOOLEAN DEFAULT FALSE,
+    derived BOOLEAN DEFAULT FALSE NOT NULL,
     phone VARCHAR(30) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -221,24 +221,25 @@ CREATE TABLE Chat_Session (
 CREATE TABLE Chat_Message (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     session_id BIGINT NOT NULL,
-    message TEXT NOT NULL,
-    FOREIGN KEY (session_id) REFERENCES ChatSession(id)
+    chat_option ENUM('VER_PRECIO', 'VER_HABITACIONES', 'VER_AREA', 'VER_UBICACION', 'VER_CARACTERISTICAS', 'VER_OPERACION', 'VER_CREDITO', 'VER_FINANCIACION', 'DERIVAR', 'CERRAR') NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES Chat_Session(id)
 );
 
 CREATE TABLE Chat_Derivation (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
 	session_id BIGINT NOT NULL,
     agent_id VARCHAR(100) NOT NULL,
-	FOREIGN KEY (session_id) REFERENCES ChatSession(id)
+	FOREIGN KEY (session_id) REFERENCES Chat_Session(id)
 );
 
 CREATE TABLE Agent_Chat (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
 	user_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
     enabled BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Agent_Assignment (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     last_assigned_agent_id VARCHAR(100)
 );

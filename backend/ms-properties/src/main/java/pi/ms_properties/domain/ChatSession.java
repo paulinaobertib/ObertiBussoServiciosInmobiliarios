@@ -39,7 +39,7 @@ public class ChatSession {
     @Column(name = "date_close", nullable = true)
     private LocalDateTime dateClose;
 
-    @Column(name = "derived", nullable = true)
+    @Column(name = "derived", nullable = false)
     private Boolean derived;
 
     @ManyToOne
