@@ -55,7 +55,13 @@ class KeycloakUserRepositoryTest {
     private ClientsResource clientsResource;
 
     @Mock
+    private ClientResource clientResource;
+
+    @Mock
     private EmailService emailService;
+
+    @Mock
+    private RolesResource clientRolesResource;
 
     @InjectMocks
     private KeycloakUserRepository repository;
@@ -64,6 +70,7 @@ class KeycloakUserRepositoryTest {
     void setup() {
         ReflectionTestUtils.setField(repository, "realm", "test-realm");
         ReflectionTestUtils.setField(repository, "clientId", "example-client-id");
+
         lenient().when(keycloak.realm("test-realm")).thenReturn(realmResource);
         lenient().when(realmResource.users()).thenReturn(usersResource);
     }
@@ -204,34 +211,52 @@ class KeycloakUserRepositoryTest {
     @Test
     void addRoleToUser_success() {
         String id = "123";
+        String roleName = "admin";
+
         RoleRepresentation role = new RoleRepresentation();
-        role.setName("admin");
+        role.setName(roleName);
+
+        ClientRepresentation client = new ClientRepresentation();
+        client.setId("client-uuid");
+        List<ClientRepresentation> clientList = List.of(client);
 
         when(usersResource.get(id)).thenReturn(userResource);
-        when(realmResource.roles()).thenReturn(rolesResource);
-        when(rolesResource.get("admin")).thenReturn(roleResource);
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(clientList);
+        when(clientsResource.get("client-uuid")).thenReturn(clientResource);
+        when(clientResource.roles()).thenReturn(clientRolesResource);
+        when(clientRolesResource.get(roleName)).thenReturn(roleResource);
         when(roleResource.toRepresentation()).thenReturn(role);
         when(userResource.roles()).thenReturn(roleMappingResource);
-        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(roleMappingResource.clientLevel("client-uuid")).thenReturn(roleScopeResource);
         when(roleScopeResource.listAll()).thenReturn(List.of(role));
 
-        List<String> result = repository.addRoleToUser(id, "admin");
-        assertEquals(List.of("admin"), result);
+        List<String> result = repository.addRoleToUser(id, roleName);
+        assertEquals(List.of(roleName), result);
     }
 
     @Test
     void deleteRoleToUser_success() {
-        RoleRepresentation role = new RoleRepresentation();
-        role.setName("user");
+        String id = "123";
+        String roleName = "user";
 
-        when(usersResource.get("123")).thenReturn(userResource);
-        when(realmResource.roles()).thenReturn(rolesResource);
-        when(rolesResource.get("user")).thenReturn(roleResource);
+        RoleRepresentation role = new RoleRepresentation();
+        role.setName(roleName);
+
+        ClientRepresentation client = new ClientRepresentation();
+        client.setId("client-uuid");
+
+        when(usersResource.get(id)).thenReturn(userResource);
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of(client));
+        when(clientsResource.get("client-uuid")).thenReturn(clientResource);
+        when(clientResource.roles()).thenReturn(clientRolesResource);
+        when(clientRolesResource.get(roleName)).thenReturn(roleResource);
         when(roleResource.toRepresentation()).thenReturn(role);
         when(userResource.roles()).thenReturn(roleMappingResource);
-        when(roleMappingResource.realmLevel()).thenReturn(roleScopeResource);
+        when(roleMappingResource.clientLevel("client-uuid")).thenReturn(roleScopeResource);
 
-        repository.deleteRoleToUser("123", "user");
+        repository.deleteRoleToUser(id, roleName);
 
         verify(roleScopeResource).remove(List.of(role));
     }
@@ -312,20 +337,26 @@ class KeycloakUserRepositoryTest {
 
     @Test
     void addRoleToUser_error() {
-        when(rolesResource.get("invalid")).thenThrow(new RuntimeException("Role not found"));
-        when(usersResource.get("id")).thenReturn(userResource);
-        when(realmResource.roles()).thenReturn(rolesResource);
+        String id = "id";
+        String roleName = "invalid";
 
-        assertThrows(RuntimeException.class, () -> repository.addRoleToUser("id", "invalid"));
+        when(usersResource.get(id)).thenReturn(userResource);
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of());
+
+        assertThrows(RuntimeException.class, () -> repository.addRoleToUser(id, roleName));
     }
 
     @Test
     void deleteRoleToUser_error() {
-        when(rolesResource.get("fail")).thenThrow(new RuntimeException("Role error"));
-        when(realmResource.roles()).thenReturn(rolesResource);
-        when(usersResource.get("123")).thenReturn(userResource);
+        String id = "123";
+        String roleName = "fail";
 
-        assertThrows(RuntimeException.class, () -> repository.deleteRoleToUser("123", "fail"));
+        when(usersResource.get(id)).thenReturn(userResource);
+        when(realmResource.clients()).thenReturn(clientsResource);
+        when(clientsResource.findByClientId("example-client-id")).thenReturn(List.of());
+
+        assertThrows(RuntimeException.class, () -> repository.deleteRoleToUser(id, roleName));
     }
 
     @Test

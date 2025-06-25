@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -15,10 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
+import pi.ms_users.domain.AgentChat;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.UserService;
+import pi.ms_users.service.interf.IAgentChatService;
 
 import java.util.*;
 
@@ -30,6 +33,9 @@ class UserServiceTest {
 
     @Mock
     private IUserRepository userRepository;
+
+    @Mock
+    private IAgentChatService agentChatService;
 
     @InjectMocks
     private UserService userService;
@@ -109,6 +115,31 @@ class UserServiceTest {
     }
 
     @Test
+    void addRoleToUser_shouldCreateAgentChat_whenRoleIsAdmin() {
+        User user = new User();
+        user.setId("user123");
+        user.setFirstName("Juan");
+        user.setLastName("Pérez");
+
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(userRepository.addRoleToUser("user123", "admin")).thenReturn(List.of("admin"));
+        doNothing().when(agentChatService).create(any(AgentChat.class));
+
+        ResponseEntity<List<String>> response = userService.addRoleToUser("user123", "admin");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(List.of("admin"), response.getBody());
+
+        ArgumentCaptor<AgentChat> captor = ArgumentCaptor.forClass(AgentChat.class);
+        verify(agentChatService).create(captor.capture());
+
+        AgentChat captured = captor.getValue();
+        assertEquals("user123", captured.getUserId());
+        assertEquals("Juan Pérez", captured.getName());
+        assertFalse(captured.getEnabled());
+    }
+
+    @Test
     void deleteRoleToUser_shouldReturnOk_whenSuccessful() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         doNothing().when(userRepository).deleteRoleToUser("user123", "MOD");
@@ -117,6 +148,29 @@ class UserServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().contains("eliminado"));
+    }
+
+    @Test
+    void deleteRoleToUser_shouldDeleteAgentChat_whenRoleIsAdmin() {
+        User user = new User();
+        user.setId("user123");
+
+        AgentChat agentChat = new AgentChat();
+        agentChat.setId(10L);
+        agentChat.setUserId("user123");
+
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        doNothing().when(userRepository).deleteRoleToUser("user123", "admin");
+        when(agentChatService.getByUserId("user123")).thenReturn(agentChat);
+        doNothing().when(agentChatService).delete(10L);
+
+        ResponseEntity<String> response = userService.deleteRoleToUser("user123", "admin");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("eliminado"));
+
+        verify(agentChatService).getByUserId("user123");
+        verify(agentChatService).delete(10L);
     }
 
     @Test

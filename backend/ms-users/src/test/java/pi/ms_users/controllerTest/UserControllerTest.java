@@ -15,6 +15,7 @@ import pi.ms_users.controller.UserController;
 import pi.ms_users.domain.User;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.UserService;
+import pi.ms_users.service.interf.IUserService;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class UserControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @TestConfiguration
     static class Config {
