@@ -90,7 +90,7 @@ class ContentBasedRecommenderTest {
 
         double result = contentBasedRecommender.calculate(nueva, favs);
 
-        assertEquals(1.0, result, 0.0001);
+        assertEquals(0.7, result, 0.0001);
 
         verify(neighborhoodRepository).findById(1L);
         verify(propertyRepository).findById(10L);

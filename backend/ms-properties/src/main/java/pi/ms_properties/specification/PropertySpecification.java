@@ -5,22 +5,23 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import pi.ms_properties.domain.Property;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class PropertySpecification {
 
-    public static Specification<Property> hasPriceFrom(float priceFrom) {
+    public static Specification<Property> hasPriceFrom(BigDecimal priceFrom) {
         return (root, query, criteriaBuilder) -> {
-            if (priceFrom == 0) {
+            if (priceFrom.compareTo(BigDecimal.ZERO) == 0) {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.greaterThanOrEqualTo(root.get("price"), priceFrom);
         };
     }
 
-    public static Specification<Property> hasPriceTo(float priceTo) {
+    public static Specification<Property> hasPriceTo(BigDecimal priceTo) {
         return (root, query, criteriaBuilder) -> {
-            if (priceTo == 0) {
+            if (priceTo.compareTo(BigDecimal.ZERO) == 0) {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceTo);

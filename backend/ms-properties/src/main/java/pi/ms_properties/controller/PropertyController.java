@@ -12,6 +12,7 @@ import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
 import pi.ms_properties.service.interf.IPropertyService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -70,7 +71,7 @@ public class PropertyController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") float priceFrom, @RequestParam(defaultValue = "0") float priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float coveredAreaFrom, @RequestParam(defaultValue = "0") float coveredAreaTo, @RequestParam(defaultValue = "0") float rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(defaultValue = "") String type, @RequestParam(defaultValue = "") List<String> amenities, @RequestParam(defaultValue = "") String city, @RequestParam(defaultValue = "") String neighborhood, @RequestParam(defaultValue = "") String neighborhoodType, @RequestParam(required = false) Boolean credit, @RequestParam(required = false) Boolean financing) {
+    public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") BigDecimal priceFrom, @RequestParam(defaultValue = "0") BigDecimal priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float coveredAreaFrom, @RequestParam(defaultValue = "0") float coveredAreaTo, @RequestParam(defaultValue = "0") float rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(defaultValue = "") String type, @RequestParam(defaultValue = "") List<String> amenities, @RequestParam(defaultValue = "") String city, @RequestParam(defaultValue = "") String neighborhood, @RequestParam(defaultValue = "") String neighborhoodType, @RequestParam(required = false) Boolean credit, @RequestParam(required = false) Boolean financing) {
         return propertyService.findBy(priceFrom, priceTo, areaFrom, areaTo, coveredAreaFrom, coveredAreaTo, rooms, operation, type, amenities, city, neighborhood, neighborhoodType, credit, financing);
     }
 

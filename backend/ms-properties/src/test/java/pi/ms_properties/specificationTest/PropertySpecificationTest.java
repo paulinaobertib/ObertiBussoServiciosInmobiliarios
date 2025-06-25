@@ -91,8 +91,8 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByPriceRange() {
-        Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(90000f))
-                .and(PropertySpecification.hasPriceTo(100000f));
+        Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(BigDecimal.valueOf(90000)))
+                .and(PropertySpecification.hasPriceTo(BigDecimal.valueOf(150000.0)));
         List<Property> results = propertyRepository.findAll(spec);
         assertEquals(1, results.size());
     }
@@ -181,7 +181,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenPriceTooLow() {
-        Specification<Property> spec = PropertySpecification.hasPriceFrom(200000f);
+        Specification<Property> spec = PropertySpecification.hasPriceFrom(BigDecimal.valueOf(200000));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }

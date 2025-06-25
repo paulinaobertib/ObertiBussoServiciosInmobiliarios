@@ -490,7 +490,7 @@ public class PropertyServiceTest {
                 .thenReturn(propertyDTO.getNeighborhood());
 
         ResponseEntity<List<PropertyDTO>> response = propertyService.findBy(
-                0, 1000000,
+                BigDecimal.valueOf(0), BigDecimal.valueOf(100000),
                 0, 1000,
                 0, 500,
                 3,
@@ -735,7 +735,7 @@ public class PropertyServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> propertyService.findBy(
-                        0, 1000000,
+                        BigDecimal.valueOf(0), BigDecimal.valueOf(100000.0),
                         0, 1000,
                         0, 500,
                         3,
