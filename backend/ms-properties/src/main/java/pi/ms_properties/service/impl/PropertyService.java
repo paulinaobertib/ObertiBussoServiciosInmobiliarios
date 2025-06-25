@@ -19,6 +19,7 @@ import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -238,7 +239,7 @@ public class PropertyService implements IPropertyService {
 
     @Override
     public ResponseEntity<List<PropertyDTO>> findBy(
-            float priceFrom, float priceTo,
+            BigDecimal priceFrom, BigDecimal priceTo,
             float areaFrom, float areaTo,
             float coveredAreaFrom, float coveredAreaTo,
             float rooms, String operation, String type,
