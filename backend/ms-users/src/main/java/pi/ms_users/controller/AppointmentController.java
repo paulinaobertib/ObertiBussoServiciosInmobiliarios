@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
-import pi.ms_users.service.impl.AppointmentService;
+import pi.ms_users.service.interf.IAppointmentService;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AppointmentController {
 
-    private final AppointmentService appointmentService;
+    private final IAppointmentService appointmentService;
 
     @PostMapping("/create")
     public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {

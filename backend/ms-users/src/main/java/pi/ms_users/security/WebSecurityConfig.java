@@ -28,7 +28,8 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/notices/getById/{id}",
                                 "/notices/getAll",
-                                "/notices/search").permitAll()
+                                "/notices/search",
+                                "/agentChat/getEnabledTrue").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

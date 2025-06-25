@@ -11,6 +11,7 @@ import pi.ms_properties.domain.*;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -67,9 +68,9 @@ class PropertySpecificationTest {
         property.setBedrooms(3f);
         property.setArea(120f);
         property.setCoveredArea(100f);
-        property.setPrice(95000f);
+        property.setPrice(BigDecimal.valueOf(150000.0));
         property.setShowPrice(true);
-        property.setExpenses(2000f);
+        property.setExpenses(BigDecimal.valueOf(2000));
         property.setDescription("Casa con pileta en el centro de Córdoba");
         property.setDate(LocalDateTime.now());
         property.setStatus(Status.DISPONIBLE);

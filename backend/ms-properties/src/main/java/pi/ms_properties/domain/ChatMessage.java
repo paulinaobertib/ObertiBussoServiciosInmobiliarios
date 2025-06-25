@@ -9,14 +9,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "chat_message")
+@Table(name = "Chat_Message")
 public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "message", nullable = false)
-    private String message;
+    @Column(name = "chat_option")
+    @Enumerated(EnumType.STRING)
+    private ChatOption chatOption;
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)

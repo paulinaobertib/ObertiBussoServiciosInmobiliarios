@@ -10,7 +10,7 @@ import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
-import pi.ms_properties.service.impl.PropertyService;
+import pi.ms_properties.service.interf.IPropertyService;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ import java.util.List;
 @RequestMapping("/property")
 public class PropertyController {
 
-    private final PropertyService propertyService;
+    private final IPropertyService propertyService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")

@@ -236,11 +236,29 @@ public class KeycloakUserRepository implements IUserRepository {
     public List<String> addRoleToUser(String id, String role) {
         RealmResource realmResource = keycloak.realm(realm);
         UserResource userResource = realmResource.users().get(id);
-        RoleMappingResource roleMappingResource = userResource.roles();
-        RoleRepresentation roleRepresentation = realmResource.roles().get(role).toRepresentation();
-        roleMappingResource.realmLevel().add(Collections.singletonList(roleRepresentation));
-        List<RoleRepresentation> roleRepresentations = userResource.roles().realmLevel().listAll();
-        return roleRepresentations.stream()
+
+        List<ClientRepresentation> clients = realmResource.clients().findByClientId(clientId);
+        if (clients.isEmpty()) {
+            throw new RuntimeException("Cliente no encontrado: " + clientId);
+        }
+        ClientRepresentation client = clients.getFirst();
+        String clientUUID = client.getId();
+
+        RoleRepresentation clientRole = realmResource.clients()
+                .get(clientUUID)
+                .roles()
+                .get(role)
+                .toRepresentation();
+
+        userResource.roles()
+                .clientLevel(clientUUID)
+                .add(Collections.singletonList(clientRole));
+
+        List<RoleRepresentation> roles = userResource.roles()
+                .clientLevel(clientUUID)
+                .listAll();
+
+        return roles.stream()
                 .map(RoleRepresentation::getName)
                 .collect(Collectors.toList());
     }
@@ -249,9 +267,22 @@ public class KeycloakUserRepository implements IUserRepository {
     public void deleteRoleToUser(String id, String role) {
         RealmResource realmResource = keycloak.realm(realm);
         UserResource userResource = realmResource.users().get(id);
-        RoleMappingResource roleMappingResource = userResource.roles();
-        RoleRepresentation roleRepresentation = realmResource.roles().get(role).toRepresentation();
-        roleMappingResource.realmLevel().remove(Collections.singletonList(roleRepresentation));
+
+        List<ClientRepresentation> clients = realmResource.clients().findByClientId(clientId);
+        if (clients.isEmpty()) {
+            throw new RuntimeException("Cliente no encontrado: " + clientId);
+        }
+        String clientUUID = clients.getFirst().getId();
+
+        RoleRepresentation clientRole = realmResource.clients()
+                .get(clientUUID)
+                .roles()
+                .get(role)
+                .toRepresentation();
+
+        userResource.roles()
+                .clientLevel(clientUUID)
+                .remove(Collections.singletonList(clientRole));
     }
 
     @Override
