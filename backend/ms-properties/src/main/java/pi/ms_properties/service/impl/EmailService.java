@@ -1,8 +1,6 @@
 package pi.ms_properties.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -27,7 +25,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class EmailService implements IEmailService {
 
-    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender javaMailSender;
 
     private final TemplateEngine templateEngine;
@@ -37,7 +34,7 @@ public class EmailService implements IEmailService {
     private final IChatMessageService chatMessageService;
 
     private String formatDate(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", new Locale("es", "ES"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", Locale.forLanguageTag("es-ES"));
         return date.format(formatter);
     }
 

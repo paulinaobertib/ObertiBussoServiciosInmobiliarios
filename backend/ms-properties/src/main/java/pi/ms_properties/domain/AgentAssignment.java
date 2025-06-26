@@ -1,6 +1,5 @@
 package pi.ms_properties.domain;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -72,9 +72,9 @@ class ContentBasedRecommenderTest {
         favProperty.setPrice(BigDecimal.valueOf(90));
     }
 
-    private FavoriteDTO createFavoriteDTO(Long propertyId) {
+    private FavoriteDTO createFavoriteDTO() {
         FavoriteDTO dto = new FavoriteDTO();
-        dto.setPropertyId(propertyId);
+        dto.setPropertyId(10L);
         return dto;
     }
 
@@ -82,7 +82,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldReturnCorrectScore_whenAllDataExists() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhoodNueva));
         when(propertyRepository.findById(10L)).thenReturn(Optional.of(favProperty));
@@ -101,7 +101,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldReturnZero_whenNeighborhoodNuevaNotFound() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -115,7 +115,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldSkipFavorite_whenPropertyNotFound() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhoodNueva));
         when(propertyRepository.findById(10L)).thenReturn(Optional.empty());
@@ -131,7 +131,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldSkipFavorite_whenNeighborhoodFavNotFound() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhoodNueva));
         when(propertyRepository.findById(10L)).thenReturn(Optional.of(favProperty));

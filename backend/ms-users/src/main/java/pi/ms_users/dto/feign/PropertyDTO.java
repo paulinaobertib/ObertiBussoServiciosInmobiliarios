@@ -1,4 +1,4 @@
-package pi.ms_users.domain.feign;
+package pi.ms_users.dto.feign;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Property {
+public class PropertyDTO {
     private Long id;
     private String title;
     private Float price;

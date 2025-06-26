@@ -15,6 +15,7 @@ import pi.ms_users.specification.NoticeSpecification;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 public class NoticeService implements INoticeService {

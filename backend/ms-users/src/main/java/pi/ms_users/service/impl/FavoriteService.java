@@ -6,7 +6,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.User;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.repository.IFavoriteRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -16,6 +16,7 @@ import pi.ms_users.service.interf.IFavoriteService;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 public class FavoriteService implements IFavoriteService {
@@ -70,7 +71,7 @@ public class FavoriteService implements IFavoriteService {
 
     @Override
     public ResponseEntity<List<Favorite>> findByPropertyId(Long propertyId) {
-        Property property = propertyRepository.getById(propertyId);
+        PropertyDTO propertyDTO = propertyRepository.getById(propertyId);
         List<Favorite> favorites = favoriteRepository.findByPropertyId(propertyId);
         return ResponseEntity.ok(favorites);
     }
