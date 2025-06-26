@@ -1,7 +1,6 @@
 package pi.ms_properties.repository.feign;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import pi.ms_properties.dto.feign.FavoriteDTO;
 

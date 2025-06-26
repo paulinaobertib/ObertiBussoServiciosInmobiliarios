@@ -26,7 +26,9 @@ import java.util.stream.Collectors;
 public class SurveyService implements ISurveyService {
 
     private final ISurveyRepository surveyRepository;
+
     private final IInquiryRepository inquiryRepository;
+
     private final IEmailService emailService;
 
     @Override
@@ -109,7 +111,7 @@ public class SurveyService implements ISurveyService {
                         row -> {
                             int dayNumber = ((Number) row[0]).intValue();
                             DayOfWeek dayOfWeek = DayOfWeek.of(dayNumber == 1 ? 7 : dayNumber - 1);
-                            return dayOfWeek.getDisplayName(TextStyle.FULL, new Locale("es", "ES"));
+                            return dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES"));
                         },
                         row -> (Double) row[1]
                 ));

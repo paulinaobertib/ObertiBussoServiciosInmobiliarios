@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.dto.CommentDTO;
-import pi.ms_properties.service.impl.CommentService;
+import pi.ms_properties.service.interf.ICommentService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/comment")
 public class CommentController {
 
-    private final CommentService commentService;
+    private final ICommentService commentService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")

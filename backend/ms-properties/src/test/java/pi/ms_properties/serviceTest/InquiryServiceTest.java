@@ -55,7 +55,7 @@ class InquiryServiceTest {
     private SurveyService surveyService;
 
     private InquirySaveDTO getSampleDTO() {
-        return new InquirySaveDTO(1L, "user123", "123456789", "test@mail.com", "John", "Doe", "Consulta", "Descripción", List.of(1L));
+        return new InquirySaveDTO(1L, "user123", "123456789", "test@email.com", "John", "Doe", "Consulta", "Descripción", List.of(1L));
     }
 
     private Property getSampleProperty() {
@@ -71,7 +71,7 @@ class InquiryServiceTest {
         i.setId(1L);
         i.setDate(LocalDateTime.now().minusHours(2));
         i.setDateClose(LocalDateTime.now());
-        i.setEmail("test@mail.com");
+        i.setEmail("test@email.com");
         i.setStatus(InquiryStatus.ABIERTA);
         return i;
     }
@@ -85,7 +85,7 @@ class InquiryServiceTest {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername("user123");
         userDTO.setPhone("123456789");
-        userDTO.setMail("test@mail.com");
+        userDTO.setEmail("test@email.com");
         userDTO.setFirstName("John");
         userDTO.setLastName("Doe");
 

@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 
 @EnableMethodSecurity(prePostEnabled = true)
+@SuppressWarnings("unused")
 @Configuration
 public class WebSecurityConfig {
 
@@ -43,7 +44,9 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/inquiries/createWithoutUser",
                                 "/survey/create",
-                                "/compare/**")
+                                "/compare/**",
+                                "/chat/message",
+                                "/chatSession/create")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

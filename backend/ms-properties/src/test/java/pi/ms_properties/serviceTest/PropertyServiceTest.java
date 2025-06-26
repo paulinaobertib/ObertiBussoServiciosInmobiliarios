@@ -25,8 +25,9 @@ import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.impl.AzureBlobStorage;
 import pi.ms_properties.service.impl.ImageService;
 import pi.ms_properties.service.impl.PropertyService;
-import pi.ms_properties.service.impl.ViewService;
+import pi.ms_properties.service.interf.IViewService;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -35,6 +36,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 public class PropertyServiceTest {
 
@@ -69,7 +71,7 @@ public class PropertyServiceTest {
     private AzureBlobStorage azureBlobStorage;
 
     @Mock
-    private ViewService viewService;
+    private IViewService viewService;
 
     @Mock
     private RecommendationService recommendationService;
@@ -102,7 +104,7 @@ public class PropertyServiceTest {
         owner.setId(1L);
         owner.setFirstName("John");
         owner.setLastName("Doe");
-        owner.setMail("john.doe@mail.com");
+        owner.setEmail("john.doe@email.com");
         owner.setPhone("123456789");
 
         NeighborhoodDTO neighborhoodDTO = new NeighborhoodDTO();
@@ -144,9 +146,9 @@ public class PropertyServiceTest {
         property.setBedrooms(3f);
         property.setArea(300f);
         property.setCoveredArea(250f);
-        property.setPrice(150000f);
+        property.setPrice(BigDecimal.valueOf(150000));
         property.setShowPrice(true);
-        property.setExpenses(5000f);
+        property.setExpenses(BigDecimal.valueOf(5000));
         property.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
         property.setDate(LocalDateTime.now());
         property.setMainImage("https://ejemplo.com/mainImage.jpg");
@@ -173,9 +175,9 @@ public class PropertyServiceTest {
         propertyDTO.setBedrooms(3f);
         propertyDTO.setArea(300f);
         propertyDTO.setCoveredArea(250f);
-        propertyDTO.setPrice(150000f);
+        propertyDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertyDTO.setShowPrice(true);
-        propertyDTO.setExpenses(5000f);
+        propertyDTO.setExpenses(BigDecimal.valueOf(5000.0));
         propertyDTO.setCredit(true);
         propertyDTO.setFinancing(false);
         propertyDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
@@ -198,9 +200,9 @@ public class PropertyServiceTest {
         propertySaveDTO.setBedrooms(3f);
         propertySaveDTO.setArea(300f);
         propertySaveDTO.setCoveredArea(250f);
-        propertySaveDTO.setPrice(150000f);
+        propertySaveDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertySaveDTO.setShowPrice(true);
-        propertySaveDTO.setExpenses(5000f);
+        propertySaveDTO.setExpenses(BigDecimal.valueOf(5000.0));
         propertySaveDTO.setCredit(true);
         propertySaveDTO.setFinancing(false);
         propertySaveDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
@@ -252,9 +254,9 @@ public class PropertyServiceTest {
         propertyUpdateDTO.setBedrooms(4f);
         propertyUpdateDTO.setArea(320f);
         propertyUpdateDTO.setCoveredArea(270f);
-        propertyUpdateDTO.setPrice(160000f);
+        propertyUpdateDTO.setPrice(BigDecimal.valueOf(160000.0));
         propertyUpdateDTO.setShowPrice(true);
-        propertyUpdateDTO.setExpenses(5200f);
+        propertyUpdateDTO.setExpenses(BigDecimal.valueOf(5200.0));
         propertyUpdateDTO.setCredit(true);
         propertyUpdateDTO.setFinancing(true);
         propertyUpdateDTO.setDescription("Casa renovada, ideal para familias numerosas.");
@@ -270,7 +272,7 @@ public class PropertyServiceTest {
         propertySimpleDTO = new PropertySimpleDTO();
         propertySimpleDTO.setId(1L);
         propertySimpleDTO.setTitle("Hermosa casa en venta");
-        propertySimpleDTO.setPrice(150000f);
+        propertySimpleDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertySimpleDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
         propertySimpleDTO.setDate(LocalDateTime.now());
         propertySimpleDTO.setMainImage("https://ejemplo.com/mainImage.jpg");
@@ -296,7 +298,7 @@ public class PropertyServiceTest {
         when(typeRepository.findById(1L)).thenReturn(Optional.of(type));
         when(amenityRepository.findById(1L)).thenReturn(Optional.of(amenities.iterator().next()));
 
-        when(propertyRepository.save(ArgumentMatchers.<Property>any())).thenReturn(property);
+        when(propertyRepository.save(ArgumentMatchers.any())).thenReturn(property);
 
         when(imageService.uploadImageToProperty(
                 eq(propertySaveDTO.getMainImage()),
@@ -305,7 +307,7 @@ public class PropertyServiceTest {
                 .thenReturn("https://example.com/mainImage.jpg");
 
         when(imageService.uploadImageToProperty(
-                ArgumentMatchers.<MultipartFile>any(),
+                ArgumentMatchers.any(),
                 anyLong(),
                 eq(false))
         ).thenReturn("https://example.com/extra.jpg");
@@ -352,7 +354,7 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenReturn(Optional.of(property));
         when(mapper.convertValue(propertyUpdateDTO, Property.class)).thenReturn(new Property());
-        when(propertyRepository.save(ArgumentMatchers.<Property>any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(propertyRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(imageService.uploadImageToProperty(newMainImage, id, true)).thenReturn("newImagePath.jpg");
         String newImagePath = imageService.uploadImageToProperty(newMainImage, id, true);
         property.setMainImage(newImagePath);
@@ -379,7 +381,7 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenReturn(Optional.of(property));
         when(mapper.convertValue(propertyUpdateDTO, Property.class)).thenReturn(new Property());
-        when(propertyRepository.save(ArgumentMatchers.<Property>any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(propertyRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<PropertyDTO> response = propertyService.updateProperty(id, propertyUpdateDTO);
 
@@ -398,7 +400,7 @@ public class PropertyServiceTest {
 
         when(propertyRepository.findById(id)).thenReturn(Optional.of(property));
 
-        when(propertyRepository.save(ArgumentMatchers.<Property>any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(propertyRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ResponseEntity<String> response = propertyService.updateStatus(id, newStatus);
 
@@ -489,7 +491,7 @@ public class PropertyServiceTest {
                 .thenReturn(propertyDTO.getNeighborhood());
 
         ResponseEntity<List<PropertyDTO>> response = propertyService.findBy(
-                0, 1000000,
+                BigDecimal.valueOf(0), BigDecimal.valueOf(100000),
                 0, 1000,
                 0, 500,
                 3,
@@ -734,7 +736,7 @@ public class PropertyServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> propertyService.findBy(
-                        0, 1000000,
+                        BigDecimal.valueOf(0), BigDecimal.valueOf(100000.0),
                         0, 1000,
                         0, 500,
                         3,
@@ -778,5 +780,41 @@ public class PropertyServiceTest {
                 () -> propertyService.getSimpleById(1L));
 
         assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void testCreateProperty_notificationThrowsException() {
+        when(mapper.convertValue(propertySaveDTO, PropertyUpdateDTO.class))
+                .thenReturn(propertyUpdateDTO);
+
+        when(mapper.convertValue(propertyUpdateDTO, Property.class))
+                .thenReturn(property);
+
+        when(ownerRepository.findById(1L)).thenReturn(Optional.of(owner));
+        when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhood));
+        when(typeRepository.findById(1L)).thenReturn(Optional.of(type));
+        when(amenityRepository.findById(1L)).thenReturn(Optional.of(amenities.iterator().next()));
+
+        when(propertyRepository.save(ArgumentMatchers.any())).thenReturn(property);
+
+        when(imageService.uploadImageToProperty(
+                eq(propertySaveDTO.getMainImage()),
+                anyLong(),
+                eq(true)))
+                .thenReturn("https://example.com/mainImage.jpg");
+
+        when(imageService.uploadImageToProperty(
+                ArgumentMatchers.any(),
+                anyLong(),
+                eq(false))
+        ).thenReturn("https://example.com/extra.jpg");
+
+        doThrow(new RuntimeException("Error al crear la notificación"))
+                .when(notificationRepository).createNotification(any(NotificationDTO.class), anyLong());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            propertyService.createProperty(propertySaveDTO));
+
+        assertEquals("Error al crear la notificación", exception.getMessage());
     }
 }

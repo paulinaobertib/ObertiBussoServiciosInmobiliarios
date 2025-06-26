@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +20,7 @@ import pi.ms_users.repository.IAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.AppointmentService;
-import pi.ms_users.service.impl.EmailService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,12 +41,12 @@ class AppointmentServiceTest {
     private IUserRepository userRepository;
 
     @Mock
-    private EmailService emailService;
+    private IEmailService emailService;
 
     // casos de exito
 
     @Test
-    void create_success() {
+    void create_success() throws MessagingException {
         Appointment appointment = new Appointment();
         appointment.setUserId("user123");
         appointment.setDate(LocalDateTime.now());

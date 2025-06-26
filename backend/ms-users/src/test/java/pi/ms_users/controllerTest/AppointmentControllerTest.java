@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import pi.ms_users.service.interf.IAppointmentService;
 
 @WebMvcTest(AppointmentController.class)
 @Import({AppointmentControllerTest.Config.class, WebSecurityConfig.class})
@@ -38,7 +39,7 @@ class AppointmentControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private AppointmentService appointmentService;
+    private IAppointmentService appointmentService;
 
     @TestConfiguration
     static class Config {
