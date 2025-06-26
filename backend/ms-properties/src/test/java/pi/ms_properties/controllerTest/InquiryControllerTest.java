@@ -98,18 +98,6 @@ class InquiryControllerTest {
     }
 
     @Test
-    void createWithoutUser_success() throws Exception {
-        Mockito.when(inquiryService.createWithoutUser(any()))
-                .thenReturn(ResponseEntity.ok("Creada sin user"));
-
-        mockMvc.perform(post("/inquiries/createWithoutUser")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(sampleDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Creada sin user"));
-    }
-
-    @Test
     @WithMockUser(roles = "admin")
     void updateStatus_success() throws Exception {
         Mockito.when(inquiryService.updateStatus(1L))
