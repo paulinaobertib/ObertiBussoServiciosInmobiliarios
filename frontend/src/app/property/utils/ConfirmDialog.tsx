@@ -5,7 +5,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Typography
+  Typography,
+  useTheme
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../utils/useLoading';
@@ -13,7 +14,8 @@ import { useLoading } from '../utils/useLoading';
 export function useConfirmDialog() {
   const [open, setOpen] = useState(false);
   const [message, setMsg] = useState<ReactNode>('');
-  const [onYes, setYes] = useState<() => Promise<void>>(() => async () => {});
+  const [onYes, setYes] = useState<() => Promise<void>>(() => async () => { });
+  const theme = useTheme()
 
   const { loading, run: runConfirm } = useLoading(useCallback(async () => {
     await onYes();
@@ -36,7 +38,7 @@ export function useConfirmDialog() {
           p: 2,
           width: '100%',
           maxWidth: 420,
-          bgcolor: '#fff',
+          bgcolor: 'white',
           boxShadow: 6,
         },
       }}
@@ -45,7 +47,7 @@ export function useConfirmDialog() {
         sx={{
           fontWeight: 700,
           fontSize: 20,
-          color: '#EF6C00',
+          color: theme.palette.primary.main,
           textAlign: 'center',
           pb: 0,
         }}

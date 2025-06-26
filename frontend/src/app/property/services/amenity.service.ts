@@ -5,7 +5,10 @@ import { Amenity, AmenityCreate } from "../types/amenity";
 
 export const getAllAmenities = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/amenity/getAll`);
+    const response = await axios.get(
+      `${apiUrl}/properties/amenity/getAll`,
+      { withCredentials: true }
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching amenities:", error);
@@ -16,7 +19,8 @@ export const getAllAmenities = async () => {
 export const getAmenityById = async (id: number) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/properties/amenity/getById/${id}`
+      `${apiUrl}/properties/amenity/getById/${id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -31,9 +35,8 @@ export const postAmenity = async (amenityData: AmenityCreate) => {
       `${apiUrl}/properties/amenity/create`,
       null,
       {
-        params: {
-          name: amenityData.name,
-        },
+        params: { name: amenityData.name },
+        withCredentials: true,
       }
     );
     return response.data;
@@ -47,7 +50,8 @@ export const putAmenity = async (amenityData: Amenity) => {
   try {
     const response = await axios.put(
       `${apiUrl}/properties/amenity/update`,
-      amenityData
+      amenityData,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -59,7 +63,8 @@ export const putAmenity = async (amenityData: Amenity) => {
 export const deleteAmenity = async (amenityData: Amenity) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/properties/amenity/delete/${amenityData.id}`
+      `${apiUrl}/properties/amenity/delete/${amenityData.id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -67,4 +72,3 @@ export const deleteAmenity = async (amenityData: Amenity) => {
     throw error;
   }
 };
-

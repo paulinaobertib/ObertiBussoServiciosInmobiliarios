@@ -7,7 +7,7 @@ import CategoryButton from '../app/property/components/CategoryButton';
 import CategoryItems from '../app/property/components/CategoryItems';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 
-export default function AdminPanel() {
+export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();
     const navigate = useNavigate();
 

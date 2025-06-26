@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function CommentForm({ action, item, onDone }: Props) {
-    const { refresh, pickedItem } = usePropertyCrud();
+    const { refreshComments, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Comment>({
@@ -37,21 +37,22 @@ export default function CommentForm({ action, item, onDone }: Props) {
         try {
             if (action === 'add') {
                 await postComment(form as CommentCreate);
-                showAlert('Comentario creado!', 'success');
+                showAlert('Comentario creado con éxito!', 'success');
             }
             if (action === 'edit' && item) {
                 await putComment(form);
-                showAlert('Comentario actualizado', 'success');
+                showAlert('Comentario actualizado con éxito', 'success');
             }
             if (action === 'delete' && item) {
                 await deleteComment(item);
-                showAlert('Comentario eliminado', 'success');
+                showAlert('Comentario eliminado con éxito', 'success');
             }
 
-            await refresh();
+            await refreshComments();
             onDone();
-        } catch {
-            showAlert('Error al trabajar con el comentario', 'error');
+        } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido al trabajar con el comentario';
+            showAlert(message, 'error');
         }
     };
 
