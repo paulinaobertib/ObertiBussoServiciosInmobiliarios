@@ -84,13 +84,21 @@ public class EmailService implements IEmailService {
             context.setVariable("phone", emailDTO.getPhone());
             context.setVariable("description", emailDTO.getDescription());
             context.setVariable("date", formatDate(emailDTO.getDate()));
-            context.setVariable("propertiesTitle", emailDTO.getPropertiesTitle());
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setTo("desarrolloinmobertibusso@gmail.com");
-            helper.setSubject("Nueva consulta de propiedad");
-            String content = templateEngine.process("email_inquiry", context);
+
+            String content;
+            if (emailDTO.getPropertiesTitle() == null || emailDTO.getPropertiesTitle().isEmpty()) {
+                helper.setSubject("Nueva consulta");
+                content = templateEngine.process("email_inquiry_without_property", context);
+            } else {
+                helper.setSubject("Nueva consulta de propiedad");
+                context.setVariable("propertiesTitle", emailDTO.getPropertiesTitle());
+                content = templateEngine.process("email_inquiry", context);
+            }
+
             helper.setText(content, true);
             javaMailSender.send(message);
         } catch (Exception e) {

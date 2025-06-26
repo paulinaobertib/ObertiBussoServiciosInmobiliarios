@@ -21,15 +21,9 @@ public class InquiryController {
 
     private final IInquiryService inquiryService;
 
-    @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestBody InquirySaveDTO inquirySaveDTO) {
         return inquiryService.create(inquirySaveDTO);
-    }
-
-    @PostMapping("/createWithoutUser")
-    public ResponseEntity<String> createWithoutUser(@RequestBody InquirySaveDTO inquirySaveDTO) {
-        return inquiryService.createWithoutUser(inquirySaveDTO);
     }
 
     @PreAuthorize("hasRole('admin')")

@@ -23,6 +23,7 @@ import pi.ms_properties.service.interf.IChatMessageService;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -76,21 +77,47 @@ class EmailServiceTest {
 
         assertDoesNotThrow(() -> emailService.sendEmailInquiry(dto));
 
-        ArgumentCaptor<String> templateNameCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<IContext> contextCaptor = ArgumentCaptor.forClass(IContext.class);
-
         verify(javaMailSender).send(mimeMessage);
-        verify(templateEngine).process(templateNameCaptor.capture(), contextCaptor.capture());
+        verify(templateEngine).process(templateNameCaptor.capture(), iContextCaptor.capture());
 
         assertEquals("email_inquiry", templateNameCaptor.getValue());
 
-        IContext context = contextCaptor.getValue();
+        IContext context = iContextCaptor.getValue();
         assertEquals("Juan", context.getVariable("firstName"));
         assertEquals("Pérez", context.getVariable("lastName"));
         assertEquals("juan@example.com", context.getVariable("email"));
         assertEquals("123456789", context.getVariable("phone"));
         assertEquals("Estoy interesado en una propiedad", context.getVariable("description"));
         assertEquals(List.of("Casa en el centro", "Departamento en las afueras"), context.getVariable("propertiesTitle"));
+    }
+
+    @Test
+    void sendEmailInquiry_withoutProperties_success() {
+        EmailDTO dto = new EmailDTO();
+        dto.setFirstName("Ana");
+        dto.setLastName("García");
+        dto.setEmail("ana@example.com");
+        dto.setPhone("987654321");
+        dto.setDescription("Consulta general sin propiedades");
+        dto.setDate(LocalDateTime.of(2024, 6, 1, 10, 15));
+        dto.setPropertiesTitle(Collections.emptyList());
+
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("email_inquiry_without_property"), any(IContext.class))).thenReturn("<html>Email sin propiedad</html>");
+
+        assertDoesNotThrow(() -> emailService.sendEmailInquiry(dto));
+
+        verify(javaMailSender).send(mimeMessage);
+        verify(templateEngine).process(templateNameCaptor.capture(), iContextCaptor.capture());
+
+        assertEquals("email_inquiry_without_property", templateNameCaptor.getValue());
+
+        IContext context = iContextCaptor.getValue();
+        assertEquals("Ana", context.getVariable("firstName"));
+        assertEquals("García", context.getVariable("lastName"));
+        assertEquals("ana@example.com", context.getVariable("email"));
+        assertEquals("987654321", context.getVariable("phone"));
+        assertEquals("Consulta general sin propiedades", context.getVariable("description"));
     }
 
     @Test

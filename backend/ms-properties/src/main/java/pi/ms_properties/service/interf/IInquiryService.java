@@ -13,8 +13,6 @@ import java.util.Map;
 public interface IInquiryService {
     ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO);
 
-    ResponseEntity<String> createWithoutUser(InquirySaveDTO inquirySaveDTO);
-
     ResponseEntity<String> updateStatus(Long id) throws MessagingException;
 
     ResponseEntity<Inquiry> getById(Long id);

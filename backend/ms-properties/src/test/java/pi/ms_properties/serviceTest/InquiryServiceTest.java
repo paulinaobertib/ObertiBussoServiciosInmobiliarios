@@ -102,19 +102,27 @@ class InquiryServiceTest {
     }
 
     @Test
-    void createWithoutUser_success() {
+    void create_withoutUser_success() {
         InquirySaveDTO dto = getSampleDTO();
         dto.setUserId(null);
+        dto.setFirstName("Ana");
+        dto.setLastName("García");
+        dto.setPhone("987654321");
+        dto.setEmail("ana@example.com");
+
         Property property = getSampleProperty();
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
         when(propertyRepository.findAllById(List.of(1L))).thenReturn(List.of(property));
 
-        ResponseEntity<String> response = inquiryService.createWithoutUser(dto);
+        ResponseEntity<String> response = inquiryService.create(dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(emailService).sendEmailInquiry(any());
         verify(inquiryRepository).save(any());
+
+        verify(userRepository, never()).findById(any());
+        verify(userRepository, never()).exist(any());
     }
 
     @Test
@@ -318,14 +326,6 @@ class InquiryServiceTest {
     }
 
     @Test
-    void testCreateWithoutUser_IllegalArgumentException() {
-        InquirySaveDTO invalidDto = new InquirySaveDTO();
-        invalidDto.setFirstName(null);
-
-        assertThrows(NullPointerException.class, () -> inquiryService.createWithoutUser(invalidDto));
-    }
-
-    @Test
     void testGetByStatus_IllegalArgumentException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
         when(inquiryRepository.getByStatus(status)).thenThrow(new IllegalArgumentException());
@@ -520,5 +520,12 @@ class InquiryServiceTest {
 
             assertThrows(AccessDeniedException.class, () -> inquiryService.create(dto));
         }
+    }
+
+    @Test
+    void create_invalidInput_shouldThrowException() {
+        InquirySaveDTO invalidDto = new InquirySaveDTO();
+
+        assertThrows(NullPointerException.class, () -> inquiryService.create(invalidDto));
     }
 }

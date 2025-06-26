@@ -39,24 +39,26 @@ public class InquiryService implements IInquiryService {
     private final SurveyService surveyService;
 
     private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
-        List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
-        for (Long propertyIdFind : propertyIds) {
-            Optional<Property> property = propertyRepository.findById(propertyIdFind);
-            if (property.isEmpty()) {
-                throw new IllegalArgumentException("No se ha encontrado la propiedad con id " + propertyIdFind);
-            }
-        }
-        List<Property> properties = propertyRepository.findAllById(propertyIds);
-
         Inquiry inquiry = new Inquiry();
         inquiry.setDate(LocalDateTime.now());
         inquiry.setTitle(inquirySaveDTO.getTitle());
         inquiry.setDescription(inquirySaveDTO.getDescription());
         inquiry.setStatus(InquiryStatus.ABIERTA);
-        inquiry.setProperties(properties);
 
-        for (Property property : properties) {
-            property.getInquiries().add(inquiry);
+        if (inquirySaveDTO.getPropertyIds() != null && !inquirySaveDTO.getPropertyIds().isEmpty()) {
+            List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
+            for (Long propertyIdFind : propertyIds) {
+                Optional<Property> property = propertyRepository.findById(propertyIdFind);
+                if (property.isEmpty()) {
+                    throw new IllegalArgumentException("No se ha encontrado la propiedad con id " + propertyIdFind);
+                }
+            }
+
+            List<Property> properties = propertyRepository.findAllById(propertyIds);
+            inquiry.setProperties(properties);
+            for (Property property : properties) {
+                property.getInquiries().add(inquiry);
+            }
         }
 
         return inquiry;
@@ -65,10 +67,6 @@ public class InquiryService implements IInquiryService {
     private ResponseEntity<String> saveAndSendEmail(InquirySaveDTO inquirySaveDTO, Inquiry inquiry) {
         inquiryRepository.save(inquiry);
 
-        List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
-        List<Property> properties = propertyRepository.findAllById(propertyIds);
-        List<String> titles = properties.stream().map(Property::getTitle).collect(Collectors.toList());
-
         EmailDTO emailDTO = new EmailDTO();
         emailDTO.setFirstName(inquiry.getFirstName());
         emailDTO.setLastName(inquiry.getLastName());
@@ -76,7 +74,13 @@ public class InquiryService implements IInquiryService {
         emailDTO.setPhone(inquiry.getPhone());
         emailDTO.setDescription(inquiry.getDescription());
         emailDTO.setDate(inquiry.getDate());
-        emailDTO.setPropertiesTitle(titles);
+
+        if (inquirySaveDTO.getPropertyIds() != null && !inquirySaveDTO.getPropertyIds().isEmpty()) {
+            List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
+            List<Property> properties = propertyRepository.findAllById(propertyIds);
+            List<String> titles = properties.stream().map(Property::getTitle).collect(Collectors.toList());
+            emailDTO.setPropertiesTitle(titles);
+        }
 
         emailService.sendEmailInquiry(emailDTO);
 
@@ -86,33 +90,30 @@ public class InquiryService implements IInquiryService {
     @Override
     @Transactional
     public ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO) {
-        if (SecurityUtils.isUser() &&
+        if (inquirySaveDTO.getUserId() != null && SecurityUtils.isUser() &&
                 !inquirySaveDTO.getUserId().equals(SecurityUtils.getCurrentUserId())) {
-            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+            throw new AccessDeniedException("No tiene el permiso para realizar esta acción.");
         }
 
         Inquiry inquiry = saveInquiry(inquirySaveDTO);
 
-        if (userRepository.exist(inquirySaveDTO.getUserId())) {
-            UserDTO userDTO = userRepository.findById(inquirySaveDTO.getUserId());
-            inquiry.setUserId(userDTO.getId());
-            inquiry.setPhone(userDTO.getPhone());
-            inquiry.setEmail(userDTO.getEmail());
-            inquiry.setFirstName(userDTO.getFirstName());
-            inquiry.setLastName(userDTO.getLastName());
+        if (inquirySaveDTO.getUserId() != null) {
+            if (userRepository.exist(inquirySaveDTO.getUserId())) {
+                UserDTO userDTO = userRepository.findById(inquirySaveDTO.getUserId());
+                inquiry.setUserId(userDTO.getId());
+                inquiry.setPhone(userDTO.getPhone());
+                inquiry.setEmail(userDTO.getEmail());
+                inquiry.setFirstName(userDTO.getFirstName());
+                inquiry.setLastName(userDTO.getLastName());
+            } else {
+                throw new IllegalArgumentException("No existe el usuario con id " + inquirySaveDTO.getUserId());
+            }
+        } else {
+            inquiry.setPhone(inquirySaveDTO.getPhone());
+            inquiry.setEmail(inquirySaveDTO.getEmail());
+            inquiry.setFirstName(inquirySaveDTO.getFirstName());
+            inquiry.setLastName(inquirySaveDTO.getLastName());
         }
-
-        return saveAndSendEmail(inquirySaveDTO, inquiry);
-    }
-
-    @Override
-    @Transactional
-    public ResponseEntity<String> createWithoutUser(InquirySaveDTO inquirySaveDTO) {
-        Inquiry inquiry = saveInquiry(inquirySaveDTO);
-        inquiry.setPhone(inquirySaveDTO.getPhone());
-        inquiry.setEmail(inquirySaveDTO.getEmail());
-        inquiry.setFirstName(inquirySaveDTO.getFirstName());
-        inquiry.setLastName(inquirySaveDTO.getLastName());
 
         return saveAndSendEmail(inquirySaveDTO, inquiry);
     }
