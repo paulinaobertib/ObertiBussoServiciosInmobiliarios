@@ -78,9 +78,8 @@ class UserViewServiceTest {
     void create_shouldThrowDataIntegrityViolationException() {
         doThrow(new DataIntegrityViolationException("Duplicado")).when(userViewRepository).save(any());
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            userViewService.create(userView);
-        });
+        assertThrows(DataIntegrityViolationException.class, () ->
+            userViewService.create(userView));
 
         verify(userViewRepository).save(userView);
     }
@@ -89,9 +88,8 @@ class UserViewServiceTest {
     void create_shouldThrowIllegalArgumentException() {
         doThrow(new IllegalArgumentException("Argumento inválido")).when(userViewRepository).save(any());
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            userViewService.create(userView);
-        });
+        assertThrows(IllegalArgumentException.class, () ->
+            userViewService.create(userView));
 
         verify(userViewRepository).save(userView);
     }

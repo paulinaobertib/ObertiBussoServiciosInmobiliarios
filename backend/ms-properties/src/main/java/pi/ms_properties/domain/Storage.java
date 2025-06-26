@@ -1,11 +1,7 @@
 package pi.ms_properties.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 // es la clase para poder administrar las imagenes de blob

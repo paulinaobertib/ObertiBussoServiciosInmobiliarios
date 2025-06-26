@@ -87,9 +87,8 @@ class GeminiServiceTest {
         property.setAddress("Córdoba");
         property.setPrice(150000.0F);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            geminiService.compareProperties(List.of(property));
-        });
+        Exception exception = assertThrows(RuntimeException.class, () ->
+            geminiService.compareProperties(List.of(property)));
 
         String expectedMessage = "500";
         String actualMessage = exception.getMessage();

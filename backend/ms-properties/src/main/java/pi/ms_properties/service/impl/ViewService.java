@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class ViewService implements IViewService {
 
     private final IViewRepository viewRepository;
+
     private final IPropertyRepository propertyRepository;
 
     @Override

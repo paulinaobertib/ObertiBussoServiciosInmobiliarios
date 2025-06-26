@@ -1,5 +1,6 @@
 package pi.ms_users.service.impl;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import pi.ms_users.repository.IAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IAppointmentService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.util.List;
 
@@ -24,10 +26,10 @@ public class AppointmentService implements IAppointmentService {
 
     private final IUserRepository userRepository;
 
-    private final EmailService emailService;
+    private final IEmailService emailService;
 
     @Override
-    public ResponseEntity<Appointment> create(Appointment appointment) {
+    public ResponseEntity<Appointment> create(Appointment appointment) throws MessagingException {
         User user = userRepository.findById(appointment.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario"));
 

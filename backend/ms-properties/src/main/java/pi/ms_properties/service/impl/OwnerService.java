@@ -24,7 +24,9 @@ import java.util.List;
 public class OwnerService implements IOwnerService {
 
     private final IOwnerRepository ownerRepository;
+
     private final IPropertyRepository propertyRepository;
+
     private final ContractRepository contractRepository;
 
     private static ContractDTO getContractDTO(ContractDTO contract) {
@@ -46,7 +48,7 @@ public class OwnerService implements IOwnerService {
         try {
             ownerRepository.save(owner);
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("El mail '" + owner.getMail() + "' ya existe");
+            throw new IllegalArgumentException("El email '" + owner.getEmail() + "' ya existe");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario");
     }

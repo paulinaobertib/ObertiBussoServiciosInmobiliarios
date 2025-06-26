@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Type;
-import pi.ms_properties.service.impl.TypeService;
+import pi.ms_properties.service.interf.ITypeService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/type")
 public class TypeController {
 
-    private final TypeService typeService;
+    private final ITypeService typeService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")

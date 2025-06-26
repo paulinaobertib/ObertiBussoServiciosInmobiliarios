@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.repository.feign.FeignPropertyRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 
@@ -29,15 +29,15 @@ public class PropertyRepositoryTest {
     @Test
     void getById_returnsPropertySuccessfully() {
         Long propertyId = 1L;
-        Property mockProperty = new Property(
+        PropertyDTO mockPropertyDTO = new PropertyDTO(
                 propertyId, "Casa en venta", 100000f, "Linda casa",
                 LocalDateTime.now(), "imagen.jpg", "DISPONIBLE", "VENTA",
                 "USD", "Centro", "Casa");
 
         when(feignPropertyRepository.getSimpleById(propertyId))
-                .thenReturn(ResponseEntity.ok(mockProperty));
+                .thenReturn(ResponseEntity.ok(mockPropertyDTO));
 
-        Property result = propertyRepository.getById(propertyId);
+        PropertyDTO result = propertyRepository.getById(propertyId);
 
         assertNotNull(result);
         assertEquals("Casa en venta", result.getTitle());

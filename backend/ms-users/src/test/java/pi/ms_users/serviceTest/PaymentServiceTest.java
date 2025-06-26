@@ -150,9 +150,9 @@ class PaymentServiceTest {
     void createPayment_contractNotFound_shouldThrow() {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.createPayment(payment);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.createPayment(payment));
+
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
         verify(paymentRepository, never()).save(any());
     }
@@ -161,9 +161,9 @@ class PaymentServiceTest {
     void updatePayment_contractNotFound_shouldThrow() {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.updatePayment(payment);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.updatePayment(payment));
+
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
         verify(paymentRepository, never()).save(any());
     }
@@ -173,9 +173,9 @@ class PaymentServiceTest {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
         when(paymentRepository.findById(payment.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.updatePayment(payment);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.updatePayment(payment));
+
         assertEquals("No se ha encontrado el pago que se solicita editar", ex.getMessage());
         verify(paymentRepository, never()).save(any());
     }
@@ -184,9 +184,9 @@ class PaymentServiceTest {
     void deletePayment_paymentNotFound_shouldThrow() {
         when(paymentRepository.findById(payment.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.deletePayment(payment.getId());
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.deletePayment(payment.getId()));
+
         assertEquals("No se ha encontrado el pago que se solicita eliminar", ex.getMessage());
         verify(paymentRepository, never()).delete(any());
     }
@@ -195,9 +195,9 @@ class PaymentServiceTest {
     void getById_paymentNotFound_shouldThrow() {
         when(paymentRepository.findById(payment.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.getById(payment.getId());
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.getById(payment.getId()));
+
         assertEquals("No se ha encontrado el pago solicitado", ex.getMessage());
     }
 
@@ -205,9 +205,9 @@ class PaymentServiceTest {
     void getByContractId_contractNotFound_shouldThrow() {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.getByContractId(contract.getId());
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.getByContractId(contract.getId()));
+
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
     }
 
@@ -216,9 +216,9 @@ class PaymentServiceTest {
         LocalDateTime date = LocalDateTime.now();
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.getByDate(contract.getId(), date);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.getByDate(contract.getId(), date));
+
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
     }
 
@@ -228,9 +228,8 @@ class PaymentServiceTest {
         LocalDateTime end = LocalDateTime.now();
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            paymentService.getByDateBetween(contract.getId(), start, end);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            paymentService.getByDateBetween(contract.getId(), start, end));
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
     }
 
