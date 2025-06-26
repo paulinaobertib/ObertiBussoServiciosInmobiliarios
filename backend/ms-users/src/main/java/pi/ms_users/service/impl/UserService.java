@@ -63,6 +63,11 @@ public class UserService implements IUserService {
     }
 
     public ResponseEntity<User> findById(String id) {
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario con ID: " + id));
         return ResponseEntity.ok(user);

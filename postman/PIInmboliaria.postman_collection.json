@@ -3505,7 +3505,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"id\": 1,\r\n  \"userId\": \"f135f4b2-f24e-40d6-80cd-27ed880c5387\",\r\n  \"title\": \"Consulta sobre propiedad\",\r\n  \"description\": \"Estoy interesado en saber más sobre la propiedad.\",\r\n  \"propertyIds\": [1, 2]\r\n}\r\n",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"userId\": \"9c028d7c-76a8-430a-83b5-9a2f5caefae6\",\r\n  \"title\": \"Consulta sobre propiedad\",\r\n  \"description\": \"Estoy interesado en saber más sobre la propiedad.\",\r\n  \"propertyIds\": [1, 2]\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -3542,7 +3542,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8083/inquiries/createWithoutUser",
+									"raw": "http://localhost:8083/inquiries/create",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3550,7 +3550,7 @@
 									"port": "8083",
 									"path": [
 										"inquiries",
-										"createWithoutUser"
+										"create"
 									]
 								}
 							},
@@ -4413,6 +4413,114 @@
 										"inquiries",
 										"statistics",
 										"properties"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "createWithouPropertyUser",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"userId\": \"9c028d7c-76a8-430a-83b5-9a2f5caefae6\",\r\n  \"title\": \"Consulta sin propiedad y con usuario\",\r\n  \"description\": \"Estoy interesado en saber más sobre la propiedad.\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/inquiries/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"inquiries",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "creteWithoutUserAndProperty",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"phone\": \"123456789\",\r\n  \"email\": \"juan@example.com\",\r\n  \"firstName\": \"Juan\",\r\n  \"lastName\": \"Pérez\",\r\n  \"title\": \"Consulta sin propiedad y sin usuario\",\r\n  \"description\": \"Estoy interesado en saber más sobre la propiedad.\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/inquiries/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"inquiries",
+										"create"
 									]
 								}
 							},

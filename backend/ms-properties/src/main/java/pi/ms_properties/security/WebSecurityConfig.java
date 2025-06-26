@@ -41,7 +41,7 @@ public class WebSecurityConfig {
                                 "/type/getById/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/inquiries/createWithoutUser",
+                                "/inquiries/create",
                                 "/survey/create",
                                 "/compare/**",
                                 "/chat/message",
