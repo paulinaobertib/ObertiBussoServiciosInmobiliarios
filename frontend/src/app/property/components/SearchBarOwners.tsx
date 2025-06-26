@@ -39,15 +39,14 @@ export default function SearchBarOwner({ onSearch, debounceMs = 300 }: Props) {
     <TextField
       label="Buscar propietario"
       size="small"
-      placeholder="Buscar propietario…"
       value={query}
       onChange={e => setQuery(e.target.value)}
       InputProps={{
         endAdornment: loading ? <CircularProgress size={18} /> : null,
       }}
       sx={{
-        minWidth: '250px',
-        backgroundColor: '#f8f8f8',
+        width: '40%',
+        backgroundColor: 'white',
         mr: 2,
       }}
     />

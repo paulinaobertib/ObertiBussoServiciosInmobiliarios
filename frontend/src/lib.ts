@@ -1,16 +1,16 @@
-// const BASE_URL = import.meta.env.VITE_BASE_URL;
-// console.log("Base URL del frontend:", BASE_URL);
-
 export const ROUTES = {
   HOME_APP: "/",
   NEW_PROPERTY: `/properties/new`,
   EDIT_PROPERTY: `/properties/:id/edit`,
-  LOGIN: `/login`,
   COMPARE: "/properties/compare",
   PROPERTY_DETAILS: "/properties/:id",
   ADMIN_PANEL: "/panel",
+  USER_PROFILE: "/profile",
   PROPERTY_COMMENTS: "/properties/:id/comments",
   PROPERTY_MAINTENANCE: "/properties/:id/maintenance",
+  CONTACT: "/contact",
+  NEWS: "/news",
+  FAVORITES: "/favorites"
 };
 
 export const PAGES = [
@@ -20,6 +20,11 @@ export const PAGES = [
   { name: "Comparar Propiedades", url: ROUTES.COMPARE },
   { name: "Detalle de Propiedad", url: ROUTES.PROPERTY_DETAILS },
   { name: "Panel de Administrador", url: ROUTES.ADMIN_PANEL },
+  { name: "Perfil de Usuario", url: ROUTES.USER_PROFILE },
   { name: "Comentarios de Propiedad", url: ROUTES.PROPERTY_COMMENTS },
   { name: "Mantenimiento de Propiedad", url: ROUTES.PROPERTY_MAINTENANCE },
+  { name: "Contacto de la Inmobiliarioa", url: ROUTES.CONTACT },
+  { name: "Noticias", url: ROUTES.NEWS },
+  { name: "Favoritos", url: ROUTES.FAVORITES },
+
 ];

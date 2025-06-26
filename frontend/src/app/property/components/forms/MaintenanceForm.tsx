@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function MaintenanceForm({ action, item, onDone }: Props) {
-    const { refresh, pickedItem } = usePropertyCrud();
+    const { refreshMaintenances, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
     const [form, setForm] = useState<Maintenance>({
@@ -40,21 +40,22 @@ export default function MaintenanceForm({ action, item, onDone }: Props) {
         try {
             if (action === 'add') {
                 await postMaintenance(form as MaintenanceCreate);
-                showAlert('¡Mantenimiento creado!', 'success');
+                showAlert('Mantenimiento creado con éxito!', 'success');
             }
             if (action === 'edit' && item) {
                 await putMaintenance(form);
-                showAlert('Mantenimiento actualizado', 'success');
+                showAlert('Mantenimiento actualizado con éxito', 'success');
             }
             if (action === 'delete' && item) {
                 await deleteMaintenance(item);
-                showAlert('Mantenimiento eliminado', 'success');
+                showAlert('Mantenimiento eliminado con éxito', 'success');
             }
 
-            await refresh();
+            await refreshMaintenances();
             onDone();
-        } catch {
-            showAlert('Error al trabajar con el mantenimiento', 'error');
+        } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
         }
     };
 

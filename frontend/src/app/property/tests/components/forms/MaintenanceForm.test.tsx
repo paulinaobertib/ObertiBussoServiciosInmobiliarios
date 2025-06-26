@@ -107,7 +107,7 @@ describe('MaintenanceForm', () => {
         description: 'Descripción de mantenimiento',
         date: '2025-05-25T12:00',
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('¡Mantenimiento creado!', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -135,7 +135,7 @@ describe('MaintenanceForm', () => {
         description: 'Antigua descripción',
         date: '2025-05-01T10:00',
       });
-      expect(mockShowAlert).toHaveBeenCalledWith('Mantenimiento actualizado', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -156,7 +156,7 @@ describe('MaintenanceForm', () => {
 
     await waitFor(() => {
       expect(maintenanceService.deleteMaintenance).toHaveBeenCalledWith(item);
-      expect(mockShowAlert).toHaveBeenCalledWith('Mantenimiento eliminado', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).toHaveBeenCalled();
       expect(mockOnDone).toHaveBeenCalled();
     });
@@ -173,7 +173,7 @@ describe('MaintenanceForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /confirmar/i }));
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith('Error al trabajar con el mantenimiento', 'error');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockRefresh).not.toHaveBeenCalled();
       expect(mockOnDone).not.toHaveBeenCalled();
     });

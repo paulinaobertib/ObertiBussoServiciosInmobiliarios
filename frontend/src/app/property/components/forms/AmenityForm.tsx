@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function AmenityForm({ action, item, onDone }: Props) {
-    const { refresh } = usePropertyCrud();
+    const { refreshAmenities } = usePropertyCrud();
     const [name, setName] = useState(item?.name ?? '');
     const { showAlert } = useGlobalAlert();
 
@@ -34,10 +34,13 @@ export default function AmenityForm({ action, item, onDone }: Props) {
                 await deleteAmenity(item!);
                 showAlert('¡Servicio eliminado con éxito!', 'success');;
             }
-            await refresh();
+
+            await refreshAmenities();
             onDone();
-        } catch {
-            showAlert('Error al trabajar con el servicio', 'error');
+
+        } catch (error: any) {
+            const message = error.response?.data ?? 'Error desconocido';
+            showAlert(message, 'error');
         }
     };
 

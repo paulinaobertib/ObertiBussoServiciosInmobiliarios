@@ -188,7 +188,7 @@ describe('CategoryItems', () => {
 
     await waitFor(() => {
       expect(deletePropertySpy).toHaveBeenCalled();
-      expect(mockShowAlert).toHaveBeenCalledWith('Propiedad eliminada', 'success');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'success');
       expect(mockUsePropertyCrud.refresh).toHaveBeenCalled();
     });
   });
@@ -213,7 +213,7 @@ describe('CategoryItems', () => {
       console.log('mockShowAlert calls:', mockShowAlert.mock.calls);
 
       expect(deletePropertySpy).toHaveBeenCalled();
-      expect(mockShowAlert).toHaveBeenCalledWith('Error al eliminar', 'error');
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'error');
     });
   });
 

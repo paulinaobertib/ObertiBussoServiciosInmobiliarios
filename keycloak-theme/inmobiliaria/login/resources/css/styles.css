@@ -1,0 +1,322 @@
+/* ============================
+   Reset y fuentes (sin cambios)
+   ============================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* — Variables para anchos y paddings comunes — */
+:root {
+  --container-min: 260px;
+  --container-max: 500px;
+  --container-width: clamp(var(--container-min), 90vw, var(--container-max));
+  --container-padding: clamp(1rem, 8vw, 2rem);
+}
+
+html, body {
+  height: 100%;
+  min-height: 100vh;
+  font-family: sans-serif;
+  /* background: #FAB360; */
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 214, 168, .274), rgba(255, 198, 133, .274)),
+    url('../fondo1.jpg') center/cover no-repeat;
+  filter: blur(7px);
+  z-index: -1;
+}
+
+/* =========================================
+   Layout principal: columna única centrada
+   ========================================= */
+.login-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Contenedor de logo + formulario + frases */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; 
+  height: 100vh; 
+  z-index: 1;
+  padding-top: 1rem;
+}
+
+/* ==========
+   Logo arriba
+   ========== */
+.login-logo {
+  width: clamp(300px, 30vw, 400px);
+  z-index: 2;
+}
+
+.login-logo img {
+  width: 100%;
+}
+
+
+/* ===========================
+   Caja del formulario en medio
+   =========================== */
+
+.login-form-box,
+.phrase-box {
+  width: var(--container-width);
+  padding: var(--container-padding);
+  border-radius: .6rem;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,.13);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.login-form-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+
+/* Títulos y descripciones dentro de login-form-box */
+.welcome-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: .3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.welcome-desc {
+  font-size: 0.9rem;
+  color: #000;
+  margin-bottom: clamp(.9rem, 2vw, 1.35rem);
+  text-align: center;
+  font-weight: 400;
+}
+
+/* — Formularios (login/register) — */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  transition: opacity .18s;
+}
+
+/* Filas de inputs */
+.input-row {
+  display: flex;
+  gap: clamp(0.5rem, 2vw, 1rem);
+}
+
+.input-row > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inputs */
+.auth-form input {
+  width: 100%;
+  font-size: 1rem;
+  padding: .6rem;
+  margin-bottom: .6rem;
+  border: 1px solid #fad6ac;
+  border-radius: 7px;
+  background: #fff9f4;
+  color: #2b2b2b;
+  transition: border-color .18s;
+}
+
+.auth-form input:focus {
+  border-color: #ee671e;
+  outline: none;
+  background: #fffbe7;
+}
+
+/* — Toggle password — */
+.password-wrapper {
+  position: relative;
+}
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 40%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.material-icons {
+  font-size: 10px;
+  color: gray;
+}
+
+
+
+/* ================
+   Botones & acciones
+   ================ */
+.form-actions {
+  margin-top: 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.or-text {
+  text-align: center;
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.btn-primary,
+.google-btn {
+  width: 100%;
+  min-width: 200px;
+  padding: .73rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.1);
+  transition: background-color .3s;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 2.5rem;
+}
+
+.btn-primary {
+  background: #000000;
+  border: none;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #383838;
+  border: none;
+  color: #fff;
+}
+
+.google-btn {
+  background: #fff;
+  border: 1px solid #ee671e;
+  color: #000;
+  gap: 1rem;
+}
+
+.google-btn:hover {
+  background: #dedede;
+}
+
+.google-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* ==========
+   Footer toggle
+   ========== */
+.url-footer {
+  text-align: center;
+  margin-top: 1rem;
+  color: #000;
+}
+.url-footer a {
+  color: #ee671e;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color .2s;
+}
+.url-footer a:hover {
+  color: #d87700;
+}
+
+/* — Olvidaste contraseña — */
+.forgot-password {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.forgot-password a {
+  font-size: .9rem;
+  color: #000;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color .2s;
+}
+.forgot-password a:hover {
+  color: #d87700;
+  text-decoration: underline;
+}
+
+/* ================================
+   Frase rotativa abajo del form
+   ================================ */
+.phrase-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(40px, 10vw, 60px);
+  background: rgba(255,255,255, .8);
+  text-align: center;
+  margin-top: clamp(.5rem, 3vw, 1.5rem);
+    margin-bottom: 1rem;
+
+}
+.phrase-box p {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #554333;
+}
+
+/* =================================
+   Móvil (max-width: 900px) — columna
+   ================================= */
+@media (max-width: 600px) {
+  :root {
+    --container-padding: 1.2rem;
+  }
+}
+
+/* ========== Caja de error con mismo estilo que el login/registro ========== */
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #c04828;
+  margin-bottom: .8rem;
+  text-align: center;
+}
+
+.error-message {
+  color: #272727;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}

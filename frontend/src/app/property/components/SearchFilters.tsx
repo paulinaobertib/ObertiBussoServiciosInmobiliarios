@@ -206,7 +206,7 @@ export default function SearchFilters({ onSearch }: Props) {
         </Box>
       )}
       <CardContent>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: '#EF6C00', mb: 2, textAlign: 'center' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
           Filtros de Búsqueda
         </Typography>
 
@@ -499,6 +499,9 @@ export default function SearchFilters({ onSearch }: Props) {
                 startIcon={<RefreshIcon />}
                 onClick={() => runCancel()}
                 loading={loadingCancel}
+                sx={{
+                  borderColor: theme.palette.primary.main,
+                }}
               >
                 Cancelar
               </LoadingButton>
@@ -508,6 +511,9 @@ export default function SearchFilters({ onSearch }: Props) {
                 size="medium"
                 onClick={() => runSearch()}
                 loading={loadingSearch}
+                sx={{
+                  bgcolor: theme.palette.primary.main,
+                }}
               >
                 Buscar
               </LoadingButton>
