@@ -53,7 +53,7 @@ if ($env:MVNW_VERBOSE -eq "true") {
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties
 $distributionUrl = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionUrl
 if (!$distributionUrl) {
-  Write-Error "cannot read distributionUrl property in $scriptDir/.mvn/wrapper/maven-wrapper.properties"
+  Write-Error "cannot read distributionUrl propertyDTO in $scriptDir/.mvn/wrapper/maven-wrapper.properties"
 }
 
 switch -wildcard -casesensitive ( $($distributionUrl -replace '^.*/','') ) {
@@ -128,7 +128,7 @@ if ($distributionSha256Sum) {
   }
   Import-Module $PSHOME\Modules\Microsoft.PowerShell.Utility -Function Get-FileHash
   if ((Get-FileHash "$TMP_DOWNLOAD_DIR/$distributionUrlName" -Algorithm SHA256).Hash.ToLower() -ne $distributionSha256Sum) {
-    Write-Error "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised. If you updated your Maven version, you need to update the specified distributionSha256Sum property."
+    Write-Error "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised. If you updated your Maven version, you need to update the specified distributionSha256Sum propertyDTO."
   }
 }
 

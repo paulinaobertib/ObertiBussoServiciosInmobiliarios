@@ -1,7 +1,6 @@
 package pi.ms_properties.dto;
 
 import lombok.Data;
-import pi.ms_properties.domain.ChatOption;
 
 import java.util.List;
 

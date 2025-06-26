@@ -157,9 +157,8 @@ class SurveyServiceTest {
     void sendSurvey_internalServerError() throws MessagingException {
         doThrow(RuntimeException.class).when(emailService).sendEmailSurvey(anyString(), anyLong());
 
-        assertThrows(RuntimeException.class, () -> {
-            surveyService.sendSurvey("fail@example.com", 1L);
-        });
+        assertThrows(RuntimeException.class, () ->
+            surveyService.sendSurvey("fail@example.com", 1L));
     }
 
     @Test
@@ -168,9 +167,8 @@ class SurveyServiceTest {
 
         SurveyDTO dto = new SurveyDTO(null, 3, "Normal", 1L);
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            surveyService.create(dto);
-        });
+        assertThrows(EntityNotFoundException.class, () ->
+            surveyService.create(dto));
     }
 
     @Test
@@ -180,27 +178,24 @@ class SurveyServiceTest {
 
         SurveyDTO dto = new SurveyDTO(null, 3, "Normal", 1L);
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            surveyService.create(dto);
-        });
+        assertThrows(DataIntegrityViolationException.class, () ->
+            surveyService.create(dto));
     }
 
     @Test
     void getById_notFound() {
         when(surveyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            surveyService.getById(1L);
-        });
+        assertThrows(EntityNotFoundException.class, () ->
+            surveyService.getById(1L));
     }
 
     @Test
     void getAll_internalServerError() {
         when(surveyRepository.findAll()).thenThrow(RuntimeException.class);
 
-        assertThrows(RuntimeException.class, () -> {
-            surveyService.getAll();
-        });
+        assertThrows(RuntimeException.class, () ->
+            surveyService.getAll());
     }
 
     @Test
@@ -208,9 +203,8 @@ class SurveyServiceTest {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(emailService).sendEmailSurvey(anyString(), anyLong());
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            surveyService.sendSurvey("test@email.com", 1L);
-        });
+        assertThrows(DataIntegrityViolationException.class, () ->
+            surveyService.sendSurvey("test@email.com", 1L));
     }
 
     @Test
@@ -223,9 +217,8 @@ class SurveyServiceTest {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(surveyRepository).save(any(Survey.class));
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            surveyService.create(surveyDTO);
-        });
+        assertThrows(DataIntegrityViolationException.class, () ->
+            surveyService.create(surveyDTO));
     }
 
     @Test
@@ -233,9 +226,8 @@ class SurveyServiceTest {
         when(surveyRepository.findById(1L))
                 .thenThrow(new DataIntegrityViolationException("Violation"));
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            surveyService.getById(1L);
-        });
+        assertThrows(DataIntegrityViolationException.class, () ->
+            surveyService.getById(1L));
     }
 
     @Test
@@ -243,8 +235,7 @@ class SurveyServiceTest {
         when(surveyRepository.findAll())
                 .thenThrow(new DataIntegrityViolationException("Violation"));
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
-            surveyService.getAll();
-        });
+        assertThrows(DataIntegrityViolationException.class, () ->
+            surveyService.getAll());
     }
 }

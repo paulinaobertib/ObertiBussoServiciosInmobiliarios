@@ -8,6 +8,7 @@ import pi.ms_properties.domain.Property;
 import java.math.BigDecimal;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class PropertySpecification {
 
     public static Specification<Property> hasPriceFrom(BigDecimal priceFrom) {

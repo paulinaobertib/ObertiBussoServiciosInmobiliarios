@@ -17,7 +17,7 @@ import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.KeycloakUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.ContractIncreaseService;
-import pi.ms_users.service.impl.EmailService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,6 +28,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 class ContractIncreaseServiceTest {
 
@@ -38,7 +39,7 @@ class ContractIncreaseServiceTest {
     private IContractRepository contractRepository;
 
     @Mock
-    private EmailService emailService;
+    private IEmailService emailService;
 
     @Mock
     private ObjectMapper objectMapper;

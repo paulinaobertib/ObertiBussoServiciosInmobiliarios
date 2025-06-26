@@ -77,9 +77,8 @@ class FavoriteRepositoryTest {
         when(feignUserRepository.getByUserIdInternal(userId))
                 .thenReturn(null);
 
-        assertThrows(NullPointerException.class, () -> {
-            favoriteRepository.getFavorites(userId).size();
-        });
+        assertThrows(NullPointerException.class, () ->
+            favoriteRepository.getFavorites(userId).size());
 
         verify(feignUserRepository).getByUserIdInternal(userId);
     }
@@ -99,9 +98,8 @@ class FavoriteRepositoryTest {
         when(feignUserRepository.getAllUsers())
                 .thenReturn(null);
 
-        assertThrows(NullPointerException.class, () -> {
-            favoriteRepository.findAllUserIds().size();
-        });
+        assertThrows(NullPointerException.class, () ->
+            favoriteRepository.findAllUserIds().size());
 
         verify(feignUserRepository).getAllUsers();
     }

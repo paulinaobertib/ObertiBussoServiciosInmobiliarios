@@ -1,5 +1,6 @@
 package pi.ms_users.controller;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,7 @@ public class AppointmentController {
     private final IAppointmentService appointmentService;
 
     @PostMapping("/create")
-    public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {
+    public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) throws MessagingException {
         return appointmentService.create(appointment);
     }
 

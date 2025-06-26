@@ -39,7 +39,7 @@ class MLClientTest {
         double expected = 0.87;
 
         String expectedUrl = UriComponentsBuilder
-                .fromHttpUrl("http://localhost:5000/predict")
+                .fromUriString("http://localhost:5000/predict")
                 .queryParam("user_id", userId)
                 .queryParam("property_id", propertyId)
                 .toUriString();
@@ -59,7 +59,7 @@ class MLClientTest {
         Long propertyId = 10L;
 
         String expectedUrl = UriComponentsBuilder
-                .fromHttpUrl("http://localhost:5000/predict")
+                .fromUriString("http://localhost:5000/predict")
                 .queryParam("user_id", userId)
                 .queryParam("property_id", propertyId)
                 .toUriString();
