@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.InquiryController;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.interf.IInquiryService;
@@ -111,22 +112,52 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void getById_success() throws Exception {
+        InquiryGetDTO sampleDTO = new InquiryGetDTO();
+        sampleDTO.setId(1L);
+        sampleDTO.setFirstName("Juan");
+        sampleDTO.setLastName("Pérez");
+        sampleDTO.setEmail("juan@example.com");
+        sampleDTO.setPhone("123456789");
+        sampleDTO.setTitle("Consulta");
+        sampleDTO.setDescription("Descripción");
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+        sampleDTO.setDate(LocalDateTime.now());
+        sampleDTO.setPropertyTitles(List.of("Propiedad A"));
+
         Mockito.when(inquiryService.getById(1L))
-                .thenReturn(ResponseEntity.ok(sampleInquiry));
+                .thenReturn(ResponseEntity.ok(sampleDTO));
 
         mockMvc.perform(get("/inquiries/getById/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.firstName").value("Juan"))
+                .andExpect(jsonPath("$.propertyTitles[0]").value("Propiedad A"));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getAll_success() throws Exception {
+        InquiryGetDTO sampleDTO = new InquiryGetDTO();
+        sampleDTO.setId(1L);
+        sampleDTO.setFirstName("Juan");
+        sampleDTO.setLastName("Pérez");
+        sampleDTO.setEmail("juan@example.com");
+        sampleDTO.setPhone("123456789");
+        sampleDTO.setTitle("Consulta");
+        sampleDTO.setDescription("Descripción");
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+        sampleDTO.setDate(LocalDateTime.now());
+        sampleDTO.setPropertyTitles(List.of("Propiedad A"));
+
         Mockito.when(inquiryService.getAll())
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].firstName").value("Juan"))
+                .andExpect(jsonPath("$[0].propertyTitles[0]").value("Propiedad A"));
     }
 
     @Test
