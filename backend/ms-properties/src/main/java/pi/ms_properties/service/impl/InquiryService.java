@@ -29,9 +29,13 @@ import java.util.stream.Collectors;
 public class InquiryService implements IInquiryService {
 
     private final IInquiryRepository inquiryRepository;
+
     private final IPropertyRepository propertyRepository;
+
     private final UserRepository userRepository;
+
     private final EmailService emailService;
+
     private final SurveyService surveyService;
 
     private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
@@ -219,7 +223,7 @@ public class InquiryService implements IInquiryService {
                 ));
         Map<String, Long> result = grouped.entrySet().stream()
                 .collect(Collectors.toMap(
-                        e -> e.getKey().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                        e -> e.getKey().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")),
                         Map.Entry::getValue
                 ));
         return ResponseEntity.ok(result);

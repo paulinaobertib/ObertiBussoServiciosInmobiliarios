@@ -16,7 +16,7 @@ public class MLClient {
     public double predict(String userId, Long propertyId) {
         try {
             String url = UriComponentsBuilder
-                    .fromHttpUrl(mlApiUrl + "/predict")
+                    .fromUriString(mlApiUrl + "/predict")
                     .queryParam("user_id", userId)
                     .queryParam("property_id", propertyId)
                     .toUriString();

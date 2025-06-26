@@ -24,7 +24,9 @@ import java.util.List;
 public class OwnerService implements IOwnerService {
 
     private final IOwnerRepository ownerRepository;
+
     private final IPropertyRepository propertyRepository;
+
     private final ContractRepository contractRepository;
 
     private static ContractDTO getContractDTO(ContractDTO contract) {

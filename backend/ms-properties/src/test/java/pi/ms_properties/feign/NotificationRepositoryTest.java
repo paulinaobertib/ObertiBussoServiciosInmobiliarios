@@ -72,9 +72,8 @@ public class NotificationRepositoryTest {
         doThrow(new RuntimeException("Feign client failed"))
                 .when(feignUserRepository).createPropertyInterest(userId, type, propertyId);
 
-        assertThrows(RuntimeException.class, () -> {
-            notificationRepository.createPropertyInterest(userId, type, propertyId);
-        });
+        assertThrows(RuntimeException.class, () ->
+            notificationRepository.createPropertyInterest(userId, type, propertyId));
 
         verify(feignUserRepository, times(1)).createPropertyInterest(userId, type, propertyId);
     }

@@ -5,7 +5,6 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -21,6 +20,7 @@ import pi.ms_users.service.impl.EmailService;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Repository
 @RequiredArgsConstructor
 public class KeycloakUserRepository implements IUserRepository {
@@ -229,7 +229,7 @@ public class KeycloakUserRepository implements IUserRepository {
                 .clientLevel(client.getId())
                 .listAll();
 
-        return new ArrayList<>(clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
+        return clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList());
     }
 
     @Override

@@ -19,7 +19,6 @@ import pi.ms_properties.controller.OwnerController;
 import pi.ms_properties.domain.Owner;
 import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.security.WebSecurityConfig;
-import pi.ms_properties.service.impl.OwnerService;
 import pi.ms_properties.service.interf.IOwnerService;
 
 import java.util.List;

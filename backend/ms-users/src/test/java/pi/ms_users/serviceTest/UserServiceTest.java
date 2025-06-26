@@ -28,6 +28,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -246,9 +247,8 @@ class UserServiceTest {
     void findById_shouldThrowNotFoundException_whenUserNotExists() {
         when(userRepository.findById("unknown")).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.findById("unknown");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.findById("unknown"));
 
         assertEquals("No se encontró el usuario con ID: unknown", ex.getMessage());
     }
@@ -271,9 +271,8 @@ class UserServiceTest {
     void deleteUserById_shouldThrowNotFoundException_whenNotFoundExceptionThrown() {
         doThrow(new NotFoundException("Not found")).when(userRepository).deleteUserById("id");
 
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
-            userService.deleteUserById("id");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class, () ->
+            userService.deleteUserById("id"));
 
         assertEquals("Not found", ex.getMessage());
     }
@@ -339,9 +338,8 @@ class UserServiceTest {
     void findAll_shouldThrowNotFoundException_whenEmptyList() {
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.findAll();
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.findAll());
 
         assertEquals("No se encontraron usuarios.", ex.getMessage());
     }
@@ -350,9 +348,8 @@ class UserServiceTest {
     void updateUser_shouldThrowNotFoundException_whenUserMissing() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.updateUser(user);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.updateUser(user));
 
         assertTrue(ex.getMessage().contains("Usuario no encontrado"));
     }
@@ -368,9 +365,8 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         doThrow(ex).when(userRepository).updateUser(user);
 
-        ClientErrorException thrown = assertThrows(ClientErrorException.class, () -> {
-            userService.updateUser(user);
-        });
+        ClientErrorException thrown = assertThrows(ClientErrorException.class, () ->
+            userService.updateUser(user));
 
         assertEquals(409, thrown.getResponse().getStatus());
         assertTrue(thrown.getResponse().readEntity(String.class).contains("Duplicado"));
@@ -381,9 +377,8 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(userRepository.updateUser(user)).thenThrow(new RuntimeException("error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            userService.updateUser(user);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            userService.updateUser(user));
 
         assertEquals("error", ex.getMessage());
     }
@@ -393,9 +388,8 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(userRepository.getUserRoles("user123")).thenReturn(List.of());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.getUserRoles("user123");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.getUserRoles("user123"));
 
         assertEquals("El usuario no tiene roles asignados", ex.getMessage());
     }
@@ -404,9 +398,8 @@ class UserServiceTest {
     void getUserRoles_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            userService.getUserRoles("user123");
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            userService.getUserRoles("user123"));
     }
 
     @Test
@@ -414,36 +407,32 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(userRepository.addRoleToUser("user123", "MOD")).thenReturn(Collections.emptyList());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userService.addRoleToUser("user123", "MOD");
-        });
+        assertThrows(EntityNotFoundException.class, () ->
+            userService.addRoleToUser("user123", "MOD"));
     }
 
     @Test
     void addRoleToUser_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            userService.addRoleToUser("user123", "MOD");
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            userService.addRoleToUser("user123", "MOD"));
     }
 
     @Test
     void deleteRoleToUser_shouldThrowRuntimeException_onException() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            userService.deleteRoleToUser("user123", "MOD");
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            userService.deleteRoleToUser("user123", "MOD"));
     }
 
     @Test
     void searchUsersByText_shouldThrowNotFoundException_whenNoMatch() {
         when(userRepository.findAll()).thenReturn(List.of(user));
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.searchUsersByText("nope");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.searchUsersByText("nope"));
 
         assertEquals("No se encontraron usuarios que coincidan con la búsqueda.", ex.getMessage());
     }
@@ -452,18 +441,16 @@ class UserServiceTest {
     void searchUsersByText_shouldThrowRuntimeException_onException() {
         when(userRepository.findAll()).thenThrow(new RuntimeException());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            userService.searchUsersByText("jdoe");
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            userService.searchUsersByText("jdoe"));
     }
 
     @Test
     void findById_shouldThrowRuntimeExceptionWhenUnexpectedExceptionThrown() {
         when(userRepository.findById("user123")).thenThrow(new RuntimeException("DB error"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            userService.findById("user123");
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            userService.findById("user123"));
 
         assertEquals("DB error", ex.getMessage());
     }
@@ -472,9 +459,8 @@ class UserServiceTest {
     void getUserRoles_shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.getUserRoles("user123");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.getUserRoles("user123"));
 
         assertEquals("Usuario no encontrado", ex.getMessage());
     }
@@ -484,9 +470,8 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(userRepository.getUserRoles("user123")).thenReturn(List.of());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.getUserRoles("user123");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.getUserRoles("user123"));
 
         assertEquals("El usuario no tiene roles asignados", ex.getMessage());
     }
@@ -495,9 +480,8 @@ class UserServiceTest {
     void addRoleToUser_shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.addRoleToUser("user123", "ADMIN");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.addRoleToUser("user123", "ADMIN"));
 
         assertEquals("Usuario no encontrado", ex.getMessage());
     }
@@ -507,9 +491,8 @@ class UserServiceTest {
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
         when(userRepository.addRoleToUser("user123", "ADMIN")).thenReturn(List.of());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.addRoleToUser("user123", "ADMIN");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.addRoleToUser("user123", "ADMIN"));
 
         assertEquals("No se agregaron roles al usuario", ex.getMessage());
     }
@@ -518,9 +501,8 @@ class UserServiceTest {
     void deleteRoleToUser_shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            userService.deleteRoleToUser("user123", "ADMIN");
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            userService.deleteRoleToUser("user123", "ADMIN"));
 
         assertEquals("Usuario no encontrado", ex.getMessage());
     }
@@ -531,9 +513,8 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenThrow(new NotFoundException("Usuario no encontrado"));
 
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
-            userService.findById(userId);
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class, () ->
+            userService.findById(userId));
 
         assertEquals("Usuario no encontrado", ex.getMessage());
     }

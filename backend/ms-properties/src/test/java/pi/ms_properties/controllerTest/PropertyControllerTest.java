@@ -110,7 +110,7 @@ class PropertyControllerTest {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAll()).thenReturn(ResponseEntity.ok(list));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAll();
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Test
@@ -118,7 +118,7 @@ class PropertyControllerTest {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAllUsers()).thenReturn(ResponseEntity.ok(list));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAllUsers();
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Test

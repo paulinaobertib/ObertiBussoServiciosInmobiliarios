@@ -11,7 +11,7 @@ import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.EmailPropertyDTO;
 import pi.ms_users.dto.NotificationDTO;
 import pi.ms_users.repository.INotificationRepository;
@@ -44,20 +44,20 @@ public class NotificationService implements INotificationService {
 
     private final PropertyRepository propertyRepository;
 
-    private EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, Property property) {
+    private EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, PropertyDTO propertyDTO) {
         EmailPropertyDTO dto = new EmailPropertyDTO();
         dto.setTo(user.getEmail());
         dto.setDate(notificationDTO.getDate());
-        dto.setPropertyImageUrl(property.getMainImage());
-        dto.setPropertyTitle(property.getTitle());
-        dto.setPropertyLocation(property.getNeighborhood());
-        NumberFormat price = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
-        dto.setPropertyPrice(price.format(property.getPrice()));
-        dto.setPropertyPrice(property.getPrice().toString());
-        dto.setPropertyDescription(property.getDescription());
-        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + property.getId());
-        dto.setPropertyCurrency(property.getCurrency());
-        dto.setPropertyOperation(property.getOperation());
+        dto.setPropertyImageUrl(propertyDTO.getMainImage());
+        dto.setPropertyTitle(propertyDTO.getTitle());
+        dto.setPropertyLocation(propertyDTO.getNeighborhood());
+        NumberFormat price = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"));
+        dto.setPropertyPrice(price.format(propertyDTO.getPrice()));
+        dto.setPropertyPrice(propertyDTO.getPrice().toString());
+        dto.setPropertyDescription(propertyDTO.getDescription());
+        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + propertyDTO.getId());
+        dto.setPropertyCurrency(propertyDTO.getCurrency());
+        dto.setPropertyOperation(propertyDTO.getOperation());
         return dto;
     }
 
@@ -72,13 +72,13 @@ public class NotificationService implements INotificationService {
            return ResponseEntity.ok("No hay usuarios suscriptos. Notificación omitida.");
         }
 
-        Property property = propertyRepository.getById(propertyId);
+        PropertyDTO propertyDTO = propertyRepository.getById(propertyId);
 
         for (String userId : usersId) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("El usuario con ID " + userId + " no existe"));
 
-            EmailPropertyDTO dto = getEmailPropertyDTO(notificationDTO, user, property);
+            EmailPropertyDTO dto = getEmailPropertyDTO(notificationDTO, user, propertyDTO);
             emailService.sendNotificationNewProperty(dto);
 
             Notification notification = new Notification();
@@ -116,20 +116,20 @@ public class NotificationService implements INotificationService {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("El usuario no está suscripto a este tipo de notificación");
         }
 
-        Property property = propertyRepository.getById(propertyId);
+        PropertyDTO propertyDTO = propertyRepository.getById(propertyId);
 
         EmailPropertyDTO dto = new EmailPropertyDTO();
         dto.setTo(user.getEmail());
         dto.setDate(LocalDateTime.now());
-        dto.setPropertyTitle(property.getTitle());
-        dto.setPropertyLocation(property.getNeighborhood());
-        NumberFormat price = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
-        dto.setPropertyPrice(price.format(property.getPrice()));
-        dto.setPropertyCurrency(property.getCurrency());
-        dto.setPropertyOperation(property.getOperation());
-        dto.setPropertyDescription(property.getDescription());
-        dto.setPropertyImageUrl(property.getMainImage());
-        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + property.getId());
+        dto.setPropertyTitle(propertyDTO.getTitle());
+        dto.setPropertyLocation(propertyDTO.getNeighborhood());
+        NumberFormat price = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"));
+        dto.setPropertyPrice(price.format(propertyDTO.getPrice()));
+        dto.setPropertyCurrency(propertyDTO.getCurrency());
+        dto.setPropertyOperation(propertyDTO.getOperation());
+        dto.setPropertyDescription(propertyDTO.getDescription());
+        dto.setPropertyImageUrl(propertyDTO.getMainImage());
+        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + propertyDTO.getId());
 
         emailService.sendNotificationNewInterestProperty(dto);
 
