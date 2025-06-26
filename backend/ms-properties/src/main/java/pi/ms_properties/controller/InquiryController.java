@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.service.interf.IInquiryService;
 
@@ -34,13 +35,13 @@ public class InquiryController {
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Inquiry> getById(@PathVariable Long id) {
+    public ResponseEntity<InquiryGetDTO> getById(@PathVariable Long id) {
         return inquiryService.getById(id);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
-    public ResponseEntity<List<Inquiry>> getAll() {
+    public ResponseEntity<List<InquiryGetDTO>> getAll() {
         return inquiryService.getAll();
     }
 

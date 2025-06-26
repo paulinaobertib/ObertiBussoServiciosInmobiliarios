@@ -8,6 +8,7 @@ import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IInquiryRepository extends JpaRepository<Inquiry, Long> {
@@ -28,4 +29,10 @@ public interface IInquiryRepository extends JpaRepository<Inquiry, Long> {
 
     @Query("SELECT p.title, COUNT(p) FROM Inquiry i JOIN i.properties p GROUP BY p.title ORDER BY COUNT(p) DESC")
     List<Object[]> countMostConsultedProperties();
+
+    @Query("SELECT i FROM Inquiry i LEFT JOIN FETCH i.properties WHERE i.id = :id")
+    Optional<Inquiry> findByIdWithProperties(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT i FROM Inquiry i LEFT JOIN FETCH i.properties")
+    List<Inquiry> findAllWithProperties();
 }
