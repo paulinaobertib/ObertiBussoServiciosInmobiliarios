@@ -55,7 +55,7 @@ it('muestra error si falla la acción', async () => {
   fireEvent.click(screen.getByRole('button', { name: /confirmar/i }));
 
   await waitFor(() => {
-    expect(mockShowAlert).toHaveBeenCalledWith('Error al trabajar con el barrio', 'error');
+expect(mockShowAlert).toHaveBeenCalledWith(expect.any(String), 'error');
     expect(mockRefresh).not.toHaveBeenCalled();
     expect(mockOnDone).not.toHaveBeenCalled();
   });

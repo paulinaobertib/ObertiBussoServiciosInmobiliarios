@@ -17,10 +17,14 @@ export async function postProperty(data: PropertyCreate) {
   images.forEach((img) => form.append("images", img));
 
   try {
-    return (await axios.post(`${apiUrl}/properties/property/create`, form))
-      .data;
+    const { data: created } = await axios.post(
+      `${apiUrl}/properties/property/create`,
+      form,
+      { withCredentials: true }
+    );
+    return created;
   } catch (error) {
-    console.error("Error saving property:", error);
+    console.error("Error updating property:", error);
     throw error;
   }
 }
@@ -38,20 +42,29 @@ export const putProperty = async (data: PropertyUpdate) => {
     form.append("mainImage", mainImage);
   }
 
-  const { data: updated } = await axios.put(
-    `${apiUrl}/properties/property/update/${id}`,
-    form,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-  return updated;
+  try {
+    const { data: updated } = await axios.put(
+      `${apiUrl}/properties/property/update/${id}`,
+      form,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      }
+    );
+    return updated;
+  } catch (error) {
+    console.error("Error updating property:", error);
+    throw error;
+  }
 };
 
 export const deleteProperty = async (data: Property) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/properties/property/delete/${data.id}`
+    const { data: deleted } = await axios.delete(
+      `${apiUrl}/properties/property/delete/${data.id}`,
+      { withCredentials: true }
     );
-    return response.data;
+    return deleted;
   } catch (error) {
     console.error("Error deleting property:", error);
     throw error;
@@ -60,8 +73,10 @@ export const deleteProperty = async (data: Property) => {
 
 export const getAllProperties = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/property/getAll`);
-    return response.data;
+    const { data } = await axios.get(`${apiUrl}/properties/property/getAll`, {
+      withCredentials: true,
+    });
+    return data;
   } catch (error) {
     console.error("Error fetching properties:", error);
     throw error;
@@ -70,10 +85,11 @@ export const getAllProperties = async () => {
 
 export const getPropertyById = async (id: number) => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/properties/property/getById/${id}`
+    const { data } = await axios.get(
+      `${apiUrl}/properties/property/getById/${id}`,
+      { withCredentials: true }
     );
-    return response.data;
+    return data;
   } catch (error) {
     console.error(`Error fetching property with ID ${id}:`, error);
     throw error;
@@ -94,7 +110,8 @@ export const getPropertiesByFilters = async (
 
   try {
     const { data } = await axios.get<Property[]>(
-      `${apiUrl}/properties/property/search?${searchParams.toString()}`
+      `${apiUrl}/properties/property/search?${searchParams.toString()}`,
+      { withCredentials: true }
     );
     return data;
   } catch (error) {
@@ -106,21 +123,32 @@ export const getPropertiesByFilters = async (
 export const getPropertiesByText = async (value: string) => {
   try {
     const { data } = await axios.get<Property[]>(
-      `${apiUrl}/properties/property/text?`,
-      { params: { value } }
+      `${apiUrl}/properties/property/text`,
+      {
+        params: { value },
+        withCredentials: true,
+      }
     );
     return data;
   } catch (error) {
-    console.error("Error searching by text:", error);
+    console.error("Error searching by text:", error);
     throw error;
   }
 };
 
 export const putPropertyStatus = async (id: number, status: string) => {
-  const response = await axios.put(
-    `${apiUrl}/properties/property/status/${id}`,
-    null,
-    { params: { status } }
-  );
-  return response.data;
+  try {
+    const { data } = await axios.put(
+      `${apiUrl}/properties/property/status/${id}`,
+      null,
+      {
+        params: { status },
+        withCredentials: true,
+      }
+    );
+    return data;
+  } catch (error) {
+    console.error("Error updating property status:", error);
+    throw error;
+  }
 };
