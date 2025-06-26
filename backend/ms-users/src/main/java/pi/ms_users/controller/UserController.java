@@ -7,7 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.User;
-import pi.ms_users.service.impl.UserService;
+import pi.ms_users.service.interf.IUserService;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
+    private final IUserService userService;
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/me")

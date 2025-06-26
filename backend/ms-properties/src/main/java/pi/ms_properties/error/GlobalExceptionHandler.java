@@ -3,7 +3,6 @@ package pi.ms_properties.error;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.ClientErrorException;
-import jakarta.ws.rs.NotFoundException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

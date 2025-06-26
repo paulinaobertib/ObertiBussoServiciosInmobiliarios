@@ -13,17 +13,23 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.IContext;
 import pi.ms_properties.configuration.components.AppProperties;
+import pi.ms_properties.domain.ChatMessage;
+import pi.ms_properties.domain.ChatOption;
+import pi.ms_properties.domain.ChatSession;
+import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.EmailDTO;
 import pi.ms_properties.service.impl.EmailService;
+import pi.ms_properties.service.interf.IChatMessageService;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
@@ -43,16 +49,19 @@ class EmailServiceTest {
     @Mock
     private MimeMessage mimeMessage;
 
+    @Mock
+    private IChatMessageService chatMessageService;
+
     @Captor
     private ArgumentCaptor<String> templateNameCaptor;
 
     @Captor
-    private ArgumentCaptor<Context> contextCaptor;
+    ArgumentCaptor<IContext> iContextCaptor;
 
     // casos de exito
 
     @Test
-    void sendEmailInquiry_success() throws Exception {
+    void sendEmailInquiry_success() {
         EmailDTO dto = new EmailDTO();
         dto.setFirstName("Juan");
         dto.setLastName("Pérez");
@@ -85,12 +94,12 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendEmailSurvey_success() throws Exception {
+    void sendEmailSurvey_success() {
         String emailTo = "cliente@ejemplo.com";
         Long inquiryId = 42L;
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend.com");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
         when(templateEngine.process(eq("email_survey"), any(IContext.class))).thenReturn("<html>Encuesta</html>");
 
         assertDoesNotThrow(() -> emailService.sendEmailSurvey(emailTo, inquiryId));
@@ -104,13 +113,64 @@ class EmailServiceTest {
         assertEquals("email_survey", templateNameCaptor.getValue());
 
         IContext context = contextCaptor.getValue();
-        assertEquals("http://frontend.com/survey?inquiryId=42", context.getVariable("surveyLink"));
+        assertEquals("https://frontend.com/survey?inquiryId=42", context.getVariable("surveyLink"));
+    }
+
+    @Test
+    void sendChatSummaryEmail_shouldSendEmailSuccessfully() throws Exception {
+        ChatSession chatSession = new ChatSession();
+        chatSession.setId(1L);
+        chatSession.setFirstName("Juan");
+        chatSession.setLastName("Pérez");
+        chatSession.setEmail("juan@example.com");
+        chatSession.setPhone("123456789");
+        Property property = new Property();
+        property.setTitle("Casa en el centro");
+        chatSession.setProperty(property);
+
+        ChatMessage msg1 = new ChatMessage();
+        msg1.setChatOption(ChatOption.VER_PRECIO);
+        ChatMessage msg2 = new ChatMessage();
+        msg2.setChatOption(ChatOption.VER_UBICACION);
+
+        when(chatMessageService.getBySession(1L)).thenReturn(List.of(msg1, msg2));
+
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("email_chat_summary"), any(IContext.class))).thenReturn("<html>Resumen</html>");
+
+        emailService.sendChatSummaryEmail(chatSession, true, "Agente 1");
+
+        verify(javaMailSender).send(mimeMessage);
+        verify(templateEngine).process(templateNameCaptor.capture(), iContextCaptor.capture());
+
+        assertEquals("email_chat_summary", templateNameCaptor.getValue());
+
+        IContext iContext = iContextCaptor.getValue();
+
+        if (iContext instanceof Context context) {
+            Field variablesField = Context.class.getDeclaredField("variables");
+            variablesField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> variables = (Map<String, Object>) variablesField.get(context);
+
+            assertEquals("Juan", variables.get("firstName"));
+            assertEquals("Pérez", variables.get("lastName"));
+            assertEquals("juan@example.com", variables.get("email"));
+            assertEquals("123456789", variables.get("phone"));
+            assertEquals("Casa en el centro", variables.get("propertyTitle"));
+            assertEquals(List.of(
+                    "Consultó por el precio de la propiedad",
+                    "Consultó por la ubicación"
+            ), variables.get("chatOptions"));
+            assertEquals(true, variables.get("derived"));
+            assertEquals("Agente 1", variables.get("agentName"));
+        }
     }
 
     // casos de error
 
     @Test
-    void sendEmailInquiry_shouldThrow_whenTemplateEngineFails() throws Exception {
+    void sendEmailInquiry_shouldThrow_whenTemplateEngineFails() {
         EmailDTO dto = new EmailDTO();
         dto.setFirstName("Juan");
         dto.setLastName("Pérez");
@@ -130,7 +190,7 @@ class EmailServiceTest {
     }
 
     @Test
-    void sendEmailSurvey_shouldThrow_whenJavaMailSenderFails() throws Exception {
+    void sendEmailSurvey_shouldThrow_whenJavaMailSenderFails() {
         when(appProperties.getFrontendBaseUrl()).thenReturn("http://localhost:3000");
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error al crear mensaje"));
 
@@ -138,5 +198,29 @@ class EmailServiceTest {
                 () -> emailService.sendEmailSurvey("test@example.com", 10L));
 
         assertTrue(ex.getMessage().contains("Error al enviar el email de encuesta"));
+    }
+
+    @Test
+    void sendChatSummaryEmail_shouldThrowRuntimeException_whenJavaMailSenderFails() {
+        ChatSession chatSession = new ChatSession();
+        chatSession.setId(1L);
+        chatSession.setFirstName("Juan");
+        chatSession.setLastName("Pérez");
+        chatSession.setEmail("juan@example.com");
+        chatSession.setPhone("123456789");
+        Property property = new Property();
+        property.setTitle("Casa en el centro");
+        chatSession.setProperty(property);
+
+        when(chatMessageService.getBySession(1L)).thenReturn(List.of());
+
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("email_chat_summary"), any(IContext.class))).thenReturn("<html>Resumen</html>");
+        doThrow(new RuntimeException("SMTP error")).when(javaMailSender).send(any(MimeMessage.class));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                emailService.sendChatSummaryEmail(chatSession, false, "Agente X"));
+
+        assertTrue(ex.getMessage().contains("Error al enviar resumen del chat"));
     }
 }

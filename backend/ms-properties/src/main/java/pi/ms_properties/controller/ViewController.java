@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pi.ms_properties.service.impl.ViewService;
+import pi.ms_properties.service.interf.IViewService;
 
 import java.util.Map;
 
@@ -15,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/view")
 public class ViewController {
 
-    private final ViewService viewService;
+    private final IViewService viewService;
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/property")

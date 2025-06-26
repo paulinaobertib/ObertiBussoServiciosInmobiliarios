@@ -96,9 +96,7 @@ public class AmenityServiceTest {
 
     @Test
     void createAmenity_shouldThrowIllegalArgumentException_whenNameIsBlank() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            amenityService.createAmenity(" ");
-        });
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> amenityService.createAmenity(" "));
         assertEquals("El nombre no puede estar vacío", ex.getMessage());
         verify(amenityRepository, never()).save(any());
     }
@@ -108,9 +106,7 @@ public class AmenityServiceTest {
         String name = "WiFi";
         doThrow(new DataIntegrityViolationException("ya existe")).when(amenityRepository).save(any());
 
-        DataIntegrityViolationException ex = assertThrows(DataIntegrityViolationException.class, () -> {
-            amenityService.createAmenity(name);
-        });
+        DataIntegrityViolationException ex = assertThrows(DataIntegrityViolationException.class, () -> amenityService.createAmenity(name));
 
         assertEquals("ya existe", ex.getMessage());
     }
@@ -119,9 +115,7 @@ public class AmenityServiceTest {
     void createAmenity_shouldThrowRuntimeException_whenUnexpectedException() {
         doThrow(new RuntimeException("Fallo inesperado")).when(amenityRepository).save(any());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            amenityService.createAmenity("Parrilla");
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.createAmenity("Parrilla"));
 
         assertEquals("Fallo inesperado", ex.getMessage());
     }
@@ -130,9 +124,7 @@ public class AmenityServiceTest {
     void deleteAmenity_shouldThrowEntityNotFoundException_whenAmenityDoesNotExist() {
         when(amenityRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            amenityService.deleteAmenity(1L);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> amenityService.deleteAmenity(1L));
 
         assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
         verify(amenityRepository, never()).deleteById(anyLong());
@@ -142,9 +134,7 @@ public class AmenityServiceTest {
     void deleteAmenity_shouldThrowRuntimeException_whenExceptionOccurs() {
         when(amenityRepository.findById(anyLong())).thenThrow(new RuntimeException("Error DB"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            amenityService.deleteAmenity(1L);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.deleteAmenity(1L));
 
         assertEquals("Error DB", ex.getMessage());
     }
@@ -153,9 +143,7 @@ public class AmenityServiceTest {
     void updateAmenity_shouldThrowEntityNotFoundException_whenAmenityDoesNotExist() {
         Amenity amenity = new Amenity(1L, "Gimnasio", new ArrayList<>());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            amenityService.updateAmenity(amenity);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> amenityService.updateAmenity(amenity));
 
         assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
     }
@@ -164,9 +152,7 @@ public class AmenityServiceTest {
     void updateAmenity_shouldThrowRuntimeException_whenExceptionOccurs() {
         Amenity amenity = new Amenity(1L, "Spa", new ArrayList<>());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            amenityService.updateAmenity(amenity);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.updateAmenity(amenity));
 
         assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
     }
@@ -184,9 +170,7 @@ public class AmenityServiceTest {
     void getAll_shouldThrowRuntimeException_whenExceptionOccurs() {
         when(amenityRepository.findAll()).thenThrow(new RuntimeException("Falló el findAll"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            amenityService.getAll();
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.getAll());
 
         assertEquals("Falló el findAll", ex.getMessage());
     }
@@ -195,9 +179,7 @@ public class AmenityServiceTest {
     void getById_shouldThrowEntityNotFoundException_whenAmenityDoesNotExist() {
         when(amenityRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> {
-            amenityService.getById(1L);
-        });
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> amenityService.getById(1L));
 
         assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
     }
@@ -206,9 +188,7 @@ public class AmenityServiceTest {
     void getById_shouldThrowRuntimeException_whenExceptionOccurs() {
         when(amenityRepository.findById(anyLong())).thenThrow(new RuntimeException("Error inesperado"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            amenityService.getById(1L);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.getById(1L));
 
         assertEquals("Error inesperado", ex.getMessage());
     }

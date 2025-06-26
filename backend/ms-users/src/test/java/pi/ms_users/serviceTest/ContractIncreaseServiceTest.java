@@ -3,10 +3,7 @@ package pi.ms_users.serviceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +11,13 @@ import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.ContractIncreaseDTOContractGet;
+import pi.ms_users.dto.EmailContractIncreaseDTO;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
+import pi.ms_users.repository.UserRepository.KeycloakUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.ContractIncreaseService;
-import pi.ms_users.service.impl.EmailService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,23 +28,27 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 class ContractIncreaseServiceTest {
 
     @Mock
-    IContractIncreaseRepository contractIncreaseRepository;
+    private IContractIncreaseRepository contractIncreaseRepository;
 
     @Mock
-    IContractRepository contractRepository;
+    private IContractRepository contractRepository;
 
     @Mock
-    EmailService emailService;
+    private IEmailService emailService;
 
     @Mock
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private KeycloakUserRepository userRepository;
 
     @InjectMocks
-    ContractIncreaseService service;
+    private ContractIncreaseService service;
 
     @Test
     void create_whenContractExists_shouldSaveAndReturnOk() {
@@ -146,6 +149,48 @@ class ContractIncreaseServiceTest {
         verify(emailService, never()).sendContractIncreaseEmail(any());
     }
 
+    @Test
+    void applyScheduledIncreases_shouldSendEmail_whenNextIncreaseDateIsTenDaysFromNow() {
+        LocalDateTime now = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime tenDaysFromNow = now.plusDays(10);
+
+        Contract contract = new Contract();
+        contract.setId(1L);
+        contract.setIncreaseFrequency(10L);
+        contract.setIncrease(5f);
+        contract.setUserId("user1");
+        contract.setContractStatus(ContractStatus.ACTIVO);
+        contract.setEndDate(now.plusDays(100));
+
+        ContractIncrease lastIncrease = new ContractIncrease();
+        lastIncrease.setDate(now);
+        lastIncrease.setAmount(BigDecimal.valueOf(100));
+        lastIncrease.setCurrency(ContractIncreaseCurrency.USD);
+
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setFirstName("Juan");
+        user.setLastName("Pérez");
+
+        when(contractRepository.findByStatusAndEndDateAfter(eq(ContractStatus.ACTIVO), any(LocalDateTime.class)))
+                .thenReturn(List.of(contract));
+        when(contractIncreaseRepository.findTopByContractOrderByDateDesc(contract))
+                .thenReturn(Optional.of(lastIncrease));
+        when(userRepository.findById("user1")).thenReturn(Optional.of(user));
+
+        doNothing().when(emailService).sendContractIncreaseEmail(any(EmailContractIncreaseDTO.class));
+
+        service.applyScheduledIncreases();
+
+        ArgumentCaptor<EmailContractIncreaseDTO> emailCaptor = ArgumentCaptor.forClass(EmailContractIncreaseDTO.class);
+        verify(emailService).sendContractIncreaseEmail(emailCaptor.capture());
+
+        EmailContractIncreaseDTO dto = emailCaptor.getValue();
+        assertEquals("test@example.com", dto.getTo());
+        assertEquals("Juan", dto.getFirstName());
+        assertEquals(contract.getIncreaseFrequency(), dto.getFrequency());
+    }
+
     // casos de error
 
     @Test
@@ -213,5 +258,41 @@ class ContractIncreaseServiceTest {
 
             assertThrows(AccessDeniedException.class, () -> service.getByContract(1L));
         }
+    }
+
+    @Test
+    void applyScheduledIncreases_shouldHandleEmailExceptionGracefully() {
+        LocalDateTime now = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+
+        Contract contract = new Contract();
+        contract.setId(1L);
+        contract.setIncreaseFrequency(10L);
+        contract.setIncrease(5f);
+        contract.setUserId("user1");
+        contract.setContractStatus(ContractStatus.ACTIVO);
+        contract.setEndDate(now.plusDays(100));
+
+        ContractIncrease lastIncrease = new ContractIncrease();
+        lastIncrease.setDate(now);
+        lastIncrease.setAmount(BigDecimal.valueOf(100));
+        lastIncrease.setCurrency(ContractIncreaseCurrency.USD);
+
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setFirstName("Juan");
+        user.setLastName("Pérez");
+
+        when(contractRepository.findByStatusAndEndDateAfter(eq(ContractStatus.ACTIVO), any(LocalDateTime.class)))
+                .thenReturn(List.of(contract));
+        when(contractIncreaseRepository.findTopByContractOrderByDateDesc(contract))
+                .thenReturn(Optional.of(lastIncrease));
+        when(userRepository.findById("user1")).thenReturn(Optional.of(user));
+
+        doThrow(new RuntimeException("SMTP server error"))
+                .when(emailService).sendContractIncreaseEmail(any());
+
+        assertDoesNotThrow(() -> service.applyScheduledIncreases());
+
+        verify(emailService).sendContractIncreaseEmail(any());
     }
 }
