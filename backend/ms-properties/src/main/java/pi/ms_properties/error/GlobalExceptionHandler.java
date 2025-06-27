@@ -1,5 +1,6 @@
 package pi.ms_properties.error;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.ClientErrorException;
@@ -115,5 +116,16 @@ public class GlobalExceptionHandler {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         return ResponseEntity.badRequest().body("Errores de validación: " + errors);
+    }
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<String> handleMessagingException(MessagingException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al enviar email: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }

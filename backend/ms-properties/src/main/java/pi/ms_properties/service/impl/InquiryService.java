@@ -1,7 +1,9 @@
 package pi.ms_properties.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -11,6 +13,7 @@ import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.EmailDTO;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
@@ -37,6 +40,8 @@ public class InquiryService implements IInquiryService {
     private final EmailService emailService;
 
     private final SurveyService surveyService;
+
+    private final ObjectMapper objectMapper;
 
     private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
         Inquiry inquiry = new Inquiry();
@@ -87,6 +92,22 @@ public class InquiryService implements IInquiryService {
         return ResponseEntity.ok("Se ha creado la consulta");
     }
 
+    @NotNull
+    private ResponseEntity<List<InquiryGetDTO>> getListInquiryGetDTO(List<Inquiry> inquiries) {
+        List<InquiryGetDTO> inquiryGetDTOS = inquiries.stream()
+                .map(inquiry -> {
+                    InquiryGetDTO dto = objectMapper.convertValue(inquiry, InquiryGetDTO.class);
+                    dto.setPropertyTitles(
+                            inquiry.getProperties().stream()
+                                    .map(Property::getTitle)
+                                    .collect(Collectors.toList())
+                    );
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(inquiryGetDTOS);
+    }
+
     @Override
     @Transactional
     public ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO) {
@@ -132,25 +153,34 @@ public class InquiryService implements IInquiryService {
     }
 
     @Override
-    public ResponseEntity<Inquiry> getById(Long id) {
-        Inquiry inquiry = inquiryRepository.findById(id)
+    public ResponseEntity<InquiryGetDTO> getById(Long id) {
+        Inquiry inquiry = inquiryRepository.findByIdWithProperties(id)
                 .orElseThrow(() -> new EntityNotFoundException("Consulta no encontrada"));
 
         if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
                 !inquiry.getUserId().equals(SecurityUtils.getCurrentUserId())) {
-            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+            throw new AccessDeniedException("No tiene el permiso para realizar esta acción.");
         }
 
-        return ResponseEntity.ok(inquiry);
+        InquiryGetDTO inquiryGetDTO = objectMapper.convertValue(inquiry, InquiryGetDTO.class);
+        inquiryGetDTO.setPropertyTitles(
+                inquiry.getProperties().stream()
+                        .map(Property::getTitle)
+                        .collect(Collectors.toList())
+        );
+
+        return ResponseEntity.ok(inquiryGetDTO);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getAll() {
-        return ResponseEntity.ok(inquiryRepository.findAll());
+    public ResponseEntity<List<InquiryGetDTO>> getAll() {
+        List<Inquiry> inquiries = inquiryRepository.findAllWithProperties();
+
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByUserId(String userId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByUserId(String userId) {
         if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
                 !userId.equals(SecurityUtils.getCurrentUserId())) {
             throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
@@ -160,22 +190,23 @@ public class InquiryService implements IInquiryService {
             throw new EntityNotFoundException("Usuario no encontrado");
         }
 
-        List<Inquiry> inquiries = inquiryRepository.getByUserId(userId);
-        return ResponseEntity.ok(inquiries);
+        List<Inquiry> inquiries = inquiryRepository.getByUserIdWithProperties(userId);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByPropertyId(Long propertyId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByPropertyId(Long propertyId) {
         if (propertyRepository.findById(propertyId).isEmpty()) {
             throw new EntityNotFoundException("Propiedad no encontrada");
         }
-        List<Inquiry> inquiries = inquiryRepository.getByPropertyId(propertyId);
-        return ResponseEntity.ok(inquiries);
+        List<Inquiry> inquiries = inquiryRepository.getByPropertyIdWithProperties(propertyId);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByStatus(InquiryStatus status) {
-        return ResponseEntity.ok(inquiryRepository.getByStatus(status));
+    public ResponseEntity<List<InquiryGetDTO>> getByStatus(InquiryStatus status) {
+        List<Inquiry> inquiries = inquiryRepository.getByStatusWithProperties(status);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override

@@ -159,12 +159,19 @@ CREATE TABLE Maintenance (
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
+CREATE TABLE Available_Appointment (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    date DATETIME NOT NULL,
+    availability BOOLEAN NOT NULL DEFAULT TRUE
+);
+
 CREATE TABLE Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(100) NOT NULL,
-    date DATETIME NOT NULL,
+    availability_id BIGINT NOT NULL UNIQUE,
     status ENUM('ACEPTADO', 'RECHAZADO', 'ESPERA') NOT NULL,
-    comment VARCHAR(250)
+    comment VARCHAR(250),
+    FOREIGN KEY (availability_id) REFERENCES Available_Appointment(id)
 );
 
 CREATE TABLE Notice (
