@@ -27,7 +27,7 @@ import { Maintenance } from '../types/maintenance';
 import { Comment } from '../types/comment';
 import { SearchParams } from '../types/searchParams';
 
-export type Category = 'amenity' | 'owner' | 'type' | 'neighborhood' | 'property';
+export type Category = 'amenity' | 'owner' | 'type' | 'neighborhood';
 export type Picked =
   | { type: 'category'; value: Category | null }
   | { type: 'property'; value: Property | null }
@@ -42,7 +42,7 @@ interface SelectedIds {
 }
 
 interface Ctx {
-  /* catálogos */
+  /* listados de items */
   amenitiesList: Amenity[];
   ownersList: Owner[];
   neighborhoodsList: Neighborhood[];
@@ -97,7 +97,7 @@ interface Ctx {
 const Context = createContext<Ctx | null>(null);
 
 export function PropertyCrudProvider({ children }: { children: ReactNode }) {
-  /* — catálogos — */
+  /* — listados de items — */
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
   const [ownersList, setOwnersList] = useState<Owner[]>([]);
   const [neighborhoodsList, setNeighborhoodsList] = useState<Neighborhood[]>([]);
@@ -112,7 +112,13 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   /* — picked y categoría actual — */
   const [pickedItem, setPickedItem] = useState<Picked | null>(null);
-  const pickItem = (type: Picked['type'], value: any) => setPickedItem({ type, value } as Picked);
+
+  const pickItem = useCallback(
+    (type: Picked['type'], value: any) =>
+      setPickedItem({ type, value } as Picked),
+    []
+  );
+
   const currentCategory = pickedItem?.type === 'category' ? pickedItem.value : null;
 
   /* — data de listado dinámico — */
@@ -184,10 +190,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       const list = await getAllProperties();
       const arr = Array.isArray(list) ? list : [];
       setPropertiesList(arr);
-      // recalcular operaciones con la lista recién obtenida
       const ops = Array.from(new Set(arr.map(p => p.operation))).filter((o): o is string => !!o);
       setOperationsList(ops);
-      setDataIfCategory('property', arr); // ← ahora poblamos data si la categoría es "property"
     } catch (e) {
       console.error('refreshProperties', e);
     } finally {
@@ -247,8 +251,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     owner: refreshOwners,
     type: refreshTypes,
     neighborhood: refreshNeighborhoods,
-    property: refreshProperties, // ← añadimos property aquí
-  }), [refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods, refreshProperties]);
+  }), [refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
 
   useEffect(() => {
     if (!currentCategory) return;
@@ -263,9 +266,13 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     amenities: [],
   });
 
-  const resetSelected = () => setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
+  const resetSelected = useCallback(
+    () => setSelected({ owner: null, neighborhood: null, type: null, amenities: [] }),
+    []
+  );
+  
   const toggleSelect = (id: number) => {
-    if (!currentCategory || currentCategory === 'property') return; // no seleccionamos nada si es property
+    if (!currentCategory) return;
     if (currentCategory === 'amenity') {
       setSelected(prev => ({
         ...prev,

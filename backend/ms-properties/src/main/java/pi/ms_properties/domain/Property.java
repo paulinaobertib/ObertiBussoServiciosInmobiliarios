@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -43,13 +44,13 @@ public class Property {
     private Float coveredArea;
 
     @Column(name = "price", nullable = false)
-    private Float price;
+    private BigDecimal price;
 
     @Column(name = "show_price", nullable = false)
     private Boolean showPrice;
 
     @Column(name = "expenses", nullable = true)
-    private Float expenses;
+    private BigDecimal expenses;
 
     @Column(name = "description", nullable = false)
     private String description;

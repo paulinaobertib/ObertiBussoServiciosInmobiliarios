@@ -4,7 +4,6 @@ import com.azure.storage.blob.*;
 import com.azure.storage.blob.models.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,7 +17,6 @@ import pi.ms_properties.service.interf.IImageService;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

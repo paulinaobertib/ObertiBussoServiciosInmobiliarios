@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { postComment, putComment, deleteComment, } from '../../services/comment.service';
 import { Comment, CommentCreate, } from '../../types/comment';
 import { LoadingButton } from '@mui/lab';

@@ -12,7 +12,7 @@ import { getPropertiesByFilters } from '../services/property.service';
 import { SearchParams } from '../types/searchParams';
 import { Property } from '../types/property';
 import { NeighborhoodType } from '../types/neighborhood';
-import { useGlobalAlert } from '../context/AlertContext';
+import { useGlobalAlert } from '../../shared/context/AlertContext';
 import { useLoading } from '../utils/useLoading';
 import { LoadingButton } from '@mui/lab';
 

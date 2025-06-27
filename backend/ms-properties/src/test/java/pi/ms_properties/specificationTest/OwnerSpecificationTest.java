@@ -30,13 +30,13 @@ class OwnerSpecificationTest {
         Owner owner1 = new Owner();
         owner1.setFirstName("Juan");
         owner1.setLastName("Pérez");
-        owner1.setMail("juan@example.com");
+        owner1.setEmail("juan@example.com");
         owner1.setPhone("123456");
 
         Owner owner2 = new Owner();
         owner2.setFirstName("Ana");
         owner2.setLastName("García");
-        owner2.setMail("ana@example.com");
+        owner2.setEmail("ana@example.com");
         owner2.setPhone("654321");
 
         entityManager.persist(owner1);

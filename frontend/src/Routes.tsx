@@ -17,7 +17,7 @@ import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 import FavoritesPage from './pages/FavoritesPage'
 
 import { useAuthContext } from './app/user/context/AuthContext';
-import { useGlobalAlert } from './app/property/context/AlertContext';
+import { useGlobalAlert } from './app/shared/context/AlertContext';
 import UserProfilePage from './pages/UserProfile';
 import ContactPage from './pages/ContactPage';
 import NewsPage from './pages/NewsPage';

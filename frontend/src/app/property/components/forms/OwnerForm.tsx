@@ -3,7 +3,7 @@ import { TextField, Grid, Box } from '@mui/material';
 import { Owner, OwnerCreate } from '../../types/owner';
 import { postOwner, putOwner, deleteOwner } from '../../services/owner.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';
 

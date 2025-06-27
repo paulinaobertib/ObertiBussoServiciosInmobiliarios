@@ -4,6 +4,7 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
 import pi.ms_users.domain.Notice;
 
+@SuppressWarnings("unused")
 public class NoticeSpecification {
 
     public static Specification<Notice> textSearch(String value) {

@@ -8,7 +8,7 @@ import FiltersSidebar from '../app/property/components/SearchFilters';
 import PropertyCatalog from '../app/property/components/PropertyCatalog';
 import FloatingButtons from '../app/property/components/FloatingButtons';
 
-import { useGlobalAlert } from '../app/property/context/AlertContext';
+import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
@@ -70,10 +70,11 @@ export default function Home() {
   };
 
   const handleCompare = () => {
-    console.log('🚀 Navigating to compare with IDs:', selectedPropertyIds);
     navigate('/properties/compare');
     setSelectionMode(false); // Exit selection mode after navigation
   };
+
+  console.log('Token: ', document.cookie);
 
   return (
     <BasePage maxWidth={false}>

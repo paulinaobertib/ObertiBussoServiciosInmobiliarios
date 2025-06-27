@@ -4,7 +4,7 @@ import PropertyInfo, { formatFeatureLabel } from '../../../components/propertyDe
 import { emptyProperty, Property } from '../../../types/property';
 import { Neighborhood } from '../../../types/neighborhood';
 import { PropertyCrudProvider } from '../../../context/PropertiesContext';
-import { AlertProvider } from '../../../context/AlertContext';
+import { AlertProvider } from '../../../../shared/context/AlertContext';
 
 // Mock del ModalItem para simplificar el test
 vi.mock('../ModalItem', () => ({

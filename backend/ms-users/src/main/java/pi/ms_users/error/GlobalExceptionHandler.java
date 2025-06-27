@@ -21,6 +21,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
+@SuppressWarnings("unused")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingServletRequestPartException.class)

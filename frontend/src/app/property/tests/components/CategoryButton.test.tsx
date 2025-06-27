@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import CategoryButton from '../../components/CategoryButton';
+import CategoryButton from '../../components/Button';
 
 const mockPickItem = vi.fn();
 let mockCurrentCategory: string | null = null;
