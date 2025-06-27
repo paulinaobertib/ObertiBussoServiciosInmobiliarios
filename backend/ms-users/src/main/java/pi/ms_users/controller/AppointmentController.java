@@ -52,5 +52,11 @@ public class AppointmentController {
     public ResponseEntity<List<Appointment>> getAppointmentsByUserId(@PathVariable String userId) {
         return appointmentService.findByUserId(userId);
     }
+
+    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @GetMapping("/status")
+    public ResponseEntity<List<Appointment>> getAppointmentsByStatus(@RequestParam("status") AppointmentStatus status) {
+        return appointmentService.findByStatus(status);
+    }
 }
 

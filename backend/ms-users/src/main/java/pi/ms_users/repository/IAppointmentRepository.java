@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pi.ms_users.domain.Appointment;
+import pi.ms_users.domain.AppointmentStatus;
 
 import java.util.List;
 
@@ -11,4 +12,7 @@ import java.util.List;
 public interface IAppointmentRepository extends JpaRepository<Appointment, Long> {
     @Query("select a from Appointment a where a.userId = ?1")
     List<Appointment> findByUserId(String userId);
+
+    @Query("select a from Appointment a where a.status = ?1")
+    List<Appointment> findByStatus(AppointmentStatus status);
 }
