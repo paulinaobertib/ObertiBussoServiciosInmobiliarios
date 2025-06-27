@@ -8,20 +8,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import pi.ms_users.domain.AgentChat;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
+import pi.ms_users.service.interf.IAgentChatService;
+import pi.ms_users.service.interf.IUserService;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements IUserService {
 
     private final IUserRepository userRepository;
+
+    private final IAgentChatService agentChatService;
 
     public ResponseEntity<String> createUser(String firstName, String lastName, String email, String phone) {
         Response response = userRepository.createUser(firstName, lastName, email, phone);
@@ -57,6 +63,11 @@ public class UserService {
     }
 
     public ResponseEntity<User> findById(String id) {
+        if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
+                !id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario con ID: " + id));
         return ResponseEntity.ok(user);
@@ -120,12 +131,21 @@ public class UserService {
     }
 
     public ResponseEntity<List<String>> addRoleToUser(String id, String role) {
-        userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
         List<String> roles = userRepository.addRoleToUser(id, role);
         if (roles == null || roles.isEmpty()) {
             throw new EntityNotFoundException("No se agregaron roles al usuario");
+        }
+
+        if (Objects.equals(role, "admin")) {
+            AgentChat agentChat = new AgentChat();
+            agentChat.setUserId(id);
+            agentChat.setEnabled(Boolean.FALSE);
+            String name = user.getFirstName().trim() + " " + user.getLastName().trim();
+            agentChat.setName(name);
+            agentChatService.create(agentChat);
         }
 
         return ResponseEntity.ok(roles);
@@ -136,6 +156,12 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
         userRepository.deleteRoleToUser(id, role);
+
+        if (Objects.equals(role, "admin")) {
+            AgentChat agentChat = agentChatService.getByUserId(id);
+            agentChatService.delete(agentChat.getId());
+        }
+
         return ResponseEntity.ok("Se le ha eliminado el rol seleccionado al usuario");
     }
 

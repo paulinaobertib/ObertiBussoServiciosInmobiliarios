@@ -21,8 +21,8 @@ public class Owner {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "mail", nullable = false)
-    private String mail;
+    @Column(name = "email", nullable = false)
+    private String email;
 
     @Column(name = "phone", nullable = false)
     private String phone;

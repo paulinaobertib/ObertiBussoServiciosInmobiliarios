@@ -15,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 public class PaymentService implements IPaymentService {

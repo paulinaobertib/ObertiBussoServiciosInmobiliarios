@@ -1,12 +1,10 @@
-import axios from "axios";
 import { User, UserCreate, Role } from "../types/user";
-
-const apiUrl = import.meta.env.VITE_API_URL;
+import { api } from "../../../api";
 
 /** `/users/user/me` */
 export const getMe = async () => {
   try {
-    const data = await axios.get(`${apiUrl}/users/user/me`, {
+    const data = await api.get(`/users/user/me`, {
       withCredentials: true,
     });
     return data;
@@ -19,7 +17,7 @@ export const getMe = async () => {
 /** `/users/user/role/{id}` */
 export const getRoles = async (id: string) => {
   try {
-    const data = await axios.get(`${apiUrl}/users/user/role/${id}`, {
+    const data = await api.get(`/users/user/role/${id}`, {
       withCredentials: true,
     });
     return data;
@@ -32,7 +30,7 @@ export const getRoles = async (id: string) => {
 /** `/users/user/create`  (admin) */
 export const postUser = async (body: UserCreate) => {
   try {
-    const data = await axios.post(`${apiUrl}/users/user/create`, body, {
+    const data = await api.post(`/users/user/create`, body, {
       withCredentials: true,
     });
     return data;
@@ -45,7 +43,7 @@ export const postUser = async (body: UserCreate) => {
 /** `/users/user/getById/{id}` */
 export const getUserById = async (id: string) => {
   try {
-    const data = await axios.get(`${apiUrl}/users/user/getById/${id}`, {
+    const data = await api.get(`/users/user/getById/${id}`, {
       withCredentials: true,
     });
     return data;
@@ -58,7 +56,7 @@ export const getUserById = async (id: string) => {
 /** `/users/user/getTenants` */
 export const getTenants = async () => {
   try {
-    const data = await axios.get(`${apiUrl}/users/user/getTenants`, {
+    const data = await api.get(`/users/user/getTenants`, {
       withCredentials: true,
     });
     return data;
@@ -71,7 +69,7 @@ export const getTenants = async () => {
 /** `/users/user/getAll` */
 export const getAllUsers = async () => {
   try {
-    const data = await axios.get(`${apiUrl}/users/user/getAll`, {
+    const data = await api.get(`/users/user/getAll`, {
       withCredentials: true,
     });
     return data;
@@ -84,7 +82,7 @@ export const getAllUsers = async () => {
 /** `/users/user/findUser?searchTerm=` */
 export const searchUsersByText = async (searchTerm: string) => {
   try {
-    const data = await axios.get(`${apiUrl}/users/user/findUser`, {
+    const data = await api.get(`/users/user/findUser`, {
       params: { searchTerm },
       withCredentials: true,
     });
@@ -98,9 +96,7 @@ export const searchUsersByText = async (searchTerm: string) => {
 /** `/users/user/exist/{id}`  → boolean */
 export const userExists = async (id: string) => {
   try {
-    const { data } = await axios.get<boolean>(
-      `${apiUrl}/users/user/exist/${id}`
-    );
+    const { data } = await api.get<boolean>(`/users/user/exist/${id}`);
     return data;
   } catch (error) {
     console.error("Error checking user existence:", error);
@@ -111,7 +107,7 @@ export const userExists = async (id: string) => {
 /** `/users/user/update`  (PUT) */
 export const putUser = async (body: User) => {
   try {
-    const { data } = await axios.put(`${apiUrl}/users/user/update`, body, {
+    const { data } = await api.put(`/users/user/update`, body, {
       withCredentials: true,
     });
     console.log(data);
@@ -125,8 +121,8 @@ export const putUser = async (body: User) => {
 /** `/users/user/update/role/{id}?role=` */
 export const addRoleToUser = async (id: string, role: string) => {
   try {
-    const { data } = await axios.put<Role[]>(
-      `${apiUrl}/users/user/update/role/${id}`,
+    const { data } = await api.put<Role[]>(
+      `/users/user/update/role/${id}`,
       null,
       { params: { role }, withCredentials: true }
     );
@@ -144,7 +140,7 @@ export const addRoleToUser = async (id: string, role: string) => {
 /** `/users/user/delete/{id}` */
 export const deleteUser = async (id: string) => {
   try {
-    const { data } = await axios.delete(`${apiUrl}/users/user/delete/${id}`, {
+    const { data } = await api.delete(`/users/user/delete/${id}`, {
       withCredentials: true,
     });
     return data;
@@ -157,10 +153,10 @@ export const deleteUser = async (id: string) => {
 /** `/users/user/delete/role/{id}?role=` */
 export const deleteRoleFromUser = async (id: string, role: string) => {
   try {
-    const { data } = await axios.delete(
-      `${apiUrl}/users/user/delete/role/${id}`,
-      { params: { role }, withCredentials: true }
-    );
+    const { data } = await api.delete(`/users/user/delete/role/${id}`, {
+      params: { role },
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error("Error deleting role:", error);

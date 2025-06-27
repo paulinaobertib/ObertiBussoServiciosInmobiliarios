@@ -1,13 +1,8 @@
 package pi.ms_properties.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -18,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.controller.PropertyController;
 import pi.ms_properties.domain.Status;
@@ -29,6 +23,7 @@ import pi.ms_properties.dto.PropertyUpdateDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.PropertyService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,7 +110,7 @@ class PropertyControllerTest {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAll()).thenReturn(ResponseEntity.ok(list));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAll();
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Test
@@ -123,7 +118,7 @@ class PropertyControllerTest {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAllUsers()).thenReturn(ResponseEntity.ok(list));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAllUsers();
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Test
@@ -144,11 +139,11 @@ class PropertyControllerTest {
 
     @Test
     void testSearchProperties() {
-        when(propertyService.findBy(anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyString(), anyString(), anyList(), anyString(), anyString(), anyString(), any(), any()))
+        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyString(), anyString(), anyList(), anyString(), anyString(), anyString(), any(), any()))
                 .thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
 
         ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(
-                0, 100000, 0, 300, 0, 200, 3, "venta", "casa",
+                BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, 3, "venta", "casa",
                 List.of("pileta"), "cordoba", "centro", "urbano", true, false);
         assertEquals(1, response.getBody().size());
     }

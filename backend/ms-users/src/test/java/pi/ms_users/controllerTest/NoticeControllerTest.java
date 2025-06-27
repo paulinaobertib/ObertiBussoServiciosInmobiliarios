@@ -17,6 +17,7 @@ import pi.ms_users.controller.NoticeController;
 import pi.ms_users.domain.Notice;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.NoticeService;
+import pi.ms_users.service.interf.INoticeService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,7 +36,7 @@ class NoticeControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private NoticeService noticeService;
+    private INoticeService noticeService;
 
     @TestConfiguration
     static class Config {

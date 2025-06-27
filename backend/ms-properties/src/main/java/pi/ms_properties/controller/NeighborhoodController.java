@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.dto.NeighborhoodDTO;
-import pi.ms_properties.service.impl.NeighborhoodService;
+import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/neighborhood")
 public class NeighborhoodController {
 
-    private final NeighborhoodService neighborhoodService;
+    private final INeighborhoodService neighborhoodService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")

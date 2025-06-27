@@ -3,7 +3,7 @@ import { TextField, Grid, Box, Select, MenuItem, InputLabel, FormControl } from 
 import { Neighborhood, NeighborhoodCreate, NeighborhoodType } from '../../types/neighborhood';
 import { postNeighborhood, putNeighborhood, deleteNeighborhood } from '../../services/neighborhood.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';
 

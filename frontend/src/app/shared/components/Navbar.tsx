@@ -16,7 +16,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
-import { usePropertyCrud } from '../context/PropertiesContext';
+import { usePropertyCrud } from '../../property/context/PropertiesContext';
 import { useAuthContext } from '../../user/context/AuthContext';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 

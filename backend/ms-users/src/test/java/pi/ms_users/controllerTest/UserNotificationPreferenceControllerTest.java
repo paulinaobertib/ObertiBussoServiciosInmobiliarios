@@ -17,6 +17,7 @@ import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.UserNotificationPreferenceService;
+import pi.ms_users.service.interf.IUserNotificationPreferenceService;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class UserNotificationPreferenceControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserNotificationPreferenceService service;
+    private IUserNotificationPreferenceService service;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

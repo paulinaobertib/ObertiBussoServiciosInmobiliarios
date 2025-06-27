@@ -1,6 +1,4 @@
-import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL;
+import { api } from "../../../api";
 
 export interface ImageDTO {
   id: number; // sólo las que vienen de GET
@@ -11,8 +9,8 @@ export interface ImageDTO {
 export async function getImagesByPropertyId(
   propId: number
 ): Promise<ImageDTO[]> {
-  const { data } = await axios.get<ImageDTO[]>(
-    `${apiUrl}/properties/image/getByProperty/${propId}`,
+  const { data } = await api.get<ImageDTO[]>(
+    `/properties/image/getByProperty/${propId}`,
     { withCredentials: true }
   );
   return Array.isArray(data) ? data : [];
@@ -28,12 +26,12 @@ export async function postImage(
   form.append("file", file);
 
   try {
-    const { data: url } = await axios.post<string>(
-      `${apiUrl}/properties/image/upload`,
+    const { data: url } = await api.post<string>(
+      `/properties/image/upload`,
       form,
       {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true
+        withCredentials: true,
       }
     );
     return url;
@@ -45,8 +43,7 @@ export async function postImage(
 
 /* -------------------- DELETE -------------------- */
 export async function deleteImageById(id: number) {
-  await axios.delete(
-    `${apiUrl}/properties/image/delete/${id}`,
-    { withCredentials: true }
-  );
+  await api.delete(`/properties/image/delete/${id}`, {
+    withCredentials: true,
+  });
 }

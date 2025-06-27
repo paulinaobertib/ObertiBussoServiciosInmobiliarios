@@ -47,9 +47,8 @@ class CollaborativeRecommenderTest {
         when(mlClient.predict(userId, propertyId))
                 .thenThrow(new RuntimeException("ML API failure"));
 
-        assertThrows(RuntimeException.class, () -> {
-            collaborativeRecommender.predictInterest(userId, propertyId);
-        });
+        assertThrows(RuntimeException.class, () ->
+            collaborativeRecommender.predictInterest(userId, propertyId));
 
         verify(mlClient, times(1)).predict(userId, propertyId);
     }

@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.*;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.EmailContractDTO;
@@ -25,8 +25,8 @@ import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.ContractService;
-import pi.ms_users.service.impl.EmailService;
 import pi.ms_users.service.interf.IContractIncreaseService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -55,7 +55,7 @@ class ContractServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private EmailService emailService;
+    private IEmailService emailService;
 
     @InjectMocks
     private ContractService contractService;
@@ -63,7 +63,7 @@ class ContractServiceTest {
     private Contract contract;
     private ContractDTO contractDTO;
     private User user;
-    private Property property;
+    private PropertyDTO propertyDTO;
     private ContractIncrease contractIncrease;
     private ContractIncreaseDTO contractIncreaseDTO;
 
@@ -98,8 +98,8 @@ class ContractServiceTest {
         user.setEmail("test@mail.com");
         user.setFirstName("Test");
 
-        property = new Property();
-        property.setId(10L);
+        propertyDTO = new PropertyDTO();
+        propertyDTO.setId(10L);
 
         contractIncrease = new ContractIncrease();
         contractIncrease.setId(100L);
@@ -120,7 +120,7 @@ class ContractServiceTest {
 
     @Test
     void testCreate_success() {
-        when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(property);
+        when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(propertyDTO);
         when(userRepository.findById(contractDTO.getUserId())).thenReturn(Optional.of(user));
         when(objectMapper.convertValue(contractDTO, Contract.class)).thenReturn(contract);
         when(objectMapper.convertValue(any(ContractIncrease.class), eq(ContractIncreaseDTO.class))).thenReturn(contractIncreaseDTO);
@@ -207,8 +207,8 @@ class ContractServiceTest {
 
     @Test
     void testGetByPropertyId_success() {
-        when(propertyRepository.getById(contract.getPropertyId())).thenReturn(property);
-        when(contractRepository.findByPropertyId(property.getId())).thenReturn(List.of(contract));
+        when(propertyRepository.getById(contract.getPropertyId())).thenReturn(propertyDTO);
+        when(contractRepository.findByPropertyId(propertyDTO.getId())).thenReturn(List.of(contract));
 
         ResponseEntity<List<ContractDTO>> response = contractService.getByPropertyId(contract.getPropertyId());
 
@@ -298,7 +298,7 @@ class ContractServiceTest {
 
     @Test
     void testCreate_userNotFound_throwsException() {
-        when(propertyRepository.getById(anyLong())).thenReturn(mock(Property.class));
+        when(propertyRepository.getById(anyLong())).thenReturn(mock(PropertyDTO.class));
         when(userRepository.findById(anyString())).thenReturn(Optional.empty());
 
         ContractDTO dto = new ContractDTO();
@@ -374,7 +374,7 @@ class ContractServiceTest {
 
     @Test
     void testCreate_emailServiceThrowsException_shouldPropagate() {
-        when(propertyRepository.getById(anyLong())).thenReturn(mock(Property.class));
+        when(propertyRepository.getById(anyLong())).thenReturn(mock(PropertyDTO.class));
         User user = new User();
         user.setEmail("test@mail.com");
         user.setFirstName("Nombre");

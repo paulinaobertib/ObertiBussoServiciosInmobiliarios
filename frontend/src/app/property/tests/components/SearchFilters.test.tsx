@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SearchFilters from '../../components/SearchFilters';
 import { PropertyCrudProvider } from '../../context/PropertiesContext';
-import { AlertProvider } from '../../context/AlertContext';
+import { AlertProvider } from '../../../shared/context/AlertContext';
 import { ReactElement } from 'react';
 
 // Mock de los servicios

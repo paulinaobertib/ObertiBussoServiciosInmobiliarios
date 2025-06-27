@@ -168,7 +168,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleHttpMessageNotReadable() {
         Throwable cause = new IllegalArgumentException("JSON parse error");
-        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON request", cause);
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON request", cause, null);
 
         ResponseEntity<String> response = handler.handleHttpMessageNotReadable(ex);
 

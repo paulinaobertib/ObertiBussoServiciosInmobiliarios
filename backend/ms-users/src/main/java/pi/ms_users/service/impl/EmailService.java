@@ -19,14 +19,28 @@ import java.util.Locale;
 public class EmailService implements IEmailService {
 
     private final JavaMailSender javaMailSender;
+
     private final TemplateEngine templateEngine;
 
     private String formatDate(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", new Locale("es", "ES"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", Locale.forLanguageTag("es-AR"));
         return date.format(formatter);
     }
 
+    private void setEmailContextVariables(Context context, EmailPropertyDTO dto) {
+        context.setVariable("date", formatDate(dto.getDate()));
+        context.setVariable("propertyUrl", dto.getPropertyUrl());
+        context.setVariable("propertyDescription", dto.getPropertyDescription());
+        context.setVariable("propertyTitle", dto.getPropertyTitle());
+        context.setVariable("propertyImageUrl", dto.getPropertyImageUrl());
+        context.setVariable("propertyLocation", dto.getPropertyLocation());
+        context.setVariable("propertyPrice", dto.getPropertyPrice());
+        context.setVariable("propertyCurrency", dto.getPropertyCurrency());
+        context.setVariable("propertyOperation", dto.getPropertyOperation());
+    }
+
     // cuando se crea un turno
+    @Override
     public void sendAppointmentRequest(EmailDTO emailDTO) {
         try {
             Context context = new Context();
@@ -61,6 +75,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando la inmobiliaria decide aceptarlo o rechazarlo
+    @Override
     public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
         try {
             Context context = new Context();
@@ -87,6 +102,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el cliente cancela el turno
+    @Override
     public void sendAppointmentCancelledMail(EmailDTO emailDTO) {
         try {
             Context context = new Context();
@@ -110,18 +126,11 @@ public class EmailService implements IEmailService {
     }
 
     // cuando se agrega una nueva propiedad
+    @Override
     public void sendNotificationNewProperty(EmailPropertyDTO emailPropertyDTO) {
         try {
             Context context = new Context();
-            context.setVariable("date", formatDate(emailPropertyDTO.getDate()));
-            context.setVariable("propertyUrl", emailPropertyDTO.getPropertyUrl());
-            context.setVariable("propertyDescription", emailPropertyDTO.getPropertyDescription());
-            context.setVariable("propertyTitle", emailPropertyDTO.getPropertyTitle());
-            context.setVariable("propertyImageUrl", emailPropertyDTO.getPropertyImageUrl());
-            context.setVariable("propertyLocation", emailPropertyDTO.getPropertyLocation());
-            context.setVariable("propertyPrice", emailPropertyDTO.getPropertyPrice());
-            context.setVariable("propertyCurrency", emailPropertyDTO.getPropertyCurrency());
-            context.setVariable("propertyOperation", emailPropertyDTO.getPropertyOperation());
+            setEmailContextVariables(context, emailPropertyDTO);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -141,15 +150,7 @@ public class EmailService implements IEmailService {
     public void sendNotificationNewInterestProperty(EmailPropertyDTO emailPropertyDTO) {
         try {
             Context context = new Context();
-            context.setVariable("date", formatDate(emailPropertyDTO.getDate()));
-            context.setVariable("propertyUrl", emailPropertyDTO.getPropertyUrl());
-            context.setVariable("propertyDescription", emailPropertyDTO.getPropertyDescription());
-            context.setVariable("propertyTitle", emailPropertyDTO.getPropertyTitle());
-            context.setVariable("propertyImageUrl", emailPropertyDTO.getPropertyImageUrl());
-            context.setVariable("propertyLocation", emailPropertyDTO.getPropertyLocation());
-            context.setVariable("propertyPrice", emailPropertyDTO.getPropertyPrice());
-            context.setVariable("propertyCurrency", emailPropertyDTO.getPropertyCurrency());
-            context.setVariable("propertyOperation", emailPropertyDTO.getPropertyOperation());
+            setEmailContextVariables(context, emailPropertyDTO);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -165,6 +166,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el administrador le crea un usuario al inquilino
+    @Override
     public void sendNewUserCredentialsEmail(EmailNewUserDTO emailData) {
         try {
             Context context = new Context();
@@ -187,6 +189,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el administrador crea un contrato
+    @Override
     public void sendNewContractEmail(EmailContractDTO emailData) {
         try {
             Context context = new Context();
@@ -208,6 +211,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando aumenta el contrato segun el indice de aumento
+    @Override
     public void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData) {
         try {
             Context context = new Context();
@@ -232,6 +236,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el contrato esta cerca a vencer
+    @Override
     public void sendContractExpirationReminder(EmailExpirationContract emailData) {
         try {
             Context context = new Context();
