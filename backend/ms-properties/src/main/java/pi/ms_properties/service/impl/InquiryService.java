@@ -3,6 +3,7 @@ package pi.ms_properties.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -91,6 +92,22 @@ public class InquiryService implements IInquiryService {
         return ResponseEntity.ok("Se ha creado la consulta");
     }
 
+    @NotNull
+    private ResponseEntity<List<InquiryGetDTO>> getListInquiryGetDTO(List<Inquiry> inquiries) {
+        List<InquiryGetDTO> inquiryGetDTOS = inquiries.stream()
+                .map(inquiry -> {
+                    InquiryGetDTO dto = objectMapper.convertValue(inquiry, InquiryGetDTO.class);
+                    dto.setPropertyTitles(
+                            inquiry.getProperties().stream()
+                                    .map(Property::getTitle)
+                                    .collect(Collectors.toList())
+                    );
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(inquiryGetDTOS);
+    }
+
     @Override
     @Transactional
     public ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO) {
@@ -159,23 +176,11 @@ public class InquiryService implements IInquiryService {
     public ResponseEntity<List<InquiryGetDTO>> getAll() {
         List<Inquiry> inquiries = inquiryRepository.findAllWithProperties();
 
-        List<InquiryGetDTO> inquiryGetDTOS = inquiries.stream()
-                .map(inquiry -> {
-                    InquiryGetDTO dto = objectMapper.convertValue(inquiry, InquiryGetDTO.class);
-                    dto.setPropertyTitles(
-                            inquiry.getProperties().stream()
-                                    .map(Property::getTitle)
-                                    .collect(Collectors.toList())
-                    );
-                    return dto;
-                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(inquiryGetDTOS);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByUserId(String userId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByUserId(String userId) {
         if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
                 !userId.equals(SecurityUtils.getCurrentUserId())) {
             throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
@@ -185,22 +190,23 @@ public class InquiryService implements IInquiryService {
             throw new EntityNotFoundException("Usuario no encontrado");
         }
 
-        List<Inquiry> inquiries = inquiryRepository.getByUserId(userId);
-        return ResponseEntity.ok(inquiries);
+        List<Inquiry> inquiries = inquiryRepository.getByUserIdWithProperties(userId);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByPropertyId(Long propertyId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByPropertyId(Long propertyId) {
         if (propertyRepository.findById(propertyId).isEmpty()) {
             throw new EntityNotFoundException("Propiedad no encontrada");
         }
-        List<Inquiry> inquiries = inquiryRepository.getByPropertyId(propertyId);
-        return ResponseEntity.ok(inquiries);
+        List<Inquiry> inquiries = inquiryRepository.getByPropertyIdWithProperties(propertyId);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByStatus(InquiryStatus status) {
-        return ResponseEntity.ok(inquiryRepository.getByStatus(status));
+    public ResponseEntity<List<InquiryGetDTO>> getByStatus(InquiryStatus status) {
+        List<Inquiry> inquiries = inquiryRepository.getByStatusWithProperties(status);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override

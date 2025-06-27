@@ -12,9 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface IInquiryRepository extends JpaRepository<Inquiry, Long> {
-    @Query("select i from Inquiry i where i.userId = ?1")
-    List<Inquiry> getByUserId(String userId);
-
     @Query("select i from Inquiry i join i.properties p where p.id = :propertyId")
     List<Inquiry> getByPropertyId(@Param("propertyId") Long propertyId);
 
@@ -35,4 +32,13 @@ public interface IInquiryRepository extends JpaRepository<Inquiry, Long> {
 
     @Query("SELECT DISTINCT i FROM Inquiry i LEFT JOIN FETCH i.properties")
     List<Inquiry> findAllWithProperties();
+
+    @Query("SELECT DISTINCT i FROM Inquiry i LEFT JOIN FETCH i.properties WHERE i.userId = :userId")
+    List<Inquiry> getByUserIdWithProperties(@Param("userId") String userId);
+
+    @Query("SELECT DISTINCT i FROM Inquiry i LEFT JOIN FETCH i.properties JOIN i.properties p WHERE p.id = :propertyId")
+    List<Inquiry> getByPropertyIdWithProperties(@Param("propertyId") Long propertyId);
+
+    @Query("SELECT DISTINCT i FROM Inquiry i LEFT JOIN FETCH i.properties WHERE i.status = :status")
+    List<Inquiry> getByStatusWithProperties(@Param("status") InquiryStatus status);
 }
