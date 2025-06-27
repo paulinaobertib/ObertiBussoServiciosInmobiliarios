@@ -20,11 +20,11 @@ public interface IInquiryService {
 
     ResponseEntity<List<InquiryGetDTO>> getAll();
 
-    ResponseEntity<List<Inquiry>> getByUserId(String userId);
+    ResponseEntity<List<InquiryGetDTO>> getByUserId(String userId);
 
-    ResponseEntity<List<Inquiry>> getByPropertyId(Long propertyId);
+    ResponseEntity<List<InquiryGetDTO>> getByPropertyId(Long propertyId);
 
-    ResponseEntity<List<Inquiry>> getByStatus(InquiryStatus status);
+    ResponseEntity<List<InquiryGetDTO>> getByStatus(InquiryStatus status);
 
     ResponseEntity<Map<String, Long>> getInquiryStatusDistribution();
 

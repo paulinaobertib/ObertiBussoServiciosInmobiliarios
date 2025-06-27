@@ -84,6 +84,22 @@ class InquiryControllerTest {
         sampleInquiry.setProperties(List.of());
     }
 
+    private InquiryGetDTO sampleInquiryGetDTO() {
+        InquiryGetDTO dto = new InquiryGetDTO();
+        dto.setId(1L);
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
+        dto.setEmail("john@example.com");
+        dto.setPhone("123456789");
+        dto.setTitle("Consulta");
+        dto.setDescription("Descripción");
+        dto.setStatus(InquiryStatus.ABIERTA);
+        dto.setDate(LocalDateTime.now());
+        dto.setDateClose(null);
+        dto.setPropertyTitles(List.of("Propiedad 1", "Propiedad 2"));
+        return dto;
+    }
+
     // casos de exito
 
     @Test
@@ -163,24 +179,32 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void getByUserId_success() throws Exception {
+        InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
         Mockito.when(inquiryService.getByUserId("user123"))
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/user/user123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleDTO.getId()))
+                .andExpect(jsonPath("$[0].firstName").value(sampleDTO.getFirstName()));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getByStatus_success() throws Exception {
+        InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+
         Mockito.when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getByStatus")
                         .param("status", "ABIERTA"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleDTO.getId()))
+                .andExpect(jsonPath("$[0].status").value("ABIERTA"));
     }
 
     @Test
