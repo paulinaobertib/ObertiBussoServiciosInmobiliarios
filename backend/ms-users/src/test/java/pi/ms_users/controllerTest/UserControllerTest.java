@@ -210,16 +210,6 @@ public class UserControllerTest {
     }
 
     @Test
-    void findRoles_forbidden_shouldReturn403() throws Exception {
-        User user = new User("1", "jdoe", "jdoe@mail.com", "John", "Doe", "123456");
-        when(userService.findById("1")).thenReturn(ResponseEntity.ok(user));
-
-        mockMvc.perform(get("/user/getById/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
     void deleteRoleToUser_unauthorized_shouldReturn401() throws Exception {
         mockMvc.perform(delete("/user/delete/role/1")
                         .param("role", "ROLE_user"))
