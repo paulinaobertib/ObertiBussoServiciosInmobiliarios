@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
 import {
-  Box, Button, Stack,
+  Box, Button,
   Step, StepLabel, Stepper, Typography,
   useTheme
 } from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // hooks y contextos
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
-import { useGlobalAlert } from '../app/property/context/AlertContext';
+import { useGlobalAlert } from '../app/shared/context/AlertContext';
 
 // componentes
 import PropertyForm from '../app/property/components/forms/PropertyForm';
 import PropertyPreview from '../app/property/components/PropertyPreview';
-import CategoryButton from '../app/property/components/CategoryButton';
-import CategoryItems from '../app/property/components/CategoryItems';
+import CategoryPanel from '../app/property/components/CategoryPanel';
+import PanelManager, { PanelConfig } from '../app/shared/components/PanelManager';
 
 // servicios
 import {
@@ -54,6 +53,39 @@ export default function EditPropertyPage() {
   const [imagesBackend, setImagesBackend] = useState<ImageDTO[]>([]);
   const [activeStep, setActiveStep] = useState(0);
   const [formReady, setFormReady] = useState(false);
+
+  type CategoryKey = 'type' | 'neighborhood' | 'owner' | 'amenity';
+
+  const categoryKeys: CategoryKey[] = [
+    'type',
+    'neighborhood',
+    'owner',
+    'amenity',
+  ];
+
+  /* categorías necesarias para continuar -------------------------- */
+  const categoryPanels: PanelConfig[] = [
+    {
+      key: 'type',
+      label: 'Tipos',
+      content: <CategoryPanel category="type" />,
+    },
+    {
+      key: 'neighborhood',
+      label: 'Barrios',
+      content: <CategoryPanel category="neighborhood" />,
+    },
+    {
+      key: 'owner',
+      label: 'Propietarios',
+      content: <CategoryPanel category="owner" />,
+    },
+    {
+      key: 'amenity',
+      label: 'Caracteristicas',
+      content: <CategoryPanel category="amenity" />,
+    },
+  ];
 
   // 1) Cargar datos al montar
   useEffect(() => {
@@ -187,8 +219,9 @@ export default function EditPropertyPage() {
   const title = selectedTypeName
     ? `Edición de ${selectedTypeName}`
     : 'Edición de Propiedad';
-  const categories = ['type', 'neighborhood', 'owner', 'amenity'] as const;
-  const canProceed = categories.every(k =>
+
+
+  const canProceed = categoryKeys.every(k =>
     k === 'amenity' ? selected.amenities.length > 0 : Boolean(selected[k])
   );
 
@@ -234,34 +267,9 @@ export default function EditPropertyPage() {
             </Typography>
 
             {/* botones categoría */}
-            <Stack direction="row"
-              spacing={1}
-              alignItems="center"
-              sx={{
-                mb: 2,
-                overflowX: 'auto',
-                flexWrap: 'nowrap',
-                minHeight: 46,
-                '& > *': { flexShrink: 0 },
-                justifyContent: { xs: 'flex-start', md: 'center' }
-              }}>
-              {categories.map((cat, i) => (
-                <Box key={cat} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <CategoryButton category={cat} />
-                  {i < categories.length - 1 && <NavigateNextIcon sx={{ mx: 0.5, color: '#BDBDBD' }} />}
-                </Box>
-              ))}
-            </Stack>
-
-
-            {/* panel items */}
-            <Box sx={{
-              flexGrow: 1, mx: 'auto', width: '100%', maxWidth: '96vw',
-              display: 'flex', flexDirection: 'column',
-              boxShadow: 2, borderRadius: 2, overflow: 'hidden',
-              bgcolor: 'background.paper',
-            }}>
-              <CategoryItems />
+            {/* botones categoría */}
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, alignItems: 'center' }}>
+              <PanelManager panels={categoryPanels} direction="row" />
             </Box>
 
             {/* botón siguiente */}

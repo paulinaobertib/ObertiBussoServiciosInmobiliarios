@@ -11,12 +11,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_users.controller.FavoriteController;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.FavoriteService;
+import pi.ms_users.service.interf.IFavoriteService;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class FavoriteControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private FavoriteService favoriteService;
+    private IFavoriteService favoriteService;
 
     @TestConfiguration
     static class Config {

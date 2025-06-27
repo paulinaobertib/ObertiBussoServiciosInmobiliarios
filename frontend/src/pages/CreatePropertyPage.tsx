@@ -1,34 +1,40 @@
 import { useEffect, useState } from 'react';
 import {
-  Box, Button, Container, Stack,
+  Box, Button, Container,
   Step, StepLabel, Stepper, Typography,
-  useTheme
+  useTheme,
 } from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useNavigate } from 'react-router-dom';
 
-/* hooks, contextos y servicios (sin cambios) */
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
-import { useGlobalAlert } from '../app/property/context/AlertContext';
+import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import PropertyForm from '../app/property/components/forms/PropertyForm';
 import PropertyPreview from '../app/property/components/PropertyPreview';
-import CategoryButton from '../app/property/components/CategoryButton';
-import CategoryItems from '../app/property/components/CategoryItems';
+import PanelManager, { PanelConfig } from '../app/shared/components/PanelManager';
+import CategoryPanel from '../app/property/components/CategoryPanel';
 import { postProperty } from '../app/property/services/property.service';
 import { ROUTES } from '../lib';
 import { BasePage } from './BasePage';
 
 export default function CreatePropertyPage() {
   /* ---------------- estado y hooks ---------------- */
-  const { formRef, gallery, setGallery, setMain, main, deleteImgFile, handleImages } = useCreateProperty();
-  const { selected, typesList, resetSelected, pickItem, refreshTypes } = usePropertyCrud();
+  const {
+    formRef, gallery, setGallery, setMain, main,
+    deleteImgFile, handleImages,
+  } = useCreateProperty();
+
+  const {
+    selected, typesList,
+    resetSelected, pickItem, refreshTypes,
+  } = usePropertyCrud();
+
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
   const [activeStep, setActiveStep] = useState(0);
   const [formReady, setFormReady] = useState(false);
-  const theme = useTheme()
+  const theme = useTheme();
   const navigate = useNavigate();
 
   /* limpiar estado al entrar -------------------------------------- */
@@ -37,15 +43,43 @@ export default function CreatePropertyPage() {
     resetSelected();
     setMain(null);
     setGallery([]);
-  }, []);
+  }, [pickItem, resetSelected, setMain, setGallery]);
 
-  useEffect(() => {
-    refreshTypes();
-  }, [refreshTypes]);
+  useEffect(() => { refreshTypes(); }, [refreshTypes]);
+  type CategoryKey = 'type' | 'neighborhood' | 'owner' | 'amenity';
+
+  const categoryKeys: CategoryKey[] = [
+    'type',
+    'neighborhood',
+    'owner',
+    'amenity',
+  ];
 
   /* categorías necesarias para continuar -------------------------- */
-  const categories = ['type', 'neighborhood', 'owner', 'amenity'] as const;
-  const canProceed = categories.every(k =>
+  const categoryPanels: PanelConfig[] = [
+    {
+      key: 'type',
+      label: 'Tipos',
+      content: <CategoryPanel category="type" />,
+    },
+    {
+      key: 'neighborhood',
+      label: 'Barrios',
+      content: <CategoryPanel category="neighborhood" />,
+    },
+    {
+      key: 'owner',
+      label: 'Propietarios',
+      content: <CategoryPanel category="owner" />,
+    },
+    {
+      key: 'amenity',
+      label: 'Caracteristicas',
+      content: <CategoryPanel category="amenity" />,
+    },
+  ];
+
+  const canProceed = categoryKeys.every(k =>
     k === 'amenity' ? selected.amenities.length > 0 : Boolean(selected[k])
   );
 
@@ -56,9 +90,7 @@ export default function CreatePropertyPage() {
         try {
           const data = formRef.current?.getCreateData();
           if (data) {
-            // setLoading(true);
             await postProperty(data);
-            // setLoading(false);
           }
           showAlert('Propiedad creada correctamente!', 'success');
           formRef.current?.reset();
@@ -95,7 +127,8 @@ export default function CreatePropertyPage() {
     ? `Formulario de Creación de ${selectedTypeName}`
     : 'Formulario de Creación';
 
-  return (
+    return (
+
     <BasePage maxWidth={true}>
       <Box sx={{
         height: '100%',
@@ -133,7 +166,7 @@ export default function CreatePropertyPage() {
 
           </Box>
 
-          {/* ------- STEP 0 : categorías ------- */}
+          {/* ---------- STEP 0 : categorías ---------- */}
           {activeStep === 0 && (
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               {/* título */}
@@ -142,34 +175,8 @@ export default function CreatePropertyPage() {
               </Typography>
 
               {/* botones categoría */}
-              <Stack direction="row"
-                spacing={1}
-                alignItems="center"
-                sx={{
-                  mb: 2,
-                  overflowX: 'auto',
-                  flexWrap: 'nowrap',
-                  minHeight: 46,
-                  '& > *': { flexShrink: 0 },
-                  justifyContent: { xs: 'flex-start', md: 'center' }
-                }}>
-                {categories.map((cat, i) => (
-                  <Box key={cat} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <CategoryButton category={cat} />
-                    {i < categories.length - 1 && <NavigateNextIcon sx={{ mx: 0.5, color: '#BDBDBD' }} />}
-                  </Box>
-                ))}
-              </Stack>
-
-
-              {/* panel items */}
-              <Box sx={{
-                flexGrow: 1, mx: 'auto', width: '100%', maxWidth: '96vw',
-                display: 'flex', flexDirection: 'column',
-                boxShadow: 2, borderRadius: 2, overflow: 'hidden',
-                bgcolor: 'background.paper',
-              }}>
-                <CategoryItems />
+              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0, alignItems: 'center' }}>
+                <PanelManager panels={categoryPanels} direction="row" />
               </Box>
 
               {/* botón siguiente */}

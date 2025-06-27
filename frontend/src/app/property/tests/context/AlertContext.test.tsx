@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AlertProvider, useGlobalAlert } from '../../context/AlertContext';
+import { AlertProvider, useGlobalAlert } from '../../../shared/context/AlertContext';
 
 // Componente de prueba que dispara la alerta
 function TestComponent() {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, } from '@mui/material';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { putPropertyStatus } from '../../services/property.service';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';

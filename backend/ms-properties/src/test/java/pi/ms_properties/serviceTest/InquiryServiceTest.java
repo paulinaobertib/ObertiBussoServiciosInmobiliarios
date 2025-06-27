@@ -1,7 +1,9 @@
 package pi.ms_properties.serviceTest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.domain.Property;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
@@ -29,6 +32,7 @@ import pi.ms_properties.service.impl.SurveyService;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -54,8 +58,11 @@ class InquiryServiceTest {
     @Mock
     private SurveyService surveyService;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     private InquirySaveDTO getSampleDTO() {
-        return new InquirySaveDTO(1L, "user123", "123456789", "test@mail.com", "John", "Doe", "Consulta", "Descripción", List.of(1L));
+        return new InquirySaveDTO(1L, "user123", "123456789", "test@email.com", "John", "Doe", "Consulta", "Descripción", List.of(1L));
     }
 
     private Property getSampleProperty() {
@@ -71,9 +78,16 @@ class InquiryServiceTest {
         i.setId(1L);
         i.setDate(LocalDateTime.now().minusHours(2));
         i.setDateClose(LocalDateTime.now());
-        i.setEmail("test@mail.com");
+        i.setEmail("test@email.com");
         i.setStatus(InquiryStatus.ABIERTA);
         return i;
+    }
+
+    @BeforeEach
+    void setUp() {
+        inquiryService = new InquiryService(
+                inquiryRepository, propertyRepository, userRepository, emailService, surveyService, objectMapper
+        );
     }
 
     // casos de exito
@@ -85,7 +99,7 @@ class InquiryServiceTest {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername("user123");
         userDTO.setPhone("123456789");
-        userDTO.setMail("test@mail.com");
+        userDTO.setEmail("test@email.com");
         userDTO.setFirstName("John");
         userDTO.setLastName("Doe");
 
@@ -102,30 +116,56 @@ class InquiryServiceTest {
     }
 
     @Test
-    void createWithoutUser_success() {
+    void create_withoutUser_success() {
         InquirySaveDTO dto = getSampleDTO();
         dto.setUserId(null);
+        dto.setFirstName("Ana");
+        dto.setLastName("García");
+        dto.setPhone("987654321");
+        dto.setEmail("ana@example.com");
+
         Property property = getSampleProperty();
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
         when(propertyRepository.findAllById(List.of(1L))).thenReturn(List.of(property));
 
-        ResponseEntity<String> response = inquiryService.createWithoutUser(dto);
+        ResponseEntity<String> response = inquiryService.create(dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(emailService).sendEmailInquiry(any());
         verify(inquiryRepository).save(any());
+
+        verify(userRepository, never()).findById(any());
+        verify(userRepository, never()).exist(any());
     }
 
     @Test
     void getById_success() {
         Inquiry inquiry = getSampleInquiry();
-        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
 
-        ResponseEntity<Inquiry> response = inquiryService.getById(1L);
+        when(inquiryRepository.findByIdWithProperties(1L)).thenReturn(Optional.of(inquiry));
+
+        InquiryGetDTO expectedDTO = new InquiryGetDTO();
+        expectedDTO.setId(inquiry.getId());
+        expectedDTO.setFirstName(inquiry.getFirstName());
+        expectedDTO.setLastName(inquiry.getLastName());
+        expectedDTO.setEmail(inquiry.getEmail());
+        expectedDTO.setPhone(inquiry.getPhone());
+        expectedDTO.setTitle(inquiry.getTitle());
+        expectedDTO.setDescription(inquiry.getDescription());
+        expectedDTO.setStatus(inquiry.getStatus());
+        expectedDTO.setDate(inquiry.getDate());
+        expectedDTO.setDateClose(inquiry.getDateClose());
+        expectedDTO.setPropertyTitles(inquiry.getProperties().stream()
+                .map(Property::getTitle)
+                .collect(Collectors.toList()));
+
+        when(objectMapper.convertValue(inquiry, InquiryGetDTO.class)).thenReturn(expectedDTO);
+
+        ResponseEntity<InquiryGetDTO> response = inquiryService.getById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(inquiry, response.getBody());
+        assertEquals(expectedDTO, response.getBody());
     }
 
     @Test
@@ -142,56 +182,127 @@ class InquiryServiceTest {
 
     @Test
     void getAll_success() {
-        List<Inquiry> mockList = List.of(new Inquiry(), new Inquiry());
-        when(inquiryRepository.findAll()).thenReturn(mockList);
+        Inquiry inquiry1 = getSampleInquiry();
+        Inquiry inquiry2 = getSampleInquiry();
+        List<Inquiry> inquiries = List.of(inquiry1, inquiry2);
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getAll();
+        when(inquiryRepository.findAllWithProperties()).thenReturn(inquiries);
+
+        InquiryGetDTO dto1 = new InquiryGetDTO();
+        dto1.setId(inquiry1.getId());
+        dto1.setFirstName(inquiry1.getFirstName());
+        dto1.setLastName(inquiry1.getLastName());
+        dto1.setEmail(inquiry1.getEmail());
+        dto1.setPhone(inquiry1.getPhone());
+        dto1.setTitle(inquiry1.getTitle());
+        dto1.setDescription(inquiry1.getDescription());
+        dto1.setStatus(inquiry1.getStatus());
+        dto1.setDate(inquiry1.getDate());
+        dto1.setDateClose(inquiry1.getDateClose());
+        dto1.setPropertyTitles(inquiry1.getProperties().stream()
+                .map(Property::getTitle)
+                .collect(Collectors.toList()));
+
+        InquiryGetDTO dto2 = new InquiryGetDTO();
+        dto2.setId(inquiry2.getId());
+        dto2.setFirstName(inquiry2.getFirstName());
+        dto2.setLastName(inquiry2.getLastName());
+        dto2.setEmail(inquiry2.getEmail());
+        dto2.setPhone(inquiry2.getPhone());
+        dto2.setTitle(inquiry2.getTitle());
+        dto2.setDescription(inquiry2.getDescription());
+        dto2.setStatus(inquiry2.getStatus());
+        dto2.setDate(inquiry2.getDate());
+        dto2.setDateClose(inquiry2.getDateClose());
+        dto2.setPropertyTitles(inquiry2.getProperties().stream()
+                .map(Property::getTitle)
+                .collect(Collectors.toList()));
+
+        when(objectMapper.convertValue(inquiry1, InquiryGetDTO.class)).thenReturn(dto1);
+        when(objectMapper.convertValue(inquiry2, InquiryGetDTO.class)).thenReturn(dto2);
+
+        ResponseEntity<List<InquiryGetDTO>> response = inquiryService.getAll();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
+        assertEquals(List.of(dto1, dto2), response.getBody());
     }
 
     @Test
     void getByUserId_success() {
         String userId = "user123";
-        List<Inquiry> mockList = List.of(new Inquiry());
+        Property property = new Property();
+        property.setTitle("Propiedad 1");
+
+        Inquiry inquiry = new Inquiry();
+        inquiry.setProperties(List.of(property));
+
+        List<Inquiry> mockList = List.of(inquiry);
 
         when(userRepository.exist(userId)).thenReturn(true);
-        when(inquiryRepository.getByUserId(userId)).thenReturn(mockList);
+        when(inquiryRepository.getByUserIdWithProperties(userId)).thenReturn(mockList);
+        when(objectMapper.convertValue(any(Inquiry.class), eq(InquiryGetDTO.class)))
+                .thenReturn(new InquiryGetDTO());
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByUserId(userId);
+        ResponseEntity<List<InquiryGetDTO>> response = inquiryService.getByUserId(userId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
+        assertEquals(List.of("Propiedad 1"), response.getBody().get(0).getPropertyTitles());
     }
 
     @Test
     void getByPropertyId_success() {
         Long propertyId = 1L;
-        Property mockProperty = new Property();
-        List<Inquiry> mockList = List.of(new Inquiry(), new Inquiry());
+        Property property = new Property();
+        property.setTitle("Propiedad 2");
 
-        when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(mockProperty));
-        when(inquiryRepository.getByPropertyId(propertyId)).thenReturn(mockList);
+        Inquiry inquiry1 = new Inquiry();
+        inquiry1.setProperties(List.of(property));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByPropertyId(propertyId);
+        Inquiry inquiry2 = new Inquiry();
+        inquiry2.setProperties(List.of(property));
+
+        List<Inquiry> mockList = List.of(inquiry1, inquiry2);
+
+        when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
+        when(inquiryRepository.getByPropertyIdWithProperties(propertyId)).thenReturn(mockList);
+        when(objectMapper.convertValue(any(Inquiry.class), eq(InquiryGetDTO.class)))
+                .thenReturn(new InquiryGetDTO());
+
+        ResponseEntity<List<InquiryGetDTO>> response = inquiryService.getByPropertyId(propertyId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
+        assertEquals("Propiedad 2", response.getBody().get(0).getPropertyTitles().get(0));
     }
 
     @Test
-    void testGetByStatus_Success() {
+    void getByStatus_success() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-        List<Inquiry> mockList = List.of(new Inquiry(), new Inquiry());
+        Property property = new Property();
+        property.setTitle("Propiedad 3");
 
-        when(inquiryRepository.getByStatus(status)).thenReturn(mockList);
+        Inquiry inquiry1 = new Inquiry();
+        inquiry1.setProperties(List.of(property));
 
-        ResponseEntity<List<Inquiry>> response = inquiryService.getByStatus(status);
+        Inquiry inquiry2 = new Inquiry();
+        inquiry2.setProperties(List.of(property));
+
+        List<Inquiry> mockList = List.of(inquiry1, inquiry2);
+
+        when(inquiryRepository.getByStatusWithProperties(status)).thenReturn(mockList);
+
+        when(objectMapper.convertValue(any(Inquiry.class), eq(InquiryGetDTO.class)))
+                .thenReturn(new InquiryGetDTO());
+
+        ResponseEntity<List<InquiryGetDTO>> response = inquiryService.getByStatus(status);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockList, response.getBody());
-        verify(inquiryRepository).getByStatus(status);
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals("Propiedad 3", response.getBody().get(0).getPropertyTitles().get(0));
     }
 
     @Test
@@ -310,25 +421,9 @@ class InquiryServiceTest {
     }
 
     @Test
-    void testCreate_IllegalArgumentException() {
-        InquirySaveDTO invalidDto = new InquirySaveDTO();
-        invalidDto.setUserId(null);
-
-        assertThrows(NullPointerException.class, () -> inquiryService.create(invalidDto));
-    }
-
-    @Test
-    void testCreateWithoutUser_IllegalArgumentException() {
-        InquirySaveDTO invalidDto = new InquirySaveDTO();
-        invalidDto.setFirstName(null);
-
-        assertThrows(NullPointerException.class, () -> inquiryService.createWithoutUser(invalidDto));
-    }
-
-    @Test
     void testGetByStatus_IllegalArgumentException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-        when(inquiryRepository.getByStatus(status)).thenThrow(new IllegalArgumentException());
+        when(inquiryRepository.getByStatusWithProperties(status)).thenThrow(new IllegalArgumentException());
 
         assertThrows(IllegalArgumentException.class, () -> inquiryService.getByStatus(status));
     }
@@ -336,7 +431,7 @@ class InquiryServiceTest {
     @Test
     void testGetByStatus_DataIntegrityViolationException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-        when(inquiryRepository.getByStatus(status)).thenThrow(new DataIntegrityViolationException(""));
+        when(inquiryRepository.getByStatusWithProperties(status)).thenThrow(new DataIntegrityViolationException(""));
 
         assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getByStatus(status));
     }
@@ -344,14 +439,14 @@ class InquiryServiceTest {
     @Test
     void testGetByStatus_GeneralException() {
         InquiryStatus status = InquiryStatus.ABIERTA;
-        when(inquiryRepository.getByStatus(status)).thenThrow(new RuntimeException());
+        when(inquiryRepository.getByStatusWithProperties(status)).thenThrow(new RuntimeException());
 
         assertThrows(RuntimeException.class, () -> inquiryService.getByStatus(status));
     }
 
     @Test
     void getById_notFound() {
-        when(inquiryRepository.findById(1L)).thenReturn(Optional.empty());
+        when(inquiryRepository.findByIdWithProperties(1L)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
                 () -> inquiryService.getById(1L));
@@ -362,7 +457,7 @@ class InquiryServiceTest {
     @Test
     void testGetById_DataIntegrityViolationException() {
         Long id = 1L;
-        when(inquiryRepository.findById(id)).thenThrow(DataIntegrityViolationException.class);
+        when(inquiryRepository.findByIdWithProperties(id)).thenThrow(DataIntegrityViolationException.class);
 
         assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getById(id));
     }
@@ -370,7 +465,7 @@ class InquiryServiceTest {
     @Test
     void testGetById_GeneralException() {
         Long id = 1L;
-        when(inquiryRepository.findById(id)).thenThrow(RuntimeException.class);
+        when(inquiryRepository.findByIdWithProperties(id)).thenThrow(RuntimeException.class);
 
         assertThrows(RuntimeException.class, () -> inquiryService.getById(id));
     }
@@ -411,14 +506,16 @@ class InquiryServiceTest {
 
     @Test
     void getAll_dataIntegrityViolationException() {
-        when(inquiryRepository.findAll()).thenThrow(new DataIntegrityViolationException("Error de integridad"));
+        when(inquiryRepository.findAllWithProperties())
+                .thenThrow(new DataIntegrityViolationException("Error de integridad"));
 
         assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getAll());
     }
 
     @Test
     void getAll_generalException() {
-        when(inquiryRepository.findAll()).thenThrow(new RuntimeException("Error inesperado"));
+        when(inquiryRepository.findAllWithProperties())
+                .thenThrow(new RuntimeException("Error inesperado"));
 
         assertThrows(RuntimeException.class, () -> inquiryService.getAll());
     }
@@ -436,7 +533,7 @@ class InquiryServiceTest {
     @Test
     void getByUserId_dataIntegrityViolationException() {
         when(userRepository.exist("user123")).thenReturn(true);
-        when(inquiryRepository.getByUserId("user123"))
+        when(inquiryRepository.getByUserIdWithProperties("user123"))
                 .thenThrow(new DataIntegrityViolationException("Error de integridad"));
 
         assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getByUserId("user123"));
@@ -445,7 +542,7 @@ class InquiryServiceTest {
     @Test
     void getByUserId_generalException() {
         when(userRepository.exist("user123")).thenReturn(true);
-        when(inquiryRepository.getByUserId("user123"))
+        when(inquiryRepository.getByUserIdWithProperties("user123"))
                 .thenThrow(new RuntimeException("Error inesperado"));
 
         assertThrows(RuntimeException.class, () -> inquiryService.getByUserId("user123"));
@@ -464,7 +561,7 @@ class InquiryServiceTest {
     @Test
     void getByPropertyId_dataIntegrityViolationException() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(new Property()));
-        when(inquiryRepository.getByPropertyId(1L))
+        when(inquiryRepository.getByPropertyIdWithProperties(1L))
                 .thenThrow(new DataIntegrityViolationException("Error de integridad"));
 
         assertThrows(DataIntegrityViolationException.class, () -> inquiryService.getByPropertyId(1L));
@@ -473,7 +570,7 @@ class InquiryServiceTest {
     @Test
     void getByPropertyId_generalException() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(new Property()));
-        when(inquiryRepository.getByPropertyId(1L))
+        when(inquiryRepository.getByPropertyIdWithProperties(1L))
                 .thenThrow(new RuntimeException("Error inesperado"));
 
         assertThrows(RuntimeException.class, () -> inquiryService.getByPropertyId(1L));
@@ -498,7 +595,7 @@ class InquiryServiceTest {
         Inquiry inquiry = getSampleInquiry();
         inquiry.setUserId("user123");
 
-        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+        when(inquiryRepository.findByIdWithProperties(1L)).thenReturn(Optional.of(inquiry));
 
         try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
             securityMock.when(SecurityUtils::isAdmin).thenReturn(false);

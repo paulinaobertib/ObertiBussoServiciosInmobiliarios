@@ -7,7 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.domain.Image;
-import pi.ms_properties.service.impl.ImageService;
+import pi.ms_properties.service.interf.IImageService;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/image")
 public class ImageController {
 
-    private final ImageService imageService;
+    private final IImageService imageService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/upload")

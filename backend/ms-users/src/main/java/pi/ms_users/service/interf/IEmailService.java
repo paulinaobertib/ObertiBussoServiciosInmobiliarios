@@ -21,4 +21,6 @@ public interface IEmailService {
     void sendNewContractEmail(EmailContractDTO emailData);
 
     void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData);
+
+    void sendContractExpirationReminder(EmailExpirationContract emailData);
 }

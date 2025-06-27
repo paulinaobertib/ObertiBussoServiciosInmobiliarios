@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import CategoryItems from '../../components/CategoryItems';
+import CategoryItems from '../../components/CategoryPanel';
 import type { Amenity } from '../../types/amenity';
 import type { Property } from '../../types/property';
 import * as propertyService from '../../services/property.service';

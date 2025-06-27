@@ -8,69 +8,77 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
-import { useNavigate } from 'react-router-dom';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-import { usePropertyCrud } from '../context/PropertiesContext';
+import { usePropertyCrud, Category } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
-import ModalItem, { Info } from './ModalItem';
+import ModalItem, { Info } from '../components/ModalItem';
 import SearchBarOwner from './SearchBarOwners';
 import { Owner } from '../types/owner';
 import { useConfirmDialog } from '../utils/ConfirmDialog';
-import { deleteProperty } from '../services/property.service';
-import { useGlobalAlert } from '../context/AlertContext';
-import { getRowActions, RowAction } from './ActionsRowItems';
-import { ROUTES } from '../../../lib';
+import { useGlobalAlert } from '../../shared/context/AlertContext';
 
-export default function CategoryItems() {
+// Formularios para cada categoría
+import AmenityForm from '../components/forms/AmenityForm';
+import OwnerForm from '../components/forms/OwnerForm';
+import TypeForm from '../components/forms/TypeForm';
+import NeighborhoodForm from '../components/forms/NeighborhoodForm';
+import StatusForm from '../components/forms/StatusForm';
+
+const formRegistry = {
+  amenity: AmenityForm,
+  owner: OwnerForm,
+  type: TypeForm,
+  neighborhood: NeighborhoodForm,
+  status: StatusForm,
+} as const;
+
+interface Props {
+  category: Category;
+}
+
+export default function CategoryPanel({ category }: Props) {
   const theme = useTheme();
-  const navigate = useNavigate();
-  const {
-    currentCategory: category,
-    data: rawData,
-    loading,
-    selected,
-    toggleSelect,
-  } = usePropertyCrud();
-  const { ask, DialogUI } = useConfirmDialog();
-  const { showAlert } = useGlobalAlert();
+  const { pickItem, data: rawData, loading, selected, toggleSelect } = usePropertyCrud();
+  const { DialogUI } = useConfirmDialog();
+  useGlobalAlert();
 
   const [modal, setModal] = useState<Info | null>(null);
   const [filteredOwners, setFilteredOwners] = useState<Owner[]>([]);
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
-  const isProperty = category === 'property';
-  const data = category === 'owner' ? filteredOwners : rawData ?? [];
 
-  // Para mantener la lógica original de multi‐select only en amenity, single‐select en las demás
-  const isSel = (id: number) => {
-    if (category === 'amenity') return selected.amenities.includes(id);
-    if (category === 'owner') return selected.owner === id;
-    if (category === 'neighborhood') return selected.neighborhood === id;
-    if (category === 'type') return selected.type === id;
-    if (isProperty) return selectedPropertyId === id;
-    return false;
-  };
+  // Sincronizar categoría
+  useEffect(() => {
+    pickItem('category', category);
+  }, [category]);
 
+  // Datos (propietarios filtrados o todo)
+  const data = category === 'owner'
+    ? (filteredOwners as any[])
+    : rawData ?? [];
+
+  // Inicializar owners
   useEffect(() => {
     if (category === 'owner') {
       setFilteredOwners((rawData as Owner[]) ?? []);
     }
   }, [rawData, category]);
 
-  if (!category) return null;
+  // ¿Está seleccionado?
+  const isSel = (id: number) => {
+    if (category === 'amenity') return selected.amenities.includes(id);
+    if (category === 'owner') return selected.owner === id;
+    if (category === 'neighborhood') return selected.neighborhood === id;
+    if (category === 'type') return selected.type === id;
+    return false;
+  };
 
   const handleRowClick = (id: number) => {
-    if (category === 'amenity') {
-      // multi-select
-      toggleSelect(id);
-    } else if (isProperty) {
-      // single-select
-      setSelectedPropertyId(prev => (prev === id ? null : id));
-    } else {
-      // single-select para otras categorías
-      toggleSelect(id);
-    }
+    toggleSelect(id);
   };
-  const categoryFields: Record<string, { label: string; key: string }[]> = {
+
+  // Definición de columnas por categoría
+  const categoryFields: Record<Category, { label: string; key: string }[]> = {
     owner: [
       { label: 'Nombre Completo', key: 'fullName' },
       { label: 'Email', key: 'mail' },
@@ -88,44 +96,45 @@ export default function CategoryItems() {
       { label: 'Baños', key: 'hasBathrooms' },
       { label: 'Área Cubierta', key: 'hasCoveredArea' },
     ],
-    amenity: [
-      { label: 'Nombre', key: 'name' },
-    ],
-    property: [
-      { label: 'Título', key: 'title' },
-      { label: 'Precio', key: 'price' },
-    ],
+    amenity: [{ label: 'Nombre', key: 'name' }],
   };
-  const columns = categoryFields[category] ?? [];
-
-  // 1fr por cada campo + ancho fijo para acciones
+  const columns = categoryFields[category];
   const ACTIONS_COLUMN_WIDTH = 75;
   const gridTemplate = `${columns.map(() => '1fr').join(' ')} ${ACTIONS_COLUMN_WIDTH}px`;
 
   return (
     <>
-      {/* Header principal */}
+      {/* ─── Header ─────────────────────────────── */}
       <Box
         sx={{
-          px: 2,
-          py: 1.5,
+          px: 2, py: 1.5,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 700, color: theme.palette.primary.main }}
+        >
           {translate(category)}
         </Typography>
+
         {category === 'owner' && (
-          <SearchBarOwner aria-label="Buscar propietario" onSearch={setFilteredOwners} />
+          <SearchBarOwner
+            aria-label="Buscar propietario"
+            onSearch={setFilteredOwners}
+          />
         )}
+
         <Tooltip title={`Agregar nuevo ${translate(category)}`}>
           <IconButton
             onClick={() =>
-              isProperty
-                ? navigate(ROUTES.NEW_PROPERTY)
-                : setModal({ action: 'add', formKey: category })
+              setModal({
+                title: `Crear ${translate(category)}`,
+                Component: formRegistry[category],
+                componentProps: { action: 'add' as const },
+              })
             }
             sx={{ color: theme.palette.primary.main }}
           >
@@ -134,9 +143,8 @@ export default function CategoryItems() {
         </Tooltip>
       </Box>
 
-      {/* Sub-header + filas dentro de un mismo wrapper con px uniforme */}
       <Box sx={{ px: 2, flexGrow: 1, overflowY: 'auto' }}>
-        {/* Sub-header (solo en desktop) */}
+        {/* Cabecera (solo en sm+) */}
         <Box
           sx={{
             display: { xs: 'none', sm: 'grid' },
@@ -154,35 +162,25 @@ export default function CategoryItems() {
           <Typography>Acciones</Typography>
         </Box>
 
-        {/* Filas */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress size={28} />
           </Box>
         ) : data.length ? (
           data.map((it: any) => {
-            const itemData = category === 'owner'
-              ? {
-                ...(it as Owner),
-                fullName: `${it.firstName ?? ''} ${it.lastName ?? ''}`.trim(),
-              }
-              : it;
-
-            const rowActions: RowAction[] = getRowActions(
-              category,
-              itemData,
-              navigate,
-              setModal,
-              ask,
-              deleteProperty,
-              showAlert
-            );
+            // Si es owner, construyo fullName
+            const itemData =
+              category === 'owner'
+                ? {
+                  ...(it as Owner),
+                  fullName: `${it.firstName ?? ''} ${it.lastName ?? ''}`.trim(),
+                }
+                : it;
 
             return (
               <Box
                 key={it.id}
                 onClick={() => handleRowClick(it.id)}
-
                 sx={{
                   display: { xs: 'block', sm: 'grid' },
                   gridTemplateColumns: gridTemplate,
@@ -196,18 +194,14 @@ export default function CategoryItems() {
                   border: '1px solid white',
                   borderRadius: 2,
                   transition: 'background-color .2s, border-color .2s',
-                  '&:hover': {
-                    borderColor: theme.palette.tertiary.main,
-                  },
+                  '&:hover': { borderColor: theme.palette.tertiary.main },
                 }}
               >
                 {/* Celdas de datos */}
                 {columns.map(col => {
                   const raw = (itemData as any)[col.key];
-                  const val = typeof raw === 'boolean'
-                    ? (raw ? 'Sí' : 'No')
-                    : raw ?? '-';
-
+                  const val =
+                    typeof raw === 'boolean' ? (raw ? 'Sí' : 'No') : raw ?? '-';
                   return (
                     <Box
                       key={col.key}
@@ -237,17 +231,39 @@ export default function CategoryItems() {
                   onClick={e => e.stopPropagation()}
                   sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}
                 >
-                  {rowActions.map((a, i) => (
-                    <Tooltip key={i} title={a.label}>
-                      <IconButton
-                        size="small"
-                        onClick={a.onClick}
-                        sx={{ color: theme.palette.secondary.main }}
-                      >
-                        {a.icon}
-                      </IconButton>
-                    </Tooltip>
-                  ))}
+                  {/* Editar */}
+                  <Tooltip title="Editar">
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        setModal({
+                          title: `Editar ${translate(category)}`,
+                          Component: formRegistry[category],
+                          componentProps: { action: 'edit' as const, item: it },
+                        })
+                      }
+                      sx={{ color: theme.palette.secondary.main }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+
+                  {/* Eliminar */}
+                  <Tooltip title="Eliminar">
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        setModal({
+                          title: `Eliminar ${translate(category)}`,
+                          Component: formRegistry[category],
+                          componentProps: { action: 'delete' as const, item: it },
+                        })
+                      }
+                      sx={{ color: theme.palette.secondary.main }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               </Box>
             );
@@ -257,7 +273,7 @@ export default function CategoryItems() {
         )}
       </Box>
 
-      {/* Modal genérico */}
+      {/* Modal genérico y diálogo de confirmación */}
       <ModalItem info={modal} close={() => setModal(null)} />
       {DialogUI}
     </>

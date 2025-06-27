@@ -1,11 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import axios from "axios";
 import { Role, User } from "../types/user";
-
-export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    withCredentials: true,
-});
+import { api } from '../../../api';
 
 export type AuthInfo = (User & { roles: Role[] }) | null;
 
@@ -71,15 +66,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-
-    // carga inicial
     useEffect(() => { if (!stored) loadUserInfo(); }, []);
 
     const login = () => { window.location.href = loginUrl; };
     const logout = () => {
-        window.location.href = `${GW_URL}/logout`;
         setInfo(null);
-        sessionStorage.removeItem("authInfo");
+        sessionStorage.clear();
+        window.location.href = `${GW_URL}/logout`;
     };
 
     const refreshUser = async () => { await loadUserInfo(); };

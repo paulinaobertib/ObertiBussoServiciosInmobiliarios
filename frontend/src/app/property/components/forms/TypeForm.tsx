@@ -3,7 +3,7 @@ import { TextField, Box, FormControlLabel, Checkbox, Grid } from '@mui/material'
 import { Type, TypeCreate } from '../../types/type';
 import { postType, putType, deleteType } from '../../services/type.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';

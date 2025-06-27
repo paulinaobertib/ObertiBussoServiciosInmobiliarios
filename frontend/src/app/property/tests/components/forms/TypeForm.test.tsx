@@ -3,7 +3,7 @@ import TypeForm from '../../../components/forms/TypeForm';
 import { describe, vi, it, expect, beforeEach } from 'vitest';
 import { postType, putType, deleteType } from '../../../services/type.service';
 import { usePropertyCrud } from '../../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../context/AlertContext';
+import { useGlobalAlert } from '../../../../shared/context/AlertContext';
 
 vi.mock('../../../services/type.service');
 vi.mock('../../../context/PropertiesContext');

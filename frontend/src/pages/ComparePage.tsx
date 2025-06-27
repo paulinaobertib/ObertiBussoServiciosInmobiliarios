@@ -3,12 +3,16 @@ import { BasePage } from './BasePage';
 import PropertyDetailsCompare from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from '../app/shared/components/Modal';
+import InquiryPanel from '../app/property/components/forms/InquiryForm';
+import { useState } from 'react';
 
 const Compare = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { clearComparison, comparisonItems } = usePropertyCrud();
+  const [inquiryOpen, setInquiryOpen] = useState(false);
 
   const handleBack = () => {
     clearComparison();
@@ -38,7 +42,7 @@ const Compare = () => {
       </BasePage>
     );
   }
-  
+
   const { selectedPropertyIds } = usePropertyCrud();
   console.log('🔍 ComparePage render', { selectedPropertyIds, comparisonItems });
 
@@ -66,16 +70,29 @@ const Compare = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 8 }}>
           <Button
             variant="contained"
-            color="primary"
             size="large"
+            onClick={() => setInquiryOpen(true)}
             sx={{
-              minWidth: theme.spacing(25),
+              py: 1.5,
+              borderRadius: 2,
+              backgroundColor: theme.palette.secondary.main,
+              '&:hover': { backgroundColor: theme.palette.secondary.dark },
             }}
           >
-            Mandar consulta
+            Consultar por estas propiedades
           </Button>
         </Box>
 
+        <Modal
+          open={inquiryOpen}
+          title="Enviar consulta"
+          onClose={() => setInquiryOpen(false)}
+        >
+          <InquiryPanel
+            propertyIds={selectedPropertyIds}
+            onDone={() => setInquiryOpen(false)}
+          />
+        </Modal>
       </Container>
     </BasePage>
   );

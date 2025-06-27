@@ -32,4 +32,7 @@ public interface FeignUserRepository {
 
     @RequestMapping(method = RequestMethod.GET, value = "/favorites/internal/allUser")
     List<String> getAllUsers();
+
+    @RequestMapping(method = RequestMethod.GET, value = "/agentChat/getEnabledTrue")
+    List<AgentChatDTO> getUsersEnabled();
 }
