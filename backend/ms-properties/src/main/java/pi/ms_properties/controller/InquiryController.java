@@ -47,19 +47,19 @@ public class InquiryController {
 
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Inquiry>> getByUserId(@PathVariable String userId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByUserId(@PathVariable String userId) {
         return inquiryService.getByUserId(userId);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/property/{propertyId}")
-    public ResponseEntity<List<Inquiry>> getByPropertyId(@PathVariable Long propertyId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByPropertyId(@PathVariable Long propertyId) {
         return inquiryService.getByPropertyId(propertyId);
     }
 
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByStatus")
-    public ResponseEntity<List<Inquiry>> getByStatus(@RequestParam InquiryStatus status) {
+    public ResponseEntity<List<InquiryGetDTO>> getByStatus(@RequestParam InquiryStatus status) {
         return inquiryService.getByStatus(status);
     }
 
