@@ -19,4 +19,6 @@ public interface IAppointmentService {
     ResponseEntity<List<Appointment>> findAll();
 
     ResponseEntity<List<Appointment>> findByUserId(String userId);
+
+    ResponseEntity<List<Appointment>> findByStatus(AppointmentStatus status);
 }
