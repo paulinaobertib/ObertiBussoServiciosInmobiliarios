@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,6 +41,9 @@ class AvailableAppointmentServiceTest {
         dto.setStartTime(LocalTime.of(9, 0));
         dto.setEndTime(LocalTime.of(10, 0));
 
+        when(availableAppointmentRepository.findByDateIn(anyList()))
+                .thenReturn(Collections.emptyList());
+
         ResponseEntity<String> response = availableAppointmentService.create(dto);
 
         ArgumentCaptor<List<AvailableAppointment>> captor = ArgumentCaptor.forClass(List.class);
@@ -48,10 +52,54 @@ class AvailableAppointmentServiceTest {
         List<AvailableAppointment> saved = captor.getValue();
         assertEquals(2, saved.size());
         assertTrue(saved.getFirst().getAvailability());
-        assertEquals(LocalDateTime.of(dto.getDate(), dto.getStartTime()), saved.getFirst().getDate());
 
-        assertEquals("Se ha guardado la disponibilidad de turnos.", response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Se han guardado los nuevos turnos.", response.getBody());
+    }
+
+    @Test
+    void create_shouldReturnMessageIfAppointmentsAlreadyExist() {
+        AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
+        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setStartTime(LocalTime.of(9, 0));
+        dto.setEndTime(LocalTime.of(10, 0));
+
+        List<AvailableAppointment> existing = List.of(
+                new AvailableAppointment(1L, LocalDateTime.of(dto.getDate(), LocalTime.of(9, 0)), true),
+                new AvailableAppointment(2L, LocalDateTime.of(dto.getDate(), LocalTime.of(9, 30)), true)
+        );
+
+        when(availableAppointmentRepository.findByDateIn(anyList())).thenReturn(existing);
+
+        ResponseEntity<String> response = availableAppointmentService.create(dto);
+
+        verify(availableAppointmentRepository, never()).saveAll(any());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Los turnos ya existian.", response.getBody());
+    }
+
+    @Test
+    void create_shouldSaveOnlyNewAppointmentsIfSomeExist() {
+        AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
+        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setStartTime(LocalTime.of(9, 0));
+        dto.setEndTime(LocalTime.of(10, 30));
+
+        List<AvailableAppointment> existing = List.of(
+                new AvailableAppointment(1L, LocalDateTime.of(dto.getDate(), LocalTime.of(9, 0)), true)
+        );
+
+        when(availableAppointmentRepository.findByDateIn(anyList())).thenReturn(existing);
+
+        ResponseEntity<String> response = availableAppointmentService.create(dto);
+
+        verify(availableAppointmentRepository).saveAll(argThat((ArgumentMatcher<List<AvailableAppointment>>) list -> list.size() == 2));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Turnos ya existentes: 1. Turnos nuevos guardados:"));
+        assertTrue(response.getBody().contains("30/06/2025 09:30"));
+        assertTrue(response.getBody().contains("30/06/2025 10:00"));
     }
 
     @Test
@@ -126,6 +174,34 @@ class AvailableAppointmentServiceTest {
     }
 
     // casos de error
+
+    @Test
+    void create_shouldReturnBadRequestIfTimeRangeIsInvalid() {
+        AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
+        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setStartTime(LocalTime.of(10, 0));
+        dto.setEndTime(LocalTime.of(9, 0)); // inválido
+
+        ResponseEntity<String> response = availableAppointmentService.create(dto);
+
+        verify(availableAppointmentRepository, never()).saveAll(any());
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El horario de inicio debe ser anterior al horario de fin.", response.getBody());
+    }
+
+    @Test
+    void create_shouldReturnNoAppointmentsMessageIfNoTurnSlots() {
+        AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
+        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setStartTime(LocalTime.of(10, 0));
+        dto.setEndTime(LocalTime.of(10, 0));
+
+        ResponseEntity<String> response = availableAppointmentService.create(dto);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El horario de inicio debe ser anterior al horario de fin.", response.getBody());
+    }
 
     @Test
     void updateAvailability_shouldThrow_whenNotFound() {
