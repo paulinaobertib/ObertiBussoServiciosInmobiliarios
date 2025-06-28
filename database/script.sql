@@ -161,7 +161,7 @@ CREATE TABLE Maintenance (
 
 CREATE TABLE Available_Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    date DATETIME NOT NULL,
+    date DATETIME NOT NULL UNIQUE,
     availability BOOLEAN NOT NULL DEFAULT TRUE
 );
 
