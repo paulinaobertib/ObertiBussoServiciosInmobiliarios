@@ -8,9 +8,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
+import pi.ms_users.domain.AvailableAppointment;
 import pi.ms_users.domain.User;
 import pi.ms_users.dto.EmailDTO;
 import pi.ms_users.repository.IAppointmentRepository;
+import pi.ms_users.repository.IAvailableAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IAppointmentService;
@@ -24,6 +26,8 @@ public class AppointmentService implements IAppointmentService {
 
     private final IAppointmentRepository appointmentRepository;
 
+    private final IAvailableAppointmentRepository availableAppointmentRepository;
+
     private final IUserRepository userRepository;
 
     private final IEmailService emailService;
@@ -33,6 +37,17 @@ public class AppointmentService implements IAppointmentService {
         User user = userRepository.findById(appointment.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario"));
 
+        AvailableAppointment availableAppointment = availableAppointmentRepository.findById(appointment.getAvailableAppointment().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado disponibilidad"));
+
+        if (!availableAppointment.getAvailability()) {
+            throw new IllegalStateException("El turno seleccionado ya está reservado.");
+        }
+
+        availableAppointment.setAvailability(false);
+        availableAppointmentRepository.save(availableAppointment);
+
+        appointment.setAvailableAppointment(availableAppointment);
         Appointment saved = appointmentRepository.save(appointment);
 
         EmailDTO emailDTO = new EmailDTO();
@@ -42,7 +57,7 @@ public class AppointmentService implements IAppointmentService {
         emailDTO.setPhone(user.getPhone());
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setLastName(user.getLastName());
-        emailDTO.setDate(appointment.getDate());
+        emailDTO.setDate(availableAppointment.getDate());
 
         emailService.sendAppointmentRequest(emailDTO);
 
@@ -64,12 +79,18 @@ public class AppointmentService implements IAppointmentService {
         User user = userRepository.findById(appointment.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario"));
 
+        AvailableAppointment availableAppointment = availableAppointmentRepository.findById(appointment.getAvailableAppointment().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado disponibilidad"));
+
+        availableAppointment.setAvailability(true);
+        availableAppointmentRepository.save(availableAppointment);
+
         EmailDTO emailDTO = new EmailDTO();
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setLastName(user.getLastName());
         emailDTO.setPhone(user.getPhone());
         emailDTO.setTo(user.getEmail());
-        emailDTO.setDate(appointment.getDate());
+        emailDTO.setDate(availableAppointment.getDate());
 
         emailService.sendAppointmentCancelledMail(emailDTO);
 
@@ -86,15 +107,24 @@ public class AppointmentService implements IAppointmentService {
         User user = userRepository.findById(appointment.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
 
+        AvailableAppointment availableAppointment = availableAppointmentRepository.findById(appointment.getAvailableAppointment().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado disponibilidad"));
+
         EmailDTO emailDTO = new EmailDTO();
         emailDTO.setTo(user.getEmail());
         emailDTO.setFirstName(user.getFirstName());
-        emailDTO.setDate(appointment.getDate());
+        emailDTO.setDate(availableAppointment.getDate());
 
         if (status == AppointmentStatus.ACEPTADO) {
-            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), appointment.getDate(), address);
+            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), availableAppointment.getDate(), address);
+            appointment.setStatus(AppointmentStatus.ACEPTADO);
+            appointmentRepository.save(appointment);
         } else if (status == AppointmentStatus.RECHAZADO) {
-            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), appointment.getDate(), null);
+            availableAppointment.setAvailability(true);
+            appointment.setStatus(AppointmentStatus.RECHAZADO);
+            appointmentRepository.save(appointment);
+            availableAppointmentRepository.save(availableAppointment);
+            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), availableAppointment.getDate(), null);
         }
 
         return ResponseEntity.ok("Se ha actualizado el estado del turno");
@@ -128,6 +158,12 @@ public class AppointmentService implements IAppointmentService {
             throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
 
+        return ResponseEntity.ok(appointments);
+    }
+
+    @Override
+    public ResponseEntity<List<Appointment>> findByStatus(AppointmentStatus status) {
+        List<Appointment> appointments = appointmentRepository.findByStatus(status);
         return ResponseEntity.ok(appointments);
     }
 }

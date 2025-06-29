@@ -9,6 +9,7 @@ import PropertyPanel from '../app/property/components/PropertyPanel';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import UserForm from '../app/user/components/UserForm';
 import InquiriesPanel from '../app/property/components/inquiries/InquiriesPanel';
+import AppointmentPanel from '../app/user/components/appointments/AppointmentPanel';
 
 export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();
@@ -41,6 +42,11 @@ export default function AdministratorPanel() {
             key: 'inquiries',
             label: 'CONSULTAS',
             content: <InquiriesPanel />,
+        },
+        {
+            key: 'appointments',
+            label: 'TURNERO',
+            content: <AppointmentPanel />,
         }
     ];
 

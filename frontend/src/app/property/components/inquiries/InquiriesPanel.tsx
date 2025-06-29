@@ -90,6 +90,11 @@ export default function InquiriesPanel() {
 
     /* consultas (contexto o filtros) */
     useEffect(() => {
+        if (!isAdmin) {
+            loadInquiries();
+            return;
+        }
+        // Admin puede ver filtros y aplicarlos
         (filterStatus || filterProp) ? loadFiltered() : loadInquiries();
     }, [info, isAdmin, filterStatus, filterProp]);
 
@@ -102,15 +107,17 @@ export default function InquiriesPanel() {
     /* ── UI ─────────────────────────────────────────────────── */
     return (
         <>
-            {/* Barra de filtros SIEMPRE visible */}
-            <InquiryFilterBar
-                statusOptions={STATUS_OPTIONS}
-                propertyOptions={propertyOptions}
-                selectedStatus={filterStatus}
-                selectedProperty={filterProp}
-                onStatusChange={val => setFilterStatus(val as InquiryStatus | '')}
-                onPropertyChange={val => setFilterProp(val as number | '')}
-            />
+            {/* Barra de filtros SOLO para administradores */}
+            {isAdmin && (
+                <InquiryFilterBar
+                    statusOptions={STATUS_OPTIONS}
+                    propertyOptions={propertyOptions}
+                    selectedStatus={filterStatus}
+                    selectedProperty={filterProp}
+                    onStatusChange={val => setFilterStatus(val as InquiryStatus | '')}
+                    onPropertyChange={val => setFilterProp(val as number | '')}
+                />
+            )}
 
             {/* Estado de carga / error / lista */}
             {loading ? (
