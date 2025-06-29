@@ -251,7 +251,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                     <TextField
                         required
                         fullWidth
-                        label="Expensas"
+                        label="Moneda Expensas"
                         value="Peso Argentino"
                         size="small"
                         disabled
@@ -370,7 +370,7 @@ const PropertyForm = forwardRef<PropertyFormHandle, Props>(function PropertyForm
                 )}
 
                 <Grid size={{ xs: showCoveredArea ? 6 : 12 }}>
-                    <TextField fullWidth label="Superficie m²" value={form.area === 0 ? "" : form.area}
+                    <TextField fullWidth label="Superficie Total" value={form.area === 0 ? "" : form.area}
                         error={!!fieldErrors.area}
                         size='small'
                         onChange={num('area')} required />

@@ -82,7 +82,7 @@ public class EmailService implements IEmailService {
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
             context.setVariable("firstName", firstName);
             context.setVariable("date", formatDate(date));
-            if (!address.isEmpty()) {
+            if (!(address == null) && !address.isEmpty()) {
                 context.setVariable("address", address);
             }
 

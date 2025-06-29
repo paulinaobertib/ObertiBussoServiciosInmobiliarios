@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import InquiryForm from '../app/property/components/forms/InquiryForm';
-import AppointmentPanel from '../app/user/components/AppointmentPanel';
+import AppointmentForm from '../app/user/components/appointments/AppointmentForm';
 import { BasePage } from './BasePage';
 import { Box, Typography, Button } from '@mui/material';
 
@@ -111,7 +111,7 @@ export default function ContactPage() {
                             p: 2,
                         }}
                     >
-                        <AppointmentPanel />
+                        <AppointmentForm />
                     </Box>
                 </Box>
             </Box>

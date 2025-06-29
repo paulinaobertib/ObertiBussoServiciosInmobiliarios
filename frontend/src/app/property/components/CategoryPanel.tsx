@@ -81,7 +81,7 @@ export default function CategoryPanel({ category }: Props) {
   const categoryFields: Record<Category, { label: string; key: string }[]> = {
     owner: [
       { label: 'Nombre Completo', key: 'fullName' },
-      { label: 'Email', key: 'mail' },
+      { label: 'Email', key: 'email' },
       { label: 'Teléfono', key: 'phone' },
     ],
     neighborhood: [
