@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, CircularProgress } from '@mui/material';
 
-import { deleteProperty } from '../services/property.service';
-import { Property } from '../types/property';
-import { useGlobalAlert } from '../../shared/context/AlertContext';
-import { useConfirmDialog } from '../utils/ConfirmDialog';
-import { usePropertyCrud } from '../context/PropertiesContext';
-import PropertyCard from '../components/PropertyCard';
-import { buildRoute } from '../../../buildRoute';
-import { ROUTES } from '../../../lib';
+import { deleteProperty } from '../../services/property.service';
+import { Property } from '../../types/property';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import { useConfirmDialog } from '../../utils/ConfirmDialog';
+import { usePropertyCrud } from '../../context/PropertiesContext';
+import { PropertyCard } from './PropertyCard';
+import { buildRoute } from '../../../../buildRoute';
+import { ROUTES } from '../../../../lib';
 
 type CatalogMode = 'normal' | 'edit' | 'delete';
 
-interface CatalogProps {
+interface Props {
   mode: CatalogMode;
   onFinishAction: () => void;
   properties?: Property[];
@@ -22,14 +22,14 @@ interface CatalogProps {
   isSelected?: (id: number) => boolean;
 }
 
-export default function PropertyCatalog({
+export const PropertyCatalog = ({
   mode,
   onFinishAction,
   properties = [],
   selectionMode = false,
   toggleSelection = () => { },
   isSelected = () => false,
-}: CatalogProps) {
+}: Props) => {
   const navigate = useNavigate();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();

@@ -13,7 +13,7 @@ interface Props {
 
 const options = ['DISPONIBLE', 'RESERVADA', 'ALQUILADA', 'VENDIDA'];
 
-export default function StatusForm({ item, onDone }: Props) {
+export const StatusForm = ({ item, onDone }: Props) => {
   const { loadProperty } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const [status, setStatus] = useState(item.status);

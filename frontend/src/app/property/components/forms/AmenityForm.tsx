@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function AmenityForm({ action, item, onDone }: Props) {
+export const AmenityForm = ({ action, item, onDone }: Props) => {
     const { refreshAmenities } = usePropertyCrud();
     const [name, setName] = useState(item?.name ?? '');
     const { showAlert } = useGlobalAlert();

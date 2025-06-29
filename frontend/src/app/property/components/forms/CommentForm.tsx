@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function CommentForm({ action, item, onDone }: Props) {
+export const CommentForm = ({ action, item, onDone }: Props) => {
     const { refreshComments, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 

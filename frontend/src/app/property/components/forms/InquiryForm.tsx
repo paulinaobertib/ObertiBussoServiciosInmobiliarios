@@ -14,15 +14,12 @@ import type {
   InquiryCreateAnon,
 } from "../../types/inquiry";
 
-interface InquiryFormProps {
+interface Props {
   propertyIds: number[];
   onDone: () => void;
 }
 
-export default function InquiryForm({
-  propertyIds,
-  onDone,
-}: InquiryFormProps) {
+export const InquiryForm = ({ propertyIds, onDone }: Props) => {
   const { info, isLogged } = useAuthContext();
   const { showAlert } = useGlobalAlert();
 

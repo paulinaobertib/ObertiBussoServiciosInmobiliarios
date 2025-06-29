@@ -13,11 +13,11 @@ import { translate } from '../utils/translate';
 
 // ————————————————————————————————————————
 // 1) Importa aquí tus formularios de CRUD
-import AmenityForm from '../components/forms/AmenityForm';
-import OwnerForm from '../components/forms/OwnerForm';
-import TypeForm from '../components/forms/TypeForm';
-import NeighborhoodForm from '../components/forms/NeighborhoodForm';
-import StatusForm from '../components/forms/StatusForm';
+import { AmenityForm } from './forms/AmenityForm';
+import { OwnerForm } from '../components/forms/OwnerForm';
+import { TypeForm } from '../components/forms/TypeForm';
+import { NeighborhoodForm } from '../components/forms/NeighborhoodForm';
+import { StatusForm } from '../components/forms/StatusForm';
 
 // 2) Crea un registry para mapear cada categoría a su formulario
 const formRegistry = {
@@ -38,7 +38,7 @@ export type RowAction = {
     onClick: () => void;
 };
 
-export function getRowActions(
+export const getRowActions = (
     entity: Entity,
     item: any,
     navigate: (path: string) => void,
@@ -46,7 +46,7 @@ export function getRowActions(
     ask: (question: string, cb: () => Promise<void>) => void,
     deleteFn: (entity: any) => Promise<void>,
     showAlert: (msg: string, variant: 'success' | 'error' | 'info' | 'warning') => void
-): RowAction[] {
+): RowAction[] => {
     if (entity === 'property') {
         return [
             {
@@ -91,9 +91,9 @@ export function getRowActions(
             icon: <EditIcon fontSize="small" />,
             onClick: () =>
                 setModal({
-                    title: `Editar ${translate(entity)}`,                         // el título del modal
-                    Component: formRegistry[entity as FormKey],                   // el componente a renderizar
-                    componentProps: { action: 'edit' as const, item },            // las props del formulario
+                    title: `Editar ${translate(entity)}`,
+                    Component: formRegistry[entity as FormKey],
+                    componentProps: { action: 'edit' as const, item },
                 }),
         },
         {
@@ -107,4 +107,4 @@ export function getRowActions(
                 }),
         },
     ];
-}
+};

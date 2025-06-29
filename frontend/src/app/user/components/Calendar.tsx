@@ -10,19 +10,14 @@ export interface AppointmentData {
     time: string;
 }
 
-export interface CalendarProps {
-    /** Callback con { date, time } al hacer click en un turno */
+export interface Props {
     onSelectSlot?: (slot: AppointmentData) => void;
 }
 
-/**
- * Calendar: solo maneja selección de día y slots, sin layout exterior.
- */
-export default function Calendar({ onSelectSlot }: CalendarProps) {
+export const Calendar = ({ onSelectSlot }: Props) => {
     const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
-    // Generar slots cada 30 minutos de 10:00 a 13:00
     const times: string[] = [];
     for (let h = 10; h <= 13; h++) {
         [0, 30].forEach(m => {

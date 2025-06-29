@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box } from '@mui/material';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -21,7 +20,7 @@ const sliderSettings = {
   arrows: false,
 };
 
-const ImageCarousel: React.FC = () => {
+export const ImageCarousel = () => {
   return (
     <Box sx={{ position: 'relative', height: '350px', mb: 4 }}>
       <Slider {...sliderSettings}>
@@ -82,6 +81,3 @@ const ImageCarousel: React.FC = () => {
     </Box>
   );
 };
-
-export default ImageCarousel;
-

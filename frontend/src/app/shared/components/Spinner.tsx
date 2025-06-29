@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
 
 
-export function Spinner({ fullHeight = false }: { fullHeight?: boolean }) {
+export const Spinner = ({ fullHeight = false }: { fullHeight?: boolean }) => {
   return (
     <Box
       display="flex"

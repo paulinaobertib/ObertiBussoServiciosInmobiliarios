@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function NeighborhoodForm({ action, item, onDone }: Props) {
+export const NeighborhoodForm = ({ action, item, onDone }: Props) => {
     const { refreshNeighborhoods } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 

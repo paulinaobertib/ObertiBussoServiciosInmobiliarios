@@ -12,7 +12,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CompareIcon from '@mui/icons-material/Compare';
-import { useAuthContext } from '../../user/context/AuthContext';
+import { useAuthContext } from '../../../user/context/AuthContext';
 
 type Props = {
   onAction: (a: 'create' | 'edit' | 'delete') => void;
@@ -28,13 +28,14 @@ const actions = [
   { icon: <Delete />, name: 'Eliminar', action: 'delete' as const },
 ] as const;
 
-export default function FloatingButtons({
+
+export const FloatingButtons = ({
   onAction,
   selectionMode,
   toggleSelectionMode,
   onCompare,
   compareCount,
-}: Props) {
+}: Props) => {
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
   const size = 56;

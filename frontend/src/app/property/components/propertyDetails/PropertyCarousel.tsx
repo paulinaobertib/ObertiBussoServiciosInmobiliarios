@@ -9,13 +9,13 @@ interface Image {
   url: string;
 }
 
-interface ImageCarouselProps {
+interface Props {
   images: Image[];
   mainImage: string;
   title: string;
 }
 
-const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
+export const ImageCarousel = ({ images, mainImage, title }: Props) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [showAllThumbnails, setShowAllThumbnails] = useState(false);
   const theme = useTheme();
@@ -148,7 +148,7 @@ const ImageCarousel = ({ images, mainImage, title }: ImageCarouselProps) => {
           gap: 1,
           overflowX: 'auto',
           pb: 1,
-          minHeight: isMobile ? 60 : 80, 
+          minHeight: isMobile ? 60 : 80,
         }}
       >
         {allImages.length > 1 ? (
