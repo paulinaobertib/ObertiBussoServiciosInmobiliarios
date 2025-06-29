@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Box, TextField, CircularProgress } from '@mui/material';
-import { getPropertiesByText, getAllProperties } from '../services/property.service';
-import { Property } from '../types/property';
+import { getPropertiesByText, getAllProperties } from '../../services/property.service';
+import { Property } from '../../types/property';
 
 interface Props {
   onSearch: (results: Property[]) => void;
   debounceMs?: number;
 }
 
-export default function SearchBar({ onSearch, debounceMs = 300 }: Props) {
+export const SearchBar = ({ onSearch, debounceMs = 300 }: Props) => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
 

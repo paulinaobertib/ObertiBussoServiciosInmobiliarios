@@ -14,7 +14,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function TypeForm({ action, item, onDone }: Props) {
+export const TypeForm = ({ action, item, onDone }: Props) => {
     const { refreshTypes } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 

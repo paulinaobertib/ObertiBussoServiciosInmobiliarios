@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
-import ImageCarousel from '../app/property/components/ImageCarousel';
-import SearchBar from '../app/property/components/SearchBar';
-import FiltersSidebar from '../app/property/components/SearchFilters';
-import PropertyCatalog from '../app/property/components/PropertyCatalog';
-import FloatingButtons from '../app/property/components/FloatingButtons';
+import { ImageCarousel } from '../app/property/components/ImageCarousel';
+import { SearchBar } from '../app/property/components/catalog/SearchBar';
+import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
+import { PropertyCatalog } from '../app/property/components/catalog/PropertyCatalog';
+import { FloatingButtons } from '../app/property/components/catalog/FloatingButtons';
 
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
@@ -74,7 +74,7 @@ export default function Home() {
     setSelectionMode(false); // Exit selection mode after navigation
   };
 
-  console.log('Token: ', document.cookie);
+  // console.log('Token: ', document.cookie);
 
   return (
     <BasePage maxWidth={false}>
@@ -92,7 +92,7 @@ export default function Home() {
           }}
         >
           <Box sx={{ width: { xs: '100%', md: 270 } }}>
-            <FiltersSidebar onSearch={setResults} />
+            <SearchFilters onSearch={setResults} />
           </Box>
           <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
             {loading ? (

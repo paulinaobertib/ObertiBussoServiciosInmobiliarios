@@ -23,7 +23,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
 
-export default function NavBar() {
+export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const { clearComparison } = usePropertyCrud();

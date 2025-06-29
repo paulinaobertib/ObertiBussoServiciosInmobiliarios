@@ -1,13 +1,12 @@
 import { Box, Stack } from '@mui/material';
 import { ReactNode } from 'react';
-import PanelButton from './PanelButton';
+import { PanelButton } from './PanelButton';
 import { usePanelManager } from '../hooks/usePanelManager';
 
 export interface PanelConfig {
   key: string;
   label: string;
   content: ReactNode;
-  /** Opcional: botón personalizado */
   ButtonComponent?: React.ComponentType<{
     active: boolean;
     onClick: () => void;
@@ -16,18 +15,10 @@ export interface PanelConfig {
 
 interface Props {
   panels: PanelConfig[];
-  /** fila o columna en los botones */
   direction?: 'row' | 'column';
 }
 
-/**
- * Muestra una hilera/columna de botones (uno por panel),
- * y luego renderiza cada panel sólo si está “open”.
- */
-export default function PanelManager({
-  panels,
-  direction = 'row',
-}: Props) {
+export const PanelManager = ({ panels, direction = 'row' }: Props) => {
   const keys = panels.map(p => p.key);
   const { open, toggle } = usePanelManager(keys);
 

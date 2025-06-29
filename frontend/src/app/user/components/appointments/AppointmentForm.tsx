@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import {
-    Box,
-    Button,
-    TextField,
-    Typography,
-    CircularProgress,
-} from '@mui/material';
+import { Box, Button, TextField, Typography, CircularProgress } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import {
-    getAllAvailabilities,
-    createAppointment,
-} from '../../services/appointment.service';
+import { getAllAvailabilities, createAppointment, } from '../../services/appointment.service';
 import { AppointmentCreate, AvailableAppointment } from '../../types/appointment';
 import { useAuthContext } from '../../../user/context/AuthContext';
 
-export default function AppointmentForm() {
+export const AppointmentForm = () => {
     const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
     const [slots, setSlots] = useState<AvailableAppointment[]>([]);
     const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);

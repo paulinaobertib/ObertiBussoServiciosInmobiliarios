@@ -23,7 +23,7 @@ interface PropertyDetailsCompareProps {
   comparisonItems: Property[];
 }
 
-export default function PropertyDetailsCompare({ comparisonItems }: PropertyDetailsCompareProps) {
+export const PropertyDetailsCompare = ({ comparisonItems }: PropertyDetailsCompareProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 

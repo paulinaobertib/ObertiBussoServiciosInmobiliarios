@@ -1,6 +1,6 @@
 import { Box, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from '@mui/material';
 
-interface InquiriesFilterBarProps {
+interface Props {
     statusOptions: string[];
     propertyOptions: { id: number; title: string }[];
     selectedStatus: string;
@@ -9,14 +9,14 @@ interface InquiriesFilterBarProps {
     onPropertyChange: (propId: number | '') => void;
 }
 
-export default function InquiriesFilterBar({
+export const InquiriesFilter = ({
     statusOptions,
     propertyOptions,
     selectedStatus,
     selectedProperty,
     onStatusChange,
     onPropertyChange,
-}: InquiriesFilterBarProps) {
+}: Props) => {
     return (
         <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>

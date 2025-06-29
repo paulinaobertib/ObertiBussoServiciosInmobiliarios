@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function OwnerForm({ action, item, onDone }: Props) {
+export const OwnerForm = ({ action, item, onDone }: Props) => {
     const { refreshOwners } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 

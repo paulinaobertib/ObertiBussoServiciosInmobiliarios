@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import SearchFilters from '../../components/SearchFilters';
+import SearchFilters from '../../components/catalog/SearchFilters';
 import { PropertyCrudProvider } from '../../context/PropertiesContext';
 import { AlertProvider } from '../../../shared/context/AlertContext';
 import { ReactElement } from 'react';

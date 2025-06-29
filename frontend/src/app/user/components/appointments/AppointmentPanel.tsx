@@ -1,33 +1,15 @@
 import { useEffect, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import {
-  Box,
-  Typography,
-  Grid,
-  Stack,
-  TextField,
-  Button,
-  useTheme
-} from '@mui/material';
+import { Box, Typography, Grid, Stack, TextField, Button, useTheme } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import {
-  getAllAvailabilities,
-  createAvailability,
-  getAppointmentsByStatus,
-  updateAppointmentStatus
-} from '../../services/appointment.service';
-import {
-  AvailableAppointment,
-  AvailableAppointmentDTO,
-  Appointment,
-  AppointmentStatus
-} from '../../types/appointment';
+import { getAllAvailabilities, createAvailability, getAppointmentsByStatus, updateAppointmentStatus } from '../../services/appointment.service';
+import { AvailableAppointment, AvailableAppointmentDTO, Appointment, AppointmentStatus } from '../../types/appointment';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { Modal } from '../../../shared/components/Modal';
 
-export default function AppointmentPanel() {
+export const AppointmentPanel = () => {
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
 

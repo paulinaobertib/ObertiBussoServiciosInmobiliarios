@@ -9,7 +9,7 @@ interface Props {
 }
 
 
-export default function ImageUploader({ label, multiple = false, sx, append = false, onSelect, }: Props) {
+export const ImageUploader = ({ label, multiple = false, sx, append = false, onSelect, }: Props) => {
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
         const files = Array.from(e.target.files);

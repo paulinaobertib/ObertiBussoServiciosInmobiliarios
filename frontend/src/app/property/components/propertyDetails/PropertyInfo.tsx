@@ -20,10 +20,10 @@ import { formatPrice } from '../../utils/formatPrice';
 import { useAuthContext } from '../../../user/context/AuthContext';
 
 // --- ModalItem para StatusForm (edición de estado) ---
-import ModalItem, { Info } from '../ModalItem';
-import StatusForm from '../forms/StatusForm';
+import { ModalItem, Info } from '../ModalItem';
+import { StatusForm } from '../forms/StatusForm';
 
-interface PropertyInfoProps {
+interface Props {
   property: Property;
 }
 
@@ -37,7 +37,7 @@ export const formatFeatureLabel = (
   return `${value} ${value === 1 ? singular : plural}`;
 };
 
-const PropertyInfo = ({ property }: PropertyInfoProps) => {
+export const PropertyInfo = ({ property }: Props) => {
   const { isAdmin } = useAuthContext();
   const [statusModal, setStatusModal] = useState<Info | null>(null);
 
