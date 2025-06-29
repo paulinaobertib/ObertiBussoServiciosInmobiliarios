@@ -13,18 +13,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { usePropertyCrud, Category } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
-import ModalItem, { Info } from '../components/ModalItem';
-import SearchBarOwner from './SearchBarOwners';
+import { ModalItem, Info } from '../components/ModalItem';
+import { SearchBarOwner } from './SearchBarOwners';
 import { Owner } from '../types/owner';
 import { useConfirmDialog } from '../utils/ConfirmDialog';
 import { useGlobalAlert } from '../../shared/context/AlertContext';
 
 // Formularios para cada categoría
-import AmenityForm from '../components/forms/AmenityForm';
-import OwnerForm from '../components/forms/OwnerForm';
-import TypeForm from '../components/forms/TypeForm';
-import NeighborhoodForm from '../components/forms/NeighborhoodForm';
-import StatusForm from '../components/forms/StatusForm';
+import { AmenityForm } from '../components/forms/AmenityForm';
+import { OwnerForm } from '../components/forms/OwnerForm';
+import { TypeForm } from '../components/forms/TypeForm';
+import { NeighborhoodForm } from '../components/forms/NeighborhoodForm';
+import { StatusForm } from '../components/forms/StatusForm';
 
 const formRegistry = {
   amenity: AmenityForm,
@@ -38,7 +38,7 @@ interface Props {
   category: Category;
 }
 
-export default function CategoryPanel({ category }: Props) {
+export const CategoryPanel = ({ category }: Props) => {
   const theme = useTheme();
   const { pickItem, data: rawData, loading, selected, toggleSelect } = usePropertyCrud();
   const { DialogUI } = useConfirmDialog();

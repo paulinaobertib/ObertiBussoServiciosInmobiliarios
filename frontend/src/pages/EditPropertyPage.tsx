@@ -13,10 +13,10 @@ import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 
 // componentes
-import PropertyForm from '../app/property/components/forms/PropertyForm';
-import PropertyPreview from '../app/property/components/PropertyPreview';
-import CategoryPanel from '../app/property/components/CategoryPanel';
-import PanelManager, { PanelConfig } from '../app/shared/components/PanelManager';
+import { PropertyForm } from '../app/property/components/forms/PropertyForm';
+import { PropertyPreview } from '../app/property/components/PropertyPreview';
+import { CategoryPanel } from '../app/property/components/CategoryPanel';
+import { PanelManager, PanelConfig } from '../app/shared/components/PanelManager';
 
 // servicios
 import {

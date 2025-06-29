@@ -3,19 +3,19 @@ import { Box, Typography, Chip, Stack, Button, useTheme } from '@mui/material';
 import { Inquiry } from '../../types/inquiry';
 import { updateInquiry } from '../../services/inquiry.service';
 
-interface InquiryCardProps {
+interface Props {
     inquiry: Inquiry;
     isAdmin?: boolean;
     onStatusUpdated?: () => void;
     onSelect?: (inquiry: Inquiry) => void; // callback al seleccionar
 }
 
-export default function InquiryCard({
+export const InquiryCard = ({
     inquiry,
     isAdmin = false,
     onStatusUpdated,
     onSelect,
-}: InquiryCardProps) {
+}: Props) => {
     const theme = useTheme();
     const [loading, setLoading] = useState(false);
 

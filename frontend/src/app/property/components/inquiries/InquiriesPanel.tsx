@@ -2,21 +2,23 @@ import { useEffect, useState } from 'react';
 import { Box, Typography, Grid, Stack, Chip, useTheme } from '@mui/material';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import {
-    getInquiriesByUser,
-    getAllInquiries,
-    getInquiriesByStatus,
-    getInquiriesByProperty,
+    getInquiriesByUser, getAllInquiries, getInquiriesByStatus, getInquiriesByProperty,
 } from '../../services/inquiry.service';
 import { getAllProperties } from '../../services/property.service';
 import { Inquiry, InquiryStatus } from '../../types/inquiry';
 import { Property } from '../../types/property';
-import InquiryCard from './InquiryCard';
-import InquiryFilterBar from './InquiriesFilter';
+import { InquiryCard } from './InquiryCard';
+import { InquiriesFilter } from './InquiriesFilter';
 import { Modal } from '../../../shared/components/Modal';
 
 const STATUS_OPTIONS: InquiryStatus[] = ['ABIERTA', 'CERRADA'];
 
-export default function InquiriesPanel() {
+interface Props {
+    propertyIds?: number[];
+    onDone?: () => void;
+}
+
+export const InquiriesPanel = ({ propertyIds, onDone }: Props) => {
     const theme = useTheme();
     const { info, isAdmin } = useAuthContext();
 
@@ -32,6 +34,31 @@ export default function InquiriesPanel() {
     const [filterProp, setFilterProp] = useState<number | ''>('');
 
     /* ── helpers de carga ──────────────────────────────────── */
+
+    useEffect(() => {
+        if (propertyIds && propertyIds.length) {
+            (async () => {
+                setLoading(true);
+                try {
+                    const all: Inquiry[] = [];
+                    for (const pid of propertyIds) {
+                        const res = await getInquiriesByProperty(pid);
+                        all.push(...res.data);
+                    }
+                    setInquiries(all);
+                    setError(null);
+                } catch {
+                    setError('Error al cargar consultas de comparación');
+                } finally {
+                    setLoading(false);
+                }
+            })();
+            return;
+        }
+        // si no vino propertyIds, seguimos con el flujo normal de admin/usuario
+        loadInquiries();
+    }, [info, isAdmin, filterStatus, filterProp, propertyIds]);
+
     const loadInquiries = async () => {
         if (!info) return;
         setLoading(true);
@@ -104,12 +131,16 @@ export default function InquiriesPanel() {
         title: p.title,
     }));
 
+    const finish = () => {
+        if (onDone) onDone();
+    };
+
     /* ── UI ─────────────────────────────────────────────────── */
     return (
         <>
             {/* Barra de filtros SOLO para administradores */}
             {isAdmin && (
-                <InquiryFilterBar
+                <InquiriesFilter
                     statusOptions={STATUS_OPTIONS}
                     propertyOptions={propertyOptions}
                     selectedStatus={filterStatus}
@@ -149,7 +180,7 @@ export default function InquiriesPanel() {
             <Modal
                 open={Boolean(selected)}
                 title={selected ? `Consulta #${selected.id}` : ''}
-                onClose={() => setSelected(null)}
+                onClose={() => { setSelected(null); finish(); }}
             >
                 {selected && (
                     <Stack spacing={2}>

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import FloatingButtons from '../../components/FloatingButtons';
+import FloatingButtons from '../../components/catalog/FloatingButtons';
 import { describe, it, vi, expect, beforeEach } from 'vitest';
 
 describe('FloatingButtons', () => {

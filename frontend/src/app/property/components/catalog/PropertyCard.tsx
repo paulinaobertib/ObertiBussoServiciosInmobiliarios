@@ -1,9 +1,9 @@
 import { Card, Box, Chip, CardContent, Typography, useTheme, Checkbox, } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-import FavoriteButton from '../../user/components/FavoriteButtom';
-import { Property } from '../types/property';
+import { FavoriteButton } from '../../../user/components/FavoriteButtom';
+import { Property } from '../../types/property';
 
-export interface PropertyCardProps {
+export interface Props {
   property: Property;
   selectionMode?: boolean;
   isSelected?: (id: number) => boolean;
@@ -11,13 +11,13 @@ export interface PropertyCardProps {
   onClick?: () => void;
 }
 
-export default function PropertyCard({
+export const PropertyCard = ({
   property,
   selectionMode = false,
   isSelected = () => false,
   toggleSelection = () => { },
   onClick = () => { },
-}: PropertyCardProps) {
+}: Props) => {
   const theme = useTheme();
   const src =
     typeof property.mainImage === 'string'

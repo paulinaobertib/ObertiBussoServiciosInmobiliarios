@@ -6,7 +6,7 @@ import { putUser } from '../../user/services/user.service';
 import { useGlobalAlert } from '../../shared/context/AlertContext';
 import type { User } from '../../user/types/user';
 
-export default function UserForm() {
+export const UserForm = () => {
     const theme = useTheme();
     const { info, setInfo } = useAuthContext();
     const { showAlert } = useGlobalAlert();

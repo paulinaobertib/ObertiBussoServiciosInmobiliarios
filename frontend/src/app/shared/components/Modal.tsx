@@ -8,19 +8,14 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-export interface ModalProps {
+export interface Props {
     open: boolean;
     title: string;
     onClose: () => void;
     children: React.ReactNode;
 }
 
-export function Modal({
-    open,
-    title,
-    onClose,
-    children,
-}: ModalProps) {
+export const Modal = ({ open, title, onClose, children }: Props) => {
     const theme = useTheme();
 
     return (

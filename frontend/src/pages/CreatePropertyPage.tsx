@@ -10,10 +10,10 @@ import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
-import PropertyForm from '../app/property/components/forms/PropertyForm';
-import PropertyPreview from '../app/property/components/PropertyPreview';
-import PanelManager, { PanelConfig } from '../app/shared/components/PanelManager';
-import CategoryPanel from '../app/property/components/CategoryPanel';
+import { PropertyForm } from '../app/property/components/forms/PropertyForm';
+import { PropertyPreview } from '../app/property/components/PropertyPreview';
+import { PanelManager, PanelConfig } from '../app/shared/components/PanelManager';
+import { CategoryPanel } from '../app/property/components/CategoryPanel';
 import { postProperty } from '../app/property/services/property.service';
 import { ROUTES } from '../lib';
 import { BasePage } from './BasePage';
@@ -127,7 +127,7 @@ export default function CreatePropertyPage() {
     ? `Formulario de Creación de ${selectedTypeName}`
     : 'Formulario de Creación';
 
-    return (
+  return (
 
     <BasePage maxWidth={true}>
       <Box sx={{

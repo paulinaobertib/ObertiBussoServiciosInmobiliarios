@@ -5,7 +5,7 @@ import { BasePage } from './BasePage';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
 import { Modal } from '../app/shared/components/Modal';
-import InquiryPanel from '../app/property/components/forms/InquiryForm';
+import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
 
 const PropertyDetailsPage = () => {
   const theme = useTheme();
@@ -69,7 +69,7 @@ const PropertyDetailsPage = () => {
           <PropertyDetails property={currentProperty} />
 
           {/* Botón para abrir el InquiryPanel */}
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Box sx={{ mt: 4, textAlign: 'center', pb: 8 }}>
             <Button
               variant="contained"
               size="large"
@@ -91,7 +91,7 @@ const PropertyDetailsPage = () => {
             title="Enviar consulta"
             onClose={() => setInquiryOpen(false)}
           >
-            <InquiryPanel
+            <InquiriesPanel
               propertyIds={[currentProperty.id]}
               onDone={() => setInquiryOpen(false)}
             />

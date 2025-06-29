@@ -9,7 +9,7 @@ interface Props {
     propertyId: number;
 }
 
-export default function FavoriteButton({ propertyId }: Props) {
+export const FavoriteButton = ({ propertyId }: Props) => {
     const { isFavorite, toggleFavorite, loading } = useFavorites();
 
     const handleClick = async (e: MouseEvent) => {

@@ -8,7 +8,7 @@ interface Props {
   debounceMs?: number;
 }
 
-export default function SearchBarOwner({ onSearch, debounceMs = 300 }: Props) {
+export const SearchBarOwner = ({ onSearch, debounceMs = 300 }: Props) => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
 

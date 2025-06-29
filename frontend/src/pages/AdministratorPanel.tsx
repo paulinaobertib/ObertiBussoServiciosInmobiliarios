@@ -3,13 +3,13 @@ import { Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
-import PanelManager from '../app/shared/components/PanelManager';
-import CategoryPanel from '../app/property/components/CategoryPanel';
-import PropertyPanel from '../app/property/components/PropertyPanel';
+import { PanelManager } from '../app/shared/components/PanelManager';
+import { CategoryPanel } from '../app/property/components/CategoryPanel';
+import { PropertyPanel } from '../app/property/components/PropertyPanel';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import UserForm from '../app/user/components/UserForm';
-import InquiriesPanel from '../app/property/components/inquiries/InquiriesPanel';
-import AppointmentPanel from '../app/user/components/appointments/AppointmentPanel';
+import { UserForm } from '../app/user/components/UserForm';
+import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
+import { AppointmentPanel } from '../app/user/components/appointments/AppointmentPanel';
 
 export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();

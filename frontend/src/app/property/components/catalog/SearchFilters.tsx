@@ -7,13 +7,13 @@ import { SelectChangeEvent } from '@mui/material/Select';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTheme } from '@mui/material/styles';
-import { usePropertyCrud } from '../context/PropertiesContext';
-import { getPropertiesByFilters } from '../services/property.service';
-import { SearchParams } from '../types/searchParams';
-import { Property } from '../types/property';
-import { NeighborhoodType } from '../types/neighborhood';
-import { useGlobalAlert } from '../../shared/context/AlertContext';
-import { useLoading } from '../utils/useLoading';
+import { usePropertyCrud } from '../../context/PropertiesContext';
+import { getPropertiesByFilters } from '../../services/property.service';
+import { SearchParams } from '../../types/searchParams';
+import { Property } from '../../types/property';
+import { NeighborhoodType } from '../../types/neighborhood';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import { useLoading } from '../../utils/useLoading';
 import { LoadingButton } from '@mui/lab';
 
 const countOptions = [1, 2, 3];
@@ -22,17 +22,9 @@ interface Props {
   onSearch(results: Property[]): void;
 }
 
-export default function SearchFilters({ onSearch }: Props) {
-  const {
-    typesList,
-    neighborhoodsList,
-    amenitiesList,
-    operationsList,
-    selected,
-    setSelected,
-    buildSearchParams
-  } = usePropertyCrud();
-
+export const SearchFilters = ({ onSearch }: Props) => {
+  const { typesList, neighborhoodsList, amenitiesList, operationsList,
+    selected, setSelected, buildSearchParams } = usePropertyCrud();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [openFilters, setOpen] = useState(!isMobile);

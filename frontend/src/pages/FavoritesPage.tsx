@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 
 import { BasePage } from './BasePage';
-import PropertyCard from '../app/property/components/PropertyCard';
+import { PropertyCard } from '../app/property/components/catalog/PropertyCard';
 import { useFavorites } from '../app/user/hooks/useFavorites';  // tu hook ya creado
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 

@@ -12,13 +12,14 @@ import { useNavigate } from 'react-router-dom';
 
 import { usePropertyCrud } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
-import ModalItem, { Info } from './ModalItem';
+import { ModalItem, Info } from './ModalItem';
 import { useConfirmDialog } from '../utils/ConfirmDialog';
 import { deleteProperty } from '../services/property.service';
 import { useGlobalAlert } from '../../shared/context/AlertContext';
 import { getRowActions, RowAction } from './ActionsRowItems';
+import { ROUTES } from '../../../lib';
 
-export default function PropertyPanel() {
+export const PropertyPanel = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const {
@@ -71,7 +72,7 @@ export default function PropertyPanel() {
         </Typography>
         <Tooltip title="Agregar nueva propiedad">
           <IconButton
-            onClick={() => setModal({ action: 'add', formKey: 'property' })}
+            onClick={() => navigate(ROUTES.NEW_PROPERTY)}
             sx={{ color: theme.palette.primary.main }}
           >
             <AddIcon />

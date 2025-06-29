@@ -6,11 +6,7 @@ interface Props {
   onClick: () => void;
 }
 
-export default function PanelButton({
-  label,
-  active,
-  onClick,
-}: Props) {
+export const PanelButton = ({ label, active, onClick, }: Props) => {
   return (
     <Button
       variant={active ? 'contained' : 'outlined'}

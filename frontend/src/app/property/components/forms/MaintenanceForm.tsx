@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function MaintenanceForm({ action, item, onDone }: Props) {
+export const MaintenanceForm = ({ action, item, onDone }: Props) => {
     const { refreshMaintenances, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
