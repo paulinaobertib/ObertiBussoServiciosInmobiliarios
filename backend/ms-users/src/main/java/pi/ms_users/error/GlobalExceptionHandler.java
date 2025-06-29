@@ -1,5 +1,6 @@
 package pi.ms_users.error;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.ClientErrorException;
@@ -103,5 +104,16 @@ public class GlobalExceptionHandler {
         int status = ex.getResponse().getStatus();
         String message = "Error del cliente: " + ex.getResponse().readEntity(String.class);
         return ResponseEntity.status(status).body(message);
+    }
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<String> handleMessagingException(MessagingException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al enviar email: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }
