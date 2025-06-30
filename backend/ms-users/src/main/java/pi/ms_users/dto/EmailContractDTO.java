@@ -8,4 +8,5 @@ public class EmailContractDTO {
     private String to;
     private String title;
     private String firstName;
+    private Long contractId;
 }

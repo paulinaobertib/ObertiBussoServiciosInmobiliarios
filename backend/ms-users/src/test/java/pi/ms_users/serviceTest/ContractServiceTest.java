@@ -375,10 +375,16 @@ class ContractServiceTest {
     @Test
     void testCreate_emailServiceThrowsException_shouldPropagate() {
         when(propertyRepository.getById(anyLong())).thenReturn(mock(PropertyDTO.class));
+
         User user = new User();
         user.setEmail("test@mail.com");
         user.setFirstName("Nombre");
         when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
+
+        Contract mockContract = new Contract();
+        mockContract.setId(123L);
+        when(contractRepository.save(any())).thenReturn(mockContract);
+
         doThrow(new RuntimeException("Email service failure"))
                 .when(emailService).sendNewContractEmail(any());
 
@@ -388,6 +394,7 @@ class ContractServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> contractService.create(dto, BigDecimal.TEN, ContractIncreaseCurrency.ARS));
+
         assertEquals("Email service failure", ex.getMessage());
     }
 

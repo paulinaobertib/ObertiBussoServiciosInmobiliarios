@@ -151,6 +151,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
         emailData.setAmount(newAmount);
         emailData.setFrequency(contract.getIncreaseFrequency());
         emailData.setIncrease(contract.getIncrease());
+        emailData.setContractId(contract.getId());
         return emailData;
     }
 }
