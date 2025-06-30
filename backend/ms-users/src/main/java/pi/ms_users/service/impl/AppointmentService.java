@@ -47,6 +47,7 @@ public class AppointmentService implements IAppointmentService {
         availableAppointment.setAvailability(false);
         availableAppointmentRepository.save(availableAppointment);
 
+        appointment.setAppointmentDate(availableAppointment.getDate());
         appointment.setAvailableAppointment(availableAppointment);
         Appointment saved = appointmentRepository.save(appointment);
 
@@ -102,8 +103,6 @@ public class AppointmentService implements IAppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
 
-        appointment.setStatus(status);
-
         User user = userRepository.findById(appointment.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
 
@@ -115,16 +114,29 @@ public class AppointmentService implements IAppointmentService {
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setDate(availableAppointment.getDate());
 
+        if (appointment.getStatus() == AppointmentStatus.ACEPTADO) {
+            availableAppointment.setAvailability(true);
+            appointment.setStatus(AppointmentStatus.RECHAZADO);
+            appointment.setAvailableAppointment(null);
+            appointmentRepository.save(appointment);
+            availableAppointmentRepository.save(availableAppointment);
+            emailService.sendApologyForCancelledAppointment(appointment.getId(), emailDTO.getTo(), user.getFirstName(), availableAppointment.getDate());
+            return ResponseEntity.ok("Se ha actualizado el estado del turno");
+        }
+
+        appointment.setStatus(status);
+
         if (status == AppointmentStatus.ACEPTADO) {
-            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), true, user.getFirstName(), availableAppointment.getDate(), address);
+            emailService.sendAppointmentDecisionToClient(appointment.getId(), emailDTO.getTo(), true, user.getFirstName(), availableAppointment.getDate(), address);
             appointment.setStatus(AppointmentStatus.ACEPTADO);
             appointmentRepository.save(appointment);
         } else if (status == AppointmentStatus.RECHAZADO) {
             availableAppointment.setAvailability(true);
             appointment.setStatus(AppointmentStatus.RECHAZADO);
+            appointment.setAvailableAppointment(null);
             appointmentRepository.save(appointment);
             availableAppointmentRepository.save(availableAppointment);
-            emailService.sendAppointmentDecisionToClient(emailDTO.getTo(), false, user.getFirstName(), availableAppointment.getDate(), null);
+            emailService.sendAppointmentDecisionToClient(appointment.getId(), emailDTO.getTo(), false, user.getFirstName(), availableAppointment.getDate(), null);
         }
 
         return ResponseEntity.ok("Se ha actualizado el estado del turno");

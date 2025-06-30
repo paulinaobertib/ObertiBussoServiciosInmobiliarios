@@ -61,9 +61,6 @@ export const UserForm = () => {
                 flexDirection: { xs: 'column', md: 'row' },
                 gap: 2,
                 alignItems: { xs: 'stretch', md: 'center' },
-                bgcolor: 'background.paper',
-                boxShadow: 4,
-                borderRadius: 2,
                 flexShrink: 0,
             }}
         >
@@ -79,9 +76,6 @@ export const UserForm = () => {
                     {`${form.firstName[0] ?? ''}${form.lastName[0] ?? ''}`.toUpperCase()}
                 </Avatar>
 
-                <IconButton sx={{ position: 'absolute', top: -10, left: -10, zIndex: 1 }}>
-                    <SettingsIcon fontSize="large" />
-                </IconButton>
 
                 <Box textAlign="center">
                     <Typography variant="h6" fontWeight="bold" gutterBottom>
@@ -92,14 +86,22 @@ export const UserForm = () => {
                     </Typography>
                 </Box>
 
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={handleEditToggle}
-                    disabled={saving}
-                >
-                    {editMode ? 'Guardar cambios' : 'Editar perfil'}
-                </Button>
+                <Stack direction="row" spacing={1}>
+                    <IconButton >
+                        <SettingsIcon fontSize="large" />
+                    </IconButton>
+
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={handleEditToggle}
+                        size="small"
+                        disabled={saving}
+                    >
+                        {editMode ? 'Guardar cambios' : 'Editar datos'}
+                    </Button>
+                </Stack>
+
             </Stack>
 
             {/* ---- DERECHA (formulario) ---- */}
@@ -150,6 +152,6 @@ export const UserForm = () => {
                     />
                 </Grid>
             </Grid>
-        </Box>
+        </Box >
     );
 }

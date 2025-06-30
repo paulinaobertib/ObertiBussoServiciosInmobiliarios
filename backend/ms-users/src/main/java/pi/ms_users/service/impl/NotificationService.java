@@ -55,7 +55,7 @@ public class NotificationService implements INotificationService {
         dto.setPropertyPrice(price.format(propertyDTO.getPrice()));
         dto.setPropertyPrice(propertyDTO.getPrice().toString());
         dto.setPropertyDescription(propertyDTO.getDescription());
-        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + propertyDTO.getId());
+        dto.setPropertyId(propertyDTO.getId());
         dto.setPropertyCurrency(propertyDTO.getCurrency());
         dto.setPropertyOperation(propertyDTO.getOperation());
         return dto;
@@ -129,7 +129,7 @@ public class NotificationService implements INotificationService {
         dto.setPropertyOperation(propertyDTO.getOperation());
         dto.setPropertyDescription(propertyDTO.getDescription());
         dto.setPropertyImageUrl(propertyDTO.getMainImage());
-        dto.setPropertyUrl(appProperties.getFrontendBaseUrl() + "/properties/" + propertyDTO.getId());
+        dto.setPropertyId(propertyDTO.getId());
 
         emailService.sendNotificationNewInterestProperty(dto);
 

@@ -3,11 +3,14 @@ package pi.ms_users.service.impl;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import java.time.format.DateTimeFormatter;
+
+import lombok.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.dto.*;
 import pi.ms_users.service.interf.IEmailService;
 
@@ -17,6 +20,8 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 public class EmailService implements IEmailService {
+
+    private final AppProperties appProperties;
 
     private final JavaMailSender javaMailSender;
 
@@ -29,7 +34,8 @@ public class EmailService implements IEmailService {
 
     private void setEmailContextVariables(Context context, EmailPropertyDTO dto) {
         context.setVariable("date", formatDate(dto.getDate()));
-        context.setVariable("propertyUrl", dto.getPropertyUrl());
+        String propertyUrl = appProperties.getFrontendBaseUrl() + "?property=" + dto.getPropertyId();
+        context.setVariable("propertyUrl", propertyUrl);
         context.setVariable("propertyDescription", dto.getPropertyDescription());
         context.setVariable("propertyTitle", dto.getPropertyTitle());
         context.setVariable("propertyImageUrl", dto.getPropertyImageUrl());
@@ -76,7 +82,7 @@ public class EmailService implements IEmailService {
 
     // cuando la inmobiliaria decide aceptarlo o rechazarlo
     @Override
-    public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
+    public void sendAppointmentDecisionToClient(Long appointmentId, String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
         try {
             Context context = new Context();
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
@@ -84,6 +90,11 @@ public class EmailService implements IEmailService {
             context.setVariable("date", formatDate(date));
             if (!(address == null) && !address.isEmpty()) {
                 context.setVariable("address", address);
+            }
+
+            if(!accepted) {
+                String rescheduleUrl = appProperties.getFrontendBaseUrl() + "?turno=" + appointmentId;
+                context.setVariable("rescheduleUrl", rescheduleUrl);
             }
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -98,6 +109,30 @@ public class EmailService implements IEmailService {
 
         } catch (Exception e) {
             throw new RuntimeException("Error al enviar el correo de respuesta al cliente: " + e.getMessage(), e);
+        }
+    }
+
+    // cuando la inmobiliaria habia aceptado el turno, pero lo tiene que rechazar
+    @Override
+    public void sendApologyForCancelledAppointment(Long appointmentId, String clientEmail, String firstName, LocalDateTime date) {
+        try {
+            Context context = new Context();
+            context.setVariable("firstName", firstName);
+            context.setVariable("date", formatDate(date));
+            String rescheduleUrl = appProperties.getFrontendBaseUrl() + "?turno=" + appointmentId;
+            context.setVariable("rescheduleUrl", rescheduleUrl);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(clientEmail);
+            helper.setSubject("Lamentamos cancelar tu turno - Oberti Busso Servicios Inmobiliarios");
+
+            String content = templateEngine.process("email_apology_cancelled", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar el correo de disculpas al cliente: " + e.getMessage(), e);
         }
     }
 
@@ -173,6 +208,8 @@ public class EmailService implements IEmailService {
             context.setVariable("name", emailData.getFirstName());
             context.setVariable("username", emailData.getUserName());
             context.setVariable("password", emailData.getPassword());
+            String loginUrl = appProperties.getFrontendBaseUrl() + "/login";
+            context.setVariable("loginUrl", loginUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -194,7 +231,8 @@ public class EmailService implements IEmailService {
         try {
             Context context = new Context();
             context.setVariable("name", emailData.getFirstName());
-            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+            String contractUrl = appProperties.getFrontendBaseUrl() + "?contract=" + emailData.getContractId();
+            context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -219,7 +257,8 @@ public class EmailService implements IEmailService {
             context.setVariable("amount", emailData.getAmount());
             context.setVariable("frequency", emailData.getFrequency());
             context.setVariable("increase", emailData.getIncrease());
-            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+            String contractUrl = appProperties.getFrontendBaseUrl() + "?contract=" + emailData.getContractId();
+            context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -258,4 +297,3 @@ public class EmailService implements IEmailService {
         }
     }
 }
-

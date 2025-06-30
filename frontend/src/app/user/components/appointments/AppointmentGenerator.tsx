@@ -7,6 +7,9 @@ import {
     TextField,
     Divider,
     useTheme,
+    Chip,
+    List,
+    ListItem,
 } from '@mui/material';
 import {
     createAvailability,
@@ -80,15 +83,27 @@ export const AppointmentGenerator = ({ onCreated }: Props) => {
             }}
         >
             {/* ─── BLOQUE SUPERIOR ─── */}
-            <Box sx={{ flex: 1, display: 'flex', gap: 3, overflow: 'hidden' }}>
-                {/* Calendario */}
-                <Box sx={{ flex: 1, minWidth: 250 }}>
+            <Box sx={{ flex: 1, display: 'flex', gap: 3, height: '100%' }}>
+                {/* ─── CALENDARIO ─── */}
+                <Box
+                    sx={{
+                        flex: '0 0 300px',    // no crece ni se encoge, siempre 300px
+                        minWidth: 250,        // en pantallas muy chicas: mínimo 250px
+                    }}
+                >
                     <Calendar onSelectDate={setSelectedDate} initialDate={selectedDate} />
                 </Box>
 
-                {/* Lista de turnos */}
-                <Box sx={{ flex: 1, minWidth: 250, overflowY: 'auto' }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                {/* ─── LISTA DE TURNOS ─── */}
+                <Box
+                    sx={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                    }}
+                >
+                    <Typography variant="subtitle1" sx={{ mb: 0 }}>
                         Turnos&nbsp;<strong>{selectedDate.format('DD/MM/YYYY')}</strong>
                     </Typography>
 
@@ -99,30 +114,44 @@ export const AppointmentGenerator = ({ onCreated }: Props) => {
                     ) : slots.length === 0 ? (
                         <Typography color="text.secondary">Sin turnos.</Typography>
                     ) : (
-                        <Stack spacing={1}>
-                            {slots.map(s => (
-                                <Box
-                                    key={s.id}
-                                    sx={{
-                                        p: 1,
-                                        border: '1px solid',
-                                        borderColor: s.availability
-                                            ? theme.palette.success.main
-                                            : theme.palette.error.main,
-                                        borderRadius: 1,
-                                        fontSize: 14,
-                                        bgcolor: s.availability
-                                            ? theme.palette.success.light
-                                            : theme.palette.error.light,
-                                        color: s.availability
-                                            ? theme.palette.success.contrastText
-                                            : theme.palette.error.contrastText,
-                                    }}
-                                >
-                                    {s.date.slice(11, 16)} — {s.availability ? 'Libre' : 'Ocupado'}
-                                </Box>
-                            ))}
-                        </Stack>
+                        <Box
+                            sx={{
+                                overflowY: 'auto',
+                                maxHeight: 5 * 56,
+                                pr: 0.5,
+                            }}
+                        >
+                            <List disablePadding>
+                                {slots.map((s) => {
+                                    const isFree = s.availability;
+                                    return (
+                                        <ListItem key={s.id} disableGutters sx={{py: 0.5}}>
+                                            <Box
+                                                sx={{
+                                                    flex: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    p: 0.8,
+                                                    borderRadius: 2,
+                                                    background: theme.palette.quaternary.main,    // usa theme.palette.divider
+                                                }}
+                                            >
+                                                <Typography variant="body1">
+                                                    Hora: {s.date.slice(11, 16)}
+                                                </Typography>
+                                                <Chip
+                                                    label={isFree ? 'Libre' : 'Ocupado'}
+                                                    color={isFree ? 'success' : 'error'}
+                                                    variant="outlined"
+                                                    size="medium"
+                                                />
+                                            </Box>
+                                        </ListItem>
+                                    );
+                                })}
+                            </List>
+                        </Box>
                     )}
                 </Box>
             </Box>
