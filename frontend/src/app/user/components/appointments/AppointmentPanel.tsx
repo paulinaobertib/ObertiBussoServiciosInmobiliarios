@@ -1,286 +1,377 @@
-import { useEffect, useState } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
-import { Box, Typography, Grid, Stack, TextField, Button, useTheme } from '@mui/material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { getAllAvailabilities, createAvailability, getAppointmentsByStatus, updateAppointmentStatus } from '../../services/appointment.service';
-import { AvailableAppointment, AvailableAppointmentDTO, Appointment, AppointmentStatus } from '../../types/appointment';
+import { useEffect, useState, useMemo } from 'react';
+import dayjs from 'dayjs';
+import { Box, Button, Chip, Stack, Tooltip, Typography, Grid } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+
+import { getAllAvailabilities, deleteAvailability, getAppointmentsByStatus, updateAppointmentStatus } from '../../services/appointment.service';
+import { getUserById } from '../../services/user.service';
+
+import { Appointment, AvailableAppointment } from '../../types/appointment';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { Modal } from '../../../shared/components/Modal';
+import { AppointmentGenerator } from './AppointmentGenerator';
+import { User } from '../../types/user';
+
+/* ─── filtros ─────────────────────────────────────────────────────── */
+
+type Filters = 'TODOS' | 'DISPONIBLE' | 'ESPERA' | 'ACEPTADO' | 'RECHAZADO';
+
+const FILTERS = [
+  { label: 'Todos', value: 'TODOS' },
+  { label: 'Disponibles', value: 'DISPONIBLE' },
+  { label: 'Pendientes', value: 'ESPERA' },
+  { label: 'Ocupados', value: 'ACEPTADO' },
+  { label: 'Rechazados', value: 'RECHAZADO' },
+] as const;
+
+/* ─── helpers ─────────────────────────────────────────────────────── */
+
+const isAppointment = (
+  d: Appointment | AvailableAppointment | null,
+): d is Appointment => !!d && 'status' in d;
+
+/* ─── componente ──────────────────────────────────────────────────── */
 
 export const AppointmentPanel = () => {
-  const theme = useTheme();
   const { isAdmin } = useAuthContext();
 
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
   const [slots, setSlots] = useState<AvailableAppointment[]>([]);
-  const [startTime, setStartTime] = useState<string>('10:00');
-  const [endTime, setEndTime] = useState<string>('13:00');
+  const [apptsBySlot, setAppts] = useState<Record<number, Appointment>>(
+    {},
+  );
+  const [filter, setFilter] = useState<Filters>('TODOS');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [appointmentData, setAppointmentData] = useState<Appointment | null>(null);
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
+  const [modalMode, setModalMode] = useState<'gen' | 'info' | null>(null);
+  const [modalData, setModalData] =
+    useState<Appointment | AvailableAppointment | null>(null);
+  const [modalUser, setModalUser] = useState<User | null>(null);
+  const [btnLoading, setBtnLoading] = useState(false);
 
-  // Carga todos los slots y filtra por fecha
-  const loadSlots = async () => {
+  /* ── 1) carga inicial ──────────────────────────────────────────── */
+
+  const load = async () => {
     setLoading(true);
     try {
-      // como el service devuelve un AxiosResponse,
-      // extraemos aquí el .data que es el array
-      const all = (await getAllAvailabilities()).data as AvailableAppointment[];
-      const dateStr = selectedDate.format('YYYY-MM-DD');
-      setSlots(all.filter(a => a.date.startsWith(dateStr)));
-      setError(null);
-    } catch (err: any) {
-      setError(err.response?.data || err.message);
+      const [
+        slotsRes,
+        pendRes,
+        accRes,
+        rejRes,
+      ] = await Promise.all([
+        getAllAvailabilities(),
+        getAppointmentsByStatus('ESPERA'),
+        getAppointmentsByStatus('ACEPTADO'),
+        getAppointmentsByStatus('RECHAZADO'),
+      ]);
+
+      setSlots(slotsRes.data);
+
+      const dict: Record<number, Appointment> = {};
+      [...pendRes.data, ...accRes.data, ...rejRes.data].forEach(
+        (a: Appointment) => {
+          dict[a.availableAppointment.id] = a;
+        },
+      );
+      setAppts(dict);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Genera nuevos slots (el backend los divide en 30')
-  const handleCreate = async () => {
-    setLoading(true);
-    try {
-      const dto: AvailableAppointmentDTO = {
-        date: selectedDate.format('YYYY-MM-DD'),
-        startTime: `${startTime}:00`,
-        endTime: `${endTime}:00`
-      };
-      await createAvailability(dto);
-      await loadSlots();
-    } catch (err: any) {
-      setError(err.response?.data || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Al clickear un slot, abre modal con la solicitud en estado ESPERA
-  const handleSlotClick = async (slot: AvailableAppointment) => {
-    if (!isAdmin) return;
-    setModalLoading(true);
-    setModalError(null);
-    try {
-      const pendings = (await getAppointmentsByStatus(
-        'ESPERA' as AppointmentStatus
-      )).data as Appointment[];
-      const found = pendings.find(app => app.availableAppointment.id === slot.id);
-      setAppointmentData(found || null);
-      setModalOpen(true);
-    } catch (err: any) {
-      setModalError(err.response?.data || err.message);
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  // Aceptar o rechazar la solicitud
-  const handleUpdateStatus = async (status: AppointmentStatus) => {
-    if (!appointmentData) return;
-    setModalLoading(true);
-    setModalError(null);
-    try {
-      await updateAppointmentStatus(appointmentData.id, status);
-      setModalOpen(false);
-      setAppointmentData(null);
-      await loadSlots();
-    } catch (err: any) {
-      setModalError(err.response?.data || err.message);
-    } finally {
-      setModalLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isAdmin) loadSlots();
-  }, [selectedDate, isAdmin]);
+    if (isAdmin) load();
+  }, [isAdmin]);
+
+  /* ── 2) sets precalculados ─────────────────────────────────────── */
+
+  const pendingIds = useMemo(
+    () =>
+      new Set(
+        Object.values(apptsBySlot)
+          .filter(a => a.status === 'ESPERA')
+          .map(a => a.availableAppointment.id),
+      ),
+    [apptsBySlot],
+  );
+
+  const acceptedIds = useMemo(
+    () =>
+      new Set(
+        Object.values(apptsBySlot)
+          .filter(a => a.status === 'ACEPTADO')
+          .map(a => a.availableAppointment.id),
+      ),
+    [apptsBySlot],
+  );
+
+  const rejectedIds = useMemo(
+    () =>
+      new Set(
+        Object.values(apptsBySlot)
+          .filter(a => a.status === 'RECHAZADO')
+          .map(a => a.availableAppointment.id),
+      ),
+    [apptsBySlot],
+  );
+
+  const stateOf = (s: AvailableAppointment) =>
+    s.availability
+      ? 'DISPONIBLE'
+      : pendingIds.has(s.id)
+        ? 'PENDIENTE'
+        : acceptedIds.has(s.id)
+          ? 'ACEPTADO'
+          : rejectedIds.has(s.id)
+            ? 'RECHAZADO'
+            : 'OCUPADO';
+
+  /* ── 3) filtros y agrupado ─────────────────────────────────────── */
+
+  const visible = slots
+    .filter(s => !dayjs(s.date).isBefore(dayjs().startOf('day')))
+    .filter(s => {
+      if (filter === 'TODOS') return true;
+      if (filter === 'DISPONIBLE') return s.availability;
+      if (filter === 'ESPERA') return pendingIds.has(s.id);
+      if (filter === 'ACEPTADO') return acceptedIds.has(s.id);
+      if (filter === 'RECHAZADO') return rejectedIds.has(s.id);
+      return true;
+    });
+
+  const byDate = useMemo(() => {
+    const g: Record<string, AvailableAppointment[]> = {};
+    visible.forEach(s => {
+      const d = s.date.slice(0, 10);
+      (g[d] ||= []).push(s);
+    });
+    return g;
+  }, [visible]);
+
+  const dates = Object.keys(byDate).sort();
+
+  /* ── 4) acciones de modal ─────────────────────────────────────── */
+
+  const openSlot = async (s: AvailableAppointment) => {
+    const data = apptsBySlot[s.id] ?? s;
+    setModalData(data);
+    setModalUser(null);
+    setModalMode('info');
+    if (isAppointment(data)) {
+      try {
+        const res = await getUserById(data.userId);
+        setModalUser(res.data);
+      } catch {
+        /* noop */
+      }
+    }
+  };
+
+  const acceptAppt = async (a: Appointment) => {
+    setBtnLoading(true);
+    await updateAppointmentStatus(a.id, 'ACEPTADO');
+    await load();
+    setBtnLoading(false);
+    setModalMode(null);
+  };
+
+  const rejectOrCancel = async (a: Appointment) => {
+    setBtnLoading(true);
+    await updateAppointmentStatus(a.id, 'RECHAZADO');
+    await load();
+    setBtnLoading(false);
+    setModalMode(null);
+  };
+
+  const removeSlot = async (slotId: number) => {
+    setBtnLoading(true);
+    await deleteAvailability(slotId);
+    await load();
+    setBtnLoading(false);
+    setModalMode(null);
+  };
+
+  /* ── 5) render ─────────────────────────────────────────────────── */
 
   if (!isAdmin) {
     return (
-      <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
-        No tienes acceso a este panel.
+      <Typography align="center" sx={{ mt: 2 }} color="text.secondary">
+        No tienes acceso.
       </Typography>
     );
   }
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 2 }}>
-        <Grid container spacing={2}>
-          {/* Columna izquierda: calendario + creación */}
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box
-              sx={{
-                mb: 2,
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 1
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                align="center"
-                sx={{ m: 1 }}
-              >
-                Seleccioná un día
-              </Typography>
-              <DateCalendar
-                value={selectedDate}
-                onChange={d => d && setSelectedDate(d)}
-                disablePast
-                sx={{ width: '100%' }}
-              />
-            </Box>
-            <Box
-              sx={{
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 1,
-                alignItems: 'center',
-                // gap: 2,
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                align="center"
-                sx={{ mb: 1 }}
-              >
-                Crear turnos
-              </Typography>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                sx={{ alignItems: 'center' }}
-              >
-                <TextField
-                  label="Desde"
-                  type="time"
-                  value={startTime}
-                  onChange={e => setStartTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <TextField
-                  label="Hasta"
-                  type="time"
-                  value={endTime}
-                  onChange={e => setEndTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleCreate}
-                  disabled={loading}
-                >
-                  Generar
-                </Button>
-              </Stack>
-            </Box>
-          </Grid>
+    <>
+      {/* ─── barra superior ─── */}
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ mb: 3, px: 3, mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+      >
+        <Button variant="contained" onClick={() => setModalMode('gen')}>
+          Generar turnos
+        </Button>
 
-          {/* Columna derecha: muestra los slots */}
-          <Grid size={{ xs: 12, sm: 8 }}>
-            {loading ? (
-              <Typography>Cargando…</Typography>
-            ) : error ? (
-              <Typography color="error">{error}</Typography>
-            ) : slots.length === 0 ? (
-              <Typography color="text.secondary" align="center">
-                No hay turnos para este día.
+        {FILTERS.map(f => (
+          <Chip
+            key={f.value}
+            label={f.label}
+            size="medium"
+            clickable
+            color={filter === f.value ? 'secondary' : 'default'}
+            onClick={() => setFilter(f.value)}
+          />
+        ))}
+      </Stack>
+
+      {/* ─── grilla ─── */}
+      <Box sx={{ px: 3 }}>
+        {loading ? (
+          <Typography>Cargando…</Typography>
+        ) : dates.length === 0 ? (
+          <Typography color="text.secondary">Sin turnos.</Typography>
+        ) : (
+          dates.map(d => (
+            <Box key={d} sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                {dayjs(d).format('DD/MM/YYYY')}
               </Typography>
-            ) : (
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: 'repeat(2, 1fr)',
-                    sm: 'repeat(3, 1fr)',
-                    md: 'repeat(4, 1fr)',
-                  },
-                  gap: 1,
-                }}
-              >
-                {slots.map(slot => {
-                  const time = slot.date.slice(11, 16);
-                  return (
+
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {byDate[d].map(s => (
+                  <Tooltip key={s.id} title={stateOf(s)}>
                     <Button
-                      key={slot.id}
-                      variant={slot.availability ? 'contained' : 'outlined'}
-                      onClick={() => handleSlotClick(slot)}
-                      fullWidth
-                      sx={{ py: 1.5 }}
+                      size="small"
+                      variant={s.availability ? 'contained' : 'outlined'}
+                      color={
+                        s.availability
+                          ? 'success'
+                          : pendingIds.has(s.id)
+                            ? 'warning'
+                            : acceptedIds.has(s.id)
+                              ? 'info'
+                              : rejectedIds.has(s.id)
+                                ? 'error'
+                                : undefined
+                      }
+                      sx={{ minWidth: 64 }}
+                      onClick={() => openSlot(s)}
                     >
-                      {time}
+                      {s.date.slice(11, 16)}
                     </Button>
-                  );
-                })}
-              </Box>
-            )}
-          </Grid>
-        </Grid>
-
-        {/* Modal para detalles de la solicitud */}
-        <Modal
-          open={modalOpen}
-          title={
-            appointmentData
-              ? `Solicitud #${appointmentData.id}`
-              : 'Sin solicitud'
-          }
-          onClose={() => setModalOpen(false)}
-        >
-          {modalLoading ? (
-            <Typography>Cargando…</Typography>
-          ) : modalError ? (
-            <Typography color="error">{modalError}</Typography>
-          ) : appointmentData ? (
-            <Stack spacing={2}>
-              <Typography>
-                <strong>Usuario:</strong> {appointmentData.userId}
-              </Typography>
-              <Typography>
-                <strong>Comentario:</strong>{' '}
-                {appointmentData.comment || '—'}
-              </Typography>
-              <Typography>
-                <strong>Estado:</strong> {appointmentData.status}
-              </Typography>
-              <Stack
-                direction="row"
-                spacing={2}
-                sx={{ mt: 1 }}
-              >
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    handleUpdateStatus('ACEPTADO')
-                  }
-                >
-                  Aceptar
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    handleUpdateStatus('RECHAZADO')
-                  }
-                >
-                  Rechazar
-                </Button>
+                  </Tooltip>
+                ))}
               </Stack>
-            </Stack>
-          ) : (
-            <Typography>
-              No hay solicitudes para este turno.
-            </Typography>
-          )}
-        </Modal>
+            </Box>
+          ))
+        )}
       </Box>
-    </LocalizationProvider>
+
+      {/* ─── modal Generar ─── */}
+      <Modal
+        open={modalMode === 'gen'}
+        title="Generar turnos"
+        onClose={() => setModalMode(null)}
+      >
+        <AppointmentGenerator onCreated={load} />
+      </Modal>
+
+      {/* ─── modal Info ─── */}
+      <Modal
+        open={modalMode === 'info'}
+        title="Detalle del turno"
+        onClose={() => setModalMode(null)}
+      >
+        {modalData && isAppointment(modalData) ? (
+          <Box sx={{ p: 3, minWidth: 360 }}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <Typography align="center" fontWeight={700}>
+                  {modalUser?.firstName} {modalUser?.lastName}
+                </Typography>
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="subtitle2">Email</Typography>
+                {modalUser?.email || '—'}
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="subtitle2">Teléfono</Typography>
+                {modalUser?.phone || '—'}
+              </Grid>
+
+              {modalData.comment && (
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="subtitle2">Comentario</Typography>
+                  {modalData.comment}
+                </Grid>
+              )}
+
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="subtitle2">Estado</Typography>
+                <Chip
+                  label={modalData.status}
+                  color={
+                    modalData.status === 'ACEPTADO'
+                      ? 'primary'
+                      : modalData.status === 'ESPERA'
+                        ? 'warning'
+                        : 'error' /* RECHAZADO */
+                  }
+                />
+              </Grid>
+            </Grid>
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
+              {modalData.status === 'ESPERA' && (
+                <>
+                  <LoadingButton
+                    loading={btnLoading}
+                    variant="contained"
+                    onClick={() => acceptAppt(modalData)}
+                  >
+                    Aceptar
+                  </LoadingButton>
+
+                  <LoadingButton
+                    loading={btnLoading}
+                    variant="outlined"
+                    color="error"
+                    onClick={() => rejectOrCancel(modalData)}
+                  >
+                    Rechazar
+                  </LoadingButton>
+                </>
+              )}
+
+              {modalData.status === 'ACEPTADO' && (
+                <LoadingButton
+                  loading={btnLoading}
+                  variant="outlined"
+                  color="error"
+                  onClick={() => rejectOrCancel(modalData)}
+                >
+                  Cancelar turno
+                </LoadingButton>
+              )}
+            </Box>
+          </Box>
+        ) : modalData ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography mb={2}>Este turno se encuentra disponible.</Typography>
+            <LoadingButton
+              loading={btnLoading}
+              variant="outlined"
+              color="error"
+              onClick={() => removeSlot((modalData as AvailableAppointment).id)}
+            >
+              Eliminar slot
+            </LoadingButton>
+          </Box>
+        ) : null}
+      </Modal>
+    </>
   );
-}
+};

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { Box, Button, TextField, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, CircularProgress, TextField, Typography, } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { getAllAvailabilities, createAppointment, } from '../../services/appointment.service';
-import { AppointmentCreate, AvailableAppointment } from '../../types/appointment';
+import { AppointmentCreate, AvailableAppointment, } from '../../types/appointment';
 import { useAuthContext } from '../../../user/context/AuthContext';
 
 export const AppointmentForm = () => {
@@ -14,20 +14,17 @@ export const AppointmentForm = () => {
     const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
+    const [submitted, setSubmitted] = useState(false);
     const { info } = useAuthContext();
 
-    // Carga los slots (solo por fecha, no por disponibilidad)
     const loadSlotsFor = async (date: Dayjs) => {
-        setLoading(true);
-        setError(null);
-        setSelectedSlotId(null);
+        setLoading(true); setError(null); setSelectedSlotId(null);
         try {
             const res = await getAllAvailabilities();
             const all = res.data as AvailableAppointment[];
             const dateStr = date.format('YYYY-MM-DD');
-            setSlots(all.filter(s => s.date.startsWith(dateStr))); // :contentReference[oaicite:1]{index=1}
+            setSlots(all.filter(s => s.date.startsWith(dateStr)));
         } catch (err: any) {
             setError(err.response?.data || err.message);
         } finally {
@@ -35,28 +32,21 @@ export const AppointmentForm = () => {
         }
     };
 
-    // Al cambiar la fecha…
     const handleDateChange = (d: Dayjs | null) => {
         setSelectedDate(d);
-        setSuccess(null);
         if (d) loadSlotsFor(d);
     };
 
-    // Crear la cita en ESPERA
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (selectedSlotId === null) return;
-
         const userId = info?.id;
         if (!userId) {
             setError('Usuario no autenticado');
             return;
         }
 
-        setLoading(true);
-        setError(null);
-        setSuccess(null);
-
+        setLoading(true); setError(null);
         try {
             const body: AppointmentCreate = {
                 userId,
@@ -64,13 +54,8 @@ export const AppointmentForm = () => {
                 status: 'ESPERA',
                 availableAppointment: { id: selectedSlotId },
             };
-
-            console.log('Enviando JSON:', body);
             await createAppointment(body);
-
-            setSuccess('Solicitud enviada. Queda en espera de aprobación.');
-            setNotes('');
-            await loadSlotsFor(selectedDate!);
+            setSubmitted(true);
         } catch (err: any) {
             setError(err.response?.data || err.message);
         } finally {
@@ -78,24 +63,52 @@ export const AppointmentForm = () => {
         }
     };
 
+    if (submitted) {
+        return (
+            <Box
+                sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    // p: 3,
+                    textAlign: 'center',
+                }}
+            >
+                <Typography variant="h6" gutterBottom>
+                    ¡Turno solicitado con éxito!
+                </Typography>
+                <Typography>
+                    Gracias. Te avisaremos cuando tu turno sea aceptado.
+                </Typography>
+            </Box>
+        );
+    }
+
     return (
         <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
+                display: 'grid',
                 gap: 3,
-                width: '100%',
                 p: 2,
+                overflowX: 'hidden',
+                gridTemplateAreas: {
+                    xs: `"cal" "slots" "notes"`,
+                    md: `"cal cal" "slots notes"`,
+                },
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gridAutoRows: 'min-content',
             }}
         >
-            {/* Calendario */}
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
-                        Seleccioná un día
-                    </Typography>
+            {/* ─── calendario ─── */}
+            <Box gridArea="cal">
+                <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
+                    Seleccioná un día
+                </Typography>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DateCalendar
                         value={selectedDate}
                         onChange={handleDateChange}
@@ -104,56 +117,64 @@ export const AppointmentForm = () => {
                             width: '100%',
                             '& .MuiPickersDay-root': {
                                 width: { xs: 38, sm: 42, md: 46 },
-                                height: { xs: 38, sm: 42, md: 46 },
                                 m: 0.5,
+                                borderRadius: 1,
                             },
                         }}
                     />
-                </Box>
-            </LocalizationProvider>
+                </LocalizationProvider>
+            </Box>
 
-            {/* Slots + notas */}
-            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {error && <Typography color="error">{error}</Typography>}
-                {success && <Typography color="success.main">{success}</Typography>}
-
-                <Box>
-                    <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
-                        Horarios disponibles
+            {/* ─── horarios ─── */}
+            <Box gridArea="slots">
+                <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
+                    Horarios disponibles
+                </Typography>
+                {loading ? (
+                    <Box sx={{ textAlign: 'center' }}>
+                        <CircularProgress />
+                    </Box>
+                ) : slots.length === 0 ? (
+                    <Typography color="text.secondary" align="center">
+                        No hay turnos para este día.
                     </Typography>
-                    {loading ? (
-                        <Box sx={{ textAlign: 'center' }}><CircularProgress /></Box>
-                    ) : slots.length === 0 ? (
-                        <Typography color="text.secondary" align="center">
-                            No hay turnos para este día.
-                        </Typography>
-                    ) : (
-                        <Box
-                            sx={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(2, 1fr)',  // <- aquí: dos columnas fijas
-                                gap: 1,
-                            }}
-                        >
-                            {slots.map(slot => {
-                                const timeLabel = slot.date.slice(11, 16);
-                                return (
-                                    <Button
-                                        key={slot.id}
-                                        variant={selectedSlotId === slot.id ? 'contained' : 'outlined'}
-                                        size="small"
-                                        fullWidth
-                                        sx={{ py: 1.5 }}
-                                        onClick={() => slot.availability && setSelectedSlotId(slot.id)}
-                                        disabled={!slot.availability}
-                                    >
-                                        {timeLabel}
-                                    </Button>
-                                );
-                            })}
-                        </Box>
-                    )}
-                </Box>
+                ) : (
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gap: 1,
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                        }}
+                    >
+                        {slots.map(slot => {
+                            const time = slot.date.slice(11, 16);
+                            const selected = selectedSlotId === slot.id;
+                            return (
+                                <Button
+                                    key={slot.id}
+                                    variant={selected ? 'contained' : 'outlined'}
+                                    size="small"
+                                    fullWidth
+                                    sx={{ py: 1.5 }}
+                                    onClick={() => slot.availability && setSelectedSlotId(slot.id)}
+                                    disabled={!slot.availability}
+                                >
+                                    {time}
+                                </Button>
+                            );
+                        })}
+                    </Box>
+                )}
+            </Box>
+
+            {/* ─── notas + botón ─── */}
+            <Box
+                gridArea="notes"
+                sx={{ display: 'flex', flexDirection: 'column' }}
+            >
+                <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
+                    Comentarios
+                </Typography>
 
                 <TextField
                     label="Comentarios Adicionales"
@@ -162,8 +183,8 @@ export const AppointmentForm = () => {
                     multiline
                     rows={3}
                     fullWidth
+                    sx={{ mb: 2 }}
                 />
-
                 <Button
                     type="submit"
                     variant="contained"
@@ -176,4 +197,4 @@ export const AppointmentForm = () => {
             </Box>
         </Box>
     );
-}
+};

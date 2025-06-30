@@ -9,7 +9,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { FavoritesPanel } from '../app/user/components/FavoritesPanel'
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
-import { AppointmentPanel } from '../app/user/components/appointments/AppointmentPanel';
+import { AppointmentUser } from '../app/user/components/appointments/AppointmentUser';
 
 export default function UserProfilePage() {
     const theme = useTheme();
@@ -36,7 +36,7 @@ export default function UserProfilePage() {
         {
             key: 'appointment',
             label: 'Mis Turnos',
-            content: <AppointmentPanel />,
+            content: <AppointmentUser />,
         }
     ];
 
