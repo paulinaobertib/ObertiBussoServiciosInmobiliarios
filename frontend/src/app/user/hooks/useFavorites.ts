@@ -6,7 +6,7 @@ import {
 } from "../services/favorite.service";
 import { useAuthContext } from "../context/AuthContext";
 import { Favorite } from "../types/favorite";
-import { useGlobalAlert } from "../../property/context/AlertContext";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 /**
  * Hook para gestionar favoritos de propiedades para el usuario logueado.

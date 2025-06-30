@@ -11,8 +11,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { BasePage } from './BasePage';
-import ModalItem, { Info } from '../app/property/components/ModalItem';
+import { ModalItem, Info } from '../app/property/components/ModalItem';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { MaintenanceForm } from '../app/property/components/forms/MaintenanceForm';
 
 export default function PropertyMaintenancePage() {
     const { id: idParam } = useParams();
@@ -44,6 +45,7 @@ export default function PropertyMaintenancePage() {
         }
     }, [propertyId, pickedItem, pickItem, navigate]);
 
+
     return (
         <BasePage maxWidth={false}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
@@ -71,9 +73,13 @@ export default function PropertyMaintenancePage() {
                     </Typography>
                     <Button
                         startIcon={<AddIcon />}
-                        variant="contained"
-                        sx={{ bgcolor: theme.palette.secondary.main, ':hover': { bgcolor: theme.palette.primary.main } }}
-                        onClick={() => setModal({ action: 'add', formKey: 'maintenance' })}
+                        onClick={() =>
+                            setModal({
+                                title: 'Agregar Mantenimiento',
+                                Component: MaintenanceForm,
+                                componentProps: { action: 'add' as const, onDone: () => { setModal(null); refreshMaintenances(); } }
+                            })
+                        }
                     >
                         Agregar
                     </Button>
@@ -109,13 +115,29 @@ export default function PropertyMaintenancePage() {
                                 >
                                     <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
                                         <Tooltip title="Editar">
-                                            <IconButton size="small" onClick={() => setModal({ action: 'edit', formKey: 'maintenance', item: m })}>
-                                                <EditIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
+                                            <IconButton
+                                                onClick={() =>
+                                                    setModal({
+                                                        title: 'Editar Mantenimiento',
+                                                        Component: MaintenanceForm,
+                                                        componentProps: { action: 'edit' as const, item: m, onDone: () => { setModal(null); refreshMaintenances(); } }
+                                                    })
+                                                }
+                                            >
+                                                <EditIcon />
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Eliminar">
-                                            <IconButton size="small" onClick={() => setModal({ action: 'delete', formKey: 'maintenance', item: m })}>
-                                                <DeleteIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
+                                            <IconButton
+                                                onClick={() =>
+                                                    setModal({
+                                                        title: 'Eliminar Mantenimiento',
+                                                        Component: MaintenanceForm,
+                                                        componentProps: { action: 'delete' as const, item: m, onDone: () => { setModal(null); refreshMaintenances(); } }
+                                                    })
+                                                }
+                                            >
+                                                <DeleteIcon />
                                             </IconButton>
                                         </Tooltip>
                                     </Box>

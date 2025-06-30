@@ -18,7 +18,7 @@ import pi.ms_users.domain.Notification;
 import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.EmailPropertyDTO;
 import pi.ms_users.dto.NotificationDTO;
 import pi.ms_users.repository.INotificationRepository;
@@ -40,9 +40,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
-
-    @Mock
-    private AppProperties appProperties;
 
     @Mock
     private INotificationRepository notificationRepository;
@@ -73,16 +70,16 @@ class NotificationServiceTest {
         String userId = "user123";
         Long propertyId = 1L;
 
-        Property property = new Property();
-        property.setId(propertyId);
-        property.setTitle("Casa en Palermo");
-        property.setPrice(250000f);
-        property.setDescription("Amplia casa con jardín");
-        property.setMainImage("img.jpg");
-        property.setNeighborhood("Palermo");
-        property.setOperation("VENTA");
-        property.setCurrency("USD");
-        property.setType("CASA");
+        PropertyDTO propertyDTO = new PropertyDTO();
+        propertyDTO.setId(propertyId);
+        propertyDTO.setTitle("Casa en Palermo");
+        propertyDTO.setPrice(250000f);
+        propertyDTO.setDescription("Amplia casa con jardín");
+        propertyDTO.setMainImage("img.jpg");
+        propertyDTO.setNeighborhood("Palermo");
+        propertyDTO.setOperation("VENTA");
+        propertyDTO.setCurrency("USD");
+        propertyDTO.setType("CASA");
 
         User user = new User();
         user.setId(userId);
@@ -90,9 +87,8 @@ class NotificationServiceTest {
 
         when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
                 .thenReturn(List.of(userId));
-        when(propertyRepository.getById(propertyId)).thenReturn(property);
+        when(propertyRepository.getById(propertyId)).thenReturn(propertyDTO);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
 
         ResponseEntity<String> response = notificationService.createProperty(dto, propertyId);
 
@@ -154,15 +150,15 @@ class NotificationServiceTest {
         user.setId(userId);
         user.setEmail("user@mail.com");
 
-        Property property = new Property();
-        property.setId(propertyId);
-        property.setTitle("Depto en Centro");
-        property.setNeighborhood("Centro");
-        property.setPrice(300000f);
-        property.setCurrency("USD");
-        property.setOperation("VENTA");
-        property.setDescription("Departamento amplio");
-        property.setMainImage("image.jpg");
+        PropertyDTO propertyDTO = new PropertyDTO();
+        propertyDTO.setId(propertyId);
+        propertyDTO.setTitle("Depto en Centro");
+        propertyDTO.setNeighborhood("Centro");
+        propertyDTO.setPrice(300000f);
+        propertyDTO.setCurrency("USD");
+        propertyDTO.setOperation("VENTA");
+        propertyDTO.setDescription("Departamento amplio");
+        propertyDTO.setMainImage("image.jpg");
 
         UserNotificationPreference pref = new UserNotificationPreference();
         pref.setUserId(userId);
@@ -171,8 +167,7 @@ class NotificationServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userNotificationPreferenceRepository.findByUserId(userId)).thenReturn(List.of(pref));
-        when(propertyRepository.getById(propertyId)).thenReturn(property);
-        when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
+        when(propertyRepository.getById(propertyId)).thenReturn(propertyDTO);
 
         ResponseEntity<String> response = notificationService.propertyInterest(userId, type, propertyId);
 
@@ -239,7 +234,7 @@ class NotificationServiceTest {
         String userId = "noExist";
         when(userNotificationPreferenceRepository.usersIdByTypeTrue(dto.getType()))
                 .thenReturn(List.of(userId));
-        when(propertyRepository.getById(1L)).thenReturn(new Property());
+        when(propertyRepository.getById(1L)).thenReturn(new PropertyDTO());
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,

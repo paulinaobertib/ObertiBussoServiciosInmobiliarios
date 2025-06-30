@@ -3,11 +3,14 @@ package pi.ms_users.service.impl;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import java.time.format.DateTimeFormatter;
+
+import lombok.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.dto.*;
 import pi.ms_users.service.interf.IEmailService;
 
@@ -18,15 +21,32 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class EmailService implements IEmailService {
 
+    private final AppProperties appProperties;
+
     private final JavaMailSender javaMailSender;
+
     private final TemplateEngine templateEngine;
 
     private String formatDate(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", new Locale("es", "ES"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", Locale.forLanguageTag("es-AR"));
         return date.format(formatter);
     }
 
+    private void setEmailContextVariables(Context context, EmailPropertyDTO dto) {
+        context.setVariable("date", formatDate(dto.getDate()));
+        String propertyUrl = appProperties.getFrontendBaseUrl() + "?property=" + dto.getPropertyId();
+        context.setVariable("propertyUrl", propertyUrl);
+        context.setVariable("propertyDescription", dto.getPropertyDescription());
+        context.setVariable("propertyTitle", dto.getPropertyTitle());
+        context.setVariable("propertyImageUrl", dto.getPropertyImageUrl());
+        context.setVariable("propertyLocation", dto.getPropertyLocation());
+        context.setVariable("propertyPrice", dto.getPropertyPrice());
+        context.setVariable("propertyCurrency", dto.getPropertyCurrency());
+        context.setVariable("propertyOperation", dto.getPropertyOperation());
+    }
+
     // cuando se crea un turno
+    @Override
     public void sendAppointmentRequest(EmailDTO emailDTO) {
         try {
             Context context = new Context();
@@ -61,14 +81,20 @@ public class EmailService implements IEmailService {
     }
 
     // cuando la inmobiliaria decide aceptarlo o rechazarlo
-    public void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
+    @Override
+    public void sendAppointmentDecisionToClient(Long appointmentId, String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address) {
         try {
             Context context = new Context();
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
             context.setVariable("firstName", firstName);
             context.setVariable("date", formatDate(date));
-            if (!address.isEmpty()) {
+            if (!(address == null) && !address.isEmpty()) {
                 context.setVariable("address", address);
+            }
+
+            if(!accepted) {
+                String rescheduleUrl = appProperties.getFrontendBaseUrl() + "?turno=" + appointmentId;
+                context.setVariable("rescheduleUrl", rescheduleUrl);
             }
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -86,7 +112,32 @@ public class EmailService implements IEmailService {
         }
     }
 
+    // cuando la inmobiliaria habia aceptado el turno, pero lo tiene que rechazar
+    @Override
+    public void sendApologyForCancelledAppointment(Long appointmentId, String clientEmail, String firstName, LocalDateTime date) {
+        try {
+            Context context = new Context();
+            context.setVariable("firstName", firstName);
+            context.setVariable("date", formatDate(date));
+            String rescheduleUrl = appProperties.getFrontendBaseUrl() + "?turno=" + appointmentId;
+            context.setVariable("rescheduleUrl", rescheduleUrl);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(clientEmail);
+            helper.setSubject("Lamentamos cancelar tu turno - Oberti Busso Servicios Inmobiliarios");
+
+            String content = templateEngine.process("email_apology_cancelled", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar el correo de disculpas al cliente: " + e.getMessage(), e);
+        }
+    }
+
     // cuando el cliente cancela el turno
+    @Override
     public void sendAppointmentCancelledMail(EmailDTO emailDTO) {
         try {
             Context context = new Context();
@@ -110,18 +161,11 @@ public class EmailService implements IEmailService {
     }
 
     // cuando se agrega una nueva propiedad
+    @Override
     public void sendNotificationNewProperty(EmailPropertyDTO emailPropertyDTO) {
         try {
             Context context = new Context();
-            context.setVariable("date", formatDate(emailPropertyDTO.getDate()));
-            context.setVariable("propertyUrl", emailPropertyDTO.getPropertyUrl());
-            context.setVariable("propertyDescription", emailPropertyDTO.getPropertyDescription());
-            context.setVariable("propertyTitle", emailPropertyDTO.getPropertyTitle());
-            context.setVariable("propertyImageUrl", emailPropertyDTO.getPropertyImageUrl());
-            context.setVariable("propertyLocation", emailPropertyDTO.getPropertyLocation());
-            context.setVariable("propertyPrice", emailPropertyDTO.getPropertyPrice());
-            context.setVariable("propertyCurrency", emailPropertyDTO.getPropertyCurrency());
-            context.setVariable("propertyOperation", emailPropertyDTO.getPropertyOperation());
+            setEmailContextVariables(context, emailPropertyDTO);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -141,15 +185,7 @@ public class EmailService implements IEmailService {
     public void sendNotificationNewInterestProperty(EmailPropertyDTO emailPropertyDTO) {
         try {
             Context context = new Context();
-            context.setVariable("date", formatDate(emailPropertyDTO.getDate()));
-            context.setVariable("propertyUrl", emailPropertyDTO.getPropertyUrl());
-            context.setVariable("propertyDescription", emailPropertyDTO.getPropertyDescription());
-            context.setVariable("propertyTitle", emailPropertyDTO.getPropertyTitle());
-            context.setVariable("propertyImageUrl", emailPropertyDTO.getPropertyImageUrl());
-            context.setVariable("propertyLocation", emailPropertyDTO.getPropertyLocation());
-            context.setVariable("propertyPrice", emailPropertyDTO.getPropertyPrice());
-            context.setVariable("propertyCurrency", emailPropertyDTO.getPropertyCurrency());
-            context.setVariable("propertyOperation", emailPropertyDTO.getPropertyOperation());
+            setEmailContextVariables(context, emailPropertyDTO);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -165,12 +201,15 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el administrador le crea un usuario al inquilino
+    @Override
     public void sendNewUserCredentialsEmail(EmailNewUserDTO emailData) {
         try {
             Context context = new Context();
             context.setVariable("name", emailData.getFirstName());
             context.setVariable("username", emailData.getUserName());
             context.setVariable("password", emailData.getPassword());
+            String loginUrl = appProperties.getFrontendBaseUrl() + "/login";
+            context.setVariable("loginUrl", loginUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -187,11 +226,13 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el administrador crea un contrato
+    @Override
     public void sendNewContractEmail(EmailContractDTO emailData) {
         try {
             Context context = new Context();
             context.setVariable("name", emailData.getFirstName());
-            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+            String contractUrl = appProperties.getFrontendBaseUrl() + "?contract=" + emailData.getContractId();
+            context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -208,6 +249,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando aumenta el contrato segun el indice de aumento
+    @Override
     public void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData) {
         try {
             Context context = new Context();
@@ -215,7 +257,8 @@ public class EmailService implements IEmailService {
             context.setVariable("amount", emailData.getAmount());
             context.setVariable("frequency", emailData.getFrequency());
             context.setVariable("increase", emailData.getIncrease());
-            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+            String contractUrl = appProperties.getFrontendBaseUrl() + "?contract=" + emailData.getContractId();
+            context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -232,6 +275,7 @@ public class EmailService implements IEmailService {
     }
 
     // cuando el contrato esta cerca a vencer
+    @Override
     public void sendContractExpirationReminder(EmailExpirationContract emailData) {
         try {
             Context context = new Context();
@@ -253,4 +297,3 @@ public class EmailService implements IEmailService {
         }
     }
 }
-

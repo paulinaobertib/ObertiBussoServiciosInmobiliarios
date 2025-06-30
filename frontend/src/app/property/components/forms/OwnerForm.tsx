@@ -3,7 +3,7 @@ import { TextField, Grid, Box } from '@mui/material';
 import { Owner, OwnerCreate } from '../../types/owner';
 import { postOwner, putOwner, deleteOwner } from '../../services/owner.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';
 
@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function OwnerForm({ action, item, onDone }: Props) {
+export const OwnerForm = ({ action, item, onDone }: Props) => {
     const { refreshOwners } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 
@@ -21,7 +21,7 @@ export default function OwnerForm({ action, item, onDone }: Props) {
         id: item?.id ?? 0,
         firstName: item?.firstName ?? '',
         lastName: item?.lastName ?? '',
-        mail: item?.mail ?? '',
+        email: item?.email ?? '',
         phone: item?.phone ?? '',
     });
 
@@ -76,7 +76,7 @@ export default function OwnerForm({ action, item, onDone }: Props) {
             <Grid container spacing={2} mb={2}>
                 <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Nombre" value={form.firstName} onChange={set('firstName')} /></Grid>
                 <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Apellido" value={form.lastName} onChange={set('lastName')} /></Grid>
-                <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Mail" value={form.mail} onChange={set('mail')} /></Grid>
+                <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Mail" value={form.email} onChange={set('email')} /></Grid>
                 <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Teléfono" value={form.phone} onChange={set('phone')} /></Grid>
             </Grid>
 

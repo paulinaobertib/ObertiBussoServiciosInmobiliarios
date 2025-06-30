@@ -8,9 +8,8 @@ import FoundationIcon from '@mui/icons-material/Foundation';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import * as React from 'react';
 
-interface PropertyInfoProps {
+interface Props {
   property: Property;
 }
 
@@ -24,7 +23,7 @@ const formatFeatureLabel = (
   return `${value} ${value === 1 ? singular : plural}`;
 };
 
-const PropertyInfoCompare = ({ property }: PropertyInfoProps) => {
+export const PropertyInfoCompare = ({ property }: Props) => {
   const { comparisonItems } = usePropertyCrud();
 
   // Definir las claves numéricas para las características

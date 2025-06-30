@@ -21,9 +21,11 @@ public class PasswordGenerator {
         // Garantizar al menos un carácter de cada tipo requerido
         password.append(getRandomChar(UPPERCASE, random));
         password.append(getRandomChar(LOWERCASE, random));
+        password.append(getRandomChar(random.nextBoolean() ? DIGITS : SYMBOLS, random));
 
-        // Rellenar el resto de forma aleatoria
-        for (int i = 2; i < PASSWORD_LENGTH; i++) {
+        // Para que tenga 8 caracteres
+        int remainingLength = PASSWORD_LENGTH - password.length();
+        for (int i = 0; i < remainingLength; i++) {
             password.append(getRandomChar(ALL, random));
         }
 

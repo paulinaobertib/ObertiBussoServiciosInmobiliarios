@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import NavBar from '../../components/Navbar';
+import NavBar from '../../../shared/components/Navbar';
 import { ROUTES } from '../../../../lib';
 import { within } from '@testing-library/react';
 

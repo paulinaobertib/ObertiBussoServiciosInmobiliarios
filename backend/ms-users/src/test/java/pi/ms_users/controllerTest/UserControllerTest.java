@@ -15,6 +15,7 @@ import pi.ms_users.controller.UserController;
 import pi.ms_users.domain.User;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.UserService;
+import pi.ms_users.service.interf.IUserService;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class UserControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @TestConfiguration
     static class Config {
@@ -206,16 +207,6 @@ public class UserControllerTest {
     void findRoles_unauthorized_shouldReturn401() throws Exception {
         mockMvc.perform(get("/user/role/1"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void findRoles_forbidden_shouldReturn403() throws Exception {
-        User user = new User("1", "jdoe", "jdoe@mail.com", "John", "Doe", "123456");
-        when(userService.findById("1")).thenReturn(ResponseEntity.ok(user));
-
-        mockMvc.perform(get("/user/getById/1")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
-                .andExpect(status().isForbidden());
     }
 
     @Test

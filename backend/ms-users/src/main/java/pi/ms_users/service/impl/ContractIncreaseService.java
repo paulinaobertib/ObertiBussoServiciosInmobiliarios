@@ -18,6 +18,7 @@ import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractIncreaseService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,7 +40,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
 
     private final IUserRepository userRepository;
 
-    private final EmailService emailService;
+    private final IEmailService emailService;
 
     @Override
     public ResponseEntity<String> create(ContractIncreaseDTO contractIncreaseDTO) {
@@ -150,6 +151,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
         emailData.setAmount(newAmount);
         emailData.setFrequency(contract.getIncreaseFrequency());
         emailData.setIncrease(contract.getIncrease());
+        emailData.setContractId(contract.getId());
         return emailData;
     }
 }

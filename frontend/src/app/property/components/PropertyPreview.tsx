@@ -12,7 +12,7 @@ interface Props {
   onDelete?: (img: Image) => void;
 }
 
-export default function PropertyPreview({ main, images, onDelete }: Props) {
+export const PropertyPreview = ({ main, images, onDelete }: Props) => {
   const theme = useTheme();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selected, setSelected] = useState<Image | null>(null);

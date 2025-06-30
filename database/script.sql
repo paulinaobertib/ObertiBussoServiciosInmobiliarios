@@ -5,7 +5,7 @@ CREATE TABLE Owner (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    mail VARCHAR(150) UNIQUE NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
     phone VARCHAR(20) NOT NULL
 );
 
@@ -159,12 +159,20 @@ CREATE TABLE Maintenance (
     FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
 );
 
+CREATE TABLE Available_Appointment (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    date DATETIME NOT NULL UNIQUE,
+    availability BOOLEAN NOT NULL DEFAULT TRUE
+);
+
 CREATE TABLE Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(100) NOT NULL,
-    date DATETIME NOT NULL,
+    availability_id BIGINT UNIQUE,
     status ENUM('ACEPTADO', 'RECHAZADO', 'ESPERA') NOT NULL,
-    comment VARCHAR(250)
+    comment VARCHAR(250),
+    appointment_date DATETIME NOT NULL,
+    FOREIGN KEY (availability_id) REFERENCES Available_Appointment(id)
 );
 
 CREATE TABLE Notice (
@@ -186,7 +194,7 @@ CREATE TABLE Inquiry (
     phone VARCHAR(30) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    mail VARCHAR(100) NOT NULL
+    email VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE Property_Inquiry (
@@ -202,4 +210,44 @@ CREATE TABLE Survey (
     comment VARCHAR(255),
 	inquiry_id BIGINT NOT NULL,
 	FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Chat_Session (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    property_id BIGINT NOT NULL,
+    user_id VARCHAR(100),
+    date DATETIME NOT NULL,
+    date_close DATETIME,
+    derived BOOLEAN DEFAULT FALSE NOT NULL,
+    phone VARCHAR(30) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Chat_Message (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    session_id BIGINT NOT NULL,
+    chat_option ENUM('VER_PRECIO', 'VER_HABITACIONES', 'VER_AREA', 'VER_UBICACION', 'VER_CARACTERISTICAS', 'VER_OPERACION', 'VER_CREDITO', 'VER_FINANCIACION', 'DERIVAR', 'CERRAR') NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES Chat_Session(id)
+);
+
+CREATE TABLE Chat_Derivation (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+	session_id BIGINT NOT NULL,
+    agent_id VARCHAR(100) NOT NULL,
+	FOREIGN KEY (session_id) REFERENCES Chat_Session(id)
+);
+
+CREATE TABLE Agent_Chat (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+	user_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE Agent_Assignment (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    last_assigned_agent_id VARCHAR(100)
 );

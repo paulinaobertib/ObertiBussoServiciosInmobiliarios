@@ -3,7 +3,7 @@ import { TextField, Box } from '@mui/material';
 import { Amenity, AmenityCreate } from '../../types/amenity';
 import { postAmenity, putAmenity, deleteAmenity } from '../../services/amenity.service';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';
 
@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function AmenityForm({ action, item, onDone }: Props) {
+export const AmenityForm = ({ action, item, onDone }: Props) => {
     const { refreshAmenities } = usePropertyCrud();
     const [name, setName] = useState(item?.name ?? '');
     const { showAlert } = useGlobalAlert();

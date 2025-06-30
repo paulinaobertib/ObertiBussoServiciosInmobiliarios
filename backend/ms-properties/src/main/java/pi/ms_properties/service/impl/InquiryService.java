@@ -1,7 +1,9 @@
 package pi.ms_properties.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -11,6 +13,7 @@ import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.EmailDTO;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IInquiryRepository;
@@ -29,30 +32,38 @@ import java.util.stream.Collectors;
 public class InquiryService implements IInquiryService {
 
     private final IInquiryRepository inquiryRepository;
+
     private final IPropertyRepository propertyRepository;
+
     private final UserRepository userRepository;
+
     private final EmailService emailService;
+
     private final SurveyService surveyService;
 
-    private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
-        List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
-        for (Long propertyIdFind : propertyIds) {
-            Optional<Property> property = propertyRepository.findById(propertyIdFind);
-            if (property.isEmpty()) {
-                throw new IllegalArgumentException("No se ha encontrado la propiedad con id " + propertyIdFind);
-            }
-        }
-        List<Property> properties = propertyRepository.findAllById(propertyIds);
+    private final ObjectMapper objectMapper;
 
+    private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
         Inquiry inquiry = new Inquiry();
         inquiry.setDate(LocalDateTime.now());
         inquiry.setTitle(inquirySaveDTO.getTitle());
         inquiry.setDescription(inquirySaveDTO.getDescription());
         inquiry.setStatus(InquiryStatus.ABIERTA);
-        inquiry.setProperties(properties);
 
-        for (Property property : properties) {
-            property.getInquiries().add(inquiry);
+        if (inquirySaveDTO.getPropertyIds() != null && !inquirySaveDTO.getPropertyIds().isEmpty()) {
+            List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
+            for (Long propertyIdFind : propertyIds) {
+                Optional<Property> property = propertyRepository.findById(propertyIdFind);
+                if (property.isEmpty()) {
+                    throw new IllegalArgumentException("No se ha encontrado la propiedad con id " + propertyIdFind);
+                }
+            }
+
+            List<Property> properties = propertyRepository.findAllById(propertyIds);
+            inquiry.setProperties(properties);
+            for (Property property : properties) {
+                property.getInquiries().add(inquiry);
+            }
         }
 
         return inquiry;
@@ -61,10 +72,6 @@ public class InquiryService implements IInquiryService {
     private ResponseEntity<String> saveAndSendEmail(InquirySaveDTO inquirySaveDTO, Inquiry inquiry) {
         inquiryRepository.save(inquiry);
 
-        List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
-        List<Property> properties = propertyRepository.findAllById(propertyIds);
-        List<String> titles = properties.stream().map(Property::getTitle).collect(Collectors.toList());
-
         EmailDTO emailDTO = new EmailDTO();
         emailDTO.setFirstName(inquiry.getFirstName());
         emailDTO.setLastName(inquiry.getLastName());
@@ -72,43 +79,62 @@ public class InquiryService implements IInquiryService {
         emailDTO.setPhone(inquiry.getPhone());
         emailDTO.setDescription(inquiry.getDescription());
         emailDTO.setDate(inquiry.getDate());
-        emailDTO.setPropertiesTitle(titles);
+
+        if (inquirySaveDTO.getPropertyIds() != null && !inquirySaveDTO.getPropertyIds().isEmpty()) {
+            List<Long> propertyIds = inquirySaveDTO.getPropertyIds();
+            List<Property> properties = propertyRepository.findAllById(propertyIds);
+            List<String> titles = properties.stream().map(Property::getTitle).collect(Collectors.toList());
+            emailDTO.setPropertiesTitle(titles);
+        }
 
         emailService.sendEmailInquiry(emailDTO);
 
         return ResponseEntity.ok("Se ha creado la consulta");
     }
 
-    @Override
-    @Transactional
-    public ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO) {
-        if (SecurityUtils.isUser() &&
-                !inquirySaveDTO.getUserId().equals(SecurityUtils.getCurrentUserId())) {
-            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
-        }
-
-        Inquiry inquiry = saveInquiry(inquirySaveDTO);
-
-        if (userRepository.exist(inquirySaveDTO.getUserId())) {
-            UserDTO userDTO = userRepository.findById(inquirySaveDTO.getUserId());
-            inquiry.setUserId(userDTO.getId());
-            inquiry.setPhone(userDTO.getPhone());
-            inquiry.setEmail(userDTO.getMail());
-            inquiry.setFirstName(userDTO.getFirstName());
-            inquiry.setLastName(userDTO.getLastName());
-        }
-
-        return saveAndSendEmail(inquirySaveDTO, inquiry);
+    @NotNull
+    private ResponseEntity<List<InquiryGetDTO>> getListInquiryGetDTO(List<Inquiry> inquiries) {
+        List<InquiryGetDTO> inquiryGetDTOS = inquiries.stream()
+                .map(inquiry -> {
+                    InquiryGetDTO dto = objectMapper.convertValue(inquiry, InquiryGetDTO.class);
+                    dto.setPropertyTitles(
+                            inquiry.getProperties().stream()
+                                    .map(Property::getTitle)
+                                    .collect(Collectors.toList())
+                    );
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(inquiryGetDTOS);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<String> createWithoutUser(InquirySaveDTO inquirySaveDTO) {
+    public ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO) {
+        if (inquirySaveDTO.getUserId() != null && SecurityUtils.isUser() &&
+                !inquirySaveDTO.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta acción.");
+        }
+
         Inquiry inquiry = saveInquiry(inquirySaveDTO);
-        inquiry.setPhone(inquirySaveDTO.getPhone());
-        inquiry.setEmail(inquirySaveDTO.getEmail());
-        inquiry.setFirstName(inquirySaveDTO.getFirstName());
-        inquiry.setLastName(inquirySaveDTO.getLastName());
+
+        if (inquirySaveDTO.getUserId() != null) {
+            if (userRepository.exist(inquirySaveDTO.getUserId())) {
+                UserDTO userDTO = userRepository.findById(inquirySaveDTO.getUserId());
+                inquiry.setUserId(userDTO.getId());
+                inquiry.setPhone(userDTO.getPhone());
+                inquiry.setEmail(userDTO.getEmail());
+                inquiry.setFirstName(userDTO.getFirstName());
+                inquiry.setLastName(userDTO.getLastName());
+            } else {
+                throw new IllegalArgumentException("No existe el usuario con id " + inquirySaveDTO.getUserId());
+            }
+        } else {
+            inquiry.setPhone(inquirySaveDTO.getPhone());
+            inquiry.setEmail(inquirySaveDTO.getEmail());
+            inquiry.setFirstName(inquirySaveDTO.getFirstName());
+            inquiry.setLastName(inquirySaveDTO.getLastName());
+        }
 
         return saveAndSendEmail(inquirySaveDTO, inquiry);
     }
@@ -127,25 +153,34 @@ public class InquiryService implements IInquiryService {
     }
 
     @Override
-    public ResponseEntity<Inquiry> getById(Long id) {
-        Inquiry inquiry = inquiryRepository.findById(id)
+    public ResponseEntity<InquiryGetDTO> getById(Long id) {
+        Inquiry inquiry = inquiryRepository.findByIdWithProperties(id)
                 .orElseThrow(() -> new EntityNotFoundException("Consulta no encontrada"));
 
         if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
                 !inquiry.getUserId().equals(SecurityUtils.getCurrentUserId())) {
-            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+            throw new AccessDeniedException("No tiene el permiso para realizar esta acción.");
         }
 
-        return ResponseEntity.ok(inquiry);
+        InquiryGetDTO inquiryGetDTO = objectMapper.convertValue(inquiry, InquiryGetDTO.class);
+        inquiryGetDTO.setPropertyTitles(
+                inquiry.getProperties().stream()
+                        .map(Property::getTitle)
+                        .collect(Collectors.toList())
+        );
+
+        return ResponseEntity.ok(inquiryGetDTO);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getAll() {
-        return ResponseEntity.ok(inquiryRepository.findAll());
+    public ResponseEntity<List<InquiryGetDTO>> getAll() {
+        List<Inquiry> inquiries = inquiryRepository.findAllWithProperties();
+
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByUserId(String userId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByUserId(String userId) {
         if (!SecurityUtils.isAdmin() && SecurityUtils.isUser() &&
                 !userId.equals(SecurityUtils.getCurrentUserId())) {
             throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
@@ -155,22 +190,23 @@ public class InquiryService implements IInquiryService {
             throw new EntityNotFoundException("Usuario no encontrado");
         }
 
-        List<Inquiry> inquiries = inquiryRepository.getByUserId(userId);
-        return ResponseEntity.ok(inquiries);
+        List<Inquiry> inquiries = inquiryRepository.getByUserIdWithProperties(userId);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByPropertyId(Long propertyId) {
+    public ResponseEntity<List<InquiryGetDTO>> getByPropertyId(Long propertyId) {
         if (propertyRepository.findById(propertyId).isEmpty()) {
             throw new EntityNotFoundException("Propiedad no encontrada");
         }
-        List<Inquiry> inquiries = inquiryRepository.getByPropertyId(propertyId);
-        return ResponseEntity.ok(inquiries);
+        List<Inquiry> inquiries = inquiryRepository.getByPropertyIdWithProperties(propertyId);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
-    public ResponseEntity<List<Inquiry>> getByStatus(InquiryStatus status) {
-        return ResponseEntity.ok(inquiryRepository.getByStatus(status));
+    public ResponseEntity<List<InquiryGetDTO>> getByStatus(InquiryStatus status) {
+        List<Inquiry> inquiries = inquiryRepository.getByStatusWithProperties(status);
+        return getListInquiryGetDTO(inquiries);
     }
 
     @Override
@@ -219,7 +255,7 @@ public class InquiryService implements IInquiryService {
                 ));
         Map<String, Long> result = grouped.entrySet().stream()
                 .collect(Collectors.toMap(
-                        e -> e.getKey().getDisplayName(TextStyle.FULL, new Locale("es", "ES")),
+                        e -> e.getKey().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")),
                         Map.Entry::getValue
                 ));
         return ResponseEntity.ok(result);

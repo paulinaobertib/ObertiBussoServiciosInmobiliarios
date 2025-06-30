@@ -3,7 +3,7 @@ import StatusForm from '../../../components/forms/StatusForm';
 import { describe, it, vi, beforeEach, expect } from 'vitest';
 import { putPropertyStatus } from '../../../services/property.service';
 import { usePropertyCrud } from '../../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../context/AlertContext';
+import { useGlobalAlert } from '../../../../shared/context/AlertContext';
 
 vi.mock('../../../services/property.service');
 vi.mock('../../../context/PropertiesContext');
