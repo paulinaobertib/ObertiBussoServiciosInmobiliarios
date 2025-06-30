@@ -11,6 +11,7 @@ import pi.ms_properties.domain.*;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +35,7 @@ class PropertySpecificationTest {
         Owner owner = new Owner();
         owner.setFirstName("Juan");
         owner.setLastName("Pérez");
-        owner.setMail("juan@mail.com");
+        owner.setEmail("juan@email.com");
         owner.setPhone("123456");
         entityManager.persist(owner);
 
@@ -67,9 +68,9 @@ class PropertySpecificationTest {
         property.setBedrooms(3f);
         property.setArea(120f);
         property.setCoveredArea(100f);
-        property.setPrice(95000f);
+        property.setPrice(BigDecimal.valueOf(150000.0));
         property.setShowPrice(true);
-        property.setExpenses(2000f);
+        property.setExpenses(BigDecimal.valueOf(2000));
         property.setDescription("Casa con pileta en el centro de Córdoba");
         property.setDate(LocalDateTime.now());
         property.setStatus(Status.DISPONIBLE);
@@ -90,8 +91,8 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByPriceRange() {
-        Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(90000f))
-                .and(PropertySpecification.hasPriceTo(100000f));
+        Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(BigDecimal.valueOf(90000)))
+                .and(PropertySpecification.hasPriceTo(BigDecimal.valueOf(150000.0)));
         List<Property> results = propertyRepository.findAll(spec);
         assertEquals(1, results.size());
     }
@@ -180,7 +181,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenPriceTooLow() {
-        Specification<Property> spec = PropertySpecification.hasPriceFrom(200000f);
+        Specification<Property> spec = PropertySpecification.hasPriceFrom(BigDecimal.valueOf(200000));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }

@@ -7,6 +7,7 @@ import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface IPropertyService {
@@ -26,7 +27,7 @@ public interface IPropertyService {
 
     ResponseEntity<List<PropertyDTO>> getByStatus(Status status);
 
-    ResponseEntity<List<PropertyDTO>> findBy(float priceFrom, float priceTo, float areaFrom, float areaTo, float coveredAreaFrom, float coveredAreaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType, Boolean credit, Boolean financing);
+    ResponseEntity<List<PropertyDTO>> findBy(BigDecimal priceFrom, BigDecimal priceTo, float areaFrom, float areaTo, float coveredAreaFrom, float coveredAreaTo, float rooms, String operation, String type, List<String> amenities, String city, String neighborhood, String neighborhoodType, Boolean credit, Boolean financing);
 
     ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value);
 

@@ -1,14 +1,11 @@
-import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL;
 import { Comment, CommentCreate } from "../types/comment";
+import { api } from "../../../api";
 
 export const getCommentById = async (id: number) => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/properties/comment/getById/${id}`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/comment/getById/${id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error fetching comment with ID ${id}:`, error);
@@ -18,10 +15,9 @@ export const getCommentById = async (id: number) => {
 
 export const getCommentsByPropertyId = async (id: number) => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/properties/comment/property/${id}`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/comment/property/${id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error fetching comments for property ID ${id}:`, error);
@@ -31,14 +27,10 @@ export const getCommentsByPropertyId = async (id: number) => {
 
 export const postComment = async (commentData: CommentCreate) => {
   try {
-    const response = await axios.post(
-      `${apiUrl}/properties/comment/create`,
-      commentData,
-      {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      }
-    );
+    const response = await api.post(`/properties/comment/create`, commentData, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating comment:", error);
@@ -48,11 +40,9 @@ export const postComment = async (commentData: CommentCreate) => {
 
 export const putComment = async (commentData: Comment) => {
   try {
-    const response = await axios.put(
-      `${apiUrl}/properties/comment/update`,
-      commentData,
-      { withCredentials: true }
-    );
+    const response = await api.put(`/properties/comment/update`, commentData, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error saving comment:", error);
@@ -62,8 +52,8 @@ export const putComment = async (commentData: Comment) => {
 
 export const deleteComment = async (commentData: Comment) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/properties/comment/delete/${commentData.id}`,
+    const response = await api.delete(
+      `/properties/comment/delete/${commentData.id}`,
       { withCredentials: true }
     );
     return response.data;

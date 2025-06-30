@@ -13,7 +13,7 @@ public class EmailPropertyDTO {
     private String propertyLocation;
     private String propertyPrice;
     private String propertyDescription;
-    private String propertyUrl;
+    private Long propertyId;
     private String propertyCurrency;
     private String propertyOperation;
 }

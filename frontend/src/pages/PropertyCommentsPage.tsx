@@ -11,8 +11,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { BasePage } from './BasePage';
-import ModalItem, { Info } from '../app/property/components/ModalItem';
+import { ModalItem, Info } from '../app/property/components/ModalItem';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { CommentForm } from '../app/property/components/forms/CommentForm';
 
 export default function PropertyMaintenancePage() {
     const { id: idParam } = useParams();
@@ -73,7 +74,13 @@ export default function PropertyMaintenancePage() {
                         startIcon={<AddIcon />}
                         variant="contained"
                         sx={{ bgcolor: theme.palette.secondary.main, ':hover': { bgcolor: theme.palette.primary.main } }}
-                        onClick={() => setModal({ action: 'add', formKey: 'comment' })}
+                        onClick={() =>
+                            setModal({
+                                title: 'Agregar Comentario',
+                                Component: CommentForm,
+                                componentProps: { action: 'add' as const, onDone: () => { setModal(null); refreshComments(); } }
+                            })
+                        }
                     >
                         Agregar
                     </Button>
@@ -109,13 +116,29 @@ export default function PropertyMaintenancePage() {
                                 >
                                     <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
                                         <Tooltip title="Editar">
-                                            <IconButton size="small" onClick={() => setModal({ action: 'edit', formKey: 'comment', item: c })}>
-                                                <EditIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
+                                            <IconButton
+                                                onClick={() =>
+                                                    setModal({
+                                                        title: 'Editar Comentario',
+                                                        Component: CommentForm,
+                                                        componentProps: { action: 'edit' as const, item: c, onDone: () => { setModal(null); refreshComments(); } }
+                                                    })
+                                                }
+                                            >
+                                                <EditIcon />
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Eliminar">
-                                            <IconButton size="small" onClick={() => setModal({ action: 'delete', formKey: 'comment', item: c })}>
-                                                <DeleteIcon fontSize="small" sx={{ color: theme.palette.secondary.main }} />
+                                            <IconButton
+                                                onClick={() =>
+                                                    setModal({
+                                                        title: 'Eliminar Comentario',
+                                                        Component: CommentForm,
+                                                        componentProps: { action: 'delete' as const, item: c, onDone: () => { setModal(null); refreshComments(); } }
+                                                    })
+                                                }
+                                            >
+                                                <DeleteIcon />
                                             </IconButton>
                                         </Tooltip>
                                     </Box>

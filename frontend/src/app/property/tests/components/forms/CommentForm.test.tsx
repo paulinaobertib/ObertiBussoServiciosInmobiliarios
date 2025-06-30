@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import CommentForm from '../../../components/forms/CommentForm';
 import * as commentService from '../../../services/comment.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
-import * as AlertContext from '../../../context/AlertContext';
+import * as AlertContext from '../../../../shared/context/AlertContext';
 import { emptyProperty } from '../../../types/property';
 
 describe('CommentForm', () => {

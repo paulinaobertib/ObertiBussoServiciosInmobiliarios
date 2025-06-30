@@ -16,13 +16,15 @@ import pi.ms_properties.dto.feign.NotificationType;
 import pi.ms_properties.recommendation.service.RecommendationService;
 import pi.ms_properties.repository.*;
 import pi.ms_properties.repository.feign.NotificationRepository;
+import pi.ms_properties.service.interf.IImageService;
 import pi.ms_properties.service.interf.IPropertyService;
+import pi.ms_properties.service.interf.IViewService;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,11 +42,11 @@ public class PropertyService implements IPropertyService {
 
     private final IAmenityRepository amenityRepository;
 
-    private final ViewService viewService;
+    private final IViewService viewService;
 
     private final ObjectMapper mapper;
 
-    private final ImageService imageService;
+    private final IImageService imageService;
 
     private final NotificationRepository notificationRepository;
 
@@ -238,7 +240,7 @@ public class PropertyService implements IPropertyService {
 
     @Override
     public ResponseEntity<List<PropertyDTO>> findBy(
-            float priceFrom, float priceTo,
+            BigDecimal priceFrom, BigDecimal priceTo,
             float areaFrom, float areaTo,
             float coveredAreaFrom, float coveredAreaTo,
             float rooms, String operation, String type,

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import OwnerForm from '../../../components/forms/OwnerForm';
 import * as ownerService from '../../../services/owner.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
-import * as AlertContext from '../../../context/AlertContext';
+import * as AlertContext from '../../../../shared/context/AlertContext';
 
 describe('OwnerForm', () => {
   const mockRefresh = vi.fn();

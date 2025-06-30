@@ -9,6 +9,7 @@ import pi.ms_properties.recommendation.utils.GeoUtils;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,9 +50,12 @@ public class ContentBasedRecommender {
                 score += 0.2;
             }
 
-            double p = fav.getPrice(), np = nueva.getPrice();
+            BigDecimal p = fav.getPrice(), np = nueva.getPrice();
 
-            if (np >= p * 0.8 && np <= p * 1.2) {
+            BigDecimal lowerBound = p.multiply(BigDecimal.valueOf(0.8));
+            BigDecimal upperBound = p.multiply(BigDecimal.valueOf(1.2));
+
+            if (np.compareTo(lowerBound) >= 0 && np.compareTo(upperBound) <= 0) {
                 score += 0.3;
             }
 

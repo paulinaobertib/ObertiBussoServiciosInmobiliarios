@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, } from '@mui/material';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { putPropertyStatus } from '../../services/property.service';
 import { LoadingButton } from '@mui/lab';
 import { useLoading } from '../../utils/useLoading';
@@ -13,7 +13,7 @@ interface Props {
 
 const options = ['DISPONIBLE', 'RESERVADA', 'ALQUILADA', 'VENDIDA'];
 
-export default function StatusForm({ item, onDone }: Props) {
+export const StatusForm = ({ item, onDone }: Props) => {
   const { loadProperty } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const [status, setStatus] = useState(item.status);

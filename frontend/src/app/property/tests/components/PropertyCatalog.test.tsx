@@ -36,7 +36,7 @@ vi.mock('../../utils/ConfirmDialog', () => ({
 // 2  Imports del código bajo prueba
 // -------------------------------------------------------------------
 import { render, screen, fireEvent } from '@testing-library/react';
-import PropertyCatalog from '../../components/PropertyCatalog';
+import PropertyCatalog from '../../components/catalog/PropertyCatalog';
 import { MemoryRouter } from 'react-router-dom';
 import { Property } from '../../types/property';
 import { NeighborhoodType } from '../../types/neighborhood';

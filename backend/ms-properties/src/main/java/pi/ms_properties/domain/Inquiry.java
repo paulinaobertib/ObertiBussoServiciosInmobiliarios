@@ -26,7 +26,7 @@ public class Inquiry {
     @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "mail", nullable = false)
+    @Column(name = "email", nullable = false)
     private String email;
 
     @Column(name = "first_name", nullable = false)

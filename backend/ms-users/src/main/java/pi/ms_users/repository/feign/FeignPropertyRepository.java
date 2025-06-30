@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import pi.ms_users.configuration.feign.FeignInterceptor;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 
 @FeignClient(name = "ms-property", url = "http://localhost:8083", configuration = FeignInterceptor.class)
 public interface FeignPropertyRepository {
 
     @RequestMapping(method = RequestMethod.GET, value = "/property/getSimple/{id}")
-    ResponseEntity<Property> getSimpleById(@PathVariable Long id);
+    ResponseEntity<PropertyDTO> getSimpleById(@PathVariable Long id);
 }

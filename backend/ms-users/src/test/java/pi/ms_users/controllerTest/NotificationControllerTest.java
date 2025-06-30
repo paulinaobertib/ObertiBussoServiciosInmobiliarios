@@ -20,6 +20,7 @@ import pi.ms_users.domain.NotificationType;
 import pi.ms_users.dto.NotificationDTO;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.NotificationService;
+import pi.ms_users.service.interf.INotificationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +40,7 @@ class NotificationControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private NotificationService notificationService;
+    private INotificationService notificationService;
 
     @TestConfiguration
     static class Config {

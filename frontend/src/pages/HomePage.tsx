@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
-import ImageCarousel from '../app/property/components/ImageCarousel';
-import SearchBar from '../app/property/components/SearchBar';
-import FiltersSidebar from '../app/property/components/SearchFilters';
-import PropertyCatalog from '../app/property/components/PropertyCatalog';
-import FloatingButtons from '../app/property/components/FloatingButtons';
+import { ImageCarousel } from '../app/property/components/ImageCarousel';
+import { SearchBar } from '../app/shared/components/SearchBar';
+import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
+import { PropertyCatalog } from '../app/property/components/catalog/PropertyCatalog';
+import { FloatingButtons } from '../app/property/components/catalog/FloatingButtons';
 
-import { useGlobalAlert } from '../app/property/context/AlertContext';
+import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { getAllProperties, getPropertiesByText } from '../app/property/services/property.service';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -70,28 +71,39 @@ export default function Home() {
   };
 
   const handleCompare = () => {
-    console.log('🚀 Navigating to compare with IDs:', selectedPropertyIds);
     navigate('/properties/compare');
     setSelectionMode(false); // Exit selection mode after navigation
   };
+
+  // console.log('Token: ', document.cookie);
 
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
-        <Box sx={{ mt: 2 }}>
-          <SearchBar onSearch={setResults} />
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', width: { xs: '70%' } }}>
+            <SearchBar
+              fetchAll={getAllProperties}
+              fetchByText={getPropertiesByText}
+              onSearch={items => setResults(items as Property[])}
+              placeholder="Buscar propiedad"
+              debounceMs={400}
+            />
+          </Box>
         </Box>
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             gap: 1,
-            mt: -3,
+            mt: 2,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           <Box sx={{ width: { xs: '100%', md: 270 } }}>
-            <FiltersSidebar onSearch={setResults} />
+            <SearchFilters onSearch={setResults} />
           </Box>
           <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
             {loading ? (

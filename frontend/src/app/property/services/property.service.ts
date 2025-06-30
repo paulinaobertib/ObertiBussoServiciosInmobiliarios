@@ -1,10 +1,8 @@
-import axios from "axios";
 import { Property, PropertyUpdate, PropertyCreate } from "../types/property";
 import { SearchParams } from "../types/searchParams";
+import { api } from "../../../api";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
-export async function postProperty(data: PropertyCreate) {
+export const postProperty = async (data: PropertyCreate) => {
   const form = new FormData();
   const { mainImage, images, ...plainFields } = data;
 
@@ -17,17 +15,17 @@ export async function postProperty(data: PropertyCreate) {
   images.forEach((img) => form.append("images", img));
 
   try {
-    const { data: created } = await axios.post(
-      `${apiUrl}/properties/property/create`,
+    const { data: created } = await api.post(
+      `/properties/property/create`,
       form,
       { withCredentials: true }
     );
     return created;
   } catch (error) {
-    console.error("Error updating property:", error);
+    console.error("Error creating property:", error);
     throw error;
   }
-}
+};
 
 export const putProperty = async (data: PropertyUpdate) => {
   const { id, mainImage, ...plainFields } = data;
@@ -43,8 +41,8 @@ export const putProperty = async (data: PropertyUpdate) => {
   }
 
   try {
-    const { data: updated } = await axios.put(
-      `${apiUrl}/properties/property/update/${id}`,
+    const { data: updated } = await api.put(
+      `/properties/property/update/${id}`,
       form,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -60,8 +58,8 @@ export const putProperty = async (data: PropertyUpdate) => {
 
 export const deleteProperty = async (data: Property) => {
   try {
-    const { data: deleted } = await axios.delete(
-      `${apiUrl}/properties/property/delete/${data.id}`,
+    const { data: deleted } = await api.delete(
+      `/properties/property/delete/${data.id}`,
       { withCredentials: true }
     );
     return deleted;
@@ -73,7 +71,7 @@ export const deleteProperty = async (data: Property) => {
 
 export const getAllProperties = async () => {
   try {
-    const { data } = await axios.get(`${apiUrl}/properties/property/getAll`, {
+    const { data } = await api.get(`/properties/property/getAll`, {
       withCredentials: true,
     });
     return data;
@@ -85,10 +83,9 @@ export const getAllProperties = async () => {
 
 export const getPropertyById = async (id: number) => {
   try {
-    const { data } = await axios.get(
-      `${apiUrl}/properties/property/getById/${id}`,
-      { withCredentials: true }
-    );
+    const { data } = await api.get(`/properties/property/getById/${id}`, {
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error(`Error fetching property with ID ${id}:`, error);
@@ -109,8 +106,8 @@ export const getPropertiesByFilters = async (
   });
 
   try {
-    const { data } = await axios.get<Property[]>(
-      `${apiUrl}/properties/property/search?${searchParams.toString()}`,
+    const { data } = await api.get<Property[]>(
+      `/properties/property/search?${searchParams.toString()}`,
       { withCredentials: true }
     );
     return data;
@@ -122,13 +119,10 @@ export const getPropertiesByFilters = async (
 
 export const getPropertiesByText = async (value: string) => {
   try {
-    const { data } = await axios.get<Property[]>(
-      `${apiUrl}/properties/property/text`,
-      {
-        params: { value },
-        withCredentials: true,
-      }
-    );
+    const { data } = await api.get<Property[]>(`/properties/property/text`, {
+      params: { value },
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error("Error searching by text:", error);
@@ -138,14 +132,10 @@ export const getPropertiesByText = async (value: string) => {
 
 export const putPropertyStatus = async (id: number, status: string) => {
   try {
-    const { data } = await axios.put(
-      `${apiUrl}/properties/property/status/${id}`,
-      null,
-      {
-        params: { status },
-        withCredentials: true,
-      }
-    );
+    const { data } = await api.put(`/properties/property/status/${id}`, null, {
+      params: { status },
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error("Error updating property status:", error);

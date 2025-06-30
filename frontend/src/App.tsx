@@ -5,7 +5,7 @@ import theme from './theme';
 import Routes from './Routes';
 import { BrowserRouter } from 'react-router-dom';
 import { PropertyCrudProvider } from './app/property/context/PropertiesContext';
-import { AlertProvider } from './app/property/context/AlertContext';
+import { AlertProvider } from './app/shared/context/AlertContext';
 import { AuthProvider } from "./app/user/context/AuthContext";
 import "./index.css"
 
@@ -18,17 +18,17 @@ function App() {
 
   return (
     <React.StrictMode>
-      <PropertyCrudProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <AlertProvider>
+      <AlertProvider>
+        <AuthProvider>
+          <PropertyCrudProvider>
+            <BrowserRouter>
               <ThemeProvider theme={theme}>
                 <Routes />
               </ThemeProvider>
-            </AlertProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </PropertyCrudProvider>
+            </BrowserRouter>
+          </PropertyCrudProvider>
+        </AuthProvider>
+      </AlertProvider>
     </React.StrictMode>
   );
 }

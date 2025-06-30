@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import NeighborhoodForm from '../../../components/forms/NeighborhoodForm';
 import * as neighborhoodService from '../../../services/neighborhood.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
-import * as AlertContext from '../../../context/AlertContext';
+import * as AlertContext from '../../../../shared/context/AlertContext';
 import { NeighborhoodType } from '../../../types/neighborhood';
 
 describe('NeighborhoodForm', () => {

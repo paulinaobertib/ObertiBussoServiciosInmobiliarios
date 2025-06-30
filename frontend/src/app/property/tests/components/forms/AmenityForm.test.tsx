@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AmenityForm from '../../../components/forms/AmenityForm';
 import * as amenityService from '../../../services/amenity.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
-import * as AlertContext from '../../../context/AlertContext';
+import * as AlertContext from '../../../../shared/context/AlertContext';
 
 describe('AmenityForm', () => {
   const mockRefresh = vi.fn();
