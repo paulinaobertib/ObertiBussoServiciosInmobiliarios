@@ -7,11 +7,11 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-interface PropertyDetailsProps {
+interface Props {
   property: Property;
 }
 
-const PropertyDetails = ({ property }: PropertyDetailsProps) => {
+export const PropertyDetails = ({ property }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);

@@ -5,7 +5,6 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.RoleMappingResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -21,6 +20,7 @@ import pi.ms_users.service.impl.EmailService;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Repository
 @RequiredArgsConstructor
 public class KeycloakUserRepository implements IUserRepository {
@@ -229,18 +229,36 @@ public class KeycloakUserRepository implements IUserRepository {
                 .clientLevel(client.getId())
                 .listAll();
 
-        return new ArrayList<>(clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList()));
+        return clientRoles.stream().map(RoleRepresentation::getName).collect(Collectors.toList());
     }
 
     @Override
     public List<String> addRoleToUser(String id, String role) {
         RealmResource realmResource = keycloak.realm(realm);
         UserResource userResource = realmResource.users().get(id);
-        RoleMappingResource roleMappingResource = userResource.roles();
-        RoleRepresentation roleRepresentation = realmResource.roles().get(role).toRepresentation();
-        roleMappingResource.realmLevel().add(Collections.singletonList(roleRepresentation));
-        List<RoleRepresentation> roleRepresentations = userResource.roles().realmLevel().listAll();
-        return roleRepresentations.stream()
+
+        List<ClientRepresentation> clients = realmResource.clients().findByClientId(clientId);
+        if (clients.isEmpty()) {
+            throw new RuntimeException("Cliente no encontrado: " + clientId);
+        }
+        ClientRepresentation client = clients.getFirst();
+        String clientUUID = client.getId();
+
+        RoleRepresentation clientRole = realmResource.clients()
+                .get(clientUUID)
+                .roles()
+                .get(role)
+                .toRepresentation();
+
+        userResource.roles()
+                .clientLevel(clientUUID)
+                .add(Collections.singletonList(clientRole));
+
+        List<RoleRepresentation> roles = userResource.roles()
+                .clientLevel(clientUUID)
+                .listAll();
+
+        return roles.stream()
                 .map(RoleRepresentation::getName)
                 .collect(Collectors.toList());
     }
@@ -249,9 +267,22 @@ public class KeycloakUserRepository implements IUserRepository {
     public void deleteRoleToUser(String id, String role) {
         RealmResource realmResource = keycloak.realm(realm);
         UserResource userResource = realmResource.users().get(id);
-        RoleMappingResource roleMappingResource = userResource.roles();
-        RoleRepresentation roleRepresentation = realmResource.roles().get(role).toRepresentation();
-        roleMappingResource.realmLevel().remove(Collections.singletonList(roleRepresentation));
+
+        List<ClientRepresentation> clients = realmResource.clients().findByClientId(clientId);
+        if (clients.isEmpty()) {
+            throw new RuntimeException("Cliente no encontrado: " + clientId);
+        }
+        String clientUUID = clients.getFirst().getId();
+
+        RoleRepresentation clientRole = realmResource.clients()
+                .get(clientUUID)
+                .roles()
+                .get(role)
+                .toRepresentation();
+
+        userResource.roles()
+                .clientLevel(clientUUID)
+                .remove(Collections.singletonList(clientRole));
     }
 
     @Override

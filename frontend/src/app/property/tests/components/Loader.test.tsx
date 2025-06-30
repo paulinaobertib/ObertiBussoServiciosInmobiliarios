@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import LoadingBackdrop from '../../components/Loader';
+import LoadingBackdrop from '../../../shared/components/Loader';
 
 describe('LoadingBackdrop', () => {
   it('muestra el loader cuando open es true', () => {

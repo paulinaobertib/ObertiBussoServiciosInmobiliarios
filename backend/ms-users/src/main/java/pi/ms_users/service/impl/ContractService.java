@@ -8,7 +8,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.EmailContractDTO;
@@ -19,6 +19,7 @@ import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractIncreaseService;
 import pi.ms_users.service.interf.IContractService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Service
 @RequiredArgsConstructor
 public class ContractService implements IContractService {
@@ -42,7 +44,7 @@ public class ContractService implements IContractService {
 
     private final ObjectMapper objectMapper;
 
-    private final EmailService emailService;
+    private final IEmailService emailService;
 
     public ContractDTO mapToDTO(Contract contract) {
         ContractDTO dto = new ContractDTO();
@@ -71,18 +73,19 @@ public class ContractService implements IContractService {
 
     @Override
     public ResponseEntity<String> create(ContractDTO contractDTO, BigDecimal amount, ContractIncreaseCurrency currency) {
-        Property property = propertyRepository.getById(contractDTO.getPropertyId());
+        PropertyDTO propertyDTO = propertyRepository.getById(contractDTO.getPropertyId());
 
         User user = userRepository.findById(contractDTO.getUserId())
                 .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el usuario."));
 
         Contract contract = objectMapper.convertValue(contractDTO, Contract.class);
-        contractRepository.save(contract);
+        Contract saved = contractRepository.save(contract);
 
         EmailContractDTO emailData = new EmailContractDTO();
         emailData.setTo(user.getEmail());
         emailData.setTitle("¡Tu contrato está listo!");
         emailData.setFirstName(user.getFirstName());
+        emailData.setContractId(saved.getId());
         emailService.sendNewContractEmail(emailData);
 
         ContractIncrease contractIncrease = new ContractIncrease();
@@ -182,8 +185,8 @@ public class ContractService implements IContractService {
 
     @Override
     public ResponseEntity<List<ContractDTO>> getByPropertyId(Long propertyId) {
-        Property property = propertyRepository.getById(propertyId);
-        List<Contract> contracts = contractRepository.findByPropertyId(property.getId());
+        PropertyDTO propertyDTO = propertyRepository.getById(propertyId);
+        List<Contract> contracts = contractRepository.findByPropertyId(propertyDTO.getId());
         List<ContractDTO> contractDTOs = contracts.stream()
                 .map(this::mapToDTO)
                 .toList();

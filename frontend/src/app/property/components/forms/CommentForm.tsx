@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
 import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { postComment, putComment, deleteComment, } from '../../services/comment.service';
 import { Comment, CommentCreate, } from '../../types/comment';
 import { LoadingButton } from '@mui/lab';
@@ -13,7 +13,7 @@ interface Props {
     onDone: () => void;
 }
 
-export default function CommentForm({ action, item, onDone }: Props) {
+export const CommentForm = ({ action, item, onDone }: Props) => {
     const { refreshComments, pickedItem } = usePropertyCrud();
     const { showAlert } = useGlobalAlert();
 

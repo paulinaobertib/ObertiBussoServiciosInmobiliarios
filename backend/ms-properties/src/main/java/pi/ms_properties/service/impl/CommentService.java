@@ -18,6 +18,7 @@ import java.util.List;
 public class CommentService implements ICommentService {
 
     private final ICommentRepository commentRepository;
+
     private final IPropertyRepository propertyRepository;
 
     @Override

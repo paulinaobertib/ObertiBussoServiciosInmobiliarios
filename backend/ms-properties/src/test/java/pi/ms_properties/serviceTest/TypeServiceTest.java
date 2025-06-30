@@ -20,6 +20,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
 class TypeServiceTest {
 
@@ -123,9 +124,8 @@ class TypeServiceTest {
 
         doThrow(new DataIntegrityViolationException("")).when(typeRepository).save(type);
 
-        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
-            typeService.createType(type);
-        });
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () ->
+            typeService.createType(type));
         assertTrue(true);
     }
 
@@ -136,9 +136,8 @@ class TypeServiceTest {
 
         doThrow(new RuntimeException("Error!")).when(typeRepository).save(type);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            typeService.createType(type);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            typeService.createType(type));
 
         assertTrue(exception.getMessage().contains("Error!"));
     }
@@ -147,9 +146,8 @@ class TypeServiceTest {
     void deleteType_notFound() {
         when(typeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            typeService.deleteType(1L);
-        });
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
+            typeService.deleteType(1L));
 
         assertEquals("No existe ese tipo de propiedad", exception.getMessage());
     }
@@ -162,9 +160,8 @@ class TypeServiceTest {
         when(typeRepository.findById(1L)).thenReturn(Optional.of(type));
         doThrow(new RuntimeException("Error!")).when(typeRepository).delete(type);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            typeService.deleteType(1L);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            typeService.deleteType(1L));
 
         assertTrue(exception.getMessage().contains("Error!"));
     }
@@ -176,9 +173,8 @@ class TypeServiceTest {
 
         when(typeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            typeService.updateType(type);
-        });
+        assertThrows(EntityNotFoundException.class, () ->
+            typeService.updateType(type));
     }
 
     @Test
@@ -189,9 +185,8 @@ class TypeServiceTest {
         when(typeRepository.findById(1L)).thenReturn(Optional.of(type));
         doThrow(new RuntimeException("Error!")).when(typeRepository).save(type);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            typeService.updateType(type);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            typeService.updateType(type));
 
         assertTrue(exception.getMessage().contains("Error!"));
     }
@@ -200,9 +195,8 @@ class TypeServiceTest {
     void getById_generalException() {
         when(typeRepository.findById(1L)).thenThrow(new RuntimeException("Error!"));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            typeService.getById(1L);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            typeService.getById(1L));
 
         assertTrue(exception.getMessage().contains("Error!"));
     }
@@ -211,9 +205,8 @@ class TypeServiceTest {
     void getAll_generalException() {
         when(typeRepository.findAll()).thenThrow(new RuntimeException("Error!"));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            typeService.getAll();
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            typeService.getAll());
 
         assertTrue(exception.getMessage().contains("Error!"));
     }

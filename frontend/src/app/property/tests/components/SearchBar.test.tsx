@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import SearchBar from '../../components/SearchBar';
+import SearchBar from '../../components/catalog/SearchBar';
 import * as propertyService from '../../services/property.service';
 import type { Property } from '../../types/property';
 import { emptyProperty } from '../../types/property';

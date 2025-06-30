@@ -1,5 +1,6 @@
 package pi.ms_users.errorTest;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.NotFoundException;
@@ -168,12 +169,32 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleHttpMessageNotReadable() {
         Throwable cause = new IllegalArgumentException("JSON parse error");
-        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON request", cause);
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON request", cause, null);
 
         ResponseEntity<String> response = handler.handleHttpMessageNotReadable(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertTrue(response.getBody().contains("Invalid or missing request body"));
         assertTrue(response.getBody().contains("JSON parse error"));
+    }
+
+    @Test
+    void testHandleMessagingException() {
+        MessagingException ex = new MessagingException("Fallo al enviar email");
+
+        ResponseEntity<String> response = handler.handleMessagingException(ex);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error al enviar email: Fallo al enviar email", response.getBody());
+    }
+
+    @Test
+    void testHandleIllegalState() {
+        IllegalStateException ex = new IllegalStateException("El turno seleccionado ya está reservado.");
+
+        ResponseEntity<String> response = handler.handleIllegalState(ex);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("El turno seleccionado ya está reservado.", response.getBody());
     }
 }

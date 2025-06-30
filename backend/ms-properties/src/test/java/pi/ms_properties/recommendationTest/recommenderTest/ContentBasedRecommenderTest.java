@@ -15,6 +15,7 @@ import pi.ms_properties.recommendation.recommender.ContentBasedRecommender;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,18 +63,18 @@ class ContentBasedRecommenderTest {
         nueva.setNeighborhood(neighborhoodNueva);
         nueva.setType(type1);
         nueva.setOperation(Operation.VENTA);
-        nueva.setPrice(100.0F);
+        nueva.setPrice(BigDecimal.valueOf(150000.0));
 
         favProperty = new Property();
         favProperty.setNeighborhood(neighborhoodFav);
         favProperty.setType(type1);
         favProperty.setOperation(Operation.VENTA);
-        favProperty.setPrice(90.0F);
+        favProperty.setPrice(BigDecimal.valueOf(90));
     }
 
-    private FavoriteDTO createFavoriteDTO(Long propertyId) {
+    private FavoriteDTO createFavoriteDTO() {
         FavoriteDTO dto = new FavoriteDTO();
-        dto.setPropertyId(propertyId);
+        dto.setPropertyId(10L);
         return dto;
     }
 
@@ -81,7 +82,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldReturnCorrectScore_whenAllDataExists() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhoodNueva));
         when(propertyRepository.findById(10L)).thenReturn(Optional.of(favProperty));
@@ -89,7 +90,7 @@ class ContentBasedRecommenderTest {
 
         double result = contentBasedRecommender.calculate(nueva, favs);
 
-        assertEquals(1.0, result, 0.0001);
+        assertEquals(0.7, result, 0.0001);
 
         verify(neighborhoodRepository).findById(1L);
         verify(propertyRepository).findById(10L);
@@ -100,7 +101,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldReturnZero_whenNeighborhoodNuevaNotFound() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -114,7 +115,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldSkipFavorite_whenPropertyNotFound() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhoodNueva));
         when(propertyRepository.findById(10L)).thenReturn(Optional.empty());
@@ -130,7 +131,7 @@ class ContentBasedRecommenderTest {
 
     @Test
     void calculate_shouldSkipFavorite_whenNeighborhoodFavNotFound() {
-        List<FavoriteDTO> favs = List.of(createFavoriteDTO(10L));
+        List<FavoriteDTO> favs = List.of(createFavoriteDTO());
 
         when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhoodNueva));
         when(propertyRepository.findById(10L)).thenReturn(Optional.of(favProperty));

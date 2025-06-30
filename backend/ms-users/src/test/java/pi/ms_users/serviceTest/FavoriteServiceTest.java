@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.User;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.repository.IFavoriteRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -98,10 +98,10 @@ class FavoriteServiceTest {
 
     @Test
     void findByPropertyId_success() {
-        Property property = new Property();
+        PropertyDTO propertyDTO = new PropertyDTO();
         List<Favorite> favorites = List.of(favorite);
 
-        when(propertyRepository.getById(100L)).thenReturn(property);
+        when(propertyRepository.getById(100L)).thenReturn(propertyDTO);
         when(favoriteRepository.findByPropertyId(100L)).thenReturn(favorites);
 
         ResponseEntity<List<Favorite>> response = favoriteService.findByPropertyId(100L);
@@ -240,9 +240,8 @@ class FavoriteServiceTest {
     void findAllUsers_repositoryThrowsException_shouldPropagateException() {
         when(favoriteRepository.findAllUsers()).thenThrow(new RuntimeException("Error al acceder a la base de datos"));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            favoriteService.findAllUsers();
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            favoriteService.findAllUsers());
 
         assertEquals("Error al acceder a la base de datos", exception.getMessage());
         verify(favoriteRepository).findAllUsers();

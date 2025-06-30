@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.InquiryController;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.interf.IInquiryService;
@@ -83,6 +84,22 @@ class InquiryControllerTest {
         sampleInquiry.setProperties(List.of());
     }
 
+    private InquiryGetDTO sampleInquiryGetDTO() {
+        InquiryGetDTO dto = new InquiryGetDTO();
+        dto.setId(1L);
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
+        dto.setEmail("john@example.com");
+        dto.setPhone("123456789");
+        dto.setTitle("Consulta");
+        dto.setDescription("Descripción");
+        dto.setStatus(InquiryStatus.ABIERTA);
+        dto.setDate(LocalDateTime.now());
+        dto.setDateClose(null);
+        dto.setPropertyTitles(List.of("Propiedad 1", "Propiedad 2"));
+        return dto;
+    }
+
     // casos de exito
 
     @Test
@@ -95,18 +112,6 @@ class InquiryControllerTest {
                         .content(objectMapper.writeValueAsString(sampleDTO)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Creada"));
-    }
-
-    @Test
-    void createWithoutUser_success() throws Exception {
-        Mockito.when(inquiryService.createWithoutUser(any()))
-                .thenReturn(ResponseEntity.ok("Creada sin user"));
-
-        mockMvc.perform(post("/inquiries/createWithoutUser")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(sampleDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Creada sin user"));
     }
 
     @Test
@@ -123,45 +128,83 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void getById_success() throws Exception {
+        InquiryGetDTO sampleDTO = new InquiryGetDTO();
+        sampleDTO.setId(1L);
+        sampleDTO.setFirstName("Juan");
+        sampleDTO.setLastName("Pérez");
+        sampleDTO.setEmail("juan@example.com");
+        sampleDTO.setPhone("123456789");
+        sampleDTO.setTitle("Consulta");
+        sampleDTO.setDescription("Descripción");
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+        sampleDTO.setDate(LocalDateTime.now());
+        sampleDTO.setPropertyTitles(List.of("Propiedad A"));
+
         Mockito.when(inquiryService.getById(1L))
-                .thenReturn(ResponseEntity.ok(sampleInquiry));
+                .thenReturn(ResponseEntity.ok(sampleDTO));
 
         mockMvc.perform(get("/inquiries/getById/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.firstName").value("Juan"))
+                .andExpect(jsonPath("$.propertyTitles[0]").value("Propiedad A"));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getAll_success() throws Exception {
+        InquiryGetDTO sampleDTO = new InquiryGetDTO();
+        sampleDTO.setId(1L);
+        sampleDTO.setFirstName("Juan");
+        sampleDTO.setLastName("Pérez");
+        sampleDTO.setEmail("juan@example.com");
+        sampleDTO.setPhone("123456789");
+        sampleDTO.setTitle("Consulta");
+        sampleDTO.setDescription("Descripción");
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+        sampleDTO.setDate(LocalDateTime.now());
+        sampleDTO.setPropertyTitles(List.of("Propiedad A"));
+
         Mockito.when(inquiryService.getAll())
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].firstName").value("Juan"))
+                .andExpect(jsonPath("$[0].propertyTitles[0]").value("Propiedad A"));
     }
 
     @Test
     @WithMockUser(roles = "user")
     void getByUserId_success() throws Exception {
+        InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
         Mockito.when(inquiryService.getByUserId("user123"))
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/user/user123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleDTO.getId()))
+                .andExpect(jsonPath("$[0].firstName").value(sampleDTO.getFirstName()));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getByStatus_success() throws Exception {
+        InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+
         Mockito.when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getByStatus")
                         .param("status", "ABIERTA"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleDTO.getId()))
+                .andExpect(jsonPath("$[0].status").value("ABIERTA"));
     }
 
     @Test

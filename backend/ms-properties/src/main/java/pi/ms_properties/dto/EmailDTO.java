@@ -3,6 +3,7 @@ package pi.ms_properties.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -14,5 +15,5 @@ public class EmailDTO {
     private String email;
     private String firstName;
     private String lastName;
-    private List<String> propertiesTitle;
+    private List<String> propertiesTitle = new ArrayList<>();;
 }

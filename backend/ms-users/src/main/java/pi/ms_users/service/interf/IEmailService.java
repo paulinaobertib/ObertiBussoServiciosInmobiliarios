@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 public interface IEmailService {
     void sendAppointmentRequest(EmailDTO emailDTO) throws MessagingException;
 
-    void sendAppointmentDecisionToClient(String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address);
+    void sendAppointmentDecisionToClient(Long appointmentId, String clientEmail, boolean accepted, String firstName, LocalDateTime date, String address);
+
+    void sendApologyForCancelledAppointment(Long appointmentId, String clientEmail, String firstName, LocalDateTime date);
 
     void sendAppointmentCancelledMail(EmailDTO emailDTO);
 
@@ -21,4 +23,6 @@ public interface IEmailService {
     void sendNewContractEmail(EmailContractDTO emailData);
 
     void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData);
+
+    void sendContractExpirationReminder(EmailExpirationContract emailData);
 }

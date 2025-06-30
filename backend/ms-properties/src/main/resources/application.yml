@@ -16,10 +16,6 @@ spring:
   application:
     name: ms-properties
 
-# MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
-  # config:
-  #   ignore-unresolvable-placeholders: true
-
   # configuracion de la base de datos
   datasource:
     url: ${SPRING_DATASOURCE_URL}

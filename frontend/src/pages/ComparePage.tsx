@@ -1,46 +1,30 @@
-import { Box, Button, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, useTheme } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetailsCompare from '../app/property/components/propertyDetails/PropertyDetailsCompare';
+import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Modal } from '../app/shared/components/Modal';
+import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
+import { useState } from 'react';
+import { ROUTES } from '../lib';
 
 const Compare = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { clearComparison, comparisonItems } = usePropertyCrud();
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+
+  if (comparisonItems.length === 0) {
+    clearComparison();  // opcional, para limpiar el estado
+    return <Navigate to={ROUTES.HOME_APP} replace />;
+  }
 
   const handleBack = () => {
     clearComparison();
     navigate('/');
   };
 
-  if (comparisonItems.length === 0) {
-    return (
-      <BasePage maxWidth={false}>
-        <Container sx={{ py: 8 }}>
-          <Typography variant="h5" color="text.secondary">
-            No hay propiedades para comparar.
-          </Typography>
-        </Container>
-      </BasePage>
-    );
-  }
-
-  if (comparisonItems.length < 2 || comparisonItems.length > 3) {
-    return (
-      <BasePage maxWidth={false}>
-        <Container sx={{ py: 8 }}>
-          <Typography variant="h5" color="error">
-            Por favor selecciona 2 o 3 propiedades para comparar.
-          </Typography>
-        </Container>
-      </BasePage>
-    );
-  }
-  
   const { selectedPropertyIds } = usePropertyCrud();
-  console.log('🔍 ComparePage render', { selectedPropertyIds, comparisonItems });
 
   return (
     <BasePage maxWidth={false}>
@@ -50,33 +34,37 @@ const Compare = () => {
         </Button>
       </Box>
 
-      <Container maxWidth="xl">
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: 4,
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          <PropertyDetailsCompare comparisonItems={comparisonItems} />
-        </Box>
+      <>
+        <PropertyDetailsCompare comparisonItems={comparisonItems} />
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 8 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 8 }}>
           <Button
             variant="contained"
-            color="primary"
             size="large"
+            onClick={() => setInquiryOpen(true)}
             sx={{
-              minWidth: theme.spacing(25),
+              py: 1.5,
+              borderRadius: 2,
+              backgroundColor: theme.palette.secondary.main,
+              '&:hover': { backgroundColor: theme.palette.secondary.dark },
             }}
           >
-            Mandar consulta
+            Consultar por estas propiedades
           </Button>
         </Box>
 
-      </Container>
+        <Modal
+          open={inquiryOpen}
+          title="Enviar consulta"
+          onClose={() => setInquiryOpen(false)}
+        >
+          <InquiriesPanel
+            propertyIds={selectedPropertyIds}
+            onDone={() => setInquiryOpen(false)}
+          />
+        </Modal>
+      </>
+
     </BasePage>
   );
 };

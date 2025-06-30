@@ -1,6 +1,12 @@
 import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
+axios.defaults.withCredentials = true;
+axios.interceptors.request.use(cfg => {
+  const m = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/);
+  if (m) cfg.headers['X-XSRF-TOKEN'] = decodeURIComponent(m[1]);
+  return cfg;
+});
 
 /* GET /favorites/user/{userId} */
 export const getFavoritesByUser = async (userId: string) => {

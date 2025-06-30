@@ -1,8 +1,8 @@
 package pi.ms_properties.errorTest;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
-import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +15,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.TransactionSystemException;
-import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -180,7 +179,8 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleHttpMessageNotReadable() {
         Throwable cause = new IllegalArgumentException("JSON parse error");
-        HttpMessageNotReadableException ex = new HttpMessageNotReadableException("Malformed JSON request", cause);
+        HttpMessageNotReadableException ex = new HttpMessageNotReadableException(
+                "Malformed JSON request", cause, null);
 
         ResponseEntity<String> response = handler.handleHttpMessageNotReadable(ex);
 
@@ -197,5 +197,25 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Error al manejar archivo: Error leyendo archivo", response.getBody());
+    }
+
+    @Test
+    void testHandleMessagingException() {
+        MessagingException ex = new MessagingException("Fallo al enviar email");
+
+        ResponseEntity<String> response = handler.handleMessagingException(ex);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error al enviar email: Fallo al enviar email", response.getBody());
+    }
+
+    @Test
+    void testHandleIllegalState() {
+        IllegalStateException ex = new IllegalStateException("El turno seleccionado ya está reservado.");
+
+        ResponseEntity<String> response = handler.handleIllegalState(ex);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("El turno seleccionado ya está reservado.", response.getBody());
     }
 }

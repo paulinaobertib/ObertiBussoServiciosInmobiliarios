@@ -1,14 +1,11 @@
-import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL;
 import { Maintenance, MaintenanceCreate } from "../types/maintenance";
+import { api } from "../../../api";
 
 export const getMaintenanceById = async (id: number) => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/properties/maintenance/getById/${id}`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/maintenance/getById/${id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error fetching maintenance with ID ${id}:`, error);
@@ -18,8 +15,8 @@ export const getMaintenanceById = async (id: number) => {
 
 export const getMaintenancesByPropertyId = async (id: number) => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/properties/maintenance/getByPropertyId/${id}`,
+    const response = await api.get(
+      `/properties/maintenance/getByPropertyId/${id}`,
       { withCredentials: true }
     );
     return response.data;
@@ -31,8 +28,8 @@ export const getMaintenancesByPropertyId = async (id: number) => {
 
 export const postMaintenance = async (maintenanceData: MaintenanceCreate) => {
   try {
-    const response = await axios.post(
-      `${apiUrl}/properties/maintenance/create`,
+    const response = await api.post(
+      `/properties/maintenance/create`,
       maintenanceData,
       {
         headers: { "Content-Type": "application/json" },
@@ -48,8 +45,8 @@ export const postMaintenance = async (maintenanceData: MaintenanceCreate) => {
 
 export const putMaintenance = async (maintenanceData: Maintenance) => {
   try {
-    const response = await axios.put(
-      `${apiUrl}/properties/maintenance/update/${maintenanceData.id}`,
+    const response = await api.put(
+      `/properties/maintenance/update/${maintenanceData.id}`,
       maintenanceData,
       { withCredentials: true }
     );
@@ -62,8 +59,8 @@ export const putMaintenance = async (maintenanceData: Maintenance) => {
 
 export const deleteMaintenance = async (maintenanceData: Maintenance) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/properties/maintenance/delete/${maintenanceData.id}`,
+    const response = await api.delete(
+      `/properties/maintenance/delete/${maintenanceData.id}`,
       { withCredentials: true }
     );
     return response.data;
