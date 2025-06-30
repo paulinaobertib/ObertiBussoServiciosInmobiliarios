@@ -13,6 +13,5 @@ public class AppProperties {
     public AppProperties(@Value("${frontend.base-url}") String frontendBaseUrl) {
         this.frontendBaseUrl = frontendBaseUrl;
     }
-
 }
 

@@ -168,9 +168,10 @@ CREATE TABLE Available_Appointment (
 CREATE TABLE Appointment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(100) NOT NULL,
-    availability_id BIGINT NOT NULL UNIQUE,
+    availability_id BIGINT UNIQUE,
     status ENUM('ACEPTADO', 'RECHAZADO', 'ESPERA') NOT NULL,
     comment VARCHAR(250),
+    appointment_date DATETIME NOT NULL,
     FOREIGN KEY (availability_id) REFERENCES Available_Appointment(id)
 );
 
