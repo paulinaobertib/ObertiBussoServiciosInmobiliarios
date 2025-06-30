@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
+import pi.ms_users.configuration.components.AppProperties;
+import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.dto.*;
 import org.thymeleaf.context.Context;
@@ -29,6 +31,9 @@ class EmailServiceTest {
 
     @Mock
     private JavaMailSender javaMailSender;
+
+    @Mock
+    private AppProperties appProperties;
 
     @Mock
     private TemplateEngine templateEngine;
@@ -58,7 +63,6 @@ class EmailServiceTest {
         emailPropertyDTO.setPropertyLocation("Córdoba");
         emailPropertyDTO.setPropertyPrice("100000");
         emailPropertyDTO.setPropertyDescription("Hermosa casa.");
-        emailPropertyDTO.setPropertyUrl("https://propiedades.com/1");
         emailPropertyDTO.setPropertyCurrency("USD");
         emailPropertyDTO.setPropertyOperation("VENTA");
     }
@@ -78,22 +82,41 @@ class EmailServiceTest {
 
     @Test
     void sendAppointmentDecisionToClient_accepted_success() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_accepted"), any())).thenReturn("contenido");
 
-        emailService.sendAppointmentDecisionToClient("cliente@mail.com", true, "Juan", LocalDateTime.now(), "Calle");
+        emailService.sendAppointmentDecisionToClient(appointment.getId(), "cliente@mail.com", true, "Juan", LocalDateTime.now(), "Calle");
 
         verify(javaMailSender).send(any(MimeMessage.class));
     }
 
     @Test
     void sendAppointmentDecisionToClient_rejected_success() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_declined"), any())).thenReturn("contenido");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
-        emailService.sendAppointmentDecisionToClient("cliente@mail.com", false, "Juan", LocalDateTime.now(), "Calle");
+        emailService.sendAppointmentDecisionToClient(appointment.getId(),"cliente@mail.com", false, "Juan", LocalDateTime.now(), "Calle");
 
         verify(javaMailSender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendApologyForCancelledAppointment_success() throws Exception {
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("email_apology_cancelled"), any(Context.class))).thenReturn("contenido");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
+
+        emailService.sendApologyForCancelledAppointment(1L, "cliente@mail.com", "Juan", LocalDateTime.of(2025, 6, 15, 10, 0));
+
+        verify(javaMailSender).send(mimeMessage);
+        verify(templateEngine).process(eq("email_apology_cancelled"), any(Context.class));
     }
 
     @Test
@@ -110,6 +133,7 @@ class EmailServiceTest {
     void sendNotificationNewProperty_success() {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_new_property.html"), any())).thenReturn("nueva-propiedad");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
         emailService.sendNotificationNewProperty(emailPropertyDTO);
 
@@ -128,6 +152,7 @@ class EmailServiceTest {
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_new_user"), any())).thenReturn("contenido");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
         emailService.sendNewUserCredentialsEmail(dto);
 
@@ -144,6 +169,7 @@ class EmailServiceTest {
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_new_contract"), any())).thenReturn("contenido");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
         emailService.sendNewContractEmail(dto);
 
@@ -164,6 +190,7 @@ class EmailServiceTest {
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("email_contract_increase"), any())).thenReturn("contenido");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
         emailService.sendContractIncreaseEmail(dto);
 
@@ -191,6 +218,7 @@ class EmailServiceTest {
     void sendNotificationNewInterestProperty_shouldSendEmailSuccessfully() {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email content</html>");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
         emailService.sendNotificationNewInterestProperty(emailPropertyDTO);
 
@@ -223,6 +251,7 @@ class EmailServiceTest {
 
     @Test
     void sendNotificationNewProperty_fails() {
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -239,6 +268,7 @@ class EmailServiceTest {
         dto.setTitle("Contrato nuevo");
         dto.setFirstName("Juan");
 
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -259,6 +289,7 @@ class EmailServiceTest {
         dto.setIncrease(10.0f);
         dto.setCurrency(ContractIncreaseCurrency.USD);
 
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -288,6 +319,7 @@ class EmailServiceTest {
     void sendNotificationNewInterestProperty_shouldThrowRuntimeException_whenSendFails() {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html>email content</html>");
+        when(appProperties.getFrontendBaseUrl()).thenReturn("http://frontend");
 
         doThrow(new RuntimeException(new MessagingException("Error al enviar"))).when(javaMailSender).send(mimeMessage);
 

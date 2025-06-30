@@ -15,4 +15,5 @@ public class EmailContractIncreaseDTO {
     private Long frequency;
     private float increase;
     private ContractIncreaseCurrency currency;
+    private Long contractId;
 }

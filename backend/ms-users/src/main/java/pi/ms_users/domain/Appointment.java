@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,11 +24,14 @@ public class Appointment {
     @Column(name = "comment", nullable = true)
     private String comment;
 
+    @Column(name = "appointment_date")
+    private LocalDateTime appointmentDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AppointmentStatus status;
 
     @OneToOne
-    @JoinColumn(name = "availability_id", nullable = false, unique = true)
+    @JoinColumn(name = "availability_id", nullable = true, unique = true)
     private AvailableAppointment availableAppointment;
 }
