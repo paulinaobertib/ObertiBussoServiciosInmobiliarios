@@ -5,9 +5,9 @@ import {
   Button,
   Stack,
   CircularProgress,
+  Typography,
 } from "@mui/material";
 import { useAuthContext } from "../../../user/context/AuthContext";
-import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { postInquiry } from "../../services/inquiry.service";
 import type {
   InquiryCreateAuth,
@@ -16,35 +16,35 @@ import type {
 
 interface Props {
   propertyIds: number[];
-  onDone: () => void;
 }
 
-export const InquiryForm = ({ propertyIds, onDone }: Props) => {
+export const InquiryForm = ({ propertyIds }: Props) => {
   const { info, isLogged } = useAuthContext();
-  const { showAlert } = useGlobalAlert();
 
   const [form, setForm] = useState({
     firstName: info?.firstName ?? "",
-    lastName: info?.lastName ?? "",
-    email: info?.email ?? "",
-    phone: info?.phone ?? "",
+    lastName:  info?.lastName  ?? "",
+    email:     info?.email     ?? "",
+    phone:     info?.phone     ?? "",
     description: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     const title = `Consulta${isLogged && info?.email ? ` (${info.email})` : ""}`;
-
     const basePayload: {
       title: string;
       description: string;
@@ -66,30 +66,42 @@ export const InquiryForm = ({ propertyIds, onDone }: Props) => {
         const payload: InquiryCreateAnon = {
           ...basePayload,
           firstName: form.firstName,
-          lastName: form.lastName,
-          email: form.email,
-          phone: form.phone,
+          lastName:  form.lastName,
+          email:     form.email,
+          phone:     form.phone,
         };
         await postInquiry(payload);
       }
-
-      showAlert("Consulta enviada con éxito", "success");
-      onDone();
-      setForm((prev) => ({ ...prev, description: "" }));
+      setSubmitted(true);
     } catch (err: any) {
-      console.error("Error al enviar consulta:", err);
-      const status = err.response?.status;
-      const data = err.response?.data;
-      showAlert(
-        status
-          ? `Error ${status}: ${typeof data === 'string' ? data : JSON.stringify(data)}`
-          : err.message,
-        "error"
-      );
+      setError(err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <Box
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          // p: 3,
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant="h6" gutterBottom>
+          ¡Consulta enviada!
+        </Typography>
+        <Typography>
+          Gracias. Te avisaremos en cuanto tengamos una respuesta.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -152,6 +164,12 @@ export const InquiryForm = ({ propertyIds, onDone }: Props) => {
           required
         />
 
+        {error && (
+          <Typography color="error" align="center">
+            {error}
+          </Typography>
+        )}
+
         <Button
           type="submit"
           variant="contained"
@@ -162,9 +180,9 @@ export const InquiryForm = ({ propertyIds, onDone }: Props) => {
           }
           sx={{ mt: 'auto' }}
         >
-          Enviar Consulta
+          {loading ? 'Enviando…' : 'Enviar Consulta'}
         </Button>
       </Stack>
     </Box>
   );
-}
+};

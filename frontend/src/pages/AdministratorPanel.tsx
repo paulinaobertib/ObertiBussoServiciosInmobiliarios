@@ -51,7 +51,7 @@ export default function AdministratorPanel() {
     ];
 
     return (
-        <BasePage maxWidth={false}>
+        <BasePage maxWidth={true}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2 }}>
                 <Button variant="contained" color="primary" onClick={handleBack}>
                     VOLVER
