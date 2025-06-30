@@ -83,19 +83,24 @@ export const PropertyCatalog = ({
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
             gap: 3,
+            justifyContent: 'center',
           }}
         >
           {internalProperties.map(prop => (
-            <PropertyCard
-              key={prop.id}
-              property={prop}
-              selectionMode={selectionMode}
-              isSelected={isSelected!}
-              toggleSelection={toggleSelection!}
-              onClick={() => handleCrudClick(prop)}
-            />
+            <Box key={prop.id} sx={{ width: '100%', maxWidth: 300 }}>
+
+              <PropertyCard
+                key={prop.id}
+                property={prop}
+                selectionMode={selectionMode}
+                isSelected={isSelected!}
+                toggleSelection={toggleSelection!}
+                onClick={() => handleCrudClick(prop)}
+              />
+            </Box>
+
           ))}
         </Box>
       </Box>

@@ -135,7 +135,7 @@ class AppointmentServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha actualizado el estado del turno", response.getBody());
-        verify(emailService).sendAppointmentDecisionToClient(user.getEmail(), true, user.getFirstName(), available.getDate(), "Address");
+        verify(emailService).sendAppointmentDecisionToClient(appointment.getId(), user.getEmail(), true, user.getFirstName(), available.getDate(), "Address");
     }
 
     @Test
@@ -162,7 +162,41 @@ class AppointmentServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(availableAppointmentRepository).save(available);
-        verify(emailService).sendAppointmentDecisionToClient(user.getEmail(), false, user.getFirstName(), available.getDate(), null);
+        verify(emailService).sendAppointmentDecisionToClient(appointment.getId(), user.getEmail(), false, user.getFirstName(), available.getDate(), null);
+    }
+
+    @Test
+    void updateStatus_cancelaTurnoPrevioAceptado_enviaEmailDisculpa() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+        appointment.setStatus(AppointmentStatus.ACEPTADO);
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setAvailability(false);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
+
+        User user = new User();
+        user.setEmail("user@mail.com");
+        user.setFirstName("Ana");
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
+
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO, "Address");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Se ha actualizado el estado del turno", response.getBody());
+
+        assertEquals(AppointmentStatus.RECHAZADO, appointment.getStatus());
+
+        verify(appointmentRepository).save(appointment);
+        verify(availableAppointmentRepository).save(available);
+
+        verify(emailService).sendApologyForCancelledAppointment(appointment.getId(), user.getEmail(), user.getFirstName(), available.getDate());
     }
 
     @Test
@@ -346,4 +380,3 @@ class AppointmentServiceTest {
         verify(appointmentRepository).findByStatus(status);
     }
 }
-

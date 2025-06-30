@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Box, Button } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
@@ -10,6 +10,7 @@ import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { UserForm } from '../app/user/components/UserForm';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
 import { AppointmentPanel } from '../app/user/components/appointments/AppointmentPanel';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();
@@ -58,7 +59,35 @@ export default function AdministratorPanel() {
                 </Button>
             </Box>
 
-            <UserForm />
+                        <Accordion disableGutters
+                sx={{
+                    bgcolor: 'background.paper',
+                    boxShadow: 4,
+                    borderRadius: 2,
+                }}>
+                <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        '& .MuiAccordionSummary-content': {
+                            flex: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        },
+                        '& .MuiAccordionSummary-expandIconWrapper': {
+                            marginLeft: 1,
+                        },
+                    }}
+                >
+                    <Typography variant="h6">Mis Datos</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <UserForm />
+                </AccordionDetails>
+            </Accordion>
+
 
             <Box
                 sx={{

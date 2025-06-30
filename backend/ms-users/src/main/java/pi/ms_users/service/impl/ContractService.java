@@ -79,12 +79,13 @@ public class ContractService implements IContractService {
                 .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el usuario."));
 
         Contract contract = objectMapper.convertValue(contractDTO, Contract.class);
-        contractRepository.save(contract);
+        Contract saved = contractRepository.save(contract);
 
         EmailContractDTO emailData = new EmailContractDTO();
         emailData.setTo(user.getEmail());
         emailData.setTitle("¡Tu contrato está listo!");
         emailData.setFirstName(user.getFirstName());
+        emailData.setContractId(saved.getId());
         emailService.sendNewContractEmail(emailData);
 
         ContractIncrease contractIncrease = new ContractIncrease();

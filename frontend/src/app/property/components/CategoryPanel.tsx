@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { usePropertyCrud, Category } from '../context/PropertiesContext';
 import { translate } from '../utils/translate';
 import { ModalItem, Info } from '../components/ModalItem';
-import { SearchBarOwner } from './SearchBarOwners';
+import { SearchBar } from '../../shared/components/SearchBar';
 import { Owner } from '../types/owner';
 import { useConfirmDialog } from '../utils/ConfirmDialog';
 import { useGlobalAlert } from '../../shared/context/AlertContext';
@@ -25,6 +25,7 @@ import { OwnerForm } from '../components/forms/OwnerForm';
 import { TypeForm } from '../components/forms/TypeForm';
 import { NeighborhoodForm } from '../components/forms/NeighborhoodForm';
 import { StatusForm } from '../components/forms/StatusForm';
+import { getAllOwners, getOwnersByText } from '../services/owner.service';
 
 const formRegistry = {
   amenity: AmenityForm,
@@ -121,9 +122,12 @@ export const CategoryPanel = ({ category }: Props) => {
         </Typography>
 
         {category === 'owner' && (
-          <SearchBarOwner
-            aria-label="Buscar propietario"
-            onSearch={setFilteredOwners}
+          <SearchBar
+            fetchAll={getAllOwners}
+            fetchByText={getOwnersByText}
+            onSearch={results => setFilteredOwners(results as Owner[])}
+            placeholder="Buscar propietario"
+            debounceMs={400}
           />
         )}
 
