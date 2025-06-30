@@ -42,9 +42,6 @@ import static org.mockito.Mockito.*;
 class NotificationServiceTest {
 
     @Mock
-    private AppProperties appProperties;
-
-    @Mock
     private INotificationRepository notificationRepository;
 
     @Mock
@@ -92,7 +89,6 @@ class NotificationServiceTest {
                 .thenReturn(List.of(userId));
         when(propertyRepository.getById(propertyId)).thenReturn(propertyDTO);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
 
         ResponseEntity<String> response = notificationService.createProperty(dto, propertyId);
 
@@ -172,7 +168,6 @@ class NotificationServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userNotificationPreferenceRepository.findByUserId(userId)).thenReturn(List.of(pref));
         when(propertyRepository.getById(propertyId)).thenReturn(propertyDTO);
-        when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
 
         ResponseEntity<String> response = notificationService.propertyInterest(userId, type, propertyId);
 

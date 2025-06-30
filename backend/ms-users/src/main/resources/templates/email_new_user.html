@@ -18,6 +18,14 @@
             <li><strong>Usuario:</strong> <span th:text="${username}">nombre.usuario</span></li>
             <li><strong>Contraseña:</strong> <span th:text="${password}">contraseña123</span></li>
         </ul>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a th:href="${loginUrl}" target="_blank"
+               style="background-color: #EE671E; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                Acceder a mi cuenta
+            </a>
+        </div>
+
         <p>Te recomendamos cambiar la contraseña una vez que ingreses al sistema.</p>
         <p>¡Gracias por elegirnos, <span th:text="${name}">Usuario</span>!</p>
     </div>
