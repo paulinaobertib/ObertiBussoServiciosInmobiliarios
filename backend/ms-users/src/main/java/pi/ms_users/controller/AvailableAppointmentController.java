@@ -41,7 +41,7 @@ public class AvailableAppointmentController {
         return availableAppointmentService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')") // Agregue user
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<AvailableAppointment>> getAll() {
         return availableAppointmentService.getAll();
