@@ -1,108 +1,243 @@
-import { Paper, Box, TextField, IconButton, List, ListItem, ListItemText, CircularProgress, Typography } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import { useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
+  Autocomplete,
+  IconButton,
+} from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useState, useRef } from "react";
 import { useChatContext } from "../context/ChatContext";
+import { useChatSession } from "../hooks/useChatSession";
+import { useAuthContext } from "../../user/context/AuthContext";
+import { getPropertiesByText } from "../../property/services/property.service";
+import { ChatSessionDTO } from "../types/chatSession";
 
-interface ChatProps {
-  propertyId: number;
-  sessionId: number;
+interface Property {
+  id: number;
+  title: string;
 }
 
-export const Chat = ({ propertyId, sessionId }: ChatProps) => {
-    const { messages, sendMessage, loading, error } = useChatContext();
-    const [input, setInput] = useState("");
+interface ChatProps {
+  initialPropertyId?: number;
+  onClose?: () => void;
+}
 
-    const handleSend = async () => {
-        if (!input.trim()) return;
-        try {
-            await sendMessage(input, propertyId, sessionId);
-            setInput("");
-        } catch (err) {
-            console.error("Error enviando mensaje:", err);
-        }
-    }
-return (
-    <Paper
-      elevation={3}
-      sx={{
-        width: 400,
-        height: 500,
-        display: "flex",
-        flexDirection: "column",
-        p: 2,
-      }}
-    >
-      <Typography variant="h6" gutterBottom>
-        Asistente Virtual
-      </Typography>
+export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
+  const { info, isLogged } = useAuthContext();
+  const { messages, sendMessage, loading } = useChatContext();
+  const { startSessionGuest, startSessionUser, loading: sessionLoading} = useChatSession();
 
-      <Box
-        sx={{
-          flexGrow: 1,
-          overflowY: "auto",
-          mb: 2,
-          border: "1px solid #ccc",
-          borderRadius: 1,
-          p: 1,
-          backgroundColor: "#f9f9f9",
-        }}
-      >
-        <List dense>
-          {messages.map((msg, i) => (
-            <ListItem
-              key={i}
-              sx={{
-                justifyContent:
-                  msg.from === "user" ? "flex-end" : "flex-start",
-              }}
-            >
-              <ListItemText
-                primary={msg.content}
-                sx={{
-                  textAlign: msg.from === "user" ? "right" : "left",
-                  bgcolor: msg.from === "user" ? "#1976d2" : "#eee",
-                  color: msg.from === "user" ? "#fff" : "#000",
-                  p: 1,
-                  borderRadius: 1,
-                  maxWidth: "75%",
-                }}
-              />
-            </ListItem>
-          ))}
-          {loading && (
-            <ListItem>
-              <CircularProgress size={20} />
-            </ListItem>
-          )}
-        </List>
-      </Box>
-
-      <Box sx={{ display: "flex", gap: 1 }}>
-        <TextField
-          variant="outlined"
-          fullWidth
-          placeholder="Escribí tu mensaje..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSend();
-          }}
-          disabled={loading}
-        />
-        <IconButton
-          color="primary"
-          onClick={handleSend}
-          disabled={loading || input.trim() === ""}
-        >
-          <SendIcon />
-        </IconButton>
-      </Box>
-
-      {error && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {error.message}
-        </Typography>
-      )}
-    </Paper>
+  // si hay una sesion previa, la cargo para que pueda seguir abierta cuando cambia de page
+  const [sessionId, setSessionId] = useState<number | null> (
+    Number(localStorage.getItem("chatSessionId")) || null
   );
-};
+
+  const [property, setProperty] = useState<Property | null>(null);
+
+  // esto es para no pedir muchas veces los mismos datos si quieren consultar una propiedad diferente
+  const [guestData, setGuestData] = useState(() => {
+    const stored = localStorage.getItem("guestInfo");
+    return stored ? JSON.parse(stored) : {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: ""
+    };
+  });
+
+  const [searchText, setSearchText] = useState("");
+
+  // si tiene que buscar la propiedad por searchBar, le mostramos las opciones que tiene
+  const [propertyOptions, setPropertyOptions] = useState<Property[]>([]);
+
+  // cuando el usuario no esta loggeado, le pido los datos
+  const [showForm, setShowForm] = useState(!isLogged);
+
+  // pasos del chat
+  const [step, setStep] = useState<"greeting" | "confirmProperty" | "searchProperty" | "chat">("greeting");
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const optionLabels: Record<string, string> = {
+    VER_PRECIO: "Ver precio",
+    VER_HABITACIONES: "Ver habitaciones",
+    VER_AREA: "Ver área",
+    VER_UBICACION: "Ver ubicación",
+    VER_CARACTERISTICAS: "Ver características",
+    VER_OPERACION: "Ver operación",
+    VER_CREDITO: "Ver crédito",
+    VER_FINANCIACION: "Ver financiación",
+    DERIVAR: "Derivar",
+    CERRAR: "Cerrar chat",
+  };
+
+  // si la propiedad viene desde una card
+  useEffect(() => {
+    if (initialPropertyId) {
+      setProperty({id: initialPropertyId, title: ""});
+    }
+  }, [initialPropertyId]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleStart = async () => {
+    try {
+      let result;
+
+      if (isLogged && info) {
+        result = await startSessionUser(info.id, property!.id);
+      } else {
+        const dto: ChatSessionDTO = {
+          ...guestData,
+          propertyId: property!.id
+        };
+        result = await startSessionGuest(dto);
+        localStorage.setItem("guestInfo", JSON.stringify(guestData));
+        setShowForm(false);
+      }
+
+      setSessionId(result.id);
+      localStorage.setItem("chatSessionId", result.id.toString());
+      setStep("chat");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // si la propiedad no viene desde la card, o si no quiere consultar por la que esta en la card
+  const handlePropertySearch = async (value: string) => {
+    setSearchText(value);
+    const result = await getPropertiesByText(searchText);
+    setPropertyOptions(result);
+  };
+
+  const renderMessages = () => (
+    <Box sx={{ p: 2, height: 300, overflowY: "auto", border: "1px solid #ccc", borderRadius: 1 }}>
+      {messages.map((msg, i) => (
+        <Typography key={i} align={msg.from === "user" ? "right" : "left"}>
+          <strong>{msg.from === "user" ? "Tú" : "Sistema"}:</strong> {msg.content}
+        </Typography>
+      ))}
+      <div ref={messagesEndRef} />
+    </Box>
+  );
+
+    return (
+      <Dialog open fullWidth maxWidth="sm">
+        <DialogTitle>
+          Chat
+          <IconButton
+            aria-label="close"
+            onClick={() => onClose?.()}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+
+          {step === "greeting" && (
+            <Box>
+              <Typography>Hola, bienvenido. Por favor ingresá tus datos de contacto para comenzar.</Typography>
+              {showForm && (
+                <Box mt={2}>
+                  <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
+                  <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
+                  <TextField fullWidth label="Email" value={guestData.email} onChange={e => setGuestData({ ...guestData, email: e.target.value })} margin="dense" />
+                  <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
+                </Box>
+              )}
+              <Box mt={2}>
+                {initialPropertyId ? (
+                  <>
+                    <Typography>¿Querés consultar sobre esta propiedad?</Typography>
+                    <Button onClick={() => setStep("chat")} variant="contained" sx={{ mt: 1 }}>Sí</Button>
+                    <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
+                  </>
+                ) : (
+                  <Button onClick={() => setStep("searchProperty")} variant="contained" sx={{ mt: 2 }}>
+                    Buscar propiedad
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          )}
+
+          {step === "searchProperty" && (
+            <Box mt={2}>
+              <Autocomplete
+                fullWidth
+                options={propertyOptions}
+                getOptionLabel={(opt) => opt.title}
+                onInputChange={(_, value) => handlePropertySearch(value)}
+                onChange={(_, val) => setProperty(val)}
+                renderInput={(params) => <TextField {...params} label="Buscar propiedad" />}
+              />
+              <Button
+                onClick={() => setStep("chat")}
+                disabled={!property}
+                variant="contained"
+                sx={{ mt: 2 }}
+              >
+                Confirmar propiedad
+              </Button>
+            </Box>
+          )}
+
+          {step === "chat" && (
+          <>
+            {renderMessages()}
+            <Box mt={2} sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {[
+                "VER_PRECIO",
+                "VER_HABITACIONES",
+                "VER_AREA",
+                "VER_UBICACION",
+                "VER_CARACTERISTICAS",
+                "VER_OPERACION",
+                "VER_CREDITO",
+                "VER_FINANCIACION",
+                "DERIVAR",
+                "CERRAR",
+              ].map((option) => (
+                <Button
+                  key={option}
+                  variant="outlined"
+                  onClick={async () => {
+                    if (!property || !sessionId) return;
+                    await sendMessage(option, property.id, sessionId);
+                  }}
+                >
+                  {optionLabels[option]}
+                </Button>
+              ))}
+            </Box>
+          </>
+        )}
+
+        </DialogContent>
+
+        {(sessionLoading || loading) && <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />}
+
+        <DialogActions>
+          {step !== "chat" && (
+            <Button onClick={handleStart} variant="contained" disabled={!property || (showForm && !guestData.firstName)}>
+              Comenzar chat
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+  );
+}
+

@@ -16,7 +16,6 @@ const PropertyDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [inquiryOpen, setInquiryOpen] = useState(false);
 
-
   const handleBack = () => {
     navigate('/');
   };
@@ -28,6 +27,7 @@ const PropertyDetailsPage = () => {
         setLoading(false);
         return;
       }
+      localStorage.setItem("selectedPropertyId", id.toString());
       setLoading(true);
       setError(null);
       try {
