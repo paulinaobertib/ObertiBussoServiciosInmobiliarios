@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { PropertyCrudProvider } from './app/property/context/PropertiesContext';
 import { AlertProvider } from './app/shared/context/AlertContext';
 import { AuthProvider } from "./app/user/context/AuthContext";
+import { ChatProvider } from './app/chat/context/ChatContext';
 import "./index.css"
 
 function App() {
@@ -21,11 +22,13 @@ function App() {
       <AlertProvider>
         <AuthProvider>
           <PropertyCrudProvider>
-            <BrowserRouter>
-              <ThemeProvider theme={theme}>
-                <Routes />
-              </ThemeProvider>
-            </BrowserRouter>
+            <ChatProvider>
+              <BrowserRouter>
+                <ThemeProvider theme={theme}>
+                  <Routes />
+                </ThemeProvider>
+              </BrowserRouter>
+            </ChatProvider>
           </PropertyCrudProvider>
         </AuthProvider>
       </AlertProvider>
