@@ -19,7 +19,6 @@ public class ContractScheduler {
     // todos los dias a las 8 am
     @Scheduled(cron = "0 0 8 * * *")
     public void scheduledEndDate() {
-        System.out.println("ejecutandoooooo");
         contractService.applyScheduledSoonInactive();
     }
 }
