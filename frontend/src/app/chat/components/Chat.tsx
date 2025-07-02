@@ -29,7 +29,7 @@ interface ChatProps {
 
 export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const { info, isLogged } = useAuthContext();
-  const { messages, sendMessage, loading, clearMessages } = useChatContext();
+  const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();
   const { startSessionGuest, startSessionUser, loading: sessionLoading} = useChatSession();
   
   // mostrar las opciones del chat
@@ -114,7 +114,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     if (step === "chat" && showWelcome && !showOptions) {
         const timer = setTimeout(() => {
           setShowOptions(true);
-        }, 1000);
+        }, 500);
 
         return () => clearTimeout(timer);
       }
@@ -202,29 +202,46 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   };
 
   const handleTextInput = async (input: string) => {
+    const trimmed = input.trim();
     const index = Number(input.trim()) - 1;
     const keys = Object.keys(optionLabels);
 
     if (!property || !sessionId) return;
 
-    if (!isNaN(index) && keys[index]) {
-      setShowOptions(false);
-      await sendMessage(keys[index], property.id, sessionId);
-    } else {
-      await sendMessage(input, property.id, sessionId);
-    }
+    addUserMessage(trimmed);
+
+    const isInteger = /^\d+$/.test(trimmed); 
+
+     if (isInteger) {
+        if (keys[index]) {
+          setShowOptions(false);
+          await sendMessage(keys[index], property.id, sessionId);
+        } else {
+          addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
+          setShowOptions(true);
+        }
+      } else {
+        addSystemMessage("Entrada inválida. Por favor escribí solo el número de una opción.");
+        setShowOptions(true);
+      }
   };
 
   const sendCurrentInput = async () => {
     if (!inputValue.trim()) return;
     await handleTextInput(inputValue.trim());
+    setInputValue(""); 
   };
+
+  useEffect(() => {
+    console.log("MENSAJES", messages);
+  }, [messages]);
+
 
   const renderMessages = () => (
     <Box
       sx={{
         p: 2,
-        height: 300,
+        flexGrow: 1,
         overflowY: "auto",
         border: "1px solid #ccc",
         borderRadius: 1,
@@ -359,7 +376,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           </IconButton>
         </Box>
 
-        <Box sx={{ p: 2, flexGrow: 1, overflowY: "auto" }}>
+        <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
           {step === "greeting" && (
             <Box>
               <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
@@ -415,7 +432,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                 noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
               />
               <Button
-                onClick={() => setStep("chat")}
+                onClick={handleStart}
                 disabled={!property || (showForm && !guestDataComplete)}
                 variant="contained"
                 sx={{ mt: 2 }}

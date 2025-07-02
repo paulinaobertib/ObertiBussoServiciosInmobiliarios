@@ -27,6 +27,15 @@ export const useChat = () => {
         }
     }
 
+    const addSystemMessage = (content: string) => {
+        setMessages((prev) => [...prev, { from: "system", content }]);
+    };
+
+    const addUserMessage = (content: string) => {
+        setMessages((prev) => [...prev, { from: "user", content }]);
+    };
+
+
     const clearMessages = () => {
         setMessages([]);
     };
@@ -36,6 +45,8 @@ export const useChat = () => {
         loading,
         error,
         sendMessage,
+        addSystemMessage,
+        addUserMessage,
         clearMessages
     }
 }
