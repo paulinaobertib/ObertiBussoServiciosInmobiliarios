@@ -52,7 +52,7 @@ export const FloatingButtons = ({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 2,
-        zIndex: theme.zIndex.tooltip,
+        zIndex: 1300,
       }}
     >
       {/* — Compare FAB — */}
