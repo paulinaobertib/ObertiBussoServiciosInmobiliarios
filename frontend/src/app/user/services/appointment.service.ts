@@ -1,11 +1,12 @@
 import { api } from "../../../api";
 import {
-  AvailableAppointmentDTO,
+  AvailableAppointmentCreate,
   AppointmentStatus,
   AppointmentCreate,
 } from "../types/appointment";
 
-export const createAvailability = async (body: AvailableAppointmentDTO) => {
+export const createAvailability = async (body: AvailableAppointmentCreate
+) => {
   try {
     const data = await api.post(`/users/availableAppointments/create`, body, {
       withCredentials: true,

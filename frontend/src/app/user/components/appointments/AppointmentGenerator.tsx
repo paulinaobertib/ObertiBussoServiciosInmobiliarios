@@ -17,7 +17,7 @@ import {
 } from '../../services/appointment.service';
 import {
     AvailableAppointment,
-    AvailableAppointmentDTO,
+    AvailableAppointmentCreate,
 } from '../../types/appointment';
 import { Calendar } from '../Calendar';
 import { LoadingButton } from '@mui/lab';
@@ -60,7 +60,7 @@ export const AppointmentGenerator = ({ onCreated }: Props) => {
     /* ─────────────────────────────────────── acciones */
     const handleGenerate = async () => {
         try {
-            const dto: AvailableAppointmentDTO = {
+            const dto: AvailableAppointmentCreate = {
                 date: selectedDate.format('YYYY-MM-DD'),
                 startTime: `${startTime}:00`,
                 endTime: `${endTime}:00`,

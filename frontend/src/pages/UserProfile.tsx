@@ -6,9 +6,9 @@ import { FavoritesPanel } from '../app/user/components/FavoritesPanel'
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
 import { AppointmentUser } from '../app/user/components/appointments/AppointmentUser';
-import { UserForm } from '../app/user/components/UserForm';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { User } from '../app/user/types/user';
+import { Profile } from '../app/user/components/users/Profile';
 
 export default function UserProfilePage() {
     const { info } = useAuthContext();
@@ -50,7 +50,7 @@ export default function UserProfilePage() {
     /* ───────────────────────────────  UI  ───────────────────────────────────────── */
     return (
         <BasePage maxWidth>
-            <Accordion disableGutters
+            <Accordion disableGutters defaultExpanded
                 sx={{
                     bgcolor: 'background.paper',
                     boxShadow: 4,
@@ -75,7 +75,7 @@ export default function UserProfilePage() {
                     <Typography variant="h6">Mis Datos</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <UserForm />
+                    <Profile />
                 </AccordionDetails>
             </Accordion>
 
