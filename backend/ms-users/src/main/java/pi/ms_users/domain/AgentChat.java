@@ -18,6 +18,9 @@ public class AgentChat {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
+    @Column(name = "phone", nullable = false)
+    private String phone;
+
     @Column(name = "name", nullable = false)
     private String name;
 

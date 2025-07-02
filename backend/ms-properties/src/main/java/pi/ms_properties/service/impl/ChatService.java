@@ -117,8 +117,8 @@ public class ChatService implements IChatService {
 
 
             case DERIVAR:
-                deriveToPartner(chatSession);
-                return "Tu consulta ha sido derivada a un asesor. Pronto te atenderán.";
+                String phone = deriveToPartner(chatSession);
+                return "Tu consulta ha sido derivada a un asesor. Pronto te atenderán desde este celular " + phone + ".";
 
             case CERRAR:
                 closeRequest(chatSession);
@@ -129,7 +129,7 @@ public class ChatService implements IChatService {
         }
     }
 
-    private void deriveToPartner(ChatSession chatSession) {
+    private String deriveToPartner(ChatSession chatSession) {
         List<AgentChatDTO> agentChatDTOS = agentChatRepository.getAgents();
         if (agentChatDTOS.isEmpty()) {
             throw new RuntimeException("No hay agentes habilitados.");
@@ -160,6 +160,8 @@ public class ChatService implements IChatService {
         agentAssignService.create(next.getUserId());
 
         emailService.sendChatSummaryEmail(chatSession, Boolean.TRUE, next.getName());
+
+        return next.getPhone();
     }
 
     private void closeRequest(ChatSession chatSession) {
