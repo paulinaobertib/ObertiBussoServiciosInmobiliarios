@@ -15,6 +15,7 @@ import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { getAllProperties, getPropertiesByText } from '../app/property/services/property.service';
 
 export default function Home() {
+  localStorage.setItem("selectedPropertyId", "");
   const navigate = useNavigate();
   const location = useLocation();
   const { showAlert } = useGlobalAlert();
