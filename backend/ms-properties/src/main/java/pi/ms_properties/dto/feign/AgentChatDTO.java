@@ -7,5 +7,6 @@ public class AgentChatDTO {
     private Long id;
     private String userId;
     private Boolean enabled;
+    private String phone;
     private String name;
 }
