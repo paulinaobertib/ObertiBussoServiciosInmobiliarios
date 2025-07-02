@@ -61,6 +61,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     guestData.email.trim()     &&
     emailOK; 
 
+  const [chatActive, setChatActive] = useState(true);
+
   const [searchText, setSearchText] = useState("");
 
   const [inputValue, setInputValue] = useState("");
@@ -150,14 +152,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
       if (isLogged && info) {
         result = await startSessionUser(info.id, property!.id);
-        console.log("ACA  ", result)
       } else {
         const dto: ChatSessionDTO = {
           ...guestData,
           propertyId: property!.id
         };
         result = await startSessionGuest(dto);
-        console.log("ACA  ", result)
         localStorage.setItem("guestInfo", JSON.stringify(guestData));
         setShowForm(false);
       }
@@ -183,11 +183,30 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     setPropertyOptions(result);
   };
 
+  const handleChangeProperty = async () => {
+    try {
+      if (chatActive && sessionId && property) {
+        await sendMessage("CERRAR", property.id, sessionId);
+        setChatActive(false);
+      }
+    } catch (error) {
+      console.error("Error al cerrar sesión anterior:", error);
+    }
+    clearMessages();
+    setSessionId(null);
+    setProperty(null);
+    setStep("searchProperty");
+    setShowOptions(true);
+    setShowWelcome(true);
+    setChatActive(true);
+  };
+
   const handleClose = async () => {
     const lastMsg = messages[messages.length - 1];
     if (sessionId && property && lastMsg.content != "La conversación ha finalizado. Gracias por contactarnos." && lastMsg.content != "Tu consulta ha sido derivada a un asesor. Pronto te atenderán.") {
       try {
         await sendMessage("CERRAR", property.id, sessionId);
+        setChatActive(false);
       } catch (err) {
         console.error("Error al enviar mensaje de cierre:", err);
       }
@@ -216,6 +235,9 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         if (keys[index]) {
           setShowOptions(false);
           await sendMessage(keys[index], property.id, sessionId);
+          if (keys[index] === "CERRAR") {
+            setChatActive(false);
+          }
         } else {
           addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
           setShowOptions(true);
@@ -308,7 +330,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         );
       })}
 
-      {showOptions && (
+      {showOptions && chatActive && (
         <Box
           sx={{
             display: "flex",
@@ -444,12 +466,28 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
           {step === "chat" && (
             <>
+            {property && (
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}
+              >
+                Propiedad en consulta: {property?.title || `#${property?.id}`}
+              </Typography>
+            )}
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleChangeProperty}
+              sx={{ mb: 1 }}
+            >
+              Consultar por otra propiedad
+            </Button>
               {renderMessages()}
             </>
           )}
         </Box>
 
-        {step === "chat" && (
+        {step === "chat" && chatActive && (
           <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
             <TextField
               fullWidth
