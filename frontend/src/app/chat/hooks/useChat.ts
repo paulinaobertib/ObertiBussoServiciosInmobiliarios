@@ -4,6 +4,7 @@ import { createChat } from "../services/chat.service";
 interface ChatMessage {
     from: "user" | "system";
     content: string;
+    options?: string[];
 }
 
 export const useChat = () => {
@@ -26,10 +27,15 @@ export const useChat = () => {
         }
     }
 
+    const clearMessages = () => {
+        setMessages([]);
+    };
+
     return {
         messages,
         loading,
         error,
-        sendMessage
+        sendMessage,
+        clearMessages
     }
 }
