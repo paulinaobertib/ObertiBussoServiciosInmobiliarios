@@ -3,15 +3,13 @@ import {
   Button,
   TextField,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
   Autocomplete,
   IconButton,
+  InputAdornment
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import SendIcon from "@mui/icons-material/Send";
 import { useEffect, useState, useRef } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { useChatSession } from "../hooks/useChatSession";
@@ -55,7 +53,17 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     };
   });
 
+  const emailOK = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(guestData.email); 
+  const guestDataComplete =
+    guestData.firstName.trim() &&
+    guestData.lastName.trim()  &&
+    guestData.phone.trim()     &&
+    guestData.email.trim()     &&
+    emailOK; 
+
   const [searchText, setSearchText] = useState("");
+
+  const [inputValue, setInputValue] = useState("");
 
   // si tiene que buscar la propiedad por searchBar, le mostramos las opciones que tiene
   const [propertyOptions, setPropertyOptions] = useState<Property[]>([]);
@@ -65,6 +73,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   // pasos del chat
   const [step, setStep] = useState<"greeting" | "confirmProperty" | "searchProperty" | "chat">("greeting");
+
+  const [showWelcome, setShowWelcome] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -94,21 +104,48 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     }
   }, [messages]);
 
-  // que muestre las opciones despues de cada respuesta del sistema
   useEffect(() => {
     if (messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
-    if (lastMsg.from === "system" && (lastMsg.content === "La conversación ha finalizado. Gracias por contactarnos." || lastMsg.content === "Tu consulta ha sido derivada a un asesor. Pronto te atenderán.")) {
-        setShowOptions(false);
-      } else if (lastMsg.from === "system") {
-        setShowOptions(true);
-      }
-      
+      setShowWelcome(false);
     }
   }, [messages]);
 
+  useEffect(() => {
+    if (step === "chat" && showWelcome && !showOptions) {
+        const timer = setTimeout(() => {
+          setShowOptions(true);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+      }
+  }, [step, showWelcome, showOptions]);
+
+  // que muestre las opciones despues de cada respuesta del sistema
+  useEffect(() => {
+    if (step !== "chat" || !property || !sessionId) {
+      if (!showWelcome) setShowOptions(false);
+      return;
+    }
+
+    if (messages.length === 0) return;
+
+    setShowWelcome(false); 
+    
+    const lastMsg = messages[messages.length - 1];
+    if (
+      lastMsg.from === "system" &&
+      lastMsg.content !== "La conversación ha finalizado. Gracias por contactarnos." &&
+      lastMsg.content !== "Tu consulta ha sido derivada a un asesor. Pronto te atenderán."
+    ) {
+      setShowOptions(true);
+    } else {
+      setShowOptions(false);
+    }
+  }, [step, messages, property, sessionId]);
+
   const handleStart = async () => {
     try {
+      if (showForm && !guestDataComplete) return;
       let result;
 
       if (isLogged && info) {
@@ -132,8 +169,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
       } else {
         console.error("Error: result.id es undefined o null", result);
       }
-      setShowOptions(true);
       setStep("chat");
+      setShowWelcome(true);
     } catch (err) {
       console.error(err);
     }
@@ -164,6 +201,25 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     return optionLabels[content] || content;
   };
 
+  const handleTextInput = async (input: string) => {
+    const index = Number(input.trim()) - 1;
+    const keys = Object.keys(optionLabels);
+
+    if (!property || !sessionId) return;
+
+    if (!isNaN(index) && keys[index]) {
+      setShowOptions(false);
+      await sendMessage(keys[index], property.id, sessionId);
+    } else {
+      await sendMessage(input, property.id, sessionId);
+    }
+  };
+
+  const sendCurrentInput = async () => {
+    if (!inputValue.trim()) return;
+    await handleTextInput(inputValue.trim());
+  };
+
   const renderMessages = () => (
     <Box
       sx={{
@@ -175,6 +231,31 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         backgroundColor: "#fff",
       }}
     >
+      {showWelcome && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-start",
+            mb: 1,
+          }}
+        >
+          <Box
+            sx={{
+              maxWidth: "70%",
+              bgcolor: "#FED7AA",
+              color: "#000",
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              borderTopRightRadius: 8,
+            }}
+          >
+            <Typography variant="body2" fontWeight="bold">Sistema</Typography>
+            <Typography>¡Bienvenido! ¿Cómo puedo ayudarte?</Typography>
+          </Box>
+        </Box>
+      )}
+
       {messages.map((msg, i) => {
         const isUser = msg.from === "user";
         const color = isUser ? "#EB7333" : "#FED7AA";
@@ -230,20 +311,14 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
             }}
           >
             <Typography variant="body2" fontWeight="bold">Sistema</Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-              {Object.keys(optionLabels).map((option) => (
-                <Button
-                  key={option}
-                  variant="outlined"
-                  size="small"
-                  onClick={async () => {
-                    if (!property || !sessionId) return;
-                    setShowOptions(false);
-                    await sendMessage(option, property.id, sessionId);
-                  }}
-                >
-                  {optionLabels[option]}
-                </Button>
+            <Typography sx={{ mt: 1 }}>
+              Por favor, seleccioná una de las siguientes opciones escribiendo el número correspondiente:
+            </Typography>
+            <Box component="ul" sx={{ pl: 3, mt: 1 }}>
+              {Object.values(optionLabels).map((label, idx) => (
+                <li key={idx}>
+                  <Typography>{`${idx + 1}. ${label}`}</Typography>
+                </li>
               ))}
             </Box>
           </Box>
@@ -255,31 +330,58 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   );
 
     return (
-      <Dialog open fullWidth maxWidth="sm">
-        <DialogTitle>
-          Chat
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          width: 380,
+          maxHeight: "80vh",
+          boxShadow: 6,
+          borderRadius: 3,
+          border: "1px solid #ccc",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          zIndex: 1500,
+          backgroundColor: "#fff"
+        }}
+      >
+
+        <Box sx={{ p: 2, borderBottom: "1px solid #eee", position: "relative", bgcolor: "#EB7333", color: "#fff" }}>
+          <Typography variant="h6" fontWeight="bold">Asistente Virtual</Typography>
           <IconButton
             aria-label="close"
             onClick={handleClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+            sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
           >
             <CloseIcon />
           </IconButton>
-        </DialogTitle>
-        <DialogContent>
+        </Box>
 
+        <Box sx={{ p: 2, flexGrow: 1, overflowY: "auto" }}>
           {step === "greeting" && (
             <Box>
-              <Typography>Hola, bienvenido.</Typography>
+              <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
+
               {showForm && (
                 <Box mt={2}>
-                  <Typography>Hola, bienvenido. Por favor ingresá tus datos de contacto para comenzar.</Typography>
+                  <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
                   <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
                   <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
-                  <TextField fullWidth label="Email" value={guestData.email} onChange={e => setGuestData({ ...guestData, email: e.target.value })} margin="dense" />
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    value={guestData.email}
+                    onChange={e => setGuestData({ ...guestData, email: e.target.value })}
+                    margin="dense"
+                    error={showForm && !emailOK}
+                    helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
+                  />
                   <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
                 </Box>
               )}
+
               <Box mt={2}>
                 {initialPropertyId ? (
                   <>
@@ -288,7 +390,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                     <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
                   </>
                 ) : (
-                  <Button onClick={() => setStep("searchProperty")} variant="contained" sx={{ mt: 2 }}>
+                  <Button
+                    onClick={() => setStep("searchProperty")}
+                    disabled={showForm && !guestDataComplete}
+                    variant="contained"
+                    sx={{ mt: 2 }}
+                  >
                     Buscar propiedad para consultar
                   </Button>
                 )}
@@ -309,7 +416,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
               />
               <Button
                 onClick={() => setStep("chat")}
-                disabled={!property}
+                disabled={!property || (showForm && !guestDataComplete)}
                 variant="contained"
                 sx={{ mt: 2 }}
               >
@@ -319,23 +426,45 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           )}
 
           {step === "chat" && (
-          <>
-            {renderMessages()}
-          </>
+            <>
+              {renderMessages()}
+            </>
+          )}
+        </Box>
+
+        {step === "chat" && (
+          <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
+            <TextField
+              fullWidth
+              placeholder="Escribí el número de una opción"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={async (e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  await sendCurrentInput();
+                }
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={sendCurrentInput}
+                      disabled={!inputValue.trim()}
+                    >
+                      <SendIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
         )}
 
-        </DialogContent>
-
-        {(sessionLoading || loading) && <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />}
-
-        <DialogActions>
-          {step !== "chat" && (
-            <Button onClick={handleStart} variant="contained" disabled={!property || (showForm && !guestData.firstName)}>
-              Comenzar chat
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
-  );
+        {(sessionLoading || loading) && (
+          <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />
+        )}
+      </Box>
+    );
 }
 
