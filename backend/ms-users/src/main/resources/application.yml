@@ -38,7 +38,7 @@ pi:
     serverUrl: http://localhost:8080/
     realm: obertibussoserviciosinmobiliarios
     clientId: springboot-keycloak-client
-    clientSecret: bqUqMGlePOEkIQxC4c3k7LgHiJALnEM7
+    clientSecret: ZCPO91FLkzqGVkDKBz3cAgihJjyb19Ub
 
 email:
   username: desarrolloinmobertibusso@gmail.com

@@ -47,7 +47,7 @@ export const FloatingButtons = ({
       sx={{
         position: 'fixed',
         bottom: off,
-        right: off + 65,
+        right: off + 70,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
