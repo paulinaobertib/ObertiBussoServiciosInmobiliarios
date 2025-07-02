@@ -31,6 +31,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const { info, isLogged } = useAuthContext();
   const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();
   const { startSessionGuest, startSessionUser, loading: sessionLoading} = useChatSession();
+  const derivingRef = useRef(false);
   
   // mostrar las opciones del chat
   const [showOptions, setShowOptions] = useState(false);
@@ -238,6 +239,9 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           if (keys[index] === "CERRAR") {
             setChatActive(false);
           }
+          if (keys[index] === "DERIVAR") {
+            derivingRef.current = true;
+          }
         } else {
           addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
           setShowOptions(true);
@@ -255,9 +259,23 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   };
 
   useEffect(() => {
-    console.log("MENSAJES", messages);
-  }, [messages]);
+    if (derivingRef.current && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
 
+      if (!lastMsg || !lastMsg.content) return;
+
+      const phoneMatch = lastMsg.content.match(/\+?\d{10,15}/);
+      if (phoneMatch) {
+        const phone = phoneMatch[0];
+        const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad #${property?.title}`);
+        const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
+        window.open(url, "_blank");
+        setChatActive(false);
+      }
+
+      derivingRef.current = false;
+    }
+  }, [messages]);
 
   const renderMessages = () => (
     <Box
