@@ -53,6 +53,7 @@ export const AppointmentForm = () => {
                 comment: notes || 'Quisiera confirmar horario',
                 status: 'ESPERA',
                 availableAppointment: { id: selectedSlotId },
+                appointmentDate: ''
             };
             await createAppointment(body);
             setSubmitted(true);

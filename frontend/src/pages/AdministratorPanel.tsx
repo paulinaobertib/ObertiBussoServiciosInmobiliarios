@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { CategoryPanel } from '../app/property/components/CategoryPanel';
+import { UsersPanel } from '../app/user/components/users/UsersPanel';
 import { PropertyPanel } from '../app/property/components/PropertyPanel';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { UserForm } from '../app/user/components/UserForm';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
 import { AppointmentPanel } from '../app/user/components/appointments/AppointmentPanel';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Profile } from '../app/user/components/users/Profile';
 
 export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();
@@ -37,7 +38,7 @@ export default function AdministratorPanel() {
         {
             key: 'users',
             label: 'USUARIOS',
-            content: <CategoryPanel category="owner" />,
+            content: <UsersPanel />,
         },
         {
             key: 'inquiries',
@@ -59,7 +60,7 @@ export default function AdministratorPanel() {
                 </Button>
             </Box>
 
-                        <Accordion disableGutters
+            <Accordion disableGutters defaultExpanded
                 sx={{
                     bgcolor: 'background.paper',
                     boxShadow: 4,
@@ -84,7 +85,7 @@ export default function AdministratorPanel() {
                     <Typography variant="h6">Mis Datos</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <UserForm />
+                    <Profile />
                 </AccordionDetails>
             </Accordion>
 

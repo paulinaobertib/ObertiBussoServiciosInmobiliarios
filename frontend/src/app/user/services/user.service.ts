@@ -30,7 +30,9 @@ export const getRoles = async (id: string) => {
 /** `/users/user/create`  (admin) */
 export const postUser = async (body: UserCreate) => {
   try {
-    const data = await api.post(`/users/user/create`, body, {
+    // pasamos null como body y body en params
+    const { data } = await api.post(`/users/user/create`, null, {
+      params: body,
       withCredentials: true,
     });
     return data;

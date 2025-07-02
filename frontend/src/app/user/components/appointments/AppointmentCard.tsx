@@ -69,6 +69,14 @@ export const AppointmentCard = ({ appointment, slot, isAdmin = false, onCancel, 
                 </Typography>
             )}
 
+            {/* ─── Comentario opcional ─── */}
+            {appointment.appointmentDate && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                    {appointment.appointmentDate}
+                </Typography>
+            )}
+
+
             <Box sx={{ flexGrow: 1 }} />
 
             {/* ─── Footer con acción ─── */}
