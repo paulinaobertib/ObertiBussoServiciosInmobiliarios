@@ -21,4 +21,10 @@ public class ContractScheduler {
     public void scheduledEndDate() {
         contractService.applyScheduledSoonInactive();
     }
+
+    // el primero de cada mes a las 8 am
+    @Scheduled(cron = "0 0 8 1 * ?", zone = "America/Argentina/Buenos_Aires")
+    public void applyMonthlyRentReminder() {
+        contractService.applyScheduledPayment();
+    }
 }
