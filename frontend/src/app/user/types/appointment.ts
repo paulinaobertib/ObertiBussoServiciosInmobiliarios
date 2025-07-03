@@ -6,7 +6,7 @@ export interface AvailableAppointment {
   availability: boolean;
 }
 
-export interface AvailableAppointmentDTO {
+export interface AvailableAppointmentCreate {
   date: string; 
   startTime: string;    
   endTime: string;
@@ -18,6 +18,7 @@ export interface Appointment {
   comment?: string;
   status: AppointmentStatus;
   availableAppointment: Pick<AvailableAppointment, 'id'>;
+  appointmentDate: string;
 }
 
 export type AppointmentCreate = Omit<Appointment, "id">;

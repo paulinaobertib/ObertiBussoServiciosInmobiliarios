@@ -1,12 +1,12 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { Box, Avatar, Typography, TextField, Grid, Stack, Button, IconButton, useTheme } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useAuthContext } from '../../user/context/AuthContext';
-import { putUser } from '../../user/services/user.service';
-import { useGlobalAlert } from '../../shared/context/AlertContext';
-import type { User } from '../../user/types/user';
+import { useAuthContext } from '../../context/AuthContext';
+import { putUser } from '../../services/user.service';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import type { User } from '../../types/user';
 
-export const UserForm = () => {
+export const Profile = () => {
     const theme = useTheme();
     const { info, setInfo } = useAuthContext();
     const { showAlert } = useGlobalAlert();
@@ -55,8 +55,6 @@ export const UserForm = () => {
     return (
         <Box
             sx={{
-                mt: 2,
-                p: 2,
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
                 gap: 2,

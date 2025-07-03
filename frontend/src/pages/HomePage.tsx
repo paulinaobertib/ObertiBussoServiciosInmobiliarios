@@ -83,7 +83,7 @@ export default function Home() {
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', width: { xs: '70%' } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center'}}>
             <SearchBar
               fetchAll={getAllProperties}
               fetchByText={getPropertiesByText}
@@ -133,6 +133,6 @@ export default function Home() {
         onCompare={handleCompare}
         compareCount={selectedPropertyIds.length}
       />
-    </BasePage>
+    </BasePage >
   );
 }

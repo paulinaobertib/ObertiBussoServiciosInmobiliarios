@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Box, TextField, CircularProgress } from '@mui/material';
+import { useState, useEffect } from "react";
+import { Box, TextField, InputAdornment, CircularProgress } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
 type SearchBarProps = {
   fetchAll: () => Promise<any[]>;
@@ -13,10 +14,10 @@ export const SearchBar = ({
   fetchAll,
   fetchByText,
   onSearch,
-  placeholder = 'Buscar…',
+  placeholder = "Buscar…",
   debounceMs = 300,
 }: SearchBarProps) => {
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,29 +29,30 @@ export const SearchBar = ({
         .catch(() => onSearch([]))
         .finally(() => setLoading(false));
     }, debounceMs);
-
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
   return (
-    <Box display="flex" alignItems="center" width="50%">
+    <Box display="flex" alignItems="center">
       <TextField
         size="small"
         fullWidth
         placeholder={placeholder}
         value={q}
-        onChange={e => setQ(e.target.value)}
+        onChange={(e) => setQ(e.target.value)}
         InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
           endAdornment: (
-            <CircularProgress
-              size={18}
-              sx={{
-                visibility: loading ? 'visible' : 'hidden',
-                width: 18,
-                height: 18,
-              }}
-            />
+            <InputAdornment position="end">
+              <CircularProgress
+                size={18}
+                sx={{ visibility: loading ? "visible" : "hidden" }}
+              />
+            </InputAdornment>
           ),
         }}
       />

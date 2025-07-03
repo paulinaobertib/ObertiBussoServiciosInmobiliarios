@@ -1,79 +1,94 @@
 import { useEffect, useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Box, Button, Chip, Stack, Tooltip, Typography, Grid } from '@mui/material';
+import { Box, Button, Chip, Stack, Typography, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
-import { getAllAvailabilities, deleteAvailability, getAppointmentsByStatus, updateAppointmentStatus } from '../../services/appointment.service';
+import {
+  getAllAvailabilities,
+  getAvailableAppointments,
+  getAppointmentsByStatus,
+  updateAppointmentStatus,
+  deleteAvailability,
+} from '../../services/appointment.service';
 import { getUserById } from '../../services/user.service';
 
-import { Appointment, AvailableAppointment } from '../../types/appointment';
+import { Appointment, AvailableAppointment, AppointmentStatus } from '../../types/appointment';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { Modal } from '../../../shared/components/Modal';
 import { AppointmentGenerator } from './AppointmentGenerator';
 import { User } from '../../types/user';
 
-/* ─── filtros ─────────────────────────────────────────────────────── */
-
 type Filters = 'TODOS' | 'DISPONIBLE' | 'ESPERA' | 'ACEPTADO' | 'RECHAZADO';
-
 const FILTERS = [
   { label: 'Todos', value: 'TODOS' },
   { label: 'Disponibles', value: 'DISPONIBLE' },
   { label: 'Pendientes', value: 'ESPERA' },
-  { label: 'Ocupados', value: 'ACEPTADO' },
+  { label: 'Aceptados', value: 'ACEPTADO' },
   { label: 'Rechazados', value: 'RECHAZADO' },
 ] as const;
 
-/* ─── helpers ─────────────────────────────────────────────────────── */
-
-const isAppointment = (
-  d: Appointment | AvailableAppointment | null,
-): d is Appointment => !!d && 'status' in d;
-
-/* ─── componente ──────────────────────────────────────────────────── */
+const isAppointment = (d: Appointment | AvailableAppointment | null): d is Appointment =>
+  !!d && 'status' in d;
 
 export const AppointmentPanel = () => {
   const { isAdmin } = useAuthContext();
-
   const [slots, setSlots] = useState<AvailableAppointment[]>([]);
-  const [apptsBySlot, setAppts] = useState<Record<number, Appointment>>(
-    {},
-  );
+  const [apptsBySlot, setAppts] = useState<Record<number, Appointment>>({});
   const [filter, setFilter] = useState<Filters>('TODOS');
   const [loading, setLoading] = useState(false);
 
   const [modalMode, setModalMode] = useState<'gen' | 'info' | null>(null);
-  const [modalData, setModalData] =
-    useState<Appointment | AvailableAppointment | null>(null);
+  const [modalData, setModalData] = useState<Appointment | AvailableAppointment | null>(null);
   const [modalUser, setModalUser] = useState<User | null>(null);
   const [btnLoading, setBtnLoading] = useState(false);
-
-  /* ── 1) carga inicial ──────────────────────────────────────────── */
 
   const load = async () => {
     setLoading(true);
     try {
-      const [
-        slotsRes,
-        pendRes,
-        accRes,
-        rejRes,
-      ] = await Promise.all([
-        getAllAvailabilities(),
-        getAppointmentsByStatus('ESPERA'),
-        getAppointmentsByStatus('ACEPTADO'),
-        getAppointmentsByStatus('RECHAZADO'),
-      ]);
-
-      setSlots(slotsRes.data);
-
-      const dict: Record<number, Appointment> = {};
-      [...pendRes.data, ...accRes.data, ...rejRes.data].forEach(
-        (a: Appointment) => {
-          dict[a.availableAppointment.id] = a;
-        },
-      );
-      setAppts(dict);
+      switch (filter) {
+        case 'DISPONIBLE': {
+          const res = await getAvailableAppointments();
+          setSlots(res.data);
+          setAppts({});
+          break;
+        }
+        case 'ESPERA':
+        case 'ACEPTADO':
+        case 'RECHAZADO': {
+          const status = filter as AppointmentStatus;
+          const res = await getAppointmentsByStatus(status);
+          const pseudo = res.data.map((a: { availableAppointment: { id: any; }; id: any; appointmentDate: any; }) => ({
+            id: a.availableAppointment?.id ?? a.id,
+            date: a.appointmentDate,
+            availability: false,
+          }));
+          setSlots(pseudo);
+          const dict: Record<number, Appointment> = {};
+          res.data.forEach((a: Appointment) => {
+            const key = a.availableAppointment?.id ?? a.id;
+            dict[key] = a;
+          });
+          setAppts(dict);
+          break;
+        }
+        case 'TODOS':
+        default: {
+          const [slotsRes, pendRes, accRes] = await Promise.all([
+            getAllAvailabilities(),
+            getAppointmentsByStatus('ESPERA'),
+            getAppointmentsByStatus('ACEPTADO'),
+          ]);
+          setSlots(slotsRes.data);
+          const dict: Record<number, Appointment> = {};
+          pendRes.data.forEach((a: Appointment) => {
+            if (a.availableAppointment) dict[a.availableAppointment.id] = a;
+          });
+          accRes.data.forEach((a: Appointment) => {
+            if (a.availableAppointment) dict[a.availableAppointment.id] = a;
+          });
+          setAppts(dict);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -81,52 +96,46 @@ export const AppointmentPanel = () => {
 
   useEffect(() => {
     if (isAdmin) load();
-  }, [isAdmin]);
-
-  /* ── 2) sets precalculados ─────────────────────────────────────── */
+  }, [isAdmin, filter]);
 
   const pendingIds = useMemo(
     () =>
       new Set(
         Object.values(apptsBySlot)
           .filter(a => a.status === 'ESPERA')
-          .map(a => a.availableAppointment.id),
+          .map(a => a.availableAppointment?.id ?? a.id)
       ),
-    [apptsBySlot],
+    [apptsBySlot]
   );
-
   const acceptedIds = useMemo(
     () =>
       new Set(
         Object.values(apptsBySlot)
           .filter(a => a.status === 'ACEPTADO')
-          .map(a => a.availableAppointment.id),
+          .map(a => a.availableAppointment!.id)
       ),
-    [apptsBySlot],
+    [apptsBySlot]
   );
-
   const rejectedIds = useMemo(
     () =>
       new Set(
-        Object.values(apptsBySlot)
-          .filter(a => a.status === 'RECHAZADO')
-          .map(a => a.availableAppointment.id),
+        Object.entries(apptsBySlot)
+          .filter(([, a]) => a.status === 'RECHAZADO')
+          .map(([slotId]) => Number(slotId))
       ),
-    [apptsBySlot],
+    [apptsBySlot]
   );
 
   const stateOf = (s: AvailableAppointment) =>
     s.availability
       ? 'DISPONIBLE'
       : pendingIds.has(s.id)
-        ? 'PENDIENTE'
+        ? 'ESPERA'
         : acceptedIds.has(s.id)
           ? 'ACEPTADO'
           : rejectedIds.has(s.id)
             ? 'RECHAZADO'
             : 'OCUPADO';
-
-  /* ── 3) filtros y agrupado ─────────────────────────────────────── */
 
   const visible = slots
     .filter(s => !dayjs(s.date).isBefore(dayjs().startOf('day')))
@@ -147,10 +156,7 @@ export const AppointmentPanel = () => {
     });
     return g;
   }, [visible]);
-
   const dates = Object.keys(byDate).sort();
-
-  /* ── 4) acciones de modal ─────────────────────────────────────── */
 
   const openSlot = async (s: AvailableAppointment) => {
     const data = apptsBySlot[s.id] ?? s;
@@ -161,9 +167,7 @@ export const AppointmentPanel = () => {
       try {
         const res = await getUserById(data.userId);
         setModalUser(res.data);
-      } catch {
-        /* noop */
-      }
+      } catch { }
     }
   };
 
@@ -174,7 +178,6 @@ export const AppointmentPanel = () => {
     setBtnLoading(false);
     setModalMode(null);
   };
-
   const rejectOrCancel = async (a: Appointment) => {
     setBtnLoading(true);
     await updateAppointmentStatus(a.id, 'RECHAZADO');
@@ -182,16 +185,13 @@ export const AppointmentPanel = () => {
     setBtnLoading(false);
     setModalMode(null);
   };
-
-  const removeSlot = async (slotId: number) => {
+  const removeSlot = async (id: number) => {
     setBtnLoading(true);
-    await deleteAvailability(slotId);
+    await deleteAvailability(id);
     await load();
     setBtnLoading(false);
     setModalMode(null);
   };
-
-  /* ── 5) render ─────────────────────────────────────────────────── */
 
   if (!isAdmin) {
     return (
@@ -203,16 +203,15 @@ export const AppointmentPanel = () => {
 
   return (
     <>
-      {/* ─── barra superior ─── */}
+      {/* Botón y filtros */}
       <Stack
         direction="row"
         spacing={2}
-        sx={{ mb: 3, px: 3, mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+        sx={{ mb: 3, px: 3, mt: 1, alignItems: 'center', gap: 1 }}
       >
         <Button variant="contained" onClick={() => setModalMode('gen')}>
           Generar turnos
         </Button>
-
         {FILTERS.map(f => (
           <Chip
             key={f.value}
@@ -225,50 +224,52 @@ export const AppointmentPanel = () => {
         ))}
       </Stack>
 
-      {/* ─── grilla ─── */}
+      {/* Listado de slots por fecha */}
       <Box sx={{ px: 3 }}>
         {loading ? (
           <Typography>Cargando…</Typography>
         ) : dates.length === 0 ? (
           <Typography color="text.secondary">Sin turnos.</Typography>
         ) : (
-          dates.map(d => (
-            <Box key={d} sx={{ mb: 2 }}>
+          dates.map(date => (
+            <Box key={date} sx={{ mb: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-                {dayjs(d).format('DD/MM/YYYY')}
+                {dayjs(date).format('DD/MM/YYYY')}
               </Typography>
-
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                {byDate[d].map(s => (
-                  <Tooltip key={s.id} title={stateOf(s)}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
+                  gap: 1,
+                }}
+              >
+                {byDate[date].map(slot => {
+                  const st = stateOf(slot);
+                  return (
                     <Button
+                      key={slot.id}
                       size="small"
-                      variant={s.availability ? 'contained' : 'outlined'}
+                      variant={slot.availability ? 'contained' : 'outlined'}
                       color={
-                        s.availability
-                          ? 'success'
-                          : pendingIds.has(s.id)
-                            ? 'warning'
-                            : acceptedIds.has(s.id)
-                              ? 'info'
-                              : rejectedIds.has(s.id)
-                                ? 'error'
+                        slot.availability ? 'success'
+                          : st === 'ESPERA' ? 'warning'
+                            : st === 'ACEPTADO' ? 'info'
+                              : st === 'RECHAZADO' ? 'error'
                                 : undefined
                       }
-                      sx={{ minWidth: 64 }}
-                      onClick={() => openSlot(s)}
-                    >
-                      {s.date.slice(11, 16)}
-                    </Button>
-                  </Tooltip>
-                ))}
-              </Stack>
+                      sx={{ minWidth: 64, height: 32 }}
+                      onClick={() => openSlot(slot)}
+                    >{slot.date.slice(11, 16)}</Button>
+                  );
+                })}
+              </Box>
             </Box>
           ))
         )}
       </Box>
 
-      {/* ─── modal Generar ─── */}
+
+      {/* Modal Generar Turnos */}
       <Modal
         open={modalMode === 'gen'}
         title="Generar turnos"
@@ -277,65 +278,90 @@ export const AppointmentPanel = () => {
         <AppointmentGenerator onCreated={load} />
       </Modal>
 
-      {/* ─── modal Info ─── */}
+      {/* Modal Detalle de Turno */}
       <Modal
         open={modalMode === 'info'}
         title="Detalle del turno"
         onClose={() => setModalMode(null)}
       >
         {modalData && isAppointment(modalData) ? (
-          <Box sx={{ p: 3, minWidth: 360 }}>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12 }}>
-                <Typography align="center" fontWeight={700}>
-                  {modalUser?.firstName} {modalUser?.lastName}
-                </Typography>
-              </Grid>
+          <Box sx={{}}>
 
-              <Grid size={{ xs: 12 }}>
-                <Typography variant="subtitle2">Email</Typography>
-                {modalUser?.email || '—'}
-              </Grid>
+            {/* Tabla de detalles */}
+            <TableContainer
+              component={Box}
+              sx={{
+                '& td:first-of-type': {
+                  borderRight: 1,
+                  borderColor: 'divider',
+                  textAlign: 'center',
+                  verticalAlign: 'middle',
+                },
+              }}
+            >
+              <Table size="small">
+                <TableBody >
+                  {/* Usuario */}
+                  <TableRow >
+                    <TableCell sx={{ fontWeight: 600, width: '30%' }}>Usuario</TableCell>
+                    <TableCell>
+                      {modalUser?.firstName} {modalUser?.lastName}
+                    </TableCell>
+                  </TableRow>
+                  {/* Fecha */}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
+                    <TableCell>
+                      {dayjs(modalData.appointmentDate).format('DD/MM/YYYY')}
+                    </TableCell>
+                  </TableRow>
+                  {/* Hora */}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Hora</TableCell>
+                    <TableCell>
+                      {dayjs(modalData.appointmentDate).format('HH:mm')}
+                    </TableCell>
+                  </TableRow>
+                  {/* Email */}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                    <TableCell>{modalUser?.email || '—'}</TableCell>
+                  </TableRow>
+                  {/* Teléfono */}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Teléfono</TableCell>
+                    <TableCell>{modalUser?.phone || '—'}</TableCell>
+                  </TableRow>
+                  {/* Comentario */}
+                  {modalData.comment && (
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>Comentario</TableCell>
+                      <TableCell>{modalData.comment}</TableCell>
+                    </TableRow>
+                  )}
+                  {/* Estado */}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Estado del Turno</TableCell>
+                    <TableCell>{modalData.status}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-              <Grid size={{ xs: 12 }}>
-                <Typography variant="subtitle2">Teléfono</Typography>
-                {modalUser?.phone || '—'}
-              </Grid>
-
-              {modalData.comment && (
-                <Grid size={{ xs: 12 }}>
-                  <Typography variant="subtitle2">Comentario</Typography>
-                  {modalData.comment}
-                </Grid>
-              )}
-
-              <Grid size={{ xs: 12 }}>
-                <Typography variant="subtitle2">Estado</Typography>
-                <Chip
-                  label={modalData.status}
-                  color={
-                    modalData.status === 'ACEPTADO'
-                      ? 'primary'
-                      : modalData.status === 'ESPERA'
-                        ? 'warning'
-                        : 'error' /* RECHAZADO */
-                  }
-                />
-              </Grid>
-            </Grid>
-
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
+            {/* Botones de acción */}
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 1.5 }}>
               {modalData.status === 'ESPERA' && (
                 <>
                   <LoadingButton
+                    size="small"
                     loading={btnLoading}
                     variant="contained"
                     onClick={() => acceptAppt(modalData)}
                   >
                     Aceptar
                   </LoadingButton>
-
                   <LoadingButton
+                    size="small"
                     loading={btnLoading}
                     variant="outlined"
                     color="error"
@@ -346,31 +372,40 @@ export const AppointmentPanel = () => {
                 </>
               )}
 
+              {/* Solo en “ACEPTADO” */}
               {modalData.status === 'ACEPTADO' && (
                 <LoadingButton
+                  size="small"
+                  fullWidth
                   loading={btnLoading}
-                  variant="outlined"
+                  variant="contained"
                   color="error"
                   onClick={() => rejectOrCancel(modalData)}
+                  sx={{ maxWidth: 200 }}
                 >
                   Cancelar turno
                 </LoadingButton>
               )}
             </Box>
           </Box>
-        ) : modalData ? (
+        ) : (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography mb={2}>Este turno se encuentra disponible.</Typography>
+            <Typography variant="body2" gutterBottom>
+              No hay turno para este slot.
+            </Typography>
             <LoadingButton
+              size="small"
+              fullWidth
               loading={btnLoading}
-              variant="outlined"
+              variant="contained"
               color="error"
               onClick={() => removeSlot((modalData as AvailableAppointment).id)}
+              sx={{ maxWidth: 200 }}
             >
               Eliminar slot
             </LoadingButton>
           </Box>
-        ) : null}
+        )}
       </Modal>
     </>
   );
