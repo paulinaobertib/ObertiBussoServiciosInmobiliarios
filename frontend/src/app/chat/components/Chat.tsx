@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from "@mui/icons-material/Send";
+import RemoveIcon from "@mui/icons-material/RemoveRounded";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUpRounded";
 import { useEffect, useState, useRef } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { useChatSession } from "../hooks/useChatSession";
@@ -28,6 +30,9 @@ interface ChatProps {
 }
 
 export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
+  // mostrar el chat
+  const [collapsed, setCollapsed] = useState(false);
+
   const { info, isLogged } = useAuthContext();
   const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();
   const { startSessionGuest, startSessionUser, loading: sessionLoading} = useChatSession();
@@ -207,6 +212,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     if (sessionId && property && lastMsg.content != "La conversación ha finalizado. Gracias por contactarnos." && lastMsg.content != "Tu consulta ha sido derivada a un asesor. Pronto te atenderán.") {
       try {
         await sendMessage("CERRAR", property.id, sessionId);
+        setCollapsed(true);
         setChatActive(false);
       } catch (err) {
         console.error("Error al enviar mensaje de cierre:", err);
@@ -393,7 +399,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           bottom: 20,
           right: 20,
           width: 380,
-          maxHeight: "80vh",
+          maxHeight: collapsed ? "auto" : "80vh",
           boxShadow: 6,
           borderRadius: 3,
           border: "1px solid #ccc",
@@ -401,14 +407,24 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           display: "flex",
           flexDirection: "column",
           zIndex: 1500,
-          backgroundColor: "#fff"
+          backgroundColor: "#fff",
+          transition: "max-height 0.2s ease"
         }}
       >
 
         <Box sx={{ p: 2, borderBottom: "1px solid #eee", position: "relative", bgcolor: "#EB7333", color: "#fff" }}>
           <Typography variant="h6" fontWeight="bold">Asistente Virtual</Typography>
+
           <IconButton
-            aria-label="close"
+            aria-label={collapsed ? "Restaurar chat" : "Minimizar chat"}
+            onClick={() => setCollapsed(!collapsed)}
+            sx={{ position: "absolute", right: 48, top: 8, color: "#fff" }}
+          >
+            {collapsed ? <KeyboardArrowUpIcon /> : <RemoveIcon />}
+          </IconButton>
+
+          <IconButton
+            aria-label="Cerrar chat"
             onClick={handleClose}
             sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
           >
@@ -416,122 +432,126 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           </IconButton>
         </Box>
 
-        <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {step === "greeting" && (
-            <Box>
-              <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
+        {!collapsed && (
+          <>
+            <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+              {step === "greeting" && (
+                <Box>
+                  <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
 
-              {showForm && (
-                <Box mt={2}>
-                  <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
-                  <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
-                  <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    value={guestData.email}
-                    onChange={e => setGuestData({ ...guestData, email: e.target.value })}
-                    margin="dense"
-                    error={showForm && !emailOK}
-                    helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
-                  />
-                  <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
+                  {showForm && (
+                    <Box mt={2}>
+                      <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
+                      <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
+                      <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
+                      <TextField
+                        fullWidth
+                        label="Email"
+                        value={guestData.email}
+                        onChange={e => setGuestData({ ...guestData, email: e.target.value })}
+                        margin="dense"
+                        error={showForm && !emailOK}
+                        helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
+                      />
+                      <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
+                    </Box>
+                  )}
+
+                  <Box mt={2}>
+                    {initialPropertyId ? (
+                      <>
+                        <Typography>¿Querés consultar sobre esta propiedad?</Typography>
+                        <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>Sí</Button>
+                        <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => setStep("searchProperty")}
+                        disabled={showForm && !guestDataComplete}
+                        variant="contained"
+                        sx={{ mt: 2 }}
+                      >
+                        Buscar propiedad para consultar
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
               )}
 
-              <Box mt={2}>
-                {initialPropertyId ? (
-                  <>
-                    <Typography>¿Querés consultar sobre esta propiedad?</Typography>
-                    <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>Sí</Button>
-                    <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
-                  </>
-                ) : (
+              {step === "searchProperty" && (
+                <Box mt={2}>
+                  <Autocomplete
+                    fullWidth
+                    options={propertyOptions}
+                    getOptionLabel={(opt) => opt.title}
+                    onInputChange={(_, value) => handlePropertySearch(value)}
+                    onChange={(_, val) => setProperty(val)}
+                    renderInput={(params) => <TextField {...params} label="Buscar propiedad" />}
+                    noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
+                  />
                   <Button
-                    onClick={() => setStep("searchProperty")}
-                    disabled={showForm && !guestDataComplete}
+                    onClick={handleStart}
+                    disabled={!property || (showForm && !guestDataComplete)}
                     variant="contained"
                     sx={{ mt: 2 }}
                   >
-                    Buscar propiedad para consultar
+                    Confirmar propiedad
                   </Button>
-                )}
-              </Box>
-            </Box>
-          )}
+                </Box>
+              )}
 
-          {step === "searchProperty" && (
-            <Box mt={2}>
-              <Autocomplete
-                fullWidth
-                options={propertyOptions}
-                getOptionLabel={(opt) => opt.title}
-                onInputChange={(_, value) => handlePropertySearch(value)}
-                onChange={(_, val) => setProperty(val)}
-                renderInput={(params) => <TextField {...params} label="Buscar propiedad" />}
-                noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
-              />
-              <Button
-                onClick={handleStart}
-                disabled={!property || (showForm && !guestDataComplete)}
-                variant="contained"
-                sx={{ mt: 2 }}
-              >
-                Confirmar propiedad
-              </Button>
-            </Box>
-          )}
-
-          {step === "chat" && (
-            <>
-            {property && (
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}
-              >
-                Propiedad en consulta: {property?.title || `#${property?.id}`}
-              </Typography>
-            )}
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleChangeProperty}
-              sx={{ mb: 1 }}
-            >
-              Consultar por otra propiedad
-            </Button>
-              {renderMessages()}
-            </>
-          )}
-        </Box>
-
-        {step === "chat" && chatActive && (
-          <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
-            <TextField
-              fullWidth
-              placeholder="Escribí el número de una opción"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={async (e: React.KeyboardEvent<HTMLInputElement>) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  await sendCurrentInput();
-                }
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={sendCurrentInput}
-                      disabled={!inputValue.trim()}
+              {step === "chat" && (
+                <>
+                  {property && (
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}
                     >
-                      <SendIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
+                      Propiedad en consulta: {property?.title || `#${property?.id}`}
+                    </Typography>
+                  )}
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleChangeProperty}
+                    sx={{ mb: 1 }}
+                  >
+                    Consultar por otra propiedad
+                  </Button>
+                  {renderMessages()}
+                </>
+              )}
+            </Box>
+
+            {step === "chat" && chatActive && (
+              <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
+                <TextField
+                  fullWidth
+                  placeholder="Escribí el número de una opción"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      await sendCurrentInput();
+                    }
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={sendCurrentInput}
+                          disabled={!inputValue.trim()}
+                        >
+                          <SendIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+            )}
+          </>
         )}
 
         {(sessionLoading || loading) && (
@@ -540,4 +560,3 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
       </Box>
     );
 }
-
