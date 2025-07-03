@@ -296,4 +296,29 @@ public class EmailService implements IEmailService {
             throw new RuntimeException("Error al enviar recordatorio de vencimiento: " + e.getMessage(), e);
         }
     }
+
+    // aviso de pago de alquiler
+    @Override
+    public void sendRentPaymentReminder(EmailPaymentReminderDTO emailData) {
+        try {
+            Context context = new Context();
+            context.setVariable("name", emailData.getFirstName());
+            context.setVariable("amount", emailData.getAmount());
+            context.setVariable("currency", emailData.getCurrency());
+            context.setVariable("dueDate", emailData.getDueDate());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(emailData.getTo());
+            helper.setSubject("Recordatorio de pago de alquiler");
+
+            String content = templateEngine.process("email_rent_payment_reminder", context);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar el recordatorio de alquiler: " + e.getMessage(), e);
+        }
+    }
+
 }

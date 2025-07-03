@@ -29,7 +29,7 @@ public class ChatSessionService implements IChatSessionService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void createFromUser(String userId, Long propertyId) {
+    public Long createFromUser(String userId, Long propertyId) {
         if (!userRepository.exist(userId)) {
             throw new RuntimeException("No se ha encontrado al usuario con ID: " + userId);
         }
@@ -50,11 +50,13 @@ public class ChatSessionService implements IChatSessionService {
 
         chatSession.setProperty(property);
 
-        chatSessionRepository.save(chatSession);
+        ChatSession chatSessionCreated = chatSessionRepository.save(chatSession);
+
+        return chatSessionCreated.getId();
     }
 
     @Override
-    public void createWithoutUser(ChatSessionDTO dto) {
+    public Long createWithoutUser(ChatSessionDTO dto) {
         if (dto.getFirstName() == null || dto.getEmail() == null || dto.getPhone() == null || dto.getLastName() == null) {
             throw new IllegalArgumentException("Faltan datos obligatorios para crear la sesión sin usuario.");
         }
@@ -68,7 +70,9 @@ public class ChatSessionService implements IChatSessionService {
 
         chatSession.setProperty(property);
 
-        chatSessionRepository.save(chatSession);
+        ChatSession chatSessionCreated = chatSessionRepository.save(chatSession);
+
+        return chatSessionCreated.getId();
     }
 
     @Override

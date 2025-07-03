@@ -18,6 +18,7 @@ import org.thymeleaf.context.Context;
 import pi.ms_users.service.impl.EmailService;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -226,6 +227,26 @@ class EmailServiceTest {
         verify(templateEngine).process(eq("email_new_interest_property.html"), any(Context.class));
         verify(javaMailSender).send(mimeMessage);
     }
+
+    @Test
+    void sendRentPaymentReminder_success() {
+        // Preparar el DTO con datos de ejemplo
+        EmailPaymentReminderDTO dto = new EmailPaymentReminderDTO();
+        dto.setTo("cliente@mail.com");
+        dto.setFirstName("Juan");
+        dto.setAmount(new BigDecimal("15000"));
+        dto.setCurrency(ContractIncreaseCurrency.ARS);
+        dto.setDueDate(LocalDate.of(2025, 7, 2));
+
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("email_rent_payment_reminder"), any(Context.class))).thenReturn("contenido-email");
+
+        emailService.sendRentPaymentReminder(dto);
+
+        verify(javaMailSender).send(mimeMessage);
+        verify(templateEngine).process(eq("email_rent_payment_reminder"), any(Context.class));
+    }
+
 
     // casos de error
 

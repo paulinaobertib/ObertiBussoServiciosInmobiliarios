@@ -8,11 +8,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
+import pi.ms_users.dto.*;
 import pi.ms_users.dto.feign.PropertyDTO;
-import pi.ms_users.dto.ContractDTO;
-import pi.ms_users.dto.ContractIncreaseDTO;
-import pi.ms_users.dto.EmailContractDTO;
-import pi.ms_users.dto.EmailExpirationContract;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -24,6 +21,7 @@ import pi.ms_users.service.interf.IEmailService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -265,6 +263,46 @@ public class ContractService implements IContractService {
                 emailService.sendContractExpirationReminder(emailData);
             } catch (Exception e) {
                 System.err.println("Error al enviar recordatorio de vencimiento: " + e.getMessage());
+            }
+        }
+    }
+
+    // Para avisar del pago del alquiler
+    @Transactional
+    public void applyScheduledPayment() {
+        if (LocalDate.now().getDayOfMonth() != 1) return;
+
+        List<Contract> contracts = contractRepository.findByStatus(ContractStatus.ACTIVO);
+
+        for (Contract contract : contracts) {
+            Optional<User> userOpt = userRepository.findById(contract.getUserId());
+            if (userOpt.isEmpty()) continue;
+
+            User user = userOpt.get();
+
+            LocalDateTime now = LocalDateTime.now();
+            Optional<ContractIncrease> latestIncreaseOpt = contract.getContractIncrease().stream()
+                    .filter(i -> !i.getDate().isAfter(now))
+                    .max(Comparator.comparing(ContractIncrease::getDate));
+
+            if (latestIncreaseOpt.isEmpty()) {
+                System.err.println("Contrato sin aumentos vigentes: " + contract.getId());
+                continue;
+            }
+
+            ContractIncrease latestIncrease = latestIncreaseOpt.get();
+
+            EmailPaymentReminderDTO reminder = new EmailPaymentReminderDTO();
+            reminder.setTo(user.getEmail());
+            reminder.setFirstName(user.getFirstName());
+            reminder.setDueDate(LocalDate.now());
+            reminder.setAmount(latestIncrease.getAmount());
+            reminder.setCurrency(latestIncrease.getCurrency());
+
+            try {
+                emailService.sendRentPaymentReminder(reminder);
+            } catch (Exception e) {
+                System.err.println("Error al enviar recordatorio de alquiler: " + e.getMessage());
             }
         }
     }
