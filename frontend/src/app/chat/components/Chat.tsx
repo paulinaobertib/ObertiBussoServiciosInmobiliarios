@@ -18,6 +18,7 @@ import { useChatSession } from "../hooks/useChatSession";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { getPropertiesByText } from "../../property/services/property.service";
 import { ChatSessionDTO } from "../types/chatSession";
+import { usePropertyCrud } from "../../property/context/PropertiesContext";
 
 interface Property {
   id: number;
@@ -32,6 +33,8 @@ interface ChatProps {
 export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // mostrar el chat
   const [collapsed, setCollapsed] = useState(false);
+
+  const { propertiesList } = usePropertyCrud();
 
   const { info, isLogged } = useAuthContext();
   const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();
@@ -102,9 +105,14 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // si la propiedad viene desde una card
   useEffect(() => {
     if (initialPropertyId) {
-      setProperty({id: initialPropertyId, title: ""});
+      const found = propertiesList.find(p => p.id === initialPropertyId);
+      if (found) {
+        setProperty(found);
+      } else {
+        setProperty({ id: initialPropertyId, title: "" });
+      }
     }
-  }, [initialPropertyId]);
+  }, [initialPropertyId, propertiesList]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -247,6 +255,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           }
           if (keys[index] === "DERIVAR") {
             derivingRef.current = true;
+            setTimeout(() => {
+              setCollapsed(true);
+              setChatActive(false);
+              clearMessages();
+              if (onClose) onClose();
+            }, 1000);
           }
         } else {
           addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
@@ -273,7 +287,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
       const phoneMatch = lastMsg.content.match(/\+?\d{10,15}/);
       if (phoneMatch) {
         const phone = phoneMatch[0];
-        const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad #${property?.title}`);
+        const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad ${property?.title}`);
         const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
         window.open(url, "_blank");
         setChatActive(false);
