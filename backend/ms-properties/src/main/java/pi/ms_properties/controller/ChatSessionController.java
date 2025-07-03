@@ -19,13 +19,13 @@ public class ChatSessionController {
 
     @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/createUser")
-    public void createSessionUser(@RequestParam("userId") String userId, @RequestParam("propertyId") Long propertyId) {
-        chatSessionService.createFromUser(userId, propertyId);
+    public Long createSessionUser(@RequestParam("userId") String userId, @RequestParam("propertyId") Long propertyId) {
+        return chatSessionService.createFromUser(userId, propertyId);
     }
 
     @PostMapping("/create")
-    public void createSession(@RequestBody ChatSessionDTO chatSessionDTO) {
-        chatSessionService.createWithoutUser(chatSessionDTO);
+    public Long createSession(@RequestBody ChatSessionDTO chatSessionDTO) {
+        return chatSessionService.createWithoutUser(chatSessionDTO);
     }
 
     @PreAuthorize("hasRole('admin')")

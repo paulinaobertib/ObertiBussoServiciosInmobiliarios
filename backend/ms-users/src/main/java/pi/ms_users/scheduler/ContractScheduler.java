@@ -19,7 +19,12 @@ public class ContractScheduler {
     // todos los dias a las 8 am
     @Scheduled(cron = "0 0 8 * * *")
     public void scheduledEndDate() {
-        System.out.println("ejecutandoooooo");
         contractService.applyScheduledSoonInactive();
+    }
+
+    // el primero de cada mes a las 8 am
+    @Scheduled(cron = "0 0 8 1 * ?", zone = "America/Argentina/Buenos_Aires")
+    public void applyMonthlyRentReminder() {
+        contractService.applyScheduledPayment();
     }
 }
