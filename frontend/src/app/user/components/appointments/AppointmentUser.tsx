@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import {
@@ -13,8 +12,8 @@ import {
 } from '../../types/appointment';
 import {
     getAppointmentsByUser,
-    getAllAvailabilities,
     deleteAppointment,
+    getAllAvailabilities,      // <—+++++++++
 } from '../../services/appointment.service';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { AppointmentCard } from './AppointmentCard';
@@ -25,41 +24,46 @@ export const AppointmentUser = () => {
     const [appts, setAppts] = useState<Appointment[]>([]);
     const [slotMap, setSlotMap] = useState<Record<number, AvailableAppointment>>({});
     const [loading, setLoading] = useState(false);
-    const [_, setActionId] = useState<number | null>(null);
 
-    /* 2 ─ Cargar citas + slots */
+    /* ─── Carga de citas y slots ─── */
     const load = async () => {
         if (!info) return;
         setLoading(true);
-        const [aRes, sRes] = await Promise.all([
-            getAppointmentsByUser(info.id),
-            getAllAvailabilities(),
-        ]);
-        setAppts(aRes.data as Appointment[]);
+        try {
+            // 1) traigo las citas del usuario
+            const aRes = await getAppointmentsByUser(info.id);
+            const apptsData = aRes.data as Appointment[];
+            setAppts(apptsData);
 
-        const map: Record<number, AvailableAppointment> = {};
-        (sRes.data as AvailableAppointment[]).forEach(s => (map[s.id] = s));
-        setSlotMap(map);
-        setLoading(false);
+            // 2) traigo *todos* los slots completos
+            const slotsRes = await getAllAvailabilities();
+            const allSlots = slotsRes.data as AvailableAppointment[];
+
+            // 3) construyo el map id → AvailableAppointment completo
+            const map: Record<number, AvailableAppointment> = {};
+            allSlots.forEach(slot => {
+                map[slot.id] = slot;
+            });
+            setSlotMap(map);
+        } finally {
+            setLoading(false);
+        }
     };
-    useEffect(() => { load(); }, [info]);
 
-    /* 3 ─ Cancelar pendiente */
+    useEffect(() => {
+        load();
+    }, [info]);
+
+    /* ─── Cancelar turno ─── */
     const cancel = async (id: number) => {
-        setActionId(id);
         await deleteAppointment(id);
         await load();
-        setActionId(null);
     };
 
-    /* 4 ─ UI */
     if (!info) return null;
 
     return (
         <Box sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight={700} mb={3}>
-                Mis turnos
-            </Typography>
 
             {loading ? (
                 <Typography>Cargando…</Typography>
@@ -68,17 +72,21 @@ export const AppointmentUser = () => {
             ) : (
                 <Stack spacing={2}>
                     {appts
-                        .sort(
-                            (a, b) =>
-                                dayjs(slotMap[a.availableAppointment.id]?.date).valueOf() -
-                                dayjs(slotMap[b.availableAppointment.id]?.date).valueOf()
-                        )
+                        // eliminamos citas sin slot en el map
+                        .filter(a => a.availableAppointment?.id != null && slotMap[a.availableAppointment.id])
+                        // ordenamos según la fecha real del slot
+                        .sort((a, b) => {
+                            const dateA = dayjs(slotMap[a.availableAppointment.id].date).valueOf();
+                            const dateB = dayjs(slotMap[b.availableAppointment.id].date).valueOf();
+                            return dateA - dateB;
+                        })
+                        // renderizamos usando ya el slot completo
                         .map(a => (
                             <AppointmentCard
                                 key={a.id}
                                 appointment={a}
                                 slot={slotMap[a.availableAppointment.id]}
-                                onCancel={id => cancel(id)}          // ⬅️ sólo si quieres permitir cancelar
+                                onCancel={cancel}
                             />
                         ))}
                 </Stack>
