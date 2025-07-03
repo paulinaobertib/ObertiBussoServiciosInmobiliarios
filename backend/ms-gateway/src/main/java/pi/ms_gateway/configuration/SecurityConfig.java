@@ -9,7 +9,6 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 
-import java.net.URI;
 
 @Configuration
 public class SecurityConfig {
@@ -26,11 +25,13 @@ public class SecurityConfig {
                 new OidcClientInitiatedServerLogoutSuccessHandler(user);
         logoutSuccessHandler.setPostLogoutRedirectUri(frontUrl);
 
-        http.cors().and().csrf().disable()
-            .authorizeExchange(ex -> ex.anyExchange().permitAll())
-            .oauth2Login(o -> o.authenticationSuccessHandler(loginSuccessHandler))
-            .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler));
+        http
+                .csrf().disable()
+                .authorizeExchange(ex -> ex.anyExchange().permitAll())
+                .oauth2Login(o -> o.authenticationSuccessHandler(loginSuccessHandler))
+                .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler));
 
         return http.build();
     }
 }
+
