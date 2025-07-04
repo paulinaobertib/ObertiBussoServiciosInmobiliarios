@@ -15,13 +15,13 @@ const Compare = () => {
   const [inquiryOpen, setInquiryOpen] = useState(false);
 
   if (comparisonItems.length === 0) {
-    clearComparison();  // opcional, para limpiar el estado
+    clearComparison();
     return <Navigate to={ROUTES.HOME_APP} replace />;
   }
 
   const handleBack = () => {
     clearComparison();
-    navigate('/');
+    navigate(-1);
   };
 
   const { selectedPropertyIds } = usePropertyCrud();
