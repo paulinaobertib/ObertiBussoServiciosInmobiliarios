@@ -23,6 +23,7 @@ const PropertyDetailsPage = () => {
         setLoading(false);
         return;
       }
+      localStorage.setItem("selectedPropertyId", id.toString());
       setLoading(true);
       setError(null);
       try {

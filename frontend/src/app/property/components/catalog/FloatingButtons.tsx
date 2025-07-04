@@ -47,12 +47,12 @@ export const FloatingButtons = ({
       sx={{
         position: 'fixed',
         bottom: off,
-        right: off,
+        right: off + 70,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         gap: 2,
-        zIndex: theme.zIndex.tooltip,
+        zIndex: 1300,
       }}
     >
       {/* — Compare FAB — */}

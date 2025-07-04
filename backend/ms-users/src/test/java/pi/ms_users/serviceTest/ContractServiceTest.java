@@ -15,11 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.*;
+import pi.ms_users.dto.*;
 import pi.ms_users.dto.feign.PropertyDTO;
-import pi.ms_users.dto.ContractDTO;
-import pi.ms_users.dto.ContractIncreaseDTO;
-import pi.ms_users.dto.EmailContractDTO;
-import pi.ms_users.dto.EmailExpirationContract;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -294,6 +291,27 @@ class ContractServiceTest {
         verify(emailService).sendContractExpirationReminder(any(EmailExpirationContract.class));
     }
 
+    @Test
+    void applyScheduledPayment_success() {
+        LocalDate fixedDate = LocalDate.of(2025, 7, 1);
+        try (MockedStatic<LocalDate> localDateMock = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            localDateMock.when(LocalDate::now).thenReturn(fixedDate);
+
+            contract.setContractStatus(ContractStatus.ACTIVO);
+            contract.getContractIncrease().add(contractIncrease);
+
+            when(contractRepository.findByStatus(ContractStatus.ACTIVO)).thenReturn(List.of(contract));
+            when(userRepository.findById(contract.getUserId())).thenReturn(Optional.of(user));
+            doNothing().when(emailService).sendRentPaymentReminder(any(EmailPaymentReminderDTO.class));
+
+            contractService.applyScheduledPayment();
+
+            verify(contractRepository).findByStatus(ContractStatus.ACTIVO);
+            verify(userRepository).findById(contract.getUserId());
+            verify(emailService).sendRentPaymentReminder(any(EmailPaymentReminderDTO.class));
+        }
+    }
+
     // casos de error
 
     @Test
@@ -449,6 +467,62 @@ class ContractServiceTest {
             securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
 
             assertThrows(AccessDeniedException.class, () -> contractService.getByUserId("user123"));
+        }
+    }
+
+    @Test
+    void applyScheduledPayment_skipsIfNotFirstDay() {
+        LocalDate fixedDate = LocalDate.of(2025, 7, 2);
+        try (MockedStatic<LocalDate> localDateMock = Mockito.mockStatic(LocalDate.class)) {
+            localDateMock.when(LocalDate::now).thenReturn(fixedDate);
+
+            contractService.applyScheduledPayment();
+
+            verifyNoInteractions(contractRepository);
+            verifyNoInteractions(userRepository);
+            verifyNoInteractions(emailService);
+        }
+    }
+
+    @Test
+    void applyScheduledPayment_contractWithoutIncrease_logsErrorAndContinues() {
+        LocalDate fixedDate = LocalDate.of(2025, 7, 1);
+        try (MockedStatic<LocalDate> localDateMock = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            localDateMock.when(LocalDate::now).thenReturn(fixedDate);
+
+            Contract contractSinAumento = new Contract();
+            contractSinAumento.setId(2L);
+            contractSinAumento.setUserId("user456");
+            contractSinAumento.setContractStatus(ContractStatus.ACTIVO);
+            contractSinAumento.setContractIncrease(Collections.emptyList());
+
+            when(contractRepository.findByStatus(ContractStatus.ACTIVO)).thenReturn(List.of(contractSinAumento));
+            when(userRepository.findById(contractSinAumento.getUserId())).thenReturn(Optional.of(user));
+
+            contractService.applyScheduledPayment();
+
+            verify(contractRepository).findByStatus(ContractStatus.ACTIVO);
+            verify(userRepository).findById(contractSinAumento.getUserId());
+            verify(emailService, never()).sendRentPaymentReminder(any());
+        }
+    }
+
+    @Test
+    void applyScheduledPayment_emailServiceThrows_logsErrorButContinues() {
+        LocalDate fixedDate = LocalDate.of(2025, 7, 1);
+        try (MockedStatic<LocalDate> localDateMock = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            localDateMock.when(LocalDate::now).thenReturn(fixedDate);
+
+            contract.setContractIncrease(List.of(contractIncrease));
+            when(contractRepository.findByStatus(ContractStatus.ACTIVO)).thenReturn(List.of(contract));
+            when(userRepository.findById(contract.getUserId())).thenReturn(Optional.of(user));
+
+            doThrow(new RuntimeException("Error al enviar email"))
+                    .when(emailService).sendRentPaymentReminder(any(EmailPaymentReminderDTO.class));
+
+            contractService.applyScheduledPayment();
+
+            verify(emailService).sendRentPaymentReminder(any(EmailPaymentReminderDTO.class));
         }
     }
 }
