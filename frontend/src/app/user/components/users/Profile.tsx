@@ -1,6 +1,5 @@
 import { useState, useEffect, ChangeEvent } from 'react';
-import { Box, Avatar, Typography, TextField, Grid, Stack, Button, IconButton, useTheme } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { Box, Avatar, Typography, TextField, Grid, Stack, Button, useTheme } from '@mui/material';
 import { useAuthContext } from '../../context/AuthContext';
 import { putUser } from '../../services/user.service';
 import { useGlobalAlert } from '../../../shared/context/AlertContext';
@@ -85,9 +84,6 @@ export const Profile = () => {
                 </Box>
 
                 <Stack direction="row" spacing={1}>
-                    <IconButton >
-                        <SettingsIcon fontSize="large" />
-                    </IconButton>
 
                     <Button
                         variant="contained"

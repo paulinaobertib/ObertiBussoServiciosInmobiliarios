@@ -82,7 +82,7 @@ export default function Home() {
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+          <Box sx={{ width: { xs: '25rem', sm: '40rem' } }}>
             <SearchBar
               fetchAll={getAllProperties}
               fetchByText={getPropertiesByText}
@@ -124,7 +124,7 @@ export default function Home() {
             )}
           </Box>
         </Box>
-      </Box>
+      </Box >
       <FloatingButtons
         onAction={handleAction}
         selectionMode={selectionMode}
