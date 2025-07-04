@@ -1,12 +1,10 @@
-// src/app/property/components/ActionsRowItems.tsx
 import React from 'react';
 import CommentIcon from '@mui/icons-material/Comment';
 import BuildIcon from '@mui/icons-material/Build';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { ROUTES } from '../../../lib';
-import { buildRoute } from '../../../buildRoute';
+import { ROUTES, buildRoute } from '../../../lib';
 import type { Category } from '../context/PropertiesContext';
 import type { Info } from './ModalItem';
 import { translate } from '../utils/translate';

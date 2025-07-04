@@ -20,17 +20,13 @@ export default function PropertyMaintenancePage() {
     const theme = useTheme();
     const propertyId = Number(idParam ?? 0);
     const navigate = useNavigate();
+    const [modal, setModal] = useState<Info | null>(null);
 
     const {
         maintenancesList, loading,
         pickedItem, pickItem, refreshMaintenances,
     } = usePropertyCrud();
 
-    const handleBack = () => {
-        navigate('/panel');
-    };
-
-    const [modal, setModal] = useState<Info | null>(null);
 
     useEffect(() => {
         if (!propertyId) {
@@ -49,7 +45,7 @@ export default function PropertyMaintenancePage() {
     return (
         <BasePage maxWidth={false}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
-                <Button variant="contained" color="primary" onClick={handleBack}>
+                <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
                     VOLVER
                 </Button>
             </Box>

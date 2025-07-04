@@ -22,8 +22,6 @@ export default function AdministratorPanel() {
         resetSelected();
     }, [pickItem, resetSelected]);
 
-    const handleBack = () => navigate('/');
-
     const panels = [
         {
             key: 'property',
@@ -55,7 +53,7 @@ export default function AdministratorPanel() {
     return (
         <BasePage maxWidth={true}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2 }}>
-                <Button variant="contained" color="primary" onClick={handleBack}>
+                <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
                     VOLVER
                 </Button>
             </Box>
