@@ -6,9 +6,9 @@ import pi.ms_properties.dto.ChatSessionDTO;
 import java.util.List;
 
 public interface IChatSessionService {
-    void createFromUser(String userId, Long propertyId);
+    Long createFromUser(String userId, Long propertyId);
 
-    void createWithoutUser(ChatSessionDTO dto);
+    Long createWithoutUser(ChatSessionDTO dto);
 
     ChatSession getById(Long id);
 
