@@ -1,3 +1,17 @@
+export function buildRoute(template: string, param: string | number): string;
+export function buildRoute(
+  template: string,
+  params: Record<string, string | number>
+): string;
+export function buildRoute(template: string, params: any): string {
+  const map = typeof params === "object" ? params : { id: params };
+  let path = template;
+  for (const [key, value] of Object.entries(map)) {
+    path = path.replace(`:${key}`, encodeURIComponent(String(value)));
+  }
+  return path;
+}
+
 export const ROUTES = {
   HOME_APP: "/",
   NEW_PROPERTY: `/properties/new`,
@@ -10,7 +24,7 @@ export const ROUTES = {
   PROPERTY_MAINTENANCE: "/properties/:id/maintenance",
   CONTACT: "/contact",
   NEWS: "/news",
-  FAVORITES: "/favorites"
+  FAVORITES: "/favorites",
 };
 
 export const PAGES = [
@@ -26,5 +40,4 @@ export const PAGES = [
   { name: "Contacto de la Inmobiliarioa", url: ROUTES.CONTACT },
   { name: "Noticias", url: ROUTES.NEWS },
   { name: "Favoritos", url: ROUTES.FAVORITES },
-
 ];

@@ -1,16 +1,7 @@
-// src/app/user/components/users/UsersPanel.tsx
 import React, { useEffect, useState } from "react";
 import {
-  Box,
-  Typography,
-  IconButton,
-  CircularProgress,
-  useTheme,
-  ToggleButton,
-  ToggleButtonGroup,
-  Menu,
-  MenuItem,
-  Button,
+  Box, Typography, IconButton, CircularProgress, useTheme, ToggleButton,
+  ToggleButtonGroup, Menu, MenuItem, Button,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -205,26 +196,27 @@ export const UsersPanel = () => {
 
   return (
     <>
-      {/* ─── Top bar: filtros desktop / menu móvil + SearchBar + “+” ─── */}
+      {/* ─── Top bar usuarios ─── */}
       <Box
         sx={{
           px: 2,
           py: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1,
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        {/* Desktop: Toggle buttons */}
-        <Box sx={{ display: { xs: "none", sm: "block" } }}>
+        {/* Desktop: toggle por rol */}
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
           <ToggleButtonGroup
             value={filter}
             exclusive
             size="small"
             onChange={(_, v) => v && setFilter(v)}
           >
-            {FILTERS.map((f) => (
+            {FILTERS.map(f => (
               <ToggleButton key={f.value} value={f.value}>
                 {f.label}
               </ToggleButton>
@@ -232,16 +224,18 @@ export const UsersPanel = () => {
           </ToggleButtonGroup>
         </Box>
 
-        {/* Móvil: menu de filtros */}
-        <Box sx={{ display: { xs: "block", sm: "none" } }}>
-          <Button onClick={handleMenuOpen}>Filtros</Button>
+        {/* Botón “Filtros” (móvil) */}
+        <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
+          <Button variant="outlined" size="small" onClick={handleMenuOpen}>
+            Filtros
+          </Button>
           <Menu
             anchorEl={anchorEl}
             open={openMenu}
             onClose={handleMenuClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
           >
-            {FILTERS.map((f) => (
+            {FILTERS.map(f => (
               <MenuItem
                 key={f.value}
                 selected={filter === f.value}
@@ -256,13 +250,13 @@ export const UsersPanel = () => {
           </Menu>
         </Box>
 
-        {/* SearchBar y “+” */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Box sx={{ width: { xs: "12rem", sm: "20rem" } }}>
+        {/* SearchBar + “+” */}
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ flexGrow: 1, minWidth: { xs: 0, sm: '20rem' } }}>
             <SearchBar
               fetchAll={fetchAllWithRoles}
               fetchByText={fetchByTextWithRoles}
-              onSearch={(res) => setUsers(res)}
+              onSearch={setUsers}
               placeholder="Buscar usuario"
             />
           </Box>

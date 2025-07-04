@@ -28,10 +28,6 @@ export default function PropertyMaintenancePage() {
         pickedItem, pickItem, refreshComments,
     } = usePropertyCrud();
 
-    const handleBack = () => {
-        navigate('/panel');
-    };
-
     useEffect(() => {
         if (!propertyId) {
             navigate('/');
@@ -48,7 +44,7 @@ export default function PropertyMaintenancePage() {
     return (
         <BasePage maxWidth={false}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
-                <Button variant="contained" color="primary" onClick={handleBack}>
+                <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
                     VOLVER
                 </Button>
             </Box>

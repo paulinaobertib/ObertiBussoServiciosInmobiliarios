@@ -28,17 +28,24 @@ export const NAVBAR_HEIGHT_XS = 48;
 export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
-  const { clearComparison } = usePropertyCrud();
+  const { clearComparison, resetSelected, pickItem } = usePropertyCrud();
   const { login, logout, isLogged, isAdmin } = useAuthContext();
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
+  const handleCloseNavMenu = () => setAnchorElNav(null);
 
   // Navegar a admin o perfil
   const goToProfile = () => {
     navigate(isAdmin ? ROUTES.ADMIN_PANEL : ROUTES.USER_PROFILE);
   };
 
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
+  const goHome = () => {
+    clearComparison();                  // limpia comparación
+    resetSelected();                    // limpia owner/type/neighborhood/amenities
+    pickItem('category', null);         // limpia filtro de categoría
+    navigate(ROUTES.HOME_APP);          // finalmente navega
+  };
+
 
   return (
     <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT } }}>
@@ -65,7 +72,7 @@ export const NavBar = () => {
             }}
             onClick={() => {
               clearComparison();
-              navigate(ROUTES.HOME_APP);
+              goHome();
             }}
           />
 
