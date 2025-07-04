@@ -16,11 +16,6 @@ const PropertyDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [inquiryOpen, setInquiryOpen] = useState(false);
 
-
-  const handleBack = () => {
-    navigate('/');
-  };
-
   useEffect(() => {
     const fetch = async () => {
       if (!id) {
@@ -44,7 +39,7 @@ const PropertyDetailsPage = () => {
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
-        <Button variant="contained" color="primary" onClick={handleBack}>
+        <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
           VOLVER
         </Button>
       </Box>
