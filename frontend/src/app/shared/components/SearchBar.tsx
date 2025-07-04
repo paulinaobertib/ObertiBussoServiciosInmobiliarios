@@ -33,7 +33,11 @@ export const SearchBar = ({
   }, [q]);
 
   return (
-    <Box display="flex" alignItems="center">
+    <Box
+      display="flex"
+      alignItems="center"
+      sx={{ width: "100%" }}
+    >
       <TextField
         size="small"
         fullWidth

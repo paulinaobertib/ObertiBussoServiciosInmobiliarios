@@ -13,12 +13,14 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
 import { usePropertyCrud } from '../../property/context/PropertiesContext';
 import { useAuthContext } from '../../user/context/AuthContext';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import SettingsDrawer from '../../user/components/Settings';
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -26,17 +28,24 @@ export const NAVBAR_HEIGHT_XS = 48;
 export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
-  const { clearComparison } = usePropertyCrud();
+  const { clearComparison, resetSelected, pickItem } = usePropertyCrud();
   const { login, logout, isLogged, isAdmin } = useAuthContext();
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
+  const handleCloseNavMenu = () => setAnchorElNav(null);
 
   // Navegar a admin o perfil
   const goToProfile = () => {
     navigate(isAdmin ? ROUTES.ADMIN_PANEL : ROUTES.USER_PROFILE);
   };
 
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
+  const goHome = () => {
+    clearComparison();                  // limpia comparación
+    resetSelected();                    // limpia owner/type/neighborhood/amenities
+    pickItem('category', null);         // limpia filtro de categoría
+    navigate(ROUTES.HOME_APP);          // finalmente navega
+  };
+
 
   return (
     <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT } }}>
@@ -63,7 +72,7 @@ export const NavBar = () => {
             }}
             onClick={() => {
               clearComparison();
-              navigate(ROUTES.HOME_APP);
+              goHome();
             }}
           />
 
@@ -74,8 +83,10 @@ export const NavBar = () => {
               alignItems: 'center',
               position: 'relative',
               width: '100%',
+              justifyContent: 'center', // Center content horizontally
             }}
           >
+            {/* Menu Icon */}
             <IconButton
               size="large"
               onClick={handleOpenNavMenu}
@@ -86,6 +97,7 @@ export const NavBar = () => {
               <MenuIcon />
             </IconButton>
 
+            {/* Logo */}
             <Box
               component="img"
               src={logo}
@@ -94,13 +106,20 @@ export const NavBar = () => {
                 height: 40,
                 objectFit: 'contain',
                 cursor: 'pointer',
-                margin: '0 auto',
+                position: 'absolute', // Use absolute positioning
+                left: '50%', // Center horizontally
+                transform: 'translateX(-50%)', // Offset by half its width
               }}
               onClick={() => {
                 clearComparison();
                 navigate(ROUTES.HOME_APP);
               }}
             />
+
+            {/* Settings Drawer */}
+            <Box sx={{ position: 'absolute', right: 0 }}>
+              <SettingsDrawer />
+            </Box>
 
             <Menu
               anchorEl={anchorElNav}
@@ -137,6 +156,16 @@ export const NavBar = () => {
                 </MenuItem>
               )}
 
+              {isLogged && (
+                <MenuItem
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    navigate(ROUTES.FAVORITES);
+                  }}
+                >
+                  MIS FAVORITOS
+                </MenuItem>
+              )}
               {isLogged && (
                 <MenuItem
                   onClick={() => {
@@ -193,6 +222,9 @@ export const NavBar = () => {
             )}
             {isLogged && (
               <>
+                <Tooltip title="Notificaciones">
+                  <SettingsDrawer />
+                </Tooltip>
                 <Tooltip title="Mis Favoritos">
                   <IconButton color="inherit" aria-label="favorites" onClick={() => navigate(ROUTES.FAVORITES)} >
                     <FavoriteIcon />
