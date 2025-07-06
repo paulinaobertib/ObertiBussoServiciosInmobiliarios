@@ -38,7 +38,7 @@ export const FloatingButtons = ({
 }: Props) => {
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
-  const size = 56;
+  const size = { xs: '3rem', sm: '3.5rem' };
   const off = 16;
   const disabledCompare = compareCount < 2 || compareCount > 3;
 
@@ -55,20 +55,42 @@ export const FloatingButtons = ({
         zIndex: 1300,
       }}
     >
-      {/* — Compare FAB — */}
-      <Tooltip
-        title={
-          disabledCompare
-            ? 'Selecciona 2 o 3 propiedades'
-            : 'Comparar propiedades'
-        }
-        arrow
-      >
-        <span>
+
+      {!isAdmin && (
+        <Tooltip
+          title={
+            disabledCompare
+              ? 'Selecciona 2 o 3 propiedades'
+              : 'Comparar propiedades'
+          }
+          arrow
+        >
+          <span>
+            <Fab
+              aria-label="Comparar propiedades"
+              disabled={disabledCompare}
+              onClick={onCompare} // Only call onCompare, don't toggle selection mode
+              sx={{
+                width: size,
+                height: size,
+                bgcolor: theme.palette.primary.main,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                color: theme.palette.common.white,
+                cursor: 'pointer',
+              }}
+            >
+              <CompareIcon />
+            </Fab>
+          </span>
+        </Tooltip>
+      )}
+
+      {!isAdmin && (
+
+        <Tooltip title={selectionMode ? 'Cancelar selección' : 'Seleccionar'} arrow>
           <Fab
-            aria-label="Comparar propiedades"
-            disabled={disabledCompare}
-            onClick={onCompare} // Only call onCompare, don't toggle selection mode
+            aria-label={selectionMode ? 'Cancelar selección' : 'Seleccionar'}
+            onClick={toggleSelectionMode}
             sx={{
               width: size,
               height: size,
@@ -78,40 +100,19 @@ export const FloatingButtons = ({
               cursor: 'pointer',
             }}
           >
-            <CompareIcon />
+            <CheckBoxIcon />
           </Fab>
-        </span>
-      </Tooltip>
+        </Tooltip>
+      )}
 
-      {/* — Selection FAB — */}
-      <Tooltip title={selectionMode ? 'Cancelar selección' : 'Seleccionar'} arrow>
-        <Fab
-          aria-label={selectionMode ? 'Cancelar selección' : 'Seleccionar'}
-          onClick={toggleSelectionMode}
-          sx={{
-            width: size,
-            height: size,
-            bgcolor: theme.palette.primary.main,
-            '&:hover': { bgcolor: theme.palette.primary.dark },
-            color: theme.palette.common.white,
-            cursor: 'pointer',
-          }}
-        >
-          <CheckBoxIcon />
-        </Fab>
-      </Tooltip>
-
-      {/* — Admin SpeedDial — */}
       {isAdmin && (
-        <Box sx={{ position: 'relative', width: size, height: size }}>
+        <Box sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1300 }}>
           <SpeedDial
             ariaLabel="Acciones de Propiedad"
             icon={<Settings />}
             direction="up"
             sx={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
+
               '& .MuiFab-primary': {
                 width: size,
                 height: size,
@@ -145,7 +146,8 @@ export const FloatingButtons = ({
             ))}
           </SpeedDial>
         </Box>
-      )}
-    </Box>
+      )
+      }
+    </Box >
   );
 }

@@ -1,518 +1,339 @@
-import React, { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  Box, Button, FormControl, InputLabel, Select, MenuItem, useMediaQuery, Collapse,
-  TextField, Card, CardContent, Checkbox, FormControlLabel, Typography,
+  Box, Button, Drawer, Accordion, AccordionSummary, AccordionDetails,
+  Checkbox, FormControlLabel, Chip, Typography, Divider, Slider, useTheme, useMediaQuery, IconButton,
 } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useTheme } from '@mui/material/styles';
+import { LoadingButton } from '@mui/lab';
+import { Property } from '../../types/property';
+import { SearchParams } from '../../types/searchParams';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { getPropertiesByFilters } from '../../services/property.service';
-import { SearchParams } from '../../types/searchParams';
-import { Property } from '../../types/property';
-import { NeighborhoodType } from '../../types/neighborhood';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { useLoading } from '../../utils/useLoading';
-import { LoadingButton } from '@mui/lab';
 
-const countOptions = [1, 2, 3];
-
-interface Props {
-  onSearch(results: Property[]): void;
-}
+interface Props { onSearch(results: Property[]): void; }
 
 export const SearchFilters = ({ onSearch }: Props) => {
-  const { typesList, neighborhoodsList, amenitiesList, operationsList,
-    selected, setSelected, buildSearchParams } = usePropertyCrud();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [openFilters, setOpen] = useState(!isMobile);
-  const { showAlert } = useGlobalAlert();
 
-  const [params, setParams] = useState<Partial<SearchParams>>({
-    priceFrom: 0,
-    priceTo: 0,
-    areaFrom: 0,
-    areaTo: 0,
-    coveredAreaFrom: 0,
-    coveredAreaTo: 0,
-    rooms: 0,
-    operation: '',
-    type: '',
-    amenities: [],
-    city: '',
-    neighborhood: '',
-    neighborhoodType: undefined,
-    credit: undefined,
-    financing: undefined,
+  const {
+    operationsList,
+    typesList,
+    amenitiesList,
+    neighborhoodsList,
+    selected,
+    setSelected,
+    buildSearchParams,
+  } = usePropertyCrud();
+
+  // Slider limits
+  const PRICE_MAX = 1000000;
+  const AREA_MAX = 1000;
+  const COVERED_MAX = 1000;
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [params, setParams] = useState<{
+    operation?: string;
+    type?: string;
+    rooms?: number;
+    city?: string;
+    neighborhood?: string;
+    priceRange: number[];
+    areaRange: number[];
+    coveredRange: number[];
+    credit?: boolean;
+    financing?: boolean;
+  }>({
+    priceRange: [0, PRICE_MAX],
+    areaRange: [0, AREA_MAX],
+    coveredRange: [0, COVERED_MAX],
   });
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    const numValue = value === '' ? 0 : Number(value);
-    if (numValue < 0) {
-      showAlert('El valor no puede ser negativo', 'error');
-      return;
-    }
-
-    setParams((p) => ({
-      ...p,
-      [name]: numValue,
-    }));
-  };
-
-  const handleSelect = (field: keyof SearchParams) => (
-    e: SelectChangeEvent<string>
-  ) => {
-    const v = e.target.value;
-    setParams(p => ({
-      ...p,
-      [field]:
-        field === 'rooms'
-          ? Number(v)
-          : (v as any)
-    }));
-  };
-
-  const handleSearch = async () => {
-    const priceFrom = params.priceFrom ?? 0;
-    const priceTo = params.priceTo ?? 0;
-    const areaFrom = params.areaFrom ?? 0;
-    const areaTo = params.areaTo ?? 0;
-    const coveredAreaFrom = params.coveredAreaFrom ?? 0;
-    const coveredAreaTo = params.coveredAreaTo ?? 0;
-
-    if (priceFrom && priceTo && priceFrom > priceTo) {
-      showAlert('El precio DESDE no puede ser mayor al precio HASTA', 'error');
-      return;
-    }
-
-    if (areaFrom && areaTo && areaFrom > areaTo) {
-      showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
-      return;
-    }
-
-    if (coveredAreaFrom && coveredAreaTo && coveredAreaFrom > coveredAreaTo) {
-      showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
-      return;
-    }
-
-    const filters: Partial<SearchParams> = {
-      ...params,
-      priceFrom,
-      priceTo,
-      areaFrom,
-      areaTo,
-      coveredAreaFrom,
-      coveredAreaTo,
-      credit: params.credit ? true : undefined,
-      financing: params.financing ? true : undefined,
+  // Core search logic
+  const autoSearch = async (p = params, sel = selected) => {
+    const base: Partial<SearchParams> = {
+      operation: p.operation ?? '',
+      type: p.type ?? '',
+      city: p.city ?? '',
+      neighborhood: p.neighborhood ?? '',
+      priceFrom: p.priceRange[0],
+      priceTo: p.priceRange[1],
+      areaFrom: p.areaRange[0],
+      areaTo: p.areaRange[1],
+      coveredAreaFrom: p.coveredRange[0],
+      coveredAreaTo: p.coveredRange[1],
+      amenities: sel.amenities.map(String),
+      credit: p.operation === 'VENTA' && p.credit ? true : undefined,
+      financing: p.operation === 'VENTA' && p.financing ? true : undefined,
     };
 
-    // Si rooms es 3, borramos rooms del filtro para no limitar backend a solo 3 ambientes
-    if (params.rooms === 3) {
-      delete filters.rooms;
-    } else if (params.rooms && params.rooms > 0) {
-      filters.rooms = params.rooms;
+    let results: Property[];
+    if (p.rooms === 3) {
+      const filtersNoRooms = buildSearchParams(base);
+      const all = await getPropertiesByFilters(filtersNoRooms as SearchParams);
+      results = all.filter(r => Number(r.rooms) >= 3);
+    } else if (p.rooms && p.rooms > 0) {
+      const sp = buildSearchParams({ ...base, rooms: p.rooms });
+      results = await getPropertiesByFilters(sp as SearchParams);
+    } else {
+      const filters = buildSearchParams(base);
+      results = await getPropertiesByFilters(filters as SearchParams);
     }
 
-    const sp = buildSearchParams(filters);
-    console.log("Filtros a enviar:", sp);
-
-    const res = await getPropertiesByFilters(sp as SearchParams);
-
-    // Ahora filtro local para +3 ambientes
-    let filteredResults = res;
-    if (params.rooms === 3) {
-      filteredResults = res.filter(p => Number(p.rooms) >= 3);
-    }
-
-    onSearch(filteredResults);
-
+    onSearch(results);
   };
 
-  const handleCancel = async () => {
+  // Toggle single-valued param
+  const toggleParam = <K extends keyof typeof params>(key: K, value: typeof params[K]) => {
+    const nextVal = params[key] === value ? undefined : value;
+    const next = { ...params, [key]: nextVal };
+    setParams(next);
+    autoSearch(next, selected);
+  };
+
+  // Generic reset
+  const { run: runReset, loading: loadingReset } = useLoading(async () => {
     setParams({
-      priceFrom: 0,
-      priceTo: 0,
-      areaFrom: 0,
-      areaTo: 0,
-      coveredAreaFrom: 0,
-      coveredAreaTo: 0,
-      rooms: 0,
-      operation: '',
-      type: '',
-      amenities: [],
-      city: '',
-      neighborhood: '',
-      neighborhoodType: undefined,
-      credit: undefined,
-      financing: undefined,
+      priceRange: [0, PRICE_MAX],
+      areaRange: [0, AREA_MAX],
+      coveredRange: [0, COVERED_MAX],
     });
-
     setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
+    onSearch(await getPropertiesByFilters(buildSearchParams({}) as SearchParams));
+    if (isMobile) setDrawerOpen(false);
+  });
 
-    const all = await getPropertiesByFilters({
-      priceFrom: 0, priceTo: 0, areaFrom: 0, areaTo: 0, coveredAreaFrom: 0, coveredAreaTo: 0,
-      rooms: 0, operation: '', type: '', amenities: [],
-      city: '', neighborhood: '', neighborhoodType: '', credit: undefined, financing: undefined,
-    });
-    onSearch(all);
-  };
+  // Chips
+  const chips = useMemo(() => {
+    const list: { label: string; clear(): void }[] = [];
+    if (params.operation)
+      list.push({ label: params.operation, clear: () => toggleParam('operation', params.operation!) });
+    if (params.operation === 'VENTA' && params.credit)
+      list.push({ label: 'Apto Crédito', clear: () => toggleParam('credit', params.credit!) });
+    if (params.operation === 'VENTA' && params.financing)
+      list.push({ label: 'Apto Financiamiento', clear: () => toggleParam('financing', params.financing!) });
+    if (params.type)
+      list.push({ label: params.type, clear: () => toggleParam('type', params.type!) });
+    if (params.rooms)
+      list.push({ label: `${params.rooms === 3 ? '3+' : params.rooms} amb`, clear: () => toggleParam('rooms', params.rooms!) });
+    if (params.city)
+      list.push({ label: params.city, clear: () => toggleParam('city', params.city!) });
+    if (params.neighborhood)
+      list.push({ label: params.neighborhood, clear: () => toggleParam('neighborhood', params.neighborhood!) });
+    if (params.priceRange[0] > 0 || params.priceRange[1] < PRICE_MAX)
+      list.push({ label: `Precio: ${params.priceRange[0]}–${params.priceRange[1]}`, clear: () => runReset() });
+    if (params.areaRange[0] > 0 || params.areaRange[1] < AREA_MAX)
+      list.push({ label: `Sup: ${params.areaRange[0]}–${params.areaRange[1]}`, clear: () => runReset() });
+    if (params.coveredRange[0] > 0 || params.coveredRange[1] < COVERED_MAX)
+      list.push({ label: `Cubierta: ${params.coveredRange[0]}–${params.coveredRange[1]}`, clear: () => runReset() });
+    if (selected.amenities.length)
+      list.push({ label: `${selected.amenities.length} caracts`, clear: () => { const ns = { ...selected, amenities: [] }; setSelected(ns); autoSearch(params, ns); } });
+    return list;
+  }, [params, selected]);
 
-  const cities = Array.from(
-    new Set(
-      neighborhoodsList
-        .map(n => (n.city || '').trim())
-        .filter(c => c.length > 0)
-    )
-  );
-  const barrioTypes = Object.values(NeighborhoodType);
+  const Panel = (
+    <Box sx={{ p: 2 }}>
+      {/* Header */}
+      {isMobile ? (
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Typography variant="subtitle1" align="center">Filtros de Búsqueda</Typography>
+          <IconButton size="small" onClick={() => setDrawerOpen(false)}><CloseIcon /></IconButton>
+        </Box>
+      ) : (
+        <Typography variant="subtitle1" align="center" sx={{ mb: 2 }}>Filtros de Búsqueda</Typography>
+      )}
 
+      {/* Operation */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} >
+          <Typography variant="body2">Operación</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 1 }}>
+          {operationsList.map(op => (
+            <Box key={op} sx={{ mb: 1 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={params.operation === op}
+                    onChange={() => toggleParam('operation', op)}
+                  />
+                }
+                label={op}
+              />
+              {op === 'VENTA' && params.operation === 'VENTA' && (
+                <Box sx={{ pl: 4, mt: 1 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={!!params.credit}
+                        onChange={() => toggleParam('credit', !params.credit)}
+                      />
+                    }
+                    label="Apto Crédito"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={!!params.financing}
+                        onChange={() => toggleParam('financing', !params.financing)}
+                      />
+                    }
+                    label="Apto Financiamiento"
+                  />
+                </Box>
+              )}
+            </Box>
+          ))}
+        </AccordionDetails>
+      </Accordion>
 
-  const anyOption = (
-    <MenuItem key="any" value="">
-      Todos
-    </MenuItem>
-  );
+      {/* Tipo */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Tipo</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 1 }}>
+          {typesList.map(t => (
+            <FormControlLabel
+              key={t.id}
+              control={<Checkbox size="small" checked={params.type === t.name} onChange={() => toggleParam('type', t.name)} />}
+              label={t.name}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
 
-  const { loading: loadingSearch, run: runSearch } = useLoading(handleSearch);
-  const { loading: loadingCancel, run: runCancel } = useLoading(handleCancel);
-  const loading = loadingSearch || loadingCancel;
-  return (
-    <Card sx={{ position: 'relative', borderRadius: 3, width: isMobile ? '100%' : 300 }} elevation={3}>
-      {loading && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          width="100%"
-          height="100%"
-          zIndex={theme => theme.zIndex.modal + 1000}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+      {/* Ambientes */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Ambientes</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 1 }}>
+          {[1, 2, 3].map(n => (
+            <FormControlLabel
+              key={n}
+              control={<Checkbox size="small" checked={params.rooms === n} onChange={() => toggleParam('rooms', n)} />}
+              label={n < 3 ? n : '3+'}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Precio */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Precio</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 2 }}>
+          <Slider
+            value={params.priceRange}
+            onChange={(_, v) => setParams(p => ({ ...p, priceRange: v as number[] }))}
+            onChangeCommitted={() => autoSearch(params, selected)}
+            valueLabelDisplay="auto"
+            min={0}
+            max={PRICE_MAX}
+            step={100000}
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Superficie Total */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Superficie Total</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 2 }}>
+          <Slider
+            value={params.areaRange}
+            onChange={(_, v) => setParams(p => ({ ...p, areaRange: v as number[] }))}
+            onChangeCommitted={() => autoSearch(params, selected)}
+            valueLabelDisplay="auto"
+            min={0}
+            max={AREA_MAX}
+            step={10}
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Superficie Cubierta */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Superficie Cubierta</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 2 }}>
+          <Slider
+            value={params.coveredRange}
+            onChange={(_, v) => setParams(p => ({ ...p, coveredRange: v as number[] }))}
+            onChangeCommitted={() => autoSearch(params, selected)}
+            valueLabelDisplay="auto"
+            min={0}
+            max={COVERED_MAX}
+            step={10}
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Características */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Características</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 1 }}>
+          {amenitiesList.map(a => (
+            <FormControlLabel
+              key={a.id}
+              control={<Checkbox size="small" checked={selected.amenities.includes(a.id)} onChange={() => { const next = selected.amenities.includes(a.id) ? selected.amenities.filter(x => x !== a.id) : [...selected.amenities, a.id]; const ns = { ...selected, amenities: next }; setSelected(ns); autoSearch(params, ns); }} />}
+              label={a.name}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Ciudades */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Ciudades</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 1 }}>
+          {useMemo(() => Array.from(new Set(neighborhoodsList.map(n => (n.city || '').trim()).filter(Boolean))).sort(), [neighborhoodsList]).map(city => (
+            <FormControlLabel
+              key={city}
+              control={<Checkbox size="small" checked={params.city === city} onChange={() => toggleParam('city', city)} />}
+              label={city}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Barrios */}
+      <Accordion disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Barrios</Typography></AccordionSummary>
+        <AccordionDetails sx={{ p: 1 }}>
+          {neighborhoodsList.map(b => (
+            <FormControlLabel
+              key={b.id}
+              control={<Checkbox size="small" checked={params.neighborhood === b.name} onChange={() => toggleParam('neighborhood', b.name)} />}
+              label={b.name}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Active chips */}
+      {chips.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1, mt: 1 }}>
+          {chips.map(c => <Chip key={c.label} label={c.label} onDelete={c.clear} size="small" />)}
         </Box>
       )}
-      <CardContent>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
-          Filtros de Búsqueda
-        </Typography>
 
-        {isMobile && (
-          <Button
-            fullWidth
-            variant="outlined"
-            size="small"
-            onClick={() => setOpen((f) => !f)}
-            endIcon={<ArrowDropDownIcon sx={{ transform: openFilters ? 'rotate(180deg)' : 'none' }} />}
-          >
-            {openFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
-          </Button>
-        )}
-
-        <Collapse in={openFilters} timeout="auto" unmountOnExit sx={{ p: 1 }}>
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="operation-select-label">Operación</InputLabel>
-            <Select
-              labelId="operation-select-label"
-              id="operation-select"
-              data-testid="operation-select"
-              value={params.operation || ''}
-              label="Operación"
-              onChange={handleSelect('operation')}
-            >
-              {anyOption}
-              {operationsList.map((op: string) => (
-                <MenuItem key={op} value={op}>
-                  {op.charAt(0) + op.slice(1).toLowerCase()}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 2 }}>
-            {params.operation === 'VENTA' && (
-              <>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={params.credit || false}
-                      onChange={(_, checked) =>
-                        setParams(p => ({ ...p, credit: checked }))
-                      }
-                      size="small"
-                    />
-                  }
-                  label="Apto Crédito"
-                  sx={{
-                    width: 'auto',
-                    m: 0,
-                    py: 0,
-                    px: 1,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    '&:hover': { borderColor: '#444' },
-                    '& .MuiFormControlLabel-label': {
-                      color: 'text.secondary',
-                    },
-                  }}
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={params.financing || false}
-                      onChange={(_, checked) =>
-                        setParams(p => ({ ...p, financing: checked }))
-                      }
-                      size="small"
-                    />
-                  }
-                  label="Apto Financiamiento"
-                  sx={{
-                    width: 'auto',
-                    m: 0,
-                    py: 0,
-                    px: 1,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    '&:hover': { borderColor: '#444' },
-                    '& .MuiFormControlLabel-label': {
-                      color: 'text.secondary',
-                    },
-                  }}
-                />
-              </>
-            )}
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Tipo</InputLabel>
-              <Select
-                value={params.type || ''}
-                label="Tipo"
-                onChange={handleSelect('type')}
-              >
-                {anyOption}
-                {typesList.map((t) => (
-                  <MenuItem key={t.id} value={t.name}>
-                    {t.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Ambientes</InputLabel>
-              <Select
-                value={params.rooms === 0 ? "" : params.rooms?.toString()}
-                label="Ambientes"
-                onChange={handleSelect('rooms')}
-              >
-                {anyOption}
-                {countOptions.map((n) => (
-                  <MenuItem key={n} value={n.toString()}>
-                    {n === 0 ? 'Todos' : n < 3 ? `${n}` : '+3'}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel id="city-select-label">Ciudad</InputLabel>
-              <Select
-                labelId="city-select-label"
-                id="city-select"
-                value={params.city || ''}
-                label="Ciudad"
-                onChange={e => {
-                  const city = (e.target.value as string).trim();
-                  setParams(p => ({ ...p, city }));
-                }}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {cities.map(c => (
-                  <MenuItem key={c} value={c}>{c}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Tipo de barrio</InputLabel>
-              <Select
-                value={params.neighborhoodType || ''}
-                label="Tipo de barrio"
-                onChange={handleSelect('neighborhoodType')}
-              >
-                {anyOption}
-                {barrioTypes.map((bt) => (
-                  <MenuItem key={bt} value={bt}>
-                    {bt.charAt(0) + bt.slice(1).toLowerCase()}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Barrio</InputLabel>
-              <Select
-                value={params.neighborhood || ''}
-                label="Barrio"
-                onChange={handleSelect('neighborhood')}
-              >
-                {anyOption}
-                {neighborhoodsList.map((b) => (
-                  <MenuItem key={b.id} value={b.name}>
-                    {b.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel id="amenities-select-label">Características</InputLabel>
-              <Select
-                labelId="amenities-select-label"
-                id="amenities-select"
-                multiple
-                value={selected.amenities.map(a => a.toString())}
-                label="Características"
-                renderValue={(vals) =>
-                  (vals as string[]).length === 0
-                    ? 'Todos'
-                    : (vals as string[])
-                      .map(v => amenitiesList.find(a => a.id === Number(v))?.name)
-                      .filter(Boolean)
-                      .join(', ')
-                }
-                onChange={e => {
-                  const vals = (e.target.value as string[]).filter(v => v !== '');
-                  setSelected({ ...selected, amenities: vals.map(v => Number(v)) });
-                }}
-              >
-                <MenuItem
-                  value=""
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    setSelected({ ...selected, amenities: [] });
-                  }}
-                >
-                  Todos
-                </MenuItem>
-                {amenitiesList.map((a) => (
-                  <MenuItem key={a.id} value={a.id.toString()}>
-                    {a.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Superficie Total (m²)</InputLabel>
-              <Box display="flex" gap={1} mt={1}>
-                <TextField
-                  name="areaFrom"
-                  placeholder="Desde"
-                  type="number"
-                  value={params.areaFrom || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
-                />
-                <TextField
-                  name="areaTo"
-                  placeholder="Hasta"
-                  type="number"
-                  value={params.areaTo || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
-                />
-              </Box>
-            </FormControl>
-
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Superficie Cubierta</InputLabel>
-              <Box display="flex" gap={1} mt={1}>
-                <TextField
-                  name="coveredAreaFrom"
-                  placeholder="Desde"
-                  type="number"
-                  value={params.coveredAreaFrom || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
-                />
-                <TextField
-                  name="coveredAreaTo"
-                  placeholder="Hasta"
-                  type="number"
-                  value={params.coveredAreaTo || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
-                />
-              </Box>
-            </FormControl>
-
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Precio</InputLabel>
-              <Box display="flex" gap={1} mt={1}>
-                <TextField
-                  name="priceFrom"
-                  placeholder="Desde"
-                  type="number"
-                  size="small"
-                  value={params.priceFrom || ''}
-                  onChange={handleInput}
-                  fullWidth
-                />
-                <TextField
-                  name="priceTo"
-                  placeholder="Hasta"
-                  type="number"
-                  size="small"
-                  value={params.priceTo || ''}
-                  onChange={handleInput}
-                  fullWidth
-                />
-              </Box>
-            </FormControl>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <LoadingButton
-                variant="outlined"
-                fullWidth
-                size="medium"
-                startIcon={<RefreshIcon />}
-                onClick={() => runCancel()}
-                loading={loadingCancel}
-                sx={{
-                  borderColor: theme.palette.primary.main,
-                }}
-              >
-                Cancelar
-              </LoadingButton>
-              <LoadingButton
-                variant="contained"
-                fullWidth
-                size="medium"
-                onClick={() => runSearch()}
-                loading={loadingSearch}
-                sx={{
-                  bgcolor: theme.palette.primary.main,
-                }}
-              >
-                Buscar
-              </LoadingButton>
-            </Box>
-          </Box>
-        </Collapse>
-      </CardContent>
-    </Card>
+      <Divider sx={{ my: 2 }} />
+      <LoadingButton fullWidth variant="outlined" loading={loadingReset} startIcon={<RefreshIcon />} onClick={runReset} sx={{ fontSize: '0.875rem', py: 0.5 }}>Reset filtros</LoadingButton>
+    </Box>
   );
-}
+
+  return (
+    <>
+      {isMobile ? (
+        <>
+          <Button variant="outlined" startIcon={<FilterListIcon />} onClick={() => setDrawerOpen(true)} sx={{ fontSize: '0.875rem', py: 0.5 }}>Filtros</Button>
+          <Drawer anchor="bottom" open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { height: '80vh', borderTopLeftRadius: 12, borderTopRightRadius: 12 } }}>{Panel}</Drawer>
+        </>
+      ) : (
+        <Box sx={{ width: 300, flexShrink: 0, borderLeft: '1px solid', borderColor: 'divider' }}>{Panel}</Box>
+      )}
+    </>
+  );
+};
