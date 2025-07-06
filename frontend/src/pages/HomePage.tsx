@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import {
+  Box, Typography, useTheme, useMediaQuery,
+} from '@mui/material';
 
 import { ImageCarousel } from '../app/property/components/ImageCarousel';
 import { SearchBar } from '../app/shared/components/SearchBar';
@@ -12,26 +14,42 @@ import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { getAllProperties, getPropertiesByText } from '../app/property/services/property.service';
+import {
+  getAllProperties,
+  getPropertiesByText,
+} from '../app/property/services/property.service';
 
 export default function Home() {
-  localStorage.setItem("selectedPropertyId", "");
+  /* ───── hooks & context ───── */
+  localStorage.setItem('selectedPropertyId', '');
   const navigate = useNavigate();
   const location = useLocation();
-  const { showAlert } = useGlobalAlert();
-  const { selectedPropertyIds, toggleCompare, refreshProperties, propertiesList } = usePropertyCrud();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  const { showAlert } = useGlobalAlert();
+  const {
+    selectedPropertyIds,
+    toggleCompare,
+    refreshProperties,
+    propertiesList,
+  } = usePropertyCrud();
+
+  /* ───── local state ───── */
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /* ───── effects ───── */
   useEffect(() => {
     refreshProperties();
   }, [location.pathname]);
 
   useEffect(() => {
-    setResults(propertiesList.map(p => ({ ...p, status: p.status ?? 'Desconocido' })));
+    setResults(
+      propertiesList.map((p) => ({ ...p, status: p.status ?? 'Desconocido' })),
+    );
     setLoading(false);
   }, [propertiesList]);
 
@@ -39,6 +57,7 @@ export default function Home() {
     setMode('normal');
   }, [location]);
 
+  /* ───── handlers ───── */
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
     if (action === 'create') {
       navigate('/properties/new');
@@ -47,8 +66,10 @@ export default function Home() {
     if (mode === action) {
       setMode('normal');
       showAlert(
-        action === 'delete' ? 'Saliste del modo eliminación' : 'Saliste del modo edición',
-        'info'
+        action === 'delete'
+          ? 'Saliste del modo eliminación'
+          : 'Saliste del modo edición',
+        'info',
       );
     } else {
       setMode(action);
@@ -56,60 +77,91 @@ export default function Home() {
         action === 'delete'
           ? 'Modo eliminación: selecciona una propiedad'
           : 'Modo edición: selecciona una propiedad',
-        action === 'delete' ? 'warning' : 'info'
+        action === 'delete' ? 'warning' : 'info',
       );
     }
   };
 
-  const toggleSelectionMode = () => {
-    setSelectionMode(prev => {
+  const toggleSelectionMode = () =>
+    setSelectionMode((prev) => {
       showAlert(
         prev ? 'Saliendo del modo comparación' : 'Entrando al modo comparación',
-        'info'
+        'info',
       );
       return !prev;
     });
-  };
 
   const handleCompare = () => {
     navigate('/properties/compare');
-    setSelectionMode(false); // Exit selection mode after navigation
+    setSelectionMode(false);
   };
 
-  // console.log('Token: ', document.cookie);
-
+  /* ───── render ───── */
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <Box sx={{ width: { xs: '25rem', sm: '40rem' } }}>
-            <SearchBar
-              fetchAll={getAllProperties}
-              fetchByText={getPropertiesByText}
-              onSearch={items => setResults(items as Property[])}
-              placeholder="Buscar propiedad"
-              debounceMs={400}
-            />
+
+        {/* FILA buscador + botón de filtros (solo móvil) */}
+        {isMobile && (
+          <Box
+            sx={{
+              mt: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              justifyContent: 'center',
+            }}
+          >
+            <SearchFilters onSearch={setResults} /> {/* ← botón “Filtros” */}
+            <Box sx={{ flexGrow: 1, maxWidth: '25rem' }}>
+              <SearchBar
+                fetchAll={getAllProperties}
+                fetchByText={getPropertiesByText}
+                onSearch={items => setResults(items as Property[])}
+                placeholder="Buscar propiedad"
+                debounceMs={400}
+              />
+            </Box>
           </Box>
-        </Box>
+        )}
+
+        {/* buscador centrado (desktop) */}
+        {!isMobile && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ width: '40rem' }}>
+              <SearchBar
+                fetchAll={getAllProperties}
+                fetchByText={getPropertiesByText}
+                onSearch={items => setResults(items as Property[])}
+                placeholder="Buscar propiedad"
+                debounceMs={400}
+              />
+            </Box>
+          </Box>
+        )}
+
+        {/* layout principal */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             gap: 1,
             mt: 2,
-            position: 'relative',
-            zIndex: 1,
           }}
         >
-          <Box sx={{ width: { xs: '100%', md: 270 } }}>
-            <SearchFilters onSearch={setResults} />
-          </Box>
-          <Box sx={{ flexGrow: 1, ml: { md: 8 } }}>
+          {/* panel filtros fijo en desktop */}
+          {!isMobile && (
+            <Box sx={{ width: 300 }}>
+              <SearchFilters onSearch={setResults} />
+            </Box>
+          )}
+
+          {/* catálogo */}
+          <Box sx={{ flexGrow: 1, ml: { md: 3 } }}>
             {loading ? (
-              <Typography>Cargando propiedades...</Typography>
-            ) : results.length > 0 ? (
+              <Typography>Cargando propiedades…</Typography>
+            ) : results.length ? (
               <PropertyCatalog
                 properties={results}
                 mode={mode}
@@ -125,7 +177,8 @@ export default function Home() {
             )}
           </Box>
         </Box>
-      </Box >
+      </Box>
+
       <FloatingButtons
         onAction={handleAction}
         selectionMode={selectionMode}
@@ -133,6 +186,6 @@ export default function Home() {
         onCompare={handleCompare}
         compareCount={selectedPropertyIds.length}
       />
-    </BasePage >
+    </BasePage>
   );
 }

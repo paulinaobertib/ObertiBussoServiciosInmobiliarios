@@ -4,7 +4,6 @@ import {
   useState,
   useEffect,
   useCallback,
-  useMemo,
   ReactNode,
 } from 'react';
 
@@ -245,17 +244,28 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /* — refrescos por categoría — */
-  const categoryRefreshers = useMemo(() => ({
-    amenity: refreshAmenities,
-    owner: refreshOwners,
-    type: refreshTypes,
-    neighborhood: refreshNeighborhoods,
-  }), [refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
+  // const categoryRefreshers = useMemo(() => ({
+  //   amenity: refreshAmenities,
+  //   owner: refreshOwners,
+  //   type: refreshTypes,
+  //   neighborhood: refreshNeighborhoods,
+  // }), [refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
+
+  // useEffect(() => {
+  //   if (!currentCategory) return;
+  //   categoryRefreshers[currentCategory]?.();
+  // }, [currentCategory, categoryRefreshers]);
+
 
   useEffect(() => {
     if (!currentCategory) return;
-    categoryRefreshers[currentCategory]?.();
-  }, [currentCategory, categoryRefreshers]);
+    switch (currentCategory) {
+      case 'amenity': refreshAmenities(); break;
+      case 'owner': refreshOwners(); break;
+      case 'type': refreshTypes(); break;
+      case 'neighborhood': refreshNeighborhoods(); break;
+    }
+  }, [currentCategory, refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
 
   /* — selección tradicional y buildSearchParams — */
   const [selected, setSelected] = useState<SelectedIds>({
@@ -269,7 +279,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     () => setSelected({ owner: null, neighborhood: null, type: null, amenities: [] }),
     []
   );
-  
+
   const toggleSelect = (id: number) => {
     if (!currentCategory) return;
     if (currentCategory === 'amenity') {

@@ -1,9 +1,9 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
 import {
     Box, Grid, TextField, MenuItem, InputAdornment,
-    IconButton, Typography, FormControlLabel, Checkbox
+    IconButton, Typography, Checkbox, Stack
 } from '@mui/material';
-import EditOffIcon from '@mui/icons-material/EditOff';
+import CloseIcon from '@mui/icons-material/Close';   // ← NUEVO
 import { ImageUploader } from '../ImageUploader';
 import { usePropertyForm } from '../../hooks/usePropertyForm';
 import { usePropertyCrud } from '../../context/PropertiesContext';
@@ -76,6 +76,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             () => typesList.find(t => t.id === selected.type),
             [selected.type, typesList]
         );
+
         const showRooms = currentType?.hasRooms ?? false;
         const showBedrooms = currentType?.hasBedrooms ?? false;
         const showBathrooms = currentType?.hasBathrooms ?? false;
@@ -103,10 +104,27 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             const n = parseInt(val, 10);
             if (!isNaN(n)) setField(k, n as any);
         };
-        const handleMain = (f: File | null) =>
-            handleMainImage(f, form, setField, onImageSelect);
-        const handleGallery = (fs: File[]) =>
-            handleGalleryImages(fs, form, setField, onImageSelect);
+
+        const handleMain = (f: File | null) => handleMainImage(f, form, setField, onImageSelect);
+        const handleGallery = (fs: File[]) => handleGalleryImages(fs, form, setField, onImageSelect);
+
+        useEffect(() => {
+            // solo reseteo si ya tengo un valor “viejo” que limpiar
+            if (!showRooms && form.rooms !== 0) setField('rooms', 0 as any);
+            if (!showBedrooms && form.bedrooms !== 0) setField('bedrooms', 0 as any);
+            if (!showBathrooms && form.bathrooms !== 0) setField('bathrooms', 0 as any);
+            if (!showCoveredArea && form.coveredArea !== 0) setField('coveredArea', 0 as any);
+        }, [
+            showRooms,
+            showBedrooms,
+            showBathrooms,
+            showCoveredArea,
+            form.rooms,
+            form.bedrooms,
+            form.bathrooms,
+            form.coveredArea,
+            setField,
+        ]);
 
         return (
             <Box component="form" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
@@ -158,36 +176,36 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                     {form.operation === 'VENTA' && (
                         <>
                             <Grid size={{ xs: 6 }}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={form.credit}
-                                            onChange={e => setField('credit', e.target.checked)}
-                                            size="small"
-                                        />
-                                    }
-                                    label="Apto Crédito"
-                                    sx={{
-                                        px: 1, border: '1px solid #ccc', borderRadius: 1,
-                                        '&:hover': { borderColor: '#444' }
-                                    }}
-                                />
+                                <Stack direction="row" alignItems="center" px={1} py={0.5} sx={{
+                                    border: '1px solid #ccc',
+                                    borderRadius: 1,
+                                    '&:hover': { borderColor: '#444' },
+                                }}>
+                                    <Checkbox
+                                        checked={form.credit}
+                                        onChange={e => setField('credit', e.target.checked)}
+                                        size="small"
+                                        sx={{ p: 0.7 }}
+
+                                    />
+                                    <Typography variant="body1">Apto Crédito</Typography>
+                                </Stack>
                             </Grid>
                             <Grid size={{ xs: 6 }}>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={form.financing}
-                                            onChange={e => setField('financing', e.target.checked)}
-                                            size="small"
-                                        />
-                                    }
-                                    label="Apto Financiamiento"
-                                    sx={{
-                                        px: 1, border: '1px solid #ccc', borderRadius: 1,
-                                        '&:hover': { borderColor: '#444' }
-                                    }}
-                                />
+                                <Stack direction="row" alignItems="center" px={1} py={0.5} sx={{
+                                    border: '1px solid #ccc',
+                                    borderRadius: 1,
+                                    '&:hover': { borderColor: '#444' },
+                                }}>
+                                    <Checkbox
+                                        checked={form.financing}
+                                        onChange={e => setField('financing', e.target.checked)}
+                                        size="small"
+                                        sx={{ p: 0.7 }}
+
+                                    />
+                                    <Typography variant="body1">Apto Financiamiento</Typography>
+                                </Stack>
                             </Grid>
                         </>
                     )}
@@ -229,30 +247,45 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                         <TextField
                             fullWidth
                             label="Expensas"
-                            value={form.expenses === 0 ? '' : form.expenses}
+                            value={form.expenses ?? ''}          // ← muestra “0” si vale 0
                             onChange={num('expenses')}
-                            required error={!!fieldErrors.expenses}
+                            required
+                            error={!!fieldErrors.expenses}
                             inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                             size="small"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => setField('expenses', 0 as any)}
+                                            title="Sin expensas"
+                                        >
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                         />
                     </Grid>
 
                     {/* Mostrar precio */}
                     <Grid size={{ xs: 12 }}>
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={form.showPrice}
-                                    onChange={e => setField('showPrice', e.target.checked)}
-                                    size="small"
-                                />
-                            }
-                            label={`Mostrar precio de ${form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas`}
-                            sx={{
-                                px: 1, border: '1px solid #ccc', borderRadius: 1,
-                                '&:hover': { borderColor: '#444' }
-                            }}
-                        />
+
+                        <Stack direction="row" alignItems="center" px={1} py={0.5} sx={{
+                            border: '1px solid #ccc',
+                            borderRadius: 1,
+                            '&:hover': { borderColor: '#444' },
+                        }}>
+                            <Checkbox
+                                checked={form.showPrice}
+                                onChange={e => setField('showPrice', e.target.checked)}
+                                size="small"
+                                sx={{ p: 0.7 }}
+
+                            />
+                            <Typography variant="body1">Mostrar precio de {form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas</Typography>
+                        </Stack>
                     </Grid>
 
                     {/* Descripción */}
@@ -292,7 +325,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                                             onClick={() => setField('number', 'S/N')}
                                             title="Sin número"
                                         >
-                                            <EditOffIcon fontSize="small" />
+                                            <CloseIcon fontSize="small" />
                                         </IconButton>
                                     </InputAdornment>
                                 )
