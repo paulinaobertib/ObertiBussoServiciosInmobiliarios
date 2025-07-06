@@ -19,15 +19,9 @@ import { CategoryPanel } from '../app/property/components/CategoryPanel';
 import { PanelManager, PanelConfig } from '../app/shared/components/PanelManager';
 
 // servicios
-import {
-  getPropertyById, putProperty
-} from '../app/property/services/property.service';
-import {
-  getOwnerByPropertyId
-} from '../app/property/services/owner.service';
-import {
-  getImagesByPropertyId, postImage, deleteImageById, ImageDTO,
-} from '../app/property/services/image.service';
+import { getPropertyById, putProperty } from '../app/property/services/property.service';
+import { getOwnerByPropertyId } from '../app/property/services/owner.service';
+import { getImagesByPropertyId, postImage, deleteImageById, ImageDTO, } from '../app/property/services/image.service';
 
 // tipos y rutas
 import { Image } from '../app/property/types/image';
@@ -43,7 +37,17 @@ export default function EditPropertyPage() {
   const { formRef, main, gallery, setMain, setGallery, deleteImgFile, setLoading, handleImages } = useCreateProperty();
 
   // contexto CRUD
-  const { selected, setSelected, resetSelected, typesList, pickItem } = usePropertyCrud();
+  const {
+    selected,
+    setSelected,
+    resetSelected,
+    typesList,
+    pickItem,
+    refreshTypes,
+    refreshNeighborhoods,
+    refreshAmenities,
+    refreshOwners,                                        // ②
+  } = usePropertyCrud();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
   const theme = useTheme()
@@ -56,12 +60,7 @@ export default function EditPropertyPage() {
 
   type CategoryKey = 'type' | 'neighborhood' | 'owner' | 'amenity';
 
-  const categoryKeys: CategoryKey[] = [
-    'type',
-    'neighborhood',
-    'owner',
-    'amenity',
-  ];
+  const categoryKeys: CategoryKey[] = ['type', 'neighborhood', 'owner', 'amenity'];
 
   /* categorías necesarias para continuar -------------------------- */
   const categoryPanels: PanelConfig[] = [
@@ -94,8 +93,18 @@ export default function EditPropertyPage() {
 
     let mounted = true;
     (async () => {
+      setLoading(true);
       try {
-        setLoading(true);
+        // ① precargo catálogos
+        const loaders = [
+          refreshTypes(),
+          refreshNeighborhoods(),
+          refreshAmenities(),
+        ];
+        loaders.push(refreshOwners());
+        await Promise.all(loaders);
+
+        // ② cargo propiedad, owner e imágenes
         const [prop, owner, imgList] = await Promise.all([
           getPropertyById(propId),
           getOwnerByPropertyId(propId),
@@ -103,10 +112,7 @@ export default function EditPropertyPage() {
         ]);
         if (!mounted) return;
 
-        const mainUrl = prop.mainImage;
-        const galleryDTO = imgList.filter(i => i.url !== mainUrl);
-
-        // categorías
+        // ③ sincronizo selects
         setSelected({
           owner: owner.id,
           neighborhood: prop.neighborhood?.id ?? null,
@@ -114,28 +120,24 @@ export default function EditPropertyPage() {
           amenities: prop.amenities?.map((a: any) => a.id) ?? [],
         });
 
-        // hidratar tanto el estado local como el form
-        setProperty({
-          ...prop,
-          ownerId: owner.id,
-          mainImage: mainUrl,                     // 🔸 ahora incluido
-          images: galleryDTO.map(g => g.url),
-        });
-        formRef.current?.setField('mainImage', mainUrl);           // 🔸 hidrata el form
-        formRef.current?.setField('images', galleryDTO.map(g => g.url));
-
-        // preview
-        handleImages(mainUrl, galleryDTO.map(g => g.url));
+        // ④ hidrato form y preview
+        formRef.current?.setField('mainImage', prop.mainImage);
+        formRef.current?.setField('images', imgList.map(i => i.url));
+        handleImages(
+          prop.mainImage,
+          imgList.filter(i => i.url !== prop.mainImage).map(i => i.url)
+        );
+        setProperty({ ...prop, ownerId: owner.id, mainImage: prop.mainImage, images: imgList.map(i => i.url) });
         setImagesBackend(imgList);
-      } catch (error: any) {
-        const message = error.response?.data ?? 'Error desconocido';
-        showAlert(message, 'error');
+      } catch (e: any) {
+        showAlert(e.response?.data ?? 'Error desconocido', 'error');
       } finally {
         setLoading(false);
       }
     })();
-    return () => { mounted = false; };
-  }, [propId]);
+    return () => { mounted = false };
+  }, [propId]); // sólo estas dos
+
 
   // 2) Borrar imagen (URL o File)
   const handleDeleteImg = async (pic: Image) => {
@@ -273,7 +275,7 @@ export default function EditPropertyPage() {
             </Box>
 
             {/* botón siguiente */}
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+            <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
               <Button variant="contained" onClick={() => setActiveStep(1)} disabled={!canProceed}>
                 Siguiente
               </Button>
@@ -338,7 +340,7 @@ export default function EditPropertyPage() {
               </Box>
             </Box>
 
-            <Box sx={{ mt: 1, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
+            <Box sx={{ mt: 1, mb: 2, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
               <Button variant="contained" onClick={() => setActiveStep(0)}>
                 Volver
               </Button>

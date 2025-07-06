@@ -1,7 +1,10 @@
-import { Card, Box, Chip, CardContent, Typography, useTheme, Checkbox, } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
+import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
 import { FavoriteButton } from '../../../user/components/FavoriteButtom';
 import { Property } from '../../types/property';
+import SquareFootIcon from '@mui/icons-material/SquareFoot';
+import ViewComfyIcon from '@mui/icons-material/ViewComfy';
+import HotelIcon from '@mui/icons-material/Hotel';
+import BathtubIcon from '@mui/icons-material/Bathtub';
 
 export interface Props {
   property: Property;
@@ -19,145 +22,145 @@ export const PropertyCard = ({
   onClick = () => { },
 }: Props) => {
   const theme = useTheme();
+  const selected = selectionMode && isSelected(property.id);
   const src =
     typeof property.mainImage === 'string'
       ? property.mainImage
       : URL.createObjectURL(property.mainImage);
 
-  // handler con logging
-  const handleSelect = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean
-  ) => {
+  const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    console.log('🔲 handleSelect called', {
-      id: property.id,
-      newChecked: checked,
-      previouslySelected: isSelected(property.id),
-    });
     toggleSelection(property.id);
   };
 
+  const chipLabel = property.status === 'DISPONIBLE'
+    ? `${property.status} - ${property.operation}`
+    : property.status || 'Sin Estado';
 
   return (
     <Card
-      onClick={() => {
-        if (!selectionMode) {
-          onClick();
-        }
-      }}
+      onClick={() => { if (!selectionMode) onClick(); }}
+      variant="elevation"
       sx={{
-        width: '100%',
-        position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 2,
-        boxShadow: 2,
+        height: '100%',
+        borderRadius: 3,
+        borderColor: selected ? theme.palette.primary.main : 'divider',
+        borderWidth: selected ? 2 : 1,
+        overflow: 'hidden',
         cursor: selectionMode ? 'default' : 'pointer',
-        transition: 'transform 0.2s, background-color 0.1s',
+        width: '100%',
+        transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
         '&:hover': {
           transform: 'scale(1.01)',
-          backgroundColor: theme.palette.action.hover,
+          boxShadow: 3,
+          borderColor: selected ? theme.palette.primary.main : theme.palette.divider,
         },
       }}
     >
-      <FavoriteButton propertyId={property.id} />
+      {/* Imagen y controles superiores */}
+      <Box sx={{ position: 'relative' }}>
+        <Box
+          component="div"
+          sx={{
+            width: '100%',
+            aspectRatio: '16/9',
+            backgroundImage: `url(${src})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
 
-      <Box
-        component="div"
-        sx={{
-          width: '100%',
-          aspectRatio: '16/9',
-          backgroundImage: `url(${src})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          borderTopLeftRadius: 8,
-          borderTopRightRadius: 8,
-        }}
-      />
+        <Chip
+          label={chipLabel}
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: 8,
+            left: 8,
+            bgcolor: 'rgba(255,255,255,0.8)',
+            fontSize: '0.65rem',
+            fontWeight: 500,
+            textTransform: 'capitalize',
+            pointerEvents: 'none',
+          }}
+        />
 
-      <Chip
-        label={property.status || 'Sin Estado'}
-        size="small"
-        sx={{
-          position: 'absolute',
-          top: 12,
-          left: 12,
-          zIndex: 5,
-          fontWeight: 600,
-          fontSize: { xs: '0.75rem' },
-          boxShadow: 3,
-          bgcolor: 'white',
-          pointerEvents: 'none',
-        }}
-      />
-
-      <CardContent
-        sx={{
-          position: 'relative',
-          textAlign: 'center',
-          backgroundColor: theme.palette.quaternary.main,
-        }}
-      >
         {selectionMode && (
           <Checkbox
             checked={isSelected(property.id)}
             onChange={handleSelect}
-            disableRipple
-            icon={
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 1,
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  backgroundColor: 'white',
-                  boxSizing: 'border-box',
-                }}
-              />
-            }
-            checkedIcon={
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 1,
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  backgroundColor: theme.palette.primary.main,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <CheckIcon sx={{ color: 'white', fontSize: 16 }} />
-              </Box>
-            }
-            sx={{
-              position: 'absolute',
-              bottom: 12,
-              left: 12,
-              width: 20,
-              height: 20,
-              p: 0,
-              minWidth: 0,
-              minHeight: 0,
-              zIndex: 10,
-              '&:hover': { backgroundColor: 'transparent' },
-            }}
+            size="medium"
+            sx={{ position: 'absolute', bottom: 8, left: 8, p: 0 }}
             inputProps={{ 'aria-label': 'Seleccionar propiedad' }}
           />
         )}
+        <Box sx={{ position: 'absolute', top: -5, right: -5 }}>
+          <FavoriteButton propertyId={property.id} />
+        </Box>
+      </Box>
 
-        <Typography variant="h6" noWrap sx={{ mb: 0.5 }}>
-          {property.title}
-        </Typography>
-        <Typography color="text.primary">
-          {property.showPrice
-            ? `${property.currency} $${property.price}`
-            : 'Consultar precio'}
-        </Typography>
-      </CardContent>
+      {/* Contenido inferior */}
+      <Box
+        sx={{
+          pb: 1,
+          px: 2,
+          backgroundColor: theme.palette.quaternary.main,
+          textAlign: 'center',
+        }}
+      >
+        {/* Área reservada para título: centrado verticalmente */}
+        <Box sx={{ minHeight: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 1 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, lineHeight: '1.3rem', whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+          >
+            {property.title}
+          </Typography>
+        </Box>
+
+        {/* Cuadro(s) de Precio y Expensas */}
+        <Box sx={{ mb: '0.5rem' }}>
+          {property.showPrice ? (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+              <Box sx={{ flex: 1, p: 0.5, border: `1px solid ${theme.palette.divider}`, borderRadius: 0.5 }}>
+                <Typography variant="caption" color="text.secondary">Precio</Typography>
+                <Typography variant="subtitle2">{`${property.currency} $${property.price}`}</Typography>
+              </Box>
+              <Box sx={{ flex: 1, p: 0.5, border: `1px solid ${theme.palette.divider}`, borderRadius: 0.5 }}>
+                <Typography variant="caption" color="text.secondary">Expensas</Typography>
+                <Typography variant="subtitle2">{property.expenses > 0 ? `${property.currency} $${property.expenses}` : 'No'}</Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ p: 0.5, border: `1px solid ${theme.palette.divider}`, borderRadius: 0.5 }}>
+              <Typography variant="caption" color="text.secondary">Precio - Expensas</Typography>
+              <Typography variant="subtitle2">Consultar</Typography>
+            </Box>
+          )}
+        </Box>
+
+        {/* Barra de métricas */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <SquareFootIcon fontSize="small" />
+            <Typography variant="caption">{`${property.area} m²`}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <ViewComfyIcon fontSize="small" />
+            <Typography variant="caption">{`${property.rooms}`}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <HotelIcon fontSize="small" />
+            <Typography variant="caption">{`${property.bedrooms}`}</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <BathtubIcon fontSize="small" />
+            <Typography variant="caption">{`${property.bathrooms}`}</Typography>
+          </Box>
+        </Box>
+      </Box>
     </Card>
   );
-}
+};

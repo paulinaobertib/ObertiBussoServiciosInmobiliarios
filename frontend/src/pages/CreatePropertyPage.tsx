@@ -180,7 +180,7 @@ export default function CreatePropertyPage() {
               </Box>
 
               {/* botón siguiente */}
-              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+              <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
                 <Button variant="contained" onClick={() => setActiveStep(1)} disabled={!canProceed}>
                   Siguiente
                 </Button>
@@ -239,7 +239,7 @@ export default function CreatePropertyPage() {
               </Box>
 
               {/* Verificar si selected.type tiene el valor correcto en el segundo paso */}
-              <Box sx={{ mt: 1, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
+              <Box sx={{ mt: 1, mb: 2, display: { xs: "none", md: "flex" }, justifyContent: 'flex-end', flexShrink: 0 }}>
                 <Button variant="contained" onClick={() => {
                   setActiveStep(0);  // Si se desea volver al primer paso
                 }}>

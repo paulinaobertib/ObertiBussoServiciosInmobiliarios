@@ -8,8 +8,7 @@ import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { useConfirmDialog } from '../../utils/ConfirmDialog';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { PropertyCard } from './PropertyCard';
-import { buildRoute } from '../../../../lib';
-import { ROUTES } from '../../../../lib';
+import { buildRoute, ROUTES } from '../../../../lib';
 
 type CatalogMode = 'normal' | 'edit' | 'delete';
 

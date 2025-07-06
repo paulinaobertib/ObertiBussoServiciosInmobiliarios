@@ -92,7 +92,7 @@ export default function SettingsDrawer() {
 
     return (
         <>
-            <IconButton  color="inherit" onClick={() => setOpen(true)}>
+            <IconButton color="inherit" onClick={() => setOpen(true)}>
                 <NotificationsIcon />
             </IconButton>
             <Drawer
@@ -108,16 +108,14 @@ export default function SettingsDrawer() {
                 }}
             >
                 <Typography variant="h6" mb={2}>
-                    Ajustes
+                    Notificaciones
                 </Typography>
                 <Divider />
 
                 {/* Preferencias: solo usuarios no admin */}
                 {!isAdmin && (
                     <Box mt={2}>
-                        <Typography variant="subtitle2" mb={1}>
-                            Notificaciones
-                        </Typography>
+
                         <Stack spacing={1}>
                             {preferences.map((pref) => (
                                 <Box
