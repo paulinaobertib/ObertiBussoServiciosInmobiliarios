@@ -16,7 +16,7 @@ export default function ContactPage() {
     };
 
     return (
-        <BasePage maxWidth={false}>
+        <BasePage>
             <Box
                 sx={{
                     display: 'flex',

@@ -10,6 +10,7 @@ export const BasePage = ({
   children,
   maxWidth = true,
 }: PropsWithChildren<BasePageProps>) => {
+
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       {/* Fondo fijo con blur */}
@@ -39,14 +40,26 @@ export const BasePage = ({
       {/* Tu contenido va aquí */}
       <NavBar />
       <Container
-        maxWidth={maxWidth ? 'lg' : false}
+        maxWidth={false}        // quito el límite por defecto
         sx={{
-          // Asegura que el contenido esté por encima de la imagen
           position: 'relative',
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
+          px: 2,
+          mx: 'auto',
+
+          // cuando maxWidth=true, ajusto un ancho "responsivo" más generoso
+          ...(maxWidth && {
+            width: {
+              xs: '100%',    // móvil ocupa 100%
+              sm: '95%',     // tablet 95%
+              md: '90%',     // escritorio mediano 90%
+              lg: '80%',     // pantallas grandes 80%
+            },
+            maxWidth: '1600px', // nunca pase de 1600px
+          }),
         }}
       >
         <Toolbar />

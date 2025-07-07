@@ -1,17 +1,16 @@
 import { useEffect } from 'react';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Typography } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { CategoryPanel } from '../app/property/components/CategoryPanel';
-import { UsersPanel } from '../app/user/components/users/UsersPanel';
 import { PropertyPanel } from '../app/property/components/PropertyPanel';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
 import { AppointmentPanel } from '../app/user/components/appointments/AppointmentPanel';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Profile } from '../app/user/components/users/Profile';
+import { ProfileSection } from "../app/user/components/users/ProfileSection";
+import { UsersSection } from '../app/user/components/users/UsersSection';
 
 export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();
@@ -36,7 +35,7 @@ export default function AdministratorPanel() {
         {
             key: 'users',
             label: 'USUARIOS',
-            content: <UsersPanel />,
+            content: <UsersSection />,
         },
         {
             key: 'inquiries',
@@ -51,41 +50,14 @@ export default function AdministratorPanel() {
     ];
 
     return (
-        <BasePage maxWidth={true}>
+        <BasePage>
             <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2 }}>
                 <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
                     VOLVER
                 </Button>
             </Box>
 
-            <Accordion disableGutters defaultExpanded
-                sx={{
-                    bgcolor: 'background.paper',
-                    boxShadow: 4,
-                    borderRadius: 2,
-                }}>
-                <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        '& .MuiAccordionSummary-content': {
-                            flex: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        },
-                        '& .MuiAccordionSummary-expandIconWrapper': {
-                            marginLeft: 1,
-                        },
-                    }}
-                >
-                    <Typography variant="h6">Mis Datos</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Profile />
-                </AccordionDetails>
-            </Accordion>
+            <ProfileSection />
 
 
             <Box

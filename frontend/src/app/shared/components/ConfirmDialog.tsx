@@ -9,7 +9,7 @@ import {
   useTheme
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../utils/useLoading';
+import { useLoading } from '../../property/utils/useLoading';
 
 export function useConfirmDialog() {
   const [open, setOpen] = useState(false);
