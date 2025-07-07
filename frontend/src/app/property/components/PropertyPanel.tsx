@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { usePropertyCrud } from '../context/PropertiesContext';
 import { ModalItem, Info } from './ModalItem';
-import { useConfirmDialog } from '../utils/ConfirmDialog';
+import { useConfirmDialog } from '../../shared/components/ConfirmDialog';
 import { deleteProperty, getAllProperties, getPropertiesByText } from '../services/property.service';
 import { useGlobalAlert } from '../../shared/context/AlertContext';
 import { getRowActions, RowAction } from './ActionsRowItems';

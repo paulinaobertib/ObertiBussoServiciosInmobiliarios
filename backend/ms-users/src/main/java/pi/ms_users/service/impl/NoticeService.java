@@ -11,6 +11,8 @@ import pi.ms_users.repository.INoticeRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.INoticeService;
 import pi.ms_users.specification.NoticeSpecification;
+import pi.ms_users.security.SecurityUtils;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +32,8 @@ public class NoticeService implements INoticeService {
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el usuario"));
 
         List<String> roles = userRepository.getUserRoles(notice.getUserId());
-        if (!roles.contains("app_admin")) {
-            throw new IllegalArgumentException("Este usuario no tiene permiso para crear una noticia");
+        if (!SecurityUtils.isAdmin()) {
+            throw new AccessDeniedException("No tiene permiso para crear una noticia.");
         }
 
         notice.setDate(LocalDateTime.now());
@@ -48,8 +50,8 @@ public class NoticeService implements INoticeService {
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado una noticia con ese id"));
 
         List<String> roles = userRepository.getUserRoles(notice.getUserId());
-        if (!roles.contains("app_admin")) {
-            throw new IllegalArgumentException("Este usuario no tiene permiso para actualizar una noticia");
+        if (!SecurityUtils.isAdmin()) {
+            throw new AccessDeniedException("No tiene permiso para actualizar una noticia.");
         }
 
         notice.setDate(LocalDateTime.now());

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,6 +16,7 @@ import pi.ms_users.domain.Notice;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.INoticeRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.NoticeService;
 
 import java.time.LocalDateTime;
@@ -53,26 +55,31 @@ class NoticeServiceTest {
     @Test
     void testCreateNoticeSuccess() {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
-        when(userRepository.getUserRoles("user1")).thenReturn(List.of("app_admin"));
-        when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
 
-        ResponseEntity<String> response = noticeService.create(notice);
+        try (MockedStatic<SecurityUtils> secMock = mockStatic(SecurityUtils.class)) {
+            secMock.when(SecurityUtils::isAdmin).thenReturn(true);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha guardado la noticia", response.getBody());
+            ResponseEntity<String> response = noticeService.create(notice);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha guardado la noticia", response.getBody());
+        }
     }
 
     @Test
     void testUpdateNoticeSuccess() {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
-        when(userRepository.getUserRoles("user1")).thenReturn(List.of("app_admin"));
-        when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
 
-        ResponseEntity<String> response = noticeService.update(notice);
+        try (MockedStatic<SecurityUtils> secMock = mockStatic(SecurityUtils.class)) {
+            secMock.when(SecurityUtils::isAdmin).thenReturn(true);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha actualizado la noticia", response.getBody());
+
+            ResponseEntity<String> response = noticeService.update(notice);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha actualizado la noticia", response.getBody());
+        }
     }
 
     @Test

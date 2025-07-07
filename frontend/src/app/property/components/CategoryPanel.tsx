@@ -15,7 +15,7 @@ import { translate } from "../utils/translate";
 import { ModalItem, Info } from "../components/ModalItem";
 import { SearchBar } from "../../shared/components/SearchBar";
 import { Owner } from "../types/owner";
-import { useConfirmDialog } from "../utils/ConfirmDialog";
+import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 // Forms

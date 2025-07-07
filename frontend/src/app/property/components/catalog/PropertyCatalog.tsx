@@ -5,7 +5,7 @@ import { Box, Typography, CircularProgress } from '@mui/material';
 import { deleteProperty } from '../../services/property.service';
 import { Property } from '../../types/property';
 import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { useConfirmDialog } from '../../utils/ConfirmDialog';
+import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { PropertyCard } from './PropertyCard';
 import { buildRoute, ROUTES } from '../../../../lib';

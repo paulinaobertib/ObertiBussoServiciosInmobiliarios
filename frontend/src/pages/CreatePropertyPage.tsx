@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
+import { useConfirmDialog } from '../app/shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { PropertyForm } from '../app/property/components/forms/PropertyForm';
 import { PropertyPreview } from '../app/property/components/PropertyPreview';
