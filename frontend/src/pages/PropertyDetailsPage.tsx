@@ -38,7 +38,7 @@ const PropertyDetailsPage = () => {
   }, [id, loadProperty]);
 
   return (
-    <BasePage maxWidth={false}>
+    <BasePage>
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
         <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
           VOLVER

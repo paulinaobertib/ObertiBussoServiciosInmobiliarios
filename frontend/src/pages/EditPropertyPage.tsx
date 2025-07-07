@@ -9,7 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 // hooks y contextos
 import { useCreateProperty } from '../app/property/hooks/useCreateProperty';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useConfirmDialog } from '../app/property/utils/ConfirmDialog';
+import { useConfirmDialog } from '../app/shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 
 // componentes
@@ -228,7 +228,7 @@ export default function EditPropertyPage() {
   );
 
   return (
-    <BasePage maxWidth={true}>
+    <BasePage>
       <Box sx={{
         height: '100%',
         display: 'flex',

@@ -19,7 +19,7 @@ export default function FavoritesPage() {
 
   if (loading) {
     return (
-      <BasePage maxWidth={false}>
+      <BasePage>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
           <CircularProgress size={48} />
         </Box>
