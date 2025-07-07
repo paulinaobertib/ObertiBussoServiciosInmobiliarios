@@ -71,13 +71,13 @@ public class ChatService implements IChatService {
 
             case VER_HABITACIONES:
                 if (property.getBedrooms() > 1 && property.getBathrooms() > 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo " + property.getBedrooms() + " dormitorios y " + property.getBathrooms() + " baños.";
+                    return "La propiedad posee " + property.getRooms() + " ambientes, incluyendo " + property.getBedrooms() + " dormitorios y " + property.getBathrooms() + " baños.";
                 } else if (property.getBedrooms() > 1 && property.getBathrooms() == 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo " + property.getBedrooms() + " dormitorios y un baño.";
+                    return "La propiedad posee " + property.getRooms() + " ambientes, incluyendo " + property.getBedrooms() + " dormitorios y un baño.";
                 } else if (property.getBedrooms() == 1 && property.getBathrooms() == 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo un dormitorio y un baño.";
+                    return "La propiedad posee " + property.getRooms() + " ambientes, incluyendo un dormitorio y un baño.";
                 } else if (property.getBedrooms() == 1 && property.getBathrooms() > 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo un dormitorio y " + property.getBathrooms() + " baños.";
+                    return "La propiedad posee " + property.getRooms() + " ambientes, incluyendo un dormitorio y " + property.getBathrooms() + " baños.";
                 } else {
                     return "No hay información registrada sobre habitaciones en esta propiedad.";
                 }
