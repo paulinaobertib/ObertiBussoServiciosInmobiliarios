@@ -29,6 +29,7 @@ const Compare = () => {
   const { selectedPropertyIds } = usePropertyCrud();
 
   const comparisonDataAI: PropertyDTOAI[] = comparisonItems.map((property) => ({
+    name: property.title,
     address: `${property.street} ${property.number}, ${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`,
     latitude: 0,
     longitude: 0,
@@ -54,7 +55,9 @@ const Compare = () => {
       <>
         <PropertyDetailsCompare comparisonItems={comparisonItems} />
 
-        <Comparer data={comparisonDataAI} />
+        <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1300 }}>
+          <Comparer data={comparisonDataAI} />
+        </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'center', pb: 8 }}>
           <Button

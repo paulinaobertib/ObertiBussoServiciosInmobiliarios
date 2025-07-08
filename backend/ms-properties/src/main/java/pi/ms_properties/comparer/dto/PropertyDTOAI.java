@@ -10,6 +10,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PropertyDTOAI {
+    private String name;
     private String address;
     private Double latitude;
     private Double longitude;
