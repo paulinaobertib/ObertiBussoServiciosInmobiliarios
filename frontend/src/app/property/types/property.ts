@@ -83,6 +83,7 @@ export interface PropertyUpdate {
 }
 
 export interface PropertyDTOAI {
+  name: string;
   address: string;
   latitude: number;
   longitude: number;
