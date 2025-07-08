@@ -1,55 +1,76 @@
-server:
-  port: ${SERVICE_PORT}
-
-eureka:
-  instance:
-    hostname: ${WEBSITE_HOSTNAME}
-    nonSecurePortEnabled: true
-    nonSecurePort: 80
-    securePortEnabled: false
-    
-  client:
-    service-url:
-      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
-
 spring:
   application:
     name: ms-properties
-
   # configuracion de la base de datos
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: jdbc:mysql://localhost:3306/obertibussoserviciosinmobiliarios
+    username: root
+    password: lmcpauli1
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   jpa:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update
-
+      ddl-auto: none
   # configuracion del tamaño maximo de archivos
   servlet:
     multipart:
       max-file-size: 25MB
       max-request-size: 260MB
-
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: http://localhost:8080/realms/obertibussoserviciosinmobiliarios
+
+server:
+  port: 8083
 
 # configuracion de azure
 azure:
   blob-storage:
-    connection-string: ${AZURE_BLOB_CONNECTION_STRING}
+    connection-string: BlobEndpoint=https://storageimages.blob.core.windows.net/;SharedAccessSignature=sp=racwdli&st=2025-04-25T01:30:08Z&se=2030-04-28T09:30:08Z&spr=https&sv=2024-11-04&sr=c&sig=lV0U9sQjS0hYfhyr0mUB83ERerAqkLMloPnYpkdVzXc%3D
     container-name: images
 
+eureka:
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
 email:
-  username: ${EMAIL_USERNAME}
-  password: ${EMAIL_PASSWORD}
+  username: desarrolloinmobertibusso@gmail.com
+  password: gian ovac cerv btzf
 
 frontend:
-  base-url: ${SWA_FRONTEND}
+  base-url: http://localhost:5173
+
+client:
+  secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
+
+ml:
+  api:
+    url: http://localhost:8000
+
+gemini:
+  api:
+    key: AIzaSyDZSRdvhSrsFHSiQ2YY6xWd9yEoEuJObDI
+
+---
+
+# Configuración para perfil "test"
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect

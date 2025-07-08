@@ -7,6 +7,8 @@ import { Modal } from '../app/shared/components/Modal';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
 import { useState } from 'react';
 import { ROUTES } from '../lib';
+import { PropertyDTOAI } from '../app/property/types/property';
+import { Comparer } from '../app/property/components/comparer/Comparer';
 
 const Compare = () => {
   const theme = useTheme();
@@ -26,6 +28,22 @@ const Compare = () => {
 
   const { selectedPropertyIds } = usePropertyCrud();
 
+  const comparisonDataAI: PropertyDTOAI[] = comparisonItems.map((property) => ({
+    name: property.title,
+    address: `${property.street} ${property.number}, ${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`,
+    latitude: 0,
+    longitude: 0,
+    rooms: property.rooms,
+    bathrooms: property.bathrooms,
+    bedrooms: property.bedrooms,
+    area: property.area,
+    coveredArea: property.coveredArea,
+    price: property.price,
+    operation: property.operation,
+    type: property.type.name,
+    amenities: new Set(property.amenities.map((a) => a.name)),
+  }));
+
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
@@ -36,6 +54,10 @@ const Compare = () => {
 
       <>
         <PropertyDetailsCompare comparisonItems={comparisonItems} />
+
+        <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1300 }}>
+          <Comparer data={comparisonDataAI} />
+        </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'center', pb: 8 }}>
           <Button
