@@ -1,4 +1,3 @@
-// src/app/user/hooks/useProfile.ts
 import { useState, useEffect } from "react";
 import { getMe, putUser } from "../services/user.service";
 import { useAuthContext } from "../context/AuthContext";

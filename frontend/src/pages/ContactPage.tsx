@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { InquiryForm } from '../app/property/components/forms/InquiryForm';
-import { AppointmentForm } from '../app/user/components/appointments/AppointmentForm';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
+import { AppointmentForm } from '../app/user/components/appointments/user/AppointmentForm';
 import { BasePage } from './BasePage';
 import { Box, Typography, Button } from '@mui/material';
 

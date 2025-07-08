@@ -1,5 +1,5 @@
 import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
-import { FavoriteButton } from '../../../user/components/FavoriteButtom';
+import { FavoriteButton } from '../../../user/components/favorites/FavoriteButtom';
 import { Property } from '../../types/property';
 import SquareFootIcon from '@mui/icons-material/SquareFoot';
 import ViewComfyIcon from '@mui/icons-material/ViewComfy';

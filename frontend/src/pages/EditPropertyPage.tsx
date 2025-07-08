@@ -13,9 +13,9 @@ import { useConfirmDialog } from '../app/shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 
 // componentes
-import { PropertyForm } from '../app/property/components/forms/PropertyForm';
-import { PropertyPreview } from '../app/property/components/PropertyPreview';
-import { CategoryPanel } from '../app/property/components/CategoryPanel';
+import { PropertyForm } from '../app/property/components/properties/PropertyForm';
+import { PropertyPreview } from '../app/property/components/images/ImagePreview';
+import { CategoryPanel } from '../app/property/components/categories/CategoryPanel';
 import { PanelManager, PanelConfig } from '../app/shared/components/PanelManager';
 
 // servicios

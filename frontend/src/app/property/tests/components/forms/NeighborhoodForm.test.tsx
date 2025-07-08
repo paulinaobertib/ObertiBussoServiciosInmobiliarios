@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import NeighborhoodForm from '../../../components/forms/NeighborhoodForm';
+import NeighborhoodForm from '../../../components/categories/NeighborhoodForm';
 import * as neighborhoodService from '../../../services/neighborhood.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';

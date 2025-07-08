@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import CommentForm from '../../../components/forms/CommentForm';
+import CommentForm from '../../../components/properties/CommentForm';
 import * as commentService from '../../../services/comment.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';

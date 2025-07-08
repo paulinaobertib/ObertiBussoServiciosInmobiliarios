@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import StatusForm from '../../../components/forms/StatusForm';
+import StatusForm from '../../../components/properties/StatusForm';
 import { describe, it, vi, beforeEach, expect } from 'vitest';
 import { putPropertyStatus } from '../../../services/property.service';
 import { usePropertyCrud } from '../../../context/PropertiesContext';
