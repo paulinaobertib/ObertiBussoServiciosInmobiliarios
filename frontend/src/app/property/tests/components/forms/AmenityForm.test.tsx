@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import AmenityForm from '../../../components/forms/AmenityForm';
+import AmenityForm from '../../../components/categories/AmenityForm';
 import * as amenityService from '../../../services/amenity.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';

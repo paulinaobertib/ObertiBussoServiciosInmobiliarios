@@ -5,10 +5,10 @@ import {
   Box, CircularProgress, Typography
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useProfile } from "../../hooks/useProfile";
+import { useProfile } from "../../../hooks/useProfile";
 import { ProfileView } from "./ProfileView";
 import { ProfileForm } from "./ProfileForm";
-import type { User } from "../../types/user";
+import type { User } from "../../../types/user";
 
 export function ProfileSection() {
   const { profile, loading, error, updateProfile } = useProfile();

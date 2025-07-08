@@ -4,7 +4,7 @@ import {
     IconButton, Typography, Checkbox, Stack
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';   // ← NUEVO
-import { ImageUploader } from '../ImageUploader';
+import { ImageUploader } from '../images/ImageUploader';
 import { usePropertyForm } from '../../hooks/usePropertyForm';
 import { usePropertyCrud } from '../../context/PropertiesContext';
 import { useImageHandlers } from '../../hooks/useImageHandlersCreate';

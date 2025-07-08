@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { Autocomplete, TextField } from '@mui/material';
-import type { Role } from '../../types/user';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { addRoleToUser, deleteRoleFromUser, getRoles } from '../../services/user.service';
+import type { Role } from '../../../types/user';
+import { useGlobalAlert } from '../../../../shared/context/AlertContext';
+import { addRoleToUser, deleteRoleFromUser, getRoles } from '../../../services/user.service';
 
 const AVAILABLE_ROLES: { label: string; value: Role }[] = [
     { label: 'Administrador', value: 'admin' },

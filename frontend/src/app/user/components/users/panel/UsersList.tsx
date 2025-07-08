@@ -1,4 +1,4 @@
-import type { User, Role } from "../../types/user";
+import type { User, Role } from "../../../types/user";
 import { UserItem } from "./UserItem";
 
 interface UsersListProps {

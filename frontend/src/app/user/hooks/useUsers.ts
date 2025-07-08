@@ -11,9 +11,9 @@ import type { User, Role } from "../types/user";
 export type Filter = "TODOS" | "ADMIN" | "USER" | "TENANT";
 
 export function useUsers(initialFilter: Filter = "TODOS") {
-  const [users, setUsers]     = useState<(User & { roles: Role[] })[]>([]);
+  const [users, setUsers] = useState<(User & { roles: Role[] })[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter]   = useState<Filter>(initialFilter);
+  const [filter, setFilter] = useState<Filter>(initialFilter);
 
   // helper que añade roles
   const enrich = useCallback(async (list: User[]) => {
@@ -40,8 +40,10 @@ export function useUsers(initialFilter: Filter = "TODOS") {
         base = (await getAllUsers()).data;
       }
       let enriched = await enrich(base);
-      if (filter === "ADMIN")   enriched = enriched.filter((u) => u.roles.includes("admin"));
-      if (filter === "USER")    enriched = enriched.filter((u) => u.roles.includes("user"));
+      if (filter === "ADMIN")
+        enriched = enriched.filter((u) => u.roles.includes("admin"));
+      if (filter === "USER")
+        enriched = enriched.filter((u) => u.roles.includes("user"));
       setUsers(enriched);
     } finally {
       setLoading(false);
@@ -59,10 +61,22 @@ export function useUsers(initialFilter: Filter = "TODOS") {
     return enrich(all);
   }, [enrich]);
 
-  const fetchByText = useCallback(async (text: string) => {
-    const found = (await searchUsersByText(text)).data;
-    return enrich(found);
-  }, [enrich]);
+  const fetchByText = useCallback(
+    async (text: string) => {
+      const found = (await searchUsersByText(text)).data;
+      return enrich(found);
+    },
+    [enrich]
+  );
 
-  return { users, setUsers, loading, filter, setFilter, load, fetchAll, fetchByText };
+  return {
+    users,
+    setUsers,
+    loading,
+    filter,
+    setFilter,
+    load,
+    fetchAll,
+    fetchByText,
+  };
 }

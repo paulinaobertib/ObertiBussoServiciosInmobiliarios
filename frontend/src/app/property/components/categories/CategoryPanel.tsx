@@ -10,21 +10,21 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-import { usePropertyCrud, Category } from "../context/PropertiesContext";
-import { translate } from "../utils/translate";
-import { ModalItem, Info } from "../components/ModalItem";
-import { SearchBar } from "../../shared/components/SearchBar";
-import { Owner } from "../types/owner";
-import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
-import { useGlobalAlert } from "../../shared/context/AlertContext";
+import { usePropertyCrud, Category } from "../../context/PropertiesContext";
+import { translate } from "../../utils/translate";
+import { ModalItem, Info } from "../ModalItem";
+import { SearchBar } from "../../../shared/components/SearchBar";
+import { Owner } from "../../types/owner";
+import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
+import { useGlobalAlert } from "../../../shared/context/AlertContext";
 
 // Forms
-import { AmenityForm } from "../components/forms/AmenityForm";
-import { OwnerForm } from "../components/forms/OwnerForm";
-import { TypeForm } from "../components/forms/TypeForm";
-import { NeighborhoodForm } from "../components/forms/NeighborhoodForm";
-import { StatusForm } from "../components/forms/StatusForm";
-import { getAllOwners, getOwnersByText } from "../services/owner.service";
+import { AmenityForm } from "./AmenityForm";
+import { OwnerForm } from "./OwnerForm";
+import { TypeForm } from "./TypeForm";
+import { NeighborhoodForm } from "./NeighborhoodForm";
+import { StatusForm } from "../properties/StatusForm";
+import { getAllOwners, getOwnersByText } from "../../services/owner.service";
 
 const formRegistry = {
   amenity: AmenityForm,

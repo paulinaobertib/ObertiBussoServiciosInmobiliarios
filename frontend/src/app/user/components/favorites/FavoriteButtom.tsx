@@ -3,7 +3,7 @@ import { MouseEvent } from 'react';
 import { IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { useFavorites } from '../hooks/useFavorites';
+import { useFavorites } from '../../hooks/useFavorites';
 
 interface Props {
     propertyId: number;

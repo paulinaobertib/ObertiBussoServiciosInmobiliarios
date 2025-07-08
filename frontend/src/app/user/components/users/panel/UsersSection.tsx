@@ -5,14 +5,14 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-import { Modal } from "../../../shared/components/Modal";
-import { SearchBar } from "../../../shared/components/SearchBar";
+import { Modal } from "../../../../shared/components/Modal";
+import { SearchBar } from "../../../../shared/components/SearchBar";
 import { UserForm } from "./UserForm";
 import { RoleForm } from "./RoleForm";
 import { UsersList } from "./UsersList";
-import { useUsers, Filter } from "../../hooks/useUsers";
-import type { User } from "../../types/user";
-import { getRoles } from "../../services/user.service";
+import { useUsers, Filter } from "../../../hooks/useUsers";
+import type { User } from "../../../types/user";
+import { getRoles } from "../../../services/user.service";
 
 const FILTERS: { label: string; value: Filter }[] = [
     { label: "Todos", value: "TODOS" },
@@ -23,15 +23,7 @@ const FILTERS: { label: string; value: Filter }[] = [
 
 export function UsersSection() {
     const theme = useTheme();
-    const {
-        users,
-        loading,
-        filter,
-        setFilter,
-        load,
-        fetchAll,
-        fetchByText,
-    } = useUsers();
+    const { users, loading, filter, setFilter, load, fetchAll, fetchByText } = useUsers();
 
     // **estado local para lo que muestro en pantalla**
     const [displayed, setDisplayed] = useState<typeof users>([]);

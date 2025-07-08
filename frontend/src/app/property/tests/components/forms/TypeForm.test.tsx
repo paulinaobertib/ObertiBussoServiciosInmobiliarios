@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import TypeForm from '../../../components/forms/TypeForm';
+import TypeForm from '../../../components/categories/TypeForm';
 import { describe, vi, it, expect, beforeEach } from 'vitest';
 import { postType, putType, deleteType } from '../../../services/type.service';
 import { usePropertyCrud } from '../../../context/PropertiesContext';

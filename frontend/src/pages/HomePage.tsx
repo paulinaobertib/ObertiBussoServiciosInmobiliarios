@@ -4,7 +4,7 @@ import {
   Box, Typography, useTheme, useMediaQuery,
 } from '@mui/material';
 
-import { ImageCarousel } from '../app/property/components/ImageCarousel';
+import { ImageCarousel } from '../app/property/components/images/ImageCarousel';
 import { SearchBar } from '../app/shared/components/SearchBar';
 import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
 import { PropertyCatalog } from '../app/property/components/catalog/PropertyCatalog';

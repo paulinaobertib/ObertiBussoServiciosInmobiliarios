@@ -1,15 +1,15 @@
 // src/app/user/components/users/UserForm.tsx
 import { useState, useEffect, ChangeEvent } from 'react';
 import { Box, TextField, Grid, Button } from '@mui/material';
-import { useAuthContext } from '../../context/AuthContext';
+import { useAuthContext } from '../../../context/AuthContext';
 import {
   postUser,
   putUser,
   deleteUser,
   addRoleToUser
-} from '../../services/user.service';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import type { User, UserCreate } from '../../types/user';
+} from '../../../services/user.service';
+import { useGlobalAlert } from '../../../../shared/context/AlertContext';
+import type { User, UserCreate } from '../../../types/user';
 
 type Action = 'add' | 'edit' | 'delete';
 
