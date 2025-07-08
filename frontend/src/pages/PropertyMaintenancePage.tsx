@@ -13,7 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { BasePage } from './BasePage';
 import { ModalItem, Info } from '../app/property/components/ModalItem';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { MaintenanceForm } from '../app/property/components/forms/MaintenanceForm';
+import { MaintenanceForm } from '../app/property/components/properties/MaintenanceForm';
 
 export default function PropertyMaintenancePage() {
     const { id: idParam } = useParams();

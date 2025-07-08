@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, expect, it } from 'vitest';
 import React, { act } from 'react';
-import PropertyForm, { PropertyFormHandle } from '../../../components/forms/PropertyForm';
+import PropertyForm, { PropertyFormHandle } from '../../../components/properties/PropertyForm';
 
 const mockSetField = vi.fn();
 const crudStub = {

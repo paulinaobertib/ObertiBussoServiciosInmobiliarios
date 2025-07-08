@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
-import { CategoryPanel } from '../app/property/components/CategoryPanel';
-import { PropertyPanel } from '../app/property/components/PropertyPanel';
+import { CategoryPanel } from '../app/property/components/categories/CategoryPanel';
+import { PropertyPanel } from '../app/property/components/properties/PropertyPanel';
 import { usePropertyCrud } from '../app/property/context/PropertiesContext';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
-import { AppointmentPanel } from '../app/user/components/appointments/AppointmentPanel';
-import { ProfileSection } from "../app/user/components/users/ProfileSection";
-import { UsersSection } from '../app/user/components/users/UsersSection';
+import { ProfileSection } from "../app/user/components/users/profile/ProfileSection";
+import { UsersSection } from '../app/user/components/users/panel/UsersSection';
+import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
 
 export default function AdministratorPanel() {
     const { resetSelected, pickItem } = usePropertyCrud();
@@ -45,7 +45,7 @@ export default function AdministratorPanel() {
         {
             key: 'appointments',
             label: 'TURNERO',
-            content: <AppointmentPanel />,
+            content: <AppointmentSection />,
         }
     ];
 

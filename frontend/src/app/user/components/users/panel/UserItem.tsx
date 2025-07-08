@@ -8,7 +8,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
-import type { User, Role } from "../../types/user";
+import type { User, Role } from "../../../types/user";
 
 interface UserItemProps {
     user: User & { roles: Role[] };

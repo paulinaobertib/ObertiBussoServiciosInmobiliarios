@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Box, Typography, Chip, useTheme, } from '@mui/material';
+import { Box, Typography, Chip, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import dayjs from 'dayjs';
-
-import { Appointment, AvailableAppointment } from '../../types/appointment';
+import type {
+    Appointment,
+    AvailableAppointment,
+} from '../../../types/appointment';
 
 interface Props {
     appointment: Appointment;
@@ -13,11 +15,16 @@ interface Props {
     onSelect?: (a: Appointment) => void;
 }
 
-export const AppointmentCard = ({ appointment, slot, isAdmin = false, onCancel, onSelect, }: Props) => {
+export const AppointmentCard = ({
+    appointment,
+    slot,
+    isAdmin = false,
+    onCancel,
+    onSelect,
+}: Props) => {
     const theme = useTheme();
     const [loading, setLoading] = useState(false);
 
-    /* botón cancelar (solo cuando está en espera) */
     const handleCancel = async () => {
         if (!onCancel) return;
         setLoading(true);
@@ -40,7 +47,6 @@ export const AppointmentCard = ({ appointment, slot, isAdmin = false, onCancel, 
                 bgcolor: theme.palette.background.paper,
             }}
         >
-            {/* ─── Chip de estado ─── */}
             <Chip
                 label={appointment.status}
                 size="small"
@@ -53,41 +59,24 @@ export const AppointmentCard = ({ appointment, slot, isAdmin = false, onCancel, 
                 }}
             />
 
-            {/* ─── Meta / título ─── */}
             <Typography variant="subtitle2" color="text.secondary">
                 Turno #{appointment.id}
             </Typography>
             <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>
-                Dia: {dayjs(slot.date).format('DD/MM/YYYY')}<br></br>
-                Horario: {dayjs(slot.date).format('HH:mm')}
+                Día: {dayjs(slot.date).format('DD/MM/YYYY')} <br />
+                Hora: {dayjs(slot.date).format('HH:mm')}
             </Typography>
 
-            {/* ─── Comentario opcional ─── */}
             {appointment.comment && (
                 <Typography variant="body2" sx={{ mt: 1 }}>
                     {appointment.comment}
                 </Typography>
             )}
 
-            {/* ─── Comentario opcional ─── */}
-            {appointment.appointmentDate && (
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                    {appointment.appointmentDate}
-                </Typography>
-            )}
-
-
             <Box sx={{ flexGrow: 1 }} />
 
             {/* ─── Footer con acción ─── */}
-            <Box
-                sx={{
-                    mt: 1,
-                    display: 'flex',
-                    justifyContent: 'right',
-                    alignItems: 'center',
-                }}
-            >
+            <Box sx={{ display: 'flex', justifyContent: 'right', }} >
                 {appointment.status === 'ESPERA' || appointment.status === 'ACEPTADO' && !isAdmin ? (
                     /* usuario puede cancelar mientras está pendiente */
                     <LoadingButton

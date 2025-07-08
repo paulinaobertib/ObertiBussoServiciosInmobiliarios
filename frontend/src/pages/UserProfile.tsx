@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { BasePage } from './BasePage';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography, } from '@mui/material';
 import { useAuthContext } from '../app/user/context/AuthContext';
-import { FavoritesPanel } from '../app/user/components/FavoritesPanel'
+import { FavoritesPanel } from '../app/user/components/favorites/FavoritesPanel'
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
-import { AppointmentUser } from '../app/user/components/appointments/AppointmentUser';
+import { AppointmentUser } from '../app/user/components/appointments/user/AppointmentUser';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { User } from '../app/user/types/user';
-import { Profile } from '../app/user/components/users/Profile';
+import { ProfileSection } from '../app/user/components/users/profile/ProfileSection';
 
 export default function UserProfilePage() {
     const { info } = useAuthContext();
@@ -75,7 +75,7 @@ export default function UserProfilePage() {
                     <Typography variant="h6">Mis Datos</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Profile />
+                    <ProfileSection />
                 </AccordionDetails>
             </Accordion>
 

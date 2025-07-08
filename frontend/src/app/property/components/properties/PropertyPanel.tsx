@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { Box, Typography, IconButton, CircularProgress, useTheme, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
-import { usePropertyCrud } from '../context/PropertiesContext';
-import { ModalItem, Info } from './ModalItem';
-import { useConfirmDialog } from '../../shared/components/ConfirmDialog';
-import { deleteProperty, getAllProperties, getPropertiesByText } from '../services/property.service';
-import { useGlobalAlert } from '../../shared/context/AlertContext';
-import { getRowActions, RowAction } from './ActionsRowItems';
-import { SearchBar } from '../../shared/components/SearchBar';
-import { ROUTES } from '../../../lib';
+import { usePropertyCrud } from '../../context/PropertiesContext';
+import { ModalItem, Info } from '../ModalItem';
+import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { deleteProperty, getAllProperties, getPropertiesByText } from '../../services/property.service';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import { getRowActions, RowAction } from '../ActionsRowItems';
+import { SearchBar } from '../../../shared/components/SearchBar';
+import { ROUTES } from '../../../../lib';
 
 export const PropertyPanel = () => {
   const theme = useTheme();

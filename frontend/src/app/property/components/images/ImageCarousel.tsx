@@ -2,10 +2,10 @@ import { Box } from '@mui/material';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import carrusel1 from '../../../assets/carrusel1.jpg';
-import carrusel2 from '../../../assets/carrusel2.jpg';
-import carrusel3 from '../../../assets/carrusel3.jpg';
-import logo from '../../../assets/logoJPG.png';
+import carrusel1 from '../../../../assets/carrusel1.jpg'
+import carrusel2 from '../../../../assets/carrusel2.jpg';
+import carrusel3 from '../../../../assets/carrusel3.jpg';
+import logo from '../../../../assets/logoJPG.png';
 
 const carouselImages = [carrusel1, carrusel2, carrusel3];
 

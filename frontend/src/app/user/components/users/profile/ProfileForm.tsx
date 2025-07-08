@@ -1,5 +1,5 @@
 import { Grid, TextField } from '@mui/material';
-import type { User } from '../../types/user';
+import type { User } from '../../../types/user';
 
 interface Props {
     form: User;

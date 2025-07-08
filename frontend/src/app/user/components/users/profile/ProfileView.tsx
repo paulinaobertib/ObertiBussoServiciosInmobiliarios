@@ -1,7 +1,7 @@
 // src/app/user/components/users/ProfileView.tsx
 
 import { Avatar, Typography, Button, Stack } from "@mui/material";
-import type { User } from "../../types/user";
+import type { User } from "../../../types/user";
 
 interface Props {
   user: User;

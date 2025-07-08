@@ -21,7 +21,7 @@ import { useAuthContext } from '../../../user/context/AuthContext';
 
 // --- ModalItem para StatusForm (edición de estado) ---
 import { ModalItem, Info } from '../ModalItem';
-import { StatusForm } from '../forms/StatusForm';
+import { StatusForm } from '../properties/StatusForm';
 
 interface Props {
   property: Property;

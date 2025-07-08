@@ -1,7 +1,7 @@
 import { Box, IconButton, Tooltip, useTheme, Dialog } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import StarIcon from '@mui/icons-material/Star';
-import { Image } from '../types/image';
+import { Image } from '../../types/image';
 import { useState } from 'react';
 
 const toSrc = (p: Image) => typeof p === 'string' ? p : URL.createObjectURL(p);

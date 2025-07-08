@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import OwnerForm from '../../../components/forms/OwnerForm';
+import OwnerForm from '../../../components/categories/OwnerForm';
 import * as ownerService from '../../../services/owner.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';
