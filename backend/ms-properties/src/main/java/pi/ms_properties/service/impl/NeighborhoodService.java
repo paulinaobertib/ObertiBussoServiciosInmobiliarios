@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.domain.NeighborhoodType;
 import pi.ms_properties.dto.NeighborhoodDTO;
+import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,24 @@ public class NeighborhoodService implements INeighborhoodService {
     private final INeighborhoodRepository neighborhoodRepository;
 
     private final ObjectMapper mapper;
+
+    private final GeocodingNeighborhoodService geocodingNeighborhoodService;
+
+    private void saveNeighborhood(NeighborhoodDTO neighborhoodDTO, Neighborhood neighborhood) {
+        neighborhood.setName(neighborhoodDTO.getName());
+        neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
+        neighborhood.setCity(neighborhoodDTO.getCity());
+
+        Optional<GeocodingNeighborhoodService.Coordinates> coordinates =
+                geocodingNeighborhoodService.getCoordinates(neighborhoodDTO.getName(), neighborhoodDTO.getCity());
+
+        if (coordinates.isEmpty()) {
+            throw new IllegalArgumentException("No se pudieron obtener coordenadas para el barrio y ciudad especificados.");
+        }
+
+        neighborhood.setLatitude(coordinates.get().latitude());
+        neighborhood.setLongitude(coordinates.get().longitude());
+    }
 
     @Override
     public ResponseEntity<String> createNeighborhood(NeighborhoodDTO neighborhoodDTO) {
@@ -32,11 +52,7 @@ public class NeighborhoodService implements INeighborhoodService {
         }
 
         Neighborhood neighborhood = new Neighborhood();
-        neighborhood.setName(neighborhoodDTO.getName());
-        neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
-        neighborhood.setCity(neighborhoodDTO.getCity());
-        neighborhood.setLatitude(neighborhoodDTO.getLatitude());
-        neighborhood.setLongitude(neighborhoodDTO.getLongitude());
+        saveNeighborhood(neighborhoodDTO, neighborhood);
 
         try {
             neighborhoodRepository.save(neighborhood);
@@ -57,32 +73,28 @@ public class NeighborhoodService implements INeighborhoodService {
     }
 
     @Override
-    public ResponseEntity<NeighborhoodDTO> updateNeighborhood(Long id, NeighborhoodDTO neighborhoodDTO) {
+    public ResponseEntity<NeighborhoodGetDTO> updateNeighborhood(Long id, NeighborhoodDTO neighborhoodDTO) {
         Neighborhood neighborhood = neighborhoodRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No existe el barrio con ID: " + id));
 
-        neighborhood.setName(neighborhoodDTO.getName());
-        neighborhood.setType(NeighborhoodType.fromString(neighborhoodDTO.getType()));
-        neighborhood.setCity(neighborhoodDTO.getCity());
-        neighborhood.setLatitude(neighborhoodDTO.getLatitude());
-        neighborhood.setLongitude(neighborhood.getLongitude());
+        saveNeighborhood(neighborhoodDTO, neighborhood);
 
         Neighborhood update = neighborhoodRepository.save(neighborhood);
-        NeighborhoodDTO updateDTO = mapper.convertValue(update, NeighborhoodDTO.class);
+        NeighborhoodGetDTO updateDTO = mapper.convertValue(update, NeighborhoodGetDTO.class);
 
         return ResponseEntity.ok(updateDTO);
     }
 
     @Override
-    public ResponseEntity<List<NeighborhoodDTO>> getAll() {
+    public ResponseEntity<List<NeighborhoodGetDTO>> getAll() {
         List<Neighborhood> neighborhoods = neighborhoodRepository.findAll();
 
         if (neighborhoods.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
 
-        List<NeighborhoodDTO> neighborhoodDTOS = neighborhoods.stream()
-                .map(neighborhood -> new NeighborhoodDTO(
+        List<NeighborhoodGetDTO> neighborhoodDTOS = neighborhoods.stream()
+                .map(neighborhood -> new NeighborhoodGetDTO(
                         neighborhood.getId(),
                         neighborhood.getName(),
                         String.valueOf(neighborhood.getType()),
@@ -95,11 +107,11 @@ public class NeighborhoodService implements INeighborhoodService {
     }
 
     @Override
-    public ResponseEntity<NeighborhoodDTO> getById(Long id) {
+    public ResponseEntity<NeighborhoodGetDTO> getById(Long id) {
         Neighborhood neighborhood = neighborhoodRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No existe el barrio con ID: " + id));
 
-        NeighborhoodDTO neighborhoodDTO = mapper.convertValue(neighborhood, NeighborhoodDTO.class);
+        NeighborhoodGetDTO neighborhoodDTO = mapper.convertValue(neighborhood, NeighborhoodGetDTO.class);
         return ResponseEntity.ok(neighborhoodDTO);
     }
 }
