@@ -86,6 +86,11 @@ class ChatSessionServiceTest {
         when(userRepository.exist("user123")).thenReturn(true);
         when(userRepository.findById("user123")).thenReturn(userDTO);
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(chatSessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> {
+            ChatSession saved = invocation.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
 
         chatSessionService.createFromUser("user123", 1L);
 
@@ -108,8 +113,13 @@ class ChatSessionServiceTest {
 
         when(objectMapper.convertValue(sessionDTO, ChatSession.class)).thenReturn(chatSession);
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(chatSessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> {
+            ChatSession saved = invocation.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
 
-        chatSessionService.createWithoutUser(sessionDTO);
+        Long id = chatSessionService.createWithoutUser(sessionDTO);
 
         ArgumentCaptor<ChatSession> captor = ArgumentCaptor.forClass(ChatSession.class);
         verify(chatSessionRepository).save(captor.capture());
@@ -122,6 +132,9 @@ class ChatSessionServiceTest {
         assertEquals("123456", saved.getPhone());
         assertEquals(property, saved.getProperty());
         assertFalse(saved.getDerived());
+
+        assertNotNull(id);
+        assertTrue(id > 0);
     }
 
     @Test

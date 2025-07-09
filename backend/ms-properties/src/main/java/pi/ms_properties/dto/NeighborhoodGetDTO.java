@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NeighborhoodDTO {
+public class NeighborhoodGetDTO {
     private Long id;
     private String name;
     private String type;
     private String city;
+    private Double latitude;
+    private Double longitude;
 }
