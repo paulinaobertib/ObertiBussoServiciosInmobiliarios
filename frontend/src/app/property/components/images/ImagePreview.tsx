@@ -16,8 +16,9 @@ export const PropertyPreview = ({ main, images, onDelete }: Props) => {
   const theme = useTheme();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selected, setSelected] = useState<Image | null>(null);
+  const uniq = <T,>(arr: T[]) => [...new Map(arr.map(v => [v, v])).values()];
 
-  const items = [main, ...images].filter((f): f is Image => f != null);
+  const items = uniq([main, ...images].filter((f): f is Image => f != null));
 
   const handleOpen = (img: Image) => {
     setSelected(img);
@@ -29,13 +30,10 @@ export const PropertyPreview = ({ main, images, onDelete }: Props) => {
     setSelected(null);
   };
 
-
   if (!main && images.length === 0) return null;
-
 
   return (
     <>
-
       <Box
         sx={{
           display: 'grid',

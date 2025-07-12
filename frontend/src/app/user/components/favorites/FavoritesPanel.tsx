@@ -1,13 +1,13 @@
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '../../hooks/useFavorites';
-import { usePropertyCrud } from '../../../property/context/PropertiesContext';
+import { usePropertiesContext } from '../../../property/context/PropertiesContext';
 import { PropertyCard } from '../../../property/components/catalog/PropertyCard';
 
 export const FavoritesPanel = () => {
   const navigate = useNavigate();
   const { favorites } = useFavorites();
-  const { propertiesList } = usePropertyCrud();
+  const { propertiesList } = usePropertiesContext();
   const favoriteProperties = propertiesList.filter(prop =>
     favorites.some(fav => fav.propertyId === prop.id)
   );

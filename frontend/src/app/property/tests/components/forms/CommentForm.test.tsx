@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import CommentForm from '../../../components/properties/CommentForm';
+import CommentForm from '../../../components/forms/CommentForm';
 import * as commentService from '../../../services/comment.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';
@@ -23,7 +23,7 @@ describe('CommentForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
       pickedItem: mockPickedItem,
       refreshComments: vi.fn(),

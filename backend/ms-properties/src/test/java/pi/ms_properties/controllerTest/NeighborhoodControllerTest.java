@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.NeighborhoodController;
-import pi.ms_properties.dto.NeighborhoodDTO;
+import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.NeighborhoodService;
 
@@ -36,7 +36,7 @@ class NeighborhoodControllerTest {
     @Autowired
     private NeighborhoodService neighborhoodService;
 
-    private NeighborhoodDTO validDTO;
+    private NeighborhoodGetDTO validDTO;
 
     @TestConfiguration
     static class Config {
@@ -48,7 +48,7 @@ class NeighborhoodControllerTest {
 
     @BeforeEach
     void setUp() {
-        validDTO = new NeighborhoodDTO(
+        validDTO = new NeighborhoodGetDTO(
                 1L,
                 "Altos del Sur",
                 "CERRADO",
@@ -99,7 +99,7 @@ class NeighborhoodControllerTest {
 
     @Test
     void getAll_success() throws Exception {
-        List<NeighborhoodDTO> list = List.of(validDTO);
+        List<NeighborhoodGetDTO> list = List.of(validDTO);
 
         Mockito.when(neighborhoodService.getAll())
                 .thenReturn(ResponseEntity.ok(list));

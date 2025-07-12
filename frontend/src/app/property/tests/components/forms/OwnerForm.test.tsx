@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import OwnerForm from '../../../components/categories/OwnerForm';
+import OwnerForm from '../../../components/forms/OwnerForm';
 import * as ownerService from '../../../services/owner.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';
@@ -13,7 +13,7 @@ describe('OwnerForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
     } as any);
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import AmenityForm from '../../../components/categories/AmenityForm';
+import AmenityForm from '../../../components/forms/AmenityForm';
 import * as amenityService from '../../../services/amenity.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';
@@ -14,7 +14,7 @@ describe('AmenityForm', () => {
     vi.clearAllMocks();
 
     // Mockeamos el hook del contexto PropertiesContext para que devuelva nuestro mock de refresh
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
     } as any);
 

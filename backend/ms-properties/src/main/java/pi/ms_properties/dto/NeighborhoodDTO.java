@@ -12,6 +12,4 @@ public class NeighborhoodDTO {
     private String name;
     private String type;
     private String city;
-    private Double latitude;
-    private Double longitude;
 }

@@ -13,7 +13,7 @@ const catalogState = {
 
 vi.mock('../../context/PropertiesContext', () => ({
   PropertyCrudProvider: ({ children }: any) => children,
-  usePropertyCrud: () => {
+  usePropertiesContext: () => {
     // Simulamos la llamada al montar:
     stubGetAll();
     return catalogState;

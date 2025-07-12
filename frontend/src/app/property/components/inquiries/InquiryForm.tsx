@@ -1,84 +1,22 @@
-import React, { useState } from "react";
 import {
-  Box,
-  TextField,
-  Button,
-  Stack,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
-import { useAuthContext } from "../../../user/context/AuthContext";
-import { postInquiry } from "../../services/inquiry.service";
-import type {
-  InquiryCreateAuth,
-  InquiryCreateAnon,
-} from "../../types/inquiry";
+  Box, TextField, Button, Stack,
+  CircularProgress, Typography,
+} from '@mui/material';
+import { useInquiryForm } from '../../hooks/useInquiryForm';
 
 interface Props {
-  propertyIds: number[];
+  propertyIds?: number[];
 }
 
-export const InquiryForm = ({ propertyIds }: Props) => {
-  const { info, isLogged } = useAuthContext();
-
-  const [form, setForm] = useState({
-    firstName: info?.firstName ?? "",
-    lastName:  info?.lastName  ?? "",
-    email:     info?.email     ?? "",
-    phone:     info?.phone     ?? "",
-    description: "",
-  });
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const title = `Consulta${isLogged && info?.email ? ` (${info.email})` : ""}`;
-    const basePayload: {
-      title: string;
-      description: string;
-      propertyIds?: number[];
-    } = {
-      title,
-      description: form.description,
-      ...(propertyIds?.length ? { propertyIds } : {}),
-    };
-
-    try {
-      if (isLogged && info) {
-        const payload: InquiryCreateAuth = {
-          userId: info.id,
-          ...basePayload,
-        };
-        await postInquiry(payload);
-      } else {
-        const payload: InquiryCreateAnon = {
-          ...basePayload,
-          firstName: form.firstName,
-          lastName:  form.lastName,
-          email:     form.email,
-          phone:     form.phone,
-        };
-        await postInquiry(payload);
-      }
-      setSubmitted(true);
-    } catch (err: any) {
-      setError(err.response?.data || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+export const InquiryForm = ({ propertyIds = [] }: Props) => {
+  const {
+    form,
+    formLoading,
+    formError,
+    submitted,
+    handleChange,
+    handleSubmit,
+  } = useInquiryForm({ propertyIds });
 
   if (submitted) {
     return (
@@ -89,8 +27,8 @@ export const InquiryForm = ({ propertyIds }: Props) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          // p: 3,
           textAlign: 'center',
+          p: 2,
         }}
       >
         <Typography variant="h6" gutterBottom>
@@ -108,7 +46,6 @@ export const InquiryForm = ({ propertyIds }: Props) => {
       component="form"
       onSubmit={handleSubmit}
       sx={{
-        boxSizing: 'border-box',
         width: '100%',
         height: '100%',
         display: 'flex',
@@ -116,43 +53,39 @@ export const InquiryForm = ({ propertyIds }: Props) => {
       }}
     >
       <Stack spacing={2} sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-        {!isLogged && (
-          <>
-            <TextField
-              label="Nombre"
-              name="firstName"
-              value={form.firstName}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Apellido"
-              name="lastName"
-              value={form.lastName}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Teléfono"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              fullWidth
-              required
-            />
-          </>
-        )}
+        <TextField
+          label="Nombre"
+          name="firstName"
+          value={form.firstName}
+          onChange={handleChange}
+          fullWidth
+          required
+        />
+        <TextField
+          label="Apellido"
+          name="lastName"
+          value={form.lastName}
+          onChange={handleChange}
+          fullWidth
+          required
+        />
+        <TextField
+          label="Email"
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={handleChange}
+          fullWidth
+          required
+        />
+        <TextField
+          label="Teléfono"
+          name="phone"
+          value={form.phone}
+          onChange={handleChange}
+          fullWidth
+          required
+        />
         <TextField
           label="Descripción de la consulta"
           name="description"
@@ -164,23 +97,25 @@ export const InquiryForm = ({ propertyIds }: Props) => {
           required
         />
 
-        {error && (
+        {formError && (
           <Typography color="error" align="center">
-            {error}
+            {formError}
           </Typography>
         )}
 
         <Button
           type="submit"
           variant="contained"
-          disabled={loading}
+          disabled={formLoading}
           fullWidth
           startIcon={
-            loading ? <CircularProgress size={20} color="inherit" /> : undefined
+            formLoading
+              ? <CircularProgress size={20} color="inherit" />
+              : undefined
           }
           sx={{ mt: 'auto' }}
         >
-          {loading ? 'Enviando…' : 'Enviar Consulta'}
+          {formLoading ? 'Enviando…' : 'Enviar Consulta'}
         </Button>
       </Stack>
     </Box>

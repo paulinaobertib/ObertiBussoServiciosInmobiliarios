@@ -1,0 +1,277 @@
+import {
+    Box, Grid, TextField, MenuItem,
+    InputAdornment, IconButton, Typography, Checkbox, Stack,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { ImageUploader } from '../images/ImageUploader';
+import { usePropertyForm } from '../../hooks/usePropertyForm';
+import type { Property, PropertyCreate, PropertyUpdate } from '../../types/property';
+import { forwardRef } from 'react';
+import React from 'react';
+
+/* ─────────── ref API ─────────── */
+export type PropertyFormHandle = {
+    submit: () => Promise<boolean>;
+    reset: () => void;
+    deleteImage: (file: File | string) => void;
+    setField: <K extends keyof Property>(key: K, value: Property[K]) => void;
+    getCreateData: () => PropertyCreate;
+    getUpdateData: () => PropertyUpdate;
+};
+
+interface Props {
+    onImageSelect?: (main: string | File | null, gallery: (string | File)[]) => void;
+    onValidityChange?: (valid: boolean) => void;
+    initialData?: Property;
+}
+
+/* ─────────── componente ─────────── */
+export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
+    function PropertyForm({ onImageSelect, onValidityChange, initialData }, ref) {
+
+        /* Hook único: trae TODO lo necesario */
+        const ctrl = usePropertyForm(initialData, onImageSelect, onValidityChange);
+
+        /* expone métodos imperativos */
+        React.useImperativeHandle(ref, () => ({
+            submit: ctrl.submit,
+            reset: ctrl.reset,
+            deleteImage: ctrl.remove,
+            setField: ctrl.setField as any,
+            getCreateData: ctrl.getCreateData,
+            getUpdateData: ctrl.getUpdateData,
+        }));
+
+        /* Alias para mayor legibilidad */
+        const {
+            form, fieldErrors, num,
+            showRooms, showBedrooms, showBathrooms, showCoveredArea, colSize,
+            setMain, addToGallery,
+            imgError, clearError,
+        } = ctrl;
+
+        /* ───────────────────── RENDER ───────────────────── */
+        return (
+            <Box
+                component="form"
+                noValidate
+                onSubmit={e => { e.preventDefault(); ctrl.submit(); }}
+            >
+                <Grid container spacing={1.5}>
+
+                    {/* ---------- TÍTULO ---------- */}
+                    <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Título"
+                            value={form.title}
+                            onChange={e => ctrl.setField('title', e.target.value)}
+                            required error={!!fieldErrors.title} size="small"
+                        />
+                    </Grid>
+
+                    {/* ---------- OPERACIÓN / ESTADO ---------- */}
+                    <Grid size={{ xs: 6 }}>
+                        <TextField select fullWidth label="Operación"
+                            value={form.operation}
+                            onChange={e => ctrl.setField('operation', e.target.value)}
+                            required error={!!fieldErrors.operation} size="small">
+                            <MenuItem value="VENTA">Venta</MenuItem>
+                            <MenuItem value="ALQUILER">Alquiler</MenuItem>
+                        </TextField>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                        <TextField select fullWidth label="Estado"
+                            value={form.status}
+                            onChange={e => ctrl.setField('status', e.target.value)}
+                            required error={!!fieldErrors.status} size="small">
+                            <MenuItem value="DISPONIBLE">Disponible</MenuItem>
+                            <MenuItem value="VENDIDA">Vendida</MenuItem>
+                            <MenuItem value="ALQUILADA">Alquilada</MenuItem>
+                            <MenuItem value="RESERVADA">Reservada</MenuItem>
+                        </TextField>
+                    </Grid>
+
+                    {/* ---------- CRÉDITO / FINANCIACIÓN ---------- */}
+                    {form.operation === 'VENTA' && (
+                        <>
+                            <Grid size={{ xs: 6 }}>
+                                <Stack direction="row" alignItems="center" px={1} py={0.5}
+                                    sx={{ border: '1px solid #ccc', borderRadius: 1, '&:hover': { borderColor: '#444' } }}>
+                                    <Checkbox checked={form.credit}
+                                        onChange={e => ctrl.setField('credit', e.target.checked)}
+                                        size="small" sx={{ p: .7 }} />
+                                    <Typography>Apto Crédito</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid size={{ xs: 6 }}>
+                                <Stack direction="row" alignItems="center" px={1} py={0.5}
+                                    sx={{ border: '1px solid #ccc', borderRadius: 1, '&:hover': { borderColor: '#444' } }}>
+                                    <Checkbox checked={form.financing}
+                                        onChange={e => ctrl.setField('financing', e.target.checked)}
+                                        size="small" sx={{ p: .7 }} />
+                                    <Typography>Apto Financiamiento</Typography>
+                                </Stack>
+                            </Grid>
+                        </>
+                    )}
+
+                    {/* ---------- PRECIO / MONEDA / EXPENSAS ---------- */}
+                    <Grid size={{ xs: 6 }}>
+                        <TextField select fullWidth label="Moneda"
+                            value={form.currency}
+                            onChange={e => ctrl.setField('currency', e.target.value)}
+                            required error={!!fieldErrors.currency} size="small">
+                            <MenuItem value="ARS">Peso Argentino</MenuItem>
+                            <MenuItem value="USD">Dólar</MenuItem>
+                        </TextField>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                        <TextField fullWidth label="Precio"
+                            value={form.price === 0 ? '' : form.price}
+                            onChange={num('price')}
+                            required error={!!fieldErrors.price}
+                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                        <TextField disabled fullWidth label="Moneda Expensas"
+                            value="Peso Argentino" size="small" />
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                        <TextField fullWidth label="Expensas"
+                            value={form.expenses ?? ''}
+                            onChange={num('expenses')}
+                            required error={!!fieldErrors.expenses}
+                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                            size="small"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton size="small" onClick={() => ctrl.setField('expenses', 0 as any)}>
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </Grid>
+
+                    {/* ---------- MOSTRAR PRECIO ---------- */}
+                    <Grid size={{ xs: 12 }}>
+                        <Stack direction="row" alignItems="center" px={1} py={0.5}
+                            sx={{ border: '1px solid #ccc', borderRadius: 1, '&:hover': { borderColor: '#444' } }}>
+                            <Checkbox checked={form.showPrice}
+                                onChange={e => ctrl.setField('showPrice', e.target.checked)}
+                                size="small" sx={{ p: .7 }} />
+                            <Typography>Mostrar precio de {form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas</Typography>
+                        </Stack>
+                    </Grid>
+
+                    {/* ---------- DESCRIPCIÓN ---------- */}
+                    <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth multiline rows={3} label="Descripción"
+                            value={form.description}
+                            onChange={e => ctrl.setField('description', e.target.value)}
+                            required error={!!fieldErrors.description} size="small"
+                        />
+                    </Grid>
+
+                    {/* ---------- DIRECCIÓN ---------- */}
+                    <Grid size={{ xs: 8 }}>
+                        <TextField fullWidth label="Calle"
+                            value={form.street}
+                            onChange={e => ctrl.setField('street', e.target.value)}
+                            required error={!!fieldErrors.street} size="small"
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 4 }}>
+                        <TextField fullWidth label="Número"
+                            value={form.number}
+                            onChange={e => ctrl.setField('number', e.target.value)}
+                            required error={!!fieldErrors.number} size="small"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton size="small" onClick={() => ctrl.setField('number', 'S/N')}>
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </Grid>
+
+                    {/* ---------- AMBIENTES DINÁMICOS ---------- */}
+                    {showRooms && (
+                        <Grid size={{ xs: colSize }}>
+                            <TextField fullWidth label="Ambientes"
+                                value={form.rooms === 0 ? '' : form.rooms}
+                                onChange={num('rooms')}
+                                required error={!!fieldErrors.rooms} size="small"
+                            />
+                        </Grid>
+                    )}
+                    {showBedrooms && (
+                        <Grid size={{ xs: colSize }}>
+                            <TextField fullWidth label="Dormitorios"
+                                value={form.bedrooms === 0 ? '' : form.bedrooms}
+                                onChange={num('bedrooms')}
+                                required error={!!fieldErrors.bedrooms} size="small"
+                            />
+                        </Grid>
+                    )}
+                    {showBathrooms && (
+                        <Grid size={{ xs: colSize }}>
+                            <TextField fullWidth label="Baños"
+                                value={form.bathrooms === 0 ? '' : form.bathrooms}
+                                onChange={num('bathrooms')}
+                                required error={!!fieldErrors.bathrooms} helperText={fieldErrors.bathrooms}
+                                size="small"
+                            />
+                        </Grid>
+                    )}
+                    <Grid size={{ xs: showCoveredArea ? 6 : 12 }}>
+                        <TextField fullWidth label="Superficie Total"
+                            value={form.area === 0 ? '' : form.area}
+                            onChange={num('area')}
+                            required error={!!fieldErrors.area} size="small"
+                        />
+                    </Grid>
+                    {showCoveredArea && (
+                        <Grid size={{ xs: 6 }}>
+                            <TextField fullWidth label="Superficie Cubierta"
+                                value={form.coveredArea === 0 ? '' : form.coveredArea}
+                                onChange={num('coveredArea')}
+                                required error={!!fieldErrors.coveredArea} helperText={fieldErrors.coveredArea}
+                                size="small"
+                            />
+                        </Grid>
+                    )}
+
+                    {/* ---------- IMÁGENES ---------- */}
+                    <Grid size={{ xs: 6 }}>
+                        <ImageUploader label="Imagen principal"
+                            onSelect={files => setMain(files[0] ?? null)}
+                        />
+                        {fieldErrors.mainImage && (
+                            <Typography variant="caption" color="error">{fieldErrors.mainImage}</Typography>
+                        )}
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                        <ImageUploader label="Imágenes adicionales" multiple append
+                            onSelect={files => addToGallery(Array.from(files))}
+                        />
+                    </Grid>
+
+                    {imgError && (
+                        <Grid size={{ xs: 6 }}>
+                            <Typography variant="caption" color="error" sx={{ cursor: 'pointer' }}
+                                onClick={clearError}>
+                                {imgError}
+                            </Typography>
+                        </Grid>
+                    )}
+                </Grid>
+            </Box>
+        );
+    });

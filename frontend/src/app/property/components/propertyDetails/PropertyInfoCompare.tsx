@@ -7,7 +7,7 @@ import SquareFootIcon from '@mui/icons-material/SquareFoot';
 import FoundationIcon from '@mui/icons-material/Foundation';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
-import { usePropertyCrud } from '../../context/PropertiesContext';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 
 interface Props {
   property: Property;
@@ -24,7 +24,7 @@ const formatFeatureLabel = (
 };
 
 export const PropertyInfoCompare = ({ property }: Props) => {
-  const { comparisonItems } = usePropertyCrud();
+  const { comparisonItems } = usePropertiesContext();
 
   // Definir las claves numéricas para las características
   type NumericFeatureKey = 'bedrooms' | 'bathrooms' | 'rooms' | 'area' | 'coveredArea';

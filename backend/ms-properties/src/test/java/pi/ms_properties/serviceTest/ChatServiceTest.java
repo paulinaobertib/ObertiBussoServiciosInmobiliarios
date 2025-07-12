@@ -260,12 +260,12 @@ class ChatServiceTest {
         property.setBedrooms(2f);
         property.setBathrooms(2f);
         String response = chatService.responseToUserMessage(ChatOption.VER_HABITACIONES, 1L, 1L);
-        assertTrue(response.contains("incluyendo 2.0 dormitorios y 2.0 baños."));
+        assertTrue(response.contains("incluyendo 2 dormitorios y 2 baños."));
 
         property.setBedrooms(3f);
         property.setBathrooms(1f);
         response = chatService.responseToUserMessage(ChatOption.VER_HABITACIONES, 1L, 1L);
-        assertTrue(response.contains("incluyendo 3.0 dormitorios y un baño."));
+        assertTrue(response.contains("incluyendo 3 dormitorios y un baño."));
 
         property.setBedrooms(1f);
         property.setBathrooms(1f);
@@ -275,7 +275,7 @@ class ChatServiceTest {
         property.setBedrooms(1f);
         property.setBathrooms(2f);
         response = chatService.responseToUserMessage(ChatOption.VER_HABITACIONES, 1L, 1L);
-        assertTrue(response.contains("incluyendo un dormitorio y 2.0 baños."));
+        assertTrue(response.contains("incluyendo un dormitorio y 2 baños."));
 
         property.setBedrooms(0f);
         property.setBathrooms(0f);

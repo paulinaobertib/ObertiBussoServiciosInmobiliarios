@@ -18,7 +18,7 @@ import { useChatSession } from "../hooks/useChatSession";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { getPropertiesByText } from "../../property/services/property.service";
 import { ChatSessionDTO } from "../types/chatSession";
-import { usePropertyCrud } from "../../property/context/PropertiesContext";
+import { usePropertiesContext } from "../../property/context/PropertiesContext";
 
 interface Property {
   id: number;
@@ -34,7 +34,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // mostrar el chat
   const [collapsed, setCollapsed] = useState(false);
 
-  const { propertiesList } = usePropertyCrud();
+  const { propertiesList } = usePropertiesContext();
 
   const { info, isLogged } = useAuthContext();
   const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();

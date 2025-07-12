@@ -8,7 +8,6 @@ interface Props {
     onSelect: (files: File[]) => void;
 }
 
-
 export const ImageUploader = ({ label, multiple = false, sx, append = false, onSelect, }: Props) => {
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import NeighborhoodForm from '../../../components/categories/NeighborhoodForm';
+import NeighborhoodForm from '../../../components/forms/NeighborhoodForm';
 import * as neighborhoodService from '../../../services/neighborhood.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';
@@ -14,7 +14,7 @@ describe('NeighborhoodForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
     } as any);
 

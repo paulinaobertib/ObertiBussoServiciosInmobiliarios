@@ -1,26 +1,210 @@
-import { useState, useMemo } from "react";
-import {
-  Property,
-  emptyProperty,
-  PropertyCreate,
-  PropertyUpdate,
-} from "../types/property";
+import { useState, useMemo, useEffect, useCallback } from "react";
 
-export function usePropertyForm() {
-  const [form, setForm] = useState<Property>(emptyProperty);
+import { usePropertiesContext } from "../context/PropertiesContext";
+import { useImages } from "./useImages";
+
+import type { Property, PropertyCreate, PropertyUpdate, } from "../types/property";
+import { Owner } from "../types/owner";
+import { Neighborhood } from "../types/neighborhood";
+import { Type } from "../types/type";
+
+/* ------------------------------------------------------------------ */
+/* UTIL: generar un Property seguro—nunca deja owner/neighborhood/type
+/* como undefined para evitar errores .id
+/* ------------------------------------------------------------------ */
+function makeSafeProperty(raw?: Partial<Property>): Property {
+  const emptyOwner: Owner = {
+    id: 0,
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+  };
+  const emptyNeighborhood: Neighborhood = {
+    id: 0,
+    name: "",
+    city: "",
+    type: "",
+  };
+  const emptyType: Type = {
+    id: 0,
+    name: "",
+    hasRooms: false,
+    hasBedrooms: false,
+    hasBathrooms: false,
+    hasCoveredArea: false,
+  };
+
+  return {
+    /* ---------- primitivos ---------- */
+    id: raw?.id ?? 0,
+    title: raw?.title ?? "",
+    description: raw?.description ?? "",
+    price: raw?.price ?? 0,
+    area: raw?.area ?? 0,
+    coveredArea: raw?.coveredArea ?? 0,
+    expenses: raw?.expenses ?? 0,
+    currency: raw?.currency ?? "ARS",
+    operation: raw?.operation ?? "VENTA",
+    status: raw?.status ?? "DISPONIBLE",
+    rooms: raw?.rooms ?? 0,
+    bedrooms: raw?.bedrooms ?? 0,
+    bathrooms: raw?.bathrooms ?? 0,
+    credit: raw?.credit ?? false,
+    financing: raw?.financing ?? false,
+    showPrice: raw?.showPrice ?? true,
+
+    /* ---------- ¡los que faltaban! ---------- */
+    street: raw?.street ?? "",
+    number: raw?.number ?? "",
+
+    /* ---------- relaciones ---------- */
+    owner: raw?.owner ?? emptyOwner,
+    neighborhood: raw?.neighborhood ?? emptyNeighborhood,
+    type: raw?.type ?? emptyType,
+    amenities: raw?.amenities ?? [],
+
+    /* ---------- imágenes ---------- */
+    mainImage: raw?.mainImage ?? "",
+    images: raw?.images ?? [],
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* HOOK UNIFICADO */
+/* ------------------------------------------------------------------ */
+export function usePropertyForm(
+  initialData?: Property,
+  onImageSelect?: (
+    main: string | File | null,
+    gallery: (string | File)[]
+  ) => void,
+  onValidityChange?: (valid: boolean) => void
+) {
+  /* ---------- estado base ---------- */
+  const [form, setForm] = useState<Property>(makeSafeProperty(initialData));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  /* evita asignar undefined/null en claves críticas */
   const setField = <K extends keyof Property>(k: K, v: Property[K]) => {
-    setForm((f) => ({ ...f, [k]: v }));
+    if (
+      (k === "owner" || k === "neighborhood" || k === "type") &&
+      (v as unknown) == null
+    ) {
+      return; // ignora nulos/undefined
+    }
+    setForm((prev) => ({ ...prev, [k]: v }));
   };
 
   const reset = () => {
-    setForm(emptyProperty);
+    setForm(makeSafeProperty());
     setFieldErrors({});
   };
 
+  /* ---------- imágenes ---------- */
+  const {
+    mainImage,
+    gallery,
+    error: imgError,
+    clearError,
+    setMain,
+    addToGallery,
+    remove,
+  } = useImages(initialData?.mainImage ?? null, initialData?.images ?? []);
+
+  /* propaga imágenes al form + callback padre */
+  useEffect(() => {
+    setField("mainImage", mainImage as any);
+    setField("images", gallery as any);
+    onImageSelect?.(mainImage, gallery);
+  }, [mainImage, gallery]);
+
+  /* ---------- catálogos / selección ---------- */
+  const { selected, ownersList, neighborhoodsList, typesList, amenitiesList } =
+    usePropertiesContext();
+
+  /* sincs selects */
+  useEffect(() => {
+    const o = ownersList.find((o) => o.id === selected.owner);
+    if (o && form.owner.id !== o.id) setField("owner", o);
+  }, [selected.owner, ownersList]);
+
+  useEffect(() => {
+    const n = neighborhoodsList.find((n) => n.id === selected.neighborhood);
+    if (n && form.neighborhood.id !== n.id) setField("neighborhood", n);
+  }, [selected.neighborhood, neighborhoodsList]);
+
+  useEffect(() => {
+    const t = typesList.find((t) => t.id === selected.type);
+    if (t && form.type.id !== t.id) setField("type", t);
+  }, [selected.type, typesList]);
+
+  useEffect(() => {
+    const a = amenitiesList.filter((a) => selected.amenities.includes(a.id));
+    if (
+      JSON.stringify(a.map((x) => x.id)) !==
+      JSON.stringify(form.amenities.map((x) => x.id))
+    ) {
+      setField("amenities", a);
+    }
+  }, [selected.amenities, amenitiesList]);
+
+  /* ---------- flags dinámicos por tipo ---------- */
+  const currentType = typesList.find((t) => t.id === form.type.id);
+  const showRooms = currentType?.hasRooms ?? false;
+  const showBedrooms = currentType?.hasBedrooms ?? false;
+  const showBathrooms = currentType?.hasBathrooms ?? false;
+  const showCoveredArea = currentType?.hasCoveredArea ?? false;
+  const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(
+    Boolean
+  ).length;
+  const colSize =
+    visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
+
+  /* limpiar campos ocultos */
+  useEffect(() => {
+    if (!showRooms && form.rooms !== 0) setField("rooms", 0 as any);
+    if (!showBedrooms && form.bedrooms !== 0) setField("bedrooms", 0 as any);
+    if (!showBathrooms && form.bathrooms !== 0) setField("bathrooms", 0 as any);
+    if (!showCoveredArea && form.coveredArea !== 0)
+      setField("coveredArea", 0 as any);
+  }, [
+    showRooms,
+    showBedrooms,
+    showBathrooms,
+    showCoveredArea,
+    form.rooms,
+    form.bedrooms,
+    form.bathrooms,
+    form.coveredArea,
+  ]);
+
+  /* reset credit/financing si operación → ALQUILER */
+  useEffect(() => {
+    if (form.operation === "ALQUILER" && (form.credit || form.financing)) {
+      setField("credit", false);
+      setField("financing", false);
+    }
+  }, [form.operation]);
+
+  /* ---------- helper num() ---------- */
+  const num = useCallback(
+    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (val === "") return setField(k, "" as any);
+      const n = parseInt(val, 10);
+      if (!isNaN(n)) setField(k, n as any);
+    },
+    [setField]
+  );
+
+  /* ---------- validación rápida (check) ---------- */
   const check = useMemo(() => {
     const f = form;
+    const ownerId = f.owner?.id ?? 0;
+    const neighborhoodId = f.neighborhood?.id ?? 0;
+    const typeId = f.type?.id ?? 0;
+
     return (
       !!f.title &&
       !!f.street &&
@@ -31,34 +215,40 @@ export function usePropertyForm() {
       !!f.status &&
       !!f.operation &&
       !!f.currency &&
-      f.owner.id > 0 &&
-      f.neighborhood.id > 0 &&
-      f.type.id > 0 &&
+      ownerId > 0 &&
+      neighborhoodId > 0 &&
+      typeId > 0 &&
       !!f.mainImage
     );
   }, [form]);
 
+  /* notificar validez al padre */
+  useEffect(() => onValidityChange?.(check), [check]);
+
+  /* ---------- validación exhaustiva + submit ---------- */
   const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!form.title) errs.title = "Campo obligatorio";
-    if (!form.street) errs.street = "Campo obligatorio";
-    if (!form.number) errs.number = "Campo obligatorio";
-    if (form.area <= 0) errs.area = "Debe ser > 0";
-    if (form.price <= 0) errs.price = "Debe ser > 0";
-    if (!form.description) errs.description = "Campo obligatorio";
-    if (!form.status) errs.status = "Campo obligatorio";
-    if (!form.operation) errs.operation = "Campo obligatorio";
-    if (!form.currency) errs.currency = "Campo obligatorio";
-    if (form.owner.id <= 0) errs.owner = "Selecciona un propietario";
-    if (form.neighborhood.id <= 0) errs.neighborhood = "Selecciona un barrio";
-    if (form.type.id <= 0) errs.type = "Selecciona un tipo";
-    if (!form.mainImage) errs.mainImage = "Carga la imagen principal";
-    setFieldErrors(errs);
-    return Object.keys(errs).length === 0;
+    const e: Record<string, string> = {};
+    if (!form.title) e.title = "Campo obligatorio";
+    if (!form.street) e.street = "Campo obligatorio";
+    if (!form.number) e.number = "Campo obligatorio";
+    if (form.area <= 0) e.area = "Debe ser > 0";
+    if (form.price <= 0) e.price = "Debe ser > 0";
+    if (!form.description) e.description = "Campo obligatorio";
+    if (!form.status) e.status = "Campo obligatorio";
+    if (!form.operation) e.operation = "Campo obligatorio";
+    if (!form.currency) e.currency = "Campo obligatorio";
+    if ((form.owner?.id ?? 0) <= 0) e.owner = "Selecciona un propietario";
+    if ((form.neighborhood?.id ?? 0) <= 0)
+      e.neighborhood = "Selecciona un barrio";
+    if ((form.type?.id ?? 0) <= 0) e.type = "Selecciona un tipo";
+    if (!form.mainImage) e.mainImage = "Carga la imagen principal";
+    setFieldErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const submit = async () => validate();
 
+  /* ---------- DTO helpers ---------- */
   const getCreateData = (): PropertyCreate => {
     const { owner, neighborhood, type, amenities, ...rest } = form;
     return {
@@ -73,8 +263,7 @@ export function usePropertyForm() {
   };
 
   const getUpdateData = (): PropertyUpdate => {
-    const { id, owner, neighborhood, type, amenities, mainImage, ...rest } =
-      form;
+    const { id, owner, neighborhood, type, amenities, ...rest } = form;
     return {
       id,
       ...rest,
@@ -82,18 +271,41 @@ export function usePropertyForm() {
       neighborhoodId: neighborhood.id,
       typeId: type.id,
       amenitiesIds: amenities.map((a) => a.id),
-      mainImage,
+      mainImage: form.mainImage,
     };
   };
 
+  /* ---------- API ---------- */
   return {
+    /* estado + errores */
     form,
-    setField,
-    reset,
-    submit,
     fieldErrors,
-    check,
+
+    /* visibilidad dinámica */
+    showRooms,
+    showBedrooms,
+    showBathrooms,
+    showCoveredArea,
+    colSize,
+
+    /* helpers */
+    num,
+
+    /* imágenes */
+    mainImage,
+    gallery,
+    imgError,
+    clearError,
+    setMain,
+    addToGallery,
+    remove,
+
+    /* acciones */
+    submit,
+    reset,
+    setField,
     getCreateData,
     getUpdateData,
+    check,
   };
 }

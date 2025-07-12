@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act, waitFor, renderHook } from '@testing-library/react';
-import { PropertyCrudProvider, usePropertyCrud } from '../../context/PropertiesContext';
+import { PropertyCrudProvider, usePropertiesContext } from '../../context/PropertiesContext';
 
 /* Mocks de servicios */
 vi.mock('../../services/amenity.service', () => ({
@@ -31,7 +31,7 @@ vi.mock('../../services/comment.service', () => ({
 
 /* Consumer de prueba */
 const Consumer = () => {
-  const ctx = usePropertyCrud();
+  const ctx = usePropertiesContext();
   return (
     <div>
       {/* Acciones */}
@@ -65,8 +65,8 @@ describe('PropertyCrudProvider', () => {
   });
 
   it('throws if hook used outside provider', () => {
-    const Test = () => { usePropertyCrud(); return null; };
-    expect(() => render(<Test />)).toThrow('usePropertyCrud debe usarse dentro de PropertyCrudProvider');
+    const Test = () => { usePropertiesContext(); return null; };
+    expect(() => render(<Test />)).toThrow('usePropertiesContext debe usarse dentro de PropertyCrudProvider');
   });
 
   it('proporciona valores iniciales y permite selección de owner', () => {
@@ -164,7 +164,7 @@ describe('PropertyCrudProvider', () => {
 
   it('carga propiedades correctamente', async () => {
     const TestComponent = () => {
-      const { loadProperty, currentProperty, loadingProperty, errorProperty } = usePropertyCrud();
+      const { loadProperty, currentProperty, loadingProperty, errorProperty } = usePropertiesContext();
       return (
         <div>
           <button onClick={() => loadProperty(1)}>Load Property</button>
@@ -194,7 +194,7 @@ describe('PropertyCrudProvider', () => {
     (getPropertyById as any).mockRejectedValueOnce(new Error('fail'));
 
     const TestComponent = () => {
-      const { loadProperty, errorProperty } = usePropertyCrud();
+      const { loadProperty, errorProperty } = usePropertiesContext();
       return (
         <div>
           <button onClick={() => loadProperty(999)}>Load</button>
@@ -220,7 +220,7 @@ describe('PropertyCrudProvider', () => {
 
     // Creamos un consumidor ad hoc para probar refresh()
     const CatConsumer = () => {
-      const { pickItem, refresh, data, categoryLoading } = usePropertyCrud();
+      const { pickItem, refresh, data, categoryLoading } = usePropertiesContext();
       return (
         <>
           <button onClick={() => { pickItem('category', 'type'); refresh(); }}>
@@ -247,7 +247,7 @@ describe('PropertyCrudProvider', () => {
   });
 
   it('buildSearchParams convierte IDs de amenities a nombres', async () => {
-    const { result } = renderHook(() => usePropertyCrud(), { wrapper: PropertyCrudProvider });
+    const { result } = renderHook(() => usePropertiesContext(), { wrapper: PropertyCrudProvider });
     await act(async () => result.current.refreshAllCatalogs());
     act(() => result.current.setSelected({ owner: null, neighborhood: null, type: null, amenities: [1] }));
     expect(result.current.buildSearchParams({}).amenities).toEqual(['Piscina']);

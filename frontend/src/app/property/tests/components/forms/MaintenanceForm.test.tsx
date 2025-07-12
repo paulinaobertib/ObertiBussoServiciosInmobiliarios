@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import MaintenanceForm from '../../../components/properties/MaintenanceForm';
+import MaintenanceForm from '../../../components/forms/MaintenanceForm';
 import * as maintenanceService from '../../../services/maintenance.service';
 import * as PropertiesContext from '../../../context/PropertiesContext';
 import * as AlertContext from '../../../../shared/context/AlertContext';
@@ -22,7 +22,7 @@ describe('MaintenanceForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
       pickedItem: mockPickedItem,
       refreshComments: vi.fn(),
