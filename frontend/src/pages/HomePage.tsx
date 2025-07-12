@@ -13,14 +13,14 @@ import { FloatingButtons } from '../app/property/components/catalog/FloatingButt
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import {
   getAllProperties,
   getPropertiesByText,
 } from '../app/property/services/property.service';
 
 export default function Home() {
-  /* ───── hooks & context ───── */
+  /** ─── hooks & context ─────────────────────────────────────────── */
   localStorage.setItem('selectedPropertyId', '');
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,33 +31,31 @@ export default function Home() {
   const {
     selectedPropertyIds,
     toggleCompare,
+    clearComparison,         // ← lo usamos
     refreshProperties,
     propertiesList,
-  } = usePropertyCrud();
+    disabledCompare
+  } = usePropertiesContext();
 
-  /* ───── local state ───── */
+  /** ─── local state ─────────────────────────────────────────────── */
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* ───── effects ───── */
+  /** ─── effects ─────────────────────────────────────────────────── */
   useEffect(() => {
     refreshProperties();
-  }, [location.pathname]);
+  }, [location.pathname, refreshProperties]);
 
   useEffect(() => {
     setResults(
-      propertiesList.map((p) => ({ ...p, status: p.status ?? 'Desconocido' })),
+      propertiesList.map(p => ({ ...p, status: p.status ?? 'Desconocido' }))
     );
     setLoading(false);
   }, [propertiesList]);
 
-  useEffect(() => {
-    setMode('normal');
-  }, [location]);
-
-  /* ───── handlers ───── */
+  /** ─── handlers ────────────────────────────────────────────────── */
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
     if (action === 'create') {
       navigate('/properties/new');
@@ -69,7 +67,7 @@ export default function Home() {
         action === 'delete'
           ? 'Saliste del modo eliminación'
           : 'Saliste del modo edición',
-        'info',
+        'info'
       );
     } else {
       setMode(action);
@@ -77,32 +75,42 @@ export default function Home() {
         action === 'delete'
           ? 'Modo eliminación: selecciona una propiedad'
           : 'Modo edición: selecciona una propiedad',
-        action === 'delete' ? 'warning' : 'info',
+        action === 'delete' ? 'warning' : 'info'
       );
     }
   };
 
+  /** Activa / desactiva modo comparación.
+   *  Si lo apagamos => limpiamos selección.                         */
   const toggleSelectionMode = () =>
-    setSelectionMode((prev) => {
-      showAlert(
-        prev ? 'Saliendo del modo comparación' : 'Entrando al modo comparación',
-        'info',
-      );
+    setSelectionMode(prev => {
+      if (prev) {
+        clearComparison();                                      // ← limpias IDs
+        showAlert('Saliendo del modo comparación', 'info');
+      } else {
+        showAlert('Entrando al modo comparación', 'info');
+      }
       return !prev;
     });
 
+  /** Navega a /compare solo si hay 2-3 seleccionadas; después limpia */
   const handleCompare = () => {
-    navigate('/properties/compare');
-    setSelectionMode(false);
+    if (disabledCompare) {
+      showAlert('Debes seleccionar 2 o 3 propiedades', 'warning');
+      return;
+    }
+    // navega con los IDs seleccionados (opcional: pásalos por state)
+    navigate('/properties/compare', { state: { ids: selectedPropertyIds } });
+    setSelectionMode(false);         // cerramos modo selección
   };
-
-  /* ───── render ───── */
+  
+  /** ─── render ──────────────────────────────────────────────────── */
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
 
-        {/* FILA buscador + botón de filtros (solo móvil) */}
+        {/* Buscador + botón filtros (móvil) */}
         {isMobile && (
           <Box
             sx={{
@@ -113,7 +121,7 @@ export default function Home() {
               justifyContent: 'center',
             }}
           >
-            <SearchFilters onSearch={setResults} /> {/* ← botón “Filtros” */}
+            <SearchFilters onSearch={setResults} />
             <Box sx={{ flexGrow: 1, maxWidth: '25rem' }}>
               <SearchBar
                 fetchAll={getAllProperties}
@@ -126,7 +134,7 @@ export default function Home() {
           </Box>
         )}
 
-        {/* buscador centrado (desktop) */}
+        {/* Buscador centrado (desktop) */}
         {!isMobile && (
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
             <Box sx={{ width: '40rem' }}>
@@ -141,7 +149,7 @@ export default function Home() {
           </Box>
         )}
 
-        {/* layout principal */}
+        {/* Layout principal */}
         <Box
           sx={{
             display: 'flex',
@@ -150,14 +158,14 @@ export default function Home() {
             mt: 2,
           }}
         >
-          {/* panel filtros fijo en desktop */}
+          {/* Filtros fijos en desktop */}
           {!isMobile && (
             <Box sx={{ width: 300 }}>
               <SearchFilters onSearch={setResults} />
             </Box>
           )}
 
-          {/* catálogo */}
+          {/* Catálogo */}
           <Box sx={{ flexGrow: 1, ml: { md: 3 } }}>
             {loading ? (
               <Typography>Cargando propiedades…</Typography>
@@ -179,12 +187,12 @@ export default function Home() {
         </Box>
       </Box>
 
+      {/* Botones flotantes (sin compareCount) */}
       <FloatingButtons
         onAction={handleAction}
         selectionMode={selectionMode}
         toggleSelectionMode={toggleSelectionMode}
         onCompare={handleCompare}
-        compareCount={selectedPropertyIds.length}
       />
     </BasePage>
   );

@@ -17,7 +17,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
-import { usePropertyCrud } from '../../property/context/PropertiesContext';
+import { usePropertiesContext } from '../../property/context/PropertiesContext';
 import { useAuthContext } from '../../user/context/AuthContext';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import SettingsDrawer from '../../user/components/Settings';
@@ -28,7 +28,7 @@ export const NAVBAR_HEIGHT_XS = 48;
 export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
-  const { clearComparison, resetSelected, pickItem } = usePropertyCrud();
+  const { clearComparison, resetSelected, pickItem } = usePropertiesContext();
   const { login, logout, isLogged, isAdmin } = useAuthContext();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);

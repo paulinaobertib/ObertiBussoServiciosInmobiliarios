@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { TextField, Box } from '@mui/material';
-import { Amenity, AmenityCreate } from '../../types/amenity';
+import { Amenity } from '../../types/amenity';
 import { postAmenity, putAmenity, deleteAmenity } from '../../services/amenity.service';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../../utils/useLoading';
+import { useCategories } from '../../hooks/useCategories';
 
 interface Props {
     action: 'add' | 'delete' | 'edit';
@@ -14,37 +12,19 @@ interface Props {
 }
 
 export const AmenityForm = ({ action, item, onDone }: Props) => {
-    const { refreshAmenities } = usePropertyCrud();
-    const [name, setName] = useState(item?.name ?? '');
-    const { showAlert } = useGlobalAlert();
+    const { refreshAmenities } = usePropertiesContext();
+    const { form, setForm, invalid, run, loading } = useCategories(
+        { id: item?.id ?? 0, name: item?.name ?? '' },
+        action,
+        async (payload) => {
+            if (action === 'add') return postAmenity(payload);
+            if (action === 'edit') return putAmenity(payload);
+            if (action === 'delete') return deleteAmenity(payload);
+        },
+        refreshAmenities,
+        onDone,
+    );
 
-    const invalid = action !== 'delete' && name.trim() === '';
-
-    const save = async () => {
-        try {
-            if (action === 'add') {
-                await postAmenity({ name } as AmenityCreate)
-                showAlert('¡Servicio creado con éxito!', 'success');;
-            }
-            if (action === 'edit' && item) {
-                await putAmenity({ ...item!, name });
-                showAlert('¡Servicio editado con éxito!', 'success');;
-            }
-            if (action === 'delete' && item) {
-                await deleteAmenity(item!);
-                showAlert('¡Servicio eliminado con éxito!', 'success');;
-            }
-
-            await refreshAmenities();
-            onDone();
-
-        } catch (error: any) {
-            const message = error.response?.data ?? 'Error desconocido';
-            showAlert(message, 'error');
-        }
-    };
-
-    const { loading, run } = useLoading(save);
     return (
         <>
             {loading && (
@@ -65,8 +45,8 @@ export const AmenityForm = ({ action, item, onDone }: Props) => {
             <TextField
                 fullWidth
                 label="Nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
                 disabled={action === 'delete'}
                 sx={{ mb: 2 }}
             />

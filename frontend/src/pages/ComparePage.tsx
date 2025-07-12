@@ -1,17 +1,17 @@
 import { Box, Button, useTheme } from '@mui/material';
 import { BasePage } from './BasePage';
 import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Modal } from '../app/shared/components/Modal';
-import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
 import { useState } from 'react';
 import { ROUTES } from '../lib';
 
 const Compare = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { clearComparison, comparisonItems } = usePropertyCrud();
+  const { clearComparison, comparisonItems } = usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
 
   if (comparisonItems.length === 0) {
@@ -24,7 +24,7 @@ const Compare = () => {
     navigate(-1);
   };
 
-  const { selectedPropertyIds } = usePropertyCrud();
+  const { selectedPropertyIds } = usePropertiesContext();
 
   return (
     <BasePage>
@@ -58,9 +58,8 @@ const Compare = () => {
           title="Enviar consulta"
           onClose={() => setInquiryOpen(false)}
         >
-          <InquiriesPanel
+          <InquiryForm
             propertyIds={selectedPropertyIds}
-            onDone={() => setInquiryOpen(false)}
           />
         </Modal>
       </>

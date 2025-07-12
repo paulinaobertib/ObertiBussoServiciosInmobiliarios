@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, } from '@mui/material';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { putPropertyStatus } from '../../services/property.service';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+
+import { putPropertyStatus } from '../../services/property.service';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 import { useLoading } from '../../utils/useLoading';
+import { useGlobalAlert } from '../../../shared/context/AlertContext';
 
 interface Props {
   item: { id: number; status: string };
@@ -14,7 +22,7 @@ interface Props {
 const options = ['DISPONIBLE', 'RESERVADA', 'ALQUILADA', 'VENDIDA'];
 
 export const StatusForm = ({ item, onDone }: Props) => {
-  const { loadProperty } = usePropertyCrud();
+  const { loadProperty } = usePropertiesContext();
   const { showAlert } = useGlobalAlert();
   const [status, setStatus] = useState(item.status);
 
@@ -22,19 +30,20 @@ export const StatusForm = ({ item, onDone }: Props) => {
     setStatus(e.target.value);
   };
 
+  /** guardar */
   const save = async () => {
     try {
       await putPropertyStatus(item.id, status);
       showAlert('Estado actualizado con éxito', 'success');
       await loadProperty(item.id);
       onDone();
-    } catch (error: any) {
-      const message = error.response?.data ?? 'Error desconocido';
-      showAlert(message, 'error');
+    } catch (err: any) {
+      showAlert(err.response?.data ?? 'Error desconocido', 'error');
     }
   };
 
   const { loading, run } = useLoading(save);
+
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       {loading && (
@@ -48,8 +57,7 @@ export const StatusForm = ({ item, onDone }: Props) => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-        >
-        </Box>
+        />
       )}
 
       <FormControl fullWidth>
@@ -60,7 +68,7 @@ export const StatusForm = ({ item, onDone }: Props) => {
           label="Estado"
           onChange={handleChange}
         >
-          {options.map((opt) => (
+          {options.map(opt => (
             <MenuItem key={opt} value={opt}>
               {opt}
             </MenuItem>
@@ -70,14 +78,14 @@ export const StatusForm = ({ item, onDone }: Props) => {
 
       <Box textAlign="right">
         <LoadingButton
-          onClick={() => run()}
+          onClick={run}
           loading={loading}
           variant="contained"
-          disabled={status === item.status}
+          disabled={status === item.status || loading}
         >
           Guardar
         </LoadingButton>
       </Box>
     </Box>
   );
-}
+};

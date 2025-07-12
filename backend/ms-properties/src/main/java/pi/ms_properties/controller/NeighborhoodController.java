@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.dto.NeighborhoodDTO;
+import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.List;
@@ -30,17 +31,17 @@ public class NeighborhoodController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
-    public ResponseEntity<NeighborhoodDTO> updateNeighborhood(@PathVariable Long id, @RequestBody NeighborhoodDTO neighborhoodDTO) {
+    public ResponseEntity<NeighborhoodGetDTO> updateNeighborhood(@PathVariable Long id, @RequestBody NeighborhoodDTO neighborhoodDTO) {
         return neighborhoodService.updateNeighborhood(id, neighborhoodDTO);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<NeighborhoodDTO>> getAll() {
+    public ResponseEntity<List<NeighborhoodGetDTO>> getAll() {
         return neighborhoodService.getAll();
     }
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<NeighborhoodDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<NeighborhoodGetDTO> getById(@PathVariable Long id) {
         return neighborhoodService.getById(id);
     }
 }

@@ -1,53 +1,37 @@
-import { useEffect, useState } from 'react';
-import { Box, Typography, IconButton, CircularProgress, useTheme, Tooltip } from '@mui/material';
+import { useState } from 'react';
+import { Box, Typography, IconButton, CircularProgress, Tooltip, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { ModalItem, Info } from '../ModalItem';
-import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { deleteProperty, getAllProperties, getPropertiesByText } from '../../services/property.service';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { getRowActions, RowAction } from '../ActionsRowItems';
-import { SearchBar } from '../../../shared/components/SearchBar';
-import { ROUTES } from '../../../../lib';
+
+import { usePropertyPanel } from '../hooks/usePropertySection';
+import { ModalItem, Info } from './ModalItem';
+import { useConfirmDialog } from '../../shared/components/ConfirmDialog';
+import { useGlobalAlert } from '../../shared/context/AlertContext';
+import { getRowActions, RowAction } from './ActionsRowItems';
+import { SearchBar } from '../../shared/components/SearchBar';
+import { getAllProperties, getPropertiesByText, deleteProperty, } from '../services/property.service';
+import { ROUTES } from '../../../lib';
 
 export const PropertyPanel = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { propertiesList, loading, refreshProperties } = usePropertyCrud();
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
+  const { data: properties, loading, onSearch, toggleSelect, isSelected } = usePropertyPanel();
   const [modal, setModal] = useState<Info | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [filteredProperties, setFilteredProperties] = useState<any[]>([]);
 
-  // sincronizar lista
-  useEffect(() => {
-    refreshProperties();
-  }, [refreshProperties]);
-
-  // cuando cambian propiedades
-  useEffect(() => {
-    setFilteredProperties(propertiesList);
-  }, [propertiesList]);
-
-  // definir columnas
-  const propertyFields = [
+  // columnas fijas
+  const columns = [
     { label: 'Título', key: 'title' },
     { label: 'Operación', key: 'operation' },
     { label: 'Precio', key: 'price' },
-  ];
-  const columns = propertyFields;
-  const gridTemplateColumns = '2fr 0.7fr 1.3fr 75px'; // aquí ajustas anchos relativos
+  ] as const;
 
-  const toggleSelect = (id: number) =>
-    setSelectedId((prev) => (prev === id ? null : id));
-  const isSel = (id: number) => selectedId === id;
-
+  const gridCols = '2fr 0.7fr 1.3fr 75px';
 
   return (
     <>
-      {/* ─── Top bar: SearchBar + “+” a la derecha ─── */}
+      {/* Top bar: buscador + “+” */}
       <Box
         sx={{
           px: 2,
@@ -62,28 +46,26 @@ export const PropertyPanel = () => {
           <SearchBar
             fetchAll={getAllProperties}
             fetchByText={getPropertiesByText}
-            onSearch={(res) => setFilteredProperties(res)}
+            onSearch={onSearch}
             placeholder="Buscar propiedad"
             debounceMs={400}
           />
         </Box>
-        <IconButton
-          onClick={() => navigate(ROUTES.NEW_PROPERTY)}
-        >
+        <IconButton onClick={() => navigate(ROUTES.NEW_PROPERTY)}>
           <AddIcon />
         </IconButton>
       </Box>
 
-      {/* ─── Encabezados (desktop) ─── */}
+      {/* Encabezados (desktop) */}
       <Box
         sx={{
           display: { xs: 'none', sm: 'grid' },
-          gridTemplateColumns,
+          gridTemplateColumns: gridCols,
           px: 2,
           py: 1,
         }}
       >
-        {columns.map((col) => (
+        {columns.map(col => (
           <Typography key={col.key} fontWeight={700}>
             {col.label}
           </Typography>
@@ -91,33 +73,32 @@ export const PropertyPanel = () => {
         <Typography fontWeight={700}>Acciones</Typography>
       </Box>
 
-      {/* ─── Filas ─── */}
+      {/* Filas */}
       <Box sx={{ px: 2, flexGrow: 1, overflowY: 'auto' }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress size={28} />
           </Box>
-        ) : filteredProperties.length ? (
-          filteredProperties.map((it: any) => {
-            const rowActions: RowAction[] = getRowActions(
+        ) : properties.length > 0 ? (
+          properties.map(prop => {
+            const actions: RowAction[] = getRowActions(
               'property',
-              it,
+              prop,
               navigate,
               setModal,
               ask,
               deleteProperty,
               showAlert
             );
-
-            const sel = isSel(it.id);
+            const sel = isSelected(prop.id);
 
             return (
               <Box
-                key={it.id}
-                onClick={() => toggleSelect(it.id)}
+                key={prop.id}
+                onClick={() => toggleSelect(prop.id)}
                 sx={{
                   display: { xs: 'block', sm: 'grid' },
-                  gridTemplateColumns,
+                  gridTemplateColumns: gridCols,
                   alignItems: 'center',
                   py: 1,
                   mb: 0.5,
@@ -128,20 +109,23 @@ export const PropertyPanel = () => {
               >
                 {/* móvil: etiquetas + valores */}
                 <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-                  {columns.map((col) => {
-                    const raw = (it as any)[col.key];
+                  {columns.map(col => {
+                    const raw = (prop as any)[col.key];
                     let val: string;
                     if (col.key === 'price') {
-                      const curr = (it as any).currency ?? '';
+                      const curr = prop.currency ?? '';
                       val = raw != null ? `${curr} ${raw}` : '—';
-                    } else if (typeof raw === 'boolean') {
-                      val = raw ? 'Sí' : 'No';
                     } else {
-                      val = raw ?? '—';
+                      val = typeof raw === 'boolean' ? raw ? 'Sí' : 'No' : raw ?? '—';
                     }
                     return (
-                      <Box key={col.key} sx={{ display: 'flex', gap: 1, mb: 0.5 }}>
-                        <Typography fontWeight={600}>{col.label}:</Typography>
+                      <Box
+                        key={col.key}
+                        sx={{ display: 'flex', gap: 1, mb: 0.5 }}
+                      >
+                        <Typography fontWeight={600}>
+                          {col.label}:
+                        </Typography>
                         <Typography>{val}</Typography>
                       </Box>
                     );
@@ -149,16 +133,14 @@ export const PropertyPanel = () => {
                 </Box>
 
                 {/* desktop: solo valores */}
-                {columns.map((col) => {
-                  const raw = (it as any)[col.key];
+                {columns.map(col => {
+                  const raw = (prop as any)[col.key];
                   let val: string;
                   if (col.key === 'price') {
-                    const curr = (it as any).currency ?? '';
+                    const curr = prop.currency ?? '';
                     val = raw != null ? `${curr} ${raw}` : '—';
-                  } else if (typeof raw === 'boolean') {
-                    val = raw ? 'Sí' : 'No';
                   } else {
-                    val = raw ?? '—';
+                    val = typeof raw === 'boolean' ? raw ? 'Sí' : 'No' : raw ?? '—';
                   }
                   return (
                     <Typography
@@ -172,15 +154,16 @@ export const PropertyPanel = () => {
 
                 {/* acciones */}
                 <Box
-                  onClick={(e) => e.stopPropagation()}
-                  sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}
+                  onClick={e => e.stopPropagation()}
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    justifyContent: 'flex-end',
+                  }}
                 >
-                  {rowActions.map((a, i) => (
+                  {actions.map((a, i) => (
                     <Tooltip key={i} title={a.label}>
-                      <IconButton
-                        size="small"
-                        onClick={a.onClick}
-                      >
+                      <IconButton size="small" onClick={a.onClick}>
                         {a.icon}
                       </IconButton>
                     </Tooltip>
@@ -190,11 +173,13 @@ export const PropertyPanel = () => {
             );
           })
         ) : (
-          <Typography sx={{ mt: 2 }}>No hay propiedades disponibles.</Typography>
+          <Typography sx={{ mt: 2 }}>
+            No hay propiedades disponibles.
+          </Typography>
         )}
       </Box>
 
-      {/* modal */}
+      {/* modal & dialog */}
       <ModalItem info={modal} close={() => setModal(null)} />
       {DialogUI}
     </>

@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { TextField, Grid, Box, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { Neighborhood, NeighborhoodCreate, NeighborhoodType } from '../../types/neighborhood';
 import { postNeighborhood, putNeighborhood, deleteNeighborhood } from '../../services/neighborhood.service';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../../utils/useLoading';
+import { useCategories } from '../../hooks/useCategories';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -14,47 +12,26 @@ interface Props {
 }
 
 export const NeighborhoodForm = ({ action, item, onDone }: Props) => {
-    const { refreshNeighborhoods } = usePropertyCrud();
-    const { showAlert } = useGlobalAlert();
+    const { refreshNeighborhoods } = usePropertiesContext();
+    const { form, setForm, invalid, run, loading } = useCategories(
+        {
+            id: item?.id ?? 0,
+            name: item?.name ?? '',
+            city: item?.city ?? '',
+            type: item?.type ?? '',
+        },
+        action,
+        async payload => {
+            if (action === 'add')
+                return postNeighborhood(payload as NeighborhoodCreate);
+            if (action === 'edit')
+                return putNeighborhood(payload as Neighborhood);
+            if (action === 'delete' && item) return deleteNeighborhood(item);
+        },
+        refreshNeighborhoods,
+        onDone
+    );
 
-    const [form, setForm] = useState<Neighborhood>({
-        id: item?.id ?? 0,
-        name: item?.name ?? '',
-        city: item?.city ?? '',
-        type: item?.type ?? '',
-    });
-
-    const set = (k: keyof typeof form) => (e: any) =>
-        setForm((f) => ({ ...f, [k]: e.target.value }));
-
-    const invalid =
-        action !== 'delete' &&
-        Object.values(form).some((v) => typeof v === 'string' && v.trim() === '');
-
-    const save = async () => {
-        try {
-            if (action === 'add') {
-                await postNeighborhood({ ...form } as NeighborhoodCreate);
-                showAlert('Barrio creado con éxito!', 'success');
-            }
-            if (action === 'edit' && item) {
-                await putNeighborhood(form);
-                showAlert('Barrio editado con éxito!', 'success');
-            }
-            if (action === 'delete' && item) {
-                await deleteNeighborhood(item);
-                showAlert('Barrio eliminado con éxito!', 'success');
-            }
-
-            await refreshNeighborhoods();
-            onDone();
-        } catch (error: any) {
-            const message = error.response?.data ?? 'Error desconocido';
-            showAlert(message, 'error');
-        }
-    };
-
-    const { loading, run } = useLoading(save);
     return (
         <>
             {loading && (
@@ -74,9 +51,24 @@ export const NeighborhoodForm = ({ action, item, onDone }: Props) => {
 
             <Grid container spacing={2} mb={2} >
                 <Grid size={6}>
-                    <TextField disabled={action === 'delete'} fullWidth label="Nombre" value={form.name} onChange={set('name')} />
+                    <TextField
+                        fullWidth
+                        label="Nombre"
+                        value={form.name}
+                        disabled={action === 'delete'}
+                        onChange={e => setForm({ ...form, name: e.target.value })}
+                    />
                 </Grid>
-                <Grid size={6}><TextField disabled={action === 'delete'} fullWidth label="Ciudad" value={form.city} onChange={set('city')} /></Grid>
+
+                <Grid size={6}>
+                    <TextField
+                        fullWidth
+                        label="Ciudad"
+                        value={form.city}
+                        disabled={action === 'delete'}
+                        onChange={e => setForm({ ...form, city: e.target.value })}
+                    />
+                </Grid>
                 <Grid size={12}>
                     <FormControl fullWidth>
                         <InputLabel id="neighborhood-type-label">Tipo</InputLabel>
@@ -86,7 +78,8 @@ export const NeighborhoodForm = ({ action, item, onDone }: Props) => {
                             disabled={action === 'delete'}
                             value={form.type}
                             label="Tipo"
-                            onChange={set('type')}
+                            onChange={e => setForm({ ...form, type: e.target.value as NeighborhoodType, })
+                            }
                         >
                             <MenuItem value={NeighborhoodType.CERRADO}>Cerrado</MenuItem>
                             <MenuItem value={NeighborhoodType.SEMICERRADO}>Semi cerrado</MenuItem>
