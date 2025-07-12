@@ -28,6 +28,7 @@ export interface Property {
   amenities: Amenity[];
   mainImage: File | string;
   images: File[];
+  date: string;
 }
 
 export interface PropertyCreate {
@@ -54,6 +55,7 @@ export interface PropertyCreate {
   amenitiesIds: number[];
   mainImage: File | string;
   images: File[];
+  date: string;
 }
 
 export interface PropertyUpdate {
@@ -80,6 +82,7 @@ export interface PropertyUpdate {
   typeId: number;
   amenitiesIds: number[];
   mainImage: File | string;
+  date: string;
 }
 
 export const emptyProperty: Property = {
@@ -101,16 +104,25 @@ export const emptyProperty: Property = {
   showPrice: false,
   credit: false,
   financing: false,
-  owner: { firstName: "", lastName: "", mail: "", phone: "" } as Owner,
-  neighborhood: { id: 0, name: "", city: "", type: "" } as Neighborhood,
+  owner: { id: 0, firstName: "", lastName: "", email: "", phone: "" } as Owner,
+  neighborhood: {
+    id: 0,
+    name: "",
+    city: "",
+    type: "",
+    latitude: 0,
+    longitude: 0,
+  } as Neighborhood,
   type: {
     id: 0,
     name: "",
     hasRooms: false,
     hasBathrooms: false,
     hasBedrooms: false,
+    hasCoveredArea: false,
   } as Type,
   amenities: [],
   mainImage: "",
   images: [],
+  date: "",
 };

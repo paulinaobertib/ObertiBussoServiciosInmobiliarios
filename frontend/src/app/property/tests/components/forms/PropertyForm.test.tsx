@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, expect, it } from 'vitest';
 import React, { act } from 'react';
-import PropertyForm, { PropertyFormHandle } from '../../../components/properties/PropertyForm';
+import PropertyForm, { PropertyFormHandle } from '../../../components/forms/PropertyForm';
 
 const mockSetField = vi.fn();
 const crudStub = {
@@ -22,7 +22,7 @@ const crudStub = {
 
 vi.mock('../../../context/PropertiesContext', () => ({
   // devuelve SIEMPRE el mismo objeto ➜ no se disparan renders infinitos
-  usePropertyCrud: vi.fn(() => crudStub),
+  usePropertiesContext: vi.fn(() => crudStub),
   PropertyCrudProvider: ({ children }: any) => children,
 }));
 

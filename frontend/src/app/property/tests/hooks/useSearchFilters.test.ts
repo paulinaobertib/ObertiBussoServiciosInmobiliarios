@@ -15,7 +15,7 @@ describe('useSearchFilters', () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       buildSearchParams: mockBuildSearchParams,
       amenitiesList: [],
       ownersList: [],
@@ -32,7 +32,7 @@ describe('useSearchFilters', () => {
       getPropertyById: vi.fn(),
       createAmenity: vi.fn(),
       getAllAmenities: vi.fn(),
-    } as unknown as ReturnType<typeof PropertiesContext.usePropertyCrud>);
+    } as unknown as ReturnType<typeof PropertiesContext.usePropertiesContext>);
   });
 
   it('should initialize with default params', () => {

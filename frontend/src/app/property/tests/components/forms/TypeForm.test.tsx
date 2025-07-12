@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import TypeForm from '../../../components/categories/TypeForm';
+import TypeForm from '../../../components/forms/TypeForm';
 import { describe, vi, it, expect, beforeEach } from 'vitest';
 import { postType, putType, deleteType } from '../../../services/type.service';
-import { usePropertyCrud } from '../../../context/PropertiesContext';
+import { usePropertiesContext } from '../../../context/PropertiesContext';
 import { useGlobalAlert } from '../../../../shared/context/AlertContext';
 
 vi.mock('../../../services/type.service');
@@ -16,7 +16,7 @@ describe('TypeForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (usePropertyCrud as any).mockReturnValue({
+    (usePropertiesContext as any).mockReturnValue({
       refresh: mockRefresh,
     });
     (useGlobalAlert as any).mockReturnValue({

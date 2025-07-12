@@ -53,7 +53,7 @@ public class GeminiService {
         for (int i = 0; i < properties.size(); i++) {
             PropertyDTOAI p = properties.get(i);
 
-            sb.append("Propiedad ").append((char) ('A' + i)).append(": \n");
+            sb.append("Propiedad: ").append(p.getName() != null ? p.getName() : "Sin nombre").append("\n");
             sb.append(" - Dirección: ").append(p.getAddress()).append("\n");
 
             if (p.getLatitude() != null && p.getLongitude() != null) {

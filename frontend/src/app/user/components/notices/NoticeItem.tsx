@@ -29,7 +29,7 @@ export default function NoticeItem({
 
   const isNew =
     Date.now() - new Date(notice.date).getTime() <
-    3 * 24 * 60 * 60 * 1000;
+   1000;
 
   return (
     <Paper

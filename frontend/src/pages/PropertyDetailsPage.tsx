@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, useTheme } from '@mui/material';
 import { BasePage } from './BasePage';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
 import { Modal } from '../app/shared/components/Modal';
-import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
 
 const PropertyDetailsPage = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentProperty, loadProperty } = usePropertyCrud();
+  const { currentProperty, loadProperty } = usePropertiesContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inquiryOpen, setInquiryOpen] = useState(false);
@@ -87,9 +87,8 @@ const PropertyDetailsPage = () => {
             title="Enviar consulta"
             onClose={() => setInquiryOpen(false)}
           >
-            <InquiriesPanel
+            <InquiryForm
               propertyIds={[currentProperty.id]}
-              onDone={() => setInquiryOpen(false)}
             />
           </Modal>
         </>

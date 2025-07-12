@@ -19,7 +19,7 @@ vi.mock('../../context/PropertiesContext', async () => {
   const actual = await vi.importActual('../../context/PropertiesContext');
   return {
     ...actual,
-    usePropertyCrud: () => ({
+    usePropertiesContext: () => ({
       clearComparison: mockClearComparison,
     }),
   };

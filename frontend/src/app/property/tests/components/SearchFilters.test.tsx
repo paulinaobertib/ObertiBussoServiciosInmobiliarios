@@ -21,7 +21,7 @@ vi.mock('../../services/property.service', () => ({
 
 // Mock del contexto PropertyCrudProvider
 vi.mock('../../context/PropertiesContext', () => ({
-  usePropertyCrud: () => ({
+  usePropertiesContext: () => ({
     typesList: [{ id: 1, name: 'Casa' }, { id: 2, name: 'Departamento' }],
     neighborhoodsList: [{ id: 1, name: 'Centro', city: 'Ciudad' }],
     amenitiesList: [{ id: 1, name: 'Piscina' }],

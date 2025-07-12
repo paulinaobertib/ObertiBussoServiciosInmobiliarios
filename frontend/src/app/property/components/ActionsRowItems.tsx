@@ -11,11 +11,11 @@ import { translate } from '../utils/translate';
 
 // ————————————————————————————————————————
 // 1) Importa aquí tus formularios de CRUD
-import { AmenityForm } from './categories/AmenityForm';
-import { OwnerForm } from './categories/OwnerForm';
-import { TypeForm } from './categories/TypeForm';
-import { NeighborhoodForm } from './categories/NeighborhoodForm';
-import { StatusForm } from './properties/StatusForm';
+import { AmenityForm } from './forms/AmenityForm';
+import { OwnerForm } from './forms/OwnerForm';
+import { TypeForm } from './forms/TypeForm';
+import { NeighborhoodForm } from './forms/NeighborhoodForm';
+import { StatusForm } from './forms/StatusForm';
 
 // 2) Crea un registry para mapear cada categoría a su formulario
 const formRegistry = {

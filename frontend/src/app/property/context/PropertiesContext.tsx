@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   ReactNode,
+  useMemo,
 } from 'react';
 
 /* ─── servicios de catálogo ─── */
@@ -88,8 +89,8 @@ interface Ctx {
   selectedPropertyIds: number[];
   toggleCompare: (id: number) => void;
   addToComparison: (p: Property) => void;
-
   clearComparison: () => void;
+  disabledCompare: boolean;
 }
 
 const Context = createContext<Ctx | null>(null);
@@ -369,6 +370,11 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setSelectedPropertyIds([]);
   };
 
+  const disabledCompare = useMemo(
+    () => selectedPropertyIds.length < 2 || selectedPropertyIds.length > 3,
+    [selectedPropertyIds],
+  );
+
   return (
     <Context.Provider
       value={{
@@ -414,6 +420,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         toggleCompare,
         addToComparison,
         clearComparison,
+        disabledCompare,
       }}
     >
       {children}
@@ -421,8 +428,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function usePropertyCrud() {
+export function usePropertiesContext() {
   const ctx = useContext(Context);
-  if (!ctx) throw new Error('usePropertyCrud debe usarse dentro de PropertyCrudProvider');
+  if (!ctx) throw new Error('usePropertiesContext debe usarse dentro de PropertyCrudProvider');
   return ctx;
 }
