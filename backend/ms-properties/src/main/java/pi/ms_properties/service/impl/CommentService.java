@@ -11,6 +11,7 @@ import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.interf.ICommentService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -28,6 +29,7 @@ public class CommentService implements ICommentService {
 
         Comment comment = new Comment();
         comment.setDescription(commentDTO.getDescription());
+        comment.setDate(LocalDateTime.now());
         comment.setProperty(property);
         commentRepository.save(comment);
 
@@ -63,7 +65,7 @@ public class CommentService implements ICommentService {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el comentario"));
 
-        CommentDTO commentDTO = new CommentDTO(comment.getId(), comment.getDescription(), comment.getProperty().getId());
+        CommentDTO commentDTO = new CommentDTO(comment.getId(), comment.getDescription(), comment.getDate(), comment.getProperty().getId());
         return ResponseEntity.ok(commentDTO);
     }
 
@@ -77,6 +79,7 @@ public class CommentService implements ICommentService {
                 .map(comment -> new CommentDTO(
                         comment.getId(),
                         comment.getDescription(),
+                        comment.getDate(),
                         comment.getProperty().getId()
                 ))
                 .toList();

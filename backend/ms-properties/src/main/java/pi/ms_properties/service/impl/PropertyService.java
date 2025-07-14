@@ -243,9 +243,10 @@ public class PropertyService implements IPropertyService {
             BigDecimal priceFrom, BigDecimal priceTo,
             float areaFrom, float areaTo,
             float coveredAreaFrom, float coveredAreaTo,
-            float rooms, String operation, String type,
-            List<String> amenities, String city, String neighborhood, String neighborhoodType,
-            Boolean credit, Boolean financing) {
+            List<Float> rooms, String operation, List<String> types,
+            List<String> amenities, List<String> cities, List<String> neighborhoods, List<String> neighborhoodTypes,
+            Boolean credit, Boolean financing,
+            Currency currency) {
 
         Specification<Property> spec = Specification
                 .where(PropertySpecification.hasPriceFrom(priceFrom))
@@ -256,13 +257,14 @@ public class PropertyService implements IPropertyService {
                 .and(PropertySpecification.hasCoveredAreaTo(coveredAreaTo))
                 .and(PropertySpecification.hasRooms(rooms))
                 .and(PropertySpecification.hasOperation(operation))
-                .and(PropertySpecification.hasType(type))
+                .and(PropertySpecification.hasType(types))
                 .and(PropertySpecification.hasAmenity(amenities))
-                .and(PropertySpecification.hasCity(city))
-                .and(PropertySpecification.hasNeighborhood(neighborhood))
-                .and(PropertySpecification.hasNeighborhoodType(neighborhoodType))
+                .and(PropertySpecification.hasCity(cities))
+                .and(PropertySpecification.hasNeighborhood(neighborhoods))
+                .and(PropertySpecification.hasNeighborhoodType(neighborhoodTypes))
                 .and(PropertySpecification.hasCredit(credit))
-                .and(PropertySpecification.hasFinancing(financing));
+                .and(PropertySpecification.hasFinancing(financing))
+                .and(PropertySpecification.hasCurrency(currency));
 
         List<Property> properties = propertyRepository.findAll(spec);
 
