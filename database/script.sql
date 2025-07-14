@@ -64,6 +64,7 @@ CREATE TABLE Property (
 CREATE TABLE Comment (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
     description TEXT NOT NULL,
+    date DATETIME NOT NULL,
 	property_id BIGINT NOT NULL,
     FOREIGN KEY (property_id) REFERENCES Property(id)
 );
@@ -180,6 +181,7 @@ CREATE TABLE Notice (
     user_id VARCHAR(100) NOT NULL,
     date DATETIME NOT NULL,
     title VARCHAR(255) NOT NULL,
+    main_image VARCHAR(255),
     description VARCHAR(2000) NOT NULL
 );
 

@@ -15,6 +15,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.controller.PropertyController;
+import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Status;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
@@ -139,12 +140,8 @@ class PropertyControllerTest {
 
     @Test
     void testSearchProperties() {
-        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyString(), anyString(), anyList(), anyString(), anyString(), anyString(), any(), any()))
-                .thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
-
-        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(
-                BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, 3, "venta", "casa",
-                List.of("pileta"), "cordoba", "centro", "urbano", true, false);
+        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(), anyBoolean(), anyBoolean(), any(Currency.class))).thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
+        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, List.of(3f), "venta", List.of("casa"), List.of("pileta"), List.of("cordoba"), List.of("centro"), List.of("urbano"), true, false, Currency.ARS);
         assertEquals(1, response.getBody().size());
     }
 
