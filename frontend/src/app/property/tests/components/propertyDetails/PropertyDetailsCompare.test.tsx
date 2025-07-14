@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import PropertyDetailsCompare from '../../../components/propertyDetails/PropertyDetailsCompare';
+import PropertyDetailsCompare from '../../../components/propertyDetails/PropertyDetailsCompareTwo';
 import { Property } from '../../../types/property';
 import axios from 'axios';
 import { ThemeProvider, createTheme } from '@mui/material/styles';

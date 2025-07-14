@@ -1,4 +1,4 @@
-import { Box, Button, useTheme } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { BasePage } from './BasePage';
 import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
@@ -9,7 +9,6 @@ import { useState } from 'react';
 import { ROUTES } from '../lib';
 
 const Compare = () => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { clearComparison, comparisonItems } = usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
@@ -28,41 +27,21 @@ const Compare = () => {
 
   return (
     <BasePage>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, mb: -4 }}>
         <Button variant="contained" color="primary" onClick={handleBack}>
           VOLVER
         </Button>
+
+        <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)} >
+          Consultar por estas propiedades
+        </Button>
       </Box>
 
-      <>
-        <PropertyDetailsCompare comparisonItems={comparisonItems} />
+      <PropertyDetailsCompare comparisonItems={comparisonItems} />
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 8 }}>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={() => setInquiryOpen(true)}
-            sx={{
-              py: 1.5,
-              borderRadius: 2,
-              backgroundColor: theme.palette.secondary.main,
-              '&:hover': { backgroundColor: theme.palette.secondary.dark },
-            }}
-          >
-            Consultar por estas propiedades
-          </Button>
-        </Box>
-
-        <Modal
-          open={inquiryOpen}
-          title="Enviar consulta"
-          onClose={() => setInquiryOpen(false)}
-        >
-          <InquiryForm
-            propertyIds={selectedPropertyIds}
-          />
-        </Modal>
-      </>
+      <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)} >
+        <InquiryForm propertyIds={selectedPropertyIds} />
+      </Modal>
 
     </BasePage>
   );

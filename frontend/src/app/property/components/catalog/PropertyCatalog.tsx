@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCatalog } from '../../hooks/useCatalog';
 import { PropertyCard } from './PropertyCard';
@@ -25,8 +26,18 @@ export const PropertyCatalog = ({
 
   const list = properties ?? propertiesList;
 
+  // 1️⃣ Ordenamos por date descendente
+  const sortedList = useMemo(
+    () =>
+      [...list].sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+      ),
+    [list]
+  );
+
   if (loading) return <CircularProgress size={48} />;
-  if (!loading && list.length === 0)
+  if (!loading && sortedList.length === 0)
     return <Typography>No hay propiedades disponibles.</Typography>;
 
   return (
@@ -39,7 +50,7 @@ export const PropertyCatalog = ({
           gap: 3,
         }}
       >
-        {list.map((prop) => (
+        {sortedList.map((prop) => (
           <PropertyCard
             key={prop.id}
             property={prop}
