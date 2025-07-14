@@ -3,7 +3,10 @@ import { SearchParams } from "../types/searchParams";
 import { Property } from "../types/property";
 import { usePropertiesContext } from "../context/PropertiesContext";
 import { getPropertiesByFilters } from "../services/property.service";
-
+import { LIMITS } from "../utils/filterLimits";
+/**
+ * Hook que administra todos los filtros de búsqueda.
+ */
 export function useSearchFilters(onSearch: (results: Property[]) => void) {
   const {
     buildSearchParams,
@@ -15,174 +18,174 @@ export function useSearchFilters(onSearch: (results: Property[]) => void) {
     setSelected,
   } = usePropertiesContext();
 
-  // Defaults
+  /* ───────── estado principal ───────── */
   const [params, setParams] = useState({
+    rooms: [] as number[],
+    types: [] as string[],
+    cities: [] as string[],
+    neighborhoods: [] as string[],
+    neighborhoodTypes: [] as string[],
     operation: "",
-    type: "",
-    rooms: 0,
-    priceRange: [0, 1000000] as [number, number],
-    areaRange: [0, 1000] as [number, number],
-    coveredRange: [0, 1000] as [number, number],
-    city: "",
-    neighborhood: "",
+    currency: "",
     credit: false,
     financing: false,
+    priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max] as [
+      number,
+      number
+    ],
+    areaRange: [LIMITS.surface.min, LIMITS.surface.max] as [number, number],
+    coveredRange: [LIMITS.surface.min, LIMITS.surface.max] as [number, number],
   });
 
-  // Ejecuta búsqueda
-  const apply = async (override = params) => {
-    const base: Partial<SearchParams> = {
-      operation: override.operation || "",
-      type: override.type || "",
-      city: override.city || "",
-      neighborhood: override.neighborhood || "",
-      priceFrom: override.priceRange[0],
-      priceTo: override.priceRange[1],
-      areaFrom: override.areaRange[0],
-      areaTo: override.areaRange[1],
-      coveredAreaFrom: override.coveredRange[0],
-      coveredAreaTo: override.coveredRange[1],
-      credit:
-        override.operation === "VENTA" && override.credit ? true : undefined,
-      financing:
-        override.operation === "VENTA" && override.financing ? true : undefined,
-      rooms:
-        override.rooms > 0 && override.rooms < 3 ? override.rooms : undefined,
-    };
-    // Manejo de rooms >=3
-    if (override.rooms === 3) base.rooms = undefined;
+  /* ───────── util genérico para togglear ───────── */
+  function toggleParam<
+    K extends keyof typeof params,
+    V extends (typeof params)[K] extends Array<infer U> ? U : (typeof params)[K]
+  >(key: K, value: V) {
+    setParams((prev) => {
+      const current = prev[key] as any;
+      if (Array.isArray(current)) {
+        const arr = current as unknown[];
+        const exists = arr.includes(value);
+        return {
+          ...prev,
+          [key]: exists ? arr.filter((v) => v !== value) : [...arr, value],
+        };
+      }
+      const cleared = current === value ? "" : value;
+      return { ...prev, [key]: cleared };
+    });
+  }
 
-    let results = await getPropertiesByFilters(
-      buildSearchParams(base) as SearchParams
-    );
-    if (override.rooms === 3) {
-      results = results.filter((r) => Number(r.rooms) >= 3);
-    }
-    onSearch(results);
-  };
-
-  // Toggle param único
-  const toggleParam = <K extends keyof typeof params>(
-    key: K,
-    value: (typeof params)[K]
-  ) => {
-    const next = {
-      ...params,
-      [key]: params[key] === value ? (key === "rooms" ? 0 : "") : value,
-    };
-    setParams(next);
-    apply(next);
-  };
-
-  // Agrega o quita un amenity y vuelve a aplicar
-  const toggleAmenity = (amenityId: number) => {
+  /* ───────── amenities siguen en `selected` ───────── */
+  function toggleAmenity(amenityId: number) {
     const amenities = selected.amenities.includes(amenityId)
       ? selected.amenities.filter((id) => id !== amenityId)
       : [...selected.amenities, amenityId];
 
     setSelected({ ...selected, amenities });
-    apply(); // toma params actuales + selected actualizado al consultar buildSearchParams
-  };
+    apply(); // aplica búsqueda con el nuevo estado
+  }
 
-  // Reset general
-  const reset = async () => {
+  /* ───────── construir payload y llamar al backend ───────── */
+  async function apply(local = params) {
+    const base: Partial<SearchParams> = {
+      operation: local.operation,
+      currency: local.currency,
+      priceFrom: local.priceRange[0],
+      priceTo: local.priceRange[1],
+      areaFrom: local.areaRange[0],
+      areaTo: local.areaRange[1],
+      coveredAreaFrom: local.coveredRange[0],
+      coveredAreaTo: local.coveredRange[1],
+      rooms: local.rooms,
+      types: local.types,
+      cities: local.cities,
+      neighborhoods: local.neighborhoods,
+      neighborhoodTypes: local.neighborhoodTypes,
+      amenities: selected.amenities.map(String),
+      credit:
+        local.operation === "VENTA" ? local.credit || undefined : undefined,
+      financing:
+        local.operation === "VENTA" ? local.financing || undefined : undefined,
+    };
+
+    const result = await getPropertiesByFilters(
+      buildSearchParams(base) as SearchParams
+    );
+    onSearch(result);
+  }
+
+  /* ───────── reset ───────── */
+  async function reset() {
     setParams({
+      rooms: [],
+      types: [],
+      cities: [],
+      neighborhoods: [],
+      neighborhoodTypes: [],
       operation: "",
-      type: "",
-      rooms: 0,
-      priceRange: [0, 1000000],
-      areaRange: [0, 1000],
-      coveredRange: [0, 1000],
-      city: "",
-      neighborhood: "",
+      currency: "",
       credit: false,
       financing: false,
+      priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max],
+      areaRange: [LIMITS.surface.min, LIMITS.surface.max],
+      coveredRange: [LIMITS.surface.min, LIMITS.surface.max],
     });
     setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
     await apply({
+      rooms: [],
+      types: [],
+      cities: [],
+      neighborhoods: [],
+      neighborhoodTypes: [],
       operation: "",
-      type: "",
-      rooms: 0,
-      priceRange: [0, 1000000],
-      areaRange: [0, 1000],
-      coveredRange: [0, 1000],
-      city: "",
-      neighborhood: "",
+      currency: "",
       credit: false,
       financing: false,
+      priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max],
+      areaRange: [LIMITS.surface.min, LIMITS.surface.max],
+      coveredRange: [LIMITS.surface.min, LIMITS.surface.max],
     });
-  };
+  }
 
-  // Chips activos
+  /* ───────── chips visibles ───────── */
   const chips = useMemo(() => {
     const list: { label: string; onClear(): void }[] = [];
-    if (params.operation)
+    const push = (lbl: string, key: keyof typeof params, val?: any) =>
       list.push({
-        label: params.operation,
-        onClear: () => toggleParam("operation", params.operation),
+        label: lbl,
+        onClear: () => toggleParam(key as any, val ?? lbl),
       });
-    if (params.operation === "VENTA" && params.credit)
-      list.push({
-        label: "Apto Crédito",
-        onClear: () => toggleParam("credit", params.credit),
-      });
-    if (params.operation === "VENTA" && params.financing)
-      list.push({
-        label: "Apto Financiamiento",
-        onClear: () => toggleParam("financing", params.financing),
-      });
-    if (params.type)
-      list.push({
-        label: params.type,
-        onClear: () => toggleParam("type", params.type),
-      });
-    if (params.rooms)
-      list.push({
-        label: params.rooms === 3 ? "3+" : `${params.rooms}`,
-        onClear: () => toggleParam("rooms", params.rooms),
-      });
-    if (params.city)
-      list.push({
-        label: params.city,
-        onClear: () => toggleParam("city", params.city),
-      });
-    if (params.neighborhood)
-      list.push({
-        label: params.neighborhood,
-        onClear: () => toggleParam("neighborhood", params.neighborhood),
-      });
+
+    if (params.operation) push(params.operation, "operation");
+    if (params.currency) push(params.currency, "currency");
+    if (params.credit) push("Apto Crédito", "credit", true);
+    if (params.financing) push("Financiamiento", "financing", true);
+    params.types.forEach((t) => push(t, "types", t));
+    params.cities.forEach((c) => push(c, "cities", c));
+    params.neighborhoods.forEach((n) => push(n, "neighborhoods", n));
+    params.neighborhoodTypes.forEach((t) => push(t, "neighborhoodTypes", t));
+    params.rooms.forEach((r) => push(r === 3 ? "3+" : `${r}`, "rooms", r));
+    /* rangos */
     const [minP, maxP] = params.priceRange;
-    if (minP > 0 || maxP < 1000000)
-      list.push({ label: `Precio: ${minP}–${maxP}`, onClear: reset });
+    const maxAllowed =
+      params.currency === "USD" ? LIMITS.price.USD.max : LIMITS.price.ARS.max;
+    if (minP > LIMITS.price.USD.min || maxP < maxAllowed)
+      list.push({ label: `Precio ${minP}-${maxP}`, onClear: reset });
     const [minA, maxA] = params.areaRange;
-    if (minA > 0 || maxA < 1000)
-      list.push({ label: `Sup: ${minA}–${maxA}`, onClear: reset });
+    if (minA > LIMITS.surface.min || maxA < LIMITS.surface.max)
+      list.push({ label: `Sup ${minA}-${maxA}`, onClear: reset });
     const [minC, maxC] = params.coveredRange;
-    if (minC > 0 || maxC < 1000)
-      list.push({ label: `Cub: ${minC}–${maxC}`, onClear: reset });
+    if (minC > LIMITS.surface.min || maxC < LIMITS.surface.max)
+      list.push({ label: `Cub ${minC}-${maxC}`, onClear: reset });
+    /* amenities */
     if (selected.amenities.length)
       list.push({
         label: `${selected.amenities.length} caracts`,
-        onClear: () => {
-          setSelected({ ...selected, amenities: [] });
-          apply();
-        },
+        onClear: () => setSelected({ ...selected, amenities: [] }),
       });
     return list;
   }, [params, selected]);
 
+  /* side-effect: recarga cada vez que params/selected cambian */
+  useMemo(() => {
+    apply();
+  }, [params, selected]);
+
+  /* ───────── exposición ───────── */
   return {
     params,
-    setParams,
+    selected,
     operationsList,
     typesList,
     amenitiesList,
     neighborhoodsList,
-    selected,
     toggleParam,
     toggleAmenity,
-    reset,
+    setParams,
     apply,
+    reset,
     chips,
   };
 }

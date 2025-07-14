@@ -18,9 +18,7 @@ export const CommentForm = ({ action, item, onDone }: Props) => {
     const { form, setForm, invalid, run, loading } = useCategories(
         {
             id: item?.id ?? 0,
-            propertyId:
-                item?.propertyId ??
-                (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
+            propertyId: item?.propertyId ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
             description: item?.description ?? '',
         },
         action,
@@ -50,7 +48,7 @@ export const CommentForm = ({ action, item, onDone }: Props) => {
             )}
 
             <Grid container spacing={2} mb={2}>
-                <Grid size={{xs: 12}}>
+                <Grid size={{ xs: 12 }}>
                     <TextField
                         fullWidth
                         multiline
