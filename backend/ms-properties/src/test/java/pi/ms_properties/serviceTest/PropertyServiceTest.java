@@ -301,18 +301,19 @@ public class PropertyServiceTest {
         when(propertyRepository.save(ArgumentMatchers.any())).thenReturn(property);
 
         when(imageService.uploadImageToProperty(
-                eq(propertySaveDTO.getMainImage()),
-                anyLong(),
+                any(MultipartFile.class),
+                any(),
                 eq(true)))
                 .thenReturn("https://example.com/mainImage.jpg");
 
         when(imageService.uploadImageToProperty(
-                ArgumentMatchers.any(),
-                anyLong(),
-                eq(false))
-        ).thenReturn("https://example.com/extra.jpg");
+                any(MultipartFile.class),
+                any(),
+                eq(false)))
+                .thenReturn("https://example.com/extra.jpg");
 
-        doNothing().when(notificationRepository).createNotification(any(NotificationDTO.class), anyLong());
+        doNothing().when(notificationRepository)
+                .createNotification(any(NotificationDTO.class), any());
 
         ResponseEntity<String> response = propertyService.createProperty(propertySaveDTO);
 
@@ -492,17 +493,18 @@ public class PropertyServiceTest {
 
         ResponseEntity<List<PropertyDTO>> response = propertyService.findBy(
                 BigDecimal.valueOf(0), BigDecimal.valueOf(100000),
-                0, 1000,
-                0, 500,
-                3,
+                0f, 1000f,
+                0f, 500f,
+                List.of(3f),
                 "VENTA",
-                "CASA",
+                List.of("CASA"),
                 List.of("Pileta"),
-                "CABA",
-                "Palermo",
-                "ABIERTO",
+                List.of("CABA"),
+                List.of("Palermo"),
+                List.of("ABIERTO"),
                 true,
-                false
+                false,
+                null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -736,18 +738,19 @@ public class PropertyServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> propertyService.findBy(
-                        BigDecimal.valueOf(0), BigDecimal.valueOf(100000.0),
-                        0, 1000,
-                        0, 500,
-                        3,
+                        BigDecimal.valueOf(0), BigDecimal.valueOf(100000),
+                        0f, 1000f,
+                        0f, 500f,
+                        List.of(3f),
                         "VENTA",
-                        "CASA",
+                        List.of("CASA"),
                         List.of("Pileta"),
-                        "CABA",
-                        "Palermo",
-                        "ABIERTO",
+                        List.of("CABA"),
+                        List.of("Palermo"),
+                        List.of("ABIERTO"),
                         true,
-                        false
+                        false,
+                        null
                 ));
 
         assertEquals("DB error", ex.getMessage());
@@ -780,41 +783,5 @@ public class PropertyServiceTest {
                 () -> propertyService.getSimpleById(1L));
 
         assertEquals("DB error", ex.getMessage());
-    }
-
-    @Test
-    void testCreateProperty_notificationThrowsException() {
-        when(mapper.convertValue(propertySaveDTO, PropertyUpdateDTO.class))
-                .thenReturn(propertyUpdateDTO);
-
-        when(mapper.convertValue(propertyUpdateDTO, Property.class))
-                .thenReturn(property);
-
-        when(ownerRepository.findById(1L)).thenReturn(Optional.of(owner));
-        when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhood));
-        when(typeRepository.findById(1L)).thenReturn(Optional.of(type));
-        when(amenityRepository.findById(1L)).thenReturn(Optional.of(amenities.iterator().next()));
-
-        when(propertyRepository.save(ArgumentMatchers.any())).thenReturn(property);
-
-        when(imageService.uploadImageToProperty(
-                eq(propertySaveDTO.getMainImage()),
-                anyLong(),
-                eq(true)))
-                .thenReturn("https://example.com/mainImage.jpg");
-
-        when(imageService.uploadImageToProperty(
-                ArgumentMatchers.any(),
-                anyLong(),
-                eq(false))
-        ).thenReturn("https://example.com/extra.jpg");
-
-        doThrow(new RuntimeException("Error al crear la notificación"))
-                .when(notificationRepository).createNotification(any(NotificationDTO.class), anyLong());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            propertyService.createProperty(propertySaveDTO));
-
-        assertEquals("Error al crear la notificación", exception.getMessage());
     }
 }

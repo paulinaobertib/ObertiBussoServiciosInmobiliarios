@@ -114,14 +114,14 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByCity() {
-        Specification<Property> spec = PropertySpecification.hasCity("córdoba");
+        Specification<Property> spec = PropertySpecification.hasCity(List.of("córdoba"));
         List<Property> results = propertyRepository.findAll(spec);
         assertEquals(1, results.size());
     }
 
     @Test
     void shouldReturnPropertyByNeighborhood() {
-        Specification<Property> spec = PropertySpecification.hasNeighborhood("centro");
+        Specification<Property> spec = PropertySpecification.hasNeighborhood(List.of("centro"));
         List<Property> results = propertyRepository.findAll(spec);
         assertFalse(results.isEmpty());
     }
@@ -143,7 +143,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByRooms() {
-        Specification<Property> spec = PropertySpecification.hasRooms(3f);
+        Specification<Property> spec = PropertySpecification.hasRooms(List.of(3f));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.contains(testProperty));
     }
@@ -157,7 +157,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByType() {
-        Specification<Property> spec = PropertySpecification.hasType("casa");
+        Specification<Property> spec = PropertySpecification.hasType(List.of("casa"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.contains(testProperty));
     }
@@ -175,6 +175,13 @@ class PropertySpecificationTest {
         Specification<Property> spec = PropertySpecification.hasFinancing(true);
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void shouldReturnPropertyByCurrency() {
+        Specification<Property> spec = PropertySpecification.hasCurrency(Currency.ARS);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
     }
 
     // casos de error
@@ -202,7 +209,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenCityDoesNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasCity("Buenos Aires");
+        Specification<Property> spec = PropertySpecification.hasCity(List.of("Buenos Aires"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
@@ -223,7 +230,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenRoomsDoNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasRooms(5f);
+        Specification<Property> spec = PropertySpecification.hasRooms(List.of(5f));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
@@ -237,14 +244,14 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenTypeDoesNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasType("departamento");
+        Specification<Property> spec = PropertySpecification.hasType(List.of("departamento"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
 
     @Test
     void shouldReturnEmptyWhenNeighborhoodTypeDoesNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasNeighborhoodType("cerrado");
+        Specification<Property> spec = PropertySpecification.hasNeighborhoodType(List.of("cerrado"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }

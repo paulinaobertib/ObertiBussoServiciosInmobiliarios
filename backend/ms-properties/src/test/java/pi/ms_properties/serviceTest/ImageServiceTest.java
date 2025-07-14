@@ -152,6 +152,34 @@ class ImageServiceTest {
         verify(azureBlobStorage, times(2)).getImageUrl(anyString());
     }
 
+    @Test
+    void uploadNoticeImage_success() throws Exception {
+        String originalFilename = "notice-image.jpg";
+        when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+        when(multipartFile.getSize()).thenReturn(4L);
+        when(multipartFile.getContentType()).thenReturn("image/jpeg");
+
+        String result = imageService.uploadNoticeImage(multipartFile);
+
+        assertNotNull(result);
+        assertTrue(result.endsWith(".jpg"));
+        verify(azureBlobStorage).create(any(Storage.class));
+    }
+
+    @Test
+    void getNoticeImageURL_success() {
+        String imageName = "notice-image.jpg";
+        String expectedUrl = "https://storage/" + imageName;
+
+        when(azureBlobStorage.getImageUrl(imageName)).thenReturn(expectedUrl);
+
+        String url = imageService.getNoticeImageURL(imageName);
+
+        assertEquals(expectedUrl, url);
+        verify(azureBlobStorage).getImageUrl(imageName);
+    }
+
     // casos de error
 
     @Test
@@ -310,6 +338,33 @@ class ImageServiceTest {
             imageService.getAllByPropertyId(1L));
 
         assertEquals("Error inesperado", ex.getMessage());
+    }
+
+    @Test
+    void uploadNoticeImage_shouldThrow_whenBlobFails() throws Exception {
+        when(multipartFile.getOriginalFilename()).thenReturn("notice.png");
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+        when(multipartFile.getSize()).thenReturn(4L);
+        when(multipartFile.getContentType()).thenReturn("image/png");
+
+        doThrow(new BlobStorageException("Blob error", null, null))
+                .when(azureBlobStorage).create(any(Storage.class));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                imageService.uploadNoticeImage(multipartFile));
+
+        assertTrue(ex.getMessage().contains("No se ha podido subir la imagen a Blob Storage"));
+    }
+
+    @Test
+    void uploadNoticeImage_shouldThrow_whenIOException() throws Exception {
+        when(multipartFile.getOriginalFilename()).thenReturn("notice.jpg");
+        when(multipartFile.getInputStream()).thenThrow(new IOException("IO error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                imageService.uploadNoticeImage(multipartFile));
+
+        assertTrue(ex.getMessage().contains("Error al leer el archivo"));
     }
 }
 
