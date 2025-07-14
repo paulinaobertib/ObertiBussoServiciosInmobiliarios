@@ -1,48 +1,65 @@
-import { useState } from 'react';
+import { useState, useMemo } from "react";
 import {
   Box, Button, Drawer, Accordion, AccordionSummary, AccordionDetails,
-  Checkbox, FormControlLabel, Chip, Typography, Divider, Slider, useTheme, useMediaQuery, IconButton,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import CloseIcon from '@mui/icons-material/Close';
-import { LoadingButton } from '@mui/lab';
-import { useSearchFilters } from '../../hooks/useSearchFilters';
-import type { Property } from '../../types/property';
+  Checkbox, FormControlLabel, Chip, Typography, Divider, Slider,
+  useTheme, useMediaQuery, IconButton,
+} from "@mui/material";
+import RadioGroup from "@mui/material/RadioGroup";
+import Radio from "@mui/material/Radio";
 
-interface Props {
-  onSearch(results: Property[]): void;
-}
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
+import { LoadingButton } from "@mui/lab";
+import { useSearchFilters } from "../../hooks/useSearchFilters";
+import type { Property } from "../../types/property";
+import { LIMITS } from "../../utils/filterLimits";
 
-export const SearchFilters = ({ onSearch }: Props) => {
+interface Props { onSearch(results: Property[]): void; }
+
+/* ───── estilos reutilizables ───── */
+const checkSx = {
+  px: 0.5,
+  ".MuiFormControlLabel-label": { fontSize: "0.8rem" },
+  "& .MuiCheckbox-root": { p: 0.3 },
+};
+
+
+const radioSx = {
+  px: 0.5,
+  ".MuiFormControlLabel-label": { fontSize: "0.9rem" },
+  "& .MuiRadio-root": { p: 0.3, transform: "scale(.85)" },
+};
+
+export function SearchFilters({ onSearch }: Props) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState<string | false>(false);
+  const toggleAcc = (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
 
   const {
-    params,
-    selected,
-    operationsList,
-    typesList,
-    amenitiesList,
-    neighborhoodsList,
-    toggleParam,
-    toggleAmenity,
-    reset,
-    chips,
-    setParams,
-    apply,
+    params, selected,
+    operationsList = [], typesList = [], amenitiesList = [], neighborhoodsList = [],
+    toggleParam, toggleAmenity, setParams, apply, reset, chips,
   } = useSearchFilters(onSearch);
 
+  const cities = useMemo(
+    () => Array.from(new Set(neighborhoodsList.map(n => n.city).filter(Boolean))),
+    [neighborhoodsList],
+  );
+
+  const priceCfg = LIMITS.price[params.currency as "USD" | "ARS"] ?? LIMITS.price.USD;
+
+
+  /* ═════════ Panel completo ═════════ */
   const Panel = (
     <Box sx={{ p: 2 }}>
       {/* Header */}
       {isMobile ? (
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="subtitle1">Filtros de Búsqueda</Typography>
-          <IconButton size="small" onClick={() => setOpen(false)}>
-            <CloseIcon />
-          </IconButton>
+          <IconButton size="small" onClick={() => setOpen(false)}><CloseIcon /></IconButton>
         </Box>
       ) : (
         <Typography variant="h6" align="center" fontWeight={700} sx={{ mb: 2 }}>
@@ -50,255 +67,237 @@ export const SearchFilters = ({ onSearch }: Props) => {
         </Typography>
       )}
 
-      {/* Operación */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Operación</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          {operationsList.map((op) => (
-            <FormControlLabel
-              key={op}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={params.operation === op}
-                  onChange={() => toggleParam('operation', op)}
-                />
-              }
-              label={op}
-            />
-          ))}
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Tipo */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Tipo</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          {typesList.map((tp) => (
-            <FormControlLabel
-              key={tp.name}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={params.type === tp.name}
-                  onChange={() => toggleParam('type', tp.name)}
-                />
-              }
-              label={tp.name}
-            />
-          ))}
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Ambientes */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Ambientes</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          {[1, 2, 3].map((n) => (
-            <FormControlLabel
-              key={n}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={params.rooms === n}
-                  onChange={() => toggleParam('rooms', n)}
-                />
-              }
-              label={n === 3 ? '3+' : n.toString()}
-            />
-          ))}
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Precio */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Precio</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          <Slider
-            value={params.priceRange}
-            onChange={(_, v) =>
-              setParams({ ...params, priceRange: v as [number, number] })
-            }
-            onChangeCommitted={() => apply()}
-            min={0}
-            max={1_000_000}
-            step={50_000}
-            valueLabelDisplay="auto"
-            size="small"
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Superficie */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Superficie</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          <Slider
-            value={params.areaRange}
-            onChange={(_, v) =>
-              setParams({ ...params, areaRange: v as [number, number] })
-            }
-            onChangeCommitted={() => apply()}
-            min={0}
-            max={1_000}
-            step={50}
-            valueLabelDisplay="auto"
-            size="small"
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Superficie Cubierta */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Superficie Cubierta</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          <Slider
-            value={params.coveredRange}
-            onChange={(_, v) =>
-              setParams({ ...params, coveredRange: v as [number, number] })
-            }
-            onChangeCommitted={() => apply()}
-            min={0}
-            max={1_000}
-            step={50}
-            valueLabelDisplay="auto"
-            size="small"
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Características */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Características</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column' }}>
-          {amenitiesList.map((am) => (
-            <FormControlLabel
-              key={am.id}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={selected.amenities.includes(am.id)}
-                  onChange={() => toggleAmenity(am.id)}
-                />
-              }
-              label={am.name}
-            />
-          ))}
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Ciudad */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Ciudad</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          {Array.from(new Set(neighborhoodsList.map((n) => n.city))).map(
-            (city) => (
+      {/* ───────── Operación ───────── */}
+      <Accordion disableGutters expanded={expanded === "operacion"} onChange={toggleAcc("operacion")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Operación</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          <RadioGroup row>
+            {operationsList.map(op => (
               <FormControlLabel
-                key={city}
+                key={op}
+                label={op === "VENTA" ? "Venta" : "Alquiler"}
+                sx={radioSx}
                 control={
-                  <Checkbox
+                  <Radio
                     size="small"
-                    checked={params.city === city}
-                    onChange={() => toggleParam('city', city)}
+                    checked={params.operation === op}
+                    onClick={() => toggleParam("operation", op)}
                   />
                 }
-                label={city}
               />
-            )
+            ))}
+          </RadioGroup>
+
+          {params.operation === "VENTA" && (
+            <Box sx={{ mt: 1, width: "100%" }}>
+              <Typography variant="caption" sx={{ fontWeight: 500 }}>Opciones de Pago</Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .5, pl: 2 }}>
+                <FormControlLabel
+                  control={<Checkbox size="small" checked={params.credit} onChange={() => toggleParam("credit", true)} />}
+                  label="Apto Crédito"
+                  sx={checkSx}
+                />
+                <FormControlLabel
+                  control={<Checkbox size="small" checked={params.financing} onChange={() => toggleParam("financing", true)} />}
+                  label="Financiamiento"
+                  sx={checkSx}
+                />
+              </Box>
+            </Box>
           )}
         </AccordionDetails>
       </Accordion>
 
-      {/* Barrio */}
-      <Accordion disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="body2">Barrio</Typography>
-        </AccordionSummary>
-        <AccordionDetails sx={{ p: 1 }}>
-          {neighborhoodsList.map((nb) => (
+      {/* ───────── Tipo ───────── */}
+      <Accordion disableGutters expanded={expanded === "tipo"} onChange={toggleAcc("tipo")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Tipos de Propiedad</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {typesList.map(tp => (
             <FormControlLabel
-              key={nb.name}
-              control={
-                <Checkbox
-                  size="small"
-                  checked={params.neighborhood === nb.name}
-                  onChange={() => toggleParam('neighborhood', nb.name)}
-                />
-              }
-              label={nb.name}
+              key={tp.name}
+              control={<Checkbox size="small" checked={params.types.includes(tp.name)} onChange={() => toggleParam("types", tp.name)} />}
+              label={tp.name}
+              sx={checkSx}
             />
           ))}
         </AccordionDetails>
       </Accordion>
 
-      {/* Chips activos */}
-      {chips.length > 0 && (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, my: 1 }}>
-          {chips.map((c) => (
-            <Chip key={c.label} label={c.label} onDelete={c.onClear} size="small" />
+      {/* ───────── Ambientes ───────── */}
+      <Accordion disableGutters expanded={expanded === "amb"} onChange={toggleAcc("amb")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Números de Ambientes</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {[1, 2, 3].map(n => (
+            <FormControlLabel
+              key={n}
+              control={<Checkbox size="small" checked={params.rooms.includes(n)} onChange={() => toggleParam("rooms", n)} />}
+              label={n === 3 ? "3+" : n.toString()}
+              sx={checkSx}
+            />
           ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Precio ───────── */}
+      <Accordion disableGutters expanded={expanded === "precio"} onChange={toggleAcc("precio")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Precio</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          <RadioGroup row sx={{ mb: 1 }}>
+            {["USD", "ARS"].map(curr => (
+              <FormControlLabel
+                key={curr}
+                label={curr === "USD" ? "Dólar" : "Pesos"}
+                sx={radioSx}
+                control={
+                  <Radio
+                    size="small"
+                    checked={params.currency === curr}
+                    onClick={() => toggleParam("currency", curr)}
+                  />
+                }
+              />
+            ))}
+          </RadioGroup>
+
+          <Slider
+            sx={{ mx: 3 }}
+            disabled={!params.currency}
+            value={params.priceRange}
+            onChange={(_, v) => setParams({ ...params, priceRange: v as [number, number] })}
+            onChangeCommitted={() => apply()}
+            min={priceCfg.min}
+            max={priceCfg.max}
+            step={priceCfg.step}
+            valueLabelDisplay="auto"
+            marks={
+              params.currency
+                ? [
+                  { value: priceCfg.min, label: "0" },
+                  { value: priceCfg.max, label: priceCfg.max === 1_000_000 ? "1 M" : "50 M" },
+                ]
+                : false               // sin marcas cuando está deshabilitado
+            }
+            size="small"
+          />
+
+          {!params.currency && (
+            <Typography variant="caption" color="text.secondary" sx={{ width: "100%", textAlign: "center" }}>
+              Seleccione una moneda para habilitar
+            </Typography>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Superficie ───────── */}
+      <Accordion disableGutters expanded={expanded === "sup"} onChange={toggleAcc("sup")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Superficie (Total / Cubierta)</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          <Typography variant="caption" color="text.secondary">Total (m²)</Typography>
+          <Slider
+            sx={{ mx: 3, mb: 2 }}
+            value={params.areaRange}
+            onChange={(_, v) => setParams({ ...params, areaRange: v as [number, number] })}
+            onChangeCommitted={() => apply()}
+            min={LIMITS.surface.min}
+            max={LIMITS.surface.max}
+            step={LIMITS.surface.step}
+            valueLabelDisplay="auto"
+            marks={[
+              { value: LIMITS.surface.min, label: "0" },
+              { value: LIMITS.surface.max, label: "2 000" },
+            ]}
+            size="small"
+          />
+
+          <Typography variant="caption" color="text.secondary">Cubierta (m²)</Typography>
+          <Slider
+            sx={{ mx: 3 }}
+            value={params.coveredRange}
+            onChange={(_, v) => setParams({ ...params, coveredRange: v as [number, number] })}
+            onChangeCommitted={() => apply()}
+            min={LIMITS.surface.min}
+            max={LIMITS.surface.max}
+            step={LIMITS.surface.step}
+            valueLabelDisplay="auto"
+            marks={[
+              { value: LIMITS.surface.min, label: "0" },
+              { value: LIMITS.surface.max, label: "2 000" },
+            ]}
+            size="small"
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Características ───────── */}
+      <Accordion disableGutters expanded={expanded === "carac"} onChange={toggleAcc("carac")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Características</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {amenitiesList.map(am => (
+            <FormControlLabel
+              key={am.id}
+              control={<Checkbox size="small" checked={selected.amenities.includes(am.id)} onChange={() => toggleAmenity(am.id)} />}
+              label={am.name}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Ciudad ───────── */}
+      <Accordion disableGutters expanded={expanded === "ciudad"} onChange={toggleAcc("ciudad")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Ciudades</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {cities.map(city => (
+            <FormControlLabel
+              key={city}
+              control={<Checkbox size="small" checked={params.cities.includes(city)} onChange={() => toggleParam("cities", city)} />}
+              label={city}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Barrio ───────── */}
+      <Accordion disableGutters expanded={expanded === "barrio"} onChange={toggleAcc("barrio")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Barrios</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {neighborhoodsList.map(nb => (
+            <FormControlLabel
+              key={nb.name}
+              control={<Checkbox size="small" checked={params.neighborhoods.includes(nb.name)} onChange={() => toggleParam("neighborhoods", nb.name)} />}
+              label={nb.name}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* chips */}
+      {chips.length > 0 && (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: .5, my: 1 }}>
+          {chips.map(c => <Chip key={c.label} label={c.label} onDelete={c.onClear} size="small" />)}
         </Box>
       )}
 
       <Divider sx={{ my: 2 }} />
-      <LoadingButton
-        fullWidth
-        variant="outlined"
-        onClick={reset}
-        sx={{ fontSize: '0.875rem', py: 0.5 }}
-      >
+      <LoadingButton fullWidth variant="outlined" onClick={reset} sx={{ fontSize: ".75rem", py: .5 }}>
         Reset filtros
       </LoadingButton>
     </Box>
   );
 
+  /* ═════════ Render con Drawer o fijo ═════════ */
   return isMobile ? (
     <>
-      <Button
-        variant="outlined"
-        startIcon={<FilterListIcon />}
-        onClick={() => setOpen(true)}
-        sx={{ fontSize: '0.875rem', py: 0.5 }}
-      >
+      <Button variant="outlined" startIcon={<FilterListIcon />} onClick={() => setOpen(true)} sx={{ fontSize: ".75rem", py: .5 }}>
         Filtros
       </Button>
-      <Drawer
-        anchor="bottom"
-        open={open}
-        onClose={() => setOpen(false)}
-        PaperProps={{
-          sx: { height: '80vh', borderTopLeftRadius: 12, borderTopRightRadius: 12 },
-        }}
-      >
+      <Drawer anchor="bottom" open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { height: "80vh", borderTopLeftRadius: 12, borderTopRightRadius: 12 } }}>
         {Panel}
       </Drawer>
     </>
   ) : (
-    <Box
-      sx={{
-        width: 300,
-        flexShrink: 0,
-        borderLeft: '1px solid',
-        borderColor: 'divider',
-      }}
-    >
-      {Panel}
-    </Box>
+    <Box sx={{ width: 300, flexShrink: 0, borderLeft: "1px solid", borderColor: "divider" }}>{Panel}</Box>
   );
-};
+}

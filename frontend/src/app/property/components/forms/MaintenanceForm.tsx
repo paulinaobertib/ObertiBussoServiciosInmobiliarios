@@ -1,17 +1,9 @@
 import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-
 import { useCategories } from '../../hooks/useCategories';
 import { usePropertiesContext } from '../../context/PropertiesContext';
-import {
-    postMaintenance,
-    putMaintenance,
-    deleteMaintenance,
-} from '../../services/maintenance.service';
-import {
-    Maintenance,
-    MaintenanceCreate,
-} from '../../types/maintenance';
+import { postMaintenance, putMaintenance, deleteMaintenance, } from '../../services/maintenance.service';
+import { Maintenance, MaintenanceCreate, } from '../../types/maintenance';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -25,9 +17,7 @@ export const MaintenanceForm = ({ action, item, onDone }: Props) => {
     const { form, setForm, invalid, run, loading } = useCategories(
         {
             id: item?.id ?? 0,
-            propertyId:
-                item?.propertyId ??
-                (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
+            propertyId: item?.propertyId ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
             title: item?.title ?? '',
             description: item?.description ?? '',
             date: item?.date ?? '',

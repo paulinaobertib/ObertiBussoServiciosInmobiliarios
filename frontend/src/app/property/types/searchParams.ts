@@ -5,13 +5,15 @@ export interface SearchParams {
   areaTo: number;
   coveredAreaFrom: number;
   coveredAreaTo: number;
-  rooms: number;
+
+  rooms: number[];
   operation: string;
-  type: string;
+  types: string[];
   amenities: string[];
-  city: string;
-  neighborhood: string;
-  neighborhoodType: string;
-  credit: boolean | undefined;
-  financing: boolean | undefined;
+  cities: string[];
+  neighborhoods: string[];
+  neighborhoodTypes: string[];
+  currency: string;
+  credit?: boolean;
+  financing?: boolean;
 }
