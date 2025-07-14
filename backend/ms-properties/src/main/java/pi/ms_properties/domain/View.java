@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class View {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;

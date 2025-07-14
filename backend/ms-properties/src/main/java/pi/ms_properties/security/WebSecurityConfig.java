@@ -35,6 +35,7 @@ public class WebSecurityConfig {
                                 "/amenity/getById/**",
                                 "/amenity/getByName",
                                 "/image/getByProperty/**",
+                                "image/notice/getImage",
                                 "/neighborhood/getAll",
                                 "/neighborhood/getById/**",
                                 "/type/getAll",
