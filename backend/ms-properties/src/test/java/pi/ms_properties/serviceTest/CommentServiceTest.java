@@ -16,6 +16,7 @@ import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.impl.CommentService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +40,7 @@ public class CommentServiceTest {
 
     @Test
     void createComment_success() {
-        CommentDTO dto = new CommentDTO(0, "Buen lugar", 1L);
+        CommentDTO dto = new CommentDTO(0L, "Buen lugar", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
 
@@ -54,7 +55,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_success() {
-        CommentDTO dto = new CommentDTO(1L, "Actualizado", 1L);
+        CommentDTO dto = new CommentDTO(1L, "Actualizado", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
         Comment comment = new Comment();
@@ -85,7 +86,7 @@ public class CommentServiceTest {
     void getById_success() {
         Property property = new Property();
         property.setId(1L);
-        Comment comment = new Comment(1L, "Descripción", property);
+        Comment comment = new Comment(1L, "Descripción", LocalDateTime.now(), property);
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
 
@@ -101,8 +102,8 @@ public class CommentServiceTest {
         Property property = new Property();
         property.setId(1L);
         List<Comment> comments = List.of(
-                new Comment(1L, "Comentario 1", property),
-                new Comment(2L, "Comentario 2", property)
+                new Comment(1L, "Comentario 1", LocalDateTime.now(), property),
+                new Comment(2L, "Comentario 2", LocalDateTime.now(), property)
         );
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
@@ -118,7 +119,7 @@ public class CommentServiceTest {
 
     @Test
     void createComment_propertyNotFound() {
-        CommentDTO dto = new CommentDTO(0, "Fallo", 99L);
+        CommentDTO dto = new CommentDTO(0L, "Fallo", LocalDateTime.now(), 99L);
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
@@ -129,7 +130,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_notFound() {
-        CommentDTO dto = new CommentDTO(1L, "No existe", 1L);
+        CommentDTO dto = new CommentDTO(1L, "No existe", LocalDateTime.now(), 1L);
         when(commentRepository.findById(1L)).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
@@ -140,7 +141,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_propertyNotFound() {
-        CommentDTO dto = new CommentDTO(1L, "Fallo", 99L);
+        CommentDTO dto = new CommentDTO(1L, "Fallo", LocalDateTime.now(), 99L);
         when(commentRepository.findById(1L)).thenReturn(Optional.of(new Comment()));
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -182,7 +183,7 @@ public class CommentServiceTest {
 
     @Test
     void createComment_genericException() {
-        CommentDTO dto = new CommentDTO(0, "Error", 1L);
+        CommentDTO dto = new CommentDTO(0L, "Error", LocalDateTime.now(), 1L);
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
@@ -193,7 +194,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_genericException() {
-        CommentDTO dto = new CommentDTO(1L, "Error", 1L);
+        CommentDTO dto = new CommentDTO(1L, "Error", LocalDateTime.now(), 1L);
         when(commentRepository.findById(1L)).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
@@ -204,7 +205,7 @@ public class CommentServiceTest {
 
     @Test
     void create_shouldThrowDataIntegrityViolation() {
-        CommentDTO commentDTO = new CommentDTO(1, "Comentario", 1L);
+        CommentDTO commentDTO = new CommentDTO(1L, "Comentario", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
 
@@ -218,7 +219,7 @@ public class CommentServiceTest {
 
     @Test
     void update_shouldThrowDataIntegrityViolation() {
-        CommentDTO commentDTO = new CommentDTO(1L, "Comentario actualizado", 1L);
+        CommentDTO commentDTO = new CommentDTO(1L, "Comentario actualizado", LocalDateTime.now(), 1L);
         Comment comment = new Comment();
         comment.setId(1L);
         Property property = new Property();
