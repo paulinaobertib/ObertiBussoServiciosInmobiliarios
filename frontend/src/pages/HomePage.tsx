@@ -80,8 +80,7 @@ export default function Home() {
     }
   };
 
-  /** Activa / desactiva modo comparación.
-   *  Si lo apagamos => limpiamos selección.                         */
+  /** Activa / desactiva modo comparación. */
   const toggleSelectionMode = () =>
     setSelectionMode(prev => {
       if (prev) {

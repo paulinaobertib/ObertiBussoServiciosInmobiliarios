@@ -33,7 +33,7 @@ export const ImageUploader = ({ label, multiple = false, sx, append = false, onS
                 ...sx,
             }}
         >
-            <input hidden type="file" accept="image/*" multiple={multiple} onChange={onChange} />
+            <input hidden type="file" accept="image/*,video/*" multiple={multiple} onChange={onChange} />
             <Typography variant="body2" sx={{
                 textAlign: 'center', color: 'text.secondary'
             }}>{label}</Typography>

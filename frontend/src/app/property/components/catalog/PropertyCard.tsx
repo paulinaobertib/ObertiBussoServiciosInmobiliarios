@@ -1,18 +1,7 @@
 import React from 'react';
-import {
-  Card,
-  Box,
-  Chip,
-  Typography,
-  useTheme,
-  Checkbox,
-} from '@mui/material';
+import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
 import { FavoriteButton } from '../../../user/components/favorites/FavoriteButtom';
 import { Property } from '../../types/property';
-// import SquareFootIcon from '@mui/icons-material/SquareFoot';
-// import ViewComfyIcon from '@mui/icons-material/ViewComfy';
-// import HotelIcon from '@mui/icons-material/Hotel';
-// import BathtubIcon from '@mui/icons-material/Bathtub';
 
 export interface Props {
   property: Property;
@@ -36,10 +25,21 @@ export const PropertyCard = ({
       ? property.mainImage
       : URL.createObjectURL(property.mainImage);
 
+  const isVideo =
+    (property.mainImage instanceof File && property.mainImage.type.startsWith('video/')) ||
+    (typeof property.mainImage === 'string' &&
+      /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(property.mainImage));
+
+
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     toggleSelection(property.id);
   };
+
+  // Detectamos si es “nueva” 
+  const isNew =
+    Date.now() - new Date(property.date).getTime() <
+    3 * 24 * 60 * 60 * 1000; // ultimos 3 dias
 
   const chipLabel =
     property.status === 'DISPONIBLE'
@@ -75,31 +75,72 @@ export const PropertyCard = ({
       }}
     >
       {/* Imagen y controles superiores */}
+      {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
-        <Box
-          sx={{
-            width: '100%',
-            aspectRatio: '16/9',
-            backgroundImage: `url(${src})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
+        {isVideo ? (
+          <Box
+            component="video"
+            src={src}
+            muted
+            autoPlay
+            loop
+            playsInline
+            onContextMenu={e => e.preventDefault()}
+            sx={{
+              width: '100%',
+              aspectRatio: '16/9',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              aspectRatio: '16/9',
+              backgroundImage: `url(${src})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          />
+        )}
 
-        <Chip
-          label={chipLabel}
-          size="small"
+        {/* Chips agrupados */}
+        <Box
           sx={{
             position: 'absolute',
             top: 8,
             left: 8,
-            bgcolor: 'rgba(255,255,255,0.8)',
-            fontSize: '0.65rem',
-            fontWeight: 500,
-            textTransform: 'capitalize',
-            pointerEvents: 'none',
+            display: 'flex',
+            gap: 1,
           }}
-        />
+        >
+          {isNew && (
+            <Chip
+              label="NUEVA"
+              size="small"
+              sx={{
+                bgcolor: theme.palette.quaternary.main,
+                color: theme.palette.quaternary.contrastText,
+                fontSize: '0.65rem',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+          <Chip
+            label={chipLabel}
+            size="small"
+            sx={{
+              bgcolor: 'rgba(255,255,255,0.8)',
+              fontSize: '0.65rem',
+              fontWeight: 500,
+              textTransform: 'capitalize',
+              pointerEvents: 'none',
+            }}
+          />
+        </Box>
 
         {selectionMode && (
           <Checkbox

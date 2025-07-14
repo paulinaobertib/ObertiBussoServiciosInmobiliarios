@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import PropertyDetails from '../../../components/propertyDetails/PropertyDetails';
+import PropertyDetails from '../../../components/propertyDetails/PropertyDetailsTwo';
 import { Property } from '../../../types/property';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import axios from 'axios';
