@@ -1,59 +1,36 @@
-import { useState } from "react";
+// components/AdminControls.tsx
+import { useState, useRef } from 'react';
 import {
-    Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    TextField,
-    DialogActions
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+    Button, Dialog, DialogTitle, DialogContent, DialogActions
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { NoticeForm, NoticeFormHandle } from './NoticeForm';
 
-interface Props {
-    onAdd: (input: { title: string; description: string }) => Promise<void>;
-}
-
-export default function AdminControls({ onAdd }: Props) {
+export default function AdminControls({ onAdd }: { onAdd: (data: any) => Promise<void> }) {
     const [open, setOpen] = useState(false);
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
+    const formRef = useRef<NoticeFormHandle>(null);
+
+    const [canSubmit, setCanSubmit] = useState(false);
 
     const handleAdd = async () => {
-        await onAdd({ title, description });
-        setTitle("");
-        setDescription("");
-        setOpen(false);
+        if (formRef.current?.validate()) {
+            await onAdd(formRef.current.getCreateData());
+            setOpen(false);
+        }
     };
 
     return (
         <>
-            <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setOpen(true)}
-                sx={{ mt: 2 }}
-            >
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)} sx={{ mt: 2 }}>
                 Nueva noticia
             </Button>
 
             <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
                 <DialogTitle>Crear noticia</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="Título"
-                        fullWidth
-                        margin="normal"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                    />
-                    <TextField
-                        label="Descripción"
-                        fullWidth
-                        multiline
-                        rows={10}
-                        margin="normal"
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
+                <DialogContent dividers>
+                    <NoticeForm
+                        ref={formRef}
+                        onValidityChange={(v: boolean | ((prevState: boolean) => boolean)) => setCanSubmit(v)}
                     />
                 </DialogContent>
                 <DialogActions>
@@ -61,7 +38,7 @@ export default function AdminControls({ onAdd }: Props) {
                     <Button
                         variant="contained"
                         onClick={handleAdd}
-                        disabled={!title || !description}
+                        disabled={!canSubmit}
                     >
                         Crear
                     </Button>

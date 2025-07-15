@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import ImageUploader from '../../components/images/ImageUploader';
+import ImageUploader from '../../../shared/components/images/ImageUploader';
 
 describe('ImageUploader', () => {
   it('renderiza el label correctamente', () => {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Image } from "../types/image";
+import type { Image } from "../components/images/image";
 
 /**
  * Maneja mainImage + gallery, valida duplicados y expone errores.

@@ -7,7 +7,7 @@ import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { CategoryPanel } from '../app/property/components/CategorySection';
 import { PropertyForm } from '../app/property/components/forms/PropertyForm';
-import { PropertyPreview } from '../app/property/components/images/ImagePreview';
+import { ImagePreview } from '../app/shared/components/images/ImagePreview';
 
 import { useManagePropertyPage } from '../app/property/hooks/useManagePropertyPage';
 
@@ -136,7 +136,6 @@ export default function ManagePropertyPage() {
                                     borderRadius: 4,
                                     bgcolor: 'background.paper',
                                     overflowY: { xs: 'visible', md: 'auto' },
-                                    maxHeight: { md: '100vh' },
                                 }}>
                                     <Typography
                                         variant="h6"
@@ -174,7 +173,8 @@ export default function ManagePropertyPage() {
                                     </Typography>
 
                                     <Box sx={{ flexGrow: 1, overflowY: 'auto', minHeight: 0 }}>
-                                        <PropertyPreview
+                                        <ImagePreview
+                                            fullSizeSingle={false}
                                             main={ctrl.img.mainImage}
                                             images={ctrl.img.gallery}
                                             onDelete={ctrl.img.remove}

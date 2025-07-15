@@ -1,9 +1,13 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { usePropertiesContext } from "../context/PropertiesContext";
-import { useImages } from "./useImages";
+import { useImages } from "../../shared/hooks/useImages";
 
-import type { Property, PropertyCreate, PropertyUpdate, } from "../types/property";
+import type {
+  Property,
+  PropertyCreate,
+  PropertyUpdate,
+} from "../types/property";
 import { Owner } from "../types/owner";
 import { Neighborhood } from "../types/neighborhood";
 import { Type } from "../types/type";
@@ -13,6 +17,8 @@ import { Type } from "../types/type";
 /* como undefined para evitar errores .id
 /* ------------------------------------------------------------------ */
 function makeSafeProperty(raw?: Partial<Property>): Property {
+  const now = new Date().toISOString();
+
   const emptyOwner: Owner = {
     id: 0,
     firstName: "",
@@ -43,16 +49,16 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     price: raw?.price ?? 0,
     area: raw?.area ?? 0,
     coveredArea: raw?.coveredArea ?? 0,
-    expenses: raw?.expenses ?? 0,
-    currency: raw?.currency ?? "ARS",
-    operation: raw?.operation ?? "VENTA",
-    status: raw?.status ?? "DISPONIBLE",
+    expenses: raw?.expenses ?? null,
+    currency: raw?.currency ?? "",
+    operation: raw?.operation ?? "",
+    status: raw?.status ?? "",
     rooms: raw?.rooms ?? 0,
     bedrooms: raw?.bedrooms ?? 0,
     bathrooms: raw?.bathrooms ?? 0,
     credit: raw?.credit ?? false,
     financing: raw?.financing ?? false,
-    showPrice: raw?.showPrice ?? true,
+    showPrice: raw?.showPrice ?? false,
 
     /* ---------- ¡los que faltaban! ---------- */
     street: raw?.street ?? "",
@@ -67,6 +73,8 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     /* ---------- imágenes ---------- */
     mainImage: raw?.mainImage ?? "",
     images: raw?.images ?? [],
+
+    date: raw?.date ?? now,
   };
 }
 
@@ -201,11 +209,9 @@ export function usePropertyForm(
   /* ---------- validación rápida (check) ---------- */
   const check = useMemo(() => {
     const f = form;
-    const ownerId = f.owner?.id ?? 0;
-    const neighborhoodId = f.neighborhood?.id ?? 0;
-    const typeId = f.type?.id ?? 0;
 
-    return (
+    // validación base (siempre visibles)
+    const baseValid =
       !!f.title &&
       !!f.street &&
       !!f.number &&
@@ -215,12 +221,21 @@ export function usePropertyForm(
       !!f.status &&
       !!f.operation &&
       !!f.currency &&
-      ownerId > 0 &&
-      neighborhoodId > 0 &&
-      typeId > 0 &&
-      !!f.mainImage
-    );
-  }, [form]);
+      f.owner.id > 0 &&
+      f.neighborhood.id > 0 &&
+      f.type.id > 0 &&
+      !!f.mainImage &&
+      (form.expenses ?? 0) >= 0;
+
+    // validación de campos dinámicos: sólo si están visibles, deben ser >0
+    const dynamicValid =
+      (!showRooms || f.rooms > 0) &&
+      (!showBedrooms || f.bedrooms > 0) &&
+      (!showBathrooms || f.bathrooms > 0) &&
+      (!showCoveredArea || f.coveredArea > 0);
+
+    return baseValid && dynamicValid;
+  }, [form, showRooms, showBedrooms, showBathrooms, showCoveredArea]);
 
   /* notificar validez al padre */
   useEffect(() => onValidityChange?.(check), [check]);
@@ -228,6 +243,8 @@ export function usePropertyForm(
   /* ---------- validación exhaustiva + submit ---------- */
   const validate = () => {
     const e: Record<string, string> = {};
+
+    // Validaciones siempre visibles
     if (!form.title) e.title = "Campo obligatorio";
     if (!form.street) e.street = "Campo obligatorio";
     if (!form.number) e.number = "Campo obligatorio";
@@ -242,6 +259,25 @@ export function usePropertyForm(
       e.neighborhood = "Selecciona un barrio";
     if ((form.type?.id ?? 0) <= 0) e.type = "Selecciona un tipo";
     if (!form.mainImage) e.mainImage = "Carga la imagen principal";
+
+    // Expensas: debe existir (>= 0)
+    if (form.expenses == null || form.expenses < 0) {
+      e.expenses = "Campo obligatorio";
+    }
+    // Campos dinámicos: sólo validar si están visibles
+    if (showRooms && form.rooms <= 0) {
+      e.rooms = "Debe ser > 0";
+    }
+    if (showBedrooms && form.bedrooms <= 0) {
+      e.bedrooms = "Debe ser > 0";
+    }
+    if (showBathrooms && form.bathrooms <= 0) {
+      e.bathrooms = "Debe ser > 0";
+    }
+    if (showCoveredArea && form.coveredArea <= 0) {
+      e.coveredArea = "Debe ser > 0";
+    }
+
     setFieldErrors(e);
     return Object.keys(e).length === 0;
   };

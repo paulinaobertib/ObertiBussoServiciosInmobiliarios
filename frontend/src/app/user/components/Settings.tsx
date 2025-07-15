@@ -12,6 +12,7 @@ import {
     useTheme,
     useMediaQuery,
     Stack,
+    Tooltip,
 } from '@mui/material';
 import { useAuthContext } from '../context/AuthContext';
 import {
@@ -92,9 +93,12 @@ export default function SettingsDrawer() {
 
     return (
         <>
-            <IconButton color="inherit" onClick={() => setOpen(true)}>
-                <NotificationsIcon />
-            </IconButton>
+            <Tooltip title="Notificaciones">
+                <IconButton color="inherit" onClick={() => setOpen(true)}>
+                    <NotificationsIcon />
+                </IconButton>
+            </Tooltip>
+            
             <Drawer
                 anchor="right"
                 open={open}

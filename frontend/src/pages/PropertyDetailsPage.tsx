@@ -6,6 +6,7 @@ import { usePropertiesContext } from '../app/property/context/PropertiesContext'
 import { PropertyDetails } from '../app/property/components/propertyDetails/PropertyDetails';
 import { Modal } from '../app/shared/components/Modal';
 import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
+import { useAuthContext } from '../app/user/context/AuthContext';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ const PropertyDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
     const fetch = async () => {
@@ -43,9 +45,11 @@ const PropertyDetailsPage = () => {
           VOLVER
         </Button>
 
-        <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
-          Consultar por esta propiedad
-        </Button>
+        {!isAdmin && (
+          <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
+            Consultar por esta propiedad
+          </Button>
+        )}
       </Box>
 
       {loading && (

@@ -7,11 +7,13 @@ import { Modal } from '../app/shared/components/Modal';
 import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
 import { useState } from 'react';
 import { ROUTES } from '../lib';
+import { useAuthContext } from '../app/user/context/AuthContext';
 
 const Compare = () => {
   const navigate = useNavigate();
   const { clearComparison, comparisonItems } = usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const { isAdmin } = useAuthContext();
 
   if (comparisonItems.length === 0) {
     clearComparison();
@@ -32,9 +34,11 @@ const Compare = () => {
           VOLVER
         </Button>
 
-        <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)} >
-          Consultar por estas propiedades
-        </Button>
+        {!isAdmin && (
+          <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)} >
+            Consultar por estas propiedades
+          </Button>
+        )}
       </Box>
 
       <PropertyDetailsCompare comparisonItems={comparisonItems} />

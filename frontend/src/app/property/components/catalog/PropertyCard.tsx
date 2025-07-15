@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
 import { FavoriteButton } from '../../../user/components/favorites/FavoriteButtom';
 import { Property } from '../../types/property';
+import { useAuthContext } from '../../../user/context/AuthContext';
 
 export interface Props {
   property: Property;
@@ -20,6 +21,7 @@ export const PropertyCard = ({
 }: Props) => {
   const theme = useTheme();
   const selected = selectionMode && isSelected(property.id);
+  const { isAdmin } = useAuthContext();
   const src =
     typeof property.mainImage === 'string'
       ? property.mainImage
@@ -74,7 +76,7 @@ export const PropertyCard = ({
         },
       }}
     >
-      {/* Imagen y controles superiores */}
+
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
         {isVideo ? (
@@ -157,9 +159,11 @@ export const PropertyCard = ({
           />
         )}
 
-        <Box sx={{ position: 'absolute', top: -5, right: -5 }}>
-          <FavoriteButton propertyId={property.id} />
-        </Box>
+        {!isAdmin && (
+          <Box sx={{ position: 'absolute', top: -5, right: -5 }}>
+            <FavoriteButton propertyId={property.id} />
+          </Box>
+        )}
       </Box>
 
       {/* Contenido inferior */}

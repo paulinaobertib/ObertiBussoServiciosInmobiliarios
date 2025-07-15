@@ -1,0 +1,74 @@
+import { useEffect, useState } from "react";
+import { useImages } from "../../shared/hooks/useImages";
+import type { Image } from "../../shared/components/images/image";
+
+export interface NoticeFormState {
+  id?: number;
+  title: string;
+  description: string;
+  mainImage: Image | null;
+}
+
+export function useNoticeForm(
+  initial?: NoticeFormState,
+  onValidChange?: (v: boolean) => void
+) {
+  /* ---------- estado base ---------- */
+  const [form, setForm] = useState<NoticeFormState>({
+    id: initial?.id,
+    title: initial?.title ?? "",
+    description: initial?.description ?? "",
+    mainImage: initial?.mainImage ?? null,
+  });
+
+  /* ---------- imágenes ---------- */
+  const {
+    mainImage,
+    setMain,
+    error: imgError,
+    clearError,
+  } = useImages(initial?.mainImage ?? null, []);
+
+  /* sincroniza la imagen principal con el form */
+  useEffect(() => {
+    setForm((f) => ({ ...f, mainImage }));
+  }, [mainImage]);
+
+  /* ---------- helpers ---------- */
+  const setField = <K extends keyof NoticeFormState>(
+    k: K,
+    v: NoticeFormState[K]
+  ) => setForm((f) => ({ ...f, [k]: v }));
+
+  /* ---------- validación ---------- */
+  const errors = {
+    title: form.title.trim(),
+    description: form.description.trim(),
+    mainImage: form.mainImage,
+  };
+  const valid = !Object.values(errors).some(Boolean);
+
+  useEffect(() => onValidChange?.(valid), [valid, onValidChange]);
+
+  /* ---------- DTOs ---------- */
+  const getCreateData = () => ({
+    ...form,
+  });
+
+  const getUpdateData = () => ({
+    ...form,
+  });
+
+  return {
+    form,
+    errors,
+    imgError,
+    clearError,
+    /* API pública para el componente */
+    setField,
+    setMain,
+    validate: () => valid,
+    getCreateData,
+    getUpdateData,
+  };
+}
