@@ -3,7 +3,7 @@ import {
     InputAdornment, IconButton, Typography, Checkbox, Stack,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { ImageUploader } from '../images/ImageUploader';
+import { ImageUploader } from '../../../shared/components/images/ImageUploader';
 import { usePropertyForm } from '../../hooks/usePropertyForm';
 import type { Property, PropertyCreate, PropertyUpdate } from '../../types/property';
 import { forwardRef } from 'react';
@@ -57,8 +57,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                 noValidate
                 onSubmit={e => { e.preventDefault(); ctrl.submit(); }}
             >
-                <Grid container spacing={1.5}>
-
+                <Grid container spacing={1.5} columns={12}>
                     {/* ---------- TÍTULO ---------- */}
                     <Grid size={{ xs: 12 }}>
                         <TextField fullWidth label="Título"
@@ -99,7 +98,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                                     <Checkbox checked={form.credit}
                                         onChange={e => ctrl.setField('credit', e.target.checked)}
                                         size="small" sx={{ p: .7 }} />
-                                    <Typography>Apto Crédito</Typography>
+                                    <Typography color="text.secondary"> Apto Crédito</Typography>
                                 </Stack>
                             </Grid>
                             <Grid size={{ xs: 6 }}>
@@ -108,7 +107,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                                     <Checkbox checked={form.financing}
                                         onChange={e => ctrl.setField('financing', e.target.checked)}
                                         size="small" sx={{ p: .7 }} />
-                                    <Typography>Apto Financiamiento</Typography>
+                                    <Typography color="text.secondary">Apto Financiamiento</Typography>
                                 </Stack>
                             </Grid>
                         </>
@@ -163,7 +162,9 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                             <Checkbox checked={form.showPrice}
                                 onChange={e => ctrl.setField('showPrice', e.target.checked)}
                                 size="small" sx={{ p: .7 }} />
-                            <Typography>Mostrar precio de {form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas</Typography>
+                            <Typography color="text.secondary">
+                                Mostrar precio de {form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas
+                            </Typography>
                         </Stack>
                     </Grid>
 
@@ -250,16 +251,20 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
 
                     {/* ---------- IMÁGENES ---------- */}
                     <Grid size={{ xs: 6 }}>
-                        <ImageUploader label="Imagen principal"
+                        <ImageUploader
+                            label="Imagen principal"
                             onSelect={files => setMain(files[0] ?? null)}
+                            sx={{ width: 'auto' }}
                         />
-                        {fieldErrors.mainImage && (
-                            <Typography variant="caption" color="error">{fieldErrors.mainImage}</Typography>
-                        )}
                     </Grid>
+
                     <Grid size={{ xs: 6 }}>
-                        <ImageUploader label="Imágenes adicionales" multiple append
-                            onSelect={files => addToGallery(Array.from(files))}
+                        <ImageUploader
+                            label="Imágenes adicionales"
+                            multiple
+                            append
+                            onSelect={files => addToGallery(files)}
+                            sx={{ width: 'auto' }}
                         />
                     </Grid>
 

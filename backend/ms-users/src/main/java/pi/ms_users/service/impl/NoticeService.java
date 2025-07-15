@@ -70,9 +70,9 @@ public class NoticeService implements INoticeService {
         if (noticeDTO.getMainImage() != null && !noticeDTO.getMainImage().isEmpty()) {
             String image = imageRepository.uploadImage(noticeDTO.getMainImage());
             notice.setMainImage(image);
+        } else {
+            notice.setMainImage(existingNotice.getMainImage());
         }
-
-        notice.setMainImage(existingNotice.getMainImage());
 
         noticeRepository.save(notice);
         return ResponseEntity.ok("Se ha actualizado la noticia");

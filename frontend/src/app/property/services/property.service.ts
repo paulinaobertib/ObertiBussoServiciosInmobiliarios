@@ -2,6 +2,7 @@ import { Property, PropertyUpdate, PropertyCreate } from "../types/property";
 import { SearchParams } from "../types/searchParams";
 import { api } from "../../../api";
 
+
 export const postProperty = async (data: PropertyCreate) => {
   const form = new FormData();
   const { mainImage, images, ...plainFields } = data;
