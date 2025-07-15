@@ -29,7 +29,7 @@ export default function NoticeItem({
 
   const isNew =
     Date.now() - new Date(notice.date).getTime() <
-   1000;
+    1000;
 
   return (
     <Paper
@@ -130,19 +130,26 @@ export default function NoticeItem({
         </Typography>
       </Box>
 
-      <Box
-        component="img"
-        src="/logo.png"
-        alt="Logo"
-        sx={{
-          width: { xs: "100%", md: 120 },
-          objectFit: "contain",
-          alignSelf: "center",
-          ml: { md: 2 },
-          mt: { xs: 2, md: 0 },
-          display: { xs: "none", md: "block" },
-        }}
-      />
+
+      {notice.mainImage && (
+        <Box
+          component="img"
+          src={
+            typeof notice.mainImage === "string"
+              ? notice.mainImage
+              : URL.createObjectURL(notice.mainImage)
+          }
+          alt={notice.title}
+          sx={{
+            width: { xs: "100%", md: 120 },
+            objectFit: "cover",
+            alignSelf: "center",
+            ml: { md: 2 },
+            mt: { xs: 2, md: 0 },
+            display: { xs: "none", md: "block" },
+          }}
+        />
+      )}
     </Paper>
   );
 }

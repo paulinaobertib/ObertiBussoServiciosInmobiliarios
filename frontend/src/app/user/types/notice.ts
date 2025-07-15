@@ -4,6 +4,12 @@ export interface Notice {
   date: string;
   title: string;
   description: string;
+  mainImage: string | File | null;
 }
 
-export type NoticeCreate = Omit<Notice, "id">;
+export type NoticeCreate = {
+  userId: string;
+  title: string;
+  description: string;
+  mainImage: File;
+};

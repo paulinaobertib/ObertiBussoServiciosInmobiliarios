@@ -19,9 +19,9 @@ import {
 } from "../services/image.service";
 
 import { ROUTES } from "../../../lib";
-import { useImages } from "./useImages";
+import { useImages } from "../../shared/hooks/useImages";
 import type { Property } from "../types/property";
-import type { Image } from "../types/image";
+import type { Image } from "../../shared/components/images/image";
 
 export function useManagePropertyPage() {
   const { id } = useParams<{ id?: string }>();

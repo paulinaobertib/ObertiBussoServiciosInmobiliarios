@@ -1,8 +1,7 @@
-// src/app/shared/components/PropertyPreview.tsx
 import { Box, IconButton, Tooltip, useTheme, Dialog } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import StarIcon from '@mui/icons-material/Star';
-import { Image } from '../../types/image';
+import { Image } from './image';
 import { useState } from 'react';
 
 const toSrc = (p: Image) => (typeof p === 'string' ? p : URL.createObjectURL(p));
@@ -11,15 +10,18 @@ interface Props {
   main: Image | null;
   images: Image[];
   onDelete?: (img: Image) => void;
+  fullSizeSingle?: boolean;
 }
 
-export const PropertyPreview = ({ main, images, onDelete }: Props) => {
+export const ImagePreview = ({ main, images, onDelete, fullSizeSingle = false }: Props) => {
   const theme = useTheme();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selected, setSelected] = useState<Image | null>(null);
 
   const uniq = <T,>(arr: T[]) => [...new Map(arr.map(v => [v, v])).values()];
   const items = uniq([main, ...images].filter((f): f is Image => f != null));
+  const single = items.length === 1;
+  const expandSingle = single && fullSizeSingle;
 
   const openLightbox = (img: Image) => {
     setSelected(img);
@@ -37,10 +39,14 @@ export const PropertyPreview = ({ main, images, onDelete }: Props) => {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gridTemplateColumns: expandSingle ? '1fr' : 'repeat(3, minmax(0, 1fr))',
           gap: 1,
           p: 1,
           overflowY: 'auto',
+          ...(expandSingle && {
+            width: '100%',
+            height: '100%',
+          }),
         }}
       >
         {items.map(file => {
@@ -56,7 +62,8 @@ export const PropertyPreview = ({ main, images, onDelete }: Props) => {
               sx={{
                 position: 'relative',
                 width: '100%',
-                paddingTop: '100%',
+                paddingTop: expandSingle ? 0 : '100%',
+                height: expandSingle ? '100%' : 'auto',
                 borderRadius: 1,
                 overflow: 'hidden',
                 border: `1px solid ${theme.palette.divider}`,
@@ -140,7 +147,7 @@ export const PropertyPreview = ({ main, images, onDelete }: Props) => {
             </Box>
           );
         })}
-      </Box>
+      </Box >
 
       <Dialog
         open={lightboxOpen}

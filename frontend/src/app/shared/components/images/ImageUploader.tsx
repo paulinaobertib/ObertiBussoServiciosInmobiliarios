@@ -29,7 +29,8 @@ export const ImageUploader = ({ label, multiple = false, sx, append = false, onS
                 borderRadius: 1,
                 p: 1.2,
                 cursor: 'pointer',
-                maxHeight: { xs: '50%', md: '50%' },
+                width: '100%',
+                maxWidth: '100%',
                 ...sx,
             }}
         >

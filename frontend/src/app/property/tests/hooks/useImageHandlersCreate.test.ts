@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useImageHandlers } from '../../hooks/useImages';
+import { useImageHandlers } from '../../../shared/hooks/useImages';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { emptyProperty, Property } from '../../types/property';
 

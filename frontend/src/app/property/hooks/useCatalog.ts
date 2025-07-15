@@ -13,13 +13,17 @@ export function useCatalog(onFinish: () => void) {
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
   const {
-    propertiesList,
+    propertiesList: allProperties,
     loading,
     refreshProperties,
     selectedPropertyIds,
     toggleCompare,
   } = usePropertiesContext();
   const { isAdmin } = useAuthContext();
+
+  const propertiesList = isAdmin
+    ? allProperties
+    : allProperties.filter((p) => p.status === "DISPONIBLE");
 
   //
   // ———————— Selección & Comparación ————————

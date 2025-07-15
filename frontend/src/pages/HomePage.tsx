@@ -4,7 +4,7 @@ import {
   Box, Typography, useTheme, useMediaQuery,
 } from '@mui/material';
 
-import { ImageCarousel } from '../app/property/components/images/ImageCarousel';
+import { ImageCarousel } from '../app/shared/components/images/ImageCarousel';
 import { SearchBar } from '../app/shared/components/SearchBar';
 import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
 import { PropertyCatalog } from '../app/property/components/catalog/PropertyCatalog';
@@ -18,6 +18,7 @@ import {
   getAllProperties,
   getPropertiesByText,
 } from '../app/property/services/property.service';
+import { useCatalog } from '../app/property/hooks/useCatalog';
 
 export default function Home() {
   /** ─── hooks & context ─────────────────────────────────────────── */
@@ -28,14 +29,8 @@ export default function Home() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { showAlert } = useGlobalAlert();
-  const {
-    selectedPropertyIds,
-    toggleCompare,
-    clearComparison,         // ← lo usamos
-    refreshProperties,
-    propertiesList,
-    disabledCompare
-  } = usePropertiesContext();
+  const { selectedPropertyIds, toggleCompare, clearComparison, refreshProperties, disabledCompare } = usePropertiesContext();
+  const { propertiesList } = useCatalog(() => { });
 
   /** ─── local state ─────────────────────────────────────────────── */
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
@@ -84,7 +79,7 @@ export default function Home() {
   const toggleSelectionMode = () =>
     setSelectionMode(prev => {
       if (prev) {
-        clearComparison();                                      // ← limpias IDs
+        clearComparison();
         showAlert('Saliendo del modo comparación', 'info');
       } else {
         showAlert('Entrando al modo comparación', 'info');
@@ -102,7 +97,7 @@ export default function Home() {
     navigate('/properties/compare', { state: { ids: selectedPropertyIds } });
     setSelectionMode(false);         // cerramos modo selección
   };
-  
+
   /** ─── render ──────────────────────────────────────────────────── */
   return (
     <BasePage maxWidth={false}>

@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     Box,
     Button,
     Typography,
     Pagination,
-    TextField,
 } from "@mui/material";
+
 import { SearchBar } from "../../../shared/components/SearchBar";
 import NoticesList from "./NoticesList";
 import { useNotices } from "../../hooks/useNotices";
@@ -15,19 +15,21 @@ import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import type { Notice } from "../../types/notice";
 import theme from "../../../../theme";
 
+import { NoticeForm, NoticeFormHandle } from "./NoticeForm";
+
 export default function NoticesSection() {
     const { notices, loading, error, add, edit, remove, fetchAll, search } =
         useNotices();
     const { isAdmin, info } = useAuthContext();
 
-    // listado paginado
+    /* ------------------------ listado paginado ------------------------ */
     const [displayed, setDisplayed] = useState<Notice[]>([]);
     const [page, setPage] = useState(1);
     const perPage = 3;
 
     useEffect(() => {
         const sorted = [...notices].sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
         setDisplayed(sorted);
         setPage(1);
@@ -36,10 +38,13 @@ export default function NoticesSection() {
     const pageCount = Math.ceil(displayed.length / perPage);
     const slice = displayed.slice((page - 1) * perPage, page * perPage);
 
-    // modales
+    /* --------------------------- modales --------------------------- */
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"add" | "edit">("add");
     const [current, setCurrent] = useState<Partial<Notice>>({});
+    const formRef = useRef<NoticeFormHandle>(null);
+    const [canSave, setCanSave] = useState(false);
+
     const { ask, DialogUI } = useConfirmDialog();
 
     const openAdd = () => {
@@ -47,35 +52,32 @@ export default function NoticesSection() {
         setCurrent({});
         setModalOpen(true);
     };
+
     const openEdit = (n: Notice) => {
         setModalMode("edit");
         setCurrent(n);
         setModalOpen(true);
     };
+
     const closeModal = () => setModalOpen(false);
 
     const handleSave = async () => {
+        if (!formRef.current) return;
+
         if (modalMode === "add") {
-            await add({
-                userId: info!.id,
-                title: current.title!,
-                description: current.description!,
-                date: new Date().toISOString(),
-            });
+            const data = formRef.current.getCreateData();
+            await add({ ...data, userId: info!.id });
         } else {
-            await edit({
-                id: current.id!,
-                userId: current.userId!,
-                date: current.date!,
-                title: current.title!,
-                description: current.description!,
-            });
+            const data = formRef.current.getUpdateData();
+            await edit({ ...(data as Notice), userId: info!.id });
         }
         closeModal();
     };
 
     const handleDelete = (id: number) =>
         ask("¿Eliminar esta novedad?", () => remove(id));
+
+    /* --------------------------------------------------------------- */
 
     return (
         <Box display="flex" flexDirection="column" minHeight="100vh">
@@ -91,12 +93,7 @@ export default function NoticesSection() {
             >
                 <Typography variant="h2" component="h1" sx={{ fontWeight: 700 }}>
                     Sección de&nbsp;
-                    <Typography
-                        component="span"
-                        color="primary.main"
-                        variant="h2"
-                        sx={{ fontWeight: 700 }}
-                    >
+                    <Typography component="span" color="primary.main" variant="h2" sx={{ fontWeight: 700 }}>
                         Novedades
                     </Typography>
                 </Typography>
@@ -120,7 +117,7 @@ export default function NoticesSection() {
                         fetchByText={search}
                         onSearch={(res) => {
                             const sorted = res.sort(
-                                (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+                                (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
                             );
                             setDisplayed(sorted);
                             setPage(1);
@@ -135,10 +132,14 @@ export default function NoticesSection() {
                 )}
             </Box>
 
-            {/* LIST */}
+            {/* LISTA */}
             <Box flexGrow={1} px={2} overflow="auto">
                 {loading && <Typography align="center">Cargando…</Typography>}
-                {error && <Typography align="center" color="error">{error}</Typography>}
+                {error && (
+                    <Typography align="center" color="error">
+                        {error}
+                    </Typography>
+                )}
                 {!loading && !error && (
                     <NoticesList
                         notices={slice}
@@ -174,37 +175,16 @@ export default function NoticesSection() {
                 title={modalMode === "add" ? "Crear novedad" : "Editar novedad"}
                 onClose={closeModal}
             >
-                <Box display="flex" flexDirection="column" gap={2}>
-                    <TextField
-                        label="Título"
-                        fullWidth
-                        value={current.title}
-                        onChange={e =>
-                            setCurrent(c => ({ ...c, title: e.target.value }))
-                        }
-                    />
-                    <TextField
-                        label="Descripción"
-                        fullWidth
-                        multiline
-                        rows={4}
-                        value={current.description}
-                        onChange={e =>
-                            setCurrent(c => ({ ...c, description: e.target.value }))
-                        }
-                    />
-                    <Box display="flex" justifyContent="flex-end" gap={1}>
-                        <Button onClick={closeModal}>Cancelar</Button>
-                        <Button
-                            variant="contained"
-                            onClick={handleSave}
-                            disabled={
-                                !current.title || !current.description
-                            }
-                        >
-                            {modalMode === "add" ? "Crear" : "Guardar"}
-                        </Button>
-                    </Box>
+                <NoticeForm
+                    ref={formRef}
+                    initialData={modalMode === "edit" ? (current as Notice) : undefined}
+                    onValidityChange={setCanSave}
+                />
+
+                <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
+                    <Button variant="contained" onClick={handleSave} disabled={!canSave}>
+                        {modalMode === "add" ? "Crear" : "Guardar"}
+                    </Button>
                 </Box>
             </Modal>
 
