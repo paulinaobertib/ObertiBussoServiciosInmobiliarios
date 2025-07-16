@@ -93,6 +93,28 @@ class ImageControllerTest {
                 .andExpect(jsonPath("$[0].url").value("https://example.com/test.jpg"));
     }
 
+    @Test
+    @WithMockUser(roles = "admin")
+    void uploadNotice_success() throws Exception {
+        Mockito.when(imageService.uploadNoticeImage(any())).thenReturn("image123.jpg");
+
+        mockMvc.perform(multipart("/image/notice")
+                        .file(mockFile))
+                .andExpect(status().isOk())
+                .andExpect(content().string("image123.jpg"));
+    }
+
+    @Test
+    void getByNotice_success_shouldReturnUrl() throws Exception {
+        Mockito.when(imageService.getNoticeImageURL("image123.jpg"))
+                .thenReturn("https://storage.example.com/image123.jpg");
+
+        mockMvc.perform(get("/image/notice/getImage")
+                        .param("imageName", "image123.jpg"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("https://storage.example.com/image123.jpg"));
+    }
+
     // casos de error
 
     @Test
@@ -133,5 +155,30 @@ class ImageControllerTest {
 
         mockMvc.perform(delete("/image/delete/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void uploadNotice_unauthorized_shouldReturn401() throws Exception {
+        mockMvc.perform(multipart("/image/notice")
+                        .file(mockFile))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void uploadNotice_forbidden_shouldReturn403() throws Exception {
+        mockMvc.perform(multipart("/image/notice")
+                        .file(mockFile))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getByNotice_shouldReturnNotFoundIfNull() throws Exception {
+        Mockito.when(imageService.getNoticeImageURL("notfound.jpg")).thenReturn(null);
+
+        mockMvc.perform(get("/image/notice/getImage")
+                        .param("imageName", "notfound.jpg"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
     }
 }

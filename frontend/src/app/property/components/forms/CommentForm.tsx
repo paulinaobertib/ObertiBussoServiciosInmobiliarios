@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { postComment, putComment, deleteComment, } from '../../services/comment.service';
-import { Comment, CommentCreate, } from '../../types/comment';
 import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../../utils/useLoading';
+
+import { useCategories } from '../../hooks/useCategories';
+import { usePropertiesContext } from '../../context/PropertiesContext';
+import { postComment, putComment, deleteComment, } from '../../services/comment.service';
+import { Comment, CommentCreate } from '../../types/comment';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -14,49 +13,24 @@ interface Props {
 }
 
 export const CommentForm = ({ action, item, onDone }: Props) => {
-    const { refreshComments, pickedItem } = usePropertyCrud();
-    const { showAlert } = useGlobalAlert();
+    const { refreshComments, pickedItem } = usePropertiesContext();
 
-    const [form, setForm] = useState<Comment>({
-        id: item?.id ?? 0,
-        propertyId: item?.propertyId
-            ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
-        description: item?.description ?? ''
-    });
+    const { form, setForm, invalid, run, loading } = useCategories(
+        {
+            id: item?.id ?? 0,
+            propertyId: item?.propertyId ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
+            description: item?.description ?? '',
+        },
+        action,
+        async payload => {
+            if (action === 'add') return postComment(payload as CommentCreate);
+            if (action === 'edit') return putComment(payload as Comment);
+            if (action === 'delete') return deleteComment(payload as Comment);
+        },
+        refreshComments,
+        onDone
+    );
 
-    const set =
-        (k: keyof Comment) =>
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                setForm(f => ({ ...f, [k]: e.target.value }));
-
-    const invalid =
-        action !== 'delete' &&
-        (!form.propertyId || !form.description.trim());
-
-    const save = async () => {
-        try {
-            if (action === 'add') {
-                await postComment(form as CommentCreate);
-                showAlert('Comentario creado con éxito!', 'success');
-            }
-            if (action === 'edit' && item) {
-                await putComment(form);
-                showAlert('Comentario actualizado con éxito', 'success');
-            }
-            if (action === 'delete' && item) {
-                await deleteComment(item);
-                showAlert('Comentario eliminado con éxito', 'success');
-            }
-
-            await refreshComments();
-            onDone();
-        } catch (error: any) {
-            const message = error.response?.data ?? 'Error desconocido al trabajar con el comentario';
-            showAlert(message, 'error');
-        }
-    };
-
-    const { loading, run } = useLoading(save);
     return (
         <>
             {loading && (
@@ -70,26 +44,27 @@ export const CommentForm = ({ action, item, onDone }: Props) => {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                >
-                </Box>
+                />
             )}
 
             <Grid container spacing={2} mb={2}>
-
-                <Grid size={12}>
+                <Grid size={{ xs: 12 }}>
                     <TextField
-                        fullWidth multiline rows={5} size="small"
+                        fullWidth
+                        multiline
+                        rows={5}
                         label="Descripción"
-                        value={form.description} onChange={set('description')}
+                        size="small"
                         disabled={action === 'delete'}
+                        value={form.description}
+                        onChange={e => setForm({ ...form, description: e.target.value })}
                     />
                 </Grid>
-
             </Grid>
 
             <Box textAlign="right">
                 <LoadingButton
-                    onClick={() => run()}
+                    onClick={run}
                     loading={loading}
                     disabled={invalid || loading}
                     variant="contained"
@@ -100,4 +75,4 @@ export const CommentForm = ({ action, item, onDone }: Props) => {
             </Box>
         </>
     );
-}
+};

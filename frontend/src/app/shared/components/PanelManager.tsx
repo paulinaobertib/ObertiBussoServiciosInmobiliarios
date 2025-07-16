@@ -51,7 +51,7 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
           <Box
             key={p.key}
             sx={{
-              flexGrow: 1,
+              flex: 1,
               overflowY: 'auto',
               mb: 2,
               mt: 2,

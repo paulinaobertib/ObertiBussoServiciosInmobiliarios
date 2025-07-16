@@ -18,7 +18,7 @@ export interface Property {
   area: number;
   coveredArea: number;
   price: number;
-  expenses: number;
+  expenses: number | null;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
@@ -28,6 +28,7 @@ export interface Property {
   amenities: Amenity[];
   mainImage: File | string;
   images: File[];
+  date: string;
 }
 
 export interface PropertyCreate {
@@ -44,7 +45,7 @@ export interface PropertyCreate {
   area: number;
   coveredArea: number;
   price: number;
-  expenses: number;
+  expenses: number | null;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
@@ -71,7 +72,7 @@ export interface PropertyUpdate {
   area: number;
   coveredArea: number;
   price: number;
-  expenses: number;
+  expenses: number | null;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
@@ -97,20 +98,29 @@ export const emptyProperty: Property = {
   area: 0,
   coveredArea: 0,
   price: 0,
-  expenses: 0,
+  expenses: null,
   showPrice: false,
   credit: false,
   financing: false,
-  owner: { firstName: "", lastName: "", mail: "", phone: "" } as Owner,
-  neighborhood: { id: 0, name: "", city: "", type: "" } as Neighborhood,
+  owner: { id: 0, firstName: "", lastName: "", email: "", phone: "" } as Owner,
+  neighborhood: {
+    id: 0,
+    name: "",
+    city: "",
+    type: "",
+    latitude: 0,
+    longitude: 0,
+  } as Neighborhood,
   type: {
     id: 0,
     name: "",
     hasRooms: false,
     hasBathrooms: false,
     hasBedrooms: false,
+    hasCoveredArea: false,
   } as Type,
   amenities: [],
   mainImage: "",
   images: [],
+  date: "",
 };

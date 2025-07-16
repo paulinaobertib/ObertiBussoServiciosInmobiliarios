@@ -1,18 +1,19 @@
-import { Box, Button, useTheme } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { BasePage } from './BasePage';
 import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Modal } from '../app/shared/components/Modal';
-import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
 import { useState } from 'react';
 import { ROUTES } from '../lib';
+import { useAuthContext } from '../app/user/context/AuthContext';
 
 const Compare = () => {
-  const theme = useTheme();
   const navigate = useNavigate();
-  const { clearComparison, comparisonItems } = usePropertyCrud();
+  const { clearComparison, comparisonItems } = usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const { isAdmin } = useAuthContext();
 
   if (comparisonItems.length === 0) {
     clearComparison();
@@ -24,46 +25,27 @@ const Compare = () => {
     navigate(-1);
   };
 
-  const { selectedPropertyIds } = usePropertyCrud();
+  const { selectedPropertyIds } = usePropertiesContext();
 
   return (
-    <BasePage maxWidth={false}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+    <BasePage>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, mb: -4 }}>
         <Button variant="contained" color="primary" onClick={handleBack}>
           VOLVER
         </Button>
-      </Box>
 
-      <>
-        <PropertyDetailsCompare comparisonItems={comparisonItems} />
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 8 }}>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={() => setInquiryOpen(true)}
-            sx={{
-              py: 1.5,
-              borderRadius: 2,
-              backgroundColor: theme.palette.secondary.main,
-              '&:hover': { backgroundColor: theme.palette.secondary.dark },
-            }}
-          >
+        {!isAdmin && (
+          <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)} >
             Consultar por estas propiedades
           </Button>
-        </Box>
+        )}
+      </Box>
 
-        <Modal
-          open={inquiryOpen}
-          title="Enviar consulta"
-          onClose={() => setInquiryOpen(false)}
-        >
-          <InquiriesPanel
-            propertyIds={selectedPropertyIds}
-            onDone={() => setInquiryOpen(false)}
-          />
-        </Modal>
-      </>
+      <PropertyDetailsCompare comparisonItems={comparisonItems} />
+
+      <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)} >
+        <InquiryForm propertyIds={selectedPropertyIds} />
+      </Modal>
 
     </BasePage>
   );

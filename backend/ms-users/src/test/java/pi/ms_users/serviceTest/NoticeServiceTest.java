@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,10 +12,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import pi.ms_users.domain.Notice;
 import pi.ms_users.domain.User;
+import pi.ms_users.dto.NoticeDTO;
+import pi.ms_users.dto.NoticeGetDTO;
 import pi.ms_users.repository.INoticeRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.repository.feign.ImageRepository;
 import pi.ms_users.service.impl.NoticeService;
 
 import java.time.LocalDateTime;
@@ -33,10 +39,18 @@ class NoticeServiceTest {
     @Mock
     private IUserRepository userRepository;
 
+    @Mock
+    private ImageRepository imageRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @InjectMocks
     private NoticeService noticeService;
 
     private Notice notice;
+    private NoticeDTO noticeDTO;
+    private NoticeGetDTO noticeGetDTO;
 
     @BeforeEach
     void setUp() {
@@ -46,6 +60,22 @@ class NoticeServiceTest {
         notice.setTitle("Título de prueba");
         notice.setDescription("Descripción de prueba");
         notice.setDate(LocalDateTime.now());
+        notice.setMainImage("123.jpg");
+
+        noticeDTO = new NoticeDTO();
+        noticeDTO.setId(1L);
+        noticeDTO.setUserId("user1");
+        noticeDTO.setTitle("Título de prueba");
+        noticeDTO.setDescription("Descripción de prueba");
+        noticeDTO.setMainImage(new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes()));
+
+        noticeGetDTO = new NoticeGetDTO();
+        noticeGetDTO.setId(1L);
+        noticeGetDTO.setUserId("user1");
+        noticeGetDTO.setTitle("Título de prueba");
+        noticeGetDTO.setDescription("Descripción de prueba");
+        noticeGetDTO.setDate(notice.getDate());
+        noticeGetDTO.setMainImage("https://storage.com/123.jpg");
     }
 
     // casos de exito
@@ -54,9 +84,11 @@ class NoticeServiceTest {
     void testCreateNoticeSuccess() {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(userRepository.getUserRoles("user1")).thenReturn(List.of("app_admin"));
+        when(imageRepository.uploadImage(any(MultipartFile.class))).thenReturn("123.jpg");
+        when(objectMapper.convertValue(any(), eq(Notice.class))).thenReturn(notice);
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
 
-        ResponseEntity<String> response = noticeService.create(notice);
+        ResponseEntity<String> response = noticeService.create(noticeDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha guardado la noticia", response.getBody());
@@ -67,9 +99,11 @@ class NoticeServiceTest {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
         when(userRepository.getUserRoles("user1")).thenReturn(List.of("app_admin"));
+        when(imageRepository.uploadImage(any(MultipartFile.class))).thenReturn("123.jpg");
+        when(objectMapper.convertValue(any(), eq(Notice.class))).thenReturn(notice);
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
 
-        ResponseEntity<String> response = noticeService.update(notice);
+        ResponseEntity<String> response = noticeService.update(noticeDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha actualizado la noticia", response.getBody());
@@ -89,18 +123,22 @@ class NoticeServiceTest {
     @Test
     void testGetByIdSuccess() {
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
+        when(objectMapper.convertValue(notice, NoticeGetDTO.class)).thenReturn(noticeGetDTO);
+        when(imageRepository.imageURL("123.jpg")).thenReturn("https://storage.com/123.jpg");
 
-        ResponseEntity<Notice> response = noticeService.getById(1L);
+        ResponseEntity<NoticeGetDTO> response = noticeService.getById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(notice, response.getBody());
+        assertEquals(noticeGetDTO, response.getBody());
     }
 
     @Test
     void testGetAllSuccess() {
         when(noticeRepository.findAll()).thenReturn(List.of(notice));
+        when(objectMapper.convertValue(notice, NoticeGetDTO.class)).thenReturn(noticeGetDTO);
+        when(imageRepository.imageURL("123.jpg")).thenReturn("https://storage.com/123.jpg");
 
-        ResponseEntity<List<Notice>> response = noticeService.getAll();
+        ResponseEntity<List<NoticeGetDTO>> response = noticeService.getAll();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
@@ -109,8 +147,10 @@ class NoticeServiceTest {
     @Test
     void testSearchSuccess() {
         when(noticeRepository.findAll(any(Specification.class))).thenReturn(List.of(notice));
+        when(objectMapper.convertValue(notice, NoticeGetDTO.class)).thenReturn(noticeGetDTO);
+        when(imageRepository.imageURL("123.jpg")).thenReturn("https://storage.com/123.jpg");
 
-        ResponseEntity<List<Notice>> response = noticeService.search("test");
+        ResponseEntity<List<NoticeGetDTO>> response = noticeService.search("test");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
@@ -123,7 +163,7 @@ class NoticeServiceTest {
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> noticeService.create(notice));
+                () -> noticeService.create(noticeDTO));
 
         assertEquals("No se ha encontrado el usuario", exception.getMessage());
     }
@@ -134,7 +174,7 @@ class NoticeServiceTest {
         when(userRepository.getUserRoles("user1")).thenReturn(List.of("user"));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> noticeService.create(notice));
+                () -> noticeService.create(noticeDTO));
 
         assertEquals("Este usuario no tiene permiso para crear una noticia", exception.getMessage());
     }
@@ -144,7 +184,7 @@ class NoticeServiceTest {
         when(userRepository.findById("user1")).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> noticeService.update(notice));
+                () -> noticeService.update(noticeDTO));
 
         assertEquals("No se ha encontrado el usuario", exception.getMessage());
     }
@@ -155,7 +195,7 @@ class NoticeServiceTest {
         when(noticeRepository.findById(1L)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> noticeService.update(notice));
+                () -> noticeService.update(noticeDTO));
 
         assertEquals("No se ha encontrado una noticia con ese id", exception.getMessage());
     }
@@ -167,7 +207,7 @@ class NoticeServiceTest {
         when(userRepository.getUserRoles("user1")).thenReturn(List.of("user"));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> noticeService.update(notice));
+                () -> noticeService.update(noticeDTO));
 
         assertEquals("Este usuario no tiene permiso para actualizar una noticia", exception.getMessage());
     }
@@ -194,44 +234,44 @@ class NoticeServiceTest {
 
     @Test
     void create_shouldThrowDataIntegrityViolationException() {
-        notice.setUserId("admin123");
+        noticeDTO.setUserId("admin123");
 
         when(userRepository.findById("admin123")).thenThrow(new DataIntegrityViolationException("Error"));
 
         assertThrows(DataIntegrityViolationException.class,
-                () -> noticeService.create(notice));
+                () -> noticeService.create(noticeDTO));
     }
 
     @Test
     void create_shouldThrowUnexpectedException() {
-        notice.setUserId("admin123");
+        noticeDTO.setUserId("admin123");
 
         when(userRepository.findById("admin123")).thenThrow(new RuntimeException("Unexpected"));
 
         assertThrows(RuntimeException.class,
-                () -> noticeService.create(notice));
+                () -> noticeService.create(noticeDTO));
     }
 
     @Test
     void update_shouldThrowDataIntegrityViolationException() {
-        notice.setUserId("admin123");
-        notice.setId(1L);
+        noticeDTO.setUserId("admin123");
+        noticeDTO.setId(1L);
 
         when(userRepository.findById("admin123")).thenThrow(new DataIntegrityViolationException("Error"));
 
         assertThrows(DataIntegrityViolationException.class,
-                () -> noticeService.update(notice));
+                () -> noticeService.update(noticeDTO));
     }
 
     @Test
     void update_shouldThrowUnexpectedException() {
-        notice.setUserId("admin123");
-        notice.setId(1L);
+        noticeDTO.setUserId("admin123");
+        noticeDTO.setId(1L);
 
         when(userRepository.findById("admin123")).thenThrow(new RuntimeException("Unexpected"));
 
         assertThrows(RuntimeException.class,
-                () -> noticeService.update(notice));
+                () -> noticeService.update(noticeDTO));
     }
 
     @Test

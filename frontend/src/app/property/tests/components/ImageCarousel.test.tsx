@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import ImageCarousel from '../../components/ImageCarousel';
+import ImageCarousel from '../../../shared/components/images/ImageCarousel';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock de react-slick para evitar errores de renderizado en el test

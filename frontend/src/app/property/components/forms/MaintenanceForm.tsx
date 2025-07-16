@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
+import { LoadingButton } from '@mui/lab';
+import { useCategories } from '../../hooks/useCategories';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 import { postMaintenance, putMaintenance, deleteMaintenance, } from '../../services/maintenance.service';
 import { Maintenance, MaintenanceCreate, } from '../../types/maintenance';
-import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../../utils/useLoading';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -14,52 +12,26 @@ interface Props {
 }
 
 export const MaintenanceForm = ({ action, item, onDone }: Props) => {
-    const { refreshMaintenances, pickedItem } = usePropertyCrud();
-    const { showAlert } = useGlobalAlert();
+    const { refreshMaintenances, pickedItem } = usePropertiesContext();
 
-    const [form, setForm] = useState<Maintenance>({
-        id: item?.id ?? 0,
-        propertyId: item?.propertyId
-            ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
-        title: item?.title ?? '',
-        description: item?.description ?? '',
-        date: item?.date ?? '',
-    });
+    const { form, setForm, invalid, run, loading } = useCategories(
+        {
+            id: item?.id ?? 0,
+            propertyId: item?.propertyId ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
+            title: item?.title ?? '',
+            description: item?.description ?? '',
+            date: item?.date ?? '',
+        },
+        action,
+        async payload => {
+            if (action === 'add') return postMaintenance(payload as MaintenanceCreate);
+            if (action === 'edit') return putMaintenance(payload as Maintenance);
+            if (action === 'delete') return deleteMaintenance(payload as Maintenance);
+        },
+        refreshMaintenances,
+        onDone
+    );
 
-    const set =
-        (k: keyof Maintenance) =>
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                setForm(f => ({ ...f, [k]: e.target.value }));
-
-    const invalid =
-        action !== 'delete' &&
-        (!form.propertyId || !form.title.trim() ||
-            !form.description.trim() || !form.date);
-
-    const save = async () => {
-        try {
-            if (action === 'add') {
-                await postMaintenance(form as MaintenanceCreate);
-                showAlert('Mantenimiento creado con éxito!', 'success');
-            }
-            if (action === 'edit' && item) {
-                await putMaintenance(form);
-                showAlert('Mantenimiento actualizado con éxito', 'success');
-            }
-            if (action === 'delete' && item) {
-                await deleteMaintenance(item);
-                showAlert('Mantenimiento eliminado con éxito', 'success');
-            }
-
-            await refreshMaintenances();
-            onDone();
-        } catch (error: any) {
-            const message = error.response?.data ?? 'Error desconocido';
-            showAlert(message, 'error');
-        }
-    };
-
-    const { loading, run } = useLoading(save);
     return (
         <>
             {loading && (
@@ -73,45 +45,53 @@ export const MaintenanceForm = ({ action, item, onDone }: Props) => {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                >
-                </Box>
+                />
             )}
 
             <Grid container spacing={2} mb={2}>
-
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
-                        fullWidth size="small" label="Título"
-                        value={form.title} onChange={set('title')}
+                        fullWidth
+                        label="Título"
+                        size="small"
                         disabled={action === 'delete'}
+                        value={form.title}
+                        onChange={e => setForm({ ...form, title: e.target.value })}
                     />
                 </Grid>
 
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
-                        fullWidth type="datetime-local" size="small"
+                        fullWidth
+                        type="datetime-local"
                         label="Fecha"
+                        size="small"
                         InputLabelProps={{ shrink: true }}
-                        value={form.date} onChange={set('date')}
                         disabled={action === 'delete'}
+                        value={form.date}
+                        onChange={e => setForm({ ...form, date: e.target.value })}
                     />
                 </Grid>
 
-                <Grid size={12}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
-                        fullWidth multiline rows={4} size="small"
+                        fullWidth
+                        multiline
+                        rows={4}
                         label="Descripción"
-                        value={form.description} onChange={set('description')}
+                        size="small"
                         disabled={action === 'delete'}
+                        value={form.description}
+                        onChange={e =>
+                            setForm({ ...form, description: e.target.value })
+                        }
                     />
                 </Grid>
-
-
             </Grid>
 
             <Box textAlign="right">
                 <LoadingButton
-                    onClick={() => run()}
+                    onClick={run}
                     loading={loading}
                     disabled={invalid || loading}
                     variant="contained"
@@ -122,4 +102,4 @@ export const MaintenanceForm = ({ action, item, onDone }: Props) => {
             </Box>
         </>
     );
-}
+};

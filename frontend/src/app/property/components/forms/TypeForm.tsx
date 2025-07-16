@@ -1,12 +1,9 @@
-import { useState } from 'react';
-import { TextField, Box, FormControlLabel, Checkbox, Grid } from '@mui/material';
+import { Grid, TextField, FormControlLabel, Checkbox, Box } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { useCategories } from '../../hooks/useCategories';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 import { Type, TypeCreate } from '../../types/type';
 import { postType, putType, deleteType } from '../../services/type.service';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-
-import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../../utils/useLoading';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -15,57 +12,43 @@ interface Props {
 }
 
 export const TypeForm = ({ action, item, onDone }: Props) => {
-    const { refreshTypes } = usePropertyCrud();
-    const { showAlert } = useGlobalAlert();
+    /* ───── contexto ───── */
+    const { refreshTypes } = usePropertiesContext();
 
-    const [form, setForm] = useState<Type>({
-        id: item?.id ?? 0,
-        name: item?.name ?? '',
-        hasRooms: item?.hasRooms ?? false,
-        hasBathrooms: item?.hasBathrooms ?? false,
-        hasBedrooms: item?.hasBedrooms ?? false,
-        hasCoveredArea: item?.hasCoveredArea ?? false,
-    });
-
-    const set = (k: keyof typeof form) => (e: any) =>
-        setForm((f) => ({ ...f, [k]: e.target.value }));
-
-    const setBoolean = (key: keyof Type) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        setForm((prev) => ({ ...prev, [key]: event.target.checked }));
-    };
-
-    const invalid =
-        action !== 'delete' &&
-        Object.values(form).some((v) => typeof v === 'string' && v.trim() === '');
-
-    const save = async () => {
-        try {
+    /* ───── hook genérico ───── */
+    const { form, setForm, invalid, run, loading } = useCategories(
+        {
+            id: item?.id ?? 0,
+            name: item?.name ?? '',
+            hasRooms: item?.hasRooms ?? false,
+            hasBathrooms: item?.hasBathrooms ?? false,
+            hasBedrooms: item?.hasBedrooms ?? false,
+            hasCoveredArea: item?.hasCoveredArea ?? false,
+        },
+        action,
+        async payload => {
             if (action === 'add') {
-                const { id, ...payload } = form;
-                await postType(payload as TypeCreate);
-                showAlert('Tipo de propiedad creado con éxito!', 'success');
+                const { id, ...body } = payload;
+                return postType(body as TypeCreate);
             }
-            if (action === 'edit' && item) {
-                await putType(form);
-                showAlert('Tipo de propiedad editado con éxito!', 'success');
-            }
-            if (action === 'delete' && item) {
-                await deleteType(form);
-                showAlert('Tipo de propiedad eliminado con éxito!', 'success');
-            }
+            if (action === 'edit') return putType(payload as Type);
+            if (action === 'delete') return deleteType(payload as Type);
+        },
+        refreshTypes,
+        onDone
+    );
 
-            await refreshTypes();
-            onDone();
+    /* ───── helpers de cambio ───── */
+    const setString = (k: keyof Type) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, [k]: e.target.value });
 
-        } catch (error: any) {
-            const message = error.response?.data ?? 'Error desconocido';
-            showAlert(message, 'error');
-        }
-    };
+    const setBool = (k: keyof Type) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, [k]: e.target.checked });
 
-    const { loading, run } = useLoading(save);
+    /* ───── render ───── */
     return (
         <>
+            {/* overlay de carga */}
             {loading && (
                 <Box
                     position="fixed"
@@ -77,66 +60,69 @@ export const TypeForm = ({ action, item, onDone }: Props) => {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                >
-                </Box>
+                />
             )}
 
-            <Grid size={6}>
-                <TextField
-                    fullWidth
-                    label="Nombre"
-                    value={form.name}
-                    onChange={set('name')}
-                    disabled={action === 'delete'}
-                    sx={{ mb: 2 }}
-                />
+            {/* campos */}
+            <Grid container spacing={2} mb={2}>
+                <Grid size={{ xs: 12 }}>
+                    <TextField
+                        fullWidth
+                        label="Nombre"
+                        value={form.name}
+                        disabled={action === 'delete'}
+                        onChange={setString('name')}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12 }}>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={form.hasRooms}
+                                onChange={setBool('hasRooms')}
+                                disabled={action === 'delete'}
+                            />
+                        }
+                        label="Ambientes"
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={form.hasBedrooms}
+                                onChange={setBool('hasBedrooms')}
+                                disabled={action === 'delete'}
+                            />
+                        }
+                        label="Dormitorios"
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={form.hasBathrooms}
+                                onChange={setBool('hasBathrooms')}
+                                disabled={action === 'delete'}
+                            />
+                        }
+                        label="Baños"
+                    />
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={form.hasCoveredArea}
+                                onChange={setBool('hasCoveredArea')}
+                                disabled={action === 'delete'}
+                            />
+                        }
+                        label="Superficie cubierta"
+                    />
+                </Grid>
             </Grid>
 
-
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={form.hasRooms}
-                        onChange={setBoolean('hasRooms')}
-                    />
-                }
-                label="Ambientes"
-                disabled={action === 'delete'}
-            />
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={form.hasBedrooms}
-                        onChange={setBoolean('hasBedrooms')}
-                    />
-                }
-                label="Dormitorios"
-                disabled={action === 'delete'}
-            />
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={form.hasBathrooms}
-                        onChange={setBoolean('hasBathrooms')}
-                    />
-                }
-                label="Baños"
-                disabled={action === 'delete'}
-            />
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        checked={form.hasCoveredArea}
-                        onChange={setBoolean('hasCoveredArea')}
-                    />
-                }
-                label="Superficie Cubierta"
-                disabled={action === 'delete'}
-            />
-
+            {/* botón guardar / eliminar */}
             <Box textAlign="right">
                 <LoadingButton
-                    onClick={() => run()}
+                    onClick={run}
                     loading={loading}
                     disabled={invalid || loading}
                     variant="contained"
@@ -147,4 +133,4 @@ export const TypeForm = ({ action, item, onDone }: Props) => {
             </Box>
         </>
     );
-}
+};

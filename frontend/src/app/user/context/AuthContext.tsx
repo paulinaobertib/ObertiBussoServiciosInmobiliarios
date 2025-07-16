@@ -4,7 +4,10 @@ import { Role, User } from "../types/user";
 import { api } from '../../../api';
 import { NotificationType, UserNotificationPreference } from "../types/notification";
 
-export type AuthInfo = User & { roles: Role[]; preferences: UserNotificationPreference[] };
+export type AuthInfo = User & {
+  roles: Role[];
+  preferences: UserNotificationPreference[];
+};
 
 interface AuthContextValue {
   info: AuthInfo | null;
@@ -30,27 +33,34 @@ const AuthContext = createContext<AuthContextValue>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const stored = sessionStorage.getItem("authInfo");
-  const [info, setInfo] = useState<AuthInfo | null>(stored ? JSON.parse(stored) : null);
+  const [info, setInfo] = useState<AuthInfo | null>(
+    stored ? JSON.parse(stored) : null
+  );
   const [loading, setLoading] = useState(!stored);
 
   const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
   const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
 
-  const isLogged = !!info;
+  const isLogged = Boolean(info);
   const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
 
-  // Sync to sessionStorage
+  // Sincronizar con sessionStorage
   useEffect(() => {
     if (info) sessionStorage.setItem("authInfo", JSON.stringify(info));
     else sessionStorage.removeItem("authInfo");
   }, [info]);
 
-  // Helpers for preferences
+  // Cargar preferencias para el usuario actual
   const loadPreferences = async (userId: string) => {
-    const resp = await api.get<UserNotificationPreference[]>(`/users/preference/user/${userId}`);
+    const resp = await api.get<UserNotificationPreference[]>(
+      `/users/preference/user/${userId}`
+    );
     return resp.data;
   };
-  const createPreference = async (userId: string, type: NotificationType) => {
+  const createPreference = async (
+    userId: string,
+    type: NotificationType
+  ) => {
     const resp = await api.post<UserNotificationPreference>(
       `/users/preference/create`,
       { userId, type, enabled: true }
@@ -58,34 +68,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return resp.data;
   };
 
-  // Load user info and seed preferences lazily
+  // Carga completa de info de sesión
   const loadUserInfo = async () => {
     setLoading(true);
     try {
-      const userRes = await api.get<User>("/users/user/me");
-      const user = userRes.data;
-      const rolesRes = await api.get<Role[]>(`/users/user/role/${user.id}`);
-      const roles = rolesRes.data.map(r => r.toUpperCase() as Role);
-
-                  let preferences: UserNotificationPreference[] = [];
-            if (roles.includes("ADMIN" as Role)) {
-                // Admin users do not use preferences
-                preferences = [];
-            } else {
-                // Load or seed preferences for regular users
-                let prefs = await loadPreferences(user.id);
-                if (!prefs.length) {
-                    const allTypes: NotificationType[] = ['PROPIEDADNUEVA', 'PROPIEDADINTERES'];
-                    prefs = [];
-                    for (const type of allTypes) {
-                        const p = await createPreference(user.id, type);
-                        prefs.push(p);
-                    }
-                }
-                preferences = prefs;
-            }
-
-            setInfo({ ...user, roles, preferences });
+      // 1) datos básicos
+      const { data: user } = await api.get<User>("/users/user/me");
+      // 2) roles
+      const { data: rawRoles } = await api.get<Role[]>(
+        `/users/user/role/${user.id}`
+      );
+      const roles = rawRoles.map((r) => r.toUpperCase() as Role);
+      // 3) preferencias
+      let preferences: UserNotificationPreference[] = [];
+      if (roles.includes("ADMIN" as Role)) {
+        preferences = [];
+      } else {
+        let prefs = await loadPreferences(user.id);
+        if (!prefs.length) {
+          const allTypes: NotificationType[] = [
+            "PROPIEDADNUEVA",
+            "PROPIEDADINTERES",
+          ];
+          prefs = [];
+          for (const type of allTypes) {
+            prefs.push(await createPreference(user.id, type));
+          }
+        }
+        preferences = prefs;
+      }
+      setInfo({ ...user, roles, preferences });
     } catch {
       setInfo(null);
     } finally {
@@ -93,17 +105,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Al montar, si no había nada guardado, cargar desde la API
   useEffect(() => {
     if (!stored) loadUserInfo();
   }, []);
 
-  const login = () => { window.location.href = loginUrl; };
+  const login = () => {
+    window.location.href = loginUrl;
+  };
   const logout = () => {
     setInfo(null);
     sessionStorage.clear();
     window.location.href = `${GW_URL}/logout`;
   };
-  const refreshUser = async () => { await loadUserInfo(); };
+  const refreshUser = async () => {
+    await loadUserInfo();
+  };
 
   return (
     <AuthContext.Provider

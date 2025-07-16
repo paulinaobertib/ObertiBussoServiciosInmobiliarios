@@ -1,0 +1,51 @@
+import { useState, useEffect, useCallback } from "react";
+import { usePropertiesContext } from "../context/PropertiesContext";
+import type { Property } from "../types/property";
+
+export function usePropertyPanel() {
+  const {
+    propertiesList,
+    loading: ctxLoading,
+    refreshProperties,
+  } = usePropertiesContext();
+
+  // datos filtrados
+  const [data, setData] = useState<Property[]>([]);
+  const [localLoading, setLocalLoading] = useState(true);
+
+  // selección de fila
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  // 1) carga inicial
+  useEffect(() => {
+    refreshProperties();
+  }, [refreshProperties]);
+
+  // 2) cuando cambian en el contexto
+  useEffect(() => {
+    setData(propertiesList);
+    setLocalLoading(false);
+  }, [propertiesList]);
+
+  // 3) búsqueda (SearchBar.onSearch)
+  const onSearch = useCallback((results: Property[]) => {
+    setData(results);
+  }, []);
+
+  // 4) selección
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedId((prev) => (prev === id ? null : id));
+  }, []);
+  const isSelected = useCallback(
+    (id: number) => selectedId === id,
+    [selectedId]
+  );
+
+  return {
+    data,
+    loading: ctxLoading || localLoading,
+    onSearch,
+    toggleSelect,
+    isSelected,
+  };
+}
