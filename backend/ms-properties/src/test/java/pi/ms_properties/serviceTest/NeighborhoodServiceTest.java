@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.domain.NeighborhoodType;
 import pi.ms_properties.dto.NeighborhoodDTO;
+import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.repository.INeighborhoodRepository;
+import pi.ms_properties.service.impl.GeocodingNeighborhoodService;
 import pi.ms_properties.service.impl.NeighborhoodService;
 
 import java.util.List;
@@ -35,12 +37,18 @@ class NeighborhoodServiceTest {
     @Mock
     private ObjectMapper mapper;
 
+    @Mock
+    private GeocodingNeighborhoodService geocodingNeighborhoodService;
+
     // casos de exito
 
     @Test
     void createNeighborhood_success() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Barrio Norte", "CERRADO", "CABA", -89.9, 87.90);
-        Neighborhood entity = new Neighborhood(1L, "Barrio Norte", NeighborhoodType.CERRADO, "CABA", -89.9, 87.90);
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Barrio Norte", "CERRADO", "CABA");
+
+        GeocodingNeighborhoodService.Coordinates coords = new GeocodingNeighborhoodService.Coordinates(-89.9, 87.90);
+        when(geocodingNeighborhoodService.getCoordinates("Barrio Norte", "CABA"))
+                .thenReturn(Optional.of(coords));
 
         ResponseEntity<String> response = service.createNeighborhood(dto);
 
@@ -64,16 +72,19 @@ class NeighborhoodServiceTest {
 
     @Test
     void updateNeighborhood_success() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Palermo", "ABIERTO", "CABA", -89.9, 87.90);
-        Neighborhood old = new Neighborhood(1L, "Viejo", NeighborhoodType.CERRADO, "La Plata",-89.9, 87.90);
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Palermo", "ABIERTO", "CABA");
+        Neighborhood old = new Neighborhood(1L, "Viejo", NeighborhoodType.CERRADO, "La Plata", -89.9, 87.90);
         Neighborhood updated = new Neighborhood(1L, "Palermo", NeighborhoodType.ABIERTO, "CABA", -89.9, 87.90);
 
         when(repository.findById(1L)).thenReturn(Optional.of(old));
         when(repository.save(any())).thenReturn(updated);
-        when(mapper.convertValue(any(), eq(NeighborhoodDTO.class)))
-                .thenReturn(new NeighborhoodDTO(1L, "Palermo", "ABIERTO", "CABA", -89.9, 87.90));
+        when(mapper.convertValue(any(), eq(NeighborhoodGetDTO.class)))
+                .thenReturn(new NeighborhoodGetDTO(1L, "Palermo", "ABIERTO", "CABA", -89.9, 87.90));
 
-        ResponseEntity<NeighborhoodDTO> response = service.updateNeighborhood(1L, dto);
+        when(geocodingNeighborhoodService.getCoordinates("Palermo", "CABA"))
+                .thenReturn(Optional.of(new GeocodingNeighborhoodService.Coordinates(-89.9, 87.90)));
+
+        ResponseEntity<NeighborhoodGetDTO> response = service.updateNeighborhood(1L, dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Palermo", response.getBody().getName());
@@ -86,7 +97,7 @@ class NeighborhoodServiceTest {
         );
         when(repository.findAll()).thenReturn(entities);
 
-        ResponseEntity<List<NeighborhoodDTO>> response = service.getAll();
+        ResponseEntity<List<NeighborhoodGetDTO>> response = service.getAll();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
@@ -96,12 +107,12 @@ class NeighborhoodServiceTest {
     @Test
     void getById_success() {
         Neighborhood entity = new Neighborhood(1L, "Sur", NeighborhoodType.SEMICERRADO, "Mendoza",-89.9, 87.90);
-        NeighborhoodDTO dto = new NeighborhoodDTO(1L, "Sur", "SEMICERRADO", "Mendoza", -89.9, 87.90);
+        NeighborhoodGetDTO dto = new NeighborhoodGetDTO(1L, "Sur", "SEMICERRADO", "Mendoza", -89.9, 87.90);
 
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(mapper.convertValue(entity, NeighborhoodDTO.class)).thenReturn(dto);
+        when(mapper.convertValue(entity, NeighborhoodGetDTO.class)).thenReturn(dto);
 
-        ResponseEntity<NeighborhoodDTO> response = service.getById(1L);
+        ResponseEntity<NeighborhoodGetDTO> response = service.getById(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Sur", response.getBody().getName());
@@ -113,22 +124,38 @@ class NeighborhoodServiceTest {
     void getAll_noContent() {
         when(repository.findAll()).thenReturn(List.of());
 
-        ResponseEntity<List<NeighborhoodDTO>> response = service.getAll();
+        ResponseEntity<List<NeighborhoodGetDTO>> response = service.getAll();
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
     void createNeighborhood_duplicateName() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Norte", "CERRADO", "CABA", -89.9, 87.90);
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Norte", "CERRADO", "CABA");
 
         doThrow(IllegalArgumentException.class).when(repository).save(any());
+        when(geocodingNeighborhoodService.getCoordinates("Norte", "CABA"))
+                .thenReturn(Optional.of(new GeocodingNeighborhoodService.Coordinates(-30.0, -64.0)));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 service.createNeighborhood(dto)
         );
 
         assertNull(exception.getMessage());
+    }
+
+    @Test
+    void createNeighborhood_shouldThrowException_whenNoCoordinatesFound() {
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "NombreFicticio", "ABIERTO", "CiudadFicticia");
+
+        when(geocodingNeighborhoodService.getCoordinates("NombreFicticio", "CiudadFicticia"))
+                .thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                service.createNeighborhood(dto)
+        );
+
+        assertEquals("No se pudieron obtener coordenadas para el barrio y ciudad especificados.", exception.getMessage());
     }
 
     @Test
@@ -152,6 +179,8 @@ class NeighborhoodServiceTest {
         dto.setType("ABIERTO");
         dto.setCity("Ciudad");
 
+        when(geocodingNeighborhoodService.getCoordinates("BarrioError", "Ciudad"))
+                .thenReturn(Optional.of(new GeocodingNeighborhoodService.Coordinates(-30.0, -64.0)));
         doThrow(new RuntimeException("No se ha podido guardar")).when(repository).save(any());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
@@ -185,7 +214,7 @@ class NeighborhoodServiceTest {
 
     @Test
     void updateNeighborhood_notFound() {
-        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Nuevo", "CERRADO", "CABA", -89.9, 87.90);
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Nuevo", "CERRADO", "CABA");
 
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
@@ -201,6 +230,8 @@ class NeighborhoodServiceTest {
         Neighborhood neighborhood = new Neighborhood();
         when(repository.findById(anyLong())).thenReturn(Optional.of(neighborhood));
         when(repository.save(any())).thenThrow(new RuntimeException("Error inesperado"));
+        when(geocodingNeighborhoodService.getCoordinates("Test", "Ciudad"))
+                .thenReturn(Optional.of(new GeocodingNeighborhoodService.Coordinates(-30.0, -64.0)));
 
         NeighborhoodDTO dto = new NeighborhoodDTO();
         dto.setName("Test");

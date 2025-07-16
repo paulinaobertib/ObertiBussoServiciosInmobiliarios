@@ -1,20 +1,47 @@
-import { Container, Toolbar } from '@mui/material';
+import { Box, Container, Toolbar } from '@mui/material';
 import { PropsWithChildren } from 'react';
 import { NavBar } from '../app/shared/components/Navbar';
 
 interface BasePageProps {
-  maxWidth?: boolean; // Prop opcional para definir si debe estirarse el contenedor
+  maxWidth?: boolean;
 }
 
-export const BasePage = ({ children, maxWidth = true }: PropsWithChildren<BasePageProps>) => {
+export const BasePage = ({
+  children,
+  maxWidth = true,
+}: PropsWithChildren<BasePageProps>) => {
 
   return (
-    <>
+    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+
+      {/* Tu contenido va aquí */}
       <NavBar />
-      <Container maxWidth={maxWidth ? "lg" : false} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Container
+        maxWidth={false}        // quito el límite por defecto
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          px: 2,
+          mx: 'auto',
+
+          // cuando maxWidth=true, ajusto un ancho "responsivo" más generoso
+          ...(maxWidth && {
+            width: {
+              xs: '100%',    // móvil ocupa 100%
+              sm: '95%',     // tablet 95%
+              md: '90%',     // escritorio mediano 90%
+              lg: '80%',     // pantallas grandes 80%
+            },
+            maxWidth: '1600px', // nunca pase de 1600px
+          }),
+        }}
+      >
         <Toolbar />
         {children}
       </Container>
-    </>
+    </Box>
   );
 };

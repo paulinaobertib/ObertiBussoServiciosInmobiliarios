@@ -14,7 +14,7 @@ describe('AmenityForm', () => {
     vi.clearAllMocks();
 
     // Mockeamos el hook del contexto PropertiesContext para que devuelva nuestro mock de refresh
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
     } as any);
 

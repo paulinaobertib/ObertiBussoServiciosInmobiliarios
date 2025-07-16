@@ -8,18 +8,18 @@ import {
 import { BasePage } from './BasePage';
 import { PropertyCard } from '../app/property/components/catalog/PropertyCard';
 import { useFavorites } from '../app/user/hooks/useFavorites';  // tu hook ya creado
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
   const { favorites, loading: loadingFav } = useFavorites();
-  const { propertiesList, loading: loadingProps } = usePropertyCrud();
+  const { propertiesList, loading: loadingProps } = usePropertiesContext();
 
   const loading = loadingFav || loadingProps;
 
   if (loading) {
     return (
-      <BasePage maxWidth={false}>
+      <BasePage>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
           <CircularProgress size={48} />
         </Box>

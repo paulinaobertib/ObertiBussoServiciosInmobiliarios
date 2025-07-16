@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useCreateProperty } from '../../hooks/useCreateProperty';
+import { useCreateProperty } from '../../hooks/useManagePropertyPage';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('useCreateProperty', () => {

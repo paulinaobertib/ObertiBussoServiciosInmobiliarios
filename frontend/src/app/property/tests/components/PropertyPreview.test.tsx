@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import PropertyPreview from '../../components/PropertyPreview';
+import PropertyPreview from '../../../shared/components/images/ImagePreview';
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 
 beforeAll(() => {

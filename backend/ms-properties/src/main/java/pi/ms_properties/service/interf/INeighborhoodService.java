@@ -2,6 +2,7 @@ package pi.ms_properties.service.interf;
 
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.dto.NeighborhoodDTO;
+import pi.ms_properties.dto.NeighborhoodGetDTO;
 
 import java.util.List;
 
@@ -10,9 +11,9 @@ public interface INeighborhoodService {
 
     ResponseEntity<String> deleteNeighborhood(Long id);
 
-    ResponseEntity<NeighborhoodDTO> updateNeighborhood(Long id, NeighborhoodDTO neighborhoodDTO);
+    ResponseEntity<NeighborhoodGetDTO> updateNeighborhood(Long id, NeighborhoodDTO neighborhoodDTO);
 
-    ResponseEntity<List<NeighborhoodDTO>> getAll();
+    ResponseEntity<List<NeighborhoodGetDTO>> getAll();
 
-    ResponseEntity<NeighborhoodDTO> getById(Long id);
+    ResponseEntity<NeighborhoodGetDTO> getById(Long id);
 }

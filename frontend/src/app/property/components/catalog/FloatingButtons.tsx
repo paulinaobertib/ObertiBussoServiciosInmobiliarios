@@ -1,46 +1,38 @@
-import {
-  Box,
-  Fab,
-  Tooltip,
-  SpeedDial,
-  SpeedDialAction,
-  useTheme,
-} from '@mui/material';
-import Settings from '@mui/icons-material/Settings';
-import Add from '@mui/icons-material/AddCircleOutline';
-import Edit from '@mui/icons-material/Edit';
-import Delete from '@mui/icons-material/Delete';
+import { Box, Fab, Tooltip, SpeedDial, SpeedDialAction, useTheme } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CompareIcon from '@mui/icons-material/Compare';
 import { useAuthContext } from '../../../user/context/AuthContext';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 
-type Props = {
-  onAction: (a: 'create' | 'edit' | 'delete') => void;
+interface FloatingButtonsProps {
+  onAction: (action: 'create' | 'edit' | 'delete') => void;
   selectionMode: boolean;
   toggleSelectionMode: () => void;
   onCompare: () => void;
-  compareCount: number;
-};
+}
 
-const actions = [
-  { icon: <Add />, name: 'Agregar', action: 'create' as const },
-  { icon: <Edit />, name: 'Editar', action: 'edit' as const },
-  { icon: <Delete />, name: 'Eliminar', action: 'delete' as const },
-] as const;
-
+const adminActions = [
+  { icon: <AddCircleOutlineIcon />, name: 'Agregar', action: 'create' as const },
+  { icon: <EditIcon />,             name: 'Editar',  action: 'edit'   as const },
+  { icon: <DeleteIcon />,           name: 'Eliminar',action: 'delete' as const },
+];
 
 export const FloatingButtons = ({
   onAction,
   selectionMode,
   toggleSelectionMode,
   onCompare,
-  compareCount,
-}: Props) => {
+}: FloatingButtonsProps) => {
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
-  const size = 56;
-  const off = 16;
-  const disabledCompare = compareCount < 2 || compareCount > 3;
+  const { disabledCompare } = usePropertiesContext();
+
+  const size = { xs: '3rem', sm: '3.5rem' }; // mismo tamaño que antes
+  const off  = 16;                           // separación al borde
 
   return (
     <Box
@@ -49,103 +41,102 @@ export const FloatingButtons = ({
         bottom: off,
         right: off + 70,
         display: 'flex',
-        flexDirection: 'row',
         alignItems: 'center',
         gap: 2,
         zIndex: 1300,
       }}
     >
-      {/* — Compare FAB — */}
-      <Tooltip
-        title={
-          disabledCompare
-            ? 'Selecciona 2 o 3 propiedades'
-            : 'Comparar propiedades'
-        }
-        arrow
-      >
-        <span>
+      {/* Botón comparar (usuarios) */}
+      {!isAdmin && (
+        <Tooltip
+          title={
+            disabledCompare
+              ? 'Selecciona 2 o 3 propiedades'
+              : 'Comparar propiedades'
+          }
+          arrow
+        >
+          <span>
+            <Fab
+              disabled={disabledCompare}
+              onClick={onCompare}
+              sx={{
+                width: size,
+                height: size,
+                bgcolor: theme.palette.primary.main,
+                '&:hover': { bgcolor: theme.palette.primary.dark },
+                color: '#fff',
+              }}
+            >
+              <CompareIcon />
+            </Fab>
+          </span>
+        </Tooltip>
+      )}
+
+      {/* Botón seleccionar/deseleccionar */}
+      {!isAdmin && (
+        <Tooltip
+          title={selectionMode ? 'Cancelar selección' : 'Seleccionar'}
+          arrow
+        >
           <Fab
-            aria-label="Comparar propiedades"
-            disabled={disabledCompare}
-            onClick={onCompare} // Only call onCompare, don't toggle selection mode
+            onClick={toggleSelectionMode}
             sx={{
               width: size,
               height: size,
               bgcolor: theme.palette.primary.main,
               '&:hover': { bgcolor: theme.palette.primary.dark },
-              color: theme.palette.common.white,
-              cursor: 'pointer',
+              color: '#fff',
             }}
           >
-            <CompareIcon />
+            <CheckBoxIcon />
           </Fab>
-        </span>
-      </Tooltip>
+        </Tooltip>
+      )}
 
-      {/* — Selection FAB — */}
-      <Tooltip title={selectionMode ? 'Cancelar selección' : 'Seleccionar'} arrow>
-        <Fab
-          aria-label={selectionMode ? 'Cancelar selección' : 'Seleccionar'}
-          onClick={toggleSelectionMode}
+      {/* SpeedDial para admins */}
+      {isAdmin && (
+        <SpeedDial
+          ariaLabel="Acciones de Propiedad"
+          icon={<SettingsIcon />}
+          direction="up"
           sx={{
-            width: size,
-            height: size,
-            bgcolor: theme.palette.primary.main,
-            '&:hover': { bgcolor: theme.palette.primary.dark },
-            color: theme.palette.common.white,
-            cursor: 'pointer',
+            position: 'fixed',
+            bottom: off,
+            right: off,
+            zIndex: 1300,
+            '& .MuiFab-primary': {
+              width: size,
+              height: size,
+              bgcolor: theme.palette.primary.main,
+              color: '#fff',
+              '&:hover': { bgcolor: theme.palette.primary.dark },
+            },
           }}
         >
-          <CheckBoxIcon />
-        </Fab>
-      </Tooltip>
-
-      {/* — Admin SpeedDial — */}
-      {isAdmin && (
-        <Box sx={{ position: 'relative', width: size, height: size }}>
-          <SpeedDial
-            ariaLabel="Acciones de Propiedad"
-            icon={<Settings />}
-            direction="up"
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              '& .MuiFab-primary': {
-                width: size,
-                height: size,
-                bgcolor: theme.palette.primary.main,
-                color: theme.palette.common.white,
-                '&:hover': { bgcolor: theme.palette.primary.dark },
-                cursor: 'pointer',
-              },
-            }}
-          >
-            {actions.map(a => (
-              <SpeedDialAction
-                key={a.name}
-                icon={a.icon}
-                tooltipTitle={a.name}
-                onClick={() => {
-                  if (selectionMode) toggleSelectionMode();
-                  onAction(a.action);
-                }}
-                FabProps={{
-                  sx: {
-                    width: size,
-                    height: size,
-                    bgcolor: theme.palette.primary.main,
-                    '&:hover': { bgcolor: theme.palette.primary.dark },
-                    color: theme.palette.common.white,
-                    cursor: 'pointer',
-                  },
-                }}
-              />
-            ))}
-          </SpeedDial>
-        </Box>
+          {adminActions.map(({ icon, name, action }) => (
+            <SpeedDialAction
+              key={name}
+              icon={icon}
+              tooltipTitle={name}
+              onClick={() => {
+                if (selectionMode) toggleSelectionMode();
+                onAction(action);
+              }}
+              FabProps={{
+                sx: {
+                  width: size,
+                  height: size,
+                  bgcolor: theme.palette.primary.main,
+                  '&:hover': { bgcolor: theme.palette.primary.dark },
+                  color: '#fff',
+                },
+              }}
+            />
+          ))}
+        </SpeedDial>
       )}
     </Box>
   );
-}
+};

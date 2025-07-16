@@ -22,7 +22,7 @@ const crudStub = {
 
 vi.mock('../../../context/PropertiesContext', () => ({
   // devuelve SIEMPRE el mismo objeto ➜ no se disparan renders infinitos
-  usePropertyCrud: vi.fn(() => crudStub),
+  usePropertiesContext: vi.fn(() => crudStub),
   PropertyCrudProvider: ({ children }: any) => children,
 }));
 

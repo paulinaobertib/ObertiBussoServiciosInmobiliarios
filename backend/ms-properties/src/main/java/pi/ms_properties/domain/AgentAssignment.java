@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class AgentAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "last_assigned_agent_id", nullable = true)
     private String agentId;

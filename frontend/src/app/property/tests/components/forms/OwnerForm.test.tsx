@@ -13,7 +13,7 @@ describe('OwnerForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.spyOn(PropertiesContext, 'usePropertyCrud').mockReturnValue({
+    vi.spyOn(PropertiesContext, 'usePropertiesContext').mockReturnValue({
       refresh: mockRefresh,
     } as any);
 

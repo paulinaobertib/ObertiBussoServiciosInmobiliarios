@@ -6,7 +6,7 @@ const mockPickItem = vi.fn();
 let mockCurrentCategory: string | null = null;
 
 vi.mock('../../context/PropertiesContext', () => ({
-  usePropertyCrud: () => ({
+  usePropertiesContext: () => ({
     pickItem: mockPickItem,
     currentCategory: mockCurrentCategory,
   }),
