@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box, Typography, useTheme, useMediaQuery,
@@ -21,7 +21,6 @@ import {
 import { useCatalog } from '../app/property/hooks/useCatalog';
 
 export default function Home() {
-  /** ─── hooks & context ─────────────────────────────────────────── */
   localStorage.setItem('selectedPropertyId', '');
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,28 +28,42 @@ export default function Home() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { showAlert } = useGlobalAlert();
-  const { selectedPropertyIds, toggleCompare, clearComparison, refreshProperties, disabledCompare } = usePropertiesContext();
-  const { propertiesList } = useCatalog(() => { });
+  const {
+    selectedPropertyIds,
+    toggleCompare,
+    clearComparison,
+    refreshProperties,
+    disabledCompare,
+  } = usePropertiesContext();
 
-  /** ─── local state ─────────────────────────────────────────────── */
+  // Memoizamos onFinish para romper bucles infinitos
+  const onFinish = useCallback(() => {
+    // aquí podrías resetear algún estado o refetch si hace falta
+  }, []);
+  const { propertiesList } = useCatalog(onFinish);
+
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /** ─── effects ─────────────────────────────────────────────────── */
+  // Cada vez que cambie la ruta, refrescamos
   useEffect(() => {
     refreshProperties();
   }, [location.pathname, refreshProperties]);
 
+  // Cuando propertiesList cambia, actualizamos resultados
   useEffect(() => {
-    setResults(
-      propertiesList.map(p => ({ ...p, status: p.status ?? 'Desconocido' }))
+    const newResults = propertiesList.map(p => ({
+      ...p,
+      status: p.status ?? 'Desconocido',
+    }));
+    setResults(prev =>
+      JSON.stringify(prev) === JSON.stringify(newResults) ? prev : newResults
     );
     setLoading(false);
   }, [propertiesList]);
 
-  /** ─── handlers ────────────────────────────────────────────────── */
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
     if (action === 'create') {
       navigate('/properties/new');
@@ -75,7 +88,6 @@ export default function Home() {
     }
   };
 
-  /** Activa / desactiva modo comparación. */
   const toggleSelectionMode = () =>
     setSelectionMode(prev => {
       if (prev) {
@@ -87,34 +99,22 @@ export default function Home() {
       return !prev;
     });
 
-  /** Navega a /compare solo si hay 2-3 seleccionadas; después limpia */
   const handleCompare = () => {
     if (disabledCompare) {
       showAlert('Debes seleccionar 2 o 3 propiedades', 'warning');
       return;
     }
-    // navega con los IDs seleccionados (opcional: pásalos por state)
     navigate('/properties/compare', { state: { ids: selectedPropertyIds } });
-    setSelectionMode(false);         // cerramos modo selección
+    setSelectionMode(false);
   };
 
-  /** ─── render ──────────────────────────────────────────────────── */
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
 
-        {/* Buscador + botón filtros (móvil) */}
-        {isMobile && (
-          <Box
-            sx={{
-              mt: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              justifyContent: 'center',
-            }}
-          >
+        {isMobile ? (
+          <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
             <SearchFilters onSearch={setResults} />
             <Box sx={{ flexGrow: 1, maxWidth: '25rem' }}>
               <SearchBar
@@ -126,10 +126,7 @@ export default function Home() {
               />
             </Box>
           </Box>
-        )}
-
-        {/* Buscador centrado (desktop) */}
-        {!isMobile && (
+        ) : (
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
             <Box sx={{ width: '40rem' }}>
               <SearchBar
@@ -143,23 +140,13 @@ export default function Home() {
           </Box>
         )}
 
-        {/* Layout principal */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 1,
-            mt: 2,
-          }}
-        >
-          {/* Filtros fijos en desktop */}
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 1, mt: 2 }}>
           {!isMobile && (
             <Box sx={{ width: 300 }}>
               <SearchFilters onSearch={setResults} />
             </Box>
           )}
 
-          {/* Catálogo */}
           <Box sx={{ flexGrow: 1, ml: { md: 3 } }}>
             {loading ? (
               <Typography>Cargando propiedades…</Typography>
@@ -181,7 +168,6 @@ export default function Home() {
         </Box>
       </Box>
 
-      {/* Botones flotantes (sin compareCount) */}
       <FloatingButtons
         onAction={handleAction}
         selectionMode={selectionMode}
