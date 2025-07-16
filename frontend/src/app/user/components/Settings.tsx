@@ -12,6 +12,7 @@ import {
     useTheme,
     useMediaQuery,
     Stack,
+    Tooltip,
 } from '@mui/material';
 import { useAuthContext } from '../context/AuthContext';
 import {
@@ -92,9 +93,12 @@ export default function SettingsDrawer() {
 
     return (
         <>
-            <IconButton  color="inherit" onClick={() => setOpen(true)}>
-                <NotificationsIcon />
-            </IconButton>
+            <Tooltip title="Notificaciones">
+                <IconButton color="inherit" onClick={() => setOpen(true)}>
+                    <NotificationsIcon />
+                </IconButton>
+            </Tooltip>
+            
             <Drawer
                 anchor="right"
                 open={open}
@@ -108,16 +112,14 @@ export default function SettingsDrawer() {
                 }}
             >
                 <Typography variant="h6" mb={2}>
-                    Ajustes
+                    Notificaciones
                 </Typography>
                 <Divider />
 
                 {/* Preferencias: solo usuarios no admin */}
                 {!isAdmin && (
                     <Box mt={2}>
-                        <Typography variant="subtitle2" mb={1}>
-                            Notificaciones
-                        </Typography>
+
                         <Stack spacing={1}>
                             {preferences.map((pref) => (
                                 <Box

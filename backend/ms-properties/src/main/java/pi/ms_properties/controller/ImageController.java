@@ -35,4 +35,17 @@ public class ImageController {
     public ResponseEntity<List<Image>> getByPropertyId(@PathVariable Long id) {
         return imageService.getAllByPropertyId(id);
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @PostMapping("/notice")
+    public ResponseEntity<String> uploadNotice(@RequestParam("file") MultipartFile file) {
+        String name = imageService.uploadNoticeImage(file);
+        return ResponseEntity.ok(name);
+    }
+
+    @GetMapping("/notice/getImage")
+    public ResponseEntity<String> getByNotice(@RequestParam("imageName") String imageName) {
+        String url = imageService.getNoticeImageURL(imageName);
+        return ResponseEntity.ok(url);
+    }
 }

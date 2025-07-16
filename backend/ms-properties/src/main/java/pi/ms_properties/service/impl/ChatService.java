@@ -70,14 +70,18 @@ public class ChatService implements IChatService {
                 }
 
             case VER_HABITACIONES:
+                String rooms = formattedNumber(property.getRooms());
+                String bedrooms = formattedNumber(property.getBedrooms());
+                String bathrooms = formattedNumber(property.getBathrooms());
+
                 if (property.getBedrooms() > 1 && property.getBathrooms() > 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo " + property.getBedrooms() + " dormitorios y " + property.getBathrooms() + " baños.";
+                    return "La propiedad posee " + rooms + " ambientes, incluyendo " + bedrooms + " dormitorios y " + bathrooms + " baños.";
                 } else if (property.getBedrooms() > 1 && property.getBathrooms() == 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo " + property.getBedrooms() + " dormitorios y un baño.";
+                    return "La propiedad posee " + rooms + " ambientes, incluyendo " + bedrooms + " dormitorios y un baño.";
                 } else if (property.getBedrooms() == 1 && property.getBathrooms() == 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo un dormitorio y un baño.";
+                    return "La propiedad posee " + rooms + " ambientes, incluyendo un dormitorio y un baño.";
                 } else if (property.getBedrooms() == 1 && property.getBathrooms() > 1) {
-                    return "La propiedad posee " + property.getRooms() + " habitaciones, incluyendo un dormitorio y " + property.getBathrooms() + " baños.";
+                    return "La propiedad posee " + rooms + " ambientes, incluyendo un dormitorio y " + bathrooms + " baños.";
                 } else {
                     return "No hay información registrada sobre habitaciones en esta propiedad.";
                 }
@@ -169,5 +173,13 @@ public class ChatService implements IChatService {
         chatSession.setDateClose(LocalDateTime.now());
         chatSessionRepository.save(chatSession);
         emailService.sendChatSummaryEmail(chatSession, false, null);
+    }
+
+    private String formattedNumber(double number) {
+        if (number % 1 == 0) {
+            return String.valueOf((int) number);
+        } else {
+            return String.valueOf(number).replace('.', ',');
+        }
     }
 }

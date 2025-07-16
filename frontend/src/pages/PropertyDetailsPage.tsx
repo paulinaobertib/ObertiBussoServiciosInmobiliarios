@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, useTheme } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { BasePage } from './BasePage';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
+import { PropertyDetails } from '../app/property/components/propertyDetails/PropertyDetails';
 import { Modal } from '../app/shared/components/Modal';
-import { InquiriesPanel } from '../app/property/components/inquiries/InquiriesPanel';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
+import { useAuthContext } from '../app/user/context/AuthContext';
 
 const PropertyDetailsPage = () => {
-  const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentProperty, loadProperty } = usePropertyCrud();
+  const { currentProperty, loadProperty } = usePropertiesContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
     const fetch = async () => {
@@ -38,11 +39,17 @@ const PropertyDetailsPage = () => {
   }, [id, loadProperty]);
 
   return (
-    <BasePage maxWidth={false}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
+    <BasePage>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, mb: -4 }}>
         <Button variant="contained" color="primary" onClick={() => navigate(-1)}>
           VOLVER
         </Button>
+
+        {!isAdmin && (
+          <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
+            Consultar por esta propiedad
+          </Button>
+        )}
       </Box>
 
       {loading && (
@@ -64,33 +71,10 @@ const PropertyDetailsPage = () => {
           {/* Aquí se muestra el detalle */}
           <PropertyDetails property={currentProperty} />
 
-          {/* Botón para abrir el InquiryPanel */}
-          <Box sx={{ mt: 4, textAlign: 'center', pb: 8 }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => setInquiryOpen(true)}
-              sx={{
-                py: 1.5,
-                borderRadius: 2,
-                backgroundColor: theme.palette.secondary.main,
-                '&:hover': { backgroundColor: theme.palette.secondary.dark },
-              }}
-            >
-              Consultar por esta propiedad
-            </Button>
-          </Box>
 
           {/* Modal que contiene el InquiryPanel */}
-          <Modal
-            open={inquiryOpen}
-            title="Enviar consulta"
-            onClose={() => setInquiryOpen(false)}
-          >
-            <InquiriesPanel
-              propertyIds={[currentProperty.id]}
-              onDone={() => setInquiryOpen(false)}
-            />
+          <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)}  >
+            <InquiryForm propertyIds={[currentProperty.id]} />
           </Modal>
         </>
       )}

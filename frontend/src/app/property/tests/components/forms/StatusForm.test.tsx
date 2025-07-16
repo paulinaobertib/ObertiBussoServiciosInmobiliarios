@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import StatusForm from '../../../components/forms/StatusForm';
 import { describe, it, vi, beforeEach, expect } from 'vitest';
 import { putPropertyStatus } from '../../../services/property.service';
-import { usePropertyCrud } from '../../../context/PropertiesContext';
+import { usePropertiesContext } from '../../../context/PropertiesContext';
 import { useGlobalAlert } from '../../../../shared/context/AlertContext';
 
 vi.mock('../../../services/property.service');
@@ -16,7 +16,7 @@ describe('StatusForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (usePropertyCrud as any).mockReturnValue({
+    (usePropertiesContext as any).mockReturnValue({
       loadProperty: mockLoadProperty,
     });
     (useGlobalAlert as any).mockReturnValue({

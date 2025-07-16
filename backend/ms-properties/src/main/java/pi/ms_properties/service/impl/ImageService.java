@@ -39,6 +39,17 @@ public class ImageService implements IImageService {
         return filename.substring(filename.lastIndexOf("."));
     }
 
+    private void saveImage(MultipartFile file, String uniqueFileName) throws IOException {
+        Storage storage = new Storage();
+        storage.setPath(uniqueFileName);
+        storage.setFileName(file.getOriginalFilename());
+        storage.setInputStream(file.getInputStream());
+        storage.setSize(file.getSize());
+        storage.setContentType(file.getContentType());
+
+        azureBlobStorage.create(storage);
+    }
+
     // cuando edite una propiedad, si quiero cargar imagenes, hago un llamado aca
     @Override
     public String uploadImageToProperty(MultipartFile file, Long propertyId, Boolean type) {
@@ -48,14 +59,7 @@ public class ImageService implements IImageService {
         String uniqueFileName = UUID.randomUUID() + getExtension(file.getOriginalFilename());
 
         try {
-            Storage storage = new Storage();
-            storage.setPath(uniqueFileName);
-            storage.setFileName(file.getOriginalFilename());
-            storage.setInputStream(file.getInputStream());
-            storage.setSize(file.getSize());
-            storage.setContentType(file.getContentType());
-
-            azureBlobStorage.create(storage);
+            saveImage(file, uniqueFileName);
 
             if (!type) {
                 Image image = new Image();
@@ -114,5 +118,28 @@ public class ImageService implements IImageService {
         }
 
         return ResponseEntity.ok(images);
+    }
+
+    @Override
+    public String uploadNoticeImage(MultipartFile file) {
+        String uniqueFileName = UUID.randomUUID() + getExtension(file.getOriginalFilename());
+
+        try {
+            saveImage(file, uniqueFileName);
+
+            return uniqueFileName;
+
+        } catch (BlobStorageException e) {
+            throw new RuntimeException("No se ha podido subir la imagen a Blob Storage", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Error al leer el archivo", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Ha habido un error inesperado", e);
+        }
+    }
+
+    @Override
+    public String getNoticeImageURL(String imageName) {
+        return azureBlobStorage.getImageUrl(imageName);
     }
 }

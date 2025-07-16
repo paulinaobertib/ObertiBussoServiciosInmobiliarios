@@ -1,518 +1,303 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from "react";
 import {
-  Box, Button, FormControl, InputLabel, Select, MenuItem, useMediaQuery, Collapse,
-  TextField, Card, CardContent, Checkbox, FormControlLabel, Typography,
-} from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useTheme } from '@mui/material/styles';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { getPropertiesByFilters } from '../../services/property.service';
-import { SearchParams } from '../../types/searchParams';
-import { Property } from '../../types/property';
-import { NeighborhoodType } from '../../types/neighborhood';
-import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { useLoading } from '../../utils/useLoading';
-import { LoadingButton } from '@mui/lab';
+  Box, Button, Drawer, Accordion, AccordionSummary, AccordionDetails,
+  Checkbox, FormControlLabel, Chip, Typography, Divider, Slider,
+  useTheme, useMediaQuery, IconButton,
+} from "@mui/material";
+import RadioGroup from "@mui/material/RadioGroup";
+import Radio from "@mui/material/Radio";
 
-const countOptions = [1, 2, 3];
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
+import { LoadingButton } from "@mui/lab";
+import { useSearchFilters } from "../../hooks/useSearchFilters";
+import type { Property } from "../../types/property";
+import { LIMITS } from "../../utils/filterLimits";
 
-interface Props {
-  onSearch(results: Property[]): void;
-}
+interface Props { onSearch(results: Property[]): void; }
 
-export const SearchFilters = ({ onSearch }: Props) => {
-  const { typesList, neighborhoodsList, amenitiesList, operationsList,
-    selected, setSelected, buildSearchParams } = usePropertyCrud();
+/* ───── estilos reutilizables ───── */
+const checkSx = {
+  px: 0.5,
+  ".MuiFormControlLabel-label": { fontSize: "0.8rem" },
+  "& .MuiCheckbox-root": { p: 0.3 },
+};
+
+
+const radioSx = {
+  px: 0.5,
+  ".MuiFormControlLabel-label": { fontSize: "0.9rem" },
+  "& .MuiRadio-root": { p: 0.3, transform: "scale(.85)" },
+};
+
+export function SearchFilters({ onSearch }: Props) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [openFilters, setOpen] = useState(!isMobile);
-  const { showAlert } = useGlobalAlert();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState<string | false>(false);
+  const toggleAcc = (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
 
-  const [params, setParams] = useState<Partial<SearchParams>>({
-    priceFrom: 0,
-    priceTo: 0,
-    areaFrom: 0,
-    areaTo: 0,
-    coveredAreaFrom: 0,
-    coveredAreaTo: 0,
-    rooms: 0,
-    operation: '',
-    type: '',
-    amenities: [],
-    city: '',
-    neighborhood: '',
-    neighborhoodType: undefined,
-    credit: undefined,
-    financing: undefined,
-  });
+  const {
+    params, selected,
+    operationsList = [], typesList = [], amenitiesList = [], neighborhoodsList = [],
+    toggleParam, toggleAmenity, setParams, apply, reset, chips,
+  } = useSearchFilters(onSearch);
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    const numValue = value === '' ? 0 : Number(value);
-    if (numValue < 0) {
-      showAlert('El valor no puede ser negativo', 'error');
-      return;
-    }
-
-    setParams((p) => ({
-      ...p,
-      [name]: numValue,
-    }));
-  };
-
-  const handleSelect = (field: keyof SearchParams) => (
-    e: SelectChangeEvent<string>
-  ) => {
-    const v = e.target.value;
-    setParams(p => ({
-      ...p,
-      [field]:
-        field === 'rooms'
-          ? Number(v)
-          : (v as any)
-    }));
-  };
-
-  const handleSearch = async () => {
-    const priceFrom = params.priceFrom ?? 0;
-    const priceTo = params.priceTo ?? 0;
-    const areaFrom = params.areaFrom ?? 0;
-    const areaTo = params.areaTo ?? 0;
-    const coveredAreaFrom = params.coveredAreaFrom ?? 0;
-    const coveredAreaTo = params.coveredAreaTo ?? 0;
-
-    if (priceFrom && priceTo && priceFrom > priceTo) {
-      showAlert('El precio DESDE no puede ser mayor al precio HASTA', 'error');
-      return;
-    }
-
-    if (areaFrom && areaTo && areaFrom > areaTo) {
-      showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
-      return;
-    }
-
-    if (coveredAreaFrom && coveredAreaTo && coveredAreaFrom > coveredAreaTo) {
-      showAlert('La superficie DESDE no puede ser mayor a la superficie HASTA', 'error');
-      return;
-    }
-
-    const filters: Partial<SearchParams> = {
-      ...params,
-      priceFrom,
-      priceTo,
-      areaFrom,
-      areaTo,
-      coveredAreaFrom,
-      coveredAreaTo,
-      credit: params.credit ? true : undefined,
-      financing: params.financing ? true : undefined,
-    };
-
-    // Si rooms es 3, borramos rooms del filtro para no limitar backend a solo 3 ambientes
-    if (params.rooms === 3) {
-      delete filters.rooms;
-    } else if (params.rooms && params.rooms > 0) {
-      filters.rooms = params.rooms;
-    }
-
-    const sp = buildSearchParams(filters);
-    console.log("Filtros a enviar:", sp);
-
-    const res = await getPropertiesByFilters(sp as SearchParams);
-
-    // Ahora filtro local para +3 ambientes
-    let filteredResults = res;
-    if (params.rooms === 3) {
-      filteredResults = res.filter(p => Number(p.rooms) >= 3);
-    }
-
-    onSearch(filteredResults);
-
-  };
-
-  const handleCancel = async () => {
-    setParams({
-      priceFrom: 0,
-      priceTo: 0,
-      areaFrom: 0,
-      areaTo: 0,
-      coveredAreaFrom: 0,
-      coveredAreaTo: 0,
-      rooms: 0,
-      operation: '',
-      type: '',
-      amenities: [],
-      city: '',
-      neighborhood: '',
-      neighborhoodType: undefined,
-      credit: undefined,
-      financing: undefined,
-    });
-
-    setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
-
-    const all = await getPropertiesByFilters({
-      priceFrom: 0, priceTo: 0, areaFrom: 0, areaTo: 0, coveredAreaFrom: 0, coveredAreaTo: 0,
-      rooms: 0, operation: '', type: '', amenities: [],
-      city: '', neighborhood: '', neighborhoodType: '', credit: undefined, financing: undefined,
-    });
-    onSearch(all);
-  };
-
-  const cities = Array.from(
-    new Set(
-      neighborhoodsList
-        .map(n => (n.city || '').trim())
-        .filter(c => c.length > 0)
-    )
-  );
-  const barrioTypes = Object.values(NeighborhoodType);
-
-
-  const anyOption = (
-    <MenuItem key="any" value="">
-      Todos
-    </MenuItem>
+  const cities = useMemo(
+    () => Array.from(new Set(neighborhoodsList.map(n => n.city).filter(Boolean))),
+    [neighborhoodsList],
   );
 
-  const { loading: loadingSearch, run: runSearch } = useLoading(handleSearch);
-  const { loading: loadingCancel, run: runCancel } = useLoading(handleCancel);
-  const loading = loadingSearch || loadingCancel;
-  return (
-    <Card sx={{ position: 'relative', borderRadius: 3, width: isMobile ? '100%' : 300 }} elevation={3}>
-      {loading && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          width="100%"
-          height="100%"
-          zIndex={theme => theme.zIndex.modal + 1000}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
+  const priceCfg = LIMITS.price[params.currency as "USD" | "ARS"] ?? LIMITS.price.USD;
+
+
+  /* ═════════ Panel completo ═════════ */
+  const Panel = (
+    <Box sx={{ p: 2 }}>
+      {/* Header */}
+      {isMobile ? (
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Typography variant="subtitle1">Filtros de Búsqueda</Typography>
+          <IconButton size="small" onClick={() => setOpen(false)}><CloseIcon /></IconButton>
         </Box>
-      )}
-      <CardContent>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 2, textAlign: 'center' }}>
+      ) : (
+        <Typography variant="h6" align="center" fontWeight={700} sx={{ mb: 2 }}>
           Filtros de Búsqueda
         </Typography>
+      )}
 
-        {isMobile && (
-          <Button
-            fullWidth
-            variant="outlined"
-            size="small"
-            onClick={() => setOpen((f) => !f)}
-            endIcon={<ArrowDropDownIcon sx={{ transform: openFilters ? 'rotate(180deg)' : 'none' }} />}
-          >
-            {openFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
-          </Button>
-        )}
-
-        <Collapse in={openFilters} timeout="auto" unmountOnExit sx={{ p: 1 }}>
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="operation-select-label">Operación</InputLabel>
-            <Select
-              labelId="operation-select-label"
-              id="operation-select"
-              data-testid="operation-select"
-              value={params.operation || ''}
-              label="Operación"
-              onChange={handleSelect('operation')}
-            >
-              {anyOption}
-              {operationsList.map((op: string) => (
-                <MenuItem key={op} value={op}>
-                  {op.charAt(0) + op.slice(1).toLowerCase()}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 2 }}>
-            {params.operation === 'VENTA' && (
-              <>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={params.credit || false}
-                      onChange={(_, checked) =>
-                        setParams(p => ({ ...p, credit: checked }))
-                      }
-                      size="small"
-                    />
-                  }
-                  label="Apto Crédito"
-                  sx={{
-                    width: 'auto',
-                    m: 0,
-                    py: 0,
-                    px: 1,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    '&:hover': { borderColor: '#444' },
-                    '& .MuiFormControlLabel-label': {
-                      color: 'text.secondary',
-                    },
-                  }}
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={params.financing || false}
-                      onChange={(_, checked) =>
-                        setParams(p => ({ ...p, financing: checked }))
-                      }
-                      size="small"
-                    />
-                  }
-                  label="Apto Financiamiento"
-                  sx={{
-                    width: 'auto',
-                    m: 0,
-                    py: 0,
-                    px: 1,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    '&:hover': { borderColor: '#444' },
-                    '& .MuiFormControlLabel-label': {
-                      color: 'text.secondary',
-                    },
-                  }}
-                />
-              </>
-            )}
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Tipo</InputLabel>
-              <Select
-                value={params.type || ''}
-                label="Tipo"
-                onChange={handleSelect('type')}
-              >
-                {anyOption}
-                {typesList.map((t) => (
-                  <MenuItem key={t.id} value={t.name}>
-                    {t.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Ambientes</InputLabel>
-              <Select
-                value={params.rooms === 0 ? "" : params.rooms?.toString()}
-                label="Ambientes"
-                onChange={handleSelect('rooms')}
-              >
-                {anyOption}
-                {countOptions.map((n) => (
-                  <MenuItem key={n} value={n.toString()}>
-                    {n === 0 ? 'Todos' : n < 3 ? `${n}` : '+3'}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel id="city-select-label">Ciudad</InputLabel>
-              <Select
-                labelId="city-select-label"
-                id="city-select"
-                value={params.city || ''}
-                label="Ciudad"
-                onChange={e => {
-                  const city = (e.target.value as string).trim();
-                  setParams(p => ({ ...p, city }));
-                }}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {cities.map(c => (
-                  <MenuItem key={c} value={c}>{c}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Tipo de barrio</InputLabel>
-              <Select
-                value={params.neighborhoodType || ''}
-                label="Tipo de barrio"
-                onChange={handleSelect('neighborhoodType')}
-              >
-                {anyOption}
-                {barrioTypes.map((bt) => (
-                  <MenuItem key={bt} value={bt}>
-                    {bt.charAt(0) + bt.slice(1).toLowerCase()}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Barrio</InputLabel>
-              <Select
-                value={params.neighborhood || ''}
-                label="Barrio"
-                onChange={handleSelect('neighborhood')}
-              >
-                {anyOption}
-                {neighborhoodsList.map((b) => (
-                  <MenuItem key={b.id} value={b.name}>
-                    {b.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth size="small">
-              <InputLabel id="amenities-select-label">Características</InputLabel>
-              <Select
-                labelId="amenities-select-label"
-                id="amenities-select"
-                multiple
-                value={selected.amenities.map(a => a.toString())}
-                label="Características"
-                renderValue={(vals) =>
-                  (vals as string[]).length === 0
-                    ? 'Todos'
-                    : (vals as string[])
-                      .map(v => amenitiesList.find(a => a.id === Number(v))?.name)
-                      .filter(Boolean)
-                      .join(', ')
+      {/* ───────── Operación ───────── */}
+      <Accordion disableGutters expanded={expanded === "operacion"} onChange={toggleAcc("operacion")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Operación</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          <RadioGroup row>
+            {operationsList.map(op => (
+              <FormControlLabel
+                key={op}
+                label={op === "VENTA" ? "Venta" : "Alquiler"}
+                sx={radioSx}
+                control={
+                  <Radio
+                    size="small"
+                    checked={params.operation === op}
+                    onClick={() => toggleParam("operation", op)}
+                  />
                 }
-                onChange={e => {
-                  const vals = (e.target.value as string[]).filter(v => v !== '');
-                  setSelected({ ...selected, amenities: vals.map(v => Number(v)) });
-                }}
-              >
-                <MenuItem
-                  value=""
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    setSelected({ ...selected, amenities: [] });
-                  }}
-                >
-                  Todos
-                </MenuItem>
-                {amenitiesList.map((a) => (
-                  <MenuItem key={a.id} value={a.id.toString()}>
-                    {a.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              />
+            ))}
+          </RadioGroup>
 
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Superficie Total (m²)</InputLabel>
-              <Box display="flex" gap={1} mt={1}>
-                <TextField
-                  name="areaFrom"
-                  placeholder="Desde"
-                  type="number"
-                  value={params.areaFrom || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
+          {params.operation === "VENTA" && (
+            <Box sx={{ mt: 1, width: "100%" }}>
+              <Typography variant="caption" sx={{ fontWeight: 500 }}>Opciones de Pago</Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .5, pl: 2 }}>
+                <FormControlLabel
+                  control={<Checkbox size="small" checked={params.credit} onChange={() => toggleParam("credit", true)} />}
+                  label="Apto Crédito"
+                  sx={checkSx}
                 />
-                <TextField
-                  name="areaTo"
-                  placeholder="Hasta"
-                  type="number"
-                  value={params.areaTo || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
+                <FormControlLabel
+                  control={<Checkbox size="small" checked={params.financing} onChange={() => toggleParam("financing", true)} />}
+                  label="Financiamiento"
+                  sx={checkSx}
                 />
               </Box>
-            </FormControl>
-
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Superficie Cubierta</InputLabel>
-              <Box display="flex" gap={1} mt={1}>
-                <TextField
-                  name="coveredAreaFrom"
-                  placeholder="Desde"
-                  type="number"
-                  value={params.coveredAreaFrom || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
-                />
-                <TextField
-                  name="coveredAreaTo"
-                  placeholder="Hasta"
-                  type="number"
-                  value={params.coveredAreaTo || ''}
-                  onChange={handleInput}
-                  fullWidth
-                  size="small"
-                />
-              </Box>
-            </FormControl>
-
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel shrink>Precio</InputLabel>
-              <Box display="flex" gap={1} mt={1}>
-                <TextField
-                  name="priceFrom"
-                  placeholder="Desde"
-                  type="number"
-                  size="small"
-                  value={params.priceFrom || ''}
-                  onChange={handleInput}
-                  fullWidth
-                />
-                <TextField
-                  name="priceTo"
-                  placeholder="Hasta"
-                  type="number"
-                  size="small"
-                  value={params.priceTo || ''}
-                  onChange={handleInput}
-                  fullWidth
-                />
-              </Box>
-            </FormControl>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <LoadingButton
-                variant="outlined"
-                fullWidth
-                size="medium"
-                startIcon={<RefreshIcon />}
-                onClick={() => runCancel()}
-                loading={loadingCancel}
-                sx={{
-                  borderColor: theme.palette.primary.main,
-                }}
-              >
-                Cancelar
-              </LoadingButton>
-              <LoadingButton
-                variant="contained"
-                fullWidth
-                size="medium"
-                onClick={() => runSearch()}
-                loading={loadingSearch}
-                sx={{
-                  bgcolor: theme.palette.primary.main,
-                }}
-              >
-                Buscar
-              </LoadingButton>
             </Box>
-          </Box>
-        </Collapse>
-      </CardContent>
-    </Card>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Tipo ───────── */}
+      <Accordion disableGutters expanded={expanded === "tipo"} onChange={toggleAcc("tipo")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Tipos de Propiedad</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {typesList.map(tp => (
+            <FormControlLabel
+              key={tp.name}
+              control={<Checkbox size="small" checked={params.types.includes(tp.name)} onChange={() => toggleParam("types", tp.name)} />}
+              label={tp.name}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Ambientes ───────── */}
+      <Accordion disableGutters expanded={expanded === "amb"} onChange={toggleAcc("amb")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Números de Ambientes</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {[1, 2, 3].map(n => (
+            <FormControlLabel
+              key={n}
+              control={<Checkbox size="small" checked={params.rooms.includes(n)} onChange={() => toggleParam("rooms", n)} />}
+              label={n === 3 ? "3+" : n.toString()}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Precio ───────── */}
+      <Accordion disableGutters expanded={expanded === "precio"} onChange={toggleAcc("precio")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Precio</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          <RadioGroup row sx={{ mb: 1 }}>
+            {["USD", "ARS"].map(curr => (
+              <FormControlLabel
+                key={curr}
+                label={curr === "USD" ? "Dólar" : "Pesos"}
+                sx={radioSx}
+                control={
+                  <Radio
+                    size="small"
+                    checked={params.currency === curr}
+                    onClick={() => toggleParam("currency", curr)}
+                  />
+                }
+              />
+            ))}
+          </RadioGroup>
+
+          <Slider
+            sx={{ mx: 3 }}
+            disabled={!params.currency}
+            value={params.priceRange}
+            onChange={(_, v) => setParams({ ...params, priceRange: v as [number, number] })}
+            onChangeCommitted={() => apply()}
+            min={priceCfg.min}
+            max={priceCfg.max}
+            step={priceCfg.step}
+            valueLabelDisplay="auto"
+            marks={
+              params.currency
+                ? [
+                  { value: priceCfg.min, label: "0" },
+                  { value: priceCfg.max, label: priceCfg.max === 1_000_000 ? "1 M" : "50 M" },
+                ]
+                : false               // sin marcas cuando está deshabilitado
+            }
+            size="small"
+          />
+
+          {!params.currency && (
+            <Typography variant="caption" color="text.secondary" sx={{ width: "100%", textAlign: "center" }}>
+              Seleccione una moneda para habilitar
+            </Typography>
+          )}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Superficie ───────── */}
+      <Accordion disableGutters expanded={expanded === "sup"} onChange={toggleAcc("sup")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Superficie (Total / Cubierta)</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          <Typography variant="caption" color="text.secondary">Total (m²)</Typography>
+          <Slider
+            sx={{ mx: 3, mb: 2 }}
+            value={params.areaRange}
+            onChange={(_, v) => setParams({ ...params, areaRange: v as [number, number] })}
+            onChangeCommitted={() => apply()}
+            min={LIMITS.surface.min}
+            max={LIMITS.surface.max}
+            step={LIMITS.surface.step}
+            valueLabelDisplay="auto"
+            marks={[
+              { value: LIMITS.surface.min, label: "0" },
+              { value: LIMITS.surface.max, label: "2 000" },
+            ]}
+            size="small"
+          />
+
+          <Typography variant="caption" color="text.secondary">Cubierta (m²)</Typography>
+          <Slider
+            sx={{ mx: 3 }}
+            value={params.coveredRange}
+            onChange={(_, v) => setParams({ ...params, coveredRange: v as [number, number] })}
+            onChangeCommitted={() => apply()}
+            min={LIMITS.surface.min}
+            max={LIMITS.surface.max}
+            step={LIMITS.surface.step}
+            valueLabelDisplay="auto"
+            marks={[
+              { value: LIMITS.surface.min, label: "0" },
+              { value: LIMITS.surface.max, label: "2 000" },
+            ]}
+            size="small"
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Características ───────── */}
+      <Accordion disableGutters expanded={expanded === "carac"} onChange={toggleAcc("carac")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Características</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {amenitiesList.map(am => (
+            <FormControlLabel
+              key={am.id}
+              control={<Checkbox size="small" checked={selected.amenities.includes(am.id)} onChange={() => toggleAmenity(am.id)} />}
+              label={am.name}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Ciudad ───────── */}
+      <Accordion disableGutters expanded={expanded === "ciudad"} onChange={toggleAcc("ciudad")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Ciudades</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {cities.map(city => (
+            <FormControlLabel
+              key={city}
+              control={<Checkbox size="small" checked={params.cities.includes(city)} onChange={() => toggleParam("cities", city)} />}
+              label={city}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* ───────── Barrio ───────── */}
+      <Accordion disableGutters expanded={expanded === "barrio"} onChange={toggleAcc("barrio")}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Barrios</Typography></AccordionSummary>
+        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+          {neighborhoodsList.map(nb => (
+            <FormControlLabel
+              key={nb.name}
+              control={<Checkbox size="small" checked={params.neighborhoods.includes(nb.name)} onChange={() => toggleParam("neighborhoods", nb.name)} />}
+              label={nb.name}
+              sx={checkSx}
+            />
+          ))}
+        </AccordionDetails>
+      </Accordion>
+
+      {/* chips */}
+      {chips.length > 0 && (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: .5, my: 1 }}>
+          {chips.map(c => <Chip key={c.label} label={c.label} onDelete={c.onClear} size="small" />)}
+        </Box>
+      )}
+
+      <Divider sx={{ my: 2 }} />
+      <LoadingButton fullWidth variant="outlined" onClick={reset} sx={{ fontSize: ".75rem", py: .5 }}>
+        Reset filtros
+      </LoadingButton>
+    </Box>
+  );
+
+  /* ═════════ Render con Drawer o fijo ═════════ */
+  return isMobile ? (
+    <>
+      <Button variant="outlined" startIcon={<FilterListIcon />} onClick={() => setOpen(true)} sx={{ fontSize: ".75rem", py: .5 }}>
+        Filtros
+      </Button>
+      <Drawer anchor="bottom" open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { height: "80vh", borderTopLeftRadius: 12, borderTopRightRadius: 12 } }}>
+        {Panel}
+      </Drawer>
+    </>
+  ) : (
+    <Box sx={{ width: 300, flexShrink: 0, borderLeft: "1px solid", borderColor: "divider" }}>{Panel}</Box>
   );
 }

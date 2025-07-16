@@ -8,10 +8,10 @@ import { NeighborhoodType } from '../../../types/neighborhood';
 
 // Mocks
 vi.mock('../../../context/PropertiesContext', () => ({
-  usePropertyCrud: vi.fn(),
+  usePropertiesContext: vi.fn(),
 }));
 
-import { usePropertyCrud } from '../../../context/PropertiesContext';
+import { usePropertiesContext } from '../../../context/PropertiesContext';
 
 const theme = createTheme();
 
@@ -69,7 +69,7 @@ describe('PropertyInfoCompare', () => {
   });
 
   it('muestra título, dirección, precio, chips y descripción', () => {
-    (usePropertyCrud as any).mockReturnValue({ comparisonItems: [] });
+    (usePropertiesContext as any).mockReturnValue({ comparisonItems: [] });
 
     renderWithTheme(<PropertyInfo property={mockProperty} />);
 
@@ -87,7 +87,7 @@ describe('PropertyInfoCompare', () => {
   });
 
   it('muestra "Ubicación desconocida" si no hay datos de calle o barrio', () => {
-    (usePropertyCrud as any).mockReturnValue({ comparisonItems: [] });
+    (usePropertiesContext as any).mockReturnValue({ comparisonItems: [] });
 
     const prop = { ...mockProperty, street: '', neighborhood: null as any };
     renderWithTheme(<PropertyInfo property={prop} />);
@@ -96,7 +96,7 @@ describe('PropertyInfoCompare', () => {
   });
 
   it('muestra "Consultar precio" si no se debe mostrar el precio', () => {
-    (usePropertyCrud as any).mockReturnValue({ comparisonItems: [] });
+    (usePropertiesContext as any).mockReturnValue({ comparisonItems: [] });
 
     const prop = { ...mockProperty, showPrice: false };
     renderWithTheme(<PropertyInfo property={prop} />);
@@ -108,7 +108,7 @@ describe('PropertyInfoCompare', () => {
     const noRoomsProperty = { ...mockProperty, rooms: 0, area: 0, coveredArea: 0 };
     const otherProperty = { ...mockProperty, id: 2 };
 
-    (usePropertyCrud as any).mockReturnValue({
+    (usePropertiesContext as any).mockReturnValue({
         comparisonItems: [noRoomsProperty, otherProperty],
     });
 
