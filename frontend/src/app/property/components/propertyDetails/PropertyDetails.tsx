@@ -2,7 +2,7 @@ import { Container } from '@mui/material';
 import { Property } from '../../types/property';
 import { PropertyPanel } from './PropertyPanel';
 import { PropertyInfo } from './PropertyInfo';
-import { MapSection } from './MapSection';
+import { MapSection } from './maps/MapSection';
 
 interface Props { property: Property }
 

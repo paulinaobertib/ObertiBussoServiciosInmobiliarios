@@ -2,7 +2,7 @@ import { Container, Box, Typography, useMediaQuery, useTheme } from '@mui/materi
 import { Property } from '../../types/property';
 import { PropertyPanel } from './PropertyPanel';
 import PropertyInfoCompare from './PropertyInfoCompare';
-import { MapSection } from './MapSection';
+import { MapSection } from './maps/MapSection';
 
 interface Props { comparisonItems: Property[] }
 
