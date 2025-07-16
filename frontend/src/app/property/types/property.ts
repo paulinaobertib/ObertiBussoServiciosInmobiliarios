@@ -83,6 +83,22 @@ export interface PropertyUpdate {
   mainImage: File | string;
 }
 
+export interface PropertyDTOAI {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  rooms: number;
+  bathrooms: number;
+  bedrooms: number;
+  area: number;
+  coveredArea: number;
+  price: number;
+  operation: string;
+  type: string;
+  amenities: Set<string>;
+}
+
 export const emptyProperty: Property = {
   id: 0,
   title: "",
