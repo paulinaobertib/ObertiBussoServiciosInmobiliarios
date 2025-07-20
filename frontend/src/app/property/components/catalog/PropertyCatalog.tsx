@@ -66,8 +66,11 @@ export const PropertyCatalog = ({
         sx={{
           p: 2,
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))',
-          gap: 3,
+          gridTemplateColumns: {
+            xs: '1fr',               // móviles: 1 columna
+            sm: 'repeat(2, 1fr)',    // pantallas sm: 3 columnas
+            lg: 'repeat(3, 1fr)',    // pantallas md+: 4 columnas
+          }, gap: 3,
         }}
       >
         {sortedList.map(prop => (

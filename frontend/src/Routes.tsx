@@ -7,16 +7,18 @@ import {
 
 import { ROUTES } from './lib';
 import Home from './pages/HomePage';
-import ManagePropertyPage from './pages/ManagePropertyPage'; 
+import ManagePropertyPage from './pages/ManagePropertyPage';
 import Compare from './pages/ComparePage';
 import PropertyDetailsPage from './pages/PropertyDetailsPage';
-import AdministratorPanel from './pages/AdministratorPanel';
+import AdministratorPage from './pages/AdministratorPage';
 import PropertyCommentsPage from './pages/PropertyCommentsPage';
 import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 import FavoritesPage from './pages/FavoritesPage';
 import UserProfilePage from './pages/UserProfilePage';
 import ContactPage from './pages/ContactPage';
 import NewsPage from './pages/NewsPage';
+import NewsDetailsPage from './pages/NewsDetailsPage';
+import PoliciesPage from './pages/PoliciesPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
@@ -72,10 +74,10 @@ export default function Routes() {
 
             {/* ---- Panel administrador ---- */}
             <Route
-                path={ROUTES.ADMIN_PANEL}
+                path={ROUTES.ADMIN_PAGE}
                 element={
                     <RequireAdmin>
-                        <AdministratorPanel />
+                        <AdministratorPage />
                     </RequireAdmin>
                 }
             />
@@ -119,6 +121,9 @@ export default function Routes() {
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
             <Route path={ROUTES.NEWS} element={<NewsPage />} />
+            <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
+
+            <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
 
             {/* ---- Catch-all ---- */}
             <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />

@@ -8,16 +8,12 @@ import { ROUTES, buildRoute } from '../../../lib';
 import type { Category } from '../context/PropertiesContext';
 import type { Info } from './ModalItem';
 import { translate } from '../utils/translate';
-
-// ————————————————————————————————————————
-// 1) Importa aquí tus formularios de CRUD
 import { AmenityForm } from './forms/AmenityForm';
 import { OwnerForm } from './forms/OwnerForm';
 import { TypeForm } from './forms/TypeForm';
 import { NeighborhoodForm } from './forms/NeighborhoodForm';
 import { StatusForm } from './forms/StatusForm';
 
-// 2) Crea un registry para mapear cada categoría a su formulario
 const formRegistry = {
     amenity: AmenityForm,
     owner: OwnerForm,

@@ -3,7 +3,7 @@ import { usePropertiesContext, Category } from "../context/PropertiesContext";
 import { getAllOwners, getOwnersByText } from "../services/owner.service";
 import type { Owner } from "../types/owner";
 
-export function useCategoryPanel(category: Category) {
+export function useCategorySection(category: Category) {
   const {
     pickItem,
     data: rawData,

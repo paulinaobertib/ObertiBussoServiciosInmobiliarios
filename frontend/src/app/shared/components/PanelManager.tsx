@@ -24,28 +24,43 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
 
   return (
     <>
-      {/* botones */}
-      <Stack direction={direction} spacing={1}>
-        {panels.map(p => {
-          const isActive = open[p.key];
-          const handle = () => toggle(p.key);
+      {/* Botones con scroll horizontal */}
+      <Box
+        sx={{
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          width: '100%',
+        }}
+      >
+        <Stack
+          direction={direction}
+          spacing={1}
+          sx={{
+            flexWrap: 'nowrap',
+            width: 'max-content',
+          }}
+        >
+          {panels.map(p => {
+            const isActive = open[p.key];
+            const handle = () => toggle(p.key);
 
-          if (p.ButtonComponent) {
-            const B = p.ButtonComponent;
-            return <B key={p.key} active={isActive} onClick={handle} />;
-          }
-          return (
-            <PanelButton
-              key={p.key}
-              label={p.label}
-              active={isActive}
-              onClick={handle}
-            />
-          );
-        })}
-      </Stack>
+            if (p.ButtonComponent) {
+              const B = p.ButtonComponent;
+              return <B key={p.key} active={isActive} onClick={handle} />;
+            }
+            return (
+              <PanelButton
+                key={p.key}
+                label={p.label}
+                active={isActive}
+                onClick={handle}
+              />
+            );
+          })}
+        </Stack>
+      </Box>
 
-      {/* contenido */}
+      {/* Contenido de panel */}
       {panels.map(p =>
         open[p.key] ? (
           <Box
@@ -59,7 +74,6 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
               boxShadow: 4,
               borderRadius: 2,
               width: '100%',
-
             }}
           >
             {p.content}
@@ -68,4 +82,4 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
       )}
     </>
   );
-}
+};

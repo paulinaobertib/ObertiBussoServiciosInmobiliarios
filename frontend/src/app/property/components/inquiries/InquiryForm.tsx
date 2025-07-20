@@ -28,7 +28,7 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           justifyContent: 'center',
           alignItems: 'center',
           textAlign: 'center',
-          p: 2,
+          mx: 2,
         }}
       >
         <Typography variant="h6" gutterBottom>

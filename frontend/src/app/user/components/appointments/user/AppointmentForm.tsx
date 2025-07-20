@@ -1,11 +1,8 @@
 import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { useAppointments } from '../../../hooks/useAppoitments';
+import { Calendar } from '../../Calendar';
 
 export const AppointmentForm = () => {
-    /* --- booking state del hook --- */
     const {
         bookingDate,
         setBookingDate,
@@ -22,7 +19,17 @@ export const AppointmentForm = () => {
 
     if (bookingSubmitted) {
         return (
-            <Box sx={{ textAlign: 'center', p: 3 }}>
+            <Box
+                sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    mx: 2,
+                }}
+            >
                 <Typography variant="h6" gutterBottom>
                     ¡Turno solicitado con éxito!
                 </Typography>
@@ -40,13 +47,14 @@ export const AppointmentForm = () => {
             }}
             sx={{
                 display: 'grid',
-                gap: 3,
-                p: 2,
                 gridTemplateAreas: {
                     xs: `"cal" "slots" "notes"`,
-                    md: `"cal cal" "slots notes"`,
+                    md: `"cal slots" "notes notes"`,
                 },
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gridTemplateColumns: {
+                    xs: '1fr',
+                    md: '1fr 1fr',
+                },
             }}
         >
             {/* CALENDARIO */}
@@ -54,17 +62,19 @@ export const AppointmentForm = () => {
                 <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
                     Seleccioná un día
                 </Typography>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DateCalendar
-                        value={bookingDate}
-                        onChange={(d) => d && setBookingDate(d)}
-                        disablePast
-                    />
-                </LocalizationProvider>
+                <Calendar
+                    initialDate={bookingDate}
+                    onSelectDate={(d) => setBookingDate(d)}
+                />
             </Box>
 
             {/* SLOTS */}
-            <Box gridArea="slots">
+            <Box
+                gridArea="slots"
+                sx={{
+                    // limitar altura y habilitar scroll si hay muchos horarios
+                }}
+            >
                 <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
                     Horarios disponibles
                 </Typography>
@@ -81,7 +91,9 @@ export const AppointmentForm = () => {
                         sx={{
                             display: 'grid',
                             gap: 1,
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                            maxHeight: 310,
+                            overflowY: 'auto',
                         }}
                     >
                         {bookingSlots.map((slot) => {
@@ -93,8 +105,11 @@ export const AppointmentForm = () => {
                                     variant={selected ? 'contained' : 'outlined'}
                                     size="small"
                                     fullWidth
-                                    sx={{ py: 1.5 }}
-                                    onClick={() => slot.availability && setBookingSlotId(slot.id)}
+                                    // botones más compactos
+                                    sx={{ py: 0.5, minHeight: 24, fontSize: '0.75rem' }}
+                                    onClick={() =>
+                                        slot.availability && setBookingSlotId(slot.id)
+                                    }
                                     disabled={!slot.availability}
                                 >
                                     {time}
@@ -106,8 +121,11 @@ export const AppointmentForm = () => {
             </Box>
 
             {/* NOTAS + SUBMIT */}
-            <Box gridArea="notes" sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
+            <Box
+                gridArea="notes"
+                sx={{ display: 'flex', flexDirection: 'column' }}
+            >
+                <Typography variant="subtitle1" align="center" sx={{ mt: 0 }}>
                     Comentarios
                 </Typography>
                 <TextField
@@ -128,7 +146,12 @@ export const AppointmentForm = () => {
                     {bookingLoading ? 'Enviando…' : 'Solicitar turno'}
                 </Button>
                 {bookingError && (
-                    <Typography color="error" variant="body2" align="center" sx={{ mt: 1 }}>
+                    <Typography
+                        color="error"
+                        variant="body2"
+                        align="center"
+                        sx={{ mt: 1 }}
+                    >
                         {bookingError}
                     </Typography>
                 )}

@@ -5,7 +5,7 @@ import {
 
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
-import { CategoryPanel } from '../app/property/components/CategorySection';
+import { CategorySection } from '../app/property/components/categories/CategorySection';
 import { PropertyForm } from '../app/property/components/forms/PropertyForm';
 import { ImagePreview } from '../app/shared/components/images/ImagePreview';
 
@@ -27,15 +27,15 @@ export default function ManagePropertyPage() {
     }
 
     /* ---------- panels para el paso 0 ---------- */
-    const categoryPanels = [
-        { key: 'type', label: 'Tipos', content: <CategoryPanel category="type" /> },
-        { key: 'neighborhood', label: 'Barrios', content: <CategoryPanel category="neighborhood" /> },
-        { key: 'owner', label: 'Propietarios', content: <CategoryPanel category="owner" /> },
-        { key: 'amenity', label: 'Características', content: <CategoryPanel category="amenity" /> },
+    const CategorySections = [
+        { key: 'type', label: 'Tipos', content: <CategorySection category="type" /> },
+        { key: 'neighborhood', label: 'Barrios', content: <CategorySection category="neighborhood" /> },
+        { key: 'owner', label: 'Propietarios', content: <CategorySection category="owner" /> },
+        { key: 'amenity', label: 'Características', content: <CategorySection category="amenity" /> },
     ];
 
     return (
-        <BasePage maxWidth>
+        <BasePage showFooter={false}>
             <Box sx={{
                 flexGrow: 1,
                 display: 'flex',
@@ -100,7 +100,7 @@ export default function ManagePropertyPage() {
                             </Typography>
 
                             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }} >
-                                <PanelManager panels={categoryPanels} direction="row" />
+                                <PanelManager panels={CategorySections} direction="row" />
                             </Box>
 
                             <Box sx={{ mt: 1, mb: 2, display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>

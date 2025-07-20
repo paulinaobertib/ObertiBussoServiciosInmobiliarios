@@ -1,24 +1,20 @@
-// src/app/user/components/ProfileSection.tsx
-import { useRef, useState, useEffect } from "react";
-import {
-  Accordion, AccordionSummary, AccordionDetails,
-  Box, CircularProgress, Typography
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useProfile } from "../../../hooks/useProfile";
-import { ProfileView } from "./ProfileView";
-import { ProfileForm } from "./ProfileForm";
-import type { User } from "../../../types/user";
+import { useEffect, useRef, useState } from 'react';
+import { Box, CircularProgress, Typography, Collapse, Button } from '@mui/material';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useProfile } from '../../../hooks/useProfile';
+import { ProfileView } from './ProfileView';
+import { ProfileForm } from './ProfileForm';
+import type { User } from '../../../types/user';
 
 export function ProfileSection() {
   const { profile, loading, error, updateProfile } = useProfile();
-
   const [editMode, setEditMode] = useState(false);
-  const [form, setForm]         = useState<User | null>(null);
-  const [saving, setSaving]     = useState(false);
-  const initialized             = useRef(false);
+  const [form, setForm] = useState<User | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(true);
+  const initialized = useRef(false);
 
-  /* copiar perfil una sola vez (primera carga) */
   useEffect(() => {
     if (profile && !initialized.current) {
       setForm(profile);
@@ -26,72 +22,88 @@ export function ProfileSection() {
     }
   }, [profile]);
 
-  const handleSave = async () => {
-    if (!form) return;
-    setSaving(true);
-    try {
-      const merged = await updateProfile(form);       // ← devuelve la mezcla
-      // solo actualizamos los campos que llegaron
+  const handleToggleEdit = async () => {
+    if (editMode && form) {
+      setSaving(true);
+      const merged = await updateProfile(form);
       setForm(prev => (prev ? { ...prev, ...merged } : merged));
-      setEditMode(false);
-    } finally {
       setSaving(false);
     }
+    setEditMode(prev => !prev);
   };
 
-  const userData = form ?? profile;                   // nunca null tras init
+  const handleChange = (field: keyof User, value: string) => {
+    setForm(prev => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const userData = form ?? profile;
+
+  // If collapsed, show small bar
+  if (!open) {
+    return (
+      <Box display="flex" justifyContent="center" p={1}>
+        <Button
+          size="small"
+          onClick={() => setOpen(true)}
+          startIcon={<ExpandMoreIcon />}
+          sx={{ textTransform: 'none' }}
+        >
+          Mostrar perfil
+        </Button>
+      </Box>
+    );
+  }
 
   return (
-    <Accordion disableGutters defaultExpanded>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center" }}>
-          Mis Datos
-        </Typography>
-      </AccordionSummary>
+    <Box
+      sx={{ bgcolor: 'background.paper', boxShadow: 2, borderRadius: 2 }}
+      width="100%"
+    >
+      {/* Collapse control */}
+      <Box display="flex" justifyContent="center" mt={1}>
+        <Button
+          size="small"
+          onClick={() => setOpen(false)}
+          startIcon={<ExpandLessIcon />}
+          sx={{ textTransform: 'none' }}
+        >
+          Ocultar perfil
+        </Button>
+      </Box>
 
-      <AccordionDetails>
-        {loading && !userData && (
-          <Box textAlign="center" my={4}><CircularProgress/></Box>
-        )}
-        {error && !userData && (
+      {/* Content */}
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        {loading && !userData ? (
+          <Box textAlign="center" my={4}>
+            <CircularProgress />
+          </Box>
+        ) : error && !userData ? (
           <Box textAlign="center" my={4}>
             <Typography color="error">{error}</Typography>
           </Box>
-        )}
-
-        {userData && (
+        ) : (
           <Box
             display="flex"
-            flexDirection={{ xs: "column", md: "row" }}
-            justifyContent="center"
+            flexDirection={{ xs: 'column', md: 'row' }}
             alignItems="center"
-            gap={4}
+            justifyContent="center"
             width="100%"
+            gap={4}
           >
-            <Box flexShrink={0}>
-              <ProfileView
-                user={userData}
-                editMode={editMode}
-                saving={saving}
-                onEdit={() => setEditMode(true)}
-                onSave={handleSave}
-              />
-            </Box>
-
-            <Box flexGrow={1} maxWidth={{ md: 500 }} width="100%">
-              <ProfileForm
-                form={userData}
-                editMode={editMode}
-                onChange={(field, value) =>
-                  setForm(prev =>
-                    prev ? { ...prev, [field]: value } : prev
-                  )
-                }
-              />
-            </Box>
+            <ProfileView
+              user={userData as User}
+              editMode={editMode}
+              saving={saving}
+              onToggleEdit={handleToggleEdit}
+            />
+            <ProfileForm
+              user={userData as User}
+              editMode={editMode}
+              onChange={handleChange}
+            />
           </Box>
         )}
-      </AccordionDetails>
-    </Accordion>
+      </Collapse>
+    </Box>
   );
 }

@@ -1,47 +1,57 @@
 import { Box, Container, Toolbar } from '@mui/material';
 import { PropsWithChildren } from 'react';
 import { NavBar } from '../app/shared/components/Navbar';
+import Footer from '../app/shared/components/Footer';
 
 interface BasePageProps {
   maxWidth?: boolean;
+  /** Controla si se muestra el Footer */
+  showFooter?: boolean;
 }
 
-export const BasePage = ({
-  children,
-  maxWidth = true,
-}: PropsWithChildren<BasePageProps>) => {
-
+export const BasePage = ({ children, maxWidth = true, showFooter = true }: PropsWithChildren<BasePageProps>) => {
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
-
-      {/* Tu contenido va aquí */}
+    <Box
+      component="div"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+      }}
+    >
+      {/* Navbar fijo arriba */}
       <NavBar />
+
+      {/* Contenedor principal */}
       <Container
-        maxWidth={false}        // quito el límite por defecto
+        maxWidth={false}
         sx={{
+          flexGrow: 1,
           position: 'relative',
           zIndex: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh',
           px: 2,
           mx: 'auto',
-
-          // cuando maxWidth=true, ajusto un ancho "responsivo" más generoso
           ...(maxWidth && {
             width: {
-              xs: '100%',    // móvil ocupa 100%
-              sm: '95%',     // tablet 95%
-              md: '90%',     // escritorio mediano 90%
-              lg: '80%',     // pantallas grandes 80%
+              xs: '100%',
+              sm: '95%',
+              md: '90%',
+              lg: '80%',
             },
-            maxWidth: '1600px', // nunca pase de 1600px
+            maxWidth: '1600px',
           }),
         }}
       >
         <Toolbar />
         {children}
       </Container>
+
+      {/* Footer condicional */}
+      {showFooter && <Footer />}
     </Box>
   );
 };
+
+export default BasePage;
