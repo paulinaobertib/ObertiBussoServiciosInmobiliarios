@@ -4,15 +4,15 @@ import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
-import { CategoryPanel } from '../app/property/components/CategorySection';
-import { PropertyPanel } from '../app/property/components/PropertySection';
+import { CategorySection } from '../app/property/components/categories/CategorySection';
+import { PropertySection } from '../app/property/components/properties/PropertySection';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { ProfileSection } from "../app/user/components/users/profile/ProfileSection";
 import { UsersSection } from '../app/user/components/users/panel/UsersSection';
 import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
 import { InquiriesSection } from '../app/property/components/inquiries/InquiriesSection';
 
-export default function AdministratorPanel() {
+export default function AdministratorPage() {
     const { resetSelected, pickItem } = usePropertiesContext();
     const navigate = useNavigate();
 
@@ -25,12 +25,12 @@ export default function AdministratorPanel() {
         {
             key: 'property',
             label: 'PROPIEDADES',
-            content: <PropertyPanel />,
+            content: <PropertySection />,
         },
         {
             key: 'owner',
             label: 'PROPIETARIOS',
-            content: <CategoryPanel category="owner" />,
+            content: <CategorySection category="owner" />,
         },
         {
             key: 'users',

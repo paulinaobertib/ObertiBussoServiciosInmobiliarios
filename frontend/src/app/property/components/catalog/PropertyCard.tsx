@@ -88,21 +88,18 @@ export const PropertyCard = ({
             loop
             playsInline
             onContextMenu={e => e.preventDefault()}
+            sx={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover' }}
+          />
+        ) : (
+          <Box
+            component="img"
+            src={src}
+            alt={property.title}
             sx={{
               width: '100%',
               aspectRatio: '16/9',
               objectFit: 'cover',
-              display: 'block',
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              width: '100%',
-              aspectRatio: '16/9',
-              backgroundImage: `url(${src})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundColor: '#000', // opcional, para letterbox
             }}
           />
         )}
@@ -209,7 +206,7 @@ export const PropertyCard = ({
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                gap: 1,
+                gap: 0.5,
               }}
             >
               <Box
@@ -226,7 +223,11 @@ export const PropertyCard = ({
                 >
                   Precio
                 </Typography>
-                <Typography variant="subtitle2">
+                <Typography
+                  variant="subtitle2"
+                  noWrap
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
                   {`${property.currency} $${property.price}`}
                 </Typography>
               </Box>
@@ -244,8 +245,11 @@ export const PropertyCard = ({
                 >
                   Expensas
                 </Typography>
-                <Typography variant="subtitle2">
-                  {property.expenses > 0
+                <Typography
+                  variant="subtitle2"
+                  noWrap sx={{ whiteSpace: 'nowrap' }}
+                >
+                  {property?.expenses ?? 0 > 0
                     ? `${property.currency} $${property.expenses}`
                     : 'No'}
                 </Typography>

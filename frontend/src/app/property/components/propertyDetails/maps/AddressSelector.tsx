@@ -1,30 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import {
-    Box,
-    TextField,
-    IconButton,
-    CircularProgress,
-    Button,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    useTheme,
-    Grid,
-    InputAdornment,
-    Typography,
+    Box, TextField, IconButton, CircularProgress, Button, Dialog,
+    DialogTitle, DialogContent, DialogActions, useTheme, Grid, InputAdornment, Typography,
 } from "@mui/material";
 import MapIcon from "@mui/icons-material/Map";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
-import {
-    MapContainer,
-    TileLayer,
-    Circle,
-    useMapEvents,
-    GeoJSON,
-} from "react-leaflet";
+import { MapContainer, TileLayer, Circle, useMapEvents, GeoJSON, } from "react-leaflet";
 import { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getNeighborhoodById } from "../../../services/neighborhood.service";

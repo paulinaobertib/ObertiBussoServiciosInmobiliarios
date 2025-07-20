@@ -44,7 +44,7 @@ export const NavBar = () => {
   };
 
   const goToProfile = () => {
-    navigate(isAdmin ? ROUTES.ADMIN_PANEL : ROUTES.USER_PROFILE);
+    navigate(isAdmin ? ROUTES.ADMIN_PAGE : ROUTES.USER_PROFILE);
   };
 
   return (

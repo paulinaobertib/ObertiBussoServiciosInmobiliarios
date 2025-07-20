@@ -18,13 +18,15 @@ export const ROUTES = {
   EDIT_PROPERTY: `/properties/:id/edit`,
   COMPARE: "/properties/compare",
   PROPERTY_DETAILS: "/properties/:id",
-  ADMIN_PANEL: "/panel",
+  ADMIN_PAGE: "/admin",
   USER_PROFILE: "/profile",
   PROPERTY_COMMENTS: "/properties/:id/comments",
   PROPERTY_MAINTENANCE: "/properties/:id/maintenance",
   CONTACT: "/contact",
   NEWS: "/news",
+  NEWS_DETAILS: "/news/:id",
   FAVORITES: "/favorites",
+  POLICIES: "/policies",
 };
 
 export const PAGES = [
@@ -33,11 +35,13 @@ export const PAGES = [
   { name: "Editar Propiedad", url: ROUTES.EDIT_PROPERTY },
   { name: "Comparar Propiedades", url: ROUTES.COMPARE },
   { name: "Detalle de Propiedad", url: ROUTES.PROPERTY_DETAILS },
-  { name: "Panel de Administrador", url: ROUTES.ADMIN_PANEL },
+  { name: "Panel de Administrador", url: ROUTES.ADMIN_PAGE },
   { name: "Perfil de Usuario", url: ROUTES.USER_PROFILE },
   { name: "Comentarios de Propiedad", url: ROUTES.PROPERTY_COMMENTS },
   { name: "Mantenimiento de Propiedad", url: ROUTES.PROPERTY_MAINTENANCE },
   { name: "Contacto de la Inmobiliarioa", url: ROUTES.CONTACT },
   { name: "Noticias", url: ROUTES.NEWS },
+  { name: "Detalle de Noticia", url: ROUTES.NEWS_DETAILS },
   { name: "Favoritos", url: ROUTES.FAVORITES },
+  { name: "Politicas de Privacidad", url: ROUTES.POLICIES },
 ];
