@@ -1,39 +1,69 @@
-// src/app/user/components/users/ProfileView.tsx
+import { Box, Avatar, Typography, Stack, IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import type { User } from '../../../types/user';
 
-import { Avatar, Typography, Button, Stack } from "@mui/material";
-import type { User } from "../../../types/user";
-
-interface Props {
+interface ViewProps {
   user: User;
   editMode: boolean;
   saving: boolean;
-  onEdit: () => void;
-  onSave: () => Promise<void>;
+  onToggleEdit: () => void;
 }
 
-export const ProfileView = ({
-  user,
-  editMode,
-  saving,
-  onEdit,
-  onSave,
-}: Props) => (
-  <Stack spacing={1} alignItems="center" sx={{ width: 280 }}>
-    <Avatar sx={{ width: 80, height: 80 }}>
-      {user.firstName[0]?.toUpperCase()}
-    </Avatar>
-    <Typography variant="h6">
-      {user.firstName} {user.lastName}
-    </Typography>
-    <Typography color="text.secondary">{user.email}</Typography>
+export function ProfileView({ user, editMode, saving, onToggleEdit }: ViewProps) {
+  return (
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      flexGrow={1}
+      pr={{ md: 4, xs: 0 }}
+      width="100%"
+      p={3}
+      sx={{ flex: '1 1 30%' }}
 
-    <Button
-      variant="contained"
-      color="secondary"
-      onClick={editMode ? onSave : onEdit}
-      disabled={saving}
     >
-      {editMode ? "Guardar cambios" : "Editar datos"}
-    </Button>
-  </Stack>
-);
+      <Box position="relative">
+        <Avatar
+          sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: 'primary.main' }}
+        >
+          {user.firstName?.[0]?.toUpperCase()}
+          {user.lastName?.[0]?.toUpperCase()}
+        </Avatar>
+        <IconButton
+          disableRipple
+          onClick={onToggleEdit}
+          disabled={saving}
+          sx={{
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            bgcolor: 'background.paper',
+            boxShadow: 1,
+            '&:hover': { bgcolor: 'background.paper' },
+          }}
+        >
+          {editMode ? <SaveIcon /> : <EditIcon />}
+        </IconButton>
+      </Box>
+      <Typography
+        variant="h6"
+        mt={2}
+        fontWeight="bold"
+        noWrap
+        textAlign="center"
+        width="100%"
+      >
+        {user.firstName} {user.lastName}
+      </Typography>
+      <Stack spacing={0.5} mt={1} alignItems="center">
+        <Typography variant="body2" color="text.secondary" noWrap>
+          {user.email}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" noWrap>
+          {user.phone}
+        </Typography>
+      </Stack>
+    </Box>
+  );
+}

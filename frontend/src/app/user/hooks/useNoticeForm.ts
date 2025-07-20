@@ -41,12 +41,10 @@ export function useNoticeForm(
   ) => setForm((f) => ({ ...f, [k]: v }));
 
   /* ---------- validación ---------- */
-  const errors = {
-    title: form.title.trim(),
-    description: form.description.trim(),
-    mainImage: form.mainImage,
-  };
-  const valid = !Object.values(errors).some(Boolean);
+  const valid =
+    form.title.trim() !== "" &&
+    form.description.trim() !== "" &&
+    form.mainImage !== null;
 
   useEffect(() => onValidChange?.(valid), [valid, onValidChange]);
 
@@ -61,7 +59,6 @@ export function useNoticeForm(
 
   return {
     form,
-    errors,
     imgError,
     clearError,
     /* API pública para el componente */

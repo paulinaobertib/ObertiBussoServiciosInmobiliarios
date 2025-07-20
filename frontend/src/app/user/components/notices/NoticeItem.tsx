@@ -1,155 +1,187 @@
-import { useState } from "react";
-import {
-  Paper,
-  Box,
-  Typography,
-  IconButton,
-  Chip,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import type { Notice } from "../../types/notice";
-import { useUser } from "../../../user/hooks/useUser";
+import { useState, useRef } from 'react';
+import { Box, Typography, Button, IconButton, Chip } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useNavigate } from 'react-router-dom';
+import { buildRoute, ROUTES } from '../../../../lib';
+import { Modal } from '../../../shared/components/Modal';
+import { NoticeForm, NoticeFormHandle } from './NoticeForm';
+import type { Notice } from '../../types/notice';
 
 interface Props {
   notice: Notice;
-  isAdmin: boolean;
-  onEditClick: (n: Notice) => void;
-  onDeleteClick: (id: number) => void;
+  isAdmin?: boolean;
+  onUpdate: (n: Notice) => Promise<void>;
+  onDeleteClick?: (id: number) => void;
 }
 
 export default function NoticeItem({
   notice,
-  isAdmin,
-  onEditClick,
+  isAdmin = false,
+  onUpdate,
   onDeleteClick,
 }: Props) {
-  const { user } = useUser(notice.userId);
-  const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
+  const [editOpen, setEditOpen] = useState(false);
+  const [canSave, setCanSave] = useState(false);
+  const formRef = useRef<NoticeFormHandle>(null);
+
+  const imageSrc =
+    typeof notice.mainImage === 'string'
+      ? notice.mainImage
+      : notice.mainImage
+        ? URL.createObjectURL(notice.mainImage)
+        : '';
 
   const isNew =
     Date.now() - new Date(notice.date).getTime() <
-    1000;
+    3 * 24 * 60 * 60 * 1000; // últimos 3 días
+
+  const formattedDate = new Date(notice.date).toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  const goToDetails = () =>
+    navigate(buildRoute(ROUTES.NEWS_DETAILS, notice.id));
+
+  const openEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditOpen(true);
+  };
+  const closeEdit = () => setEditOpen(false);
+
+  const handleSave = async () => {
+    if (!formRef.current) return;
+    const data = formRef.current.getUpdateData();
+    await onUpdate({ ...(data as Notice), id: notice.id, userId: notice.userId });
+    closeEdit();
+  };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        borderLeft: 4,
-        borderColor: isNew ? "secondary.main" : "divider",
-        p: 3,
-        borderRadius: 2,
-        overflow: "hidden",
-      }}
-    >
-      <Box sx={{ flex: 1, pr: { md: 2 } }}>
+    <>
+      <Box
+        onClick={goToDetails}
+        sx={{
+          width: '100%',
+          minWidth: 0,
+          borderRadius: 2,
+          overflow: 'hidden',
+          flexShrink: 0,
+          bgcolor: 'background.paper',
+          boxShadow: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          cursor: 'pointer',
+          mb: 1,
+        }}
+      >
+        {/* HEADER: chip + fecha + autor si es admin + botones */}
         <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={1}
+          sx={{
+            px: 1,
+            pt: 1,
+            pb: isAdmin ? 0.5 : 1,
+          }}
         >
-          <Box display="flex" alignItems="center" gap={1}>
-            <Typography
-              variant="overline"
-              color="textSecondary"
-              sx={{ letterSpacing: 1 }}
-            >
-              Publicada el{" "}
-              {new Date(notice.date).toLocaleDateString()}
-              {user && ` por ${user.firstName} ${user.lastName}`}
-            </Typography>
-            {isNew && (
-              <Chip
-                label="Nuevo"
-                size="small"
-                sx={{
-                  fontWeight: 500,
-                  bgcolor: "quaternary.main",
-                  color: "quaternary.contrastText",
-                }}
-              />
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* Izquierda: chip + fecha */}
+            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+              {isNew && (
+                <Chip
+                  label="NUEVO"
+                  size="small"
+                  color="default"
+                  sx={{
+                    color: 'inherit',
+                    bgcolor: 'quaternary.main',
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                  }}
+                />
+              )}
+              {isNew && (
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {formattedDate}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Derecha: botones admin */}
+            {isAdmin && (
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton size="small" onClick={openEdit}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteClick?.(notice.id);
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
             )}
           </Box>
-          {isAdmin && (
-            <Box display="flex" gap={0.5}>
-              <IconButton
-                size="small"
-                onClick={() => onEditClick(notice)}
-                sx={{ p: 0.5 }}
-              >
-                <EditIcon fontSize="medium" />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => onDeleteClick(notice.id)}
-                sx={{ p: 0.5 }}
-              >
-                <DeleteIcon fontSize="medium" />
-              </IconButton>
-            </Box>
-          )}
+
         </Box>
 
-        <Typography
-          variant="h6"
-          component="h2"
-          gutterBottom
-          sx={{ fontWeight: 600, lineHeight: 1.2 }}
-        >
-          {notice.title}
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="textSecondary"
-          paragraph
-          sx={{
-            display: "-webkit-box",
-            WebkitLineClamp: expanded ? "none" : 2,
-            WebkitBoxOrient: "vertical",
-            overflow: expanded ? "auto" : "hidden",
-          }}
-        >
-          {notice.description}
-        </Typography>
-
-        <Typography
-          variant="button"
-          onClick={() => setExpanded((e) => !e)}
-          sx={{
-            cursor: "pointer",
-            color: "primary.main",
-            textTransform: "none",
-            fontSize: "0.75rem",
-          }}
-        >
-          {expanded ? "Ver menos" : "Ver más"}
-        </Typography>
-      </Box>
-
-
-      {notice.mainImage && (
+        {/* IMAGEN 9:16 */}
         <Box
-          component="img"
-          src={
-            typeof notice.mainImage === "string"
-              ? notice.mainImage
-              : URL.createObjectURL(notice.mainImage)
-          }
-          alt={notice.title}
           sx={{
-            width: { xs: "100%", md: 120 },
-            objectFit: "cover",
-            alignSelf: "center",
-            ml: { md: 2 },
-            mt: { xs: 2, md: 0 },
-            display: { xs: "none", md: "block" },
+            width: '100%',
+            aspectRatio: '9/16',
+            backgroundImage: `url(${imageSrc})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
         />
-      )}
-    </Paper>
+
+        {/* FOOTER */}
+        <Box sx={{ px: 2, py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              lineHeight: 1.25,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              height: '2.5em',
+            }}
+          >
+            {notice.title}
+          </Typography>
+          <Button
+            variant="text"
+            size="small"
+            onClick={goToDetails}
+            sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+          >
+            Leer más
+          </Button>
+        </Box>
+      </Box>
+
+      {/* MODAL EDICIÓN */}
+      <Modal open={editOpen} title="Editar novedad" onClose={closeEdit}>
+        <NoticeForm
+          key={notice.id}
+          ref={formRef}
+          initialData={notice}
+          onValidityChange={setCanSave}
+        />
+        <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
+          <Button variant="contained" onClick={handleSave} disabled={!canSave}>
+            Guardar
+          </Button>
+        </Box>
+      </Modal>
+    </>
   );
 }

@@ -2,18 +2,14 @@ import { useState } from 'react';
 import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
 import { AppointmentForm } from '../app/user/components/appointments/user/AppointmentForm';
 import { BasePage } from './BasePage';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, useTheme, useMediaQuery, } from '@mui/material';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 export default function ContactPage() {
-    const [formVisible, setFormVisible] = useState(true);
-
-    const handleFormDone = () => {
-        setFormVisible(false);
-    };
-
-    const handleReset = () => {
-        setFormVisible(true);
-    };
+    const theme = useTheme();
+    const isMobile = !useMediaQuery(theme.breakpoints.up('md'));
+    const [tab, setTab] = useState<'inquiry' | 'appointment'>('inquiry');
 
     return (
         <BasePage>
@@ -27,93 +23,121 @@ export default function ContactPage() {
                 }}
             >
                 {/* Panel de consultas */}
-                <Box
-                    sx={{
-                        flexBasis: { xs: '100%', md: '35%' },
-                        display: 'flex',
-                        flexDirection: 'column',
-                        m: 2,
-                        overflow: 'hidden',
-                        minHeight: 0,
-                        bgcolor: 'background.paper',
-                        boxShadow: 4,
-                        borderRadius: 2,
-                    }}
-                >
-                    <Typography variant="h5" align="center" sx={{ p: 2 }}>
-                        Realizá tu consulta
-                    </Typography>
-                    <Typography variant="body2" align="center" sx={{ px: 3, pb: 1, color: 'text.secondary' }}>
-                        Completá el formulario para enviarnos tu consulta y nos comunicaremos a la brevedad.
-                    </Typography>
-
+                {(!isMobile || tab === 'inquiry') && (
                     <Box
                         sx={{
-                            flex: 1,
+                            flexBasis: { xs: '100%', md: '35%' },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            m: 2,
+                            overflow: 'hidden',
                             minHeight: 0,
-                            overflowY: 'auto',
-                            p: 2,
+                            bgcolor: 'background.paper',
+                            boxShadow: 4,
+                            borderRadius: 2,
                         }}
                     >
-                        {formVisible ? (
-                            <InquiryForm
-                                propertyIds={[]}
-                                onDone={handleFormDone}
-                            />
-                        ) : (
-                            <Box
-                                sx={{
-                                    flex: 1,
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    flexDirection: 'column',
-                                    p: 2,
-                                }}
-                            >
-                                <Typography variant="h6" gutterBottom>
-                                    ¡Consulta enviada con éxito!
-                                </Typography>
-                                <Button variant="contained" onClick={handleReset}>
-                                    Enviar otra consulta
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                p: 2,
+                            }}
+                        >
+                            <Typography variant="h5" align="center" sx={{ flex: 1 }}>Realizá tu consulta</Typography>
+                            {isMobile && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => setTab('appointment')}
+                                    endIcon={<ArrowForwardIosIcon fontSize="small" />}
+                                    sx={{ textTransform: 'none' }}
+                                >
+                                    Sacar turno
                                 </Button>
-                            </Box>
-                        )}
+                            )}
+                        </Box>
+
+                        <Typography
+                            variant="body2"
+                            align="center"
+                            sx={{ px: 3, pb: 1, color: 'text.secondary' }}
+                        >
+                            Completá el formulario para enviarnos tu consulta y nos comunicaremos a la brevedad.
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                flex: 1,
+                                minHeight: 0,
+                                overflowY: 'auto',
+                            }}
+                        >
+                            <InquiryForm propertyIds={[]} />
+                        </Box>
                     </Box>
-                </Box>
+                )}
 
                 {/* Panel de turnos */}
-                <Box
-                    sx={{
-                        flexBasis: { xs: '100%', md: '65%' },
-                        display: 'flex',
-                        flexDirection: 'column',
-                        m: 2,
-                        overflow: 'hidden',
-                        minHeight: 0,
-                        bgcolor: 'background.paper',
-                        boxShadow: 4,
-                        borderRadius: 2,
-                    }}
-                >
-                    <Typography variant="h5" align="center" sx={{ p: 2 }}>
-                        Reservá tu turno
-                    </Typography>
-                    <Typography variant="body2" align="center" sx={{ px: 3, pb: 1, color: 'text.secondary' }}>
-                        Seleccioná fecha y horario para solicitar un turno presencial.
-                    </Typography>
-
+                {(!isMobile || tab === 'appointment') && (
                     <Box
                         sx={{
-                            flex: 1,
+                            flexBasis: { xs: '100%', md: '65%' },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            m: 2,
+                            overflow: 'hidden',
                             minHeight: 0,
-                            overflowY: 'auto',
-                            p: 2,
+                            bgcolor: 'background.paper',
+                            boxShadow: 4,
+                            borderRadius: 2,
                         }}
                     >
-                        <AppointmentForm />
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                p: 2,
+                            }}
+                        >
+                            {isMobile && (
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => setTab('inquiry')}
+                                    startIcon={<ArrowBackIosIcon fontSize="small" />}
+                                    sx={{ textTransform: 'none' }}
+                                >
+                                    Hacer consulta
+                                </Button>
+                            )}
+                            <Typography variant="h5" align="center" sx={{ flex: 1 }}>
+                                Reservá tu turno
+                            </Typography>
+                        </Box>
+
+                        <Typography
+                            variant="body2"
+                            align="center"
+                            sx={{ px: 3, pb: 1, color: 'text.secondary' }}
+                        >
+                            Seleccioná fecha y horario para solicitar un turno presencial.
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                flex: 1,
+                                minHeight: 0,
+                                overflowY: 'auto',
+                                p: 2,
+                            }}
+                        >
+                            <AppointmentForm />
+                        </Box>
                     </Box>
-                </Box>
+                )}
             </Box>
         </BasePage>
     );
