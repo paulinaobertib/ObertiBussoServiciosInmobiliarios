@@ -22,6 +22,7 @@ import PoliciesPage from './pages/PoliciesPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
+import TenantPage from './pages/TenantPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -47,6 +48,18 @@ function RequireLogin({ children }: { children: ReactNode }) {
     }
     return <>{children}</>;
 }
+
+// function RequireTenant({ children }: { children: ReactNode }) {
+//     const { isTenant, loading } = useAuthContext();
+//     const { showAlert } = useGlobalAlert();
+
+//     if (loading) return null;
+//     if (!isTenant) {
+//         showAlert('No tienes permisos de inquilino', 'error');
+//         return <Navigate to={ROUTES.HOME_APP} replace />;
+//     }
+//     return <>{children}</>;
+// }
 
 /* ---------- Rutas ---------- */
 export default function Routes() {
@@ -112,6 +125,16 @@ export default function Routes() {
                 element={
                     <RequireLogin>
                         <FavoritesPage />
+                    </RequireLogin>
+                }
+            />
+
+            {/* ---- Panel administrador ---- */}
+            <Route
+                path={ROUTES.TENANT}
+                element={
+                    <RequireLogin>
+                        <TenantPage />
                     </RequireLogin>
                 }
             />

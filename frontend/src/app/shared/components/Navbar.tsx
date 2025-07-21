@@ -15,6 +15,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LogoutIcon from '@mui/icons-material/Logout';
+import RealEstateAgentIcon from '@mui/icons-material/RealEstateAgent';
 
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
@@ -83,15 +84,33 @@ export const NavBar = () => {
               justifyContent: 'center',
             }}
           >
-            <IconButton
-              size="large"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-              aria-label="open menu"
-              sx={{ position: 'absolute', left: 0 }}
+
+            <Box
+              sx={{
+                position: 'absolute',
+                left: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
             >
-              <MenuIcon />
-            </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleOpenNavMenu}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
+
+              <IconButton
+                size="small"
+                onClick={() => navigate(ROUTES.TENANT)}
+                color="inherit"
+              >
+                <RealEstateAgentIcon />
+              </IconButton>
+
+            </Box>
 
             <Box
               component="img"
@@ -144,11 +163,13 @@ export const NavBar = () => {
               <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
                 NOTICIAS
               </MenuItem>
+
               {isLogged && (
                 <MenuItem onClick={() => { handleCloseNavMenu(); goToProfile(); }}>
                   {isAdmin ? 'PANEL' : 'PERFIL'}
                 </MenuItem>
               )}
+
               {isLogged && !isAdmin && (
                 <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
                   MIS FAVORITOS
@@ -184,6 +205,16 @@ export const NavBar = () => {
               }}
             >
               NOTICIAS
+            </Button>
+            <Button
+              onClick={() => navigate(ROUTES.TENANT)}
+              sx={{
+                color: palette.common.white,
+                textTransform: 'none',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+              }}
+            >
+              SOY INQUILINO
             </Button>
           </Box>
 
@@ -221,7 +252,7 @@ export const NavBar = () => {
             )}
           </Box>
         </Toolbar>
-      </Box>
-    </AppBar>
+      </Box >
+    </AppBar >
   );
 };
