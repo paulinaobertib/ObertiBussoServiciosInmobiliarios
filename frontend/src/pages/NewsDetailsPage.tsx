@@ -1,11 +1,23 @@
+import IconButton from '@mui/material/IconButton';
 import NoticeDetails from '../app/user/components/notices/noticeDetails/noticeDetails';
 import { BasePage } from './BasePage';
+import { useNavigate } from 'react-router-dom';
+import ReplyIcon from '@mui/icons-material/Reply';
 
-export default function NewsPage() {
-
+export default function NewsDetailsPage() {
+    const navigate = useNavigate();
     return (
-        <BasePage>
-            <NoticeDetails />
-        </BasePage>
+        <>
+            <IconButton
+                size="small"
+                onClick={() => navigate(-1)}
+                sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
+            >
+                <ReplyIcon />
+            </IconButton>
+            <BasePage>
+                <NoticeDetails />
+            </BasePage>
+        </>
     );
 }

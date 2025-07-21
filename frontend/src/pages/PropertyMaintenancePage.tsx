@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, IconButton } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MaintenanceForm } from "../app/property/components/forms/MaintenanceForm";
@@ -6,6 +6,7 @@ import { MaintenanceSection } from "../app/property/components/maintenances/Main
 import { Info, ModalItem } from "../app/property/components/ModalItem";
 import { usePropertiesContext } from "../app/property/context/PropertiesContext";
 import { BasePage } from "./BasePage";
+import ReplyIcon from '@mui/icons-material/Reply';
 
 export default function PropertyMaintenancePage() {
     const { id: idParam } = useParams();
@@ -76,28 +77,38 @@ export default function PropertyMaintenancePage() {
         });
 
     return (
-        <BasePage>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
-                <Button variant="contained" onClick={() => navigate(-1)}>
-                    VOLVER
-                </Button>
-            </Box>
+        <>
+            <IconButton
+                size="small"
+                onClick={() => navigate(-1)}
+                sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
+            >
+                <ReplyIcon />
+            </IconButton>
 
-            <MaintenanceSection
-                loading={loading}
-                items={maintenancesList}
-                onAdd={openAddModal}
-                onEditItem={openEditModal}
-                onDeleteItem={openDeleteModal}
-            />
+            <BasePage>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
+                    <Button variant="contained" onClick={() => navigate(-1)}>
+                        VOLVER
+                    </Button>
+                </Box>
 
-            <ModalItem
-                info={modal}
-                close={async () => {
-                    setModal(null);
-                    await refreshMaintenances();
-                }}
-            />
-        </BasePage>
+                <MaintenanceSection
+                    loading={loading}
+                    items={maintenancesList}
+                    onAdd={openAddModal}
+                    onEditItem={openEditModal}
+                    onDeleteItem={openDeleteModal}
+                />
+
+                <ModalItem
+                    info={modal}
+                    close={async () => {
+                        setModal(null);
+                        await refreshMaintenances();
+                    }}
+                />
+            </BasePage>
+        </>
     );
 }

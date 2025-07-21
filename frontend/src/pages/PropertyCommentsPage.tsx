@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Box, Button } from '@mui/material';
+import { IconButton } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BasePage } from './BasePage';
 import { ModalItem, Info } from '../app/property/components/ModalItem';
 import { CommentForm } from '../app/property/components/forms/CommentForm';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { CommentSection } from '../app/property/components/comments/CommentSection';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 export default function PropertyMaintenancePage() {
     const { id } = useParams<{ id: string }>();
@@ -76,28 +77,32 @@ export default function PropertyMaintenancePage() {
         });
 
     return (
-        <BasePage>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -2 }}>
-                <Button variant="contained" onClick={() => navigate(-1)}>
-                    VOLVER
-                </Button>
-            </Box>
+        <>
+            <IconButton
+                size="small"
+                onClick={() => navigate(-1)}
+                sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
+            >
+                <ReplyIcon />
+            </IconButton>
 
-            <CommentSection
-                loading={loading}
-                items={commentsList}
-                onAdd={openAdd}
-                onEditItem={openEdit}
-                onDeleteItem={openDelete}
-            />
+            <BasePage>
+                <CommentSection
+                    loading={loading}
+                    items={commentsList}
+                    onAdd={openAdd}
+                    onEditItem={openEdit}
+                    onDeleteItem={openDelete}
+                />
 
-            <ModalItem
-                info={modal}
-                close={async () => {
-                    setModal(null);
-                    await refreshComments();
-                }}
-            />
-        </BasePage>
+                <ModalItem
+                    info={modal}
+                    close={async () => {
+                        setModal(null);
+                        await refreshComments();
+                    }}
+                />
+            </BasePage>
+        </>
     );
 };

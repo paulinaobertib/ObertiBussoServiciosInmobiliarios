@@ -1,53 +1,19 @@
-import { useEffect } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
-import { CategorySection } from '../app/property/components/categories/CategorySection';
 import { PropertySection } from '../app/property/components/properties/PropertySection';
-import { usePropertiesContext } from '../app/property/context/PropertiesContext';
-import { ProfileSection } from "../app/user/components/users/profile/ProfileSection";
-import { UsersSection } from '../app/user/components/users/panel/UsersSection';
-import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
-import { InquiriesSection } from '../app/property/components/inquiries/InquiriesSection';
 import ReplyIcon from '@mui/icons-material/Reply';
 
-export default function AdministratorPage() {
-    const { resetSelected, pickItem } = usePropertiesContext();
+export default function TenantPage() {
     const navigate = useNavigate();
-
-    useEffect(() => {
-        pickItem('category', null);
-        resetSelected();
-    }, [pickItem, resetSelected]);
 
     const panels = [
         {
             key: 'property',
-            label: 'PROPIEDADES',
+            label: 'MIS PROPIEDADES',
             content: <PropertySection />,
         },
-        {
-            key: 'owner',
-            label: 'PROPIETARIOS',
-            content: <CategorySection category="owner" />,
-        },
-        {
-            key: 'users',
-            label: 'USUARIOS',
-            content: <UsersSection />,
-        },
-        {
-            key: 'inquiries',
-            label: 'CONSULTAS',
-            content: <InquiriesSection />,
-        },
-        {
-            key: 'appointments',
-            label: 'TURNERO',
-            content: <AppointmentSection />,
-        }
     ];
 
     return (
@@ -57,12 +23,10 @@ export default function AdministratorPage() {
                 onClick={() => navigate(-1)}
                 sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
             >
-                <ReplyIcon /> 
+                <ReplyIcon />
             </IconButton>
 
             <BasePage>
-
-                <ProfileSection />
 
                 <Box
                     sx={{

@@ -27,6 +27,7 @@ export const ROUTES = {
   NEWS_DETAILS: "/news/:id",
   FAVORITES: "/favorites",
   POLICIES: "/policies",
+  TENANT: "/tenant",
 };
 
 export const PAGES = [
@@ -44,4 +45,5 @@ export const PAGES = [
   { name: "Detalle de Noticia", url: ROUTES.NEWS_DETAILS },
   { name: "Favoritos", url: ROUTES.FAVORITES },
   { name: "Politicas de Privacidad", url: ROUTES.POLICIES },
+  { name: "Panel de Inquilino", url: ROUTES.TENANT },
 ];

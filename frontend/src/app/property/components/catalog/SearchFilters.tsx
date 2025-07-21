@@ -24,7 +24,6 @@ const checkSx = {
   "& .MuiCheckbox-root": { p: 0.3 },
 };
 
-
 const radioSx = {
   px: 0.5,
   ".MuiFormControlLabel-label": { fontSize: "0.9rem" },
@@ -293,7 +292,7 @@ export function SearchFilters({ onSearch }: Props) {
       <Button variant="outlined" startIcon={<FilterListIcon />} onClick={() => setOpen(true)} sx={{ fontSize: ".75rem", py: .5 }}>
         Filtros
       </Button>
-      <Drawer anchor="bottom" open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { height: "80vh", borderTopLeftRadius: 12, borderTopRightRadius: 12 } }}>
+      <Drawer anchor="bottom" open={open} onClose={() => setOpen(false)} PaperProps={{ sx: { height: "75vh", borderTopLeftRadius: 12, borderTopRightRadius: 12 } }}>
         {Panel}
       </Drawer>
     </>
