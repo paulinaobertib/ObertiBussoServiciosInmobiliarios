@@ -1,4 +1,4 @@
-import { Box, Button } from '@mui/material';
+import { Box, Button, IconButton } from '@mui/material';
 import { BasePage } from './BasePage';
 import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
@@ -10,7 +10,7 @@ import { ROUTES } from '../lib';
 import { useAuthContext } from '../app/user/context/AuthContext';
 import { PropertyDTOAI } from '../app/property/types/property';
 import { Comparer } from '../app/property/components/comparer/Comparer';
-import theme from '../theme';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 const Compare = () => {
   const navigate = useNavigate();
@@ -47,45 +47,37 @@ const Compare = () => {
   }));
 
   return (
-    <BasePage>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, mb: -4 }}>
-        <Button variant="contained" color="primary" onClick={handleBack}>
-          VOLVER
-        </Button>
+    <>
+      <IconButton
+        size="small"
+        onClick={handleBack}
+        sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
+      >
+        <ReplyIcon />
+      </IconButton>
 
-        <>
-          <PropertyDetailsCompare comparisonItems={comparisonItems} />
+      <BasePage>
 
-          <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1300 }}>
-            <Comparer data={comparisonDataAI} />
-          </Box>
-
+        <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, mb: -4 }}>
           {!isAdmin && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', pb: 8 }}>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={() => setInquiryOpen(true)}
-                sx={{
-                  py: 1.5,
-                  borderRadius: 2,
-                  backgroundColor: theme.palette.secondary.main,
-                  '&:hover': { backgroundColor: theme.palette.secondary.dark },
-                }}
-              >
-                Consultar por estas propiedades
-              </Button>
-            </Box>
+            <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
+              Consultar por estas propiedades
+            </Button>
           )}
+        </Box>
 
-          <PropertyDetailsCompare comparisonItems={comparisonItems} />
+        <PropertyDetailsCompare comparisonItems={comparisonItems} />
 
-          <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)} >
-            <InquiryForm propertyIds={selectedPropertyIds} />
-          </Modal>
-        </>
-      </Box>
-    </BasePage>
+        <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1300 }}>
+          <Comparer data={comparisonDataAI} />
+        </Box>
+
+        <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)} >
+          <InquiryForm propertyIds={selectedPropertyIds} />
+        </Modal>
+
+      </BasePage>
+    </>
   );
 };
 

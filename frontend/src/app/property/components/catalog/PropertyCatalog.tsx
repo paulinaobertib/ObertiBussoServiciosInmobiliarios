@@ -22,16 +22,9 @@ export const PropertyCatalog = ({
   toggleSelection,
   isSelected,
 }: CatalogProps) => {
-  const { propertiesList, loading, handleClick, DialogUI } =
-    useCatalog(onFinishAction);
-
-  // Extraemos directamente la bandera booleana isAdmin
+  const { propertiesList, loading, handleClick, DialogUI } = useCatalog(onFinishAction);
   const { isAdmin } = useAuthContext();
-
-  // 1️⃣ Lista base: la que venga por props o la del hook
   const list = properties ?? propertiesList;
-
-  // 2️⃣ Filtrado: administradores ven todo; usuarios comunes sólo 'DISPONIBLE'
   const filtered = useMemo(() => {
     if (isAdmin) return list;
     return list.filter(
@@ -39,7 +32,6 @@ export const PropertyCatalog = ({
     );
   }, [list, isAdmin]);
 
-  // 3️⃣ Orden descendente por fecha
   const sortedList = useMemo(
     () =>
       [...filtered].sort(
