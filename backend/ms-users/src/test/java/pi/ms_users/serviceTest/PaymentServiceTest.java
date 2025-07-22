@@ -1,5 +1,6 @@
 package pi.ms_users.serviceTest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IPaymentRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.PaymentService;
+import pi.ms_users.dto.PaymentDTO;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
@@ -37,9 +39,14 @@ class PaymentServiceTest {
     @InjectMocks
     private PaymentService paymentService;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     private Contract contract;
 
     private Payment payment;
+
+    private PaymentDTO dto;
 
     @BeforeEach
     void setUp() {
@@ -53,6 +60,14 @@ class PaymentServiceTest {
         payment.setDescription("Pago prueba");
         payment.setPaymentCurrency(PaymentCurrency.USD);
         payment.setContract(contract);
+
+        dto = new PaymentDTO();
+        dto.setId(100L);
+        dto.setAmount(payment.getAmount());
+        dto.setDate(payment.getDate());
+        dto.setDescription(payment.getDescription());
+        dto.setPaymentCurrency(payment.getPaymentCurrency());
+        dto.setContractId(contract.getId());
     }
 
     // casos de exito
@@ -60,9 +75,10 @@ class PaymentServiceTest {
     @Test
     void createPayment_shouldSaveAndReturnOk() {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
+        when(objectMapper.convertValue(dto, Payment.class)).thenReturn(payment);
         when(paymentRepository.save(payment)).thenReturn(payment);
 
-        ResponseEntity<String> response = paymentService.createPayment(payment);
+        ResponseEntity<String> response = paymentService.createPayment(dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha guardado el pago", response.getBody());
@@ -73,9 +89,10 @@ class PaymentServiceTest {
     void updatePayment_shouldUpdateAndReturnOk() {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
         when(paymentRepository.findById(payment.getId())).thenReturn(Optional.of(payment));
+        when(objectMapper.convertValue(dto, Payment.class)).thenReturn(payment);
         when(paymentRepository.save(payment)).thenReturn(payment);
 
-        ResponseEntity<String> response = paymentService.updatePayment(payment);
+        ResponseEntity<String> response = paymentService.updatePayment(dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha actualizado el pago", response.getBody());
@@ -151,7 +168,7 @@ class PaymentServiceTest {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
-            paymentService.createPayment(payment));
+            paymentService.createPayment(dto));
 
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
         verify(paymentRepository, never()).save(any());
@@ -162,7 +179,7 @@ class PaymentServiceTest {
         when(contractRepository.findById(contract.getId())).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
-            paymentService.updatePayment(payment));
+            paymentService.updatePayment(dto));
 
         assertEquals("No se ha encontrado el contrato", ex.getMessage());
         verify(paymentRepository, never()).save(any());
@@ -174,7 +191,7 @@ class PaymentServiceTest {
         when(paymentRepository.findById(payment.getId())).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
-            paymentService.updatePayment(payment));
+            paymentService.updatePayment(dto));
 
         assertEquals("No se ha encontrado el pago que se solicita editar", ex.getMessage());
         verify(paymentRepository, never()).save(any());

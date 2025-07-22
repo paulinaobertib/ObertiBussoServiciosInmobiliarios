@@ -1,16 +1,19 @@
 package pi.ms_users.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.Payment;
+import pi.ms_users.dto.PaymentDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IPaymentRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IPaymentService;
 import org.springframework.security.access.AccessDeniedException;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,23 +27,32 @@ public class PaymentService implements IPaymentService {
 
     private final IContractRepository contractRepository;
 
+    private final ObjectMapper objectMapper;
+
     @Override
-    public ResponseEntity<String> createPayment(Payment payment) {
-        Contract contract = contractRepository.findById(payment.getContract().getId())
+    public ResponseEntity<String> createPayment(PaymentDTO paymentDTO) {
+        Contract contract = contractRepository.findById(paymentDTO.getContractId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato"));
+        
+        Payment payment = objectMapper.convertValue(paymentDTO, Payment.class);
+        payment.setContract(contract);
         paymentRepository.save(payment);
+
         return ResponseEntity.ok("Se ha guardado el pago");
     }
 
     @Override
-    public ResponseEntity<String> updatePayment(Payment payment) {
-        Contract contract = contractRepository.findById(payment.getContract().getId())
+    public ResponseEntity<String> updatePayment(PaymentDTO paymentDTO) {
+        Contract contract = contractRepository.findById(paymentDTO.getContractId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato"));
 
-        Payment existingPayment = paymentRepository.findById(payment.getId())
+        paymentRepository.findById(paymentDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el pago que se solicita editar"));
 
+        Payment payment = objectMapper.convertValue(paymentDTO, Payment.class);
+        payment.setContract(contract);
         paymentRepository.save(payment);
+
         return ResponseEntity.ok("Se ha actualizado el pago");
     }
 

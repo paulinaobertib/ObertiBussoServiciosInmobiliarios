@@ -35,7 +35,9 @@ export function usePropertyPanel() {
   // 4) selección
   const toggleSelect = useCallback((id: number) => {
     setSelectedId((prev) => (prev === id ? null : id));
+    console.log("toggleSelect:", id);
   }, []);
+
   const isSelected = useCallback(
     (id: number) => selectedId === id,
     [selectedId]

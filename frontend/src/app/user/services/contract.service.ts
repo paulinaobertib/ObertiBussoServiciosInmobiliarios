@@ -13,10 +13,14 @@ export const postContract = async (
   currency: string
 ) => {
   try {
-    const response = await api.post(`/users/contracts/create`, contractData, {
-      params: { amount, currency },
-      withCredentials: true,
-    });
+    const response = await api.post(
+      `users/contracts/create`, // ← ruta corregida
+      contractData,
+      {
+        params: { amount, currency }, // arma ?amount=…&currency=…
+        withCredentials: true,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error creating contract:", error);
