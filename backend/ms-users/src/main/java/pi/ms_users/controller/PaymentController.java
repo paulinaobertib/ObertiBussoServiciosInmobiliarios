@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.Payment;
 import pi.ms_users.service.interf.IPaymentService;
+import pi.ms_users.dto.PaymentDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,14 +21,14 @@ public class PaymentController {
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<String> createPayment(@RequestBody Payment payment) {
-        return paymentService.createPayment(payment);
+    public ResponseEntity<String> createPayment(@RequestBody PaymentDTO paymentDTO) {
+        return paymentService.createPayment(paymentDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update")
-    public ResponseEntity<String> updatePayment(@RequestBody Payment payment) {
-        return paymentService.updatePayment(payment);
+    public ResponseEntity<String> updatePayment(@RequestBody PaymentDTO paymentDTO) {
+        return paymentService.updatePayment(paymentDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
