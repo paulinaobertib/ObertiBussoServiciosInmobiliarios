@@ -28,6 +28,9 @@ export const ROUTES = {
   FAVORITES: "/favorites",
   POLICIES: "/policies",
   TENANT: "/tenant",
+  CONTRACT: "/contract",
+  NEW_CONTRACT: `/contract/new`,
+  EDIT_CONTRACT: `/contract/:id/edit`,
 };
 
 export const PAGES = [
@@ -46,4 +49,7 @@ export const PAGES = [
   { name: "Favoritos", url: ROUTES.FAVORITES },
   { name: "Politicas de Privacidad", url: ROUTES.POLICIES },
   { name: "Panel de Inquilino", url: ROUTES.TENANT },
+  { name: "Panel de Gestión de Inquilinos", url: ROUTES.CONTRACT },
+  { name: "Nuevo Contrato", url: ROUTES.NEW_CONTRACT },
+  { name: "Editar Contrato", url: ROUTES.EDIT_CONTRACT },
 ];

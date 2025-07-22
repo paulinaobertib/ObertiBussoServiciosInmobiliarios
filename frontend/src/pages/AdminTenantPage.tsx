@@ -4,15 +4,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
-import { CategorySection } from '../app/property/components/categories/CategorySection';
-import { PropertySection } from '../app/property/components/properties/PropertySection';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
-import { ProfileSection } from "../app/user/components/users/profile/ProfileSection";
-import { UsersSection } from '../app/user/components/users/panel/UsersSection';
-import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
-import { InquiriesSection } from '../app/property/components/inquiries/InquiriesSection';
+
 import ReplyIcon from '@mui/icons-material/Reply';
 import { ROUTES } from '../lib';
+import { ContractsSection } from '../app/user/components/contracts/ContractSection';
+import { IncreasesPanel } from '../app/user/components/increases/IncreasesSection';
+import { PaymentsSection } from '../app/user/components/payments/PaymentsSection';
 
 export default function AdministratorPage() {
     const { resetSelected, pickItem } = usePropertiesContext();
@@ -25,44 +23,33 @@ export default function AdministratorPage() {
 
     const panels = [
         {
-            key: 'property',
-            label: 'PROPIEDADES',
-            content: <PropertySection />,
-        },
-        {
-            key: 'owner',
-            label: 'PROPIETARIOS',
-            content: <CategorySection category="owner" />,
-        },
-        {
-            key: 'users',
-            label: 'USUARIOS',
-            content: <UsersSection />,
-        },
-        {
-            key: 'inquiries',
-            label: 'CONSULTAS',
-            content: <InquiriesSection />,
-        },
-        {
-            key: 'appointments',
-            label: 'TURNERO',
-            content: <AppointmentSection />,
-        },
-        {
-            key: 'contracts',
-            label: 'CONTRATOS',
+            key: 'newcontract',
+            label: 'CREAR NUEVO CONTRATO',
             content: null,
             ButtonComponent: () => (
                 <Button
                     variant='outlined'
-                    onClick={() => navigate(ROUTES.CONTRACT)}
+                    onClick={() => navigate(ROUTES.NEW_CONTRACT)}
                     sx={{ textTransform: 'none', minWidth: 110 }}
                 >
-                    CONTRATOS
+                    CREAR NUEVO
                 </Button>
             ),
-        }
+        }, {
+            key: 'contracts',
+            label: 'CONTRATOS',
+            content: <ContractsSection />,
+        },
+        {
+            key: 'increases',
+            label: 'AUMENTOS',
+            content: <IncreasesPanel />,
+        },
+        {
+            key: 'payments',
+            label: 'PAGOS',
+            content: <PaymentsSection />,
+        },
     ];
 
     return (
@@ -76,8 +63,6 @@ export default function AdministratorPage() {
             </IconButton>
 
             <BasePage>
-
-                <ProfileSection />
 
                 <Box
                     sx={{

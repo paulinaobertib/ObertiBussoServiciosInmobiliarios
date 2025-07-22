@@ -2,14 +2,15 @@ package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
 import pi.ms_users.domain.Payment;
+import pi.ms_users.dto.PaymentDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IPaymentService {
-    ResponseEntity<String> createPayment(Payment payment);
+    ResponseEntity<String> createPayment(PaymentDTO paymentDTO);
 
-    ResponseEntity<String> updatePayment(Payment payment);
+    ResponseEntity<String> updatePayment(PaymentDTO paymentDTO);
 
     ResponseEntity<String> deletePayment(Long id);
 

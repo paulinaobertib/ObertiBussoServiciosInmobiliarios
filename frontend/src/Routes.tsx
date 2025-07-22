@@ -22,7 +22,9 @@ import PoliciesPage from './pages/PoliciesPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
-import TenantPage from './pages/TenantPage';
+// import TenantPage from './pages/UserTenantPage';
+import ContractPage from './pages/AdminTenantPage';
+import ManageContractPage from './pages/ManageContractPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -67,7 +69,7 @@ export default function Routes() {
         <RoutesDom>
             <Route path={ROUTES.HOME_APP} element={<Home />} />
 
-            {/* ---- Propiedades: crear / editar (solo admin) ---- */}
+            {/* ---- crear / editar (solo admin) ---- */}
             <Route
                 path={ROUTES.NEW_PROPERTY}          // '/properties/new'
                 element={
@@ -85,12 +87,37 @@ export default function Routes() {
                 }
             />
 
+            <Route
+                path={ROUTES.NEW_CONTRACT}          // '/properties/new'
+                element={
+                    <RequireAdmin>
+                        <ManageContractPage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.EDIT_CONTRACT}         // '/properties/:id/edit'
+                element={
+                    <RequireAdmin>
+                        <ManageContractPage />
+                    </RequireAdmin>
+                }
+            />
+
             {/* ---- Panel administrador ---- */}
             <Route
                 path={ROUTES.ADMIN_PAGE}
                 element={
                     <RequireAdmin>
                         <AdministratorPage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.CONTRACT}
+                element={
+                    <RequireAdmin>
+                        <ContractPage />
                     </RequireAdmin>
                 }
             />
@@ -129,15 +156,15 @@ export default function Routes() {
                 }
             />
 
-            {/* ---- Panel administrador ---- */}
-            <Route
+            {/* ---- Panel inquilino ---- */}
+            {/* <Route
                 path={ROUTES.TENANT}
                 element={
-                    <RequireLogin>
+                    <RequireTenant>
                         <TenantPage />
-                    </RequireLogin>
+                    </RequireTenant>
                 }
-            />
+            /> */}
 
             {/* ---- Públicas ---- */}
             <Route path={ROUTES.COMPARE} element={<Compare />} />
