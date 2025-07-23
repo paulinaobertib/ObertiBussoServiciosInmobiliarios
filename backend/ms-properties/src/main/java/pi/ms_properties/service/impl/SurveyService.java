@@ -42,6 +42,10 @@ public class SurveyService implements ISurveyService {
         Inquiry inquiry = inquiryRepository.findById(surveyDTO.getInquiryId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la consulta"));
 
+        if (surveyDTO.getScore() > 5 || surveyDTO.getScore() < 1) {
+            return ResponseEntity.badRequest().body("El score no puede ser menor a 1 ni mayor a 5.");
+        }
+
         Survey survey = new Survey();
         survey.setComment(surveyDTO.getComment());
         survey.setScore(surveyDTO.getScore());
