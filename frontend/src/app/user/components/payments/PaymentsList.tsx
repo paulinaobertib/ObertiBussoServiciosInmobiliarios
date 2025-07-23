@@ -1,20 +1,14 @@
-// src/app/user/components/payments/PaymentsTab.tsx
-import React from 'react';
 import { List, Typography } from '@mui/material';
-import type { Payment } from '../../types/payment';  // :contentReference[oaicite:1]{index=1}
+import type { Payment } from '../../types/payment';
 import { PaymentItem } from './PaymentItem';
 
-interface PaymentsTabProps {
+interface Props {
     payments: Payment[];
     onEdit?: (p: Payment) => void;
     onDelete?: (p: Payment) => void;
 }
 
-export const PaymentsList: React.FC<PaymentsTabProps> = ({
-    payments,
-    onEdit,
-    onDelete
-}) => {
+export const PaymentsList = ({ payments, onEdit, onDelete }: Props) => {
     if (payments.length === 0) {
         return (
             <Typography variant="body2" color="text.secondary">

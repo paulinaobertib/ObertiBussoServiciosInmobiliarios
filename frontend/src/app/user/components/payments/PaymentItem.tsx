@@ -1,4 +1,3 @@
-// src/app/user/components/payments/PaymentItem.tsx
 import React from 'react';
 import {
     ListItem,
@@ -11,13 +10,13 @@ import EditIcon from "@mui/icons-material/Edit";
 
 import type { Payment } from '../../../user/types/payment';  // :contentReference[oaicite:0]{index=0}
 
-interface PaymentItemProps {
+interface Props {
     payment: Payment;
     onEdit?: (p: Payment) => void;
     onDelete?: (p: Payment) => void;
 }
 
-export const PaymentItem: React.FC<PaymentItemProps> = ({
+export const PaymentItem: React.FC<Props> = ({
     payment,
     onEdit,
     onDelete
@@ -28,7 +27,7 @@ export const PaymentItem: React.FC<PaymentItemProps> = ({
                 {onEdit && (
                     <Tooltip title="Editar pago">
                         <IconButton edge="end" onClick={() => onEdit(payment)}>
-                          <EditIcon />
+                            <EditIcon />
                         </IconButton>
                     </Tooltip>
                 )}

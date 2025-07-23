@@ -1,3 +1,5 @@
+import { ContractIncrease } from "./contractIncrease";
+
 export enum ContractType {
   TEMPORAL = "TEMPORAL",
   VIVIENDA = "VIVIENDA",
@@ -19,6 +21,7 @@ export interface Contract {
   contractStatus: ContractStatus;
   increase: number;
   increaseFrequency: number;
+  contractIncrease?: ContractIncrease[];
 }
 
 export type ContractCreate = Omit<Contract, "id">;

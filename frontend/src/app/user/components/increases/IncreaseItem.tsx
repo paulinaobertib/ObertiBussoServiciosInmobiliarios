@@ -1,23 +1,13 @@
-// src/app/user/components/increases/IncreaseItem.tsx
-import React from 'react';
-import {
-    ListItem,
-    ListItemText,
-    IconButton,
-    Tooltip
-} from '@mui/material';
+import { ListItem, ListItemText, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { ContractIncrease } from '../../types/contractIncrease';
 
-interface IncreaseItemProps {
+interface Props {
     increase: ContractIncrease;
     onDelete?: (inc: ContractIncrease) => void;
 }
 
-export const IncreaseItem: React.FC<IncreaseItemProps> = ({
-    increase,
-    onDelete
-}) => (
+export const IncreaseItem = ({ increase, onDelete }: Props) => (
     <ListItem
         secondaryAction={
             onDelete && (
