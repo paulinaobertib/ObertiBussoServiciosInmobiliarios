@@ -1,7 +1,7 @@
 import { api } from "../../../api";
-import { SurveyDTO } from "../types/survey";
+import { CreateSurveyDTO } from "../types/survey";
 
-export const createSurvey = async (data: SurveyDTO) => {
+export const createSurvey = async (data: CreateSurveyDTO) => {
     try {
         const response = await api.post('/properties/survey/create', data, {
             withCredentials: true,
@@ -12,3 +12,4 @@ export const createSurvey = async (data: SurveyDTO) => {
         throw error;
     }
 }
+

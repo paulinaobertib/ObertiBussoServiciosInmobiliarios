@@ -46,6 +46,12 @@ public class SurveyService implements ISurveyService {
             return ResponseEntity.badRequest().body("El score no puede ser menor a 1 ni mayor a 5.");
         }
 
+        long count = surveyRepository.countSurveysByInquiryId(surveyDTO.getInquiryId());
+
+        if (count > 0) {
+            return ResponseEntity.badRequest().body("Ya existe una encuesta para esta consulta.");
+        }
+
         Survey survey = new Survey();
         survey.setComment(surveyDTO.getComment());
         survey.setScore(surveyDTO.getScore());
