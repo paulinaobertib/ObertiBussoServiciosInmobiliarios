@@ -238,4 +238,32 @@ class SurveyServiceTest {
         assertThrows(DataIntegrityViolationException.class, () ->
             surveyService.getAll());
     }
+
+    @Test
+    void create_scoreTooLow_returnsBadRequest() {
+        Inquiry inquiry = new Inquiry();
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+
+        SurveyDTO dto = new SurveyDTO(null, 0, "Muy mala atención", 1L);
+
+        ResponseEntity<String> response = surveyService.create(dto);
+
+        verify(surveyRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El score no puede ser menor a 1 ni mayor a 5.", response.getBody());
+    }
+
+    @Test
+    void create_scoreTooHigh_returnsBadRequest() {
+        Inquiry inquiry = new Inquiry();
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+
+        SurveyDTO dto = new SurveyDTO(null, 6, "Excelente atención", 1L);
+
+        ResponseEntity<String> response = surveyService.create(dto);
+
+        verify(surveyRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El score no puede ser menor a 1 ni mayor a 5.", response.getBody());
+    }
 }
