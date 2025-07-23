@@ -1,14 +1,10 @@
-// src/app/user/components/payments/PaymentForm.tsx
 import React, { useState, useEffect } from "react";
 import {
-    Box,
-    TextField,
-    MenuItem,
-    Grid
+    Box, TextField, MenuItem, Grid
 } from "@mui/material";
 import dayjs from "dayjs";
 
-import { PaymentCurrency } from "../../../user/types/payment";  // :contentReference[oaicite:0]{index=0}
+import { PaymentCurrency } from "../../types/payment";
 
 export interface PaymentFormValues {
     date: string;
@@ -17,15 +13,12 @@ export interface PaymentFormValues {
     paymentCurrency: PaymentCurrency;
 }
 
-interface PaymentFormProps {
+interface Props {
     initialValues?: Partial<PaymentFormValues>;
     onChange: (vals: PaymentFormValues) => void;
 }
 
-export const PaymentForm: React.FC<PaymentFormProps> = ({
-    initialValues,
-    onChange,
-}) => {
+export const PaymentForm = ({ initialValues, onChange }: Props) => {
     const currencies = Object.values(PaymentCurrency) as PaymentCurrency[];
     const defaultCurrency = currencies[0];
     const today = dayjs().format("YYYY-MM-DD");

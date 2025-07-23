@@ -1,206 +1,95 @@
-import React from "react";
-import {
-    Box,
-    Typography,
-    IconButton,
-    Tooltip,
-    useTheme,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import type { Contract } from "../../../user/types/contract";
+import { Card, CardHeader, CardContent, CardActions, IconButton, Typography, Tooltip, Box } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import HistoryIcon from '@mui/icons-material/History';
+import MonetizationOnOutlined from '@mui/icons-material/MonetizationOnOutlined';
+import TrendingUpOutlined from '@mui/icons-material/TrendingUpOutlined';
+import BlockIcon from '@mui/icons-material/Block';
+import { useNavigate } from 'react-router-dom';
+import type { Contract } from '../../types/contract';
+import { useContractNames } from '../../hooks/contracts/useContractNames';
+import { buildRoute, ROUTES } from '../../../../lib';
 
-interface ContractItemProps {
+interface Props {
     contract: Contract;
-
-    /** Selección de filas */
-    isSelected?: (id: number) => boolean;
-    toggleSelect?: (id: number) => void;
-
-    /** Acciones */
-    onEdit?: (c: Contract) => void;
-    onDelete?: (c: Contract) => void;
+    onRegisterPayment: (c: Contract) => void;
+    onIncrease: (c: Contract) => void;
+    onHistory: (c: Contract) => void;
+    onDelete: (c: Contract) => void;
+    onToggleStatus: (c: Contract) => void;
 }
 
-export const ContractItem: React.FC<ContractItemProps> = ({
-    contract,
-    isSelected,
-    toggleSelect,
-    onEdit,
-    onDelete,
-}) => {
-    const theme = useTheme();
-    const selected = isSelected?.(contract.id) ?? false;
-    const handleClick = () => toggleSelect && toggleSelect(contract.id);
+export const ContractItem = ({ contract, onRegisterPayment, onIncrease, onHistory, onDelete, onToggleStatus,
+}: Props) => {
+    const navigate = useNavigate();
+    const { userName, propertyName } = useContractNames(
+        contract.userId,
+        contract.propertyId
+    );
 
-    const mobileFields = [
-        { label: "ID Contrato", value: contract.id.toString() },
-        { label: "Propiedad", value: contract.propertyId.toString() },
-        { label: "Usuario", value: contract.userId },
-        { label: "Tipo", value: contract.contractType },
-        { label: "Estado", value: contract.contractStatus },
-        { label: "Desde", value: contract.startDate.split("T")[0] },
-        { label: "Hasta", value: contract.endDate.split("T")[0] },
-    ];
+    const fmtDate = (iso: string) => {
+        const d = new Date(iso);
+        const m = d.toLocaleString('es-AR', { month: 'long' });
+        return `${d.getDate()} de ${m.charAt(0).toUpperCase() + m.slice(1)} del ${d.getFullYear()}`;
+    };
 
     return (
-        <Box
-            onClick={handleClick}
-            sx={{
-                display: { xs: "block", sm: "grid" },
-                gridTemplateColumns: "repeat(7, 1fr) 75px",
-                alignItems: "center",
-                py: 1,
-                mb: 0.5,
-                bgcolor: selected
-                    ? theme.palette.action.selected
-                    : "transparent",
-                cursor: toggleSelect ? "pointer" : "default",
-                "&:hover": {
-                    bgcolor: toggleSelect
-                        ? theme.palette.action.hover
-                        : "transparent",
-                },
-            }}
-        >
-            {/* MOBILE */}
-            <Box sx={{ display: { xs: "block", sm: "none" } }}>
-                {mobileFields.map((f) => (
-                    <Box
-                        key={f.label}
-                        sx={{ display: "flex", gap: 1, mb: 0.5 }}
-                    >
-                        <Typography
-                            variant="body2"
-                            fontWeight={600}
-                            noWrap
-                        >
-                            {f.label}:
-                        </Typography>
-                        <Tooltip title={f.value} arrow>
-                            <Typography
-                                variant="body2"
-                                noWrap
-                                sx={{
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {f.value}
-                            </Typography>
-                        </Tooltip>
-                    </Box>
-                ))}
-            </Box>
-
-            {/* DESKTOP */}
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.id}
-            </Typography>
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.propertyId}
-            </Typography>
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.userId}
-            </Typography>
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.contractType}
-            </Typography>
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.contractStatus}
-            </Typography>
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.startDate.split("T")[0]}
-            </Typography>
-            <Typography
-                variant="body2"
-                sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    display: { xs: "none", sm: "block" },
-                }}
-            >
-                {contract.endDate.split("T")[0]}
-            </Typography>
-
-            {/* ACCIONES */}
-            {(onEdit || onDelete) && (
-                <Box
-                    onClick={(e) => e.stopPropagation()}
-                    sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}
-                >
-                    {onEdit && (
-                        <Tooltip title="Editar" arrow>
-                            <IconButton
-                                size="small"
-                                onClick={() => onEdit(contract)}
-                            >
+        <Card elevation={1}>
+            <CardHeader
+                title={`Contrato de ${userName}`}
+                titleTypographyProps={{ sx: { fontSize: '1.4rem' } }}
+                subheader={`en ${propertyName}`}
+                action={
+                    <Box>
+                        <Tooltip title="Editar">
+                            <IconButton size="small" onClick={() => navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id))}>
                                 <EditIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                    )}
-                    {onDelete && (
-                        <Tooltip title="Eliminar" arrow>
-                            <IconButton
-                                size="small"
-                                onClick={() => onDelete(contract)}
-                            >
+                        <Tooltip title={contract.contractStatus === 'ACTIVO' ? 'Inactivar' : 'Reactivar'}>
+                            <IconButton size="small" onClick={() => onToggleStatus(contract)}>
+                                <BlockIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Eliminar">
+                            <IconButton size="small" onClick={() => onDelete(contract)}>
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                    )}
-                </Box>
-            )}
-        </Box>
+                    </Box>
+                }
+            />
+            <CardContent>
+                <Typography variant="body2">
+                    <strong>Desde:</strong> {fmtDate(contract.startDate)}
+                </Typography>
+                <Typography variant="body2">
+                    <strong>Hasta:</strong> {fmtDate(contract.endDate)}
+                </Typography>
+                <Typography variant="body2">
+                    <strong>Monto:</strong> $ {contract.increase.toLocaleString()}
+                </Typography>
+                <Typography variant="body2">
+                    <strong>Frecuencia:</strong> {contract.increaseFrequency} meses
+                </Typography>
+            </CardContent>
+            <CardActions sx={{ justifyContent: 'flex-end' }}>
+                <Tooltip title="Registrar Pago">
+                    <IconButton onClick={() => onRegisterPayment(contract)}>
+                        <MonetizationOnOutlined />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Aumentar">
+                    <IconButton onClick={() => onIncrease(contract)}>
+                        <TrendingUpOutlined />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Historial">
+                    <IconButton onClick={() => onHistory(contract)}>
+                        <HistoryIcon />
+                    </IconButton>
+                </Tooltip>
+            </CardActions>
+        </Card>
     );
 };

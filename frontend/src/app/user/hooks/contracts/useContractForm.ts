@@ -1,4 +1,3 @@
-// src/app/contract/hooks/useContractForm.ts
 import { useState, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
 
@@ -7,11 +6,11 @@ import {
   ContractStatus,
   ContractType,
   Contract,
-} from "../types/contract";
-import { getPropertyById } from "../../property/services/property.service";
-import type { Property } from "../../property/types/property";
-import { getUserById } from "../services/user.service";
-import type { User } from "../types/user"; 
+} from "../../types/contract";
+import { getPropertyById } from "../../../property/services/property.service";
+import type { Property } from "../../../property/types/property";
+import { getUserById } from "../../services/user.service";
+import type { User } from "../../types/user";
 
 export type ContractFormValues = ContractCreate & {
   amount: number;
@@ -29,13 +28,16 @@ export function useContractForm(
     userId: initialData?.userId ?? initialUserId,
     contractType: initialData?.contractType ?? ContractType.VIVIENDA,
     contractStatus: initialData?.contractStatus ?? ContractStatus.ACTIVO,
-    startDate: initialData?.startDate ?? dayjs().format("YYYY-MM-DD"),
+    startDate:
+      initialData?.startDate.split("T")[0] ?? dayjs().format("YYYY-MM-DD"),
     endDate:
-      initialData?.endDate ?? dayjs().add(12, "month").format("YYYY-MM-DD"),
+      initialData?.endDate.split("T")[0] ??
+      dayjs().add(12, "month").format("YYYY-MM-DD"),
     increase: initialData?.increase ?? 0,
     increaseFrequency: initialData?.increaseFrequency ?? 12,
-    amount: (initialData as any)?.amount ?? 0,
-    currency: (initialData as any)?.currency ?? "ARS",
+    // tomo monto y moneda del primer contractIncrease si existe
+    amount: initialData?.contractIncrease?.[0]?.amount ?? 0,
+    currency: initialData?.contractIncrease?.[0]?.currency ?? "ARS",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -43,17 +45,34 @@ export function useContractForm(
   const [user, setUser] = useState<User | null>(null);
   const [loadingData, setLoadingData] = useState(true);
 
+  // Cuando llegue initialData, recargo TODOS los valores
+  useEffect(() => {
+    if (!initialData) return;
+    setValues({
+      propertyId: initialData.propertyId,
+      userId: initialData.userId,
+      contractType: initialData.contractType,
+      contractStatus: initialData.contractStatus,
+      startDate: initialData.startDate.split("T")[0],
+      endDate: initialData.endDate.split("T")[0],
+      increase: initialData.increase,
+      increaseFrequency: initialData.increaseFrequency,
+      amount: initialData.contractIncrease?.[0]?.amount ?? 0,
+      currency: initialData.contractIncrease?.[0]?.currency ?? "ARS",
+    });
+  }, [initialData]);
+
+  // Cargo datos de propiedad y usuario
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const propRes = await getPropertyById(initialPropertyId);
-        const p: Property = (propRes as any).data ?? propRes;
-        const userRes = await getUserById(initialUserId);
-        const u: User = (userRes as any).data ?? userRes;
-        if (!mounted) return;
-        setProperty(p);
-        setUser(u);
+        const prop = (await getPropertyById(initialPropertyId)) as Property;
+        const usr = (await getUserById(initialUserId)) as unknown as User;
+        if (mounted) {
+          setProperty(prop);
+          setUser(usr);
+        }
       } finally {
         if (mounted) setLoadingData(false);
       }

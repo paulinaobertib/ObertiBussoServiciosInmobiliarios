@@ -1,18 +1,13 @@
-// src/app/user/components/increases/IncreasesTab.tsx
-import React from 'react';
 import { List, Typography } from '@mui/material';
 import type { ContractIncrease } from '../../types/contractIncrease';
 import { IncreaseItem } from './IncreaseItem';
 
-interface IncreasesTabProps {
+interface Props {
   increases: ContractIncrease[];
   onDelete?: (inc: ContractIncrease) => void;
 }
 
-export const IncreasesList: React.FC<IncreasesTabProps> = ({
-  increases,
-  onDelete
-}) => {
+export const IncreasesList = ({ increases, onDelete }: Props) => {
   if (increases.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">

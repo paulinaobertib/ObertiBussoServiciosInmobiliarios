@@ -50,6 +50,20 @@ export default function AdministratorPage() {
             content: <AppointmentSection />,
         },
         {
+            key: 'turnero',
+            label: 'TURNERO 2',
+            content: null,
+            ButtonComponent: () => (
+                <Button
+                    variant='outlined'
+                    onClick={() => navigate(ROUTES.APPOINTMENTS)}
+                    sx={{ textTransform: 'none', minWidth: 110 }}
+                >
+                    TURNERO 2
+                </Button>
+            ),
+        },
+        {
             key: 'contracts',
             label: 'CONTRATOS',
             content: null,

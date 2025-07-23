@@ -22,9 +22,9 @@ import PoliciesPage from './pages/PoliciesPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
-// import TenantPage from './pages/UserTenantPage';
-import ContractPage from './pages/AdminTenantPage';
+import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
+import AppointmentPage from './pages/AppointmentPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -51,17 +51,19 @@ function RequireLogin({ children }: { children: ReactNode }) {
     return <>{children}</>;
 }
 
-// function RequireTenant({ children }: { children: ReactNode }) {
-//     const { isTenant, loading } = useAuthContext();
-//     const { showAlert } = useGlobalAlert();
+export function RequireAdminOrTenant({ children }: { children: ReactNode }) {
+    const { isAdmin, isTenant, loading } = useAuthContext();
+    const { showAlert } = useGlobalAlert();
 
-//     if (loading) return null;
-//     if (!isTenant) {
-//         showAlert('No tienes permisos de inquilino', 'error');
-//         return <Navigate to={ROUTES.HOME_APP} replace />;
-//     }
-//     return <>{children}</>;
-// }
+    if (loading) return null;
+
+    if (!isAdmin && !isTenant) {
+        showAlert("No tienes permisos para acceder a esta sección", "error");
+        return <Navigate to={ROUTES.HOME_APP} replace />;
+    }
+
+    return <>{children}</>;
+}
 
 /* ---------- Rutas ---------- */
 export default function Routes() {
@@ -113,12 +115,13 @@ export default function Routes() {
                     </RequireAdmin>
                 }
             />
+
             <Route
                 path={ROUTES.CONTRACT}
                 element={
-                    <RequireAdmin>
-                        <ContractPage />
-                    </RequireAdmin>
+                    <RequireAdminOrTenant>
+                        <ContractsPage />
+                    </RequireAdminOrTenant>
                 }
             />
             <Route
@@ -134,6 +137,14 @@ export default function Routes() {
                 element={
                     <RequireAdmin>
                         <PropertyMaintenancePage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.APPOINTMENTS}
+                element={
+                    <RequireAdmin>
+                        <AppointmentPage />
                     </RequireAdmin>
                 }
             />
@@ -172,7 +183,6 @@ export default function Routes() {
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
             <Route path={ROUTES.NEWS} element={<NewsPage />} />
             <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
-
             <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
 
             {/* ---- Catch-all ---- */}
