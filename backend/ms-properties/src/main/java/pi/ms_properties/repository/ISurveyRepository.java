@@ -2,13 +2,18 @@ package pi.ms_properties.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.Survey;
 
 import java.util.List;
 
 @Repository
 public interface ISurveyRepository extends JpaRepository<Survey, Long> {
+    @Query("SELECT COUNT(s) FROM Survey s WHERE s.inquiry.id = ?1")
+    long countSurveysByInquiryId(Long inquiryId);
+
     @Query("SELECT AVG(s.score) FROM Survey s")
     Float findAverageScore();
 

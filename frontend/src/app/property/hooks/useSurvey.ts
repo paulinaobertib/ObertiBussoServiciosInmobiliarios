@@ -1,21 +1,20 @@
 import { useState } from "react";
 import { createSurvey } from "../services/survey.service";
-import { SurveyDTO } from "../types/survey";
+import { CreateSurveyDTO } from "../types/survey";
 
 export const useSurvey = () => {
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const postSurvey = async (data: SurveyDTO) => {
+    const postSurvey = async (data: CreateSurveyDTO ) => {
         setLoading(true)
         setError(null)
         try {
             const response = await createSurvey(data)
-            setResult(response)
-            return result
+            return response
         } catch (error: any) {
-            setError(error?.response.data || "Error desconocido");
+            setError(error?.response?.data || "Error desconocido");
+            throw error; 
         } finally {
             setLoading(false)
         }

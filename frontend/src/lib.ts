@@ -1,3 +1,5 @@
+import { url } from "inspector";
+
 export function buildRoute(template: string, param: string | number): string;
 export function buildRoute(
   template: string,
@@ -27,6 +29,7 @@ export const ROUTES = {
   NEWS_DETAILS: "/news/:id",
   FAVORITES: "/favorites",
   POLICIES: "/policies",
+  SURVEY: "/survey/:inquiryId"
 };
 
 export const PAGES = [
@@ -44,4 +47,5 @@ export const PAGES = [
   { name: "Detalle de Noticia", url: ROUTES.NEWS_DETAILS },
   { name: "Favoritos", url: ROUTES.FAVORITES },
   { name: "Politicas de Privacidad", url: ROUTES.POLICIES },
+  { name: "Encuesta de satisfaccion", url: ROUTES.SURVEY },
 ];
