@@ -31,7 +31,7 @@ export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const { clearComparison, resetSelected, pickItem } = usePropertiesContext();
-  const { login, logout, isLogged, isAdmin } = useAuthContext();
+  const { login, logout, isLogged, isAdmin, isTenant } = useAuthContext();
 
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
@@ -104,7 +104,7 @@ export const NavBar = () => {
 
               <IconButton
                 size="small"
-                onClick={() => navigate(ROUTES.TENANT)}
+                onClick={() => navigate(ROUTES.CONTRACT)}
                 color="inherit"
               >
                 <RealEstateAgentIcon />
@@ -206,16 +206,18 @@ export const NavBar = () => {
             >
               NOTICIAS
             </Button>
-            <Button
-              onClick={() => navigate(ROUTES.TENANT)}
-              sx={{
-                color: palette.common.white,
-                textTransform: 'none',
-                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
-              }}
-            >
-              SOY INQUILINO
-            </Button>
+            {isTenant && (
+              <Button
+                onClick={() => navigate(ROUTES.CONTRACT)}
+                sx={{
+                  color: palette.common.white,
+                  textTransform: 'none',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                }}
+              >
+                SOY INQUILINO
+              </Button>
+            )}
           </Box>
 
           {/* Desktop Actions */}

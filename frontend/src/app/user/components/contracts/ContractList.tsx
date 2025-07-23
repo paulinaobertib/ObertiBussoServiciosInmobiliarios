@@ -1,35 +1,30 @@
-// src/app/shared/components/ContractsList.tsx
-import React from "react";
-import type { Contract } from "../../../user/types/contract";
+import { Grid } from "@mui/material";
 import { ContractItem } from "./ContractItem";
+import type { Contract } from "../../types/contract";
 
-interface ContractsListProps {
+interface Props {
   contracts: Contract[];
-  onEdit: (c: Contract) => void;
+  onRegisterPayment: (c: Contract) => void;
+  onIncrease: (c: Contract) => void;
+  onHistory: (c: Contract) => void;
   onDelete: (c: Contract) => void;
-
-  /** Selección de filas */
-  isSelected?: (id: number) => boolean;
-  toggleSelect?: (id: number) => void;
+  onToggleStatus: (c: Contract) => void;
 }
 
-export const ContractsList: React.FC<ContractsListProps> = ({
-  contracts,
-  onEdit,
-  onDelete,
-  isSelected,
-  toggleSelect,
-}) => (
-  <>
+export const ContractList = ({ contracts, onRegisterPayment, onIncrease, onHistory, onDelete, onToggleStatus,
+}: Props) => (
+  <Grid container spacing={4}>
     {contracts.map((c) => (
-      <ContractItem
-        key={c.id}
-        contract={c}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        isSelected={isSelected}
-        toggleSelect={toggleSelect}
-      />
+      <Grid size={{ xs: 12, sm: 6 }} key={c.id}>
+        <ContractItem
+          contract={c}
+          onRegisterPayment={onRegisterPayment}
+          onIncrease={onIncrease}
+          onHistory={onHistory}
+          onDelete={onDelete}
+          onToggleStatus={onToggleStatus}
+        />
+      </Grid>
     ))}
-  </>
+  </Grid>
 );
