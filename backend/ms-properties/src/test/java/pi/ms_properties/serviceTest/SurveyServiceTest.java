@@ -266,4 +266,19 @@ class SurveyServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("El score no puede ser menor a 1 ni mayor a 5.", response.getBody());
     }
+
+    @Test
+    void create_alreadyExists() {
+        Inquiry inquiry = new Inquiry();
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+        when(surveyRepository.countSurveysByInquiryId(1L)).thenReturn(1L);
+
+        SurveyDTO dto = new SurveyDTO(null, 5, "Todo bien", 1L);
+
+        ResponseEntity<String> response = surveyService.create(dto);
+
+        verify(surveyRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Ya existe una encuesta para esta consulta.", response.getBody());
+    }
 }
