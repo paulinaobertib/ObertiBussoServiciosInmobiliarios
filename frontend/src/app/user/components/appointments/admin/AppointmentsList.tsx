@@ -1,5 +1,3 @@
-// src/app/user/components/appointments/SlotList.tsx
-import React from 'react';
 import type { Appointment, AvailableAppointment } from '../../../types/appointment';
 import { AppointmentItem } from './AppointmentItem';
 import { Typography } from '@mui/material';
@@ -10,9 +8,13 @@ interface Props {
     onSelect: (slotId: number) => void;
 }
 
-export const AppointmentsList: React.FC<Props> = ({ slots, apptsBySlot, onSelect }) => {
+export const AppointmentsList = ({ slots, apptsBySlot, onSelect }: Props) => {
     if (slots.length === 0) {
-        return <Typography color="text.secondary" align="center">No hay turnos para esta fecha.</Typography>;
+        return (
+            <Typography color="text.secondary" align="center">
+                No hay turnos para esta fecha.
+            </Typography>
+        );
     }
 
     const sortedSlots = [...slots].sort(
@@ -21,7 +23,7 @@ export const AppointmentsList: React.FC<Props> = ({ slots, apptsBySlot, onSelect
 
     return (
         <>
-            {sortedSlots.map(slot => (
+            {sortedSlots.map((slot) => (
                 <AppointmentItem
                     key={slot.id}
                     slot={slot}
