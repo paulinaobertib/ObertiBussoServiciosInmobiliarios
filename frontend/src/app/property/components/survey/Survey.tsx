@@ -26,7 +26,7 @@ function getLabelText(value: number): string {
 }
 
 export const Survey = () => {
-    const { postSurvey, loading, error } = useSurvey();
+    const { postSurvey, loading } = useSurvey();
     const { inquiryId } = useParams<{ inquiryId: string }>();
     const [score, setScore] = useState<number>(5);
     const [hover, setHover] = useState<number>(-1);
