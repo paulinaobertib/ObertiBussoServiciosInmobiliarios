@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Dayjs } from 'dayjs';
 import {
     Box,
@@ -22,24 +22,19 @@ interface Props {
     onSelectSlot: (slotId: number) => void;
 }
 
-export const AppointmentSection: React.FC<Props> = ({
-    selectedDate,
-    filter,
-    setFilter,
-    slotsByDate,
-    apptsBySlot,
-    onSelectSlot,
-}) => {
+export const AppointmentSection = ({ selectedDate, filter, setFilter, slotsByDate, apptsBySlot, onSelectSlot,
+}: Props) => {
     const dateKey = selectedDate.format('YYYY-MM-DD');
     const daySlots = slotsByDate[dateKey] ?? [];
-    const filtered = useMemo(() =>
-        daySlots.filter((s) => {
-            if (filter === 'TODOS') return true;
-            if (filter === 'DISPONIBLE') return s.availability;
-            const appt = apptsBySlot[s.id];
-            return appt ? appt.status === filter : false;
-        }),
-        [daySlots, filter, apptsBySlot]
+    const filtered = useMemo(
+        () =>
+            daySlots.filter((s) => {
+                if (filter === 'TODOS') return true;
+                if (filter === 'DISPONIBLE') return s.availability;
+                const appt = apptsBySlot[s.id];
+                return appt ? appt.status === filter : false;
+            }),
+        [daySlots, filter, apptsBySlot],
     );
 
     return (
@@ -58,9 +53,7 @@ export const AppointmentSection: React.FC<Props> = ({
                     {selectedDate.locale('es').format('dddd DD MMMM YYYY')}
                 </Typography>
                 <FormControl size="small">
-                    <InputLabel id="filter-label">
-                        Estado
-                    </InputLabel>
+                    <InputLabel id="filter-label">Estado</InputLabel>
                     <Select
                         labelId="filter-label"
                         value={filter}
@@ -69,13 +62,19 @@ export const AppointmentSection: React.FC<Props> = ({
                         sx={{ width: 180 }}
                     >
                         {['TODOS', 'DISPONIBLE', 'ESPERA', 'ACEPTADO', 'RECHAZADO'].map((v) => (
-                            <MenuItem key={v} value={v}>{v === 'TODOS' ? 'Todos' : v.charAt(0) + v.slice(1).toLowerCase()}</MenuItem>
+                            <MenuItem key={v} value={v}>
+                                {v === 'TODOS' ? 'Todos' : v.charAt(0) + v.slice(1).toLowerCase()}
+                            </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
             </Box>
             <Box sx={{ p: 3, overflowY: 'auto', flexGrow: 1, maxHeight: 600 }}>
-                <AppointmentsList slots={filtered} apptsBySlot={apptsBySlot} onSelect={onSelectSlot} />
+                <AppointmentsList
+                    slots={filtered}
+                    apptsBySlot={apptsBySlot}
+                    onSelect={onSelectSlot}
+                />
             </Box>
         </>
     );
