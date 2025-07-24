@@ -1,5 +1,4 @@
-// src/app/user/components/appointments/SlotItem.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Paper, Stack, Typography, Chip, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
 import { getUserById } from '../../../services/user.service';
@@ -27,12 +26,11 @@ const statusChip = (s: Status) => {
     }
 };
 
-export const AppointmentItem: React.FC<Props> = ({ slot, appt, onClick }) => {
+export const AppointmentItem = ({ slot, appt, onClick }: Props) => {
     const theme = useTheme();
     const status: Status = slot.availability ? 'DISPONIBLE' : (appt?.status as Status);
     const chip = statusChip(status);
 
-    // State to hold fetched user info
     const [user, setUser] = useState<User | null>(null);
     const [loadingUser, setLoadingUser] = useState(false);
 
@@ -69,8 +67,7 @@ export const AppointmentItem: React.FC<Props> = ({ slot, appt, onClick }) => {
                             ? 'Cargando...'
                             : user
                                 ? `${user.firstName} ${user.lastName}`
-                                : 'Cliente'
-                        }
+                                : 'Cliente'}
                     </Typography>
                 ) : (
                     <Typography color="text.disabled">Libre</Typography>

@@ -1,113 +1,140 @@
-import React, { useState } from 'react';
-import { Box, Typography, useTheme, Button } from '@mui/material';
+import { useState } from 'react';
+import { Box, Card, Typography, Chip, Divider, useTheme, useMediaQuery } from '@mui/material';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { LoadingButton } from '@mui/lab';
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
 import type { Appointment, AvailableAppointment } from '../../../types/appointment';
 
-interface ItemProps {
+interface Props {
     appointment: Appointment;
     slot: AvailableAppointment;
     onCancel: (id: number) => Promise<void>;
-    afterCancel: () => void; // 👉 avisa al padre para recarga
+    afterCancel: () => void;
 }
-export const AppointmentUserItem = ({ appointment, slot, onCancel, afterCancel }: ItemProps) => {
-    const theme = useTheme();
+
+const statusMap = {
+    ACEPTADO: { label: 'Confirmado', color: 'primary' },
+    ESPERA: { label: 'Pendiente', color: 'primary' },
+    RECHAZADO: { label: 'Rechazado', color: 'primary' },
+};
+
+export const AppointmentUserItem = ({ appointment, slot, onCancel, afterCancel }: Props) => {
     const [loading, setLoading] = useState(false);
-    const date = dayjs(slot.date);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const date = dayjs(slot.date).locale('es');
+    const { label } = statusMap[appointment.status] || {};
 
-    const APPOINTMENT_GRID = '1fr 1fr 2fr 1fr 150px';
-
-    // Colores por estado
-    const statusBg =
-        appointment.status === 'ACEPTADO'
-            ? theme.palette.success.main
-            : appointment.status === 'ESPERA'
-                ? theme.palette.warning.main
-                : theme.palette.error.main;
-    const statusFg = theme.palette.getContrastText(statusBg);
-
-    const handleCancel = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleCancel = async () => {
         setLoading(true);
         await onCancel(appointment.id);
         setLoading(false);
         afterCancel();
     };
 
-    return (
+    // Fecha + icono
+    const DateBox = (
+        <Box display="flex" alignItems="center" gap={1}>
+            <CalendarTodayIcon color="action" />
+            <Typography variant="subtitle1" fontWeight={600}>
+                {date.format('D [de] MMMM, [a las] HH:mm')}
+            </Typography>
+        </Box>
+    );
+
+    // Chip de estado
+    const ChipBox = (
+        <Chip variant="outlined" label={label} size="small" color='primary' />
+    );
+
+    // Notas
+    const Notes = (
         <Box
             sx={{
-                display: { xs: 'block', sm: 'grid' },
-                gridTemplateColumns: APPOINTMENT_GRID,
-                alignItems: 'center',
+                bgcolor: theme.palette.grey[100],
+                borderRadius: 1,
                 px: 2,
                 py: 1,
-                gap: 1,
-                '&:hover': { bgcolor: theme.palette.action.hover },
+                flex: 1,
             }}
         >
-            {/* ── Móvil (stack) ── */}
-            <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-                <Typography fontWeight={600} gutterBottom>
-                    {date.format('DD/MM/YYYY • HH:mm')}
-                </Typography>
-                <Typography color="text.secondary" gutterBottom>
-                    {appointment.comment || '—'}
-                </Typography>
-                <Typography color="text.secondary" gutterBottom>
-                    {appointment.status}
-                </Typography>
-                <LoadingButton
-                    fullWidth
-                    size="small"
-                    variant="outlined"
-                    color="error"
-                    loading={loading}
-                    onClick={handleCancel}
-                >
-                    Cancelar turno
-                </LoadingButton>
-            </Box>
-
-            {/* ── Desktop grid ── */}
-            <Typography sx={{ display: { xs: 'none', sm: 'block' } }}>{date.format('DD/MM/YYYY')}</Typography>
-            <Typography sx={{ display: { xs: 'none', sm: 'block' } }}>{date.format('HH:mm')}</Typography>
-            <Typography
-                sx={{
-                    display: { xs: 'none', sm: 'block' },
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                }}
-            >
+            <Typography variant="body2" fontWeight={500}>
+                Notas:
+            </Typography>
+            <Typography variant="body2" color="text.primary" mt={0.5}>
                 {appointment.comment || '—'}
             </Typography>
-            <Button
-                variant="contained"
-                size="small"
-                disableElevation
-                sx={{
-                    display: { xs: 'none', sm: 'block' },
-                    bgcolor: statusBg,
-                    color: statusFg,
-                    minWidth: 96,
-                    textTransform: 'none',
-                    pointerEvents: 'none',
-                    justifySelf: 'start',
-                }}
-            >
-                {appointment.status}
-            </Button>
-            <LoadingButton
-                size="small"
-                variant="outlined"
-                color="error"
-                loading={loading}
-                onClick={handleCancel}
-                sx={{ display: { xs: 'none', sm: 'block' }, minWidth: 120 }}
-            >
-                Cancelar turno
-            </LoadingButton>
         </Box>
+    );
+
+    // Botón cancelar
+    const CancelBtn = (
+        <LoadingButton
+            size='small'
+            variant="outlined"
+            color="error"
+            loading={loading}
+            onClick={handleCancel}
+        >
+            Cancelar
+        </LoadingButton>
+    );
+
+    return (
+        <Card
+            variant="outlined"
+            sx={{
+                p: 2,
+                borderRadius: 2,
+                '& + &': { mt: 2 },
+            }}
+        >
+            {isMobile ? (
+                <>
+                    {/* MÓVIL: fecha | chip */}
+                    <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+                        {DateBox}
+                        {ChipBox}
+                    </Box>
+
+                    {/* Notas debajo */}
+                    <Box mt={2}>{Notes}</Box>
+
+                    {/* Cancelar abajo */}
+                    <Box mt={2} display="flex" justifyContent="flex-end">
+                        {CancelBtn}
+                    </Box>
+                </>
+            ) : (
+                // DESKTOP: agrupo date+chip en contenedor fijo, luego divider
+                <Box display="flex" alignItems="center">
+                    {/* Contenedor fijo para fecha + chip */}
+                    <Box
+                        sx={{
+                            minWidth: 300,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 1,
+                        }}
+                    >
+                        {DateBox}
+                        {ChipBox}
+                    </Box>
+
+                    {/* Divider siempre al mismo lugar */}
+                    <Divider
+                        orientation="vertical"
+                        flexItem
+                        sx={{ mx: 3, bgcolor: theme.palette.grey[300] }}
+                    />
+
+                    {/* Notas y botón */}
+                    {Notes}
+                    <Box ml={3}>{CancelBtn}</Box>
+                </Box>
+            )}
+        </Card>
     );
 };
