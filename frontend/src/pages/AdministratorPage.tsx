@@ -9,7 +9,6 @@ import { PropertySection } from '../app/property/components/properties/PropertyS
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { ProfileSection } from "../app/user/components/users/profile/ProfileSection";
 import { UsersSection } from '../app/user/components/users/panel/UsersSection';
-import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
 import { InquiriesSection } from '../app/property/components/inquiries/InquiriesSection';
 import ReplyIcon from '@mui/icons-material/Reply';
 import { ROUTES } from '../lib';
@@ -47,11 +46,6 @@ export default function AdministratorPage() {
         {
             key: 'appointments',
             label: 'TURNERO',
-            content: <AppointmentSection />,
-        },
-        {
-            key: 'turnero',
-            label: 'TURNERO 2',
             content: null,
             ButtonComponent: () => (
                 <Button
@@ -59,7 +53,7 @@ export default function AdministratorPage() {
                     onClick={() => navigate(ROUTES.APPOINTMENTS)}
                     sx={{ textTransform: 'none', minWidth: 110 }}
                 >
-                    TURNERO 2
+                    TURNERO
                 </Button>
             ),
         },

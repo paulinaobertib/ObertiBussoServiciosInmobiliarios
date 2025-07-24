@@ -6,7 +6,7 @@ import {
     CircularProgress,
 } from '@mui/material';
 import { useAuthContext } from '../../../../user/context/AuthContext';
-import { useAppointments } from '../../../hooks/useAppoitments';
+import { useAppointments } from '../../../hooks/useAppointments';
 import { AppointmentUserList } from './AppointmentUserList';
 
 
