@@ -1,5 +1,3 @@
-import { url } from "inspector";
-
 export function buildRoute(template: string, param: string | number): string;
 export function buildRoute(
   template: string,
