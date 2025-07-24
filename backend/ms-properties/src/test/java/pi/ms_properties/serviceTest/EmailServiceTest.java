@@ -140,7 +140,7 @@ class EmailServiceTest {
         assertEquals("email_survey", templateNameCaptor.getValue());
 
         IContext context = contextCaptor.getValue();
-        assertEquals("https://frontend.com/survey?inquiryId=42", context.getVariable("surveyLink"));
+        assertEquals("https://frontend.com/survey/42", context.getVariable("surveyLink"));
     }
 
     @Test
