@@ -12,11 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.Survey;
+import pi.ms_properties.domain.SurveyToken;
 import pi.ms_properties.dto.SurveyDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.ISurveyRepository;
 import pi.ms_properties.service.impl.SurveyService;
 import pi.ms_properties.service.interf.IEmailService;
+import pi.ms_properties.service.interf.ISurveyTokenService;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -43,13 +45,20 @@ class SurveyServiceTest {
     @Mock
     private IEmailService emailService;
 
+    @Mock
+    private ISurveyTokenService surveyTokenService;
+
+    private final String validToken = "token-valido";
+
+    private final String invalidToken = "token-invalido";
+
     // casos de exito
 
     @Test
     void sendSurvey_success() throws MessagingException {
-        doNothing().when(emailService).sendEmailSurvey(anyString(), anyLong());
+        doNothing().when(emailService).sendEmailSurvey(anyString(), anyLong(), eq(validToken));
 
-        ResponseEntity<String> response = surveyService.sendSurvey("test@example.com", 1L);
+        ResponseEntity<String> response = surveyService.sendSurvey("test@example.com", 1L, validToken);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha enviado la encuesta", response.getBody());
@@ -58,13 +67,22 @@ class SurveyServiceTest {
     @Test
     void create_success() {
         Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+        when(surveyRepository.countSurveysByInquiryId(1L)).thenReturn(0L);
 
         SurveyDTO dto = new SurveyDTO(null, 5, "Muy buena atención", 1L);
 
-        ResponseEntity<String> response = surveyService.create(dto);
+        ResponseEntity<String> response = surveyService.create(dto, validToken);
 
         verify(surveyRepository).save(any(Survey.class));
+        verify(surveyTokenService).markAsUsed(surveyToken);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha guardado correctamente la encuesta", response.getBody());
     }
@@ -155,31 +173,47 @@ class SurveyServiceTest {
 
     @Test
     void sendSurvey_internalServerError() throws MessagingException {
-        doThrow(RuntimeException.class).when(emailService).sendEmailSurvey(anyString(), anyLong());
+        doThrow(RuntimeException.class).when(emailService).sendEmailSurvey(anyString(), anyLong(), eq(validToken));
 
         assertThrows(RuntimeException.class, () ->
-            surveyService.sendSurvey("fail@example.com", 1L));
+                surveyService.sendSurvey("fail@example.com", 1L, validToken));
     }
 
     @Test
     void create_inquiryNotFound() {
+        SurveyToken surveyToken = new SurveyToken();
+        Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
         when(inquiryRepository.findById(1L)).thenReturn(Optional.empty());
 
         SurveyDTO dto = new SurveyDTO(null, 3, "Normal", 1L);
 
         assertThrows(EntityNotFoundException.class, () ->
-            surveyService.create(dto));
+                surveyService.create(dto, validToken));
     }
 
     @Test
     void create_dataIntegrityViolation() {
-        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(new Inquiry()));
+        Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+        when(surveyRepository.countSurveysByInquiryId(1L)).thenReturn(0L);
         doThrow(DataIntegrityViolationException.class).when(surveyRepository).save(any(Survey.class));
 
         SurveyDTO dto = new SurveyDTO(null, 3, "Normal", 1L);
 
         assertThrows(DataIntegrityViolationException.class, () ->
-            surveyService.create(dto));
+                surveyService.create(dto, validToken));
     }
 
     @Test
@@ -200,25 +234,33 @@ class SurveyServiceTest {
 
     @Test
     void sendSurvey_shouldThrowDataIntegrityViolationException() throws MessagingException {
+        String token = "token-valido";
+
         doThrow(new DataIntegrityViolationException("Violation"))
-                .when(emailService).sendEmailSurvey(anyString(), anyLong());
+                .when(emailService).sendEmailSurvey(anyString(), anyLong(), eq(token));
 
         assertThrows(DataIntegrityViolationException.class, () ->
-            surveyService.sendSurvey("test@email.com", 1L));
+                surveyService.sendSurvey("test@email.com", 1L, token));
     }
 
     @Test
     void create_shouldThrowDataIntegrityViolationException() {
+        String token = "token-valido";
         SurveyDTO surveyDTO = new SurveyDTO(null, 5, "Comentario", 1L);
         Inquiry inquiry = new Inquiry();
         inquiry.setId(1L);
 
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(token)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(token)).thenReturn(true);
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(surveyRepository).save(any(Survey.class));
 
         assertThrows(DataIntegrityViolationException.class, () ->
-            surveyService.create(surveyDTO));
+                surveyService.create(surveyDTO, token));
     }
 
     @Test
@@ -242,11 +284,18 @@ class SurveyServiceTest {
     @Test
     void create_scoreTooLow_returnsBadRequest() {
         Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
 
         SurveyDTO dto = new SurveyDTO(null, 0, "Muy mala atención", 1L);
 
-        ResponseEntity<String> response = surveyService.create(dto);
+        ResponseEntity<String> response = surveyService.create(dto, validToken);
 
         verify(surveyRepository, never()).save(any());
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -256,11 +305,18 @@ class SurveyServiceTest {
     @Test
     void create_scoreTooHigh_returnsBadRequest() {
         Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
 
         SurveyDTO dto = new SurveyDTO(null, 6, "Excelente atención", 1L);
 
-        ResponseEntity<String> response = surveyService.create(dto);
+        ResponseEntity<String> response = surveyService.create(dto, validToken);
 
         verify(surveyRepository, never()).save(any());
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -270,15 +326,76 @@ class SurveyServiceTest {
     @Test
     void create_alreadyExists() {
         Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
         when(surveyRepository.countSurveysByInquiryId(1L)).thenReturn(1L);
 
         SurveyDTO dto = new SurveyDTO(null, 5, "Todo bien", 1L);
 
-        ResponseEntity<String> response = surveyService.create(dto);
+        ResponseEntity<String> response = surveyService.create(dto, validToken);
 
         verify(surveyRepository, never()).save(any());
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Ya existe una encuesta para esta consulta.", response.getBody());
+    }
+
+    @Test
+    void create_tokenNotFound_returnsBadRequest() {
+        when(surveyTokenService.findByToken(invalidToken)).thenReturn(null);
+
+        SurveyDTO dto = new SurveyDTO(null, 3, "Comentario", 1L);
+
+        ResponseEntity<String> response = surveyService.create(dto, invalidToken);
+
+        verify(surveyRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El token no existe.", response.getBody());
+    }
+
+    @Test
+    void create_tokenInvalid_returnsBadRequest() {
+        SurveyToken surveyToken = new SurveyToken();
+        Inquiry inquiry = new Inquiry();
+        inquiry.setId(1L);
+        surveyToken.setInquiry(inquiry);
+
+        when(surveyTokenService.findByToken(invalidToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(invalidToken)).thenReturn(false);
+
+        SurveyDTO dto = new SurveyDTO(null, 3, "Comentario", 1L);
+
+        ResponseEntity<String> response = surveyService.create(dto, invalidToken);
+
+        verify(surveyRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El token no es valido.", response.getBody());
+    }
+
+    @Test
+    void create_tokenDoesNotMatchInquiry_returnsBadRequest() {
+        Inquiry inquiry1 = new Inquiry();
+        inquiry1.setId(1L);
+        Inquiry inquiry2 = new Inquiry();
+        inquiry2.setId(2L);
+
+        SurveyToken surveyToken = new SurveyToken();
+        surveyToken.setInquiry(inquiry1);
+
+        when(surveyTokenService.findByToken(validToken)).thenReturn(surveyToken);
+        when(surveyTokenService.isTokenValid(validToken)).thenReturn(true);
+
+        SurveyDTO dto = new SurveyDTO(null, 3, "Comentario", 2L);  // inquiryId distinto al token
+
+        ResponseEntity<String> response = surveyService.create(dto, validToken);
+
+        verify(surveyRepository, never()).save(any());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El token no coincide.", response.getBody());
     }
 }

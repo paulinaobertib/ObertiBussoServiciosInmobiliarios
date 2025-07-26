@@ -123,7 +123,7 @@ class KeycloakUserRepositoryTest {
     }
 
     @Test
-    void testFindById_success() {
+    void findById_success() {
         String userId = "user123";
         UserRepresentation userRep = new UserRepresentation();
         userRep.setId(userId);
@@ -272,6 +272,33 @@ class KeycloakUserRepositoryTest {
     }
 
     @Test
+    void testFindById_returnsEmptyWhenRepresentationIsNull() {
+        String userId = "user123";
+
+        when(keycloak.realm("test-realm")).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenReturn(userResource);
+        when(userResource.toRepresentation()).thenReturn(null);
+
+        Optional<User> result = repository.findById(userId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testFindById_returnsEmptyWhenExceptionThrown() {
+        String userId = "user123";
+
+        when(keycloak.realm("test-realm")).thenReturn(realmResource);
+        when(realmResource.users()).thenReturn(usersResource);
+        when(usersResource.get(userId)).thenThrow(new RuntimeException("Keycloak no responde"));
+
+        Optional<User> result = repository.findById(userId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void findByRoleTenant_success() {
         ClientRepresentation client = new ClientRepresentation();
         client.setId("client-uuid");
@@ -300,14 +327,6 @@ class KeycloakUserRepositoryTest {
     }
 
     // casos de error
-
-    @Test
-    void findById_error() {
-        String id = "notfound";
-        when(usersResource.get(id)).thenThrow(new NotFoundException("User not found"));
-
-        assertThrows(NotFoundException.class, () -> repository.findById(id));
-    }
 
     @Test
     void findAll_error() {

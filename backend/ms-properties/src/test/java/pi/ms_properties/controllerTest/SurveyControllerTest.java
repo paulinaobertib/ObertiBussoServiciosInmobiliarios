@@ -59,11 +59,15 @@ class SurveyControllerTest {
 
     @Test
     void testCreateSurveySuccess() throws Exception {
-        Mockito.when(surveyService.create(any())).thenReturn(ResponseEntity.ok("Se ha guardado correctamente la encuesta"));
+        String token = "token-de-ejemplo";
+
+        Mockito.when(surveyService.create(any(SurveyDTO.class), eq(token)))
+                .thenReturn(ResponseEntity.ok("Se ha guardado correctamente la encuesta"));
 
         mockMvc.perform(post("/survey/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleSurvey)))
+                        .content(objectMapper.writeValueAsString(sampleSurvey))
+                        .param("token", token))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Se ha guardado correctamente la encuesta"));
     }
@@ -180,13 +184,16 @@ class SurveyControllerTest {
 
     @Test
     void testCreateSurveyInvalidInput_shouldReturn400() throws Exception {
+        String token = "token-de-ejemplo";
         SurveyDTO invalidSurvey = new SurveyDTO(null, 7, "", null);
 
-        Mockito.when(surveyService.create(any())).thenReturn(ResponseEntity.badRequest().build());
+        Mockito.when(surveyService.create(any(SurveyDTO.class), eq(token)))
+                .thenReturn(ResponseEntity.badRequest().build());
 
         mockMvc.perform(post("/survey/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidSurvey)))
+                        .content(objectMapper.writeValueAsString(invalidSurvey))
+                        .param("token", token))
                 .andExpect(status().isBadRequest());
     }
 }

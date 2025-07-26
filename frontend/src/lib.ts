@@ -27,7 +27,7 @@ export const ROUTES = {
   NEWS_DETAILS: "/news/:id",
   FAVORITES: "/favorites",
   POLICIES: "/policies",
-  SURVEY: "/survey/:inquiryId"
+  SURVEY: "/survey/:inquiryId/:token"
 };
 
 export const PAGES = [
