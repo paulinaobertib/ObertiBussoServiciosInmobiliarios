@@ -8,6 +8,7 @@ import { Modal } from '../app/shared/components/Modal';
 import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
 import { useAuthContext } from '../app/user/context/AuthContext';
 import ReplyIcon from '@mui/icons-material/Reply';
+import { buildRoute, ROUTES } from '../lib';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,20 +45,33 @@ const PropertyDetailsPage = () => {
       <IconButton
         size="small"
         onClick={() => navigate(-1)}
-        sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
+        sx={{ position: 'absolute', top: 64, left: 8, zIndex: 1300 }}
       >
         <ReplyIcon />
       </IconButton>
 
-      <BasePage>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, mb: -4 }}>
-          {!isAdmin && (
-            <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
+      <BasePage >
+        <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, gap: 1 }}>
+          {!isAdmin ? (
+            <Button variant="contained" onClick={() => setInquiryOpen(true)}>
               Consultar por esta propiedad
             </Button>
+          ) : (
+            currentProperty && (
+              <>
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))
+                  }
+                >
+                  Ver notas de la propiedad
+                </Button>
+
+              </>
+            )
           )}
         </Box>
-
         {loading && (
           <Box sx={{ p: 4 }}>
             <Typography variant="h5">Cargando...</Typography>
@@ -76,7 +90,6 @@ const PropertyDetailsPage = () => {
           <>
             {/* Aquí se muestra el detalle */}
             <PropertyDetails property={currentProperty} />
-
 
             {/* Modal que contiene el InquiryPanel */}
             <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)}  >

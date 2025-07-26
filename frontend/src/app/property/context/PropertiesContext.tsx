@@ -14,8 +14,8 @@ import { getAllOwners } from '../services/owner.service';
 import { getAllNeighborhoods } from '../services/neighborhood.service';
 import { getAllTypes } from '../services/type.service';
 import { getAllProperties, getPropertyById } from '../services/property.service';
-import { getMaintenancesByPropertyId } from '../services/maintenance.service';
-import { getCommentsByPropertyId } from '../services/comment.service';
+// import { getMaintenancesByPropertyId } from '../services/maintenance.service';
+// import { getCommentsByPropertyId } from '../services/comment.service';
 
 import { Amenity } from '../types/amenity';
 import { Owner } from '../types/owner';
@@ -48,8 +48,8 @@ interface Ctx {
   typesList: Type[];
   propertiesList: Property[];
   operationsList: string[];
-  maintenancesList: Maintenance[];
-  commentsList: Comment[];
+  // maintenancesList: Maintenance[];
+  // commentsList: Comment[];
 
   /* flags de carga */
   loading: boolean;
@@ -71,8 +71,8 @@ interface Ctx {
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
   refreshProperties: () => Promise<void>;
-  refreshMaintenances: () => Promise<void>;
-  refreshComments: () => Promise<void>;
+  // refreshMaintenances: () => Promise<void>;
+  // refreshComments: () => Promise<void>;
   refreshOperations: () => void;
 
   /* data de categoría dinámica */
@@ -103,8 +103,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [typesList, setTypesList] = useState<Type[]>([]);
   const [propertiesList, setPropertiesList] = useState<Property[]>([]);
   const [operationsList, setOperationsList] = useState<string[]>([]);
-  const [commentsList, setCommentsList] = useState<Comment[]>([]);
-  const [maintenancesList, setMaintenancesList] = useState<Maintenance[]>([]);
+  // const [commentsList, setCommentsList] = useState<Comment[]>([]);
+  // const [maintenancesList, setMaintenancesList] = useState<Maintenance[]>([]);
 
   /* — flags — */
   const [loading, setLoading] = useState(false);
@@ -204,37 +204,37 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setOperationsList(ops);
   }, [propertiesList]);
 
-  const refreshComments = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (pickedItem?.type === 'property' && pickedItem.value) {
-        const list = await getCommentsByPropertyId(pickedItem.value.id);
-        setCommentsList(Array.isArray(list) ? list : []);
-      } else {
-        setCommentsList([]);
-      }
-    } catch (e) {
-      console.error('refreshComments', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [pickedItem]);
+  // const refreshComments = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     if (pickedItem?.type === 'property' && pickedItem.value) {
+  //       const list = await getCommentsByPropertyId(pickedItem.value.id);
+  //       setCommentsList(Array.isArray(list) ? list : []);
+  //     } else {
+  //       setCommentsList([]);
+  //     }
+  //   } catch (e) {
+  //     console.error('refreshComments', e);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [pickedItem]);
 
-  const refreshMaintenances = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (pickedItem?.type === 'property' && pickedItem.value) {
-        const list = await getMaintenancesByPropertyId(pickedItem.value.id);
-        setMaintenancesList(Array.isArray(list) ? list : []);
-      } else {
-        setMaintenancesList([]);
-      }
-    } catch (e) {
-      console.error('refreshMaintenances', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [pickedItem]);
+  // const refreshMaintenances = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     if (pickedItem?.type === 'property' && pickedItem.value) {
+  //       const list = await getMaintenancesByPropertyId(pickedItem.value.id);
+  //       setMaintenancesList(Array.isArray(list) ? list : []);
+  //     } else {
+  //       setMaintenancesList([]);
+  //     }
+  //   } catch (e) {
+  //     console.error('refreshMaintenances', e);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [pickedItem]);
 
   /* — inicializar catálogos al montar — */
   useEffect(() => {
@@ -305,10 +305,10 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   }, [selected, amenitiesList]);
 
   /* — mantenimientos y comentarios por cambio de pickedItem — */
-  useEffect(() => {
-    refreshMaintenances();
-    refreshComments();
-  }, [pickedItem]);
+  // useEffect(() => {
+  //   refreshMaintenances();
+  //   refreshComments();
+  // }, [pickedItem]);
 
   // ───────────────────────── detalle de propiedad
   const [currentProperty, setCurrentProperty] = useState<Property | null>(null);
@@ -406,10 +406,10 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         data,
         buildSearchParams,
 
-        maintenancesList,
-        commentsList,
-        refreshMaintenances,
-        refreshComments,
+        // maintenancesList,
+        // commentsList,
+        // refreshMaintenances,
+        // refreshComments,
 
         currentProperty,
         loadProperty,

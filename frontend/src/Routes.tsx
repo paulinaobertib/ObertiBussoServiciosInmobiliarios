@@ -11,14 +11,13 @@ import ManagePropertyPage from './pages/ManagePropertyPage';
 import Compare from './pages/ComparePage';
 import PropertyDetailsPage from './pages/PropertyDetailsPage';
 import AdministratorPage from './pages/AdministratorPage';
-import PropertyCommentsPage from './pages/PropertyCommentsPage';
-import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 import FavoritesPage from './pages/FavoritesPage';
 import UserProfilePage from './pages/UserProfilePage';
 import ContactPage from './pages/ContactPage';
 import NewsPage from './pages/NewsPage';
 import NewsDetailsPage from './pages/NewsDetailsPage';
 import PoliciesPage from './pages/PoliciesPage';
+import { PropertyNotesPage } from './pages/PropertyNotesPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
@@ -125,21 +124,14 @@ export default function Routes() {
                 }
             />
             <Route
-                path={ROUTES.PROPERTY_COMMENTS}
+                path={ROUTES.PROPERTY_NOTES}
                 element={
                     <RequireAdmin>
-                        <PropertyCommentsPage />
+                        <PropertyNotesPage />
                     </RequireAdmin>
                 }
             />
-            <Route
-                path={ROUTES.PROPERTY_MAINTENANCE}
-                element={
-                    <RequireAdmin>
-                        <PropertyMaintenancePage />
-                    </RequireAdmin>
-                }
-            />
+
             <Route
                 path={ROUTES.APPOINTMENTS}
                 element={

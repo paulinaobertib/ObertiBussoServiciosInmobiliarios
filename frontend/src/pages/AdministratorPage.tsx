@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Box, Button, IconButton } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { BasePage } from './BasePage';
@@ -84,30 +84,8 @@ export default function AdministratorPage() {
             </IconButton>
 
             <BasePage>
-
                 <ProfileSection />
-
-                <Box
-                    sx={{
-                        flexGrow: 1,
-                        display: 'flex',
-                        overflow: { xs: 'hidden', sm: 'auto' },
-                        mt: 2,
-                        mb: 2,
-                    }}
-                >
-                    {/* Contenedor dinámico */}
-                    <Box
-                        sx={{
-                            flexGrow: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            overflow: 'hidden'
-                        }}
-                    >
-                        <PanelManager panels={panels} direction="row" />
-                    </Box>
-                </Box>
+                <PanelManager panels={panels} direction="row" />
             </BasePage>
         </>
     );

@@ -12,7 +12,7 @@ import { Inquiry, InquiryStatus } from "../types/inquiry";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { buildRoute, ROUTES } from "../../../lib";
 
-const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
+export const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
 
 interface UseInquiriesArgs {
   propertyIds?: number[];
