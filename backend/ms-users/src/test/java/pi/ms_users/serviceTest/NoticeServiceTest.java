@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,6 +23,7 @@ import pi.ms_users.dto.NoticeGetDTO;
 import pi.ms_users.repository.INoticeRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.ImageRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.NoticeService;
 
 import java.time.LocalDateTime;
@@ -82,42 +85,56 @@ class NoticeServiceTest {
 
     @Test
     void testCreateNoticeSuccess() {
+        noticeDTO.setUserId("user1");
+
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
-        when(userRepository.getUserRoles("user1")).thenReturn(List.of("app_admin"));
         when(imageRepository.uploadImage(any(MultipartFile.class))).thenReturn("123.jpg");
         when(objectMapper.convertValue(any(), eq(Notice.class))).thenReturn(notice);
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
 
-        ResponseEntity<String> response = noticeService.create(noticeDTO);
+        try (MockedStatic<SecurityUtils> mockedStatic = Mockito.mockStatic(SecurityUtils.class)) {
+            mockedStatic.when(SecurityUtils::isAdmin).thenReturn(true);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha guardado la noticia", response.getBody());
+            ResponseEntity<String> response = noticeService.create(noticeDTO);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha guardado la noticia", response.getBody());
+        }
     }
 
     @Test
     void testUpdateNoticeSuccess() {
+        noticeDTO.setUserId("user1");
+
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
-        when(userRepository.getUserRoles("user1")).thenReturn(List.of("app_admin"));
         when(imageRepository.uploadImage(any(MultipartFile.class))).thenReturn("123.jpg");
         when(objectMapper.convertValue(any(), eq(Notice.class))).thenReturn(notice);
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
 
-        ResponseEntity<String> response = noticeService.update(noticeDTO);
+        try (MockedStatic<SecurityUtils> mockedStatic = Mockito.mockStatic(SecurityUtils.class)) {
+            mockedStatic.when(SecurityUtils::isAdmin).thenReturn(true);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha actualizado la noticia", response.getBody());
+            ResponseEntity<String> response = noticeService.update(noticeDTO);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha actualizado la noticia", response.getBody());
+        }
     }
 
     @Test
     void testDeleteNoticeSuccess() {
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
 
-        ResponseEntity<String> response = noticeService.delete(1L);
+        try (MockedStatic<SecurityUtils> mockedStatic = Mockito.mockStatic(SecurityUtils.class)) {
+            mockedStatic.when(SecurityUtils::isAdmin).thenReturn(true);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha eliminado la noticia", response.getBody());
-        verify(noticeRepository).delete(notice);
+            ResponseEntity<String> response = noticeService.delete(1L);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha eliminado la noticia", response.getBody());
+            verify(noticeRepository).delete(notice);
+        }
     }
 
     @Test
@@ -170,8 +187,12 @@ class NoticeServiceTest {
 
     @Test
     void testCreateNotice_ForbiddenUser() {
-        when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
-        when(userRepository.getUserRoles("user1")).thenReturn(List.of("user"));
+        noticeDTO.setUserId("user1");
+
+        User mockUser = new User();
+        mockUser.setId("user1");
+
+        when(userRepository.findById("user1")).thenReturn(Optional.of(mockUser));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> noticeService.create(noticeDTO));
@@ -204,7 +225,6 @@ class NoticeServiceTest {
     void testUpdateNotice_ForbiddenUser() {
         when(userRepository.findById("user1")).thenReturn(Optional.of(new User()));
         when(noticeRepository.findById(1L)).thenReturn(Optional.of(notice));
-        when(userRepository.getUserRoles("user1")).thenReturn(List.of("user"));
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> noticeService.update(noticeDTO));
