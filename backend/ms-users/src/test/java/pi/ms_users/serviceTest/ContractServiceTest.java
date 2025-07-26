@@ -138,6 +138,10 @@ class ContractServiceTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha creado el contrato.", response.getBody());
 
+        verify(propertyRepository).getById(contractDTO.getPropertyId());
+        verify(userRepository).findById(contractDTO.getUserId());
+        verify(userRepository).addRoleToUser(user.getId(), "tenant");
+        verify(propertyRepository).updateStatus(propertyDTO.getId(), Status.ALQUILADA);
         verify(contractRepository).save(contract);
         verify(emailService).sendNewContractEmail(any(EmailContractDTO.class));
         verify(contractIncreaseService).create(contractIncreaseDTO);
