@@ -2,6 +2,7 @@ package pi.ms_users.serviceTest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
 import pi.ms_users.dto.feign.PropertyDTO;
+import pi.ms_users.dto.feign.Status;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -117,14 +119,19 @@ class ContractServiceTest {
 
     @Test
     void testCreate_success() {
+        propertyDTO.setStatus("DISPONIBLE");
+
         when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(propertyDTO);
         when(userRepository.findById(contractDTO.getUserId())).thenReturn(Optional.of(user));
-        when(objectMapper.convertValue(contractDTO, Contract.class)).thenReturn(contract);
-        when(objectMapper.convertValue(any(ContractIncrease.class), eq(ContractIncreaseDTO.class))).thenReturn(contractIncreaseDTO);
+        when(userRepository.addRoleToUser(user.getId(), "tenant")).thenReturn(List.of("tenant")); // ✅ necesario
+        when(propertyRepository.updateStatus(propertyDTO.getId(), Status.ALQUILADA))
+                .thenReturn(ResponseEntity.ok("OK"));
 
-        doNothing().when(emailService).sendNewContractEmail(any(EmailContractDTO.class));
-        when(contractIncreaseService.create(contractIncreaseDTO)).thenReturn(ResponseEntity.ok("Success"));
+        when(objectMapper.convertValue(contractDTO, Contract.class)).thenReturn(contract);
         when(contractRepository.save(contract)).thenReturn(contract);
+        when(objectMapper.convertValue(any(ContractIncrease.class), eq(ContractIncreaseDTO.class))).thenReturn(contractIncreaseDTO);
+        when(contractIncreaseService.create(contractIncreaseDTO)).thenReturn(ResponseEntity.ok("Success"));
+        doNothing().when(emailService).sendNewContractEmail(any());
 
         ResponseEntity<String> response = contractService.create(contractDTO, new BigDecimal("1000"), ContractIncreaseCurrency.USD);
 
@@ -315,31 +322,6 @@ class ContractServiceTest {
     // casos de error
 
     @Test
-    void testCreate_userNotFound_throwsException() {
-        when(propertyRepository.getById(anyLong())).thenReturn(mock(PropertyDTO.class));
-        when(userRepository.findById(anyString())).thenReturn(Optional.empty());
-
-        ContractDTO dto = new ContractDTO();
-        dto.setUserId("user123");
-        dto.setPropertyId(1L);
-
-        assertThrows(NoSuchElementException.class,
-                () -> contractService.create(dto, BigDecimal.TEN, ContractIncreaseCurrency.ARS));
-    }
-
-    @Test
-    void testCreate_propertyNotFound_throwsException() {
-        when(propertyRepository.getById(anyLong())).thenThrow(new EntityNotFoundException("No existe propiedad"));
-
-        ContractDTO dto = new ContractDTO();
-        dto.setUserId("user123");
-        dto.setPropertyId(99L);
-
-        assertThrows(EntityNotFoundException.class,
-                () -> contractService.create(dto, BigDecimal.TEN, ContractIncreaseCurrency.ARS));
-    }
-
-    @Test
     void testUpdate_contractNotFound_throwsException() {
         when(contractRepository.findById(anyLong())).thenReturn(Optional.empty());
 
@@ -392,16 +374,26 @@ class ContractServiceTest {
 
     @Test
     void testCreate_emailServiceThrowsException_shouldPropagate() {
-        when(propertyRepository.getById(anyLong())).thenReturn(mock(PropertyDTO.class));
+        PropertyDTO mockedProperty = mock(PropertyDTO.class);
+        when(mockedProperty.getStatus()).thenReturn("DISPONIBLE");
+        when(mockedProperty.getId()).thenReturn(1L);
+        when(propertyRepository.getById(anyLong())).thenReturn(mockedProperty);
 
         User user = new User();
+        user.setId("user123");
         user.setEmail("test@mail.com");
         user.setFirstName("Nombre");
         when(userRepository.findById(anyString())).thenReturn(Optional.of(user));
+        when(userRepository.addRoleToUser(anyString(), eq("tenant"))).thenReturn(List.of("tenant"));
+
+        when(propertyRepository.updateStatus(anyLong(), eq(Status.ALQUILADA)))
+                .thenReturn(ResponseEntity.ok("OK"));
 
         Contract mockContract = new Contract();
         mockContract.setId(123L);
         when(contractRepository.save(any())).thenReturn(mockContract);
+
+        when(objectMapper.convertValue(any(ContractDTO.class), eq(Contract.class))).thenReturn(mockContract);
 
         doThrow(new RuntimeException("Email service failure"))
                 .when(emailService).sendNewContractEmail(any());
@@ -409,6 +401,8 @@ class ContractServiceTest {
         ContractDTO dto = new ContractDTO();
         dto.setUserId("user123");
         dto.setPropertyId(1L);
+        dto.setStartDate(LocalDateTime.now());
+        dto.setEndDate(LocalDateTime.now().plusDays(30));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> contractService.create(dto, BigDecimal.TEN, ContractIncreaseCurrency.ARS));
@@ -524,5 +518,67 @@ class ContractServiceTest {
 
             verify(emailService).sendRentPaymentReminder(any(EmailPaymentReminderDTO.class));
         }
+    }
+
+    @Test
+    void testCreate_propertyNotFound() {
+        when(propertyRepository.getById(contractDTO.getPropertyId()))
+                .thenThrow(FeignException.NotFound.class);
+
+        ResponseEntity<String> response = contractService.create(contractDTO, new BigDecimal("1000"), ContractIncreaseCurrency.USD);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se ha encontrado la propiedad.", response.getBody());
+    }
+
+    @Test
+    void testCreate_propertyNotAvailable() {
+        propertyDTO.setStatus("RESERVADA");
+        when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(propertyDTO);
+
+        ResponseEntity<String> response = contractService.create(contractDTO, new BigDecimal("1000"), ContractIncreaseCurrency.USD);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("La propiedad no se encuentra disponible.", response.getBody());
+    }
+
+    @Test
+    void testCreate_userNotFound() {
+        propertyDTO.setStatus("DISPONIBLE");
+        when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(propertyDTO);
+        when(userRepository.findById(contractDTO.getUserId())).thenReturn(Optional.empty());
+
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class,
+                () -> contractService.create(contractDTO, new BigDecimal("1000"), ContractIncreaseCurrency.USD));
+
+        assertEquals("No se ha encontrado el usuario.", exception.getMessage());
+    }
+
+    @Test
+    void testCreate_userRoleAssignmentFails() {
+        propertyDTO.setStatus("DISPONIBLE");
+        when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(propertyDTO);
+        when(userRepository.findById(contractDTO.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.addRoleToUser(user.getId(), "tenant")).thenReturn(List.of()); // no contiene tenant
+
+        ResponseEntity<String> response = contractService.create(contractDTO, new BigDecimal("1000"), ContractIncreaseCurrency.USD);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("No se ha podido modificar el rol del usuario.", response.getBody());
+    }
+
+    @Test
+    void testCreate_propertyStatusUpdateFails() {
+        propertyDTO.setStatus("DISPONIBLE");
+        when(propertyRepository.getById(contractDTO.getPropertyId())).thenReturn(propertyDTO);
+        when(userRepository.findById(contractDTO.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.addRoleToUser(user.getId(), "tenant")).thenReturn(List.of("tenant"));
+        when(propertyRepository.updateStatus(propertyDTO.getId(), Status.ALQUILADA))
+                .thenReturn(ResponseEntity.badRequest().body("Error"));
+
+        ResponseEntity<String> response = contractService.create(contractDTO, new BigDecimal("1000"), ContractIncreaseCurrency.USD);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("No se ha podido modificar el estado de la propiedad.", response.getBody());
     }
 }

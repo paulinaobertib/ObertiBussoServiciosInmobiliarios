@@ -151,8 +151,15 @@ public class KeycloakUserRepository implements IUserRepository {
 
     @Override
     public Optional<User> findById(String id) {
-        UserRepresentation userRepresentation = keycloak.realm(realm).users().get(id).toRepresentation();
-        return Optional.of(toUser(userRepresentation));
+        try {
+            UserRepresentation userRepresentation = keycloak.realm(realm).users().get(id).toRepresentation();
+            if (userRepresentation == null) {
+                return Optional.empty();
+            }
+            return Optional.of(toUser(userRepresentation));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
