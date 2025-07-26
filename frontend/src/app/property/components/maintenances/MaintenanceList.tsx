@@ -1,24 +1,28 @@
-import Stack from "@mui/material/Stack";
-import { MaintenanceData, MaintenanceItem } from "./MaintenanceItem";
+// src/app/property/components/maintenances/MaintenanceList.tsx
+import { Stack } from '@mui/material';
+import { MaintenanceItem } from './MaintenanceItem';
+import { Maintenance } from '../../types/maintenance';
 
-// Props for the list component
 export interface MaintenanceListProps {
-    items: MaintenanceData[];
-    onEditItem: (item: MaintenanceData) => void;
-    onDeleteItem: (item: MaintenanceData) => void;
+    items: Maintenance[];
+    onEditItem: (item: Maintenance) => void;
+    onDeleteItem: (item: Maintenance) => void;
 }
 
-// Reusable list component that sorts by most recent
-export const MaintenanceList = ({ items, onEditItem, onDeleteItem }: MaintenanceListProps) => {
-    const sortedItems = [...items].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+export const MaintenanceList = ({
+    items,
+    onEditItem,
+    onDeleteItem,
+}: MaintenanceListProps) => {
+    const sorted = items
+        .slice()
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <Stack spacing={2}>
-            {sortedItems.map(m => (
+        <Stack direction="column" gap={2} >
+            {sorted.map(m => (
                 <MaintenanceItem
-                    key={`${m.date}-${m.title}`}
+                    key={m.id}
                     maintenance={m}
                     onEdit={() => onEditItem(m)}
                     onDelete={() => onDeleteItem(m)}

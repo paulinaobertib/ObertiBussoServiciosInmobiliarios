@@ -1,22 +1,28 @@
+// src/app/property/components/comments/CommentList.tsx
 import { Stack } from '@mui/material';
-import { CommentItem, CommentData } from './CommentItem';
+import { CommentItem } from './CommentItem';
+import { Comment } from '../../types/comment';
 
 export interface CommentListProps {
-    items: CommentData[];
-    onEditItem: (item: CommentData) => void;
-    onDeleteItem: (item: CommentData) => void;
+    items: Comment[];
+    onEditItem: (item: Comment) => void;
+    onDeleteItem: (item: Comment) => void;
 }
 
-export const CommentList = ({ items, onEditItem, onDeleteItem }: CommentListProps) => {
-    const sorted = [...items].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+export const CommentList = ({
+    items,
+    onEditItem,
+    onDeleteItem,
+}: CommentListProps) => {
+    const sorted = items
+        .slice()
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return (
-        <Stack spacing={2}>
+        <Stack direction="column" gap={2} >
             {sorted.map(c => (
                 <CommentItem
-                    key={`${c.date}-${c.description.slice(0, 10)}`}
+                    key={c.id}
                     comment={c}
                     onEdit={() => onEditItem(c)}
                     onDelete={() => onDeleteItem(c)}

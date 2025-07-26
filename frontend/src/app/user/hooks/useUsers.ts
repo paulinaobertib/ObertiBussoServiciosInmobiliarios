@@ -1,4 +1,3 @@
-// src/app/user/hooks/useUsers.ts
 import { useState, useEffect, useCallback } from "react";
 import {
   getAllUsers,
@@ -11,58 +10,51 @@ import type { User, Role } from "../types/user";
 export type Filter = "TODOS" | "ADMIN" | "USER" | "TENANT";
 
 export function useUsers(initialFilter: Filter = "TODOS") {
-  // datos básicos
+  /* ── datos ── */
   const [users, setUsers] = useState<(User & { roles: Role[] })[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<Filter>(initialFilter);
 
-  // selección interna
+  /* ── selección ── */
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // helpers selección
   const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id];
-
-      console.log("[useUsers] toggleSelect:", id, "→ selectedIds:", next);
-      return next;
-    });
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
+    );
   }, []);
 
   const isSelected = useCallback(
     (id: string) => selectedIds.includes(id),
-    [selectedIds]
+    [selectedIds],
   );
 
-  // helper que añade roles a cada usuario
-  const enrich = useCallback(async (list: User[]) => {
-    return Promise.all(
-      list.map(async (u) => {
+  /* ── helper roles ── */
+  const enrich = useCallback(async (list: User[]) =>
+    Promise.all(
+      list.map(async u => {
         try {
           const res = await getRoles(u.id);
           return { ...u, roles: res.data };
         } catch {
           return { ...u, roles: [] };
         }
-      })
-    );
-  }, []);
+      }),
+    ),
+  [],);
 
-  // carga según filter
+  /* ── carga ── */
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      let base: User[];
-      if (filter === "TENANT") base = (await getTenants()).data;
-      else base = (await getAllUsers()).data;
+      const base =
+        filter === "TENANT"
+          ? (await getTenants()).data
+          : (await getAllUsers()).data;
 
       let enriched = await enrich(base);
-      if (filter === "ADMIN")
-        enriched = enriched.filter((u) => u.roles.includes("admin"));
-      if (filter === "USER")
-        enriched = enriched.filter((u) => u.roles.includes("user"));
+      if (filter === "ADMIN") enriched = enriched.filter(u => u.roles.includes("admin"));
+      if (filter === "USER") enriched = enriched.filter(u => u.roles.includes("user"));
 
       setUsers(enriched);
     } finally {
@@ -70,23 +62,13 @@ export function useUsers(initialFilter: Filter = "TODOS") {
     }
   }, [filter, enrich]);
 
-  // recarga al cambiar filter
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  // para SearchBar
-  const fetchAll = useCallback(async () => {
-    const all = (await getAllUsers()).data;
-    return enrich(all);
-  }, [enrich]);
-
+  /* ── buscador ── */
+  const fetchAll   = useCallback(() => getAllUsers().then(r => enrich(r.data)), [enrich]);
   const fetchByText = useCallback(
-    async (text: string) => {
-      const found = (await searchUsersByText(text)).data;
-      return enrich(found);
-    },
-    [enrich]
+    (txt: string) => searchUsersByText(txt).then(r => enrich(r.data)),
+    [enrich],
   );
 
   return {
@@ -98,8 +80,7 @@ export function useUsers(initialFilter: Filter = "TODOS") {
     load,
     fetchAll,
     fetchByText,
-
-    // 🔥 selección integrada 🔥
+    /* selección */
     toggleSelect,
     isSelected,
   };

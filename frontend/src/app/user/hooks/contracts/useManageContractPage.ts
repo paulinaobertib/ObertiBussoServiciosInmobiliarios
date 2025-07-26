@@ -10,6 +10,7 @@ import {
 } from "../../services/contract.service";
 import type { Contract, ContractCreate } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
+import { ROUTES } from "../../../../lib";
 
 export function useManageContractPage() {
   const navigate = useNavigate();
@@ -38,31 +39,31 @@ export function useManageContractPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // ── Preload en edición ──
-useEffect(() => {
-  if (!isEdit) return;
+  useEffect(() => {
+    if (!isEdit) return;
 
-  (async () => {
-    setLoading(true);
-    try {
-      // Si tu servicio devuelve directamente el Contract:
-      const data = await getContractById(Number(id!));
-      // Si tu servicio retorna axios.Response<Contract>, usa:
-      // const { data } = await getContractById(Number(id!));
+    (async () => {
+      setLoading(true);
+      try {
+        // Si tu servicio devuelve directamente el Contract:
+        const data = await getContractById(Number(id!));
+        // Si tu servicio retorna axios.Response<Contract>, usa:
+        // const { data } = await getContractById(Number(id!));
 
-      setContract(data);
-      setSelectedPropertyId(data.propertyId);
-      setSelectedUserId(data.userId);
-    } catch {
-      // Si falla, enviamos al listado y mostramos alerta
-      navigate("/contracts");
-      showAlert("Error al cargar contrato", "error");
-    } finally {
-      setLoading(false);
-    }
-  })();
-  // ————————
-  // Dependencias: solo id e isEdit para que NO se repita en cada render
-}, [id, isEdit]);
+        setContract(data);
+        setSelectedPropertyId(data.propertyId);
+        setSelectedUserId(data.userId);
+      } catch {
+        // Si falla, enviamos al listado y mostramos alerta
+        navigate("/contracts");
+        showAlert("Error al cargar contrato", "error");
+      } finally {
+        setLoading(false);
+      }
+    })();
+    // ————————
+    // Dependencias: solo id e isEdit para que NO se repita en cada render
+  }, [id, isEdit]);
 
   // ── Lógica de habilitación de botones ──
   // Siguiente/Guardar depende del paso actual
@@ -109,18 +110,11 @@ useEffect(() => {
   };
 
   // ── Cancelar / Back ──
-  const cancel = () => {
-    if (activeStep > 0) {
-      // vuelve un paso
-      setActiveStep((s) => s - 1);
-    } else {
-      // abandona totalmente
-      ask("¿Deseas salir sin guardar?", async () => {
-        formRef.current?.reset();
-        navigate("/contracts");
-      });
-    }
-  };
+  const cancel = () =>
+    ask("¿Cancelar los cambios?", async () => {
+      formRef.current?.reset();
+      navigate(ROUTES.CONTRACT);
+    });
 
   // Título dinámico
   const title = isEdit ? "Editar Contrato" : "Crear Contrato";

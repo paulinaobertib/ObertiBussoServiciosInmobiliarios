@@ -12,7 +12,7 @@ export const PropertyDetails = ({ property }: Props) => {
         : `${property.street}, Buenos Aires, Argentina`;
 
     return (
-        <Container maxWidth="xl" sx={{ py: 8 }}>
+        <Container maxWidth="xl" sx={{ py: 2 }}>
             <PropertyPanel property={property} InfoComponent={PropertyInfo} />
             <MapSection address={address} />
         </Container>

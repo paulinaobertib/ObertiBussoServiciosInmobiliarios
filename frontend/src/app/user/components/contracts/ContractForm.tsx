@@ -1,6 +1,9 @@
 import { forwardRef, useImperativeHandle } from "react";
-import { Box, TextField, MenuItem, Typography, CircularProgress, Card, CardContent, Grid } from "@mui/material";
-import { ContractType, ContractStatus, Contract } from "../../types/contract";
+import {
+    Box, Grid, Card, CardContent, Typography,
+    TextField, MenuItem, CircularProgress, Divider,
+} from "@mui/material";
+import { ContractType, Contract } from "../../types/contract";
 import { useContractForm, ContractFormValues } from "../../hooks/contracts/useContractForm";
 
 export type ContractFormHandle = {
@@ -12,170 +15,115 @@ interface Props {
     initialPropertyId: number;
     initialUserId: string;
     initialData?: Contract;
-    onValidityChange?: (valid: boolean) => void;
+    onValidityChange?: (v: boolean) => void;
 }
 
 export const ContractForm = forwardRef<ContractFormHandle, Props>(function ContractForm(
     { initialPropertyId, initialUserId, initialData, onValidityChange }, ref
 ) {
     const {
-        values, property, user, loadingData, handleChange, reset, submit,
-
+        values, property, user, loadingData,
+        handleChange, reset, submit,
     } = useContractForm(initialPropertyId, initialUserId, initialData, onValidityChange);
 
     useImperativeHandle(ref, () => ({ submit, reset }));
 
-    if (loadingData) {
-        return (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
+    if (loadingData)
+        return <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}><CircularProgress /></Box>;
 
     return (
         <Box component="form" noValidate>
-            {/* ─── Resumen de selección ─── */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+
+            {/* ─── Resumen selección ─── */}
+            <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <Card variant="outlined">
-                        <CardContent>
-                            <Typography variant="body1" fontWeight={700} gutterBottom>
-                                Propiedad seleccionada
-                            </Typography>
-                            <Typography>{property?.title}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Precio: ${property?.price}
-                                {property?.expenses! > 0 && ` - Expensas: $${property?.expenses}`}
-                            </Typography>
-                        </CardContent>
-                    </Card>
+                    <Card variant="outlined"><CardContent>
+                        <Typography fontWeight={700}>Propiedad</Typography>
+                        <Typography>{property?.title}</Typography>
+                    </CardContent></Card>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <Card variant="outlined">
-                        <CardContent>
-                            <Typography variant="body1" fontWeight={700} gutterBottom>
-                                Usuario seleccionado
-                            </Typography>
-                            <Typography>
-                                {user?.firstName} {user?.lastName}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {user?.email} - {user?.phone}
-                            </Typography>
-                        </CardContent>
-                    </Card>
+                    <Card variant="outlined"><CardContent>
+                        <Typography fontWeight={700}>Usuario</Typography>
+                        <Typography>{user?.firstName} {user?.lastName}</Typography>
+                    </CardContent></Card>
                 </Grid>
             </Grid>
 
-            {/* ─── Campos editables ─── */}
+            {/* ─── Datos del contrato ─── */}
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                Datos del contrato
+            </Typography>
+
             <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Tipo de contrato"
-                        variant="outlined"
-                        value={values.contractType}
-                        onChange={handleChange("contractType")}
-                    >
-                        {Object.values(ContractType).map((t) => (
+                    <TextField select fullWidth required label="Tipo" size="small"
+                        value={values.contractType || ""}
+                        onChange={handleChange("contractType")}>
+                        {Object.values(ContractType).map(t => (
                             <MenuItem key={t} value={t}>
-                                {t}
+                                {t.charAt(0) + t.slice(1).toLowerCase()}
                             </MenuItem>
                         ))}
                     </TextField>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Estado"
-                        variant="outlined"
-                        value={values.contractStatus}
-                        onChange={handleChange("contractStatus")}
-                    >
-                        {Object.values(ContractStatus).map((s) => (
-                            <MenuItem key={s} value={s}>
-                                {s}
-                            </MenuItem>
-                        ))}
+                    <TextField select fullWidth required label="Estado" size="small"
+                        value={values.contractStatus || ""}
+                        onChange={handleChange("contractStatus")}>
+                        <MenuItem value="ACTIVO">Activo</MenuItem>
+                        <MenuItem value="INACTIVO">Inactivo</MenuItem>
                     </TextField>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        type="date"
-                        fullWidth
-                        label="Fecha inicio"
-                        variant="outlined"
-                        InputLabelProps={{ shrink: true }}
-                        value={values.startDate}
-                        onChange={handleChange("startDate")}
-                    />
+                    <TextField type="date" fullWidth required label="Inicio" size="small"
+                        InputLabelProps={{ shrink: true }} value={values.startDate}
+                        onChange={handleChange("startDate")} />
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        type="date"
-                        fullWidth
-                        label="Fecha fin"
-                        variant="outlined"
-                        InputLabelProps={{ shrink: true }}
-                        value={values.endDate}
-                        onChange={handleChange("endDate")}
-                    />
+                    <TextField type="date" fullWidth required label="Fin" size="small"
+                        InputLabelProps={{ shrink: true }} value={values.endDate}
+                        onChange={handleChange("endDate")} />
+                </Grid>
+            </Grid>
+
+            {/* Divider */}
+            <Divider sx={{ my: 2 }} />
+
+            {/* ─── Datos de pagos ─── */}
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+                Datos de pagos
+            </Typography>
+
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField type="number" fullWidth required label="Monto inicial" size="small"
+                        inputProps={{ min: 0 }} value={values.amount === "" ? "" : values.amount}
+                        onChange={handleChange("amount")} />
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        type="number"
-                        fullWidth
-                        label="% Aumento"
-                        variant="outlined"
-                        value={values.increase}
-                        onChange={handleChange("increase")}
-                    />
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        type="number"
-                        fullWidth
-                        label="Frecuencia aumento (meses)"
-                        variant="outlined"
-                        value={values.increaseFrequency}
-                        onChange={handleChange("increaseFrequency")}
-                    />
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        type="number"
-                        fullWidth
-                        label="Monto"
-                        variant="outlined"
-                        value={values.amount}
-                        onChange={handleChange("amount")}
-                    />
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Moneda"
-                        variant="outlined"
-                        value={values.currency}
-                        onChange={handleChange("currency")}
-                    >
-                        {["ARS", "USD"].map((c) => (
-                            <MenuItem key={c} value={c}>
-                                {c}
-                            </MenuItem>
-                        ))}
+                    <TextField select fullWidth required label="Moneda" size="small"
+                        value={values.currency || ""}
+                        onChange={handleChange("currency")}>
+                        <MenuItem value="ARS">Peso Argentino</MenuItem>
+                        <MenuItem value="USD">Dólar</MenuItem>
                     </TextField>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField type="number" required fullWidth label="Porcentaje de aumento" size="small"
+                        inputProps={{ min: 0 }} value={values.increase}
+                        onChange={handleChange("increase")} />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField type="number" required fullWidth label="Frecuencia de aumento (meses)" size="small"
+                        inputProps={{ min: 0 }} value={values.increaseFrequency}
+                        onChange={handleChange("increaseFrequency")} />
                 </Grid>
             </Grid>
         </Box>
