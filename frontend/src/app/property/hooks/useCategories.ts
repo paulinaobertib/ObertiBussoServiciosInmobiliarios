@@ -13,7 +13,12 @@ export function useCategories<T extends {}>(
   const { showAlert } = useGlobalAlert();
   const { loading, run } = useLoading(async () => {
     try {
-      await save(form);
+      if (action === "add") {
+        const { id, ...formWithoutId } = form as any; 
+        await save(formWithoutId);
+      } else {
+        await save(form);
+      }
       await refresh();
       onDone();
       showAlert("Acción ejecutada con éxito", "success");
