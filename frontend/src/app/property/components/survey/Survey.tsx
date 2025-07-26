@@ -28,6 +28,7 @@ function getLabelText(value: number): string {
 export const Survey = () => {
     const { postSurvey, loading } = useSurvey();
     const { inquiryId } = useParams<{ inquiryId: string }>();
+    const { token } = useParams<{ token: string }>();
     const [score, setScore] = useState<number>(5);
     const [hover, setHover] = useState<number>(-1);
     const [comment, setComment] = useState<string>("");
@@ -47,7 +48,7 @@ export const Survey = () => {
         };
 
         try {
-            await postSurvey(dto);
+            await postSurvey(dto, token!);
             Swal.fire({
                 title: '¡Muchas gracias!',
                 text: 'Agradecemos el tiempo que te tomaste para calificar nuestro servicio. Tu opinión nos ayuda a mejorar.',

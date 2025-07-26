@@ -21,6 +21,7 @@ import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.service.interf.IInquiryService;
+import pi.ms_properties.service.interf.ISurveyTokenService;
 
 import java.time.*;
 import java.time.format.TextStyle;
@@ -40,6 +41,8 @@ public class InquiryService implements IInquiryService {
     private final EmailService emailService;
 
     private final SurveyService surveyService;
+
+    private final ISurveyTokenService surveyTokenService;
 
     private final ObjectMapper objectMapper;
 
@@ -147,7 +150,8 @@ public class InquiryService implements IInquiryService {
         inquiry.setStatus(InquiryStatus.CERRADA);
         inquiry.setDateClose(LocalDateTime.now());
         inquiryRepository.save(inquiry);
-        surveyService.sendSurvey(inquiry.getEmail(), inquiry.getId());
+        String token = surveyTokenService.create(inquiry);
+        surveyService.sendSurvey(inquiry.getEmail(), inquiry.getId(), token);
 
         return ResponseEntity.ok("Se ha actualizado el estado de la consulta");
     }

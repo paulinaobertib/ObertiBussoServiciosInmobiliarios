@@ -2,7 +2,10 @@ package pi.ms_users.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
+import feign.Response;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
 import pi.ms_users.dto.feign.PropertyDTO;
+import pi.ms_users.dto.feign.Status;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
@@ -71,10 +75,29 @@ public class ContractService implements IContractService {
 
     @Override
     public ResponseEntity<String> create(ContractDTO contractDTO, BigDecimal amount, ContractIncreaseCurrency currency) {
-        PropertyDTO propertyDTO = propertyRepository.getById(contractDTO.getPropertyId());
+        PropertyDTO propertyDTO;
+        try {
+            propertyDTO = propertyRepository.getById(contractDTO.getPropertyId());
+        } catch (FeignException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado la propiedad.");
+        }
+
+        if (!propertyDTO.getStatus().equals(Status.DISPONIBLE.name())) {
+            return ResponseEntity.badRequest().body("La propiedad no se encuentra disponible.");
+        }
 
         User user = userRepository.findById(contractDTO.getUserId())
                 .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el usuario."));
+
+        List<String> userRoles = userRepository.addRoleToUser(user.getId(), "tenant");
+        if (!userRoles.contains("tenant")) {
+            return ResponseEntity.badRequest().body("No se ha podido modificar el rol del usuario.");
+        }
+
+        ResponseEntity<String> response = propertyRepository.updateStatus(propertyDTO.getId(), Status.ALQUILADA);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.badRequest().body("No se ha podido modificar el estado de la propiedad.");
+        }
 
         Contract contract = objectMapper.convertValue(contractDTO, Contract.class);
         Contract saved = contractRepository.save(contract);

@@ -10,9 +10,9 @@ import java.util.Map;
 
 
 public interface ISurveyService {
-    ResponseEntity<String> sendSurvey(String emailTo, Long inquiryId) throws MessagingException;
+    ResponseEntity<String> sendSurvey(String emailTo, Long inquiryId, String token) throws MessagingException;
 
-    ResponseEntity<String> create(SurveyDTO surveyDTO);
+    ResponseEntity<String> create(SurveyDTO surveyDTO, String token);
 
     ResponseEntity<SurveyDTO> getById(Long id);
 
