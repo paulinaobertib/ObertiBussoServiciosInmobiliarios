@@ -50,7 +50,6 @@ export function SearchFilters({ onSearch }: Props) {
 
   const priceCfg = LIMITS.price[params.currency as "USD" | "ARS"] ?? LIMITS.price.USD;
 
-
   /* ═════════ Panel completo ═════════ */
   const Panel = (
     <Box sx={{ p: 2 }}>
@@ -297,6 +296,6 @@ export function SearchFilters({ onSearch }: Props) {
       </Drawer>
     </>
   ) : (
-    <Box sx={{ width: 300, flexShrink: 0, borderLeft: "1px solid", borderColor: "divider" }}>{Panel}</Box>
+    <Box sx={{ width: 300, borderColor: "divider" }}>{Panel}</Box>
   );
 }

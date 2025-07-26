@@ -11,7 +11,7 @@ export default function PoliciesPage() {
             <IconButton
                 size="small"
                 onClick={() => navigate(-1)}
-                sx={{ position: 'relative', top: 64, left: 8, zIndex: 1300 }}
+                sx={{ position: 'absolute', top: 64, left: 8, zIndex: 1300 }}
             >
                 <ReplyIcon />
             </IconButton>

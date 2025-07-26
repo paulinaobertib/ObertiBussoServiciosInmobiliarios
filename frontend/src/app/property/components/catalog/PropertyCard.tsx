@@ -49,31 +49,18 @@ export const PropertyCard = ({
       : property.status || 'Sin Estado';
 
   return (
-    <Card
+    <Card elevation={2}
       onClick={() => {
         if (!selectionMode) onClick();
       }}
-      variant="elevation"
       sx={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        borderRadius: 3,
-        borderColor: selected
-          ? theme.palette.primary.main
-          : 'divider',
-        borderWidth: selected ? 2 : 1,
-        overflow: 'hidden',
+        borderRadius: 2,
         cursor: selectionMode ? 'default' : 'pointer',
-        width: '100%',
-        transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
-        '&:hover': {
-          transform: 'scale(1.01)',
-          boxShadow: 3,
-          borderColor: selected
-            ? theme.palette.primary.main
-            : theme.palette.divider,
-        },
+        transition: 'transform 0.1s',
+        '&:hover': { transform: 'scale(1.01)' }
       }}
     >
 
@@ -99,7 +86,7 @@ export const PropertyCard = ({
               width: '100%',
               aspectRatio: '16/9',
               objectFit: 'cover',
-              backgroundColor: '#000', // opcional, para letterbox
+              backgroundColor: '#000'
             }}
           />
         )}
@@ -152,7 +139,6 @@ export const PropertyCard = ({
               left: 8,
               p: 0,
             }}
-            inputProps={{ 'aria-label': 'Seleccionar propiedad' }}
           />
         )}
 
@@ -187,9 +173,7 @@ export const PropertyCard = ({
             sx={{
               fontWeight: 600,
               lineHeight: '1.3rem',
-              whiteSpace: 'normal',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
@@ -267,7 +251,7 @@ export const PropertyCard = ({
                 variant="caption"
                 color="text.secondary"
               >
-                Precio – Expensas
+                Precio - Expensas
               </Typography>
               <Typography variant="subtitle2">
                 Consultar
@@ -275,40 +259,6 @@ export const PropertyCard = ({
             </Box>
           )}
         </Box>
-
-        {/* Métricas */}
-        {/* <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <SquareFootIcon fontSize="small" />
-            <Typography variant="caption">
-              {`${property.area} m²`}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <ViewComfyIcon fontSize="small" />
-            <Typography variant="caption">
-              {property.rooms}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <HotelIcon fontSize="small" />
-            <Typography variant="caption">
-              {property.bedrooms}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <BathtubIcon fontSize="small" />
-            <Typography variant="caption">
-              {property.bathrooms}
-            </Typography>
-          </Box>
-        </Box> */}
       </Box>
     </Card>
   );

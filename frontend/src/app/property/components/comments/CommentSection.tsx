@@ -1,54 +1,79 @@
-import { Box, Typography, Button, CircularProgress } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { useState } from 'react';
+import { Box, Typography, Divider, CircularProgress } from '@mui/material';
+
+import type { Comment } from '../../types/comment';
+import { CommentForm } from '../forms/CommentForm';
 import { CommentList } from './CommentList';
-import { CommentData } from './CommentItem';
+import { deleteComment } from '../../services/comment.service';
 
 export interface CommentSectionProps {
+  propertyId: number;
   loading: boolean;
-  items: CommentData[];
-  onAdd: () => void;
-  onEditItem: (item: CommentData) => void;
-  onDeleteItem: (item: CommentData) => void;
+  items: Comment[];
+  refresh: () => Promise<void>;
 }
 
 export const CommentSection = ({
+  propertyId,
   loading,
   items,
-  onAdd,
-  onEditItem,
-  onDeleteItem,
-}: CommentSectionProps) => (
-  <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-    <Box
-      sx={{
-        px: 3,
-        py: 3,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexShrink: 0,
-      }}
-    >
-      <Typography variant="h5" sx={{ fontWeight: 700 }}>
-        Comentarios Internos
-      </Typography>
-      <Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
-        Agregar
-      </Button>
-    </Box>
+  refresh,
+}: CommentSectionProps) => {
+  const [action, setAction] = useState<'add' | 'edit'>('add');
+  const [selected, setSelected] = useState<Comment>();
 
-    <Box sx={{ px: 3, py: 2, flexGrow: 1, overflowY: 'auto' }}>
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
+  const startEdit = (c: Comment) => {
+    setAction('edit');
+    setSelected(c);
+  };
+
+  const handleDelete = async (c: Comment) => {
+    await deleteComment(c);
+    await refresh();
+  };
+  const handleDone = () => {
+    setAction('add');
+    setSelected(undefined);
+  };
+
+  return (
+    <Box>
+      <Box sx={{ p: 3 }}>
+        <Box display="flex" alignItems="center" mb={2}>
+          <Typography variant="h6" fontWeight={700}>
+            {action === 'add' ? 'Agregar Comentario' : 'Editar Comentario'}
+          </Typography>
         </Box>
-      ) : items.length === 0 ? (
-        <Typography color="text.secondary">
-          No hay comentarios registrados.
-        </Typography>
-      ) : (
-        <CommentList items={items} onEditItem={onEditItem} onDeleteItem={onDeleteItem} />
-      )}
+
+        <CommentForm
+          propertyId={propertyId}     // <― PASAMOS id al form
+          action={action}
+          item={selected}
+          refresh={refresh}
+          onDone={handleDone}
+        />
+      </Box>
+
+      <Box sx={{ p: 3 }}>
+        <Box display="flex" alignItems="center" mb={2}>
+          <Typography variant="h6" fontWeight={700}>
+            Lista de Comentarios ({items.length})
+          </Typography>
+        </Box>
+        <Divider sx={{ mb: 2 }} />
+
+        {loading ? (
+          <Box display="flex" justifyContent="center" py={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <CommentList
+            items={items}
+            onEditItem={startEdit}
+            onDeleteItem={handleDelete}
+          />
+        )}
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
