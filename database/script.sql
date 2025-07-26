@@ -206,11 +206,20 @@ CREATE TABLE Property_Inquiry (
     FOREIGN KEY (property_id) REFERENCES Property(id)
 );
 
+CREATE TABLE Survey_Token (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    inquiry_id BIGINT NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    expiration DATETIME NOT NULL,
+	FOREIGN KEY (inquiry_id) REFERENCES inquiry(id) ON DELETE CASCADE
+);
+
 CREATE TABLE Survey (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
     score TINYINT NOT NULL,
     comment VARCHAR(255),
-	inquiry_id BIGINT NOT NULL,
+	inquiry_id BIGINT NOT NULL UNIQUE,
 	FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE
 );
 

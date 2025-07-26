@@ -124,12 +124,13 @@ class EmailServiceTest {
     void sendEmailSurvey_success() {
         String emailTo = "cliente@ejemplo.com";
         Long inquiryId = 42L;
+        String token = "ABC123TOKEN";
 
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(appProperties.getFrontendBaseUrl()).thenReturn("https://frontend.com");
         when(templateEngine.process(eq("email_survey"), any(IContext.class))).thenReturn("<html>Encuesta</html>");
 
-        assertDoesNotThrow(() -> emailService.sendEmailSurvey(emailTo, inquiryId));
+        assertDoesNotThrow(() -> emailService.sendEmailSurvey(emailTo, inquiryId, token));
 
         ArgumentCaptor<String> templateNameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<IContext> contextCaptor = ArgumentCaptor.forClass(IContext.class);
@@ -140,7 +141,8 @@ class EmailServiceTest {
         assertEquals("email_survey", templateNameCaptor.getValue());
 
         IContext context = contextCaptor.getValue();
-        assertEquals("https://frontend.com/survey?inquiryId=42", context.getVariable("surveyLink"));
+        String expectedLink = "https://frontend.com/survey/" + inquiryId + "/" + token;
+        assertEquals(expectedLink, context.getVariable("surveyLink"));
     }
 
     @Test
@@ -221,8 +223,10 @@ class EmailServiceTest {
         when(appProperties.getFrontendBaseUrl()).thenReturn("http://localhost:3000");
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Error al crear mensaje"));
 
+        String token = "ABC123TOKEN";
+
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> emailService.sendEmailSurvey("test@example.com", 10L));
+                () -> emailService.sendEmailSurvey("test@example.com", 10L, token));
 
         assertTrue(ex.getMessage().contains("Error al enviar el email de encuesta"));
     }

@@ -28,6 +28,7 @@ import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.service.impl.EmailService;
 import pi.ms_properties.service.impl.InquiryService;
 import pi.ms_properties.service.impl.SurveyService;
+import pi.ms_properties.service.interf.ISurveyTokenService;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -61,6 +62,9 @@ class InquiryServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private ISurveyTokenService surveyTokenService;
+
     private InquirySaveDTO getSampleDTO() {
         return new InquirySaveDTO(1L, "user123", "123456789", "test@email.com", "John", "Doe", "Consulta", "Descripción", List.of(1L));
     }
@@ -86,7 +90,7 @@ class InquiryServiceTest {
     @BeforeEach
     void setUp() {
         inquiryService = new InquiryService(
-                inquiryRepository, propertyRepository, userRepository, emailService, surveyService, objectMapper
+                inquiryRepository, propertyRepository, userRepository, emailService, surveyService, surveyTokenService, objectMapper
         );
     }
 
@@ -172,12 +176,17 @@ class InquiryServiceTest {
     void updateStatus_success() throws MessagingException {
         Inquiry inquiry = getSampleInquiry();
 
+        String mockToken = "token-generado";
+
         when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+        when(surveyTokenService.create(inquiry)).thenReturn(mockToken);
 
         ResponseEntity<String> response = inquiryService.updateStatus(1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(surveyService).sendSurvey(inquiry.getEmail(), inquiry.getId());
+
+        verify(surveyService).sendSurvey(inquiry.getEmail(), inquiry.getId(), mockToken);
+        verify(inquiryRepository).save(inquiry);
     }
 
     @Test
