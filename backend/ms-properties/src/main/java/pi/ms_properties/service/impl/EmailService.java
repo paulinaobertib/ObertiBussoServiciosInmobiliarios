@@ -107,10 +107,10 @@ public class EmailService implements IEmailService {
     }
 
     @Override
-    public void sendEmailSurvey(String emailTo, Long inquiryId) {
+    public void sendEmailSurvey(String emailTo, Long inquiryId, String token) {
         try {
             Context context = new Context();
-            String surveyLink = appProperties.getFrontendBaseUrl() + "/survey?inquiryId=" + inquiryId;
+            String surveyLink = appProperties.getFrontendBaseUrl() + "/survey/" + inquiryId + "/" + token;
             context.setVariable("surveyLink", surveyLink);
 
             MimeMessage message = javaMailSender.createMimeMessage();

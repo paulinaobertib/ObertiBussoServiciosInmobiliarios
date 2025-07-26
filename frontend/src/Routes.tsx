@@ -19,6 +19,7 @@ import ContactPage from './pages/ContactPage';
 import NewsPage from './pages/NewsPage';
 import NewsDetailsPage from './pages/NewsDetailsPage';
 import PoliciesPage from './pages/PoliciesPage';
+import SurveyPage from './pages/SurveyPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
@@ -124,6 +125,8 @@ export default function Routes() {
             <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
 
             <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
+
+            <Route path={ROUTES.SURVEY} element={<SurveyPage />} />
 
             {/* ---- Catch-all ---- */}
             <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />

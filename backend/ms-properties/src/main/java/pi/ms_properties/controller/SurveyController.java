@@ -19,8 +19,8 @@ public class SurveyController {
     private final ISurveyService surveyService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createSurvey(@RequestBody SurveyDTO surveyDTO) {
-        return surveyService.create(surveyDTO);
+    public ResponseEntity<String> createSurvey(@RequestBody SurveyDTO surveyDTO, @RequestParam String token) {
+        return surveyService.create(surveyDTO, token);
     }
 
     @PreAuthorize("hasRole('admin')")
