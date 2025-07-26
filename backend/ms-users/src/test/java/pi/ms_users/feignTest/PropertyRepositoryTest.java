@@ -8,8 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_users.dto.feign.PropertyDTO;
+import pi.ms_users.dto.feign.Status;
 import pi.ms_users.repository.feign.FeignPropertyRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 
@@ -44,6 +46,22 @@ public class PropertyRepositoryTest {
         verify(feignPropertyRepository, times(1)).getSimpleById(propertyId);
     }
 
+    @Test
+    void updateStatus_returnsOkResponse() {
+        Long propertyId = 1L;
+        Status newStatus = Status.ALQUILADA;
+
+        when(feignPropertyRepository.updateStatus(propertyId, newStatus))
+                .thenReturn(ResponseEntity.ok("Estado actualizado"));
+
+        ResponseEntity<String> response = propertyRepository.updateStatus(propertyId, newStatus);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Estado actualizado", response.getBody());
+        verify(feignPropertyRepository, times(1)).updateStatus(propertyId, newStatus);
+    }
+
     // casos de error
 
     @Test
@@ -56,5 +74,18 @@ public class PropertyRepositoryTest {
         assertThrows(RuntimeException.class, () -> propertyRepository.getById(propertyId));
 
         verify(feignPropertyRepository, times(1)).getSimpleById(propertyId);
+    }
+
+    @Test
+    void updateStatus_whenFeignThrowsException_thenPropagatesException() {
+        Long propertyId = 1L;
+        Status newStatus = Status.RESERVADA;
+
+        when(feignPropertyRepository.updateStatus(propertyId, newStatus))
+                .thenThrow(new RuntimeException("Error al actualizar el estado"));
+
+        assertThrows(RuntimeException.class, () -> propertyRepository.updateStatus(propertyId, newStatus));
+
+        verify(feignPropertyRepository, times(1)).updateStatus(propertyId, newStatus);
     }
 }
