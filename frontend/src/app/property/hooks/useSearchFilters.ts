@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SearchParams } from "../types/searchParams";
 import { Property } from "../types/property";
 import { usePropertiesContext } from "../context/PropertiesContext";
@@ -16,9 +16,20 @@ export function useSearchFilters(onSearch: (results: Property[]) => void) {
     neighborhoodsList,
     selected,
     setSelected,
+    refreshAmenities,
+    refreshOwners,
+    refreshTypes,
+    refreshNeighborhoods,
   } = usePropertiesContext();
 
   /* ───────── estado principal ───────── */
+  useEffect(() => {
+    refreshAmenities();
+    refreshOwners();
+    refreshTypes();
+    refreshNeighborhoods();
+  }, [refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
+
   const [params, setParams] = useState({
     rooms: [] as number[],
     types: [] as string[],

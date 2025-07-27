@@ -2,10 +2,10 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   ReactNode,
   useMemo,
+  useEffect,
 } from 'react';
 
 /* ─── servicios de catálogo ─── */
@@ -14,24 +14,18 @@ import { getAllOwners } from '../services/owner.service';
 import { getAllNeighborhoods } from '../services/neighborhood.service';
 import { getAllTypes } from '../services/type.service';
 import { getAllProperties, getPropertyById } from '../services/property.service';
-// import { getMaintenancesByPropertyId } from '../services/maintenance.service';
-// import { getCommentsByPropertyId } from '../services/comment.service';
 
 import { Amenity } from '../types/amenity';
 import { Owner } from '../types/owner';
 import { Neighborhood } from '../types/neighborhood';
 import { Type } from '../types/type';
 import { Property } from '../types/property';
-import { Maintenance } from '../types/maintenance';
-import { Comment } from '../types/comment';
 import { SearchParams } from '../types/searchParams';
 
 export type Category = 'amenity' | 'owner' | 'type' | 'neighborhood';
 export type Picked =
   | { type: 'category'; value: Category | null }
-  | { type: 'property'; value: Property | null }
-  | { type: 'maintenance'; value: Maintenance | null }
-  | { type: 'comment'; value: Comment | null };
+  | { type: 'property'; value: Property | null };
 
 interface SelectedIds {
   owner: number | null;
@@ -41,50 +35,31 @@ interface SelectedIds {
 }
 
 interface Ctx {
-  /* listados de items */
   amenitiesList: Amenity[];
   ownersList: Owner[];
   neighborhoodsList: Neighborhood[];
   typesList: Type[];
   propertiesList: Property[];
   operationsList: string[];
-  // maintenancesList: Maintenance[];
-  // commentsList: Comment[];
-
-  /* flags de carga */
   loading: boolean;
-
-  /* picked genérico */
   pickedItem: Picked | null;
   pickItem: (type: Picked['type'], value: any) => void;
   currentCategory: Category | null;
-
-  /* selección tradicional */
   selected: SelectedIds;
   setSelected: (n: SelectedIds) => void;
   toggleSelect: (id: number) => void;
   resetSelected: () => void;
-
-  /* refrescos de catálogos */
   refreshAmenities: () => Promise<void>;
   refreshOwners: () => Promise<void>;
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
   refreshProperties: () => Promise<void>;
-  // refreshMaintenances: () => Promise<void>;
-  // refreshComments: () => Promise<void>;
   refreshOperations: () => void;
-
-  /* data de categoría dinámica */
   data: any[] | null;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
-
-  /* detalle de propiedad */
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
   errorProperty: string | null;
-
-  /* comparación */
   comparisonItems: Property[];
   selectedPropertyIds: number[];
   toggleCompare: (id: number) => void;
@@ -103,8 +78,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [typesList, setTypesList] = useState<Type[]>([]);
   const [propertiesList, setPropertiesList] = useState<Property[]>([]);
   const [operationsList, setOperationsList] = useState<string[]>([]);
-  // const [commentsList, setCommentsList] = useState<Comment[]>([]);
-  // const [maintenancesList, setMaintenancesList] = useState<Maintenance[]>([]);
 
   /* — flags — */
   const [loading, setLoading] = useState(false);
@@ -196,77 +169,12 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [currentCategory]);
+  }, []);
 
-  /* — recalcular operaciones sin pegar al backend — */
   const refreshOperations = useCallback(() => {
     const ops = Array.from(new Set(propertiesList.map(p => p.operation))).filter((o): o is string => !!o);
     setOperationsList(ops);
   }, [propertiesList]);
-
-  // const refreshComments = useCallback(async () => {
-  //   setLoading(true);
-  //   try {
-  //     if (pickedItem?.type === 'property' && pickedItem.value) {
-  //       const list = await getCommentsByPropertyId(pickedItem.value.id);
-  //       setCommentsList(Array.isArray(list) ? list : []);
-  //     } else {
-  //       setCommentsList([]);
-  //     }
-  //   } catch (e) {
-  //     console.error('refreshComments', e);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }, [pickedItem]);
-
-  // const refreshMaintenances = useCallback(async () => {
-  //   setLoading(true);
-  //   try {
-  //     if (pickedItem?.type === 'property' && pickedItem.value) {
-  //       const list = await getMaintenancesByPropertyId(pickedItem.value.id);
-  //       setMaintenancesList(Array.isArray(list) ? list : []);
-  //     } else {
-  //       setMaintenancesList([]);
-  //     }
-  //   } catch (e) {
-  //     console.error('refreshMaintenances', e);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }, [pickedItem]);
-
-  /* — inicializar catálogos al montar — */
-  useEffect(() => {
-    refreshAmenities();
-    refreshNeighborhoods();
-    refreshTypes();
-    refreshProperties();
-  }, []);
-
-  /* — refrescos por categoría — */
-  // const categoryRefreshers = useMemo(() => ({
-  //   amenity: refreshAmenities,
-  //   owner: refreshOwners,
-  //   type: refreshTypes,
-  //   neighborhood: refreshNeighborhoods,
-  // }), [refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
-
-  // useEffect(() => {
-  //   if (!currentCategory) return;
-  //   categoryRefreshers[currentCategory]?.();
-  // }, [currentCategory, categoryRefreshers]);
-
-
-  useEffect(() => {
-    if (!currentCategory) return;
-    switch (currentCategory) {
-      case 'amenity': refreshAmenities(); break;
-      case 'owner': refreshOwners(); break;
-      case 'type': refreshTypes(); break;
-      case 'neighborhood': refreshNeighborhoods(); break;
-    }
-  }, [currentCategory, refreshAmenities, refreshOwners, refreshTypes, refreshNeighborhoods]);
 
   /* — selección tradicional y buildSearchParams — */
   const [selected, setSelected] = useState<SelectedIds>({
@@ -296,7 +204,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     }
   };
 
-
   const buildSearchParams = useCallback((numeric: Partial<SearchParams>) => {
     const amNames = selected.amenities
       .map(id => amenitiesList.find(a => a.id === id)?.name)
@@ -304,13 +211,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     return { ...numeric, amenities: amNames };
   }, [selected, amenitiesList]);
 
-  /* — mantenimientos y comentarios por cambio de pickedItem — */
-  // useEffect(() => {
-  //   refreshMaintenances();
-  //   refreshComments();
-  // }, [pickedItem]);
-
-  // ───────────────────────── detalle de propiedad
+  /* — detalle de propiedad — */
   const [currentProperty, setCurrentProperty] = useState<Property | null>(null);
   const [errorProperty, setErrorProperty] = useState<string | null>(null);
 
@@ -326,11 +227,10 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ───────────────────────── comparación (versión fetch por ID)
+  /* — comparación — */
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
 
-  // llena comparisonItems cada vez que cambia la lista de IDs
   useEffect(() => {
     if (selectedPropertyIds.length === 0) {
       setComparisonItems([]);
@@ -349,7 +249,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     })();
   }, [selectedPropertyIds]);
 
-
   const toggleCompare = useCallback(
     (id: number) =>
       setSelectedPropertyIds(prev =>
@@ -359,7 +258,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
             ? [...prev, id]
             : [...prev.slice(1), id],
       ),
-    [],
+    []
   );
 
   const addToComparison = (p: Property) =>
@@ -372,7 +271,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   const disabledCompare = useMemo(
     () => selectedPropertyIds.length < 2 || selectedPropertyIds.length > 3,
-    [selectedPropertyIds],
+    [selectedPropertyIds]
   );
 
   return (
@@ -384,37 +283,25 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         typesList,
         propertiesList,
         operationsList,
-
         loading,
-
         pickedItem,
         pickItem,
         currentCategory,
-
         selected,
         setSelected,
         toggleSelect,
         resetSelected,
-
         refreshAmenities,
         refreshOwners,
         refreshNeighborhoods,
         refreshTypes,
         refreshProperties,
         refreshOperations,
-
         data,
         buildSearchParams,
-
-        // maintenancesList,
-        // commentsList,
-        // refreshMaintenances,
-        // refreshComments,
-
         currentProperty,
         loadProperty,
         errorProperty,
-
         comparisonItems,
         selectedPropertyIds,
         toggleCompare,

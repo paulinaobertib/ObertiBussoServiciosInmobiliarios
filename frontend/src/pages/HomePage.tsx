@@ -32,37 +32,24 @@ export default function Home() {
     selectedPropertyIds,
     toggleCompare,
     clearComparison,
-    refreshProperties,
     disabledCompare,
   } = usePropertiesContext();
-
-  // Memoizamos onFinish para romper bucles infinitos
-  const onFinish = useCallback(() => {
-    // aquí podrías resetear algún estado o refetch si hace falta
-  }, []);
-  const { propertiesList } = useCatalog(onFinish);
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  // Cada vez que cambie la ruta, refrescamos
+  // Log para depurar los resultados recibidos
   useEffect(() => {
-    refreshProperties();
-  }, [location.pathname, refreshProperties]);
+    console.log('HomePage results:', results);
+  }, [results]);
 
-  // Cuando propertiesList cambia, actualizamos resultados
-  useEffect(() => {
-    const newResults = propertiesList.map(p => ({
-      ...p,
-      status: p.status ?? 'Desconocido',
-    }));
-    setResults(prev =>
-      JSON.stringify(prev) === JSON.stringify(newResults) ? prev : newResults
-    );
-    setLoading(false);
-  }, [propertiesList]);
+  const onFinish = useCallback(() => {
+    setMode('normal');
+  }, []);
+
+  // Pasamos las propiedades filtradas a useCatalog para evitar refrescos duplicados
+  const { propertiesList, loading, handleClick, DialogUI } = useCatalog(onFinish, results);
 
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
     if (action === 'create') {
