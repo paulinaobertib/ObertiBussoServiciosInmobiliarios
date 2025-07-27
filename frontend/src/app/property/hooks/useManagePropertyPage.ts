@@ -12,8 +12,8 @@ import {
   getImagesByPropertyId,
   postImage,
   deleteImageById,
-  ImageDTO,
-} from "../services/image.service";
+} from "../../shared/components/images/image.service";
+import { ImageDTO } from "../../shared/components/images/image";
 
 /* ────── utilidades internas ────── */
 import { useImages } from "../../shared/hooks/useImages";
