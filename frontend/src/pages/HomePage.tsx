@@ -1,13 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
-
 import { ImageCarousel } from '../app/shared/components/images/ImageCarousel';
 import { SearchBar } from '../app/shared/components/SearchBar';
 import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
 import { PropertyCatalog } from '../app/property/components/catalog/PropertyCatalog';
 import { FloatingButtons } from '../app/property/components/catalog/FloatingButtons';
-
 import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
@@ -146,9 +144,7 @@ export default function Home() {
                 isSelected={id => selectedPropertyIds.includes(id)}
               />
             ) : (
-              <Typography variant="h5" color="text.secondary">
-                No se encontraron propiedades.
-              </Typography>
+              <Typography>No se encontraron propiedades...</Typography>
             )}
           </Box>
         </Box>

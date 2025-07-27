@@ -40,7 +40,10 @@ export const MaintenanceForm = ({
         initialPayload,
         action,
         async (payload) => {
-            if (action === 'add') return postMaintenance(payload as MaintenanceCreate);
+            if (action === 'add') {
+                const { id, ...createPayload } = payload as any;
+                return postMaintenance(createPayload as MaintenanceCreate);
+            }
             if (action === 'edit') return putMaintenance(payload as Maintenance);
             if (action === 'delete') return deleteMaintenance(payload as Maintenance);
         },
