@@ -1,9 +1,5 @@
-import { api } from "../../../api";
-
-export interface ImageDTO {
-  id: number; // sólo las que vienen de GET
-  url: string;
-}
+import { api } from "../../../../api";
+import { ImageDTO } from "./image";
 
 /* -------------------- GET galería -------------------- */
 export async function getImagesByPropertyId(
