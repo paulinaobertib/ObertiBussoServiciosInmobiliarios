@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCatalog } from '../../hooks/useCatalog';
 import { PropertyCard } from './PropertyCard';
@@ -55,6 +55,11 @@ export const PropertyCatalog = ({
     );
   }
 
+  const handleCardClick = useCallback(
+    (prop: Property) => handleClick(mode, prop),
+    [handleClick, mode],
+  );
+
   return (
     <>
       <Box
@@ -76,7 +81,7 @@ export const PropertyCatalog = ({
             selectionMode={selectionMode}
             toggleSelection={toggleSelection}
             isSelected={isSelected}
-            onClick={() => handleClick(mode, prop)}
+            onClick={() => handleCardClick(prop)}
           />
         ))}
       </Box>
