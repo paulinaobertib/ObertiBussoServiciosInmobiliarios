@@ -1,91 +1,76 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+// src/app/property/hooks/useCategorySection.ts
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { usePropertiesContext, Category } from "../context/PropertiesContext";
+
+/* ——— SERVICIOS REST (ajusta las rutas) ——— */
+import { getAllAmenities } from "../services/amenity.service";
 import { getAllOwners, getOwnersByText } from "../services/owner.service";
+import { getAllTypes } from "../services/type.service";
+import { getAllNeighborhoods } from "../services/neighborhood.service";
+
 import type { Owner } from "../types/owner";
 
 export function useCategorySection(category: Category) {
-  const {
-    /* datos y acciones globales */
-    pickItem,
-    data: rawData,
-    loading,
-    selected,
-    toggleSelect,
+  const { pickItem, selected, toggleSelect } = usePropertiesContext();
 
-    /* métodos de refresco exportados por el contexto */
-    refreshAmenities,
-    refreshOwners,
-    refreshTypes,
-    refreshNeighborhoods,
-  } = usePropertiesContext();
+  /* ----- estado local ----- */
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoad] = useState(false);
 
-  /* -------- refresco específico según categoría -------- */
-  const refresh = useCallback(() => {
-    switch (category) {
-      case "amenity":
-        refreshAmenities();
-        break;
-      case "owner":
-        refreshOwners();
-        break;
-      case "type":
-        refreshTypes();
-        break;
-      case "neighborhood":
-        refreshNeighborhoods();
-        break;
-      default:
-        break;
+  /* ----- trae la lista que corresponde a la pestaña actual ----- */
+  const fetchList = useCallback(async () => {
+    setLoad(true);
+    try {
+      let list: any[] = [];
+      switch (category) {
+        case "amenity":
+          list = await getAllAmenities();
+          break;
+        case "owner":
+          list = await getAllOwners();
+          break;
+        case "type":
+          list = await getAllTypes();
+          break;
+        case "neighborhood":
+          list = await getAllNeighborhoods();
+          break;
+      }
+      setData(list);
+    } finally {
+      setLoad(false);
     }
-  }, [
-    category,
-    refreshAmenities,
-    refreshOwners,
-    refreshTypes,
-    refreshNeighborhoods,
-  ]);
+  }, [category]);
 
-  /* -------- disparar refresh al abrir/cambiar sección -------- */
+  /* ----- en cuanto cambia la pestaña, carga su lista ----- */
   useEffect(() => {
-    pickItem("category", category); // avisa al contexto cuál está activa
-    refresh(); // trae la data de esa categoría
-  }, [category, pickItem, refresh]);
+    pickItem("category", category); // sincroniza contexto
+    fetchList();
+  }, [category, fetchList]);
 
-  /* -------- caso especial: Owners con buscador -------- */
-  const [owners, setOwners] = useState<Owner[]>([]);
-
+  /* ----- buscador (sólo owners) ----- */
+  const [ownersUI, setOwnersUI] = useState<Owner[]>([]);
   useEffect(() => {
-    if (category === "owner") setOwners((rawData as Owner[]) || []);
-  }, [category, rawData]);
+    if (category === "owner") setOwnersUI(data as Owner[]);
+  }, [category, data]);
 
   const searchOwnersText = useCallback(
-    async (text: string) => {
+    async (txt: string) => {
       if (category !== "owner") return;
-      const list = text ? await getOwnersByText(text) : await getAllOwners();
-      setOwners(list as Owner[]);
+      const list = txt ? await getOwnersByText(txt) : await getAllOwners();
+      setOwnersUI(list);
     },
     [category]
   );
 
   const searchResults = useCallback(
     (items: Owner[]) => {
-      if (category === "owner") setOwners(items);
+      if (category === "owner") setOwnersUI(items);
     },
     [category]
   );
 
-  /* -------- normalizar data para la tabla -------- */
-  const data = useMemo(() => {
-    if (category === "owner") {
-      return owners.map((o) => ({
-        ...o,
-        fullName: `${o.firstName} ${o.lastName}`.trim(),
-      }));
-    }
-    return (rawData as any[]) || [];
-  }, [category, owners, rawData]);
-
-  /* -------- helper de selección -------- */
+  /* ----- helper de selección ----- */
   const isSelected = useCallback(
     (id: number) => {
       switch (category) {
@@ -104,20 +89,28 @@ export function useCategorySection(category: Category) {
     [category, selected]
   );
 
+  /* ----- datos finales para la tabla ----- */
+  const tableData = useMemo(
+    () =>
+      category === "owner"
+        ? ownersUI.map((o) => ({
+            ...o,
+            fullName: `${o.firstName} ${o.lastName}`.trim(),
+          }))
+        : data,
+    [category, ownersUI, data]
+  );
+
   return {
-    /* datos para la tabla */
-    data,
+    data: tableData,
     loading,
-
-    /* selección (se persiste en el contexto) */
-    isSelected,
-    toggleSelect: (id: number) => toggleSelect(id),
-
-    /* buscador de owners */
+    /* botón “Actualizar” */
+    refresh: fetchList,
+    /* buscador owners */
     searchOwnersText,
     searchResults,
-
-    /* botón “Actualizar” si lo necesitas */
-    refresh,
+    /* selección */
+    isSelected,
+    toggleSelect: (id: number) => toggleSelect(id),
   };
 }
