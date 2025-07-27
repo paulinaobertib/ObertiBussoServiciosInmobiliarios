@@ -6,7 +6,7 @@ import { Property } from '../../types/property';
 import { useAuthContext } from '../../../user/context/AuthContext';
 
 interface CatalogProps {
-  properties?: Property[];
+  properties: Property[];
   mode: 'normal' | 'edit' | 'delete';
   onFinishAction: () => void;
   selectionMode?: boolean;
@@ -22,15 +22,18 @@ export const PropertyCatalog = ({
   toggleSelection,
   isSelected,
 }: CatalogProps) => {
-  const { propertiesList, loading, handleClick, DialogUI } = useCatalog(onFinishAction);
+  const { loading, handleClick, DialogUI } = useCatalog(onFinishAction, properties);
   const { isAdmin } = useAuthContext();
-  const list = properties ?? propertiesList;
+
+  // Log para depurar las propiedades recibidas
+  console.log('PropertyCatalog properties:', properties);
+
   const filtered = useMemo(() => {
-    if (isAdmin) return list;
-    return list.filter(
-      p => p.status?.toLowerCase() === 'disponible'
+    if (isAdmin) return properties;
+    return properties.filter(
+      p => p.status?.toLowerCase() === 'disponible' || !p.status
     );
-  }, [list, isAdmin]);
+  }, [properties, isAdmin]);
 
   const sortedList = useMemo(
     () =>
@@ -59,10 +62,11 @@ export const PropertyCatalog = ({
           p: 2,
           display: 'grid',
           gridTemplateColumns: {
-            xs: '1fr',               // móviles: 1 columna
-            sm: 'repeat(2, 1fr)',    // pantallas sm: 3 columnas
-            lg: 'repeat(3, 1fr)',    // pantallas md+: 4 columnas
-          }, gap: 3,
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(3, 1fr)',
+          },
+          gap: 3,
         }}
       >
         {sortedList.map(prop => (
