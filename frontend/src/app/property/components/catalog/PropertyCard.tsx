@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
 import { FavoriteButton } from '../../../user/components/favorites/FavoriteButtom';
 import { Property } from '../../types/property';
@@ -22,16 +22,10 @@ export const PropertyCard = ({
   const theme = useTheme();
   const selected = selectionMode && isSelected(property.id);
   const { isAdmin } = useAuthContext();
-  const src =
-    typeof property.mainImage === 'string'
-      ? property.mainImage
-      : URL.createObjectURL(property.mainImage);
-
-  const isVideo =
-    (property.mainImage instanceof File && property.mainImage.type.startsWith('video/')) ||
-    (typeof property.mainImage === 'string' &&
-      /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(property.mainImage));
-
+  const src = useMemo(() => {
+    if (typeof property.mainImage === 'string') return property.mainImage;
+    return URL.createObjectURL(property.mainImage);
+  }, [property.mainImage]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
@@ -66,30 +60,18 @@ export const PropertyCard = ({
 
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
-        {isVideo ? (
-          <Box
-            component="video"
-            src={src}
-            muted
-            autoPlay
-            loop
-            playsInline
-            onContextMenu={e => e.preventDefault()}
-            sx={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover' }}
-          />
-        ) : (
-          <Box
-            component="img"
-            src={src}
-            alt={property.title}
-            sx={{
-              width: '100%',
-              aspectRatio: '16/9',
-              objectFit: 'cover',
-              backgroundColor: '#000'
-            }}
-          />
-        )}
+        <Box
+          component="img"
+          src={src}
+          alt={property.title}
+          sx={{
+            width: '100%',
+            aspectRatio: '16/9',
+            objectFit: 'cover',
+            backgroundColor: '#000'
+          }}
+        />
+
 
         {/* Chips agrupados */}
         <Box
