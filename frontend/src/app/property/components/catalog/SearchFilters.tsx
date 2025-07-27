@@ -36,11 +36,11 @@ export function SearchFilters({ onSearch }: Props) {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | false>(false);
   const toggleAcc = (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
+  const operationsOptions = ["VENTA", "ALQUILER"];
 
   const {
-    params, selected,
-    operationsList = [], typesList = [], amenitiesList = [], neighborhoodsList = [],
-    toggleParam, toggleAmenity, setParams, apply, reset, chips,
+    params, typesList = [], amenitiesList = [], neighborhoodsList = [],
+    toggleParam, setParams, apply, reset, chips, toggleAmenity, selected
   } = useSearchFilters(onSearch);
 
   const cities = useMemo(
@@ -66,11 +66,17 @@ export function SearchFilters({ onSearch }: Props) {
       )}
 
       {/* ───────── Operación ───────── */}
-      <Accordion disableGutters expanded={expanded === "operacion"} onChange={toggleAcc("operacion")}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Operación</Typography></AccordionSummary>
+      <Accordion
+        disableGutters
+        expanded={expanded === "operacion"}
+        onChange={toggleAcc("operacion")}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="body2">Operación</Typography>
+        </AccordionSummary>
         <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
           <RadioGroup row>
-            {operationsList.map(op => (
+            {operationsOptions.map(op => (
               <FormControlLabel
                 key={op}
                 label={op === "VENTA" ? "Venta" : "Alquiler"}
@@ -88,15 +94,29 @@ export function SearchFilters({ onSearch }: Props) {
 
           {params.operation === "VENTA" && (
             <Box sx={{ mt: 1, width: "100%" }}>
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>Opciones de Pago</Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: .5, mt: .5, pl: 2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                Opciones de Pago
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5, pl: 2 }}>
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={params.credit} onChange={() => toggleParam("credit", true)} />}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={params.credit}
+                      onChange={() => toggleParam("credit", true)}
+                    />
+                  }
                   label="Apto Crédito"
                   sx={checkSx}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={params.financing} onChange={() => toggleParam("financing", true)} />}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={params.financing}
+                      onChange={() => toggleParam("financing", true)}
+                    />
+                  }
                   label="Financiamiento"
                   sx={checkSx}
                 />
@@ -227,20 +247,33 @@ export function SearchFilters({ onSearch }: Props) {
       </Accordion>
 
       {/* ───────── Características ───────── */}
-      <Accordion disableGutters expanded={expanded === "carac"} onChange={toggleAcc("carac")}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Características</Typography></AccordionSummary>
+      <Accordion
+        disableGutters
+        expanded={expanded === "carac"}
+        onChange={toggleAcc("carac")}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="body2">Características</Typography>
+        </AccordionSummary>
+
         <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
           {amenitiesList.map(am => (
             <FormControlLabel
               key={am.id}
-              control={<Checkbox size="small" checked={selected.amenities.includes(am.id)} onChange={() => toggleAmenity(am.id)} />}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={selected.amenities.includes(am.id)}
+                  onChange={() => toggleAmenity(am.id)}
+                />
+              }
               label={am.name}
               sx={checkSx}
             />
           ))}
         </AccordionDetails>
       </Accordion>
-
+      
       {/* ───────── Ciudad ───────── */}
       <Accordion disableGutters expanded={expanded === "ciudad"} onChange={toggleAcc("ciudad")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Ciudades</Typography></AccordionSummary>
