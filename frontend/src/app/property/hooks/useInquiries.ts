@@ -17,30 +17,45 @@ export const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
 interface UseInquiriesArgs {
   propertyIds?: number[];
 }
+
 export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
+  // ────── Contextos y navegación ──────
   const { info, isAdmin } = useAuthContext();
   const navigate = useNavigate();
 
-  // ─── Estado lista + filtros ───
+  // Datos
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [properties, setProperties] = useState<{ id: number; title: string }[]>(
     []
   );
-  const [loading, setLoading] = useState(false);
-  const [errorList, setErrorList] = useState<string | null>(null);
 
+  // Estado UI
+  const [loading, setLoading] = useState(true);
+  const [errorList, setErrorList] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+
+  // Filtros
   const [filterStatus, setFilterStatus] = useState<InquiryStatus | "">("");
   const [filterProp, setFilterProp] = useState<string>("");
 
-  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
-
-  // ─── Selección y detalle ───
+  // Selección/detalle
   const [selected, setSelected] = useState<Inquiry | null>(null);
   const [selectedProps, setSelectedProps] = useState<
     { id: number; title: string }[]
   >([]);
 
-  // ─── loadAll: todas las consultas ───
+  // ────── Fetch de propiedades para Autocomplete ──────
+  useEffect(() => {
+    getAllProperties()
+      .then((r) =>
+        setProperties(
+          r.map((p: { id: any; title: any }) => ({ id: p.id, title: p.title }))
+        )
+      )
+      .catch(() => setProperties([]));
+  }, []);
+
+  // Trae todas las consultas según usuario o admin
   const loadAll = useCallback(async () => {
     if (!info?.id) return;
     setLoading(true);
@@ -57,7 +72,7 @@ export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
     }
   }, [info?.id, isAdmin]);
 
-  // ─── loadFiltered: aplicando filtros ───
+  // Aplica los filtros de estado y propiedad
   const loadFiltered = useCallback(async () => {
     setLoading(true);
     try {
@@ -86,12 +101,12 @@ export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
     }
   }, [filterStatus, filterProp, loadAll]);
 
-  // ─── Marcar resuelta ───
+  // ────── Marcar consulta como resuelta ──────
   const markResolved = async (inqId: number) => {
     setActionLoadingId(inqId);
     try {
       await updateInquiry(inqId);
-      // después de resolver, recarga acorde a filtros/admin
+      // Recarga lista según contexto actual
       if (isAdmin && (filterStatus || filterProp)) {
         await loadFiltered();
       } else {
@@ -102,22 +117,11 @@ export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
     }
   };
 
-  // ─── Navegar a detalle propiedad ───
+  // ────── Navegación a detalle de propiedad ──────
   const goToProperty = (propId: number) =>
     navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
 
-  // ─── Carga propiedades para el Autocomplete ───
-  useEffect(() => {
-    getAllProperties()
-      .then((r) =>
-        setProperties(
-          r.map((p: { id: any; title: any }) => ({ id: p.id, title: p.title }))
-        )
-      )
-      .catch(() => setProperties([]));
-  }, []);
-
-  // ─── Efecto principal: carga según modo / filtros ───
+  // ────── Efecto principal de carga (lista, filtros, por propiedad) ──────
   useEffect(() => {
     if (propertyIds?.length) {
       (async () => {
@@ -143,7 +147,7 @@ export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
     }
   }, [propertyIds, isAdmin, filterStatus, filterProp, loadAll, loadFiltered]);
 
-  // ─── Efecto detalle: propTitles → selectedProps ───
+  // ────── Sincroniza selected.propertyTitles con selectedProps (detalles) ──────
   useEffect(() => {
     if (!selected) {
       setSelectedProps([]);
@@ -155,26 +159,27 @@ export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
     setSelectedProps(mapped);
   }, [selected, properties]);
 
+  // ────── Return ordenado y explícito ──────
   return {
-    // lista/filtros
+    // Lista y estado principal
     inquiries,
     properties,
     loading,
     errorList,
 
-    // selección
+    // Selección/detalle
     selected,
     setSelected,
     selectedProps,
 
-    // filtros
+    // Filtros
     filterStatus,
     setFilterStatus,
     filterProp,
     setFilterProp,
     STATUS_OPTIONS,
 
-    // acciones
+    // Acciones
     markResolved,
     actionLoadingId,
     goToProperty,

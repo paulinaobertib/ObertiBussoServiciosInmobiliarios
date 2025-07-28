@@ -1,4 +1,3 @@
-// src/app/property/hooks/useCatalog.ts
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePropertiesContext } from "../context/PropertiesContext";
@@ -9,10 +8,13 @@ import { Property } from "../types/property";
 import { buildRoute, ROUTES } from "../../../lib";
 import { useAuthContext } from "../../user/context/AuthContext";
 
-export function useCatalog(
-  onFinish: () => void,
-  externalProperties?: Property[]
-) {
+interface Props {
+  onFinish: () => void;
+  externalProperties?: Property[];
+}
+
+export const useCatalog = ({ onFinish, externalProperties }: Props) => {
+
   const navigate = useNavigate();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
@@ -65,4 +67,4 @@ export function useCatalog(
     DialogUI,
     isAdmin,
   };
-}
+};

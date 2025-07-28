@@ -16,27 +16,27 @@ export const TypeForm = ({ action, item, onDone }: Props) => {
     const { refreshTypes } = usePropertiesContext();
 
     /* ───── hook genérico ───── */
-    const { form, setForm, invalid, run, loading } = useCategories(
-        {
-            id: item?.id ?? 0,
-            name: item?.name ?? '',
-            hasRooms: item?.hasRooms ?? false,
-            hasBathrooms: item?.hasBathrooms ?? false,
-            hasBedrooms: item?.hasBedrooms ?? false,
-            hasCoveredArea: item?.hasCoveredArea ?? false,
-        },
+
+    const initialPayload = {
+        id: item?.id ?? 0,
+        name: item?.name ?? '',
+        hasRooms: item?.hasRooms ?? false,
+        hasBathrooms: item?.hasBathrooms ?? false,
+        hasBedrooms: item?.hasBedrooms ?? false,
+        hasCoveredArea: item?.hasCoveredArea ?? false,
+    };
+
+    const { form, setForm, invalid, run, loading } = useCategories<Type>({
+        initial: initialPayload,
         action,
-        async payload => {
-            if (action === 'add') {
-                const { id, ...body } = payload;
-                return postType(body as TypeCreate);
-            }
+        save: async (payload) => {
+            if (action === 'add') return postType(payload as TypeCreate);
             if (action === 'edit') return putType(payload as Type);
             if (action === 'delete') return deleteType(payload as Type);
         },
-        refreshTypes,
-        onDone
-    );
+        refresh: refreshTypes,
+        onDone,
+    });
 
     /* ───── helpers de cambio ───── */
     const setString = (k: keyof Type) => (e: React.ChangeEvent<HTMLInputElement>) =>

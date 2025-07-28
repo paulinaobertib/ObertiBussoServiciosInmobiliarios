@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal } from "../../shared/components/Modal";
+import { Modal } from "../../../shared/components/Modal";
 
 export interface Info {
     title: string;

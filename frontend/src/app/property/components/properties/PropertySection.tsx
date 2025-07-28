@@ -1,47 +1,34 @@
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, useTheme } from '@mui/material';
+import { useState } from 'react';
+import { Box, Typography, IconButton, useTheme, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { usePropertyPanel } from '../../hooks/usePropertySection';
-import { ModalItem, Info } from '../ModalItem';
+import { ModalItem, Info } from '../categories/CategoryModal';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { SearchBar } from '../../../shared/components/SearchBar';
-import { getAllProperties, getPropertiesByText, deleteProperty, } from '../../services/property.service';
+import { getAllProperties, getPropertiesByText, deleteProperty } from '../../services/property.service';
 import { getRowActions, RowAction } from '../ActionsRowItems';
 import { ROUTES } from '../../../../lib';
 import { PropertyList } from './PropertyList';
 
 interface ColumnDef { label: string; key: string }
-
-/** Permite levantar selección desde afuera */
-interface PropertySectionProps {
+interface Props {
   toggleSelect?: (id: number) => void;
   isSelected?: (id: number) => boolean;
 }
 
-export const PropertySection: React.FC<PropertySectionProps> = ({
-  toggleSelect: externalToggle,
-  isSelected: externalIsSel,
-}) => {
+export const PropertySection = ({ toggleSelect: externalToggle, isSelected: externalIsSel, }: Props) => {
 
   const theme = useTheme();
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
-  const {
-    data: properties,
-    loading,
-    onSearch,
-    toggleSelect,
-    isSelected,
-  } = usePropertyPanel();  // lógica original :contentReference[oaicite:0]{index=0}
-
-  // si vienen props externas, las usamos; si no, fallback al hook:
+  const { data: properties, loading, onSearch, toggleSelect, isSelected, } = usePropertyPanel();
   const selectFn = externalToggle ?? toggleSelect;
-  const isSelFn = externalIsSel ?? isSelected; const [modal, setModal] = useState<Info | null>(null);
+  const isSelFn = externalIsSel ?? isSelected;
+  const [modal, setModal] = useState<Info | null>(null);
 
-  // columnas fijas
   const columns: ColumnDef[] = [
     { label: 'Título', key: 'title' },
     { label: 'Operación', key: 'operation' },
@@ -50,17 +37,32 @@ export const PropertySection: React.FC<PropertySectionProps> = ({
 
   const gridCols = '1.7fr 0.6fr 1.4fr 75px';
 
-  // Genera acciones por propiedad
   const getActions = (prop: any): RowAction[] =>
     getRowActions(
       'property',
       prop,
-      navigate,
       (info) => setModal(info),
       ask,
       deleteProperty,
       showAlert
     );
+
+  // ---- LOADING GLOBAL DE SECCIÓN ----
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          p: 3,
+        }}
+      >
+        <CircularProgress size={36} />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
@@ -125,8 +127,8 @@ export const PropertySection: React.FC<PropertySectionProps> = ({
 
       {/* Lista */}
       <PropertyList
-        properties={properties}
-        loading={loading}
+        properties={properties ?? []}
+        loading={false} // el loading global ya lo controla arriba
         columns={columns}
         gridCols={gridCols}
         toggleSelect={selectFn}

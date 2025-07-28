@@ -11,20 +11,22 @@ import FoundationIcon from '@mui/icons-material/Foundation';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
 import { useAuthContext } from '../../../user/context/AuthContext';
-import { ModalItem, Info } from '../ModalItem';
+import { ModalItem, Info } from '../categories/CategoryModal';
 import { StatusForm } from '../forms/StatusForm';
 
 interface Props { property: Property }
+
 type Amenity = string | { id?: string | number; name?: string; label?: string };
-const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
-const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
-const featureLabel = (v?: number | null, s?: string, p?: string) => v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-';
+
 
 export const PropertyInfo = ({ property }: Props) => {
   const { isAdmin } = useAuthContext();
   const [statusModal, setStatusModal] = useState<Info | null>(null);
   const theme = useTheme();
 
+  const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
+  const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
+  const featureLabel = (v?: number | null, s?: string, p?: string) => v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-';
   // Numeric features
   const features = [
     { label: featureLabel(property.bedrooms, 'dormitorio', 'dormitorios'), icon: <HotelIcon sx={{ color: theme.palette.primary.main }} /> },
