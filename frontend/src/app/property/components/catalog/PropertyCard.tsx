@@ -18,10 +18,12 @@ export const PropertyCard = ({
   isSelected = () => false,
   toggleSelection = () => { },
   onClick = () => { },
+  
 }: Props) => {
   const theme = useTheme();
   const selected = selectionMode && isSelected(property.id);
   const { isAdmin } = useAuthContext();
+
   const src = useMemo(() => {
     if (typeof property.mainImage === 'string') return property.mainImage;
     return URL.createObjectURL(property.mainImage);
@@ -32,10 +34,7 @@ export const PropertyCard = ({
     toggleSelection(property.id);
   };
 
-  // Detectamos si es “nueva” 
-  const isNew =
-    Date.now() - new Date(property.date).getTime() <
-    3 * 24 * 60 * 60 * 1000; // ultimos 3 dias
+  const isNew = Date.now() - new Date(property.date).getTime() < 3 * 24 * 60 * 60 * 1000; // ultimos 3 dias
 
   const chipLabel =
     property.status === 'DISPONIBLE'
