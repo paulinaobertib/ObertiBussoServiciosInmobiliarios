@@ -2,6 +2,8 @@ package pi.ms_users.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.Contract;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentService implements IPaymentService {
 
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
     private final IPaymentRepository paymentRepository;
 
     private final IContractRepository contractRepository;
@@ -28,6 +31,7 @@ public class PaymentService implements IPaymentService {
     public ResponseEntity<String> createPayment(Payment payment) {
         Contract contract = contractRepository.findById(payment.getContract().getId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato"));
+        payment.setContract(contract);
         paymentRepository.save(payment);
         return ResponseEntity.ok("Se ha guardado el pago");
     }

@@ -21,7 +21,7 @@ export const PropertyDetailsCompare = ({ comparisonItems }: Props) => {
     }
 
     return (
-        <Container maxWidth="xl" sx={{ py: 8, px: 2 }}>
+        <Container maxWidth="xl" sx={{ py: 2, px: 2 }}>
             <Box
                 sx={{
                     display: 'grid',
