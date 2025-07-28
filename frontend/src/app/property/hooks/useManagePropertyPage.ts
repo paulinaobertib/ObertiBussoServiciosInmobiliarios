@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-/* ────── servicios REST ────── */
 import {
   getPropertyById,
   postProperty,
@@ -14,35 +13,25 @@ import {
   deleteImageById,
 } from "../../shared/components/images/image.service";
 import { ImageDTO } from "../../shared/components/images/image";
-
-/* ────── utilidades internas ────── */
 import { useImages } from "../../shared/hooks/useImages";
 import { usePropertiesContext } from "../context/PropertiesContext";
 import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
-
-/* ────── tipos auxiliares ────── */
 import type { Image } from "../../shared/components/images/image";
 
-export function useManagePropertyPage() {
-  /* ---------- ruta y modo ---------- */
+export const useManagePropertyPage = () => {
   const { id } = useParams<{ id?: string }>();
   const isEdit = Boolean(id);
   const propId = Number(id);
   const nav = useNavigate();
-
-  /* ---------- diálogos y alertas ---------- */
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
 
-  /* ---------- refs y estado local ---------- */
   const formRef = useRef<any>(null);
   const img = useImages(null, []); // galería / imagen principal
 
-  /* ─ Imagenes a eliminar en el próximo “Guardar” ─ */
   const [toDelete, setToDelete] = useState<number[]>([]);
 
-  /* ─ Imágenes ya existentes en backend ─ */
   const [imagesBack, setImagesBack] = useState<ImageDTO[]>([]);
 
   const [property, setProperty] = useState<any | null>(null);
@@ -50,14 +39,11 @@ export function useManagePropertyPage() {
   const [activeStep, setActiveStep] = useState<0 | 1>(0);
   const [formReady, setFormReady] = useState(false);
 
-  /* ---------- contexto de selección ---------- */
   const { setSelected, resetSelected, selected } = usePropertiesContext();
 
-  /* ---------- cancelar con confirmación ---------- */
   const cancel = () =>
     ask("¿Cancelar y perder los cambios?", async () => nav("/"));
 
-  /* ────── cargar propiedad + owner + imágenes (solo edición) ────── */
   useEffect(() => {
     // inicializar para modo “crear”
     resetSelected();
@@ -105,6 +91,7 @@ export function useManagePropertyPage() {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line
   }, [isEdit, propId]);
 
   /* ────── manejo de imágenes en el form ────── */
@@ -221,4 +208,4 @@ export function useManagePropertyPage() {
     cancel,
     DialogUI,
   };
-}
+};

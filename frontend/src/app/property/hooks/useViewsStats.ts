@@ -14,7 +14,7 @@ import {
   ViewsByAmenity,
 } from "../types/view";
 
-export function useViewStats() {
+export const useViewStats = () => {
   const [stats, setStats] = useState<{
     property: ViewsByProperty;
     propertyType: ViewsByPropertyType;
@@ -96,4 +96,4 @@ export function useViewStats() {
   }, []);
 
   return { stats, loading, error };
-}
+};
