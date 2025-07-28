@@ -33,7 +33,6 @@ export const CategorySection = ({ category }: Props) => {
   const { data, loading, toggleSelect, isSelected, searchResults } = useCategorySection(category);
   const [modal, setModal] = useState<Info | null>(null);
 
-
   const columnsMap: Record<Category, { label: string; key: string }[]> = {
     owner: [
       { label: 'Nombre Completo', key: 'fullName' },

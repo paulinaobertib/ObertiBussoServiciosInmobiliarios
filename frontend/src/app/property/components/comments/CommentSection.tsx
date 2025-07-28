@@ -13,12 +13,7 @@ export interface CommentSectionProps {
   refresh: () => Promise<void>;
 }
 
-export const CommentSection = ({
-  propertyId,
-  loading,
-  items,
-  refresh,
-}: CommentSectionProps) => {
+export const CommentSection = ({ propertyId, loading, items, refresh, }: CommentSectionProps) => {
   const [action, setAction] = useState<'add' | 'edit'>('add');
   const [selected, setSelected] = useState<Comment>();
 
@@ -46,7 +41,7 @@ export const CommentSection = ({
         </Box>
 
         <CommentForm
-          propertyId={propertyId}     // <― PASAMOS id al form
+          propertyId={propertyId}
           action={action}
           item={selected}
           refresh={refresh}
