@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePropertiesContext, Category } from "../context/PropertiesContext";
 import { getOwnersByText } from "../services/owner.service";
 import type { Owner } from "../types/owner";
@@ -6,8 +6,9 @@ import type { Owner } from "../types/owner";
 export const useCategorySection = (category: Category) => {
   const ctx = usePropertiesContext();
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
+  const [localLoading, setLocalLoading] = useState(true);
 
-  // El array principal global
+  /* 1. Array global según categoría */
   const data =
     category === "owner"
       ? ctx.ownersList
@@ -19,10 +20,7 @@ export const useCategorySection = (category: Category) => {
       ? ctx.neighborhoodsList
       : [];
 
-  // Elegir loading correcto (puede ser uno global o individual por categoría si tenés)
-  const loading = ctx.loading; // O uno específico por categoría
-
-  // Refresh correcto según categoría
+  /* 2. Función refresh según categoría */
   const refresh =
     category === "owner"
       ? ctx.refreshOwners
@@ -34,21 +32,36 @@ export const useCategorySection = (category: Category) => {
       ? ctx.refreshNeighborhoods
       : () => Promise.resolve();
 
-  // Búsqueda por texto (solo owners, resultado es local a este hook)
+  /* 3. Refrescar al montar/cambiar categoría */
+  useEffect(() => {
+    setLocalLoading(true);
+    refresh().finally(() => setLocalLoading(false));
+  }, [category, refresh]);
+
+  /* 4. Limpiar búsqueda cuando los datos globales cambian */
+  useEffect(() => {
+    if (category === "owner") {
+      setSearchResults(null);
+    }
+  }, [category, data]);
+
+  /* 5. Búsqueda textual solo para owners */
   const searchOwnersText = useCallback(
     async (txt: string) => {
       if (category !== "owner") return;
       if (txt) {
         setSearchResults(await getOwnersByText(txt));
       } else {
+        setLocalLoading(true);
         await refresh();
         setSearchResults(null);
+        setLocalLoading(false);
       }
     },
     [category, refresh]
   );
 
-  // Pasar resultados de búsqueda directo
+  /* 6. Callback directo desde <SearchBar/> */
   const searchResultsCb = useCallback(
     (items: Owner[]) => {
       if (category === "owner") setSearchResults(items);
@@ -56,7 +69,7 @@ export const useCategorySection = (category: Category) => {
     [category]
   );
 
-  // Selección
+  /* 7. Selección */
   const isSelected = useCallback(
     (id: number) => {
       switch (category) {
@@ -75,9 +88,9 @@ export const useCategorySection = (category: Category) => {
     [category, ctx.selected]
   );
 
-  // Data owners: fullName
+  /* 8. Data de la tabla (fullName en owners) */
   const tableData = useMemo(() => {
-    const arr = searchResults ?? data;
+    const arr = searchResults ?? data; // prioridad a resultados de búsqueda
     if (category === "owner") {
       return (arr as Owner[]).map((o) => ({
         ...o,
@@ -89,11 +102,11 @@ export const useCategorySection = (category: Category) => {
 
   return {
     data: tableData,
-    loading,
+    loading: localLoading,
     refresh,
     searchOwnersText,
     searchResults: searchResultsCb,
     isSelected,
-    toggleSelect: ctx.toggleSelect,
+    toggleSelect: (id: number) => ctx.toggleSelect(category, id),
   };
 };

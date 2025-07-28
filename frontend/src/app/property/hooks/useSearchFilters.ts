@@ -61,10 +61,18 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
         local.operation === "VENTA" ? local.financing || undefined : undefined,
     };
 
+    const filtra3mas = Array.isArray(local.rooms) && local.rooms.includes(3);
+    if (filtra3mas) {
+      delete base.rooms;
+    }
+
     const res = await getPropertiesByFilters(
       buildSearchParams(base) as SearchParams
     );
-    onSearch(res);
+
+    const filtered = filtra3mas ? res.filter((p) => Number(p.rooms) >= 3) : res;
+
+    onSearch(filtered);
   }
 
   /* ───────── disparar búsqueda sólo en cambios reales ───────── */
@@ -75,7 +83,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     const paramsChanged = prevParams.current !== params;
     const amenitiesChanged = prevAmenRefs.current !== selected.amenities;
 
-    if (paramsChanged || amenitiesChanged) apply(); // ← sólo si cambió algo
+    if (paramsChanged || amenitiesChanged) apply();
 
     prevParams.current = params;
     prevAmenRefs.current = selected.amenities;

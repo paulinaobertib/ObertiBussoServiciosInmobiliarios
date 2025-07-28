@@ -16,13 +16,8 @@ interface Props {
 
 export const PropertyCatalog = ({ properties, mode, onFinishAction, selectionMode = false, toggleSelection, isSelected,
 }: Props) => {
-  const {
-    propertiesList,
-    loading,
-    handleClick,
-    DialogUI,
-  } = useCatalog(onFinishAction, properties);
-
+  const { propertiesList, loading, handleClick, DialogUI, }
+    = useCatalog({ onFinish: onFinishAction, externalProperties: properties, });
   const { isAdmin } = useAuthContext();
 
   // lista filtrada (disponibles si no es admin)
