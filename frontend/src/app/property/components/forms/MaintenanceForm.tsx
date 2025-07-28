@@ -1,54 +1,79 @@
+import { useEffect } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+
 import { useCategories } from '../../hooks/useCategories';
-import { usePropertiesContext } from '../../context/PropertiesContext';
-import { postMaintenance, putMaintenance, deleteMaintenance, } from '../../services/maintenance.service';
-import { Maintenance, MaintenanceCreate, } from '../../types/maintenance';
+import {
+    postMaintenance,
+    putMaintenance,
+    deleteMaintenance,
+} from '../../services/maintenance.service';
+import type { Maintenance, MaintenanceCreate } from '../../types/maintenance';
 
 interface Props {
+    /** El mismo propertyId de la sección */
+    propertyId: number;
     action: 'add' | 'edit' | 'delete';
     item?: Maintenance;
+    /** Refresca la lista tras POST/PUT/DELETE */
+    refresh: () => Promise<void>;
+    /** Resetea UI (sin volver a fetch completo) */
     onDone: () => void;
 }
 
-export const MaintenanceForm = ({ action, item, onDone }: Props) => {
-    const { refreshMaintenances, pickedItem } = usePropertiesContext();
+export const MaintenanceForm = ({
+    propertyId,
+    action,
+    item,
+    refresh,
+    onDone,
+}: Props) => {
+    const initialPayload = {
+        id: item?.id ?? 0,
+        propertyId: propertyId,
+        title: item?.title ?? '',
+        description: item?.description ?? '',
+        date: item?.date ?? '',
+    };
 
     const { form, setForm, invalid, run, loading } = useCategories(
-        {
-            id: item?.id ?? 0,
-            propertyId: item?.propertyId ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
-            title: item?.title ?? '',
-            description: item?.description ?? '',
-            date: item?.date ?? '',
-        },
+        initialPayload,
         action,
-        async payload => {
-            if (action === 'add') return postMaintenance(payload as MaintenanceCreate);
+        async (payload) => {
+            if (action === 'add') {
+                const { id, ...createPayload } = payload as any;
+                return postMaintenance(createPayload as MaintenanceCreate);
+            }
             if (action === 'edit') return putMaintenance(payload as Maintenance);
             if (action === 'delete') return deleteMaintenance(payload as Maintenance);
         },
-        refreshMaintenances,
+        refresh,
         onDone
     );
 
-    return (
-        <>
-            {loading && (
-                <Box
-                    position="fixed"
-                    top={0}
-                    left={0}
-                    width="100%"
-                    height="100%"
-                    zIndex={theme => theme.zIndex.modal + 1000}
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                />
-            )}
+    useEffect(() => {
+        if (action === 'edit' && item) {
+            setForm({
+                id: item.id,
+                propertyId: propertyId,
+                title: item.title,
+                description: item.description,
+                date: item.date,
+            });
+        } else {
+            setForm(initialPayload);
+        }
+    }, [action, item?.id, propertyId, setForm]);
 
-            <Grid container spacing={2} mb={2}>
+    const handleSubmit = async () => {
+        await run();               // Ejecuta POST/PUT/DELETE y luego refresh()
+        setForm(initialPayload);   // Limpia campos
+        onDone();                  // Cambia UI a modo “add”
+    };
+
+    return (
+        <Box component="form" noValidate>
+            <Grid container spacing={1} mb={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                         fullWidth
@@ -56,10 +81,11 @@ export const MaintenanceForm = ({ action, item, onDone }: Props) => {
                         size="small"
                         disabled={action === 'delete'}
                         value={form.title}
-                        onChange={e => setForm({ ...form, title: e.target.value })}
+                        onChange={(e) =>
+                            setForm({ ...form, title: e.target.value })
+                        }
                     />
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                         fullWidth
@@ -69,29 +95,51 @@ export const MaintenanceForm = ({ action, item, onDone }: Props) => {
                         InputLabelProps={{ shrink: true }}
                         disabled={action === 'delete'}
                         value={form.date}
-                        onChange={e => setForm({ ...form, date: e.target.value })}
+                        onChange={(e) =>
+                            setForm({ ...form, date: e.target.value })
+                        }
                     />
                 </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{ xs: 12 }}>
                     <TextField
                         fullWidth
                         multiline
-                        rows={4}
+                        rows={3}
                         label="Descripción"
                         size="small"
                         disabled={action === 'delete'}
                         value={form.description}
-                        onChange={e =>
+                        onChange={(e) =>
                             setForm({ ...form, description: e.target.value })
                         }
                     />
                 </Grid>
             </Grid>
 
-            <Box textAlign="right">
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 1,
+                    mt: 2,
+                }}
+            >
+                {/* Cancelar siempre disponible en modo edit */}
+                {action === 'edit' && (
+                    <LoadingButton
+                        loading={loading}
+                        onClick={() => {
+                            setForm(initialPayload);
+                            onDone();
+                        }}
+                        disabled={loading}
+                    >
+                        Cancelar
+                    </LoadingButton>
+                )}
+
                 <LoadingButton
-                    onClick={run}
+                    onClick={handleSubmit}
                     loading={loading}
                     disabled={invalid || loading}
                     variant="contained"
@@ -100,6 +148,6 @@ export const MaintenanceForm = ({ action, item, onDone }: Props) => {
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
                 </LoadingButton>
             </Box>
-        </>
+        </Box>
     );
 };

@@ -17,8 +17,8 @@ interface FloatingButtonsProps {
 
 const adminActions = [
   { icon: <AddCircleOutlineIcon />, name: 'Agregar', action: 'create' as const },
-  { icon: <EditIcon />,             name: 'Editar',  action: 'edit'   as const },
-  { icon: <DeleteIcon />,           name: 'Eliminar',action: 'delete' as const },
+  { icon: <EditIcon />, name: 'Editar', action: 'edit' as const },
+  { icon: <DeleteIcon />, name: 'Eliminar', action: 'delete' as const },
 ];
 
 export const FloatingButtons = ({
@@ -31,21 +31,26 @@ export const FloatingButtons = ({
   const { isAdmin } = useAuthContext();
   const { disabledCompare } = usePropertiesContext();
 
-  const size = { xs: '3rem', sm: '3.5rem' }; // mismo tamaño que antes
-  const off  = 16;                           // separación al borde
+  const size = { xs: '3rem', sm: '3.5rem' };
+  const off = 16;                           // separación al borde
 
   return (
     <Box
       sx={{
         position: 'fixed',
         bottom: off,
-        right: off + 70,
+        right: {
+          xs: `calc(${off}px + ${size.xs} + 8px)`, // 16 + 3rem + 8px
+          sm: 86,
+        },
         display: 'flex',
+        flexDirection: 'row',  // siempre en fila
         alignItems: 'center',
-        gap: 2,
+        gap: { xs: 1, sm: 2 }, // 8px en xs, 16px en sm+
         zIndex: 1300,
       }}
     >
+
       {/* Botón comparar (usuarios) */}
       {!isAdmin && (
         <Tooltip

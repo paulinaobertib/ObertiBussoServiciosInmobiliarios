@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCatalog } from '../../hooks/useCatalog';
 import { PropertyCard } from './PropertyCard';
@@ -6,7 +6,7 @@ import { Property } from '../../types/property';
 import { useAuthContext } from '../../../user/context/AuthContext';
 
 interface CatalogProps {
-  properties?: Property[];
+  properties: Property[];
   mode: 'normal' | 'edit' | 'delete';
   onFinishAction: () => void;
   selectionMode?: boolean;
@@ -22,24 +22,19 @@ export const PropertyCatalog = ({
   toggleSelection,
   isSelected,
 }: CatalogProps) => {
-  const { propertiesList, loading, handleClick, DialogUI } =
-    useCatalog(onFinishAction);
-
-  // Extraemos directamente la bandera booleana isAdmin
+  const { loading, handleClick, DialogUI } = useCatalog(onFinishAction, properties);
   const { isAdmin } = useAuthContext();
 
-  // 1️⃣ Lista base: la que venga por props o la del hook
-  const list = properties ?? propertiesList;
+  // Log para depurar las propiedades recibidas
+  console.log('PropertyCatalog properties:', properties);
 
-  // 2️⃣ Filtrado: administradores ven todo; usuarios comunes sólo 'DISPONIBLE'
   const filtered = useMemo(() => {
-    if (isAdmin) return list;
-    return list.filter(
-      p => p.status?.toLowerCase() === 'disponible'
+    if (isAdmin) return properties;
+    return properties.filter(
+      p => p.status?.toLowerCase() === 'disponible' || !p.status
     );
-  }, [list, isAdmin]);
+  }, [properties, isAdmin]);
 
-  // 3️⃣ Orden descendente por fecha
   const sortedList = useMemo(
     () =>
       [...filtered].sort(
@@ -60,6 +55,11 @@ export const PropertyCatalog = ({
     );
   }
 
+  const handleCardClick = useCallback(
+    (prop: Property) => handleClick(mode, prop),
+    [handleClick, mode],
+  );
+
   return (
     <>
       <Box
@@ -67,10 +67,11 @@ export const PropertyCatalog = ({
           p: 2,
           display: 'grid',
           gridTemplateColumns: {
-            xs: '1fr',               // móviles: 1 columna
-            sm: 'repeat(2, 1fr)',    // pantallas sm: 3 columnas
-            lg: 'repeat(3, 1fr)',    // pantallas md+: 4 columnas
-          }, gap: 3,
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(3, 1fr)',
+          },
+          gap: 3,
         }}
       >
         {sortedList.map(prop => (
@@ -80,7 +81,7 @@ export const PropertyCatalog = ({
             selectionMode={selectionMode}
             toggleSelection={toggleSelection}
             isSelected={isSelected}
-            onClick={() => handleClick(mode, prop)}
+            onClick={() => handleCardClick(prop)}
           />
         ))}
       </Box>

@@ -11,8 +11,6 @@ import ManagePropertyPage from './pages/ManagePropertyPage';
 import Compare from './pages/ComparePage';
 import PropertyDetailsPage from './pages/PropertyDetailsPage';
 import AdministratorPage from './pages/AdministratorPage';
-import PropertyCommentsPage from './pages/PropertyCommentsPage';
-import PropertyMaintenancePage from './pages/PropertyMaintenancePage';
 import FavoritesPage from './pages/FavoritesPage';
 import UserProfilePage from './pages/UserProfilePage';
 import ContactPage from './pages/ContactPage';
@@ -20,9 +18,14 @@ import NewsPage from './pages/NewsPage';
 import NewsDetailsPage from './pages/NewsDetailsPage';
 import PoliciesPage from './pages/PoliciesPage';
 import SurveyPage from './pages/SurveyPage';
+import { PropertyNotesPage } from './pages/PropertyNotesPage';
 
 import { useAuthContext } from './app/user/context/AuthContext';
 import { useGlobalAlert } from './app/shared/context/AlertContext';
+import ContractsPage from './pages/ContractsPage';
+import ManageContractPage from './pages/ManageContractPage';
+import AppointmentPage from './pages/AppointmentPage';
+// import ViewStatsPage from './pages/ViewStatsPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -49,13 +52,27 @@ function RequireLogin({ children }: { children: ReactNode }) {
     return <>{children}</>;
 }
 
+export function RequireAdminOrTenant({ children }: { children: ReactNode }) {
+    const { isAdmin, isTenant, loading } = useAuthContext();
+    const { showAlert } = useGlobalAlert();
+
+    if (loading) return null;
+
+    if (!isAdmin && !isTenant) {
+        showAlert("No tienes permisos para acceder a esta sección", "error");
+        return <Navigate to={ROUTES.HOME_APP} replace />;
+    }
+
+    return <>{children}</>;
+}
+
 /* ---------- Rutas ---------- */
 export default function Routes() {
     return (
         <RoutesDom>
             <Route path={ROUTES.HOME_APP} element={<Home />} />
 
-            {/* ---- Propiedades: crear / editar (solo admin) ---- */}
+            {/* ---- crear / editar (solo admin) ---- */}
             <Route
                 path={ROUTES.NEW_PROPERTY}          // '/properties/new'
                 element={
@@ -73,6 +90,23 @@ export default function Routes() {
                 }
             />
 
+            <Route
+                path={ROUTES.NEW_CONTRACT}          // '/properties/new'
+                element={
+                    <RequireAdmin>
+                        <ManageContractPage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.EDIT_CONTRACT}         // '/properties/:id/edit'
+                element={
+                    <RequireAdmin>
+                        <ManageContractPage />
+                    </RequireAdmin>
+                }
+            />
+
             {/* ---- Panel administrador ---- */}
             <Route
                 path={ROUTES.ADMIN_PAGE}
@@ -83,21 +117,37 @@ export default function Routes() {
                 }
             />
             <Route
-                path={ROUTES.PROPERTY_COMMENTS}
+                path={ROUTES.CONTRACT}
+                element={
+                    <RequireAdminOrTenant>
+                        <ContractsPage />
+                    </RequireAdminOrTenant>
+                }
+            />
+            <Route
+                path={ROUTES.PROPERTY_NOTES}
                 element={
                     <RequireAdmin>
-                        <PropertyCommentsPage />
+                        <PropertyNotesPage />
                     </RequireAdmin>
                 }
             />
             <Route
-                path={ROUTES.PROPERTY_MAINTENANCE}
+                path={ROUTES.APPOINTMENTS}
                 element={
                     <RequireAdmin>
-                        <PropertyMaintenancePage />
+                        <AppointmentPage />
                     </RequireAdmin>
                 }
             />
+            {/* <Route
+                path={ROUTES.STATS}
+                element={
+                    <RequireAdmin>
+                        <ViewStatsPage />
+                    </RequireAdmin>
+                }
+            /> */}
 
             {/* ---- Rutas protegidas por login ---- */}
             <Route
@@ -117,13 +167,22 @@ export default function Routes() {
                 }
             />
 
+            {/* ---- Panel inquilino ---- */}
+            {/* <Route
+                path={ROUTES.TENANT}
+                element={
+                    <RequireTenant>
+                        <TenantPage />
+                    </RequireTenant>
+                }
+            /> */}
+
             {/* ---- Públicas ---- */}
             <Route path={ROUTES.COMPARE} element={<Compare />} />
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
             <Route path={ROUTES.NEWS} element={<NewsPage />} />
             <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
-
             <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
 
             <Route path={ROUTES.SURVEY} element={<SurveyPage />} />

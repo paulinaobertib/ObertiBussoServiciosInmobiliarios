@@ -100,7 +100,14 @@ public class ContractService implements IContractService {
         }
 
         Contract contract = objectMapper.convertValue(contractDTO, Contract.class);
-        Contract saved = contractRepository.save(contract);
+        Contract saved;
+        try {
+            saved = contractRepository.save(contract);
+        } catch (Exception e) {
+            propertyRepository.updateStatus(propertyDTO.getId(), Status.DISPONIBLE);
+            userRepository.deleteRoleToUser(user.getId(), "tenant");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No se pudo crear el contrato.");
+        }
 
         EmailContractDTO emailData = new EmailContractDTO();
         emailData.setTo(user.getEmail());
