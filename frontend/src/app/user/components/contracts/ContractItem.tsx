@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Contract } from '../../types/contract';
 import { useContractNames } from '../../hooks/contracts/useContractNames';
 import { buildRoute, ROUTES } from '../../../../lib';
+import { useAuthContext } from '../../../user/context/AuthContext';
 
 interface Props {
     contract: Contract;
@@ -19,13 +20,20 @@ interface Props {
     onToggleStatus: (c: Contract) => void;
 }
 
-export const ContractItem = ({ contract, onRegisterPayment, onIncrease, onHistory, onDelete, onToggleStatus,
+export const ContractItem = ({
+    contract,
+    onRegisterPayment,
+    onIncrease,
+    onHistory,
+    onDelete,
+    onToggleStatus,
 }: Props) => {
     const navigate = useNavigate();
     const { userName, propertyName } = useContractNames(
         contract.userId,
         contract.propertyId
     );
+    const { isAdmin } = useAuthContext();
 
     const fmtDate = (iso: string) => {
         const d = new Date(iso);
@@ -40,23 +48,36 @@ export const ContractItem = ({ contract, onRegisterPayment, onIncrease, onHistor
                 titleTypographyProps={{ sx: { fontSize: '1.4rem' } }}
                 subheader={`en ${propertyName}`}
                 action={
-                    <Box>
-                        <Tooltip title="Editar">
-                            <IconButton size="small" onClick={() => navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id))}>
-                                <EditIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title={contract.contractStatus === 'ACTIVO' ? 'Inactivar' : 'Reactivar'}>
-                            <IconButton size="small" onClick={() => onToggleStatus(contract)}>
-                                <BlockIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                            <IconButton size="small" onClick={() => onDelete(contract)}>
-                                <DeleteIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
+                    isAdmin ? (
+                        <Box>
+                            <Tooltip title="Editar">
+                                <IconButton
+                                    size="small"
+                                    onClick={() =>
+                                        navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id))
+                                    }
+                                >
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip
+                                title={
+                                    contract.contractStatus === 'ACTIVO'
+                                        ? 'Inactivar'
+                                        : 'Reactivar'
+                                }
+                            >
+                                <IconButton size="small" onClick={() => onToggleStatus(contract)}>
+                                    <BlockIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Eliminar">
+                                <IconButton size="small" onClick={() => onDelete(contract)}>
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                    ) : undefined
                 }
             />
             <CardContent>
@@ -74,16 +95,20 @@ export const ContractItem = ({ contract, onRegisterPayment, onIncrease, onHistor
                 </Typography>
             </CardContent>
             <CardActions sx={{ justifyContent: 'flex-end' }}>
-                <Tooltip title="Registrar Pago">
-                    <IconButton onClick={() => onRegisterPayment(contract)}>
-                        <MonetizationOnOutlined />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Aumentar">
-                    <IconButton onClick={() => onIncrease(contract)}>
-                        <TrendingUpOutlined />
-                    </IconButton>
-                </Tooltip>
+                {isAdmin && (
+                    <>
+                        <Tooltip title="Registrar Pago">
+                            <IconButton onClick={() => onRegisterPayment(contract)}>
+                                <MonetizationOnOutlined />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Aumentar">
+                            <IconButton onClick={() => onIncrease(contract)}>
+                                <TrendingUpOutlined />
+                            </IconButton>
+                        </Tooltip>
+                    </>
+                )}
                 <Tooltip title="Historial">
                     <IconButton onClick={() => onHistory(contract)}>
                         <HistoryIcon />

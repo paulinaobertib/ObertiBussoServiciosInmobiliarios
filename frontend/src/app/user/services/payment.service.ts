@@ -1,4 +1,3 @@
-// payment.service.ts
 import { Payment, PaymentCreate } from "../types/payment";
 import { api } from "../../../api";
 
