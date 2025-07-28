@@ -1,4 +1,3 @@
-// src/app/property/components/catalog/PropertyCatalog.tsx
 import { useMemo, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { PropertyCard } from './PropertyCard';
@@ -6,7 +5,7 @@ import { Property } from '../../types/property';
 import { useCatalog } from '../../hooks/useCatalog';
 import { useAuthContext } from '../../../user/context/AuthContext';
 
-interface CatalogProps {
+interface Props {
   properties?: Property[];
   mode: 'normal' | 'edit' | 'delete';
   onFinishAction: () => void;
@@ -15,17 +14,10 @@ interface CatalogProps {
   isSelected?: (id: number) => boolean;
 }
 
-export const PropertyCatalog = ({
-  properties,
-  mode,
-  onFinishAction,
-  selectionMode = false,
-  toggleSelection,
-  isSelected,
-}: CatalogProps) => {
-  /* ---------------------- hooks SIEMPRE en el mismo orden ---------------------- */
+export const PropertyCatalog = ({ properties, mode, onFinishAction, selectionMode = false, toggleSelection, isSelected,
+}: Props) => {
   const {
-    propertiesList,        // null | Property[]
+    propertiesList,
     loading,
     handleClick,
     DialogUI,
@@ -72,7 +64,7 @@ export const PropertyCatalog = ({
           minHeight: 200,
         }}
       >
-        <CircularProgress size={48} sx={{ animationDuration: '10s' }}  // 1 s es el default; 2 s = va a la mitad de velocidad
+        <CircularProgress size={48}
         />
       </Box>
     );

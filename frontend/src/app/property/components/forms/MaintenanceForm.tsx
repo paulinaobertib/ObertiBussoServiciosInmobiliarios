@@ -1,3 +1,4 @@
+// src/app/property/components/forms/MaintenanceForm.tsx
 import { useEffect } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -48,7 +49,7 @@ export const MaintenanceForm = ({
             if (action === 'delete') return deleteMaintenance(payload as Maintenance);
         },
         refresh,
-        onDone
+        onDone // Se llama internamente en run, NO llamarlo dos veces
     );
 
     useEffect(() => {
@@ -63,12 +64,17 @@ export const MaintenanceForm = ({
         } else {
             setForm(initialPayload);
         }
-    }, [action, item?.id, propertyId, setForm]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [action, item?.id, propertyId]);
 
     const handleSubmit = async () => {
-        await run();               // Ejecuta POST/PUT/DELETE y luego refresh()
-        setForm(initialPayload);   // Limpia campos
-        onDone();                  // Cambia UI a modo “add”
+        await run();
+        setForm(initialPayload);
+    };
+
+    const handleCancel = () => {
+        setForm(initialPayload);
+        onDone();
     };
 
     return (
@@ -124,15 +130,12 @@ export const MaintenanceForm = ({
                     mt: 2,
                 }}
             >
-                {/* Cancelar siempre disponible en modo edit */}
-                {action === 'edit' && (
+                {/* Cancelar disponible en add y edit */}
+                {(action === 'edit' || action === 'add') && (
                     <LoadingButton
                         loading={loading}
-                        onClick={() => {
-                            setForm(initialPayload);
-                            onDone();
-                        }}
-                        disabled={loading}
+                        onClick={handleCancel}
+                        disabled={invalid || loading}
                     >
                         Cancelar
                     </LoadingButton>
