@@ -188,6 +188,15 @@ describe('Chat component', () => {
     expect(mockStartSessionGuest).toHaveBeenCalled();
   });
 
+  it('oculta opciones cuando chat está inactivo', () => {
+    (useChatContext as Mock).mockReturnValue({
+      ...useChatContext(),
+      messages: [{ from: 'system', content: 'Pregunta del sistema' }],
+      sessionId: 1,
+    });
 
+    render(<Chat initialPropertyId={123} />, { wrapper: AllProviders });
+    expect(screen.queryByText(/Por favor, seleccioná una de las siguientes opciones/i)).not.toBeInTheDocument();
+  });
 
 });
