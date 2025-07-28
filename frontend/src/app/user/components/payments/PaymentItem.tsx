@@ -1,14 +1,8 @@
-import React from 'react';
-import {
-    ListItem,
-    ListItemText,
-    IconButton,
-    Tooltip
-} from '@mui/material';
+import { ListItem, ListItemText, IconButton, Tooltip, Box } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from "@mui/icons-material/Edit";
+import EditIcon from '@mui/icons-material/Edit';
 
-import type { Payment } from '../../../user/types/payment';  // :contentReference[oaicite:0]{index=0}
+import type { Payment } from '../../../user/types/payment';
 
 interface Props {
     payment: Payment;
@@ -16,14 +10,10 @@ interface Props {
     onDelete?: (p: Payment) => void;
 }
 
-export const PaymentItem: React.FC<Props> = ({
-    payment,
-    onEdit,
-    onDelete
-}) => (
+export const PaymentItem = ({ payment, onEdit, onDelete }: Props) => (
     <ListItem
         secondaryAction={
-            <React.Fragment>
+            <Box sx={{ display: 'flex', gap: 1 }}>
                 {onEdit && (
                     <Tooltip title="Editar pago">
                         <IconButton edge="end" onClick={() => onEdit(payment)}>
@@ -38,11 +28,11 @@ export const PaymentItem: React.FC<Props> = ({
                         </IconButton>
                     </Tooltip>
                 )}
-            </React.Fragment>
+            </Box>
         }
     >
         <ListItemText
-            primary={`${payment.date.split('T')[0]} — $${payment.amount} ${payment.paymentCurrency}`}
+            primary={`${payment.date.split('T')[0]} - $${payment.amount} ${payment.paymentCurrency}`}
             secondary={`Descripción: ${payment.description}`}
         />
     </ListItem>

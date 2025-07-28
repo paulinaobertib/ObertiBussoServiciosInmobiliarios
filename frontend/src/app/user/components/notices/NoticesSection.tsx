@@ -3,12 +3,12 @@ import { Box, Button, IconButton, useMediaQuery, useTheme } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { SearchBar } from '../../../shared/components/SearchBar';
-import NoticeItem from './NoticeItem';
 import { useNotices } from '../../hooks/useNotices';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { Modal } from '../../../shared/components/Modal';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { NoticeForm, NoticeFormHandle } from './NoticeForm';
+import { NoticesList } from './NoticesList';
 
 export default function NoticesSection() {
   /* ───────────── datos del hook ───────────── */
@@ -135,31 +135,13 @@ export default function NoticesSection() {
         </IconButton>
 
         {/* Contenedor de cards */}
-        <Box
-          sx={{
-            display: 'flex',
-            overflow: 'hidden',
-            gap: 2,
-            pr: 6,
-          }}
-        >
-          {visibleNotices.map(n => (
-            <Box
-              key={n.id}
-              sx={{
-                flex: `0 0 ${100 / visibleCount}%`,
-                maxWidth: `${100 / visibleCount}%`,
-              }}
-            >
-              <NoticeItem
-                notice={n}
-                isAdmin={isAdmin}
-                onUpdate={edit}
-                onDeleteClick={handleDelete}
-              />
-            </Box>
-          ))}
-        </Box>
+        <NoticesList
+          notices={visibleNotices}
+          isAdmin={isAdmin}
+          visibleCount={visibleCount}
+          onUpdate={edit}
+          onDeleteClick={handleDelete}
+        />
 
         {/* Flecha Derecha */}
         <IconButton

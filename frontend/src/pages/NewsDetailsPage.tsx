@@ -1,5 +1,5 @@
 import IconButton from '@mui/material/IconButton';
-import NoticeDetails from '../app/user/components/notices/noticeDetails/noticeDetails';
+import { NoticeDetails } from '../app/user/components/notices/NoticeDetails';
 import { BasePage } from './BasePage';
 import { useNavigate } from 'react-router-dom';
 import ReplyIcon from '@mui/icons-material/Reply';

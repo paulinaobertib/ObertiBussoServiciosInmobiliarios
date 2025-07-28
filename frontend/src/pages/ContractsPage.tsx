@@ -1,3 +1,5 @@
+// src/pages/ContractsPage.tsx
+
 import {
     Container,
     Box,
@@ -10,7 +12,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ReplyIcon from "@mui/icons-material/Reply";
 import { ROUTES } from "../lib";
 
-import { useContractsPage } from "../app/user/hooks/contracts/useContractsPage"; // <- aquí
+import { useContractsPage } from "../app/user/hooks/contracts/useContractsPage";
 import { ContractStatus } from "../app/user/types/contract";
 
 import { ContractsStats } from "../app/user/components/contracts/ContractsStats";
@@ -43,16 +45,6 @@ export default function ContractsPage() {
         DialogUI,
     } = useContractsPage();
 
-    if (loading) {
-        return (
-            <BasePage>
-                <Box display="flex" justifyContent="center" p={3}>
-                    <CircularProgress size={36} />
-                </Box>
-            </BasePage>
-        );
-    }
-
     const activeCount = all.filter(
         (c) => c.contractStatus === ContractStatus.ACTIVO
     ).length;
@@ -71,71 +63,84 @@ export default function ContractsPage() {
             </IconButton>
 
             <BasePage maxWidth={false}>
-                <Container sx={{ py: 2 }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                        <Typography variant="h5" fontWeight={600}>
-                            Contratos de Alquiler
-                        </Typography>
-                        {isAdmin && (
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={() => navigate(ROUTES.NEW_CONTRACT)}
-                            >
-                                Nuevo Contrato
-                            </Button>
-                        )}
-                    </Box>
+                {/* Contenedor relativo para posicionar el overlay */}
+                <Box sx={{ position: "relative" }}>
+                    <Container sx={{ py: 2 }}>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            mb={3}
+                        >
+                            <Typography variant="h5" fontWeight={600}>
+                                Contratos de Alquiler
+                            </Typography>
+                            {isAdmin && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => navigate(ROUTES.NEW_CONTRACT)}
+                                >
+                                    Nuevo Contrato
+                                </Button>
+                            )}
+                        </Box>
 
-                    <ContractsStats
-                        activeCount={activeCount}
-                        totalCount={all.length}
-                        inactiveCount={inactiveCount}
-                    />
-
-                    {isAdmin && (
-                        <ContractsFilters
-                            filter={filter}
-                            onFilterChange={setFilter}
-                            onSearch={handleSearch}
+                        <ContractsStats
+                            activeCount={activeCount}
+                            totalCount={all.length}
+                            inactiveCount={inactiveCount}
                         />
+
+                        {isAdmin && (
+                            <ContractsFilters
+                                filter={filter}
+                                onFilterChange={setFilter}
+                                onSearch={handleSearch}
+                            />
+                        )}
+
+                        <ContractList
+                            contracts={disp}
+                            onRegisterPayment={setPaying}
+                            onIncrease={setIncreasing}
+                            onHistory={setHistory}
+                            onDelete={handleDelete}
+                            onToggleStatus={handleToggleStatus}
+                        />
+
+                        <PaymentDialog
+                            open={!!paying}
+                            contract={paying}
+                            onClose={() => setPaying(null)}
+                            onSaved={async () => {
+                                setPaying(null);
+                                await refresh();
+                            }}
+                        />
+                        <IncreaseDialog
+                            open={!!increasing}
+                            contract={increasing}
+                            onClose={() => setIncreasing(null)}
+                            onSaved={async () => {
+                                setIncreasing(null);
+                                await refresh();
+                            }}
+                        />
+                        <HistoryDialog
+                            open={!!history}
+                            contract={history}
+                            onClose={() => setHistory(null)}
+                        />
+
+                        {DialogUI}
+                    </Container>
+
+                    {loading && (
+                        <CircularProgress size={36} />
                     )}
-
-                    <ContractList
-                        contracts={disp}
-                        onRegisterPayment={setPaying}
-                        onIncrease={setIncreasing}
-                        onHistory={setHistory}
-                        onDelete={handleDelete}
-                        onToggleStatus={handleToggleStatus}
-                    />
-
-                    <PaymentDialog
-                        open={!!paying}
-                        contract={paying}
-                        onClose={() => setPaying(null)}
-                        onSaved={async () => {
-                            setPaying(null);
-                            await refresh();
-                        }}
-                    />
-                    <IncreaseDialog
-                        open={!!increasing}
-                        contract={increasing}
-                        onClose={() => setIncreasing(null)}
-                        onSaved={async () => {
-                            setIncreasing(null);
-                            await refresh();
-                        }}
-                    />
-                    <HistoryDialog
-                        open={!!history}
-                        contract={history}
-                        onClose={() => setHistory(null)}
-                    />
-
-                    {DialogUI}
-                </Container>
+                    
+                </Box>
             </BasePage>
         </>
     );

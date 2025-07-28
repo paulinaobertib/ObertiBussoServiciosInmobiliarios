@@ -18,19 +18,8 @@ interface Props {
     onDelete: (id: number) => Promise<void>;
 }
 
-export default function AppointmentDetailsDialog({
-    open,
-    slotId,
-    onClose,
-    onAccept,
-    onReject,
-    onDelete,
-}: Props) {
-    const {
-        slotMap,
-        apptsBySlot,
-        reloadAdmin,
-    } = useAppointments();
+export const AppointmentDetailsDialog = ({ open, slotId, onClose, onAccept, onReject, onDelete }: Props) => {
+    const { slotMap, apptsBySlot, reloadAdmin, } = useAppointments();
     const slot = slotId != null ? slotMap[slotId] : undefined;
     const appt = slotId != null ? apptsBySlot[slotId] : undefined;
 
