@@ -6,7 +6,7 @@ import { useAuthContext } from "../../user/context/AuthContext";
 export function useNotices() {
   const { info } = useAuthContext();
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   /* -------- helpers -------- */
@@ -61,7 +61,9 @@ export function useNotices() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   return { notices, loading, error, fetchAll, search, add, edit, remove };
 }

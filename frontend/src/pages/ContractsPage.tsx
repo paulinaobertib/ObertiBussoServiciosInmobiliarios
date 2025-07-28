@@ -45,9 +45,11 @@ export default function ContractsPage() {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" py={4}>
-                <CircularProgress />
-            </Box>
+            <BasePage>
+                <Box display="flex" justifyContent="center" p={3}>
+                    <CircularProgress size={36} />
+                </Box>
+            </BasePage>
         );
     }
 
