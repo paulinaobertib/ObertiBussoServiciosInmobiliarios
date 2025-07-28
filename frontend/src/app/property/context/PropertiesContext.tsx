@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  ReactNode,
-  useMemo,
-  useEffect,
-} from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useMemo, useEffect } from 'react';
 
 /* ─── servicios de catálogo ─── */
 import { getAllAmenities } from '../services/amenity.service';
@@ -40,7 +32,6 @@ interface Ctx {
   neighborhoodsList: Neighborhood[];
   typesList: Type[];
   propertiesList: Property[];
-  operationsList: string[];
   loading: boolean;
   pickedItem: Picked | null;
   pickItem: (type: Picked['type'], value: any) => void;
@@ -54,7 +45,6 @@ interface Ctx {
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
   refreshProperties: () => Promise<void>;
-  refreshOperations: () => void;
   data: any[] | null;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
   currentProperty: Property | null;
@@ -77,7 +67,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [neighborhoodsList, setNeighborhoodsList] = useState<Neighborhood[]>([]);
   const [typesList, setTypesList] = useState<Type[]>([]);
   const [propertiesList, setPropertiesList] = useState<Property[]>([]);
-  const [operationsList, setOperationsList] = useState<string[]>([]);
 
   /* — flags — */
   const [loading, setLoading] = useState(false);
@@ -162,19 +151,12 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       const list = await getAllProperties();
       const arr = Array.isArray(list) ? list : [];
       setPropertiesList(arr);
-      const ops = Array.from(new Set(arr.map(p => p.operation))).filter((o): o is string => !!o);
-      setOperationsList(ops);
     } catch (e) {
       console.error('refreshProperties', e);
     } finally {
       setLoading(false);
     }
   }, []);
-
-  const refreshOperations = useCallback(() => {
-    const ops = Array.from(new Set(propertiesList.map(p => p.operation))).filter((o): o is string => !!o);
-    setOperationsList(ops);
-  }, [propertiesList]);
 
   /* — selección tradicional y buildSearchParams — */
   const [selected, setSelected] = useState<SelectedIds>({
@@ -282,7 +264,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         neighborhoodsList,
         typesList,
         propertiesList,
-        operationsList,
         loading,
         pickedItem,
         pickItem,
@@ -296,7 +277,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         refreshNeighborhoods,
         refreshTypes,
         refreshProperties,
-        refreshOperations,
         data,
         buildSearchParams,
         currentProperty,

@@ -12,4 +12,10 @@ export interface Payment {
   paymentCurrency: PaymentCurrency;
 }
 
-export type PaymentCreate = Omit<Payment, "id">;
+export interface PaymentCreate {
+  contract: { id: number };
+  amount: number;
+  date: string;
+  description: string;
+  paymentCurrency: PaymentCurrency;
+}

@@ -70,7 +70,21 @@ export default function AdministratorPage() {
                     CONTRATOS
                 </Button>
             ),
-        }
+        },
+        // {
+        //     key: 'statistics',
+        //     label: 'ESTADISTICAS',
+        //     content: null,
+        //     ButtonComponent: () => (
+        //         <Button
+        //             variant='outlined'
+        //             onClick={() => navigate(ROUTES.STATS)}
+        //             sx={{ textTransform: 'none', minWidth: 110 }}
+        //         >
+        //             ESTADISTICAS
+        //         </Button>
+        //     ),
+        // }
     ];
 
     return (
