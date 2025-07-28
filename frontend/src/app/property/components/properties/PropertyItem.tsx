@@ -1,4 +1,3 @@
-// src/app/property/components/PropertyItem.tsx
 import React from 'react';
 import { Box, Typography, IconButton, Tooltip, useTheme } from '@mui/material';
 import { RowAction } from '../ActionsRowItems';

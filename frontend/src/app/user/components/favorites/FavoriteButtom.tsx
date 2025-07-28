@@ -30,9 +30,7 @@ export const FavoriteButton = ({ propertyId }: Props) => {
                 zIndex: 10,
             }}
         >
-            {filled
-                ? <FavoriteIcon color="error" />
-                : <FavoriteBorderIcon color="error" />}
+            {filled ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon color="error" />}
         </IconButton>
     );
 }

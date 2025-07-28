@@ -1,5 +1,5 @@
 import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
-import { useAppointments } from '../../../hooks/useAppoitments';
+import { useAppointments } from '../../../hooks/useAppointments';
 import { Calendar } from '../../Calendar';
 
 export const AppointmentForm = () => {
