@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
 import { FavoriteButton } from '../../../user/components/favorites/FavoriteButtom';
 import { Property } from '../../types/property';
@@ -22,16 +22,10 @@ export const PropertyCard = ({
   const theme = useTheme();
   const selected = selectionMode && isSelected(property.id);
   const { isAdmin } = useAuthContext();
-  const src =
-    typeof property.mainImage === 'string'
-      ? property.mainImage
-      : URL.createObjectURL(property.mainImage);
-
-  const isVideo =
-    (property.mainImage instanceof File && property.mainImage.type.startsWith('video/')) ||
-    (typeof property.mainImage === 'string' &&
-      /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(property.mainImage));
-
+  const src = useMemo(() => {
+    if (typeof property.mainImage === 'string') return property.mainImage;
+    return URL.createObjectURL(property.mainImage);
+  }, [property.mainImage]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
@@ -49,60 +43,35 @@ export const PropertyCard = ({
       : property.status || 'Sin Estado';
 
   return (
-    <Card
+    <Card elevation={2}
       onClick={() => {
         if (!selectionMode) onClick();
       }}
-      variant="elevation"
       sx={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        borderRadius: 3,
-        borderColor: selected
-          ? theme.palette.primary.main
-          : 'divider',
-        borderWidth: selected ? 2 : 1,
-        overflow: 'hidden',
+        borderRadius: 2,
         cursor: selectionMode ? 'default' : 'pointer',
-        width: '100%',
-        transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
-        '&:hover': {
-          transform: 'scale(1.01)',
-          boxShadow: 3,
-          borderColor: selected
-            ? theme.palette.primary.main
-            : theme.palette.divider,
-        },
+        transition: 'transform 0.1s',
+        '&:hover': { transform: 'scale(1.01)' }
       }}
     >
 
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
-        {isVideo ? (
-          <Box
-            component="video"
-            src={src}
-            muted
-            autoPlay
-            loop
-            playsInline
-            onContextMenu={e => e.preventDefault()}
-            sx={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover' }}
-          />
-        ) : (
-          <Box
-            component="img"
-            src={src}
-            alt={property.title}
-            sx={{
-              width: '100%',
-              aspectRatio: '16/9',
-              objectFit: 'cover',
-              backgroundColor: '#000', // opcional, para letterbox
-            }}
-          />
-        )}
+        <Box
+          component="img"
+          src={src}
+          alt={property.title}
+          sx={{
+            width: '100%',
+            aspectRatio: '16/9',
+            objectFit: 'cover',
+            backgroundColor: '#000'
+          }}
+        />
+
 
         {/* Chips agrupados */}
         <Box
@@ -152,7 +121,6 @@ export const PropertyCard = ({
               left: 8,
               p: 0,
             }}
-            inputProps={{ 'aria-label': 'Seleccionar propiedad' }}
           />
         )}
 
@@ -187,9 +155,7 @@ export const PropertyCard = ({
             sx={{
               fontWeight: 600,
               lineHeight: '1.3rem',
-              whiteSpace: 'normal',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
@@ -267,7 +233,7 @@ export const PropertyCard = ({
                 variant="caption"
                 color="text.secondary"
               >
-                Precio – Expensas
+                Precio - Expensas
               </Typography>
               <Typography variant="subtitle2">
                 Consultar
@@ -275,40 +241,6 @@ export const PropertyCard = ({
             </Box>
           )}
         </Box>
-
-        {/* Métricas */}
-        {/* <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <SquareFootIcon fontSize="small" />
-            <Typography variant="caption">
-              {`${property.area} m²`}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <ViewComfyIcon fontSize="small" />
-            <Typography variant="caption">
-              {property.rooms}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <HotelIcon fontSize="small" />
-            <Typography variant="caption">
-              {property.bedrooms}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <BathtubIcon fontSize="small" />
-            <Typography variant="caption">
-              {property.bathrooms}
-            </Typography>
-          </Box>
-        </Box> */}
       </Box>
     </Card>
   );

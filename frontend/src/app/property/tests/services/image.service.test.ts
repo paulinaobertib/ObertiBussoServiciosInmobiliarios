@@ -4,8 +4,8 @@ import {
   getImagesByPropertyId,
   postImage,
   deleteImageById,
-} from "../../../property/services/image.service";
-import { ImageDTO } from "../../../property/services/image.service";
+} from "../../../shared/components/images/image.service";
+import { ImageDTO } from "../../../shared/components/images/image.service";
 
 vi.mock("axios");
 const mockedAxios = vi.mocked(axios, true);

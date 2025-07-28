@@ -240,7 +240,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
 
                     {/* ---------- IMÁGENES ---------- */}
                     <Grid size={{ xs: 6 }}>
-                        <ImageUploader
+                        <ImageUploader imagesOnly
                             label="Imagen principal"
                             onSelect={files => setMain(files[0] ?? null)}
                             sx={{ width: 'auto' }}
