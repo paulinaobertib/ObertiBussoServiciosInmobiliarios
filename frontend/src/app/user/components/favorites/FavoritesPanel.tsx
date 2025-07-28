@@ -1,5 +1,4 @@
-// src/app/user/components/favorites/FavoritesPanel.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,7 +7,7 @@ import { getPropertyById } from '../../../property/services/property.service';
 import { Property } from '../../../property/types/property';
 import { PropertyCard } from '../../../property/components/catalog/PropertyCard';
 
-export const FavoritesPanel: React.FC = () => {
+export const FavoritesPanel = () => {
   const navigate = useNavigate();
   const { favorites, loading: favLoading } = useFavorites();
 

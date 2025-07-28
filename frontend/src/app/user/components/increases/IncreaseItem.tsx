@@ -20,7 +20,7 @@ export const IncreaseItem = ({ increase, onDelete }: Props) => (
         }
     >
         <ListItemText
-            primary={`${increase.date.split('T')[0]} — ${increase.amount} ${increase.currency}`}
+            primary={`${increase.date.split('T')[0]} - ${increase.amount} ${increase.currency}`}
         />
     </ListItem>
 );
