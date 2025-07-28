@@ -14,6 +14,7 @@ interface AuthContextValue {
   setInfo: React.Dispatch<React.SetStateAction<AuthInfo | null>>;
   isLogged: boolean;
   isAdmin: boolean;
+  isTenant: boolean;
   loading: boolean;
   login: () => void;
   logout: () => void;
@@ -22,13 +23,14 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue>({
   info: null,
-  setInfo: () => {},
+  setInfo: () => { },
   isLogged: false,
   isAdmin: false,
+  isTenant: false,
   loading: false,
-  login: () => {},
-  logout: () => {},
-  refreshUser: async () => {},
+  login: () => { },
+  logout: () => { },
+  refreshUser: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isLogged = Boolean(info);
   const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
+  const isTenant = info?.roles.includes("TENANT" as Role) ?? false;
 
   // Sincronizar con sessionStorage
   useEffect(() => {
@@ -124,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ info, setInfo, isLogged, isAdmin, loading, login, logout, refreshUser }}
+      value={{ info, setInfo, isLogged, isAdmin, isTenant, loading, login, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

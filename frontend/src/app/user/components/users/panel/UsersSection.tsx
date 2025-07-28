@@ -1,18 +1,28 @@
+// src/app/user/components/users/panel/UsersSection.tsx
 import React, { useState, useEffect } from "react";
 import {
-    Box, Typography, IconButton, CircularProgress, useTheme, ToggleButton,
-    ToggleButtonGroup, Menu, MenuItem, Button,
+    Box,
+    Typography,
+    IconButton,
+    CircularProgress,
+    useTheme,
+    ToggleButton,
+    ToggleButtonGroup,
+    Menu,
+    MenuItem,
+    Button,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
 import { Modal } from "../../../../shared/components/Modal";
 import { SearchBar } from "../../../../shared/components/SearchBar";
-import { UserForm } from "./UserForm";
-import { RoleForm } from "./RoleForm";
 import { UsersList } from "./UsersList";
 import { useUsers, Filter } from "../../../hooks/useUsers";
+
 import type { User } from "../../../types/user";
 import { getRoles } from "../../../services/user.service";
+import { UserForm } from "./UserForm";
+import { RoleForm } from "./RoleForm";
 
 const FILTERS: { label: string; value: Filter }[] = [
     { label: "Todos", value: "TODOS" },
@@ -20,101 +30,100 @@ const FILTERS: { label: string; value: Filter }[] = [
     { label: "Usuarios", value: "USER" },
     { label: "Inquilinos", value: "TENANT" },
 ];
+interface UsersSectionProps {
+    toggleSelect?: (id: string) => void;
+    isSelected?: (id: string) => boolean;
+}
 
-export function UsersSection() {
+export function UsersSection({
+    toggleSelect: externalToggle,
+    isSelected: externalIsSel,
+}: UsersSectionProps) {
+
     const theme = useTheme();
-    const { users, loading, filter, setFilter, load, fetchAll, fetchByText } = useUsers();
+    const {
+        users,
+        loading,
+        filter,
+        setFilter,
+        load,
+        fetchAll,
+        fetchByText,
+        toggleSelect,   // lógica de selección integrada 🔥
+        isSelected,     // lógica de selección integrada 🔥
+    } = useUsers();
 
-    // **estado local para lo que muestro en pantalla**
-    const [displayed, setDisplayed] = useState<typeof users>([]);
+    const selectFn = externalToggle ?? toggleSelect;
+    const isSelFn = externalIsSel ?? isSelected;
 
-    // sincronizar hook.users → displayed
-    useEffect(() => {
-        setDisplayed(users);
-    }, [users]);
+    // Mostrar y filtrar
+    const [displayed, setDisplayed] = useState(users);
+    useEffect(() => { setDisplayed(users); }, [users]);
 
-    // filtros móviles
+    // Filtros móviles
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = Boolean(anchorEl);
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) =>
-        setAnchorEl(e.currentTarget);
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
-    // modales
+    // Modales
     const [modalOpen, setModalOpen] = useState(false);
     const [modalTitle, setModalTitle] = useState("");
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // — Crear
+    // Crear usuario
     const openCreate = () => {
         setModalTitle("Crear usuario");
         setModalContent(
             <UserForm
                 action="add"
-                onSuccess={() => {
-                    load();
-                    setModalOpen(false);
-                }}
+                onSuccess={() => { load(); setModalOpen(false); }}
                 onClose={() => setModalOpen(false)}
             />
         );
         setModalOpen(true);
     };
 
-    // — Editar
+    // Editar usuario
     const openEdit = (u: User) => {
         setModalTitle("Editar usuario");
         setModalContent(
             <UserForm
                 action="edit"
                 item={u}
-                onSuccess={() => {
-                    load();
-                    setModalOpen(false);
-                }}
+                onSuccess={() => { load(); setModalOpen(false); }}
                 onClose={() => setModalOpen(false)}
             />
         );
         setModalOpen(true);
     };
 
-    // — Eliminar
+    // Eliminar usuario
     const openDelete = (u: User) => {
         setModalTitle("Eliminar usuario");
         setModalContent(
             <UserForm
                 action="delete"
                 item={u}
-                onSuccess={() => {
-                    load();
-                    setModalOpen(false);
-                }}
+                onSuccess={() => { load(); setModalOpen(false); }}
                 onClose={() => setModalOpen(false)}
             />
         );
         setModalOpen(true);
     };
 
-    // — Roles
+    // Gestionar roles
     const openRoles = async (u: User) => {
         setModalTitle("Gestionar roles");
-        setModalContent(
-            <Box textAlign="center" p={2}>
-                <CircularProgress />
-            </Box>
-        );
+        setModalContent(<Box textAlign="center" p={2}><CircularProgress /></Box>);
         setModalOpen(true);
-
         try {
             const { data: roles } = await getRoles(u.id);
             setModalContent(
                 <RoleForm
                     userId={u.id}
                     currentRoles={roles}
-                    onSuccess={() => {
-                        load();
-                        setModalOpen(false);
-                    }}
+                    onSuccess={() => { load(); setModalOpen(false); }}
                     onClose={() => setModalOpen(false)}
                 />
             );
@@ -123,10 +132,7 @@ export function UsersSection() {
                 <RoleForm
                     userId={u.id}
                     currentRoles={[]}
-                    onSuccess={() => {
-                        load();
-                        setModalOpen(false);
-                    }}
+                    onSuccess={() => { load(); setModalOpen(false); }}
                     onClose={() => setModalOpen(false)}
                 />
             );
@@ -147,7 +153,7 @@ export function UsersSection() {
                     borderBottom: `1px solid ${theme.palette.divider}`,
                 }}
             >
-                {/* desktop filters */}
+                {/* Desktop filters */}
                 <Box sx={{ display: { xs: "none", sm: "block" } }}>
                     <ToggleButtonGroup
                         value={filter}
@@ -163,7 +169,7 @@ export function UsersSection() {
                     </ToggleButtonGroup>
                 </Box>
 
-                {/* mobile filters */}
+                {/* Mobile filters */}
                 <Box sx={{ display: { xs: "flex", sm: "none" } }}>
                     <Button variant="outlined" size="small" onClick={handleMenuOpen}>
                         Filtros
@@ -178,10 +184,7 @@ export function UsersSection() {
                             <MenuItem
                                 key={f.value}
                                 selected={filter === f.value}
-                                onClick={() => {
-                                    setFilter(f.value);
-                                    handleMenuClose();
-                                }}
+                                onClick={() => { setFilter(f.value); handleMenuClose(); }}
                             >
                                 {f.label}
                             </MenuItem>
@@ -189,7 +192,7 @@ export function UsersSection() {
                     </Menu>
                 </Box>
 
-                {/* search + add */}
+                {/* Search + Add */}
                 <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
                     <Box sx={{ flexGrow: 1, minWidth: { xs: 0, sm: "20rem" } }}>
                         <SearchBar
@@ -213,13 +216,14 @@ export function UsersSection() {
                     px: 2,
                     py: 1,
                     bgcolor: theme.palette.background.paper,
+                    fontWeight: 700,
                 }}
             >
-                <Typography fontWeight={700}>Nombre completo</Typography>
-                <Typography fontWeight={700}>Email</Typography>
-                <Typography fontWeight={700}>Teléfono</Typography>
-                <Typography fontWeight={700}>Roles</Typography>
-                <Typography fontWeight={700}>Acciones</Typography>
+                <Typography fontWeight={700} noWrap>Nombre completo</Typography>
+                <Typography fontWeight={700} noWrap>Email</Typography>
+                <Typography fontWeight={700} noWrap>Teléfono</Typography>
+                <Typography fontWeight={700} noWrap>Roles</Typography>
+                <Typography fontWeight={700} noWrap>Acciones</Typography>
             </Box>
 
             {/* ─── Listado ─── */}
@@ -234,6 +238,8 @@ export function UsersSection() {
                         onEdit={openEdit}
                         onDelete={openDelete}
                         onRoles={openRoles}
+                        isSelected={isSelFn}
+                        toggleSelect={selectFn}
                     />
                 )}
             </Box>

@@ -14,13 +14,32 @@ import { PropertyList } from './PropertyList';
 
 interface ColumnDef { label: string; key: string }
 
-export const PropertySection: React.FC = () => {
+/** Permite levantar selección desde afuera */
+interface PropertySectionProps {
+  toggleSelect?: (id: number) => void;
+  isSelected?: (id: number) => boolean;
+}
+
+export const PropertySection: React.FC<PropertySectionProps> = ({
+  toggleSelect: externalToggle,
+  isSelected: externalIsSel,
+}) => {
+
   const theme = useTheme();
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
-  const { data: properties, loading, onSearch, toggleSelect, isSelected } = usePropertyPanel();
-  const [modal, setModal] = useState<Info | null>(null);
+  const {
+    data: properties,
+    loading,
+    onSearch,
+    toggleSelect,
+    isSelected,
+  } = usePropertyPanel();  // lógica original :contentReference[oaicite:0]{index=0}
+
+  // si vienen props externas, las usamos; si no, fallback al hook:
+  const selectFn = externalToggle ?? toggleSelect;
+  const isSelFn = externalIsSel ?? isSelected; const [modal, setModal] = useState<Info | null>(null);
 
   // columnas fijas
   const columns: ColumnDef[] = [
@@ -110,8 +129,8 @@ export const PropertySection: React.FC = () => {
         loading={loading}
         columns={columns}
         gridCols={gridCols}
-        toggleSelect={toggleSelect}
-        isSelected={isSelected}
+        toggleSelect={selectFn}
+        isSelected={isSelFn}
         getActions={getActions}
       />
 
