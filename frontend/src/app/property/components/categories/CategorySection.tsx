@@ -1,6 +1,5 @@
-// src/app/property/components/CategorySection.tsx
-import React, { useState } from 'react';
-import { Box, Typography, IconButton, useTheme } from '@mui/material';
+import { useState } from 'react';
+import { Box, Typography, IconButton, useTheme, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { SearchBar } from '../../../shared/components/SearchBar';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
@@ -28,11 +27,12 @@ const formRegistry = {
   status: StatusForm,
 } as const;
 
-export const CategorySection: React.FC<Props> = ({ category }) => {
+export const CategorySection = ({ category }: Props) => {
   const theme = useTheme();
   const { DialogUI } = useConfirmDialog();
   const { data, loading, toggleSelect, isSelected, searchResults } = useCategorySection(category);
   const [modal, setModal] = useState<Info | null>(null);
+
 
   const columnsMap: Record<Category, { label: string; key: string }[]> = {
     owner: [
@@ -84,6 +84,22 @@ export const CategorySection: React.FC<Props> = ({ category }) => {
     componentProps: { action: 'delete' as const, item },
   });
 
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          p: 3,
+        }}
+      >
+        <CircularProgress size={36} />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       {/* Top bar */}
@@ -131,7 +147,6 @@ export const CategorySection: React.FC<Props> = ({ category }) => {
       {/* Lista con scroll interno */}
       <CategoryList
         data={data}
-        loading={loading}
         columns={columns}
         gridColumns={gridColumns}
         toggleSelect={toggleSelect}

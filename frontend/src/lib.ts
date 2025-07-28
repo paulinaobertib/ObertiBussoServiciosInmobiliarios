@@ -34,7 +34,7 @@ export const ROUTES = {
   NEW_CONTRACT: `/contract/new`,
   EDIT_CONTRACT: `/contract/:id/edit`,
   APPOINTMENTS: "/appointments",
-  STATS: "/statistics",
+  STATS: "/stats",
 };
 
 export const PAGES = [
