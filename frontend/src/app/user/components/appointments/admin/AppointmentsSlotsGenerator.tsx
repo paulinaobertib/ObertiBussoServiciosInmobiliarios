@@ -1,6 +1,6 @@
 /**
- * Generar turnos disponibles (30 min) usando tu Modal y tu Calendar.
- * Ahora, al generar, recarga el listado admin al instante.
+ * Generar turnos disponibles (30 min).
+ * Al generar, recarga inmediatamente el panel admin.
  */
 import { useState, useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -24,7 +24,6 @@ export default function GenerateSlotsDialog({ open, onClose }: Props) {
     genEndTime,
     setGenEndTime,
     generateSlots,
-    reloadAdmin,          // recarga admin :contentReference[oaicite:1]{index=1}
   } = useAppointments();
 
   const [submitting, setSubmitting] = useState(false);
@@ -43,8 +42,7 @@ export default function GenerateSlotsDialog({ open, onClose }: Props) {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await generateSlots();   // crea availabilities y recarga genSlots :contentReference[oaicite:2]{index=2}
-    await reloadAdmin();     // refresca panel admin
+    await generateSlots();   // crea y refresca admin
     setSubmitting(false);
     onClose();
   };
@@ -77,7 +75,7 @@ export default function GenerateSlotsDialog({ open, onClose }: Props) {
           Se generarán <strong>{slots.length}</strong> turnos cada&nbsp;30&nbsp;min.
         </Alert>
 
-        <Box display="flex" justifyContent="flex-end" gap={1}>
+        <Box display="flex" justifyContent="flex-end">
           <Button
             variant="contained"
             onClick={handleSubmit}
