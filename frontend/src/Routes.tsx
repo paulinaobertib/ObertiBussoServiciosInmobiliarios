@@ -24,6 +24,7 @@ import { useGlobalAlert } from './app/shared/context/AlertContext';
 import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
+// import ViewStatsPage from './pages/ViewStatsPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -114,7 +115,6 @@ export default function Routes() {
                     </RequireAdmin>
                 }
             />
-
             <Route
                 path={ROUTES.CONTRACT}
                 element={
@@ -131,7 +131,6 @@ export default function Routes() {
                     </RequireAdmin>
                 }
             />
-
             <Route
                 path={ROUTES.APPOINTMENTS}
                 element={
@@ -140,6 +139,14 @@ export default function Routes() {
                     </RequireAdmin>
                 }
             />
+            {/* <Route
+                path={ROUTES.STATS}
+                element={
+                    <RequireAdmin>
+                        <ViewStatsPage />
+                    </RequireAdmin>
+                }
+            /> */}
 
             {/* ---- Rutas protegidas por login ---- */}
             <Route

@@ -33,6 +33,7 @@ export const ROUTES = {
   NEW_CONTRACT: `/contract/new`,
   EDIT_CONTRACT: `/contract/:id/edit`,
   APPOINTMENTS: "/appointments",
+  STATS: "/statistics",
 };
 
 export const PAGES = [
@@ -56,4 +57,5 @@ export const PAGES = [
   { name: "Nuevo Contrato", url: ROUTES.NEW_CONTRACT },
   { name: "Editar Contrato", url: ROUTES.EDIT_CONTRACT },
   { name: "Turnero", url: ROUTES.APPOINTMENTS },
+  { name: "Estadisticas", url: ROUTES.STATS },
 ];

@@ -101,7 +101,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField type="number" fullWidth required label="Monto inicial" size="small"
-                        inputProps={{ min: 0 }} value={values.amount === "" ? "" : values.amount}
+                        inputProps={{ min: 0 }} value={values.amount === 0 ? "" : values.amount}
                         onChange={handleChange("amount")} />
                 </Grid>
 
