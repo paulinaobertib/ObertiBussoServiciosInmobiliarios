@@ -28,7 +28,7 @@ export const CommentForm = ({
 }: Props) => {
     const initialPayload = {
         id: item?.id ?? 0,
-        propertyId: propertyId,      // <― usamos ese propertyId
+        propertyId: propertyId,
         description: item?.description ?? '',
     };
 
@@ -41,7 +41,7 @@ export const CommentForm = ({
             if (action === 'delete') return deleteComment(payload as Comment);
         },
         refresh,  // <― se llama UNA sola vez tras run()
-        onDone
+        onDone    // onDone se llama dentro de useCategories/run, no llamar dos veces
     );
 
     useEffect(() => {
@@ -54,10 +54,15 @@ export const CommentForm = ({
         } else {
             setForm(initialPayload);
         }
-    }, [action, item?.id, propertyId, setForm]);
+    }, [action, item?.id, propertyId]);
 
     const handleSubmit = async () => {
         await run();
+        setForm(initialPayload);
+        // NO llamar onDone acá, lo maneja useCategories/run internamente
+    };
+
+    const handleCancel = () => {
         setForm(initialPayload);
         onDone();
     };
@@ -89,15 +94,12 @@ export const CommentForm = ({
                     mt: 2,
                 }}
             >
-                {/* Cancelar siempre disponible en modo edit */}
-                {action === 'edit' && (
+                {/* Cancelar disponible en add y edit */}
+                {(action === 'edit' || action === 'add') && (
                     <LoadingButton
                         loading={loading}
-                        onClick={() => {
-                            setForm(initialPayload);
-                            onDone();
-                        }}
-                        disabled={loading}
+                        onClick={handleCancel}
+                        disabled={invalid || loading}
                     >
                         Cancelar
                     </LoadingButton>
