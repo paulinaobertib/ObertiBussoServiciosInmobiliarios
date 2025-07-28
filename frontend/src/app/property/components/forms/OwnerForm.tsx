@@ -1,14 +1,9 @@
 import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-
 import { useCategories } from '../../hooks/useCategories';
 import { usePropertiesContext } from '../../context/PropertiesContext';
 import { Owner, OwnerCreate } from '../../types/owner';
-import {
-    postOwner,
-    putOwner,
-    deleteOwner,
-} from '../../services/owner.service';
+import { postOwner, putOwner, deleteOwner, } from '../../services/owner.service';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -17,27 +12,28 @@ interface Props {
 }
 
 export const OwnerForm = ({ action, item, onDone }: Props) => {
-    /** context */
+
     const { refreshOwners } = usePropertiesContext();
+    const initialPayload = {
+        id: item?.id ?? 0,
+        firstName: item?.firstName ?? '',
+        lastName: item?.lastName ?? '',
+        email: item?.email ?? '',
+        phone: item?.phone ?? '',
+    };
 
     /** hook genérico */
-    const { form, setForm, invalid, run, loading } = useCategories(
-        {
-            id: item?.id ?? 0,
-            firstName: item?.firstName ?? '',
-            lastName: item?.lastName ?? '',
-            email: item?.email ?? '',
-            phone: item?.phone ?? '',
-        },
+    const { form, setForm, invalid, run, loading } = useCategories<Owner>({
+        initial: initialPayload,
         action,
-        async payload => {
+        save: async (payload) => {
             if (action === 'add') return postOwner(payload as OwnerCreate);
             if (action === 'edit') return putOwner(payload as Owner);
             if (action === 'delete') return deleteOwner(payload as Owner);
         },
-        refreshOwners,
-        onDone
-    );
+        refresh: refreshOwners,
+        onDone,
+    });
 
     return (
         <>

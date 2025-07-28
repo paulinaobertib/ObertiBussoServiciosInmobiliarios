@@ -1,4 +1,3 @@
-import React from 'react';
 import CommentIcon from '@mui/icons-material/Comment';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -7,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePropertiesContext } from '../context/PropertiesContext';
 import { ROUTES, buildRoute } from '../../../lib';
 import type { Category } from '../context/PropertiesContext';
-import type { Info } from './ModalItem';
+import type { Info } from './categories/CategoryModal';
 import { translate } from '../utils/translate';
 import { AmenityForm } from './forms/AmenityForm';
 import { OwnerForm } from './forms/OwnerForm';
@@ -22,9 +21,11 @@ const formRegistry = {
     neighborhood: NeighborhoodForm,
     status: StatusForm,
 } as const;
+
 type FormKey = keyof typeof formRegistry;
 
 export type Entity = Category | 'property';
+
 export type RowAction = {
     label: string;
     icon: React.ReactNode;
@@ -81,7 +82,7 @@ export const getRowActions = (
         ];
     }
 
-    // resto de entidades...
+    // Resto de entidades (category, amenity, owner, etc)
     return [
         {
             label: `Editar ${translate(entity)}`,

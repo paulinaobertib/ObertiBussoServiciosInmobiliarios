@@ -30,7 +30,7 @@ const radioSx = {
   "& .MuiRadio-root": { p: 0.3, transform: "scale(.85)" },
 };
 
-export function SearchFilters({ onSearch }: Props) {
+export const SearchFilters = ({ onSearch }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(false);
@@ -273,7 +273,7 @@ export function SearchFilters({ onSearch }: Props) {
           ))}
         </AccordionDetails>
       </Accordion>
-      
+
       {/* ───────── Ciudad ───────── */}
       <Accordion disableGutters expanded={expanded === "ciudad"} onChange={toggleAcc("ciudad")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}><Typography variant="body2">Ciudades</Typography></AccordionSummary>

@@ -1,24 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, useTheme } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Button, useTheme, CircularProgress, Typography } from '@mui/material';
 import { MapContainer, TileLayer, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 
 interface Props { address: string }
 
-export const MapSection: React.FC<Props> = ({ address }) => {
+export const MapSection = ({ address }: Props) => {
     const theme = useTheme();
     const [coords, setCoords] = useState<[number, number] | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get('https://nominatim.openstreetmap.org/search',
-            { params: { q: address, format: 'json', limit: 1, countrycodes: 'ar' } })
+        setLoading(true);
+        setCoords(null);
+        axios.get('https://nominatim.openstreetmap.org/search', {
+            params: { q: address, format: 'json', limit: 1, countrycodes: 'ar' }
+        })
             .then(r => {
                 if (r.data.length) {
                     const { lat, lon } = r.data[0];
                     setCoords([+lat, +lon]);
                 }
-            }).catch(console.error);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, [address]);
 
     const gm = `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
@@ -28,7 +34,15 @@ export const MapSection: React.FC<Props> = ({ address }) => {
             mt: 4, height: 400, borderRadius: 2, overflow: 'hidden',
             position: 'relative'
         }}>
-            {coords ? (
+            {loading ? (
+                <Box sx={{
+                    height: '100%', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', bgcolor: '#fff',
+                    color: 'text.secondary', fontStyle: 'italic'
+                }}>
+                    <CircularProgress size={32} />
+                </Box>
+            ) : coords ? (
                 <>
                     <MapContainer center={coords} zoom={15}
                         style={{ width: '100%', height: '100%' }}>
@@ -52,9 +66,9 @@ export const MapSection: React.FC<Props> = ({ address }) => {
                 <Box sx={{
                     height: '100%', display: 'flex', alignItems: 'center',
                     justifyContent: 'center', bgcolor: '#fff',
-                    color: 'text.secondary', fontStyle: 'italic'
+                    color: 'text.secondary'
                 }}>
-                    Ubicación no encontrada.
+                    <Typography>Ubicación no encontrada. </Typography>
                 </Box>
             )}
         </Box>

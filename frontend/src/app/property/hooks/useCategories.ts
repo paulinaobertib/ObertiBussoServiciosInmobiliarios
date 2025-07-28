@@ -2,19 +2,21 @@ import { useState } from "react";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
 import { useLoading } from "../utils/useLoading";
 
-export function useCategories<T extends {}>(
-  initial: T,
-  action: "add" | "edit" | "delete",
-  save: (payload: T) => Promise<void>,
-  refresh: () => Promise<void>,
-  onDone: () => void
-) {
+interface Props<T extends {}> {
+  initial: T;
+  action: "add" | "edit" | "delete";
+  save: (payload: T) => Promise<void>;
+  refresh: () => Promise<void>;
+  onDone: () => void;
+}
+export const useCategories = <T extends {}>({ initial, action, save, refresh, onDone }: Props<T>) => {
+  
   const [form, setForm] = useState<T>(initial);
   const { showAlert } = useGlobalAlert();
   const { loading, run } = useLoading(async () => {
     try {
       if (action === "add") {
-        const { id, ...formWithoutId } = form as any; 
+        const { id, ...formWithoutId } = form as any;
         await save(formWithoutId);
       } else {
         await save(form);
@@ -33,4 +35,4 @@ export function useCategories<T extends {}>(
     Object.values(form).some((v) => typeof v === "string" && v.trim() === "");
 
   return { form, setForm, invalid, run, loading };
-}
+};
