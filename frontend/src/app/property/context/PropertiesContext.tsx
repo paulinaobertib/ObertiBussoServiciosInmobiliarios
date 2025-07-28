@@ -31,7 +31,7 @@ interface Ctx {
   ownersList: Owner[];
   neighborhoodsList: Neighborhood[];
   typesList: Type[];
-  propertiesList: Property[];
+  propertiesList: Property[] | null;
   loading: boolean;
   pickedItem: Picked | null;
   pickItem: (type: Picked['type'], value: any) => void;
@@ -66,10 +66,10 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [ownersList, setOwnersList] = useState<Owner[]>([]);
   const [neighborhoodsList, setNeighborhoodsList] = useState<Neighborhood[]>([]);
   const [typesList, setTypesList] = useState<Type[]>([]);
-  const [propertiesList, setPropertiesList] = useState<Property[]>([]);
+  const [propertiesList, setPropertiesList] = useState<Property[] | null>(null);
 
   /* — flags — */
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   /* — picked y categoría actual — */
   const [pickedItem, setPickedItem] = useState<Picked | null>(null);
@@ -149,8 +149,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const list = await getAllProperties();
-      const arr = Array.isArray(list) ? list : [];
-      setPropertiesList(arr);
+      setPropertiesList(Array.isArray(list) ? list : []);
     } catch (e) {
       console.error('refreshProperties', e);
     } finally {

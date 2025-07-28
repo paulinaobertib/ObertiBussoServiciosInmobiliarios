@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { ImageCarousel } from '../app/shared/components/images/ImageCarousel';
 import { SearchBar } from '../app/shared/components/SearchBar';
 import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
@@ -11,7 +11,6 @@ import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { getAllProperties, getPropertiesByText } from '../app/property/services/property.service';
-import { useCatalog } from '../app/property/hooks/useCatalog';
 
 export default function Home() {
   localStorage.setItem('selectedPropertyId', '');
@@ -20,28 +19,11 @@ export default function Home() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { showAlert } = useGlobalAlert();
-  const {
-    selectedPropertyIds,
-    toggleCompare,
-    clearComparison,
-    disabledCompare,
-  } = usePropertiesContext();
+  const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, } = usePropertiesContext();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
-  const [results, setResults] = useState<Property[]>([]);
-
-  // Log para depurar los resultados recibidos
-  useEffect(() => {
-    console.log('HomePage results:', results);
-  }, [results]);
-
-  const onFinish = useCallback(() => {
-    setMode('normal');
-  }, []);
-
-  // Pasamos las propiedades filtradas a useCatalog para evitar refrescos duplicados
-  const { loading } = useCatalog(onFinish, results);
+  const [results, setResults] = useState<Property[] | null>(null);
 
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
     if (action === 'create') {
@@ -132,20 +114,14 @@ export default function Home() {
           </Box>
 
           <Box sx={{ flexGrow: 1, ml: { md: 3 } }}>
-            {loading ? (
-              <Typography>Cargando propiedades…</Typography>
-            ) : results.length ? (
-              <PropertyCatalog
-                properties={results}
-                mode={mode}
-                onFinishAction={() => setMode('normal')}
-                selectionMode={selectionMode}
-                toggleSelection={toggleCompare}
-                isSelected={id => selectedPropertyIds.includes(id)}
-              />
-            ) : (
-              <Typography>No se encontraron propiedades...</Typography>
-            )}
+            <PropertyCatalog
+              {...(results !== null ? { properties: results } : {})}
+              mode={mode}
+              onFinishAction={() => setMode('normal')}
+              selectionMode={selectionMode}
+              toggleSelection={toggleCompare}
+              isSelected={id => selectedPropertyIds.includes(id)}
+            />
           </Box>
         </Box>
       </Box>

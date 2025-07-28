@@ -20,17 +20,21 @@ export const PropertyNotesPage = () => {
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-                <CircularProgress />
-            </Box>
+            <BasePage>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+                    <CircularProgress />
+                </Box>
+            </BasePage>
         );
     }
 
     if (!property) {
         return (
-            <Typography variant="h6" color="text.secondary" sx={{ p: 3 }}>
-                Propiedad no encontrada.
-            </Typography>
+            <BasePage>
+                <Typography variant="h6" color="text.secondary" sx={{ p: 3 }}>
+                    Propiedad no encontrada.
+                </Typography>
+            </BasePage>
         );
     }
 

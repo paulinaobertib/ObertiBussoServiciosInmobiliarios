@@ -21,18 +21,12 @@ const adminActions = [
   { icon: <DeleteIcon />, name: 'Eliminar', action: 'delete' as const },
 ];
 
-export const FloatingButtons = ({
-  onAction,
-  selectionMode,
-  toggleSelectionMode,
-  onCompare,
-}: FloatingButtonsProps) => {
+export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, onCompare }: FloatingButtonsProps) => {
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
   const { disabledCompare } = usePropertiesContext();
-
   const size = { xs: '3rem', sm: '3.5rem' };
-  const off = 16;                           // separación al borde
+  const off = 16;
 
   return (
     <Box
