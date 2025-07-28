@@ -169,7 +169,7 @@ export const useManagePropertyPage = () => {
               showAlert("Propiedad creada", "success");
             }
 
-            nav("/app");
+            nav("/");
           } catch (e: any) {
             showAlert(e.message ?? "Error al guardar", "error");
           } finally {

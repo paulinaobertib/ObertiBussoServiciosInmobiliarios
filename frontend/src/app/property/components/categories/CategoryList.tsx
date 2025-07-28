@@ -16,25 +16,36 @@ export interface Props {
   onDelete: (item: any) => void;
 }
 
-export const CategoryList = ({ data, columns, gridColumns, toggleSelect, isSelected, onEdit, onDelete }: Props) => (
-  <Box sx={{ px: 2, flex: '1 1 auto', overflowY: 'auto', minHeight: 0 }}>
-    {data.length > 0 ? (
-      data.map(item => (
-        <CategoryItem
-          key={item.id}
-          item={item}
-          columns={columns}
-          gridColumns={gridColumns}
-          toggleSelect={toggleSelect}
-          isSelected={isSelected}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ))
-    ) : (
-      <Typography sx={{ mt: 2, textAlign: 'center' }}>
-        No hay datos disponibles.
-      </Typography>
-    )}
-  </Box>
-);
+export const CategoryList = ({ data, columns, gridColumns, toggleSelect, isSelected, onEdit, onDelete,
+}: Props) => {
+  const sortKey = columns[0]?.key ?? '';
+  const sortedData = [...data].sort((a, b) =>
+    String(a?.[sortKey] ?? '')
+      .localeCompare(String(b?.[sortKey] ?? ''), 'es', {
+        sensitivity: 'base',
+      })
+  );
+
+  return (
+    <Box sx={{ px: 2, flex: '1 1 auto', overflowY: 'auto', minHeight: 0 }}>
+      {sortedData.length > 0 ? (
+        sortedData.map((item) => (
+          <CategoryItem
+            key={item.id}
+            item={item}
+            columns={columns}
+            gridColumns={gridColumns}
+            toggleSelect={toggleSelect}
+            isSelected={isSelected}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))
+      ) : (
+        <Typography sx={{ mt: 2, textAlign: 'center' }}>
+          No hay datos disponibles.
+        </Typography>
+      )}
+    </Box>
+  );
+};
