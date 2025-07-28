@@ -1,11 +1,4 @@
-import {
-    Box,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    TextField,
-} from '@mui/material';
+import { Box, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 import { ContractType, ContractStatus } from '../../types/contract';
 import { useContractFilters } from '../../hooks/contracts/useContractFilters';
 
@@ -15,11 +8,7 @@ interface Props {
     onSearch: (contracts: any[]) => void;
 }
 
-export const ContractsFilters = ({
-    filter,
-    onFilterChange,
-    onSearch,
-}: Props) => {
+export const ContractsFilters = ({ filter, onFilterChange, onSearch, }: Props) => {
     const {
         typeFilter,
         setTypeFilter,

@@ -15,17 +15,8 @@ interface Props {
   onClose: () => void;
 }
 
-export default function GenerateSlotsDialog({ open, onClose }: Props) {
-  const {
-    genDate,
-    setGenDate,
-    genStartTime,
-    setGenStartTime,
-    genEndTime,
-    setGenEndTime,
-    generateSlots,
-  } = useAppointments();
-
+export const GenerateSlotsDialog = ({ open, onClose }: Props) => {
+  const { genDate, setGenDate, genStartTime, setGenStartTime, genEndTime, setGenEndTime, generateSlots } = useAppointments();
   const [submitting, setSubmitting] = useState(false);
 
   const slots = useMemo(() => {

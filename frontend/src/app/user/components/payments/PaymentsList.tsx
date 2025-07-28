@@ -18,7 +18,7 @@ export const PaymentsList = ({ payments, onEdit, onDelete }: Props) => {
     }
 
     return (
-        <List dense>
+        <List>
             {payments.map((p) => (
                 <PaymentItem
                     key={p.id}

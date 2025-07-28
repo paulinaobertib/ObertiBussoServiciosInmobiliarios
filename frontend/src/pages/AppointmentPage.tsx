@@ -19,8 +19,8 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import BasePage from './BasePage';
 import { Calendar } from '../app/user/components/Calendar';
 import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
-import GenerateSlotsDialog from '../app/user/components/appointments/admin/AppointmentsSlotsGenerator';
-import AppointmentDetailsDialog from '../app/user/components/appointments/admin/AppointmentDetails';
+import { GenerateSlotsDialog } from '../app/user/components/appointments/admin/AppointmentsSlotsGenerator';
+import { AppointmentDetailsDialog } from '../app/user/components/appointments/admin/AppointmentDetails';
 import { useAppointments } from '../app/user/hooks/useAppointments';
 
 dayjs.locale('es');

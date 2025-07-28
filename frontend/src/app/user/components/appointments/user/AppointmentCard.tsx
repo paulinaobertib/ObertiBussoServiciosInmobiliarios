@@ -15,13 +15,7 @@ interface Props {
     onSelect?: (a: Appointment) => void;
 }
 
-export const AppointmentCard = ({
-    appointment,
-    slot,
-    isAdmin = false,
-    onCancel,
-    onSelect,
-}: Props) => {
+export const AppointmentCard = ({ appointment, slot, isAdmin = false, onCancel, onSelect, }: Props) => {
     const theme = useTheme();
     const [loading, setLoading] = useState(false);
 

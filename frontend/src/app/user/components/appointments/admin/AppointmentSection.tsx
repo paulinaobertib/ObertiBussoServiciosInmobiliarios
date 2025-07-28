@@ -24,15 +24,7 @@ interface Props {
     onSelectSlot: (slotId: number) => void;
 }
 
-export const AppointmentSection = ({
-    loading,
-    selectedDate,
-    filter,
-    setFilter,
-    slotsByDate,
-    apptsBySlot,
-    onSelectSlot,
-}: Props) => {
+export const AppointmentSection = ({ loading, selectedDate, filter, setFilter, slotsByDate, apptsBySlot, onSelectSlot }: Props) => {
     const dateKey = selectedDate.format('YYYY-MM-DD');
     const daySlots = slotsByDate[dateKey] ?? [];
 

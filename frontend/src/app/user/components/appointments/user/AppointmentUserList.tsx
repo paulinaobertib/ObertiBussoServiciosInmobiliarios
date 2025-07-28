@@ -3,19 +3,14 @@ import { Box, Typography } from '@mui/material';
 import type { Appointment, AvailableAppointment } from '../../../types/appointment';
 import { AppointmentUserItem } from './AppointmentUserItem';
 
-interface ListProps {
+interface Props {
     appointments: Appointment[];
     slotMap: Record<number, AvailableAppointment>;
     onCancel: (id: number) => Promise<void>;
     reload: () => void;
 }
 
-export const AppointmentUserList = ({
-    appointments,
-    slotMap,
-    onCancel,
-    reload,
-}: ListProps) => {
+export const AppointmentUserList = ({ appointments, slotMap, onCancel, reload }: Props) => {
     // Filtra solo citas con slot válido
     const vetted = appointments.filter((a) => {
         const id = a.availableAppointment?.id;
