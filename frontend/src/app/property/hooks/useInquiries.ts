@@ -18,7 +18,7 @@ interface UseInquiriesArgs {
   propertyIds?: number[];
 }
 
-export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
+export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   // ────── Contextos y navegación ──────
   const { info, isAdmin } = useAuthContext();
   const navigate = useNavigate();
@@ -184,4 +184,4 @@ export function useInquiries({ propertyIds }: UseInquiriesArgs = {}) {
     actionLoadingId,
     goToProperty,
   };
-}
+};

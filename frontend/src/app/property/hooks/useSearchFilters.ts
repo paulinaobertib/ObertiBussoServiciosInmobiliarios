@@ -5,7 +5,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import { getPropertiesByFilters } from "../services/property.service";
 import { LIMITS } from "../utils/filterLimits";
 
-export function useSearchFilters(onSearch: (r: Property[]) => void) {
+export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
   const {
     buildSearchParams,
     typesList,
@@ -190,4 +190,4 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
     setParams,
     apply,
   };
-}
+};

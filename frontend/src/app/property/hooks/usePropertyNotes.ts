@@ -1,10 +1,9 @@
-// /app/property/hooks/usePropertyNotes.ts
 import { useState, useEffect, useCallback } from "react";
 import { getPropertyById } from "../services/property.service";
 import { getCommentsByPropertyId } from "../services/comment.service";
 import { getMaintenancesByPropertyId } from "../services/maintenance.service";
 
-export function usePropertyNotes(propertyId: number) {
+export const usePropertyNotes = (propertyId: number) => {
   const [property, setProperty] = useState<any>();
   const [comments, setComments] = useState<any[]>([]);
   const [maintenances, setMaintenances] = useState<any[]>([]);
@@ -62,4 +61,4 @@ export function usePropertyNotes(propertyId: number) {
     refreshComments,
     refreshMaintenances,
   };
-}
+};
