@@ -19,30 +19,25 @@ interface Props {
     onDone: () => void;
 }
 
-export const CommentForm = ({
-    propertyId,
-    action,
-    item,
-    refresh,
-    onDone,
-}: Props) => {
+export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Props) => {
     const initialPayload = {
         id: item?.id ?? 0,
         propertyId: propertyId,
         description: item?.description ?? '',
+        date: item?.date ?? ''
     };
 
-    const { form, setForm, invalid, run, loading } = useCategories(
-        initialPayload,
+    const { form, setForm, invalid, run, loading } = useCategories<Comment>({
+        initial: initialPayload,
         action,
-        async (payload) => {
+        save: async (payload) => {
             if (action === 'add') return postComment(payload as CommentCreate);
             if (action === 'edit') return putComment(payload as Comment);
             if (action === 'delete') return deleteComment(payload as Comment);
         },
-        refresh,  // <― se llama UNA sola vez tras run()
-        onDone    // onDone se llama dentro de useCategories/run, no llamar dos veces
-    );
+        refresh,
+        onDone,
+    });
 
     useEffect(() => {
         if (action === 'edit' && item) {
@@ -50,6 +45,7 @@ export const CommentForm = ({
                 id: item.id,
                 propertyId,
                 description: item.description,
+                date: item.date,
             });
         } else {
             setForm(initialPayload);

@@ -8,7 +8,7 @@ import CompareIcon from '@mui/icons-material/Compare';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { usePropertiesContext } from '../../context/PropertiesContext';
 
-interface FloatingButtonsProps {
+interface Props {
   onAction: (action: 'create' | 'edit' | 'delete') => void;
   selectionMode: boolean;
   toggleSelectionMode: () => void;
@@ -21,7 +21,7 @@ const adminActions = [
   { icon: <DeleteIcon />, name: 'Eliminar', action: 'delete' as const },
 ];
 
-export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, onCompare }: FloatingButtonsProps) => {
+export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, onCompare }: Props) => {
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
   const { disabledCompare } = usePropertiesContext();

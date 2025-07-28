@@ -6,7 +6,7 @@ import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useCategorySection } from '../../hooks/useCategorySection';
 import { Category } from '../../context/PropertiesContext';
 import { translate } from '../../utils/translate';
-import { ModalItem, Info } from '../ModalItem';
+import { ModalItem, Info } from './CategoryModal';
 import { getAllOwners, getOwnersByText } from '../../services/owner.service';
 import { CategoryList } from './CategoryList';
 import { AmenityForm } from '../forms/AmenityForm';

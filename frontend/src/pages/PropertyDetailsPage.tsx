@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, IconButton } from '@mui/material';
+import { Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import { BasePage } from './BasePage';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { PropertyDetails } from '../app/property/components/propertyDetails/PropertyDetails';
@@ -40,6 +40,33 @@ const PropertyDetailsPage = () => {
     fetch();
   }, [id, loadProperty]);
 
+  // ---- LOADING GLOBAL ----
+  if (loading) {
+    return (
+      <BasePage>
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 3 }}>
+          <CircularProgress size={36} />
+        </Box>
+      </BasePage>
+    );
+  }
+
+  // ---- ERROR GLOBAL ----
+  if (error) {
+    return (
+      <BasePage>
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h5" color="error">
+            {error}
+          </Typography>
+        </Box>
+      </BasePage>
+    );
+  }
+
+  // ---- CONTENIDO PRINCIPAL ----
+  if (!currentProperty) return null;
+
   return (
     <>
       <IconButton
@@ -50,55 +77,34 @@ const PropertyDetailsPage = () => {
         <ReplyIcon />
       </IconButton>
 
-      <BasePage >
+      <BasePage>
         <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, gap: 1 }}>
           {!isAdmin ? (
             <Button variant="contained" onClick={() => setInquiryOpen(true)}>
               Consultar por esta propiedad
             </Button>
           ) : (
-            currentProperty && (
-              <>
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))
-                  }
-                >
-                  Ver notas de la propiedad
-                </Button>
-
-              </>
-            )
+            <Button
+              variant="outlined"
+              onClick={() =>
+                navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))
+              }
+            >
+              Ver notas de la propiedad
+            </Button>
           )}
         </Box>
-        {loading && (
-          <Box sx={{ p: 4 }}>
-            <Typography variant="h5">Cargando...</Typography>
-          </Box>
-        )}
 
-        {error && (
-          <Box sx={{ p: 4 }}>
-            <Typography variant="h5" color="error">
-              {error}
-            </Typography>
-          </Box>
-        )}
+        {/* Detalle */}
+        <PropertyDetails property={currentProperty} />
 
-        {!loading && !error && currentProperty && (
-          <>
-            {/* Aquí se muestra el detalle */}
-            <PropertyDetails property={currentProperty} />
-
-            {/* Modal que contiene el InquiryPanel */}
-            <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)}  >
-              <InquiryForm propertyIds={[currentProperty.id]} />
-            </Modal>
-          </>
-        )}
+        {/* Modal para consulta */}
+        <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)}>
+          <InquiryForm propertyIds={[currentProperty.id]} />
+        </Modal>
       </BasePage>
     </>
   );
 };
+
 export default PropertyDetailsPage;

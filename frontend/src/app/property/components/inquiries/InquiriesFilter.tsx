@@ -1,18 +1,6 @@
-import React from 'react';
 import {
-    Box,
-    ToggleButtonGroup,
-    ToggleButton,
-    Autocomplete,
-    TextField,
-    InputAdornment,
-    useTheme,
-    useMediaQuery,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    SelectChangeEvent,
+    Box, ToggleButtonGroup, ToggleButton, Autocomplete, TextField, InputAdornment,
+    useTheme, useMediaQuery, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -25,14 +13,9 @@ interface Props {
     onPropertyChange: (propId: number | '') => void;
 }
 
-export const InquiriesFilter: React.FC<Props> = ({
-    statusOptions,
-    propertyOptions,
-    selectedStatus,
-    selectedProperty,
-    onStatusChange,
-    onPropertyChange,
-}) => {
+export const InquiriesFilter = ({
+    statusOptions, propertyOptions, selectedStatus, selectedProperty, onStatusChange, onPropertyChange,
+}: Props) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 

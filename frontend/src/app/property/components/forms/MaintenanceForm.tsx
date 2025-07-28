@@ -1,34 +1,19 @@
-// src/app/property/components/forms/MaintenanceForm.tsx
 import { useEffect } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-
 import { useCategories } from '../../hooks/useCategories';
-import {
-    postMaintenance,
-    putMaintenance,
-    deleteMaintenance,
-} from '../../services/maintenance.service';
+import { postMaintenance, putMaintenance, deleteMaintenance, } from '../../services/maintenance.service';
 import type { Maintenance, MaintenanceCreate } from '../../types/maintenance';
 
 interface Props {
-    /** El mismo propertyId de la sección */
     propertyId: number;
     action: 'add' | 'edit' | 'delete';
     item?: Maintenance;
-    /** Refresca la lista tras POST/PUT/DELETE */
     refresh: () => Promise<void>;
-    /** Resetea UI (sin volver a fetch completo) */
     onDone: () => void;
 }
 
-export const MaintenanceForm = ({
-    propertyId,
-    action,
-    item,
-    refresh,
-    onDone,
-}: Props) => {
+export const MaintenanceForm = ({ propertyId, action, item, refresh, onDone, }: Props) => {
     const initialPayload = {
         id: item?.id ?? 0,
         propertyId: propertyId,
@@ -37,20 +22,17 @@ export const MaintenanceForm = ({
         date: item?.date ?? '',
     };
 
-    const { form, setForm, invalid, run, loading } = useCategories(
-        initialPayload,
+    const { form, setForm, invalid, run, loading } = useCategories<Maintenance>({
+        initial: initialPayload,
         action,
-        async (payload) => {
-            if (action === 'add') {
-                const { id, ...createPayload } = payload as any;
-                return postMaintenance(createPayload as MaintenanceCreate);
-            }
+        save: async (payload) => {
+            if (action === 'add') return postMaintenance(payload as MaintenanceCreate);
             if (action === 'edit') return putMaintenance(payload as Maintenance);
             if (action === 'delete') return deleteMaintenance(payload as Maintenance);
         },
         refresh,
-        onDone // Se llama internamente en run, NO llamarlo dos veces
-    );
+        onDone,
+    });
 
     useEffect(() => {
         if (action === 'edit' && item) {

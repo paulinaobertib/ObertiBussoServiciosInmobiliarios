@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
-} from '@mui/material';
+import { Box, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
 import { putPropertyStatus } from '../../services/property.service';
