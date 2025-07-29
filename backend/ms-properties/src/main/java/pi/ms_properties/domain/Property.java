@@ -76,6 +76,9 @@ public class Property {
     @Column(name = "financing", nullable = false)
     private Boolean financing;
 
+    @Column(name = "outstanding", nullable = false)
+    private Boolean outstanding;
+
     // relaciones
 
     @ManyToOne

@@ -157,6 +157,7 @@ public class PropertyServiceTest {
         property.setCurrency(Currency.USD);
         property.setCredit(true);
         property.setFinancing(false);
+        property.setOutstanding(true);
         property.setOwner(owner);
         property.setNeighborhood(neighborhood);
         property.setType(type);
@@ -259,6 +260,7 @@ public class PropertyServiceTest {
         propertyUpdateDTO.setExpenses(BigDecimal.valueOf(5200.0));
         propertyUpdateDTO.setCredit(true);
         propertyUpdateDTO.setFinancing(true);
+        propertyUpdateDTO.setOutstanding(true);
         propertyUpdateDTO.setDescription("Casa renovada, ideal para familias numerosas.");
         propertyUpdateDTO.setStatus("DISPONIBLE");
         propertyUpdateDTO.setOperation("VENTA");

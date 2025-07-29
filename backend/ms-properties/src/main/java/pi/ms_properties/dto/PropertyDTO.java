@@ -29,6 +29,7 @@ public class PropertyDTO {
     private BigDecimal expenses;
     private Boolean credit;
     private Boolean financing;
+    private Boolean outstanding;
     private String description;
     private LocalDateTime date;
     private String mainImage;
