@@ -98,6 +98,7 @@ export const NavBar = () => {
                 size="small"
                 onClick={handleOpenNavMenu}
                 color="inherit"
+                aria-label="menu"
               >
                 <MenuIcon />
               </IconButton>
@@ -106,6 +107,7 @@ export const NavBar = () => {
                 size="small"
                 onClick={() => navigate(ROUTES.CONTRACT)}
                 color="inherit"
+                aria-label="real-estate-agent"
               >
                 <RealEstateAgentIcon />
               </IconButton>
@@ -116,6 +118,7 @@ export const NavBar = () => {
               component="img"
               src={logo}
               alt="Logo"
+              data-testid="logo-mobile"
               sx={{
                 height: 40,
                 objectFit: 'contain',
