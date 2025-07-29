@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { usePropertiesContext } from "../context/PropertiesContext";
-import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
-import { useGlobalAlert } from "../../shared/context/AlertContext";
-
+/* ────── servicios REST ────── */
 import {
   getPropertyById,
   postProperty,
@@ -15,81 +12,86 @@ import {
   getImagesByPropertyId,
   postImage,
   deleteImageById,
-  ImageDTO,
-} from "../services/image.service";
+} from "../../shared/components/images/image.service";
+import { ImageDTO } from "../../shared/components/images/image";
 
-import { ROUTES } from "../../../lib";
+/* ────── utilidades internas ────── */
 import { useImages } from "../../shared/hooks/useImages";
-import type { Property } from "../types/property";
+import { usePropertiesContext } from "../context/PropertiesContext";
+import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
+
+/* ────── tipos auxiliares ────── */
 import type { Image } from "../../shared/components/images/image";
 
 export function useManagePropertyPage() {
+  /* ---------- ruta y modo ---------- */
   const { id } = useParams<{ id?: string }>();
-  const isEdit = !!id;
+  const isEdit = Boolean(id);
   const propId = Number(id);
+  const nav = useNavigate();
 
-  const { showAlert } = useGlobalAlert();
+  /* ---------- diálogos y alertas ---------- */
   const { ask, DialogUI } = useConfirmDialog();
-  const navigate = useNavigate();
+  const { showAlert } = useGlobalAlert();
+
+  /* ---------- refs y estado local ---------- */
   const formRef = useRef<any>(null);
+  const img = useImages(null, []); // galería / imagen principal
 
-  const {
-    resetSelected,
-    refreshTypes,
-    refreshNeighborhoods,
-    refreshAmenities,
-    refreshOwners,
-    selected,
-    typesList,
-    setSelected,
-  } = usePropertiesContext();
+  /* ─ Imagenes a eliminar en el próximo “Guardar” ─ */
+  const [toDelete, setToDelete] = useState<number[]>([]);
 
-  const img = useImages(null, []);
-  const [imagesBackend, setImagesBackend] = useState<ImageDTO[]>([]);
-  const [property, setProperty] = useState<Property | null>(null);
+  /* ─ Imágenes ya existentes en backend ─ */
+  const [imagesBack, setImagesBack] = useState<ImageDTO[]>([]);
+
+  const [property, setProperty] = useState<any | null>(null);
   const [loading, setLoading] = useState(isEdit);
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState<0 | 1>(0);
   const [formReady, setFormReady] = useState(false);
 
-  /* ---------- preload ---------- */
-  useEffect(() => {
-    const preload = Promise.all([
-      refreshTypes(),
-      refreshNeighborhoods(),
-      refreshAmenities(),
-      refreshOwners(),
-    ]);
+  /* ---------- contexto de selección ---------- */
+  const { setSelected, resetSelected, selected } = usePropertiesContext();
 
+  /* ---------- cancelar con confirmación ---------- */
+  const cancel = () =>
+    ask("¿Cancelar y perder los cambios?", async () => nav("/"));
+
+  /* ────── cargar propiedad + owner + imágenes (solo edición) ────── */
+  useEffect(() => {
+    // inicializar para modo “crear”
     resetSelected();
     img.setMain(null);
     img.addToGallery([]);
+    setToDelete([]);
 
     if (!isEdit) {
-      preload.then(() => setLoading(false));
+      setLoading(false);
       return;
     }
 
     (async () => {
       try {
         setLoading(true);
-        await preload;
-
         const [prop, owner, imgs] = await Promise.all([
           getPropertyById(propId),
           getOwnerByPropertyId(propId),
           getImagesByPropertyId(propId),
         ]);
 
+        /* 1️⃣ guardar propiedad con su owner */
+        setProperty({ ...prop, owner });
+
+        /* 2️⃣ marcar selección de categorías */
         setSelected({
           owner: owner.id,
-          neighborhood: prop.neighborhood?.id ?? null,
           type: prop.type?.id ?? null,
+          neighborhood: prop.neighborhood?.id ?? null,
           amenities: prop.amenities?.map((a: { id: any }) => a.id) ?? [],
         });
 
-        setProperty({ ...prop, owner });
-        setImagesBackend(imgs);
-
+        /* 3️⃣ imágenes: backend + galería local */
+        setImagesBack(imgs);
         img.setMain(prop.mainImage);
         img.addToGallery(
           imgs
@@ -98,14 +100,14 @@ export function useManagePropertyPage() {
         );
       } catch {
         showAlert("No se pudo cargar la propiedad", "error");
-        navigate(ROUTES.HOME_APP);
+        nav("/app");
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [isEdit, propId]);
 
-  /* ---------- helpers imágenes ---------- */
+  /* ────── manejo de imágenes en el form ────── */
   const handleImages = (
     main: string | File | null,
     gallery: (string | File)[]
@@ -114,107 +116,94 @@ export function useManagePropertyPage() {
     img.addToGallery(gallery.filter((g): g is File => g instanceof File));
   };
 
-  const removeImage = async (pic: Image) => {
+  const removeImage = (pic: Image) => {
     if (typeof pic === "string") {
-      const dto = imagesBackend.find((i) => i.url === pic);
+      // marcar para borrado en el próximo “Guardar”
+      const dto = imagesBack.find((i) => i.url === pic);
       if (dto) {
-        await deleteImageById(dto.id);
-        setImagesBackend((arr) => arr.filter((i) => i.id !== dto.id));
+        setToDelete((ids) => [...ids, dto.id]);
+        setImagesBack((arr) => arr.filter((i) => i.id !== dto.id));
       }
+      // actualizar galería local visualmente
       const newGal = img.gallery.filter((g) => g !== pic);
       if (pic === img.mainImage) img.setMain(null);
-      img.addToGallery(newGal as unknown as File[]);
+      img.remove(pic); // uso de hook para eliminar visualmente
       formRef.current?.setField("images", newGal);
     } else {
-      img.remove(pic);
+      img.remove(pic); // solo File local
     }
   };
 
-  /* ---------- guardar ---------- */
+  /* ────── guardar ────── */
   const save = useCallback(
     () =>
       ask(
         isEdit ? "¿Guardar cambios en la propiedad?" : "¿Crear la propiedad?",
         async () => {
-          if (!formRef.current) {
-            showAlert("El formulario aún no está listo", "error");
-            return;
-          }
-
+          if (!formRef.current) return;
           const form = formRef.current;
-          if (!form) {
-            // ⬅︎ ref todavía no está
-            showAlert(
-              "El formulario no está listo. Intenta de nuevo.",
-              "error"
-            );
-            return;
-          }
           const valid = await form.submit();
           if (!valid) {
             showAlert("Formulario inválido, faltan datos", "error");
             return;
           }
+
           try {
             setLoading(true);
 
             if (isEdit) {
-              const galleryUrls = await Promise.all(
+              // 1️⃣ subir nuevas imágenes
+              const galUrls = await Promise.all(
                 img.gallery.map((p) =>
                   p instanceof File ? postImage(p, propId) : Promise.resolve(p)
                 )
               );
-
+              // 2️⃣ armar payload y actualizar propiedad
               const payload: any = {
                 id: propId,
                 ...form.getUpdateData(),
-                images: galleryUrls,
+                images: galUrls,
               };
-              if (img.mainImage instanceof File)
+              if (img.mainImage instanceof File) {
                 payload.mainImage = img.mainImage;
-
+              }
               await putProperty(payload);
+
+              // 3️⃣ procesar borrados pendientes
+              await Promise.all(
+                toDelete.map((imgId) => deleteImageById(imgId))
+              );
+
               showAlert("Propiedad actualizada", "success");
             } else {
-              const data = form.getCreateData();
-              await postProperty(data);
+              // creación normal
+              const dto = form.getCreateData();
+              await postProperty(dto);
               showAlert("Propiedad creada", "success");
             }
-            navigate(ROUTES.HOME_APP);
+
+            nav("/app");
           } catch (e: any) {
-            const msg =
-              e.response?.data ||
-              e.response?.statusText ||
-              e.message ||
-              "Error al guardar";
-            console.error("PUT /properties error →", e); // debug en consola
-            showAlert(msg, "error");
+            showAlert(e.message ?? "Error al guardar", "error");
           } finally {
             setLoading(false);
           }
         }
       ),
-    [isEdit, img]
+    [isEdit, img, propId, toDelete]
   );
 
-  const cancel = () =>
-    ask("¿Cancelar los cambios?", async () => {
-      formRef.current?.reset();
-      resetSelected();
-      navigate(ROUTES.HOME_APP);
-    });
-
+  /* ────── validación de pasaje de pasos ────── */
   const canProceed =
     !!selected.type &&
     !!selected.neighborhood &&
     !!selected.owner &&
     selected.amenities.length > 0;
 
-  const typeName =
-    typesList.find((t) => t.id === Number(selected.type))?.name ?? "";
-  const title = isEdit
-    ? `Edición de ${typeName || "Propiedad"}`
-    : `Formulario de Creación de ${typeName || "Propiedad"}`;
+  /* ────── título dinámico ────── */
+  const title = property
+    ? `Edición de ${property?.type?.name ?? "Propiedad"}`
+    : `Alta de Propiedad`;
 
   return {
     formRef,
@@ -224,9 +213,9 @@ export function useManagePropertyPage() {
     loading,
     activeStep,
     setActiveStep,
+    canProceed,
     formReady,
     setFormReady,
-    canProceed,
     title,
     save,
     cancel,

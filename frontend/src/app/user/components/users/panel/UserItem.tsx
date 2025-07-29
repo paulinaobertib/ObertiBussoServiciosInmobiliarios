@@ -7,13 +7,21 @@ import type { User, Role } from "../../../types/user";
 
 interface UserItemProps {
   user: User & { roles: Role[] };
-  onEdit: (u: User) => void;
-  onDelete: (u: User) => void;
-  onRoles: (u: User) => void;
+
+  /* === NUEVO: selección de fila === */
+  isSelected?: (id: string) => boolean;
+  toggleSelect?: (id: string) => void;
+
+  /* === Acciones (siguen siendo opcionales) === */
+  onEdit?: (u: User) => void;
+  onDelete?: (u: User) => void;
+  onRoles?: (u: User) => void;
 }
 
 export const UserItem = ({
   user,
+  isSelected,
+  toggleSelect,
   onEdit,
   onDelete,
   onRoles,
@@ -26,7 +34,7 @@ export const UserItem = ({
     whiteSpace: "nowrap",
   } as const;
 
-  // datos para mobile con labels
+  /* ===== MOBILE data ===== */
   const mobileFields = [
     { label: "Nombre completo", value: `${user.firstName} ${user.lastName}` },
     { label: "Email", value: user.email },
@@ -34,17 +42,24 @@ export const UserItem = ({
     { label: "Roles", value: user.roles.join(", ") || "—" },
   ];
 
+  /* ===== Helpers selección ===== */
+  const selected = isSelected?.(user.id) ?? false;
+  const handleClick = () => {
+    if (toggleSelect) toggleSelect(user.id);
+  };
+
   return (
     <Box
+      onClick={handleClick}
       sx={{
         display: { xs: "block", sm: "grid" },
         gridTemplateColumns: gridTemplate,
         alignItems: "center",
         py: 1,
         mb: 0.5,
-        bgcolor: "transparent",
-        cursor: "pointer",
-        "&:hover": { bgcolor: theme.palette.action.hover },
+        bgcolor: selected ? theme.palette.action.selected : "transparent",
+        cursor: toggleSelect ? "pointer" : "default",
+        "&:hover": { bgcolor: toggleSelect ? theme.palette.action.hover : "transparent" },
       }}
     >
       {/* ===== MOBILE ===== */}
@@ -55,11 +70,7 @@ export const UserItem = ({
               {f.label}:
             </Typography>
             <Tooltip title={f.value} arrow>
-              <Typography
-                variant="body2"
-                noWrap
-                sx={cellSx}
-              >
+              <Typography variant="body2" noWrap sx={cellSx}>
                 {f.value}
               </Typography>
             </Tooltip>
@@ -105,24 +116,35 @@ export const UserItem = ({
       </Tooltip>
 
       {/* ===== ACCIONES ===== */}
-      <Box
-        onClick={(e) => e.stopPropagation()}
-        sx={{
-          display: "flex",
-          gap: 1,
-          justifyContent: "flex-end",
-        }}
-      >
-        <IconButton size="small" onClick={() => onEdit(user)}>
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={() => onDelete(user)}>
-          <DeleteIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={() => onRoles(user)}>
-          <PeopleIcon fontSize="small" />
-        </IconButton>
-      </Box>
+      {/* Si no se pasan handlers, no se muestran iconos */}
+      {(onEdit || onDelete || onRoles) && (
+        <Box
+          onClick={(e) => e.stopPropagation()}
+          sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}
+        >
+          {onEdit && (
+            <Tooltip title="Editar" arrow>
+              <IconButton size="small" onClick={() => onEdit(user)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {onDelete && (
+            <Tooltip title="Eliminar" arrow>
+              <IconButton size="small" onClick={() => onDelete(user)}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+          {onRoles && (
+            <Tooltip title="Roles" arrow>
+              <IconButton size="small" onClick={() => onRoles(user)}>
+                <PeopleIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

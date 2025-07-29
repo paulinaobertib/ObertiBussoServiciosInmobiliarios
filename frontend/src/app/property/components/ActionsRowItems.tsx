@@ -1,9 +1,10 @@
 import React from 'react';
 import CommentIcon from '@mui/icons-material/Comment';
-import BuildIcon from '@mui/icons-material/Build';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useNavigate } from 'react-router-dom';
+import { usePropertiesContext } from '../context/PropertiesContext';
 import { ROUTES, buildRoute } from '../../../lib';
 import type { Category } from '../context/PropertiesContext';
 import type { Info } from './ModalItem';
@@ -22,10 +23,8 @@ const formRegistry = {
     status: StatusForm,
 } as const;
 type FormKey = keyof typeof formRegistry;
-// ————————————————————————————————————————
 
 export type Entity = Category | 'property';
-
 export type RowAction = {
     label: string;
     icon: React.ReactNode;
@@ -35,28 +34,31 @@ export type RowAction = {
 export const getRowActions = (
     entity: Entity,
     item: any,
-    navigate: (path: string) => void,
     setModal: (info: Info) => void,
-    ask: (question: string, cb: () => Promise<void>) => void,
+    ask: (q: string, cb: () => Promise<void>) => void,
     deleteFn: (entity: any) => Promise<void>,
-    showAlert: (msg: string, variant: 'success' | 'error' | 'info' | 'warning') => void
+    showAlert: (msg: string, v: 'success' | 'error' | 'info' | 'warning') => void
 ): RowAction[] => {
+    const navigate = useNavigate();
+    const { pickItem } = usePropertiesContext();
+
     if (entity === 'property') {
         return [
             {
-                label: 'Comentarios',
+                label: 'Notas',
                 icon: <CommentIcon fontSize="small" />,
-                onClick: () => navigate(buildRoute(ROUTES.PROPERTY_COMMENTS, item.id)),
-            },
-            {
-                label: 'Mantenimientos',
-                icon: <BuildIcon fontSize="small" />,
-                onClick: () => navigate(buildRoute(ROUTES.PROPERTY_MAINTENANCE, item.id)),
+                onClick: () => {
+                    pickItem('property', item);
+                    navigate(buildRoute(ROUTES.PROPERTY_NOTES, item.id));
+                },
             },
             {
                 label: 'Ver propiedad',
                 icon: <VisibilityIcon fontSize="small" />,
-                onClick: () => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, item.id)),
+                onClick: () => {
+                    pickItem('property', item);
+                    navigate(buildRoute(ROUTES.PROPERTY_DETAILS, item.id));
+                },
             },
             {
                 label: 'Editar',
@@ -79,6 +81,7 @@ export const getRowActions = (
         ];
     }
 
+    // resto de entidades...
     return [
         {
             label: `Editar ${translate(entity)}`,

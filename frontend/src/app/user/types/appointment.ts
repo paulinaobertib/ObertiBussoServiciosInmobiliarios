@@ -1,4 +1,4 @@
-export type AppointmentStatus = 'ACEPTADO' | 'RECHAZADO' | 'ESPERA'; 
+export type AppointmentStatus = "ACEPTADO" | "RECHAZADO" | "ESPERA";
 
 export interface AvailableAppointment {
   id: number;
@@ -7,8 +7,8 @@ export interface AvailableAppointment {
 }
 
 export interface AvailableAppointmentCreate {
-  date: string; 
-  startTime: string;    
+  date: string;
+  startTime: string;
   endTime: string;
 }
 
@@ -17,7 +17,7 @@ export interface Appointment {
   userId: string;
   comment?: string;
   status: AppointmentStatus;
-  availableAppointment: Pick<AvailableAppointment, 'id'>;
+  availableAppointment: Pick<AvailableAppointment, "id">;
   appointmentDate: string;
 }
 

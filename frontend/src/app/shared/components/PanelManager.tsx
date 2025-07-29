@@ -1,4 +1,4 @@
-import { Box, Stack } from '@mui/material';
+import { Box, Card, Stack } from '@mui/material';
 import { ReactNode } from 'react';
 import { PanelButton } from './PanelButton';
 import { usePanelManager } from '../hooks/usePanelManager';
@@ -30,6 +30,7 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
           overflowX: 'auto',
           overflowY: 'hidden',
           width: '100%',
+          py: 2,
         }}
       >
         <Stack
@@ -63,21 +64,15 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
       {/* Contenido de panel */}
       {panels.map(p =>
         open[p.key] ? (
-          <Box
+          <Card variant='elevation'
             key={p.key}
             sx={{
-              flex: 1,
-              overflowY: 'auto',
               mb: 2,
-              mt: 2,
-              bgcolor: 'background.paper',
-              boxShadow: 4,
-              borderRadius: 2,
               width: '100%',
             }}
           >
             {p.content}
-          </Box>
+          </Card>
         ) : null
       )}
     </>
