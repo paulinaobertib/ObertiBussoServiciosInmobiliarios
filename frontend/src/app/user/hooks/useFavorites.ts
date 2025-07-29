@@ -1,3 +1,4 @@
+// src/app/user/hooks/useFavorites.ts
 import { useState, useEffect, useCallback } from "react";
 import {
   getFavoritesByUser,
@@ -8,40 +9,38 @@ import { useAuthContext } from "../context/AuthContext";
 import { Favorite } from "../types/favorite";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
 
-/**
- * Hook para gestionar favoritos de propiedades para el usuario logueado.
- */
 export function useFavorites() {
   const { info, isLogged } = useAuthContext();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(false);
   const { showAlert } = useGlobalAlert();
 
-  // Carga inicial de favoritos al autenticar
   useEffect(() => {
     if (!isLogged) {
       setFavorites([]);
       return;
     }
-    setLoading(true);
+    let cancelled = false;
     (async () => {
+      setLoading(true);
       try {
         const res = await getFavoritesByUser(info!.id);
-        setFavorites(res.data);
+        if (!cancelled) setFavorites(res.data);
       } catch (error) {
         console.error("Error fetching favorites:", error);
         showAlert("No se pudieron cargar los favoritos", "error");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [info, isLogged, showAlert]);
+    return () => {
+      cancelled = true;
+    };
+  }, [info?.id, isLogged, showAlert]);
 
-  /**
-   * Comprueba si una propiedad está marcada como favorita.
-   */
   const isFavorite = useCallback(
-    (propertyId: number) => favorites.some((f) => f.propertyId === propertyId),
+    (propertyId: number) =>
+      favorites.some((f) => f.propertyId === propertyId),
     [favorites]
   );
 
@@ -73,7 +72,7 @@ export function useFavorites() {
         setLoading(false);
       }
     },
-    [favorites, info, isFavorite, isLogged, showAlert]
+    [favorites, info?.id, isLogged, isFavorite, showAlert]
   );
 
   return { favorites, loading, isFavorite, toggleFavorite };

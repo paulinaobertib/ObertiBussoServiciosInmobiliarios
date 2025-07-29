@@ -1,52 +1,69 @@
+// src/app/property/components/forms/CommentForm.tsx
+import { useEffect } from 'react';
 import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
 import { useCategories } from '../../hooks/useCategories';
-import { usePropertiesContext } from '../../context/PropertiesContext';
-import { postComment, putComment, deleteComment, } from '../../services/comment.service';
-import { Comment, CommentCreate } from '../../types/comment';
+import {
+    postComment,
+    putComment,
+    deleteComment,
+} from '../../services/comment.service';
+import type { Comment, CommentCreate } from '../../types/comment';
 
 interface Props {
+    propertyId: number;         // <― recibimos el id
     action: 'add' | 'edit' | 'delete';
     item?: Comment;
+    refresh: () => Promise<void>;
     onDone: () => void;
 }
 
-export const CommentForm = ({ action, item, onDone }: Props) => {
-    const { refreshComments, pickedItem } = usePropertiesContext();
+export const CommentForm = ({
+    propertyId,
+    action,
+    item,
+    refresh,
+    onDone,
+}: Props) => {
+    const initialPayload = {
+        id: item?.id ?? 0,
+        propertyId: propertyId,      // <― usamos ese propertyId
+        description: item?.description ?? '',
+    };
 
     const { form, setForm, invalid, run, loading } = useCategories(
-        {
-            id: item?.id ?? 0,
-            propertyId: item?.propertyId ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
-            description: item?.description ?? '',
-        },
+        initialPayload,
         action,
-        async payload => {
+        async (payload) => {
             if (action === 'add') return postComment(payload as CommentCreate);
             if (action === 'edit') return putComment(payload as Comment);
             if (action === 'delete') return deleteComment(payload as Comment);
         },
-        refreshComments,
+        refresh,  // <― se llama UNA sola vez tras run()
         onDone
     );
 
-    return (
-        <>
-            {loading && (
-                <Box
-                    position="fixed"
-                    top={0}
-                    left={0}
-                    width="100%"
-                    height="100%"
-                    zIndex={theme => theme.zIndex.modal + 1000}
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                />
-            )}
+    useEffect(() => {
+        if (action === 'edit' && item) {
+            setForm({
+                id: item.id,
+                propertyId,
+                description: item.description,
+            });
+        } else {
+            setForm(initialPayload);
+        }
+    }, [action, item?.id, propertyId, setForm]);
 
+    const handleSubmit = async () => {
+        await run();
+        setForm(initialPayload);
+        onDone();
+    };
+
+    return (
+        <Box component="form" noValidate>
             <Grid container spacing={2} mb={2}>
                 <Grid size={{ xs: 12 }}>
                     <TextField
@@ -57,14 +74,37 @@ export const CommentForm = ({ action, item, onDone }: Props) => {
                         size="small"
                         disabled={action === 'delete'}
                         value={form.description}
-                        onChange={e => setForm({ ...form, description: e.target.value })}
+                        onChange={(e) =>
+                            setForm({ ...form, description: e.target.value })
+                        }
                     />
                 </Grid>
             </Grid>
 
-            <Box textAlign="right">
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 1,
+                    mt: 2,
+                }}
+            >
+                {/* Cancelar siempre disponible en modo edit */}
+                {action === 'edit' && (
+                    <LoadingButton
+                        loading={loading}
+                        onClick={() => {
+                            setForm(initialPayload);
+                            onDone();
+                        }}
+                        disabled={loading}
+                    >
+                        Cancelar
+                    </LoadingButton>
+                )}
+
                 <LoadingButton
-                    onClick={run}
+                    onClick={handleSubmit}
                     loading={loading}
                     disabled={invalid || loading}
                     variant="contained"
@@ -73,6 +113,6 @@ export const CommentForm = ({ action, item, onDone }: Props) => {
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
                 </LoadingButton>
             </Box>
-        </>
+        </Box>
     );
 };

@@ -58,7 +58,13 @@ export const CategorySection: React.FC<Props> = ({ category }) => {
   };
 
   const columns = columnsMap[category] || [];
-  const gridColumns = '1.2fr 1.5fr 1fr 75px';
+  const gridColumns = [
+    columns.length ? '1.3fr' : '',
+    ...Array(columns.length - 1).fill('1fr'),
+    '75px',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const handleAdd = () => setModal({
     title: `Crear ${translate(category)}`,
