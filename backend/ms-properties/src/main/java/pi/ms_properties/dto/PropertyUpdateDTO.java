@@ -26,6 +26,7 @@ public class PropertyUpdateDTO {
     private BigDecimal expenses;
     private Boolean credit;
     private Boolean financing;
+    private Boolean outstanding;
     private String description;
     private String status;
     private String operation;

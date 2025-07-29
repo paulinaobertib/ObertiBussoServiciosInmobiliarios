@@ -56,6 +56,7 @@ CREATE TABLE Property (
     main_image VARCHAR(255),
     credit BOOLEAN NOT NULL,
     financing BOOLEAN NOT NULL,
+    outstanding BOOLEAN NOT NULL,
     FOREIGN KEY (owner_id) REFERENCES Owner(id), 
     FOREIGN KEY (neighborhood_id) REFERENCES Neighborhood(id),
     FOREIGN KEY (type_id) REFERENCES Type(id)
