@@ -1,5 +1,6 @@
 package pi.ms_properties.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -112,4 +113,8 @@ public class Property {
             inverseJoinColumns = @JoinColumn(name = "inquiry_id")
     )
     private Set<Inquiry> inquiries = new HashSet<>();
+
+    @OneToMany(mappedBy = "property", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Comment> comments = new HashSet<>();
 }
