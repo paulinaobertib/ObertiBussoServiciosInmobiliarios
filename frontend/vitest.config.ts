@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: './src/app/property/tests/setup.ts',
+    setupFiles: './src/setup.ts',
     coverage: {
       reporter: ['text', 'json-summary', 'lcov', 'html'],
       exclude: ['**/node_modules/**', '**/tests/**', '**/*.d.ts'],

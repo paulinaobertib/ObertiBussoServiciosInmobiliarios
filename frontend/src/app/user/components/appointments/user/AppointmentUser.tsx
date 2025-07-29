@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { Box, Stack, Typography } from '@mui/material';
-import { useAppointments } from '../../../hooks/useAppoitments';
+import { useAppointments } from '../../../hooks/useAppointments';
 import { AppointmentCard } from './AppointmentCard';
 
 export const AppointmentUser = () => {

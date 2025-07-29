@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePropertiesContext } from '../context/PropertiesContext';
 import { deleteProperty } from '../services/property.service';
@@ -8,7 +8,7 @@ import { Property } from '../types/property';
 import { buildRoute, ROUTES } from '../../../lib';
 import { useAuthContext } from '../../user/context/AuthContext';
 
-export function useCatalog(onFinish: () => void) {
+export function useCatalog(onFinish: () => void, externalProperties?: Property[]) {
   const navigate = useNavigate();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
@@ -22,15 +22,26 @@ export function useCatalog(onFinish: () => void) {
   const { isAdmin } = useAuthContext();
 
   const propertiesList = useMemo(
-    () =>
-      isAdmin
-        ? allProperties
-        : allProperties.filter((p) => p.status === 'DISPONIBLE'),
-    [isAdmin, allProperties]
+    () => {
+      const list = externalProperties ??
+        (isAdmin
+          ? allProperties
+          : allProperties.filter((p) => p.status === 'DISPONIBLE'));
+      console.log('useCatalog propertiesList:', list); // Log para depurar
+      return list;
+    },
+    [isAdmin, allProperties, externalProperties]
   );
 
   const [selectionMode, setSelectionMode] = useState(false);
   const [compareCount, setCompareCount] = useState(0);
+
+  // Refrescar propiedades solo si no se pasan propiedades externas
+  useEffect(() => {
+    if (!externalProperties) {
+      refreshProperties();
+    }
+  }, [externalProperties, refreshProperties]);
 
   const toggleSelectionMode = () => {
     setSelectionMode((prev) => {

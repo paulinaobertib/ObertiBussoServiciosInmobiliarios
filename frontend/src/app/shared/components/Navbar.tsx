@@ -15,6 +15,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LogoutIcon from '@mui/icons-material/Logout';
+import RealEstateAgentIcon from '@mui/icons-material/RealEstateAgent';
 
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
@@ -30,7 +31,7 @@ export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const { clearComparison, resetSelected, pickItem } = usePropertiesContext();
-  const { login, logout, isLogged, isAdmin } = useAuthContext();
+  const { login, logout, isLogged, isAdmin, isTenant } = useAuthContext();
 
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
@@ -83,20 +84,41 @@ export const NavBar = () => {
               justifyContent: 'center',
             }}
           >
-            <IconButton
-              size="large"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-              aria-label="open menu"
-              sx={{ position: 'absolute', left: 0 }}
+
+            <Box
+              sx={{
+                position: 'absolute',
+                left: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
             >
-              <MenuIcon />
-            </IconButton>
+              <IconButton
+                size="small"
+                onClick={handleOpenNavMenu}
+                color="inherit"
+                aria-label="menu"
+              >
+                <MenuIcon />
+              </IconButton>
+
+              <IconButton
+                size="small"
+                onClick={() => navigate(ROUTES.CONTRACT)}
+                color="inherit"
+                aria-label="real-estate-agent"
+              >
+                <RealEstateAgentIcon />
+              </IconButton>
+
+            </Box>
 
             <Box
               component="img"
               src={logo}
               alt="Logo"
+              data-testid="logo-mobile"
               sx={{
                 height: 40,
                 objectFit: 'contain',
@@ -144,11 +166,13 @@ export const NavBar = () => {
               <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
                 NOTICIAS
               </MenuItem>
+
               {isLogged && (
                 <MenuItem onClick={() => { handleCloseNavMenu(); goToProfile(); }}>
                   {isAdmin ? 'PANEL' : 'PERFIL'}
                 </MenuItem>
               )}
+
               {isLogged && !isAdmin && (
                 <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
                   MIS FAVORITOS
@@ -185,6 +209,18 @@ export const NavBar = () => {
             >
               NOTICIAS
             </Button>
+            {isTenant && (
+              <Button
+                onClick={() => navigate(ROUTES.CONTRACT)}
+                sx={{
+                  color: palette.common.white,
+                  textTransform: 'none',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                }}
+              >
+                SOY INQUILINO
+              </Button>
+            )}
           </Box>
 
           {/* Desktop Actions */}
@@ -221,7 +257,7 @@ export const NavBar = () => {
             )}
           </Box>
         </Toolbar>
-      </Box>
-    </AppBar>
+      </Box >
+    </AppBar >
   );
 };

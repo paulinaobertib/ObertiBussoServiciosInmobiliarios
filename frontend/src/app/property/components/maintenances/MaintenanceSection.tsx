@@ -1,55 +1,71 @@
-import { Box, Typography, Button, CircularProgress } from "@mui/material";
-import { MaintenanceList } from "./MaintenanceList";
-import AddIcon from '@mui/icons-material/Add';
+import { useState } from 'react';
+import { Box, Typography, Divider, CircularProgress } from '@mui/material';
+import type { Maintenance } from '../../types/maintenance';
+import { MaintenanceForm } from '../forms/MaintenanceForm';
+import { MaintenanceList } from './MaintenanceList';
+import { deleteMaintenance } from '../../services/maintenance.service';
 
-export const MaintenanceSection = ({
-    loading,
-    items,
-    onAdd,
-    onEditItem,
-    onDeleteItem,
-}: {
+export interface Props {
+    propertyId: number;
     loading: boolean;
-    items: { title: string; description: string; date: string }[];
-    onAdd: () => void;
-    onEditItem: (item: any) => void;
-    onDeleteItem: (item: any) => void;
-}) => (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Box
-            sx={{
-                px: 3,
-                py: 3,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexShrink: 0,
-            }}
-        >
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                Mantenimientos
-            </Typography>
-            <Button variant='contained' startIcon={<AddIcon />} onClick={onAdd}>
-                Agregar
-            </Button>
-        </Box>
+    items: Maintenance[];
+    refresh: () => Promise<void>;
+}
 
-        <Box sx={{ px: 3, py: 2, flexGrow: 1, overflowY: 'auto' }}>
-            {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                    <CircularProgress />
+export const MaintenanceSection = ({ propertyId, loading, items, refresh }: Props) => {
+    const [action, setAction] = useState<'add' | 'edit'>('add');
+    const [selected, setSelected] = useState<Maintenance>();
+
+    const startEdit = (m: Maintenance) => { setAction('edit'); setSelected(m); };
+
+    const handleDelete = async (m: Maintenance) => {
+        await deleteMaintenance(m);
+        await refresh();
+    };
+    const handleDone = () => {
+        setAction('add');
+        setSelected(undefined);
+    };
+
+    return (
+        <Box>
+            <Box sx={{ p: 3 }}>
+                <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        {action === 'add' ? 'Agregar Mantenimiento' : 'Editar Mantenimiento'}
+                    </Typography>
                 </Box>
-            ) : items.length === 0 ? (
-                <Typography color="text.secondary">
-                    No hay mantenimientos de la propiedad registrados.
-                </Typography>
-            ) : (
-                <MaintenanceList
-                    items={items}
-                    onEditItem={onEditItem}
-                    onDeleteItem={onDeleteItem}
+
+                <MaintenanceForm
+                    propertyId={propertyId}
+                    action={action}
+                    item={selected}
+                    refresh={refresh}
+                    onDone={handleDone}
                 />
-            )}
+            </Box>
+
+            {/* — Listado debajo — */}
+            <Box sx={{ p: 3 }}>
+                <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        Mantenimientos ({items.length})
+                    </Typography>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+
+                {loading ? (
+                    <Box display="flex" justifyContent="center" py={4}>
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <MaintenanceList
+                        items={items}
+                        onEditItem={startEdit}
+                        onDeleteItem={handleDelete}
+                    />
+                )}
+            </Box>
         </Box>
-    </Box>
-);
+    );
+};
