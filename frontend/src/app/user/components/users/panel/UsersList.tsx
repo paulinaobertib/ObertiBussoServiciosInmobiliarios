@@ -8,10 +8,9 @@ interface UsersListProps {
   onEdit: (u: User) => void;
   onDelete: (u: User) => void;
   onRoles: (u: User) => void;
-
-  /** Lógica de selección */
   isSelected?: (id: string) => boolean;
   toggleSelect?: (id: string) => void;
+  showActions?: boolean;
 }
 
 export const UsersList: React.FC<UsersListProps> = ({
@@ -21,15 +20,16 @@ export const UsersList: React.FC<UsersListProps> = ({
   onRoles,
   isSelected,
   toggleSelect,
+  showActions = true,
 }) => (
   <>
     {users.map((u) => (
       <UserItem
         key={u.id}
         user={u}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onRoles={onRoles}
+        onEdit={showActions ? onEdit : undefined}
+        onDelete={showActions ? onDelete : undefined}
+        onRoles={showActions ? onRoles : undefined}
         isSelected={isSelected}
         toggleSelect={toggleSelect}
       />

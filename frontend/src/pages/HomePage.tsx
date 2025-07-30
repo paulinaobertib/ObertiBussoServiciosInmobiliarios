@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { ImageCarousel } from '../app/shared/components/images/ImageCarousel';
@@ -19,11 +19,17 @@ export default function Home() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { showAlert } = useGlobalAlert();
-  const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, } = usePropertiesContext();
+  const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, refreshProperties, resetSelected } = usePropertiesContext();
 
   const [mode, setMode] = useState<'normal' | 'edit' | 'delete'>('normal');
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[] | null>(null);
+
+  useEffect(() => {
+    resetSelected();      // filtros vacíos
+    refreshProperties();    // snapshot más nuevo
+  }, [resetSelected, refreshProperties]);
+
 
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
     if (action === 'create') {
@@ -117,7 +123,10 @@ export default function Home() {
             <PropertyCatalog
               {...(results !== null ? { properties: results } : {})}
               mode={mode}
-              onFinishAction={() => setMode('normal')}
+              onFinishAction={() => {
+                setMode('normal');
+                setResults(null);              // <— limpiamos los resultados de búsqueda
+              }}
               selectionMode={selectionMode}
               toggleSelection={toggleCompare}
               isSelected={id => selectedPropertyIds.includes(id)}

@@ -16,10 +16,13 @@ interface ColumnDef { label: string; key: string }
 interface Props {
   toggleSelect?: (id: number) => void;
   isSelected?: (id: number) => boolean;
+  showActions?: boolean;
+  filterAvailable?: boolean;
 }
 
-export const PropertySection = ({ toggleSelect: externalToggle, isSelected: externalIsSel, }: Props) => {
-
+export const PropertySection = ({ toggleSelect: externalToggle, isSelected: externalIsSel, showActions = true,
+  filterAvailable = false,
+}: Props) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
@@ -38,14 +41,8 @@ export const PropertySection = ({ toggleSelect: externalToggle, isSelected: exte
   const gridCols = '1.7fr 0.6fr 1.4fr 75px';
 
   const getActions = (prop: any): RowAction[] =>
-    getRowActions(
-      'property',
-      prop,
-      (info) => setModal(info),
-      ask,
-      deleteProperty,
-      showAlert
-    );
+    showActions ? getRowActions('property', prop, setModal, ask, deleteProperty, showAlert) : [];
+
 
   // ---- LOADING GLOBAL DE SECCIÓN ----
   if (loading) {
@@ -119,7 +116,7 @@ export const PropertySection = ({ toggleSelect: externalToggle, isSelected: exte
         <Typography
           fontWeight={700}
           noWrap
-          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          sx={{ display: showActions ? 'block' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         >
           Acciones
         </Typography>
@@ -134,6 +131,8 @@ export const PropertySection = ({ toggleSelect: externalToggle, isSelected: exte
         toggleSelect={selectFn}
         isSelected={isSelFn}
         getActions={getActions}
+        showActions={showActions}
+        filterAvailable={filterAvailable}
       />
 
       {/* modal & dialog */}

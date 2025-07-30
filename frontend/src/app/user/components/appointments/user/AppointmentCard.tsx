@@ -2,10 +2,7 @@ import { useState } from 'react';
 import { Box, Typography, Chip, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import dayjs from 'dayjs';
-import type {
-    Appointment,
-    AvailableAppointment,
-} from '../../../types/appointment';
+import type { Appointment, AvailableAppointment, } from '../../../types/appointment';
 
 interface Props {
     appointment: Appointment;

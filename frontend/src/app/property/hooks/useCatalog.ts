@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePropertiesContext } from "../context/PropertiesContext";
 import { deleteProperty } from "../services/property.service";
@@ -14,24 +13,18 @@ interface Props {
 }
 
 export const useCatalog = ({ onFinish, externalProperties }: Props) => {
-
   const navigate = useNavigate();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
 
   const {
     propertiesList,
-    loading,
     refreshProperties,
     selectedPropertyIds,
     toggleCompare,
   } = usePropertiesContext();
 
   const { isAdmin } = useAuthContext();
-
-  useEffect(() => {
-    if (propertiesList === null) refreshProperties();
-  }, [propertiesList, refreshProperties]);
 
   const list = externalProperties ?? propertiesList ?? [];
 
@@ -59,7 +52,6 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
 
   return {
     propertiesList: list,
-    loading, // boolean
     refresh: refreshProperties,
     selectedPropertyIds,
     toggleCompare,
