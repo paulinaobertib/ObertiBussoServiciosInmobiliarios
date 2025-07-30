@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PropertyController.class)
@@ -103,6 +105,22 @@ class PropertyControllerTest {
         when(propertyService.updateStatus(1L, Status.DISPONIBLE)).thenReturn(ResponseEntity.ok("Status updated"));
         ResponseEntity<String> response = propertyController.updatePropertyStatus(1L, Status.DISPONIBLE);
         assertEquals("Status updated", response.getBody());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void testUpdatePropertyOutstanding() throws Exception {
+        Long propertyId = 1L;
+        Boolean outstanding = true;
+
+        when(propertyService.updateOutstanding(propertyId, outstanding))
+                .thenReturn(ResponseEntity.ok("Se ha actualizado la prioridad de la propiedad."));
+
+        mockMvc.perform(put("/property/outstanding/{id}", propertyId)
+                        .param("outstanding", outstanding.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Se ha actualizado la prioridad de la propiedad."));
     }
 
     @Test
@@ -221,6 +239,17 @@ class PropertyControllerTest {
     @WithMockUser(roles = "user")
     void getByStatus_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(get("/property/getByStatus").param("status", "DISPONIBLE"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void testUpdatePropertyOutstanding_forbidden() throws Exception {
+        Long propertyId = 1L;
+
+        mockMvc.perform(put("/property/outstanding/{id}", propertyId)
+                        .param("outstanding", "true")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
     }
 }

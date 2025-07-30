@@ -415,6 +415,26 @@ public class PropertyServiceTest {
     }
 
     @Test
+    void testUpdateOutstanding_success() {
+        Long id = 1L;
+        Boolean newOutstanding = false;
+
+        property.setOutstanding(true);
+
+        when(propertyRepository.findById(id)).thenReturn(Optional.of(property));
+        when(propertyRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ResponseEntity<String> response = propertyService.updateOutstanding(id, newOutstanding);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Se ha actualizado la prioridad de la propiedad.", response.getBody());
+        assertEquals(newOutstanding, property.getOutstanding());
+
+        verify(propertyRepository).findById(id);
+        verify(propertyRepository).save(property);
+    }
+
+    @Test
     void testGetAllProperties_success() {
         List<Property> propertyList = List.of(property);
 
@@ -785,5 +805,22 @@ public class PropertyServiceTest {
                 () -> propertyService.getSimpleById(1L));
 
         assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void testUpdateOutstanding_propertyNotFound() {
+        Long id = 999L;
+        Boolean newOutstanding = true;
+
+        when(propertyRepository.findById(id)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> propertyService.updateOutstanding(id, newOutstanding)
+        );
+
+        assertEquals("Propiedad no encontrada", exception.getMessage());
+        verify(propertyRepository).findById(id);
+        verify(propertyRepository, never()).save(any());
     }
 }
