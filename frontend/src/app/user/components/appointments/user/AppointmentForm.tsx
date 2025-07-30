@@ -1,8 +1,14 @@
+import React from 'react';
 import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
 import { useAppointments } from '../../../hooks/useAppointments';
 import { Calendar } from '../../Calendar';
+import { useAuthContext } from '../../../context/AuthContext';
+import { useGlobalAlert } from '../../../../shared/context/AlertContext';
 
-export const AppointmentForm = () => {
+export const AppointmentForm: React.FC = () => {
+    const { info } = useAuthContext();
+    const { showAlert } = useGlobalAlert();
+
     const {
         bookingDate,
         setBookingDate,
@@ -43,6 +49,10 @@ export const AppointmentForm = () => {
             component="form"
             onSubmit={(e) => {
                 e.preventDefault();
+                if (!info) {
+                    showAlert('Debes iniciar sesión para solicitar un turno', 'warning');
+                    return;
+                }
                 submitBooking();
             }}
             sx={{
@@ -105,7 +115,6 @@ export const AppointmentForm = () => {
                                     variant={selected ? 'contained' : 'outlined'}
                                     size="small"
                                     fullWidth
-                                    // botones más compactos
                                     sx={{ py: 0.5, minHeight: 24, fontSize: '0.75rem' }}
                                     onClick={() =>
                                         slot.availability && setBookingSlotId(slot.id)

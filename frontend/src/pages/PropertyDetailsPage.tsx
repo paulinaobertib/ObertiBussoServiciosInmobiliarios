@@ -85,7 +85,7 @@ const PropertyDetailsPage = () => {
             </Button>
           ) : (
             <Button
-              variant="outlined"
+              variant="contained"
               onClick={() =>
                 navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))
               }

@@ -7,6 +7,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CompareIcon from '@mui/icons-material/Compare';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { usePropertiesContext } from '../../context/PropertiesContext';
+import { useState } from 'react';
 
 interface Props {
   onAction: (action: 'create' | 'edit' | 'delete') => void;
@@ -22,11 +23,16 @@ const adminActions = [
 ];
 
 export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, onCompare }: Props) => {
+  const [open, setOpen] = useState(false);
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
   const { disabledCompare } = usePropertiesContext();
   const size = { xs: '3rem', sm: '3.5rem' };
   const off = 16;
+
+  const handleOpen = () => {
+    setOpen((prev) => !prev);
+  };
 
   return (
     <Box
@@ -34,13 +40,13 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
         position: 'fixed',
         bottom: off,
         right: {
-          xs: `calc(${off}px + ${size.xs} + 8px)`, // 16 + 3rem + 8px
+          xs: `calc(${off}px + ${size.xs} + 8px)`,
           sm: 86,
         },
         display: 'flex',
-        flexDirection: 'row',  // siempre en fila
+        flexDirection: 'row',
         alignItems: 'center',
-        gap: { xs: 1, sm: 2 }, // 8px en xs, 16px en sm+
+        gap: { xs: 1, sm: 2 },
         zIndex: 1300,
       }}
     >
@@ -100,6 +106,8 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
           ariaLabel="Acciones de Propiedad"
           icon={<SettingsIcon />}
           direction="up"
+          onClick={handleOpen}
+          open={open}
           sx={{
             position: 'fixed',
             bottom: off,
@@ -114,12 +122,14 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
             },
           }}
         >
+
           {adminActions.map(({ icon, name, action }) => (
             <SpeedDialAction
               key={name}
               icon={icon}
               tooltipTitle={name}
               onClick={() => {
+                setOpen(false);
                 if (selectionMode) toggleSelectionMode();
                 onAction(action);
               }}

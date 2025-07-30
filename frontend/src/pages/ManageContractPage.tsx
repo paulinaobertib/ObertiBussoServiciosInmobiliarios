@@ -120,6 +120,8 @@ export default function ManageContractPage() {
                     <PropertySection
                         toggleSelect={ctrl.setSelectedPropertyId}
                         isSelected={(id) => id === ctrl.selectedPropertyId}
+                        filterAvailable={true}
+                        showActions={false}
                     />
                 )}
 
@@ -127,6 +129,7 @@ export default function ManageContractPage() {
                     <UsersSection
                         toggleSelect={ctrl.setSelectedUserId}
                         isSelected={(id) => id === ctrl.selectedUserId}
+                        showActions={false}
                     />
                 )}
 

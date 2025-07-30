@@ -95,6 +95,7 @@ public class PropertyService implements IPropertyService {
         response.setExpenses(property.getExpenses());
         response.setCredit(property.getCredit());
         response.setFinancing(property.getFinancing());
+        response.setOutstanding(property.getOutstanding());
         response.setDescription(property.getDescription());
         response.setDate(property.getDate());
         response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
