@@ -20,6 +20,8 @@ public interface IPropertyService {
 
     ResponseEntity<String> updateStatus(Long id, Status status);
 
+    ResponseEntity<String> updateOutstanding(Long id, Boolean outstanding);
+
     ResponseEntity<List<PropertyDTO>> getAll();
 
     ResponseEntity<List<PropertyDTO>> getAllUsers();

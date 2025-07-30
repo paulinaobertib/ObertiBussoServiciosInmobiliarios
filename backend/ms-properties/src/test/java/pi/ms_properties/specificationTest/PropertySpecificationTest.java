@@ -78,6 +78,7 @@ class PropertySpecificationTest {
         property.setCurrency(Currency.ARS);
         property.setCredit(true);
         property.setFinancing(false);
+        property.setOutstanding(false);
         property.setOwner(owner);
         property.setNeighborhood(neighborhood);
         property.setType(type);
