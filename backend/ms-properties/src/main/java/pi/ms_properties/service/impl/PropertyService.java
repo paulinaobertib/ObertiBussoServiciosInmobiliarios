@@ -193,6 +193,17 @@ public class PropertyService implements IPropertyService {
     }
 
     @Override
+    public ResponseEntity<String> updateOutstanding(Long id, Boolean outstanding) {
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Propiedad no encontrada"));
+
+        property.setOutstanding(outstanding);
+        propertyRepository.save(property);
+
+        return ResponseEntity.ok("Se ha actualizado la prioridad de la propiedad.");
+    }
+
+    @Override
     public ResponseEntity<List<PropertyDTO>> getAll() {
         List<Property> properties = propertyRepository.findAll();
 
