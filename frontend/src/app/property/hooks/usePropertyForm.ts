@@ -56,9 +56,9 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     financing: raw?.financing ?? false,
     showPrice: raw?.showPrice ?? false,
 
-    /* ---------- ¡los que faltaban! ---------- */
     street: raw?.street ?? "",
     number: raw?.number ?? "",
+    outstanding: raw?.outstanding ?? false,
 
     /* ---------- relaciones ---------- */
     owner: raw?.owner ?? emptyOwner,

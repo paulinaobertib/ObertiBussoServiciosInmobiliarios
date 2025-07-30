@@ -18,7 +18,7 @@ export const PropertyCard = ({
   isSelected = () => false,
   toggleSelection = () => { },
   onClick = () => { },
-  
+
 }: Props) => {
   const theme = useTheme();
   const selected = selectionMode && isSelected(property.id);
@@ -48,14 +48,47 @@ export const PropertyCard = ({
       }}
       sx={{
         display: 'flex',
+        position: "relative",
+        overflow: "visible",
         flexDirection: 'column',
         height: '100%',
         borderRadius: 2,
         cursor: selectionMode ? 'default' : 'pointer',
         transition: 'transform 0.1s',
-        '&:hover': { transform: 'scale(1.01)' }
+        '&:hover': { transform: 'scale(1.01)' },
+        backgroundColor: theme.palette.quaternary.main,
       }}
     >
+
+      {property.outstanding && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: -15,
+            left: 0,
+            width: 180,
+            height: 26,
+            bgcolor: theme.palette.quaternary.main,
+            borderRadius: "4px 4px 0 0",  // sólo esquinas de arriba
+            display: "flex",
+            // alignItems: "center",
+            justifyContent: "center",
+            zIndex: -1,
+          }}
+        >
+          <Typography
+            // variant="caption"
+            sx={{
+              color: 'black',
+              fontWeight: 600,
+              textTransform: "uppercase",
+              fontSize: '0.7rem'
+            }}
+          >
+            Propiedad destacada
+          </Typography>
+        </Box>
+      )}
 
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
@@ -67,7 +100,9 @@ export const PropertyCard = ({
             width: '100%',
             aspectRatio: '16/9',
             objectFit: 'cover',
-            backgroundColor: '#000'
+            backgroundColor: '#000',
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
           }}
         />
 
@@ -135,8 +170,9 @@ export const PropertyCard = ({
         sx={{
           pb: 1,
           px: 2,
-          backgroundColor: theme.palette.quaternary.main,
           textAlign: 'center',
+          borderBottomLeftRadius: 8,    // redondea sólo arriba
+          borderBottomRightRadius: 8,
         }}
       >
         {/* Título */}

@@ -22,6 +22,7 @@ export const MaintenanceForm = ({ propertyId, action, item, refresh, onDone, }: 
         date: item?.date ?? '',
     };
 
+
     const { form, setForm, invalid, run, loading } = useCategories<Maintenance>({
         initial: initialPayload,
         action,
@@ -33,6 +34,11 @@ export const MaintenanceForm = ({ propertyId, action, item, refresh, onDone, }: 
         refresh,
         onDone,
     });
+
+    const isDirty =
+        form.title !== initialPayload.title ||
+        form.date !== initialPayload.date ||
+        form.description !== initialPayload.description;
 
     useEffect(() => {
         if (action === 'edit' && item) {
@@ -117,7 +123,7 @@ export const MaintenanceForm = ({ propertyId, action, item, refresh, onDone, }: 
                     <LoadingButton
                         loading={loading}
                         onClick={handleCancel}
-                        disabled={invalid || loading}
+                        disabled={!isDirty || loading} 
                     >
                         Cancelar
                     </LoadingButton>

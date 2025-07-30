@@ -26,6 +26,7 @@ public class PropertySaveDTO {
     private BigDecimal expenses;
     private Boolean credit;
     private Boolean financing;
+    private Boolean outstanding;
     private String description;
     @JsonIgnore
     private MultipartFile mainImage;

@@ -12,7 +12,7 @@ import {
 import type { Comment, CommentCreate } from '../../types/comment';
 
 interface Props {
-    propertyId: number;         // <― recibimos el id
+    propertyId: number;
     action: 'add' | 'edit' | 'delete';
     item?: Comment;
     refresh: () => Promise<void>;
@@ -27,7 +27,7 @@ export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Prop
         date: item?.date ?? ''
     };
 
-    const { form, setForm, invalid, run, loading } = useCategories<Comment>({
+    const { form, setForm, run, loading } = useCategories<Comment>({
         initial: initialPayload,
         action,
         save: async (payload) => {
@@ -55,7 +55,6 @@ export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Prop
     const handleSubmit = async () => {
         await run();
         setForm(initialPayload);
-        // NO llamar onDone acá, lo maneja useCategories/run internamente
     };
 
     const handleCancel = () => {
@@ -95,7 +94,9 @@ export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Prop
                     <LoadingButton
                         loading={loading}
                         onClick={handleCancel}
-                        disabled={invalid || loading}
+                        disabled={
+                            loading || form.description.trim() === ''
+                        }
                     >
                         Cancelar
                     </LoadingButton>
@@ -104,7 +105,10 @@ export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Prop
                 <LoadingButton
                     onClick={handleSubmit}
                     loading={loading}
-                    disabled={invalid || loading}
+                    disabled={
+                        loading ||
+                        (action !== 'delete' && form.description.trim() === '')
+                    }
                     variant="contained"
                     color={action === 'delete' ? 'error' : 'primary'}
                 >
