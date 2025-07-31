@@ -7,13 +7,15 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    CircularProgress,
 } from '@mui/material';
-import type { Appointment, AvailableAppointment } from '../../../types/appointment';
 import { AppointmentsList } from './AppointmentsList';
+import type { Appointment, AvailableAppointment } from '../../../types/appointment';
 
 type Status = 'DISPONIBLE' | 'ESPERA' | 'ACEPTADO' | 'RECHAZADO';
 
 interface Props {
+    loading: boolean;
     selectedDate: Dayjs;
     filter: Status | 'TODOS';
     setFilter: (f: Status | 'TODOS') => void;
@@ -22,10 +24,10 @@ interface Props {
     onSelectSlot: (slotId: number) => void;
 }
 
-export const AppointmentSection = ({ selectedDate, filter, setFilter, slotsByDate, apptsBySlot, onSelectSlot,
-}: Props) => {
+export const AppointmentSection = ({ loading, selectedDate, filter, setFilter, slotsByDate, apptsBySlot, onSelectSlot }: Props) => {
     const dateKey = selectedDate.format('YYYY-MM-DD');
     const daySlots = slotsByDate[dateKey] ?? [];
+
     const filtered = useMemo(
         () =>
             daySlots.filter((s) => {
@@ -37,8 +39,17 @@ export const AppointmentSection = ({ selectedDate, filter, setFilter, slotsByDat
         [daySlots, filter, apptsBySlot],
     );
 
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <CircularProgress size={36} />
+            </Box>
+        );
+    }
+
     return (
         <>
+            {/* Encabezado con filtro */}
             <Box
                 sx={{
                     px: 3,
@@ -52,6 +63,7 @@ export const AppointmentSection = ({ selectedDate, filter, setFilter, slotsByDat
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>
                     {selectedDate.locale('es').format('dddd DD MMMM YYYY')}
                 </Typography>
+
                 <FormControl size="small">
                     <InputLabel id="filter-label">Estado</InputLabel>
                     <Select
@@ -69,6 +81,8 @@ export const AppointmentSection = ({ selectedDate, filter, setFilter, slotsByDat
                     </Select>
                 </FormControl>
             </Box>
+
+            {/* Lista */}
             <Box sx={{ p: 3, overflowY: 'auto', flexGrow: 1, maxHeight: 600 }}>
                 <AppointmentsList
                     slots={filtered}

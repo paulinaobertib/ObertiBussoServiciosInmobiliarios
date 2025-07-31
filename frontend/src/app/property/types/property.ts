@@ -22,6 +22,7 @@ export interface Property {
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
+  outstanding: boolean;
   owner: Owner;
   neighborhood: Neighborhood;
   type: Type;
@@ -49,6 +50,7 @@ export interface PropertyCreate {
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
+  outstanding: boolean;
   ownerId: number;
   neighborhoodId: number;
   typeId: number;
@@ -76,6 +78,7 @@ export interface PropertyUpdate {
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
+  outstanding?: boolean;
   ownerId: number;
   neighborhoodId: number;
   typeId: number;
@@ -98,45 +101,3 @@ export interface PropertyDTOAI {
   type: string;
   amenities: Set<string>;
 }
-
-export const emptyProperty: Property = {
-  id: 0,
-  title: "",
-  street: "",
-  number: "",
-  description: "",
-  status: "",
-  operation: "",
-  currency: "",
-  rooms: 0,
-  bathrooms: 0,
-  bedrooms: 0,
-  area: 0,
-  coveredArea: 0,
-  price: 0,
-  expenses: null,
-  showPrice: false,
-  credit: false,
-  financing: false,
-  owner: { id: 0, firstName: "", lastName: "", email: "", phone: "" } as Owner,
-  neighborhood: {
-    id: 0,
-    name: "",
-    city: "",
-    type: "",
-    latitude: 0,
-    longitude: 0,
-  } as Neighborhood,
-  type: {
-    id: 0,
-    name: "",
-    hasRooms: false,
-    hasBathrooms: false,
-    hasBedrooms: false,
-    hasCoveredArea: false,
-  } as Type,
-  amenities: [],
-  mainImage: "",
-  images: [],
-  date: "",
-};

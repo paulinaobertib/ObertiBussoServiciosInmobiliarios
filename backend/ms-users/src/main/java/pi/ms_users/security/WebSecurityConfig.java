@@ -28,6 +28,7 @@ public class WebSecurityConfig {
                                 "/appointments/create",
                                 "/user/login").permitAll()
                         .requestMatchers(HttpMethod.GET,
+                                "/availableAppointments/getAll",
                                 "/notices/getById/{id}",
                                 "/notices/getAll",
                                 "/notices/search",

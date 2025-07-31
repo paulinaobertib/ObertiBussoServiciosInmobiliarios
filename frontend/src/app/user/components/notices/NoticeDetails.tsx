@@ -1,24 +1,15 @@
 import { useState, useRef } from 'react';
-import {
-  Container,
-  Box,
-  Typography,
-  IconButton,
-  Button,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
+import { Container, Box, Typography, IconButton, Button, useTheme, useMediaQuery } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useNotices } from '../../../hooks/useNotices';
-import { useAuthContext } from '../../../../user/context/AuthContext';
-import { Modal } from '../../../../shared/components/Modal';
-import { NoticeForm, NoticeFormHandle } from '../NoticeForm';
-import { useConfirmDialog } from '../../../../shared/components/ConfirmDialog';
+import { useNotices } from '../../hooks/useNotices';
+import { useAuthContext } from '../../context/AuthContext';
+import { Modal } from '../../../shared/components/Modal';
+import { NoticeForm, NoticeFormHandle } from './NoticeForm';
+import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
-export default function NoticeDetails() {
-  // Hooks
+export const NoticeDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -30,7 +21,6 @@ export default function NoticeDetails() {
   const formRef = useRef<NoticeFormHandle>(null);
   const { ask, DialogUI } = useConfirmDialog();
 
-  // Find notice
   const notice = notices.find(n => n.id === Number(id));
 
   // Early return if not found
@@ -93,10 +83,10 @@ export default function NoticeDetails() {
             <Box display="flex" justifyContent="flex-end" mb={2}>
               {isAdmin && (
                 <>
-                  <IconButton size="small" color="primary" onClick={openEdit}>
+                  <IconButton size="small" onClick={openEdit}>
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" color="error" onClick={handleDelete}>
+                  <IconButton size="small" onClick={handleDelete}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </>

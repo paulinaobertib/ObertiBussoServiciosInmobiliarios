@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Box, Typography, Chip, Stack, IconButton, Divider, useTheme } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Chip,
+  Stack,
+  IconButton,
+  Divider,
+  useTheme,
+  Switch,
+} from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EditIcon from '@mui/icons-material/Edit';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -11,21 +20,41 @@ import FoundationIcon from '@mui/icons-material/Foundation';
 import { Property } from '../../types/property';
 import { formatPrice } from '../../utils/formatPrice';
 import { useAuthContext } from '../../../user/context/AuthContext';
-import { ModalItem, Info } from '../ModalItem';
+import { ModalItem, Info } from '../categories/CategoryModal';
 import { StatusForm } from '../forms/StatusForm';
+// Importa tu servicio de actualización si lo tienes
+import { putProperty } from '../../services/property.service';
 
 interface Props { property: Property }
+
 type Amenity = string | { id?: string | number; name?: string; label?: string };
-const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
-const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
-const featureLabel = (v?: number | null, s?: string, p?: string) => v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-';
 
 export const PropertyInfo = ({ property }: Props) => {
   const { isAdmin } = useAuthContext();
   const [statusModal, setStatusModal] = useState<Info | null>(null);
   const theme = useTheme();
 
-  // Numeric features
+  // Estado local para el toggle "Destacar"
+  const [outstanding, setOutstanding] = useState<boolean>(property.outstanding ?? false);
+
+  const handleToggleOutstanding = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.checked;
+    setOutstanding(newValue);
+    try {
+      await putProperty(property);
+      // Opcional: mostrar alerta de éxito
+    } catch (error) {
+      console.error(error);
+      // Opcional: mostrar alerta de error y revertir estado
+      setOutstanding(!newValue);
+    }
+  };
+
+  const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
+  const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
+  const featureLabel = (v?: number | null, s?: string, p?: string) =>
+    v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-';
+
   const features = [
     { label: featureLabel(property.bedrooms, 'dormitorio', 'dormitorios'), icon: <HotelIcon sx={{ color: theme.palette.primary.main }} /> },
     { label: featureLabel(property.bathrooms, 'baño', 'baños'), icon: <BathtubIcon sx={{ color: theme.palette.primary.main }} /> },
@@ -34,11 +63,9 @@ export const PropertyInfo = ({ property }: Props) => {
     { label: property.coveredArea ? `${property.coveredArea} m² cubiertos` : '- m² cubiertos', icon: <FoundationIcon sx={{ color: theme.palette.primary.main }} /> },
   ].filter(f => !f.label.startsWith('-'));
 
-  // Amenities
   const rawAmenities: Amenity[] = property.amenities ?? [];
   const amenities = rawAmenities.map(labelOfAmenity).filter(Boolean);
 
-  // Address
   const address = property.neighborhood
     ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
     : property.street ?? '';
@@ -90,14 +117,43 @@ export const PropertyInfo = ({ property }: Props) => {
           sx={{ fontSize: '0.875rem' }}
         />
 
-        {/* Admin edit */}
         {isAdmin && (
-          <IconButton size='small' onClick={() => setStatusModal({
-            title: 'Editar estado', Component: StatusForm,
-            componentProps: { action: 'edit-status' as const, item: { id: property.id, status: property.status } }
-          })} sx={{ mb: 1 }}>
-            <EditIcon fontSize='small' />
-          </IconButton>
+          <>
+            <IconButton
+              size='small'
+              onClick={() =>
+                setStatusModal({
+                  title: 'Editar estado',
+                  Component: StatusForm,
+                  componentProps: { action: 'edit-status' as const, item: { id: property.id, status: property.status } }
+                })
+              }
+              // sx={{ mb: { xs: 1, sm: 0 } }}
+            >
+              <EditIcon fontSize='small' />
+            </IconButton>
+
+            <Chip
+              label='Destacar'
+              clickable
+              size='medium'
+              onClick={() => handleToggleOutstanding({ target: { checked: !outstanding } } as any)}
+              icon={
+                <Switch
+                  checked={outstanding}
+                  onChange={handleToggleOutstanding}
+                  onClick={e => e.stopPropagation()}
+                  size='small'
+                />
+              }
+              sx={{
+                // mt: { xs: 1, sm: 0 },
+                ml: { xs: 'auto', sm: 'auto' },
+                mr: { xs: 'auto', sm: 0 },
+                fontSize: '0.875rem'
+              }}
+            />
+          </>
         )}
         {statusModal && <ModalItem info={statusModal} close={() => setStatusModal(null)} />}
       </Box>
