@@ -63,6 +63,9 @@ class KeycloakUserRepositoryTest {
     @Mock
     private RolesResource clientRolesResource;
 
+    @Mock
+    private IUserNotificationPreferenceRepository userNotificationPreferenceRepository;
+
     @InjectMocks
     private KeycloakUserRepository repository;
 
