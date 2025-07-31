@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import pi.ms_users.domain.User;
 import pi.ms_users.dto.EmailNewUserDTO;
 import pi.ms_users.service.impl.EmailService;
+import pi.ms_users.service.impl.UserNotificationPreferenceService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class KeycloakUserRepository implements IUserRepository {
     private final Keycloak keycloak;
 
     private final EmailService emailService;
+    private final UserNotificationPreferenceService userNotificationPreferenceService;
 
     @Value("${pi.keycloak.realm}")
     private String realm;
@@ -195,6 +197,7 @@ public class KeycloakUserRepository implements IUserRepository {
     @Override
     public void deleteUserById(String id) {
         keycloak.realm(realm).users().delete(id);
+        userNotificationPreferenceService.deleteUser(id);
     }
 
     @Override
