@@ -2,7 +2,6 @@ package pi.ms_users.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_users.domain.AvailableAppointment;
@@ -26,6 +25,12 @@ public class AvailableAppointmentService implements IAvailableAppointmentService
 
     @Override
     public ResponseEntity<String> create(AvailableAppointmentDTO availableAppointmentDTO) {
+        LocalDateTime appointmentDateTime = LocalDateTime.of(availableAppointmentDTO.getDate(), availableAppointmentDTO.getStartTime());
+
+        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("La fecha y hora del turno no puede ser anterior a la fecha y hora actual.");
+        }
+
         if (!availableAppointmentDTO.getStartTime().isBefore(availableAppointmentDTO.getEndTime())) {
             return ResponseEntity.badRequest().body("El horario de inicio debe ser anterior al horario de fin.");
         }
@@ -71,7 +76,7 @@ public class AvailableAppointmentService implements IAvailableAppointmentService
             return ResponseEntity.ok("Turnos ya existentes: " + existingAppointmentsDates + ". Turnos nuevos guardados: " + newAppointments + ": " + newAppointmentsForm);
         } else if (existingAppointmentsDates == 0 && newAppointments > 0) {
             return ResponseEntity.ok("Se han guardado los nuevos turnos.");
-        } else if (newAppointments == 0 && existingAppointmentsDates > 0) {
+        } else if (existingAppointmentsDates > 0) {
             return ResponseEntity.ok("Los turnos ya existian.");
         } else {
             return ResponseEntity.ok("No se generaron turnos. Verifique el rango de horario.");
