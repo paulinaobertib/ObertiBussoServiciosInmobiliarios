@@ -1,74 +1,45 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, IconButton, CircularProgress, Button } from '@mui/material';
-import {
-    DataGrid,
-    GridColDef,
-    GridRowSelectionModel,
-    GridRenderCellParams,
-} from '@mui/x-data-grid';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import PeopleIcon from '@mui/icons-material/People';
-
-import { Modal } from '../../../../shared/components/Modal';
-import { SearchBar } from '../../../../shared/components/SearchBar';
-import { UserForm } from './UserForm';
-import { RoleForm } from './RoleForm';
-import { useUsers } from '../../../hooks/useUsers';
-import { getRoles } from '../../../services/user.service';
-import type { User } from '../../../types/user';
-
-interface Props {
-    toggleSelect?: (id: string) => void;
-    isSelected?: (id: string) => boolean;
-    showActions?: boolean;
-}
+// src/app/user/components/users/panel/UsersSection.tsx
+import React, { useState } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import PeopleIcon from "@mui/icons-material/People";
+import { getRoles } from "../../../services/user.service";
+import { useUsers } from "../../../hooks/useUsers";
+import { UserForm } from "./UserForm";
+import { RoleForm } from "./RoleForm";
+import { Modal } from "../../../../shared/components/Modal";
+import { GridSection } from "../../../../shared/components/GridSection";
+import type { User } from "../../../types/user";
 
 export function UsersSection({
-    toggleSelect: externalToggle,
-    isSelected: externalIsSel,
+    toggleSelect,
+    isSelected,
     showActions = true,
-}: Props) {
-    const {
-        users,
-        loading,
-        load,
-        fetchAll,
-        fetchByText,
-        toggleSelect: internalToggle,
-        isSelected: internalIsSel,
-    } = useUsers();
+}: {
+    toggleSelect?: (id: string | null) => void;
+    isSelected?: (id: string) => boolean;
+    showActions?: boolean;
+}) {
+    const { users, loading, load, fetchAll, fetchByText } = useUsers();
 
-    const selectFn = externalToggle ?? internalToggle;
-    const isSelFn = externalIsSel ?? internalIsSel;
-
-    const [displayed, setDisplayed] = useState<User[]>([]);
-    useEffect(() => setDisplayed(users), [users]);
-
-    const [selection, setSelection] = useState<GridRowSelectionModel>({
-        type: 'include',
-        ids: new Set(),
-    });
-
-    useEffect(() => {
-        const selectedIds = displayed.filter((u) => isSelFn(u.id)).map((u) => u.id);
-        setSelection({ type: 'include', ids: new Set(selectedIds) });
-    }, [displayed, isSelFn]);
-
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalTitle, setModalTitle] = useState('');
-    const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-
-    const handleModal = (title: string, content: React.ReactNode) => {
-        setModalTitle(title);
-        setModalContent(content);
-        setModalOpen(true);
+    // Adaptador para GridSection.toggleSelect
+    const gridToggleSelect = (selected: string | string[] | null) => {
+        const id = Array.isArray(selected)
+            ? selected[selected.length - 1]
+            : selected;
+        toggleSelect?.(id ?? null);
     };
 
-    const openCreate = () =>
-        handleModal(
-            'Crear usuario',
+    // Modal state
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalTitle, setModalTitle] = useState("");
+    const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+
+    // Handlers de Create/Edit/Delete/Roles
+    const openCreate = () => {
+        setModalTitle("Crear usuario");
+        setModalContent(
             <UserForm
                 action="add"
                 onSuccess={() => {
@@ -78,13 +49,15 @@ export function UsersSection({
                 onClose={() => setModalOpen(false)}
             />
         );
+        setModalOpen(true);
+    };
 
-    const openEdit = (user: User) =>
-        handleModal(
-            'Editar usuario',
+    const openEdit = (u: User) => {
+        setModalTitle("Editar usuario");
+        setModalContent(
             <UserForm
                 action="edit"
-                item={user}
+                item={u}
                 onSuccess={() => {
                     load();
                     setModalOpen(false);
@@ -92,13 +65,15 @@ export function UsersSection({
                 onClose={() => setModalOpen(false)}
             />
         );
+        setModalOpen(true);
+    };
 
-    const openDelete = (user: User) =>
-        handleModal(
-            'Eliminar usuario',
+    const openDelete = (u: User) => {
+        setModalTitle("Eliminar usuario");
+        setModalContent(
             <UserForm
                 action="delete"
-                item={user}
+                item={u}
                 onSuccess={() => {
                     load();
                     setModalOpen(false);
@@ -106,15 +81,22 @@ export function UsersSection({
                 onClose={() => setModalOpen(false)}
             />
         );
+        setModalOpen(true);
+    };
 
-    const openRoles = async (user: User) => {
-        handleModal('Gestionar roles', <Box textAlign="center" p={2}><CircularProgress /></Box>);
+    const openRoles = async (u: User) => {
+        setModalTitle("Gestionar roles");
+        setModalContent(
+            <Box textAlign="center" p={2}>
+                <CircularProgress />
+            </Box>
+        );
+        setModalOpen(true);
         try {
-            const { data: roles } = await getRoles(user.id);
-            handleModal(
-                'Gestionar roles',
+            const { data: roles } = await getRoles(u.id);
+            setModalContent(
                 <RoleForm
-                    userId={user.id}
+                    userId={u.id}
                     currentRoles={roles}
                     onSuccess={() => {
                         load();
@@ -124,10 +106,9 @@ export function UsersSection({
                 />
             );
         } catch {
-            handleModal(
-                'Gestionar roles',
+            setModalContent(
                 <RoleForm
-                    userId={user.id}
+                    userId={u.id}
                     currentRoles={[]}
                     onSuccess={() => {
                         load();
@@ -139,46 +120,64 @@ export function UsersSection({
         }
     };
 
-    const columns: GridColDef<User>[] = [
+    // Columnas del grid, ahora con íconos
+    const columns = [
         {
-            field: 'fullName',
-            headerName: 'Nombre completo',
+            field: "fullName",
+            headerName: "Nombre completo",
             flex: 1,
-            renderCell: (params: GridRenderCellParams<User>) =>
+            renderCell: (params: any) =>
                 `${params.row.firstName} ${params.row.lastName}`,
             sortable: false,
             filterable: false,
         },
-        { field: 'email', headerName: 'Email', flex: 1 },
-        { field: 'phone', headerName: 'Teléfono', flex: 1 },
+        { field: "email", headerName: "Email", flex: 1 },
+        { field: "phone", headerName: "Teléfono", flex: 1 },
         {
-            field: 'roles',
-            headerName: 'Roles',
+            field: "roles",
+            headerName: "Roles",
             flex: 1,
-            renderCell: (params: GridRenderCellParams<User>) =>
-                Array.isArray(params.row.roles)
-                    ? params.row.roles.join(', ')
-                    : '—',
+            renderCell: (params: any) =>
+                Array.isArray(params.row.roles) ? params.row.roles.join(", ") : "—",
             sortable: false,
             filterable: false,
         },
         ...(showActions
             ? [
                 {
-                    field: 'actions',
-                    headerName: 'Acciones',
+                    field: "actions",
+                    headerName: "Acciones",
                     width: 120,
                     sortable: false,
                     filterable: false,
-                    renderCell: (params: GridRenderCellParams<User>) => (
-                        <Box>
-                            <IconButton size="small" onClick={() => openEdit(params.row)}>
+                    renderCell: (params: any) => (
+                        <Box
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={1}
+                            width="100%"
+                            height="100%"
+                        >
+                            <IconButton
+                                size="small"
+                                title="Editar"
+                                onClick={() => openEdit(params.row)}
+                            >
                                 <EditIcon fontSize="small" />
                             </IconButton>
-                            <IconButton size="small" onClick={() => openDelete(params.row)}>
+                            <IconButton
+                                size="small"
+                                title="Eliminar"
+                                onClick={() => openDelete(params.row)}
+                            >
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
-                            <IconButton size="small" onClick={() => openRoles(params.row)}>
+                            <IconButton
+                                size="small"
+                                title="Roles"
+                                onClick={() => openRoles(params.row)}
+                            >
                                 <PeopleIcon fontSize="small" />
                             </IconButton>
                         </Box>
@@ -188,47 +187,46 @@ export function UsersSection({
             : []),
     ];
 
-    const handleRowSelection = useCallback(
-        (newModel: GridRowSelectionModel) => {
-            const ids = Array.from(newModel.ids);
-            setSelection({ type: 'include', ids: new Set(ids) });
-            ids.forEach((id) => {
-                if (!selection.ids.has(id)) selectFn(id.toString());
-            });
-            selection.ids.forEach((id) => {
-                if (!ids.includes(id)) selectFn(id.toString());
-            });
-        },
-        [selection, selectFn]
-    );
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    p: 3,
+                }}
+            >
+                <CircularProgress size={36} />
+            </Box>
+        );
+    }
 
     return (
         <>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                <SearchBar
-                    fetchAll={fetchAll}
-                    fetchByText={fetchByText}
-                    onSearch={(results: User[]) => setDisplayed(results)}
-                    placeholder="Buscar usuario…"
-                />
-                <Button variant="outlined" startIcon={<AddIcon />} onClick={openCreate}>
-                    Agregar
-                </Button>
-            </Box>
-
-            <Box height={500} width="100%">
-                <DataGrid<User>
-                    rows={displayed}
-                    columns={columns}
-                    loading={loading}
-                    checkboxSelection={!!selectFn}
-                    rowSelectionModel={selection}
-                    onRowSelectionModelChange={handleRowSelection}
-                    getRowId={(row: User) => row.id}
-                />
-            </Box>
-
-            <Modal open={modalOpen} title={modalTitle} onClose={() => setModalOpen(false)}>
+            <GridSection
+                data={users}
+                loading={loading}
+                columns={columns}
+                onSearch={() => { }}
+                onCreate={openCreate}
+                onEdit={openEdit}
+                onDelete={openDelete}
+                onRoles={openRoles}
+                toggleSelect={gridToggleSelect}
+                isSelected={isSelected}
+                entityName="Usuario"
+                showActions={showActions}
+                fetchAll={fetchAll}
+                fetchByText={fetchByText}
+                multiSelect={false}
+            />
+            <Modal
+                open={modalOpen}
+                title={modalTitle}
+                onClose={() => setModalOpen(false)}
+            >
                 {modalContent}
             </Modal>
         </>

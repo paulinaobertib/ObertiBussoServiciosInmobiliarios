@@ -7,6 +7,7 @@ export interface User {
   userName: string;
   email: string;
   phone: string;
+  roles: Role[];
 }
 
 export type UserCreate = Omit<User, "id">;

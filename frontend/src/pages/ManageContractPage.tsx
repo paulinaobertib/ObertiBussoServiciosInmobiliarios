@@ -88,7 +88,7 @@ export default function ManageContractPage() {
                                 <Button
                                     variant="contained"
                                     onClick={() => ctrl.setActiveStep(2)}
-                                    disabled={!ctrl.canProceed()}
+                                    disabled={ctrl.selectedUserId === null}
                                 >
                                     Siguiente
                                 </Button>

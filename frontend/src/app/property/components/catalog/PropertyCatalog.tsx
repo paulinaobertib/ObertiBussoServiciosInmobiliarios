@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { Box, CircularProgress } from '@mui/material';
 import { Property } from '../../types/property';
 import { useCatalog } from '../../hooks/useCatalog';
 import { CatalogList } from './CatalogList';
