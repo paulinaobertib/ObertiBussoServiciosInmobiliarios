@@ -1,9 +1,9 @@
-import React from 'react';
 import { Box, Typography, IconButton, Tooltip, useTheme } from '@mui/material';
 import { RowAction } from '../ActionsRowItems';
 
 interface ColumnDef { label: string; key: string }
-interface PropertyItemProps {
+
+interface Props {
     prop: any;
     columns: ColumnDef[];
     gridCols: string;
@@ -12,14 +12,7 @@ interface PropertyItemProps {
     actions: RowAction[];
 }
 
-export const PropertyItem: React.FC<PropertyItemProps> = ({
-    prop,
-    columns,
-    gridCols,
-    isSelected,
-    toggleSelect,
-    actions,
-}) => {
+export const PropertyItem = ({ prop, columns, gridCols, isSelected, toggleSelect, actions }: Props) => {
     const theme = useTheme();
     return (
         <Box
@@ -68,10 +61,9 @@ export const PropertyItem: React.FC<PropertyItemProps> = ({
                         ? raw ? 'Sí' : 'No'
                         : raw ?? '—';
                 return (
-                    <Tooltip title={val}>
+                    <Tooltip title={val} key={col.key}>
                         <Typography
                             variant="body2"
-                            key={col.key}
                             noWrap
                             sx={{
                                 display: { xs: 'none', sm: 'block' },

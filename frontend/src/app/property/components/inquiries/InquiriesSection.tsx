@@ -22,6 +22,23 @@ export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
         actionLoadingId,
     } = useInquiries({ propertyIds });
 
+    // --- Cambiado: ahora el loading cubre todo ---
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    p: 3,
+                }}
+            >
+                <CircularProgress size={36} />
+            </Box>
+        );
+    }
+
     return (
         <>
             {/* -------- filtros -------- */}
@@ -40,11 +57,7 @@ export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
 
             {/* -------- lista -------- */}
             <Box sx={{ px: 2, flexGrow: 1, overflowY: 'auto' }}>
-                {loading ? (
-                    <Box sx={{ textAlign: 'center', py: 3 }}>
-                        <CircularProgress size={24} />
-                    </Box>
-                ) : errorList ? (
+                {errorList ? (
                     <Typography color="error" align="center" py={3}>
                         {errorList}
                     </Typography>

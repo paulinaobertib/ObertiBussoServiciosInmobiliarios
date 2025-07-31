@@ -16,32 +16,44 @@ export function useUsers(initialFilter: Filter = "TODOS") {
   const [filter, setFilter] = useState<Filter>(initialFilter);
 
   /* ── selección ── */
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
 
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
-    );
-  }, []);
-
-  const isSelected = useCallback(
-    (id: string) => selectedIds.includes(id),
-    [selectedIds],
+  /**
+   * toggleSelect ahora acepta string | string[] | null para encajar con GridSection
+   */
+  const toggleSelect = useCallback(
+    (selectedInput: string | string[] | null) => {
+      let id: string | null;
+      if (Array.isArray(selectedInput)) {
+        id =
+          selectedInput.length > 0
+            ? selectedInput[selectedInput.length - 1]
+            : null;
+      } else {
+        id = selectedInput;
+      }
+      setSelected((prev) => (prev === id ? null : id));
+    },
+    []
   );
 
+  const isSelected = useCallback((id: string) => selected === id, [selected]);
+
   /* ── helper roles ── */
-  const enrich = useCallback(async (list: User[]) =>
-    Promise.all(
-      list.map(async u => {
-        try {
-          const res = await getRoles(u.id);
-          return { ...u, roles: res.data };
-        } catch {
-          return { ...u, roles: [] };
-        }
-      }),
-    ),
-  [],);
+  const enrich = useCallback(
+    async (list: User[]) =>
+      Promise.all(
+        list.map(async (u) => {
+          try {
+            const res = await getRoles(u.id);
+            return { ...u, roles: res.data };
+          } catch {
+            return { ...u, roles: [] };
+          }
+        })
+      ),
+    []
+  );
 
   /* ── carga ── */
   const load = useCallback(async () => {
@@ -53,8 +65,10 @@ export function useUsers(initialFilter: Filter = "TODOS") {
           : (await getAllUsers()).data;
 
       let enriched = await enrich(base);
-      if (filter === "ADMIN") enriched = enriched.filter(u => u.roles.includes("admin"));
-      if (filter === "USER") enriched = enriched.filter(u => u.roles.includes("user"));
+      if (filter === "ADMIN")
+        enriched = enriched.filter((u) => u.roles.includes("admin"));
+      if (filter === "USER")
+        enriched = enriched.filter((u) => u.roles.includes("user"));
 
       setUsers(enriched);
     } finally {
@@ -62,13 +76,26 @@ export function useUsers(initialFilter: Filter = "TODOS") {
     }
   }, [filter, enrich]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   /* ── buscador ── */
-  const fetchAll   = useCallback(() => getAllUsers().then(r => enrich(r.data)), [enrich]);
+  const fetchAll = useCallback(async () => {
+    const res = await getAllUsers();
+    const enriched = await enrich(res.data);
+    setUsers(enriched); // ← vuelco al state
+    return enriched;
+  }, [enrich]);
+
   const fetchByText = useCallback(
-    (txt: string) => searchUsersByText(txt).then(r => enrich(r.data)),
-    [enrich],
+    async (txt: string) => {
+      const list = await searchUsersByText(txt);  // ahora devuelve Array<User>
+      const enriched = await enrich(list);
+      setUsers(enriched);
+      return enriched;
+    },
+    [enrich]
   );
 
   return {
@@ -81,6 +108,7 @@ export function useUsers(initialFilter: Filter = "TODOS") {
     fetchAll,
     fetchByText,
     /* selección */
+    selected,
     toggleSelect,
     isSelected,
   };

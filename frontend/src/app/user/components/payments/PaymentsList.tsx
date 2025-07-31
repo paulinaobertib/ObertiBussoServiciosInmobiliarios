@@ -4,8 +4,8 @@ import { PaymentItem } from './PaymentItem';
 
 interface Props {
     payments: Payment[];
-    onEdit?: (p: Payment) => void;
-    onDelete?: (p: Payment) => void;
+    onEdit?: (p: Payment) => void | Promise<void>;
+    onDelete?: (p: Payment) => void | Promise<void>;
 }
 
 export const PaymentsList = ({ payments, onEdit, onDelete }: Props) => {
@@ -18,7 +18,7 @@ export const PaymentsList = ({ payments, onEdit, onDelete }: Props) => {
     }
 
     return (
-        <List dense>
+        <List>
             {payments.map((p) => (
                 <PaymentItem
                     key={p.id}

@@ -11,8 +11,7 @@ interface Props {
   onToggleStatus: (c: Contract) => void;
 }
 
-export const ContractList = ({ contracts, onRegisterPayment, onIncrease, onHistory, onDelete, onToggleStatus,
-}: Props) => (
+export const ContractList = ({ contracts, onRegisterPayment, onIncrease, onHistory, onDelete, onToggleStatus }: Props) => (
   <Grid container spacing={4}>
     {contracts.map((c) => (
       <Grid size={{ xs: 12, sm: 6 }} key={c.id}>

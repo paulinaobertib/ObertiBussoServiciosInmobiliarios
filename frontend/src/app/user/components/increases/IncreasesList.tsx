@@ -17,7 +17,7 @@ export const IncreasesList = ({ increases, onDelete }: Props) => {
   }
 
   return (
-    <List dense>
+    <List>
       {increases.map((inc) => (
         <IncreaseItem
           key={inc.id}

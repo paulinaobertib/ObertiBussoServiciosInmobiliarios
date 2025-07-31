@@ -12,6 +12,7 @@ import { UsersSection } from '../app/user/components/users/panel/UsersSection';
 import { InquiriesSection } from '../app/property/components/inquiries/InquiriesSection';
 import ReplyIcon from '@mui/icons-material/Reply';
 import { ROUTES } from '../lib';
+import { SurveysSection } from '../app/property/components/survey/SurveySection';
 
 export default function AdministratorPage() {
     const { resetSelected, pickItem } = usePropertiesContext();
@@ -44,6 +45,11 @@ export default function AdministratorPage() {
             content: <InquiriesSection />,
         },
         {
+            key: 'surveys',
+            label: 'RATING',
+            content: <SurveysSection />,
+        },
+        {
             key: 'appointments',
             label: 'TURNERO',
             content: null,
@@ -71,20 +77,20 @@ export default function AdministratorPage() {
                 </Button>
             ),
         },
-        // {
-        //     key: 'statistics',
-        //     label: 'ESTADISTICAS',
-        //     content: null,
-        //     ButtonComponent: () => (
-        //         <Button
-        //             variant='outlined'
-        //             onClick={() => navigate(ROUTES.STATS)}
-        //             sx={{ textTransform: 'none', minWidth: 110 }}
-        //         >
-        //             ESTADISTICAS
-        //         </Button>
-        //     ),
-        // }
+        {
+            key: 'statistics',
+            label: 'ESTADISTICAS',
+            content: null,
+            ButtonComponent: () => (
+                <Button
+                    variant='outlined'
+                    onClick={() => navigate(ROUTES.STATS)}
+                    sx={{ textTransform: 'none', minWidth: 110 }}
+                >
+                    ESTADISTICAS
+                </Button>
+            ),
+        }
     ];
 
     return (
