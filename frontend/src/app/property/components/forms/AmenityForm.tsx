@@ -13,17 +13,23 @@ interface Props {
 
 export const AmenityForm = ({ action, item, onDone }: Props) => {
     const { refreshAmenities } = usePropertiesContext();
-    const { form, setForm, invalid, run, loading } = useCategories(
-        { id: item?.id ?? 0, name: item?.name ?? '' },
+
+    const initialPayload = {
+        id: item?.id ?? 0,
+        name: item?.name ?? ''
+    };
+
+    const { form, setForm, invalid, run, loading } = useCategories<Amenity>({
+        initial: initialPayload,
         action,
-        async (payload) => {
+        save: async (payload) => {
             if (action === 'add') return postAmenity(payload);
             if (action === 'edit') return putAmenity(payload);
             if (action === 'delete') return deleteAmenity(payload);
         },
-        refreshAmenities,
+        refresh: refreshAmenities,
         onDone,
-    );
+    });
 
     return (
         <>

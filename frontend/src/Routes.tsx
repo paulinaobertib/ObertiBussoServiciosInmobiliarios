@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import {
     Routes as RoutesDom,
     Route,
@@ -25,44 +25,57 @@ import { useGlobalAlert } from './app/shared/context/AlertContext';
 import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
-// import ViewStatsPage from './pages/ViewStatsPage';
+import ViewStatsPage from './pages/ViewStatsPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
     const { isAdmin, loading } = useAuthContext();
     const { showAlert } = useGlobalAlert();
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
+    useEffect(() => {
+        if (!loading && !isAdmin) {
+            showAlert('No tienes permisos de administrador', 'error');
+            setShouldRedirect(true);
+        }
+    }, [loading, isAdmin, showAlert]);
 
     if (loading) return null;
-    if (!isAdmin) {
-        showAlert('No tienes permisos de administrador', 'error');
-        return <Navigate to={ROUTES.HOME_APP} replace />;
-    }
+    if (shouldRedirect) return <Navigate to={ROUTES.HOME_APP} replace />;
     return <>{children}</>;
 }
 
 function RequireLogin({ children }: { children: ReactNode }) {
     const { isLogged, loading } = useAuthContext();
     const { showAlert } = useGlobalAlert();
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
+    useEffect(() => {
+        if (!loading && !isLogged) {
+            showAlert('Debes loguearte para acceder', 'error');
+            setShouldRedirect(true);
+        }
+    }, [loading, isLogged, showAlert]);
 
     if (loading) return null;
-    if (!isLogged) {
-        showAlert('Debes loguearte para acceder', 'error');
-        return <Navigate to={ROUTES.HOME_APP} replace />;
-    }
+    if (shouldRedirect) return <Navigate to={ROUTES.HOME_APP} replace />;
     return <>{children}</>;
 }
 
 export function RequireAdminOrTenant({ children }: { children: ReactNode }) {
     const { isAdmin, isTenant, loading } = useAuthContext();
     const { showAlert } = useGlobalAlert();
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
+    useEffect(() => {
+        if (!loading && !isAdmin && !isTenant) {
+            showAlert("No tienes permisos para acceder a esta sección", "error");
+            setShouldRedirect(true);
+        }
+    }, [loading, isAdmin, isTenant, showAlert]);
 
     if (loading) return null;
-
-    if (!isAdmin && !isTenant) {
-        showAlert("No tienes permisos para acceder a esta sección", "error");
-        return <Navigate to={ROUTES.HOME_APP} replace />;
-    }
-
+    if (shouldRedirect) return <Navigate to={ROUTES.HOME_APP} replace />;
     return <>{children}</>;
 }
 
@@ -140,14 +153,14 @@ export default function Routes() {
                     </RequireAdmin>
                 }
             />
-            {/* <Route
+            <Route
                 path={ROUTES.STATS}
                 element={
                     <RequireAdmin>
                         <ViewStatsPage />
                     </RequireAdmin>
                 }
-            /> */}
+            />
 
             {/* ---- Rutas protegidas por login ---- */}
             <Route
@@ -184,7 +197,6 @@ export default function Routes() {
             <Route path={ROUTES.NEWS} element={<NewsPage />} />
             <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
             <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
-
             <Route path={ROUTES.SURVEY} element={<SurveyPage />} />
 
             {/* ---- Catch-all ---- */}

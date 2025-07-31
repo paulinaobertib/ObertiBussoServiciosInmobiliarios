@@ -12,10 +12,6 @@ import { Owner } from "../types/owner";
 import { Neighborhood } from "../types/neighborhood";
 import { Type } from "../types/type";
 
-/* ------------------------------------------------------------------ */
-/* UTIL: generar un Property seguro—nunca deja owner/neighborhood/type
-/* como undefined para evitar errores .id
-/* ------------------------------------------------------------------ */
 function makeSafeProperty(raw?: Partial<Property>): Property {
   const now = new Date().toISOString();
 
@@ -60,9 +56,9 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     financing: raw?.financing ?? false,
     showPrice: raw?.showPrice ?? false,
 
-    /* ---------- ¡los que faltaban! ---------- */
     street: raw?.street ?? "",
     number: raw?.number ?? "",
+    outstanding: raw?.outstanding ?? false,
 
     /* ---------- relaciones ---------- */
     owner: raw?.owner ?? emptyOwner,
@@ -81,14 +77,14 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
 /* ------------------------------------------------------------------ */
 /* HOOK UNIFICADO */
 /* ------------------------------------------------------------------ */
-export function usePropertyForm(
+export const usePropertyForm = (
   initialData?: Property,
   onImageSelect?: (
     main: string | File | null,
     gallery: (string | File)[]
   ) => void,
   onValidityChange?: (valid: boolean) => void
-) {
+) => {
   /* ---------- estado base ---------- */
   const [form, setForm] = useState<Property>(makeSafeProperty(initialData));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -344,4 +340,4 @@ export function usePropertyForm(
     getUpdateData,
     check,
   };
-}
+};

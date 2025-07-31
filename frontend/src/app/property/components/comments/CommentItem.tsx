@@ -3,13 +3,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { Comment } from '../../types/comment';
 
-export interface CommentItemProps {
+export interface Props {
     comment: Comment;
     onEdit: () => void;
     onDelete: () => void;
 }
 
-export const CommentItem = ({ comment, onEdit, onDelete }: CommentItemProps) => {
+export const CommentItem = ({ comment, onEdit, onDelete }: Props) => {
     const date = new Date(comment.date);
     const isNew = Date.now() - date.getTime() < 3 * 24 * 60 * 60 * 1000;
 

@@ -221,6 +221,20 @@ export const NavBar = () => {
                 SOY INQUILINO
               </Button>
             )}
+
+            {isAdmin && (
+              <Button
+                onClick={() => navigate(ROUTES.CONTRACT)}
+                sx={{
+                  color: palette.common.white,
+                  textTransform: 'none',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                }}
+              >
+                CONTRATOS
+              </Button>
+            )}
+
           </Box>
 
           {/* Desktop Actions */}

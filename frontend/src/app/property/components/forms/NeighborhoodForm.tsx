@@ -13,24 +13,26 @@ interface Props {
 
 export const NeighborhoodForm = ({ action, item, onDone }: Props) => {
     const { refreshNeighborhoods } = usePropertiesContext();
-    const { form, setForm, invalid, run, loading } = useCategories(
-        {
-            id: item?.id ?? 0,
-            name: item?.name ?? '',
-            city: item?.city ?? '',
-            type: item?.type ?? '',
-        },
+
+    const initialPayload = {
+        id: item?.id ?? 0,
+        name: item?.name ?? '',
+        city: item?.city ?? '',
+        type: item?.type ?? '',
+    };
+
+    const { form, setForm, invalid, run, loading } = useCategories<Neighborhood>({
+        initial: initialPayload,
         action,
-        async payload => {
-            if (action === 'add')
-                return postNeighborhood(payload as NeighborhoodCreate);
-            if (action === 'edit')
-                return putNeighborhood(payload as Neighborhood);
-            if (action === 'delete' && item) return deleteNeighborhood(item);
+        save: async (payload) => {
+            if (action === 'add') return postNeighborhood(payload as NeighborhoodCreate);
+            if (action === 'edit') return putNeighborhood(payload as Neighborhood);
+            if (action === 'delete') return deleteNeighborhood(payload as Neighborhood);
         },
-        refreshNeighborhoods,
-        onDone
-    );
+        refresh: refreshNeighborhoods,
+        onDone,
+    });
+
 
     return (
         <>

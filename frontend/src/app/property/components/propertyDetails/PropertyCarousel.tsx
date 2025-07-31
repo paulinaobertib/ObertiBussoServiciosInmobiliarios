@@ -6,8 +6,8 @@ import { getFullImageUrl } from '../../utils/getFullImageUrl';
 
 interface Image { id: number; url: string }
 interface Props {
-  images: Image[];      // galería SIN la principal
-  mainImage: string;    // url principal
+  images: Image[];
+  mainImage: string;
   title: string;
 }
 

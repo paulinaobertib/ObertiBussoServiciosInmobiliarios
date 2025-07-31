@@ -1,13 +1,12 @@
-// src/app/property/components/categories/CategoryItem.tsx
-import React from 'react';
 import { Box, Typography, IconButton, useTheme, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-interface ColumnDef { label: string; key: string }
-interface CategoryItemProps {
+export interface Column { label: string; key: string; }
+
+export interface Props {
     item: any;
-    columns: ColumnDef[];
+    columns: Column[];
     gridColumns: string;
     isSelected: (id: number) => boolean;
     toggleSelect: (id: number) => void;
@@ -15,15 +14,7 @@ interface CategoryItemProps {
     onDelete: (item: any) => void;
 }
 
-export const CategoryItem: React.FC<CategoryItemProps> = ({
-    item,
-    columns,
-    gridColumns,
-    isSelected,
-    toggleSelect,
-    onEdit,
-    onDelete,
-}) => {
+export const CategoryItem = ({ item, columns, gridColumns, isSelected, toggleSelect, onEdit, onDelete }: Props) => {
     const theme = useTheme();
 
     return (

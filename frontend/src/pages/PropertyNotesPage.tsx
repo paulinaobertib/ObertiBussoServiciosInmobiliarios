@@ -1,3 +1,4 @@
+// /pages/PropertyNotesPage.tsx
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, IconButton, CircularProgress, Card } from '@mui/material';
@@ -13,24 +14,36 @@ export const PropertyNotesPage = () => {
     const { id } = useParams<{ id: string }>();
     const propertyId = Number(id);
 
-    const { property, comments, maintenances, loading, refreshComments, refreshMaintenances } = usePropertyNotes(propertyId);
+    const {
+        property,
+        comments,
+        maintenances,
+        loading,
+        loadingComments,
+        loadingMaintenances,
+        refreshComments,
+        refreshMaintenances,
+    } = usePropertyNotes(propertyId);
 
-    const [activeTab, setActiveTab] =
-        useState<'comments' | 'maintenances'>('comments');
+    const [activeTab, setActiveTab] = useState<'comments' | 'maintenances'>('comments');
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-                <CircularProgress />
-            </Box>
+            <BasePage>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+                    <CircularProgress />
+                </Box>
+            </BasePage>
         );
     }
 
     if (!property) {
         return (
-            <Typography variant="h6" color="text.secondary" sx={{ p: 3 }}>
-                Propiedad no encontrada.
-            </Typography>
+            <BasePage>
+                <Typography variant="h6" color="text.secondary" sx={{ p: 3 }}>
+                    Propiedad no encontrada.
+                </Typography>
+            </BasePage>
         );
     }
 
@@ -46,7 +59,8 @@ export const PropertyNotesPage = () => {
 
             <BasePage>
                 {/* — Header — */}
-                <Card variant='elevation'
+                <Card
+                    variant="elevation"
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -66,12 +80,14 @@ export const PropertyNotesPage = () => {
                 <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                     <Button
                         variant={activeTab === 'comments' ? 'contained' : 'outlined'}
-                        onClick={() => setActiveTab('comments')}>
+                        onClick={() => setActiveTab('comments')}
+                    >
                         Comentarios ({comments.length})
                     </Button>
                     <Button
                         variant={activeTab === 'maintenances' ? 'contained' : 'outlined'}
-                        onClick={() => setActiveTab('maintenances')}>
+                        onClick={() => setActiveTab('maintenances')}
+                    >
                         Mantenimientos ({maintenances.length})
                     </Button>
                 </Box>
@@ -79,15 +95,15 @@ export const PropertyNotesPage = () => {
                 {/* — Sections — */}
                 {activeTab === 'comments' ? (
                     <CommentSection
-                        propertyId={propertyId}            // <― PASAMOS propertyId
-                        loading={false}
+                        propertyId={propertyId}
+                        loading={loadingComments}
                         items={comments}
                         refresh={refreshComments}
                     />
                 ) : (
                     <MaintenanceSection
-                        propertyId={propertyId}            // <― PASAMOS propertyId
-                        loading={false}
+                        propertyId={propertyId}
+                        loading={loadingMaintenances}
                         items={maintenances}
                         refresh={refreshMaintenances}
                     />

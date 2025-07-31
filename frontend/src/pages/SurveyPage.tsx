@@ -1,7 +1,7 @@
-import { Survey } from "../app/property/components/survey/Survey";
+import { Survey } from "../app/property/components/survey/SurveyForm";
 import BasePage from "./BasePage";
 
-export default function SurveyPage () {
+export default function SurveyPage() {
     return (
         <BasePage maxWidth={false}>
             <Survey />

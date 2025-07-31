@@ -1,12 +1,10 @@
-import { useCallback, useMemo } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
-import { useCatalog } from '../../hooks/useCatalog';
-import { PropertyCard } from './PropertyCard';
+import { useCallback } from 'react';
 import { Property } from '../../types/property';
-import { useAuthContext } from '../../../user/context/AuthContext';
+import { useCatalog } from '../../hooks/useCatalog';
+import { CatalogList } from './CatalogList';
 
-interface CatalogProps {
-  properties: Property[];
+interface Props {
+  properties?: Property[];
   mode: 'normal' | 'edit' | 'delete';
   onFinishAction: () => void;
   selectionMode?: boolean;
@@ -14,77 +12,44 @@ interface CatalogProps {
   isSelected?: (id: number) => boolean;
 }
 
-export const PropertyCatalog = ({
-  properties,
-  mode,
-  onFinishAction,
-  selectionMode = false,
-  toggleSelection,
-  isSelected,
-}: CatalogProps) => {
-  const { loading, handleClick, DialogUI } = useCatalog(onFinishAction, properties);
-  const { isAdmin } = useAuthContext();
+export const PropertyCatalog = ({ properties, mode, onFinishAction, selectionMode = false, toggleSelection, isSelected, }: Props) => {
 
-  // Log para depurar las propiedades recibidas
-  console.log('PropertyCatalog properties:', properties);
+  const { propertiesList, handleClick, DialogUI, }
+    = useCatalog({ onFinish: onFinishAction, externalProperties: properties, });
 
-  const filtered = useMemo(() => {
-    if (isAdmin) return properties;
-    return properties.filter(
-      p => p.status?.toLowerCase() === 'disponible' || !p.status
-    );
-  }, [properties, isAdmin]);
-
-  const sortedList = useMemo(
-    () =>
-      [...filtered].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      ),
-    [filtered]
-  );
-
-  if (loading) return <CircularProgress size={48} />;
-
-  if (!loading && sortedList.length === 0) {
-    return (
-      <Typography>
-        {isAdmin
-          ? 'No hay propiedades cargadas.'
-          : 'No hay propiedades disponibles.'}
-      </Typography>
-    );
-  }
-
-  const handleCardClick = useCallback(
+  // callback para los clicks en cards
+  const onCardClick = useCallback(
     (prop: Property) => handleClick(mode, prop),
-    [handleClick, mode],
+    [handleClick, mode]
   );
+
+  // spinner mientras carga o mientras propertiesList sigue en null
+  // if (loading || propertiesList === null) {
+  //   return (
+  //     <Box
+  //       sx={{
+  //         flex: 1,
+  //         display: 'flex',
+  //         alignItems: 'center',
+  //         justifyContent: 'center',
+  //         minHeight: 200,
+  //       }}
+  //     >
+  //       <CircularProgress size={36}
+  //       />
+  //     </Box>
+  //   );
+  // }
 
   return (
     <>
-      <Box
-        sx={{
-          p: 2,
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            lg: 'repeat(3, 1fr)',
-          },
-          gap: 3,
-        }}
-      >
-        {sortedList.map(prop => (
-          <PropertyCard
-            key={prop.id}
-            property={prop}
-            selectionMode={selectionMode}
-            toggleSelection={toggleSelection}
-            isSelected={isSelected}
-            onClick={() => handleCardClick(prop)}
-          />
-        ))}
-      </Box>
+      <CatalogList
+        properties={propertiesList ?? []}
+        selectionMode={selectionMode}
+        toggleSelection={toggleSelection}
+        isSelected={isSelected}
+        onCardClick={onCardClick}
+      />
       {DialogUI}
     </>
   );

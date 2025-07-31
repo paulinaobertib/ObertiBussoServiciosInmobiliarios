@@ -18,10 +18,12 @@ export const PropertyCard = ({
   isSelected = () => false,
   toggleSelection = () => { },
   onClick = () => { },
+
 }: Props) => {
   const theme = useTheme();
   const selected = selectionMode && isSelected(property.id);
   const { isAdmin } = useAuthContext();
+
   const src = useMemo(() => {
     if (typeof property.mainImage === 'string') return property.mainImage;
     return URL.createObjectURL(property.mainImage);
@@ -32,10 +34,7 @@ export const PropertyCard = ({
     toggleSelection(property.id);
   };
 
-  // Detectamos si es “nueva” 
-  const isNew =
-    Date.now() - new Date(property.date).getTime() <
-    3 * 24 * 60 * 60 * 1000; // ultimos 3 dias
+  const isNew = Date.now() - new Date(property.date).getTime() < 3 * 24 * 60 * 60 * 1000; // ultimos 3 dias
 
   const chipLabel =
     property.status === 'DISPONIBLE'
@@ -49,14 +48,19 @@ export const PropertyCard = ({
       }}
       sx={{
         display: 'flex',
+        position: "relative",
+        overflow: "visible",
         flexDirection: 'column',
         height: '100%',
         borderRadius: 2,
         cursor: selectionMode ? 'default' : 'pointer',
         transition: 'transform 0.1s',
-        '&:hover': { transform: 'scale(1.01)' }
+        '&:hover': { transform: 'scale(1.01)' },
+        backgroundColor: theme.palette.quaternary.main,
       }}
     >
+
+
 
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
@@ -68,10 +72,33 @@ export const PropertyCard = ({
             width: '100%',
             aspectRatio: '16/9',
             objectFit: 'cover',
-            backgroundColor: '#000'
+            backgroundColor: '#000',
+            borderTopLeftRadius: 8,
+            borderTopRightRadius: 8,
           }}
         />
 
+        {property.outstanding && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              bgcolor: "#ff9800",
+              color: "white",
+              px: 2,
+              py: 0.6,
+              fontSize: "0.8rem",
+              fontWeight: "bold",
+              letterSpacing: 1,
+              borderRadius: 2,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+            }}
+          >
+            DESTACADA
+          </Box>
+        )}
 
         {/* Chips agrupados */}
         <Box
@@ -136,8 +163,9 @@ export const PropertyCard = ({
         sx={{
           pb: 1,
           px: 2,
-          backgroundColor: theme.palette.quaternary.main,
           textAlign: 'center',
+          borderBottomLeftRadius: 8,    // redondea sólo arriba
+          borderBottomRightRadius: 8,
         }}
       >
         {/* Título */}

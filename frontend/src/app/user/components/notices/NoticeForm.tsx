@@ -10,15 +10,6 @@ export type NoticeFormHandle = {
     getUpdateData: () => any;
 };
 
-/**
- * Layout deseado:
- * ┌───────────────────────────────┬──────────────┐
- * │  Título (75 %)                │ Subir imagen │
- * ├───────────────────────────────┼──────────────┤
- * │  Descripción (75 %)           │  Preview     │
- * └───────────────────────────────┴──────────────┘
- * Preview adapta su alto al de Descripción
- */
 export const NoticeForm = forwardRef<NoticeFormHandle, any>(
     ({ initialData, onValidityChange }, ref) => {
         const f = useNoticeForm(initialData, onValidityChange);

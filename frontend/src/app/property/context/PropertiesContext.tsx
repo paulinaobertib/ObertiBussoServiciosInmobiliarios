@@ -1,6 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode, useMemo, useEffect } from 'react';
-
-/* ─── servicios de catálogo ─── */
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from 'react';
 import { getAllAmenities } from '../services/amenity.service';
 import { getAllOwners } from '../services/owner.service';
 import { getAllNeighborhoods } from '../services/neighborhood.service';
@@ -31,29 +29,23 @@ interface Ctx {
   ownersList: Owner[];
   neighborhoodsList: Neighborhood[];
   typesList: Type[];
-  propertiesList: Property[];
-  loading: boolean;
-  pickedItem: Picked | null;
+  propertiesList: Property[] | null;
   pickItem: (type: Picked['type'], value: any) => void;
-  currentCategory: Category | null;
   selected: SelectedIds;
   setSelected: (n: SelectedIds) => void;
-  toggleSelect: (id: number) => void;
+  toggleSelect: (category: Category, id: number) => void;
   resetSelected: () => void;
   refreshAmenities: () => Promise<void>;
   refreshOwners: () => Promise<void>;
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
   refreshProperties: () => Promise<void>;
-  data: any[] | null;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
-  errorProperty: string | null;
   comparisonItems: Property[];
   selectedPropertyIds: number[];
   toggleCompare: (id: number) => void;
-  addToComparison: (p: Property) => void;
   clearComparison: () => void;
   disabledCompare: boolean;
 }
@@ -61,104 +53,49 @@ interface Ctx {
 const Context = createContext<Ctx | null>(null);
 
 export function PropertyCrudProvider({ children }: { children: ReactNode }) {
-  /* — listados de items — */
+  // Listados de items
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
   const [ownersList, setOwnersList] = useState<Owner[]>([]);
   const [neighborhoodsList, setNeighborhoodsList] = useState<Neighborhood[]>([]);
   const [typesList, setTypesList] = useState<Type[]>([]);
-  const [propertiesList, setPropertiesList] = useState<Property[]>([]);
+  const [propertiesList, setPropertiesList] = useState<Property[] | null>(null);
 
-  /* — flags — */
-  const [loading, setLoading] = useState(false);
-
-  /* — picked y categoría actual — */
-  const [pickedItem, setPickedItem] = useState<Picked | null>(null);
-
+  // Picked item
+  const pickedItem = useRef<Picked | null>(null);
   const pickItem = useCallback(
-    (type: Picked['type'], value: any) =>
-      setPickedItem({ type, value } as Picked),
+    (type: Picked['type'], value: any) => {
+      pickedItem.current = { type, value } as Picked; // no re-render
+    },
     []
   );
 
-  const currentCategory = pickedItem?.type === 'category' ? pickedItem.value : null;
-
-  /* — data de listado dinámico — */
-  const [data, setData] = useState<any[] | null>(null);
-  const setDataIfCategory = (cat: Category, list: any[]) => {
-    if (currentCategory === cat) setData(list);
-  };
-
-  /* — refrescos — */
+  // Refrescos
   const refreshAmenities = useCallback(async () => {
-    setLoading(true);
-    try {
-      const list = await getAllAmenities();
-      const arr = Array.isArray(list) ? list : [];
-      setAmenitiesList(arr);
-      setDataIfCategory('amenity', arr);
-    } catch (e) {
-      console.error('refreshAmenities', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentCategory]);
-
-  const refreshOwners = useCallback(async () => {
-    setLoading(true);
-    try {
-      const list = await getAllOwners();
-      const arr = Array.isArray(list) ? list : [];
-      setOwnersList(arr);
-      setDataIfCategory('owner', arr);
-    } catch (e) {
-      console.error('refreshOwners', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentCategory]);
-
-  const refreshNeighborhoods = useCallback(async () => {
-    setLoading(true);
-    try {
-      const list = await getAllNeighborhoods();
-      const arr = Array.isArray(list) ? list : [];
-      setNeighborhoodsList(arr);
-      setDataIfCategory('neighborhood', arr);
-    } catch (e) {
-      console.error('refreshNeighborhoods', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentCategory]);
-
-  const refreshTypes = useCallback(async () => {
-    setLoading(true);
-    try {
-      const list = await getAllTypes();
-      const arr = Array.isArray(list) ? list : [];
-      setTypesList(arr);
-      setDataIfCategory('type', arr);
-    } catch (e) {
-      console.error('refreshTypes', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentCategory]);
-
-  const refreshProperties = useCallback(async () => {
-    setLoading(true);
-    try {
-      const list = await getAllProperties();
-      const arr = Array.isArray(list) ? list : [];
-      setPropertiesList(arr);
-    } catch (e) {
-      console.error('refreshProperties', e);
-    } finally {
-      setLoading(false);
-    }
+    const list = await getAllAmenities();
+    setAmenitiesList(Array.isArray(list) ? list : []);
   }, []);
 
-  /* — selección tradicional y buildSearchParams — */
+  const refreshOwners = useCallback(async () => {
+    const list = await getAllOwners();
+    setOwnersList(Array.isArray(list) ? list : []);
+  }, []);
+
+  const refreshNeighborhoods = useCallback(async () => {
+    const list = await getAllNeighborhoods();
+    setNeighborhoodsList(Array.isArray(list) ? list : []);
+  }, []);
+
+  const refreshTypes = useCallback(async () => {
+    const list = await getAllTypes();
+    setTypesList(Array.isArray(list) ? list : []);
+  }, []);
+
+  const refreshProperties = useCallback(async () => {
+    const list = await getAllProperties();
+    setPropertiesList(Array.isArray(list) ? list : []);
+  }, []);
+
+  // Selección de items
   const [selected, setSelected] = useState<SelectedIds>({
     owner: null,
     neighborhood: null,
@@ -171,9 +108,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const toggleSelect = (id: number) => {
-    if (!currentCategory) return;
-    if (currentCategory === 'amenity') {
+  const toggleSelect = (category: Category, id: number) => {
+    if (category === 'amenity') {
       setSelected(prev => ({
         ...prev,
         amenities: prev.amenities.includes(id) ? prev.amenities.filter(x => x !== id) : [...prev.amenities, id],
@@ -181,10 +117,11 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     } else {
       setSelected(prev => ({
         ...prev,
-        [currentCategory]: prev[currentCategory] === id ? null : id,
+        [category]: prev[category] === id ? null : id,
       }));
     }
   };
+
 
   const buildSearchParams = useCallback((numeric: Partial<SearchParams>) => {
     const amNames = selected.amenities
@@ -193,23 +130,14 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     return { ...numeric, amenities: amNames };
   }, [selected, amenitiesList]);
 
-  /* — detalle de propiedad — */
+  // Detalle de propiedad (si todavía lo usás)
   const [currentProperty, setCurrentProperty] = useState<Property | null>(null);
-  const [errorProperty, setErrorProperty] = useState<string | null>(null);
 
   const loadProperty = useCallback(async (id: number) => {
-    setLoading(true);
-    try {
-      setCurrentProperty(await getPropertyById(id));
-      setErrorProperty(null);
-    } catch {
-      setErrorProperty('No se pudo cargar');
-    } finally {
-      setLoading(false);
-    }
+    setCurrentProperty(await getPropertyById(id));
   }, []);
 
-  /* — comparación — */
+  // Comparación
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
 
@@ -243,9 +171,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const addToComparison = (p: Property) =>
-    setComparisonItems(prev => (prev.length < 2 ? [...prev, p] : prev));
-
   const clearComparison = () => {
     setComparisonItems([]);
     setSelectedPropertyIds([]);
@@ -264,10 +189,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         neighborhoodsList,
         typesList,
         propertiesList,
-        loading,
-        pickedItem,
         pickItem,
-        currentCategory,
         selected,
         setSelected,
         toggleSelect,
@@ -277,15 +199,12 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         refreshNeighborhoods,
         refreshTypes,
         refreshProperties,
-        data,
         buildSearchParams,
         currentProperty,
         loadProperty,
-        errorProperty,
         comparisonItems,
         selectedPropertyIds,
         toggleCompare,
-        addToComparison,
         clearComparison,
         disabledCompare,
       }}
