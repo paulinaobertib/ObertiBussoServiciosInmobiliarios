@@ -5,7 +5,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
 import type { User, Role } from "../../../types/user";
 
-interface UserItemProps {
+const ROLE_TRANSLATE: Record<Role, string> = {
+  admin: "Administrador",
+  user: "Usuario",
+  tenant: "Inquilino",
+};
+
+
+interface Props {
   user: User & { roles: Role[] };
 
   /* === NUEVO: selección de fila === */
@@ -18,28 +25,19 @@ interface UserItemProps {
   onRoles?: (u: User) => void;
 }
 
-export const UserItem = ({
-  user,
-  isSelected,
-  toggleSelect,
-  onEdit,
-  onDelete,
-  onRoles,
-}: UserItemProps) => {
+export const UserItem = ({ user, isSelected, toggleSelect, onEdit, onDelete, onRoles, }: Props) => {
   const theme = useTheme();
-  const gridTemplate = "1fr 1fr 1fr 1fr 75px";
-  const cellSx = {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  } as const;
+  const gridTemplate = "1fr 1fr 1fr 1fr 120px";
+  const cellSx = { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } as const;
+
+  const roles = user.roles.map(r => ROLE_TRANSLATE[r] || r).join(", ") || "—";
 
   /* ===== MOBILE data ===== */
   const mobileFields = [
     { label: "Nombre completo", value: `${user.firstName} ${user.lastName}` },
     { label: "Email", value: user.email },
     { label: "Teléfono", value: user.phone },
-    { label: "Roles", value: user.roles.join(", ") || "—" },
+    { label: "Roles", value: roles },
   ];
 
   /* ===== Helpers selección ===== */
@@ -106,12 +104,12 @@ export const UserItem = ({
         </Typography>
       </Tooltip>
 
-      <Tooltip title={user.roles.join(", ") || "—"} arrow>
+      <Tooltip title={roles} arrow>
         <Typography
           variant="body2"
           sx={{ ...cellSx, display: { xs: "none", sm: "block" } }}
         >
-          {user.roles.join(", ") || "—"}
+          {roles}
         </Typography>
       </Tooltip>
 

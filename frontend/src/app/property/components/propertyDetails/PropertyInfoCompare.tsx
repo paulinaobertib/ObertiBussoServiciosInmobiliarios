@@ -1,13 +1,5 @@
-// src/app/property/components/PropertyInfoCompare.tsx
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Chip,
-  Stack,
-  Divider,
-  useTheme,
-} from '@mui/material';
+import { Box, Typography, Chip, Stack, Divider, useTheme, } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import HotelIcon from '@mui/icons-material/Hotel';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -21,13 +13,14 @@ import { usePropertiesContext } from '../../context/PropertiesContext';
 interface Props { property: Property }
 
 type Amenity = string | { id?: string | number; name?: string; label?: string };
-const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
-const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
-const featureLabel = (v?: number | null, s?: string, p?: string) => (v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-');
 
 export const PropertyInfoCompare = ({ property }: Props) => {
   const theme = useTheme();
   const { comparisonItems } = usePropertiesContext();
+
+  const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
+  const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
+  const featureLabel = (v?: number | null, s?: string, p?: string) => (v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-');
 
   // Prepare features
   type Key = 'bedrooms' | 'bathrooms' | 'rooms' | 'area' | 'coveredArea';

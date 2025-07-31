@@ -6,19 +6,14 @@ import { CommentForm } from '../forms/CommentForm';
 import { CommentList } from './CommentList';
 import { deleteComment } from '../../services/comment.service';
 
-export interface CommentSectionProps {
+export interface Props {
   propertyId: number;
   loading: boolean;
   items: Comment[];
   refresh: () => Promise<void>;
 }
 
-export const CommentSection = ({
-  propertyId,
-  loading,
-  items,
-  refresh,
-}: CommentSectionProps) => {
+export const CommentSection = ({ propertyId, loading, items, refresh, }: Props) => {
   const [action, setAction] = useState<'add' | 'edit'>('add');
   const [selected, setSelected] = useState<Comment>();
 
@@ -46,7 +41,7 @@ export const CommentSection = ({
         </Box>
 
         <CommentForm
-          propertyId={propertyId}     // <― PASAMOS id al form
+          propertyId={propertyId}
           action={action}
           item={selected}
           refresh={refresh}

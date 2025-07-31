@@ -10,11 +10,11 @@ type InquiryFormFields = {
   description: string;
 };
 
-interface UseInquiryFormArgs {
+interface Props {
   propertyIds?: number[];
 }
 
-export function useInquiryForm({ propertyIds }: UseInquiryFormArgs = {}) {
+export const useInquiryForm = ({ propertyIds }: Props = {}) => {
   const { info, isLogged } = useAuthContext();
 
   const [form, setForm] = useState<InquiryFormFields>({
@@ -85,4 +85,4 @@ export function useInquiryForm({ propertyIds }: UseInquiryFormArgs = {}) {
     handleChange,
     handleSubmit,
   };
-}
+};

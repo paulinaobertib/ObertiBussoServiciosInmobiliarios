@@ -18,7 +18,7 @@ export const AppointmentUserSection = () => {
   if (userLoading) {
     return (
       <Box display="flex" justifyContent="center" p={3}>
-        <CircularProgress size={28} />
+        <CircularProgress size={36} />
       </Box>
     );
   }

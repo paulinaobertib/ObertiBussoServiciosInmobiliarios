@@ -1,53 +1,64 @@
-// src/app/property/hooks/usePropertyNotes.ts
-import { useState, useEffect, useCallback } from 'react';
-import { getPropertyById } from '../services/property.service';
-import { getCommentsByPropertyId } from '../services/comment.service';
-import { getMaintenancesByPropertyId } from '../services/maintenance.service';
-import type { Property } from '../types/property';
-import type { Comment } from '../types/comment';
-import type { Maintenance } from '../types/maintenance';
+import { useState, useEffect, useCallback } from "react";
+import { getPropertyById } from "../services/property.service";
+import { getCommentsByPropertyId } from "../services/comment.service";
+import { getMaintenancesByPropertyId } from "../services/maintenance.service";
 
-export function usePropertyNotes(propertyId?: number) {
-  const [property, setProperty] = useState<Property | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [maint, setMaint] = useState<Maintenance[]>([]);
+export const usePropertyNotes = (propertyId: number) => {
+  const [property, setProperty] = useState<any>();
+  const [comments, setComments] = useState<any[]>([]);
+  const [maintenances, setMaintenances] = useState<any[]>([]);
+
+  // Loading global para primer carga
   const [loading, setLoading] = useState(true);
 
+  // Loading independientes por sección
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [loadingMaintenances, setLoadingMaintenances] = useState(false);
+
   useEffect(() => {
-    if (!propertyId) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const [p, c, m] = await Promise.all([
-          getPropertyById(propertyId),
-          getCommentsByPropertyId(propertyId),
-          getMaintenancesByPropertyId(propertyId),
-        ]);
-        setProperty(p);
-        setComments(c);
-        setMaint(m);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    let mounted = true;
+    setLoading(true);
+    Promise.all([
+      getPropertyById(propertyId),
+      getCommentsByPropertyId(propertyId),
+      getMaintenancesByPropertyId(propertyId),
+    ])
+      .then(([prop, coms, mains]) => {
+        if (!mounted) return;
+        setProperty(prop);
+        setComments(coms ?? []);
+        setMaintenances(mains ?? []);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, [propertyId]);
 
   const refreshComments = useCallback(async () => {
-    if (!propertyId) return;
-    setComments(await getCommentsByPropertyId(propertyId));
+    setLoadingComments(true);
+    const coms = await getCommentsByPropertyId(propertyId);
+    setComments(coms ?? []);
+    setLoadingComments(false);
   }, [propertyId]);
 
   const refreshMaintenances = useCallback(async () => {
-    if (!propertyId) return;
-    setMaint(await getMaintenancesByPropertyId(propertyId));
+    setLoadingMaintenances(true);
+    const mains = await getMaintenancesByPropertyId(propertyId);
+    setMaintenances(mains ?? []);
+    setLoadingMaintenances(false);
   }, [propertyId]);
 
   return {
     property,
     comments,
-    maintenances: maint,
+    maintenances,
     loading,
+    loadingComments,
+    loadingMaintenances,
     refreshComments,
     refreshMaintenances,
   };
-}
+};

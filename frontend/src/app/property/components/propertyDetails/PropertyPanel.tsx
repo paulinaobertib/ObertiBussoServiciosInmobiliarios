@@ -11,7 +11,6 @@ interface Props {
 
 export const PropertyPanel = ({ property, InfoComponent, vertical = false }: Props) => {
 
-    /* …cálculo de imágenes igual que antes… */
     const main = typeof property.mainImage === 'string'
         ? property.mainImage
         : (property.mainImage as any).url;
@@ -29,7 +28,6 @@ export const PropertyPanel = ({ property, InfoComponent, vertical = false }: Pro
                 p: 3,
                 display: 'flex',
                 flexDirection: vertical ? 'column' : { xs: 'column', md: 'row' },
-
                 gap: vertical ? 0 : 3,           // sin espacio extra en vertical
 
             }}
