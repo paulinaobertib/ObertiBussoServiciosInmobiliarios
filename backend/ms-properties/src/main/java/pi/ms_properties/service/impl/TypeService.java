@@ -2,11 +2,13 @@ package pi.ms_properties.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Type;
 import pi.ms_properties.repository.ITypeRepository;
 import pi.ms_properties.service.interf.ITypeService;
+import pi.ms_properties.specification.TypeSpecification;
 
 import java.util.List;
 
@@ -60,5 +62,12 @@ public class TypeService implements ITypeService {
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el tipo con ID: " + id));
 
         return ResponseEntity.ok(type);
+    }
+
+    @Override
+    public ResponseEntity<List<Type>> findBy(String search) {
+        Specification<Type> specification = TypeSpecification.textSearch(search);
+        List<Type> result = typeRepository.findAll(specification);
+        return ResponseEntity.ok(result);
     }
 }

@@ -311,6 +311,82 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "search",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/amenity/search?search=co",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"amenity",
+										"search"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "co"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -957,6 +1033,14 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "updateOutstanding",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
 						}
 					]
 				},
@@ -1228,6 +1312,82 @@
 										"type",
 										"getById",
 										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "search",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/type/search?search=de",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"type",
+										"search"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "de"
+										}
 									]
 								}
 							},
@@ -1804,13 +1964,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -2063,6 +2223,82 @@
 										"neighborhood",
 										"getById",
 										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "search",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/neighborhood/search?search=cor",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"neighborhood",
+										"search"
+									],
+									"query": [
+										{
+											"key": "search",
+											"value": "cor"
+										}
 									]
 								}
 							},
@@ -3563,13 +3799,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -3612,7 +3848,7 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/inquiries/status/1?status=CERRADA",
+									"raw": "http://localhost:8083/inquiries/status/3",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3621,13 +3857,7 @@
 									"path": [
 										"inquiries",
 										"status",
-										"1"
-									],
-									"query": [
-										{
-											"key": "status",
-											"value": "CERRADA"
-										}
+										"3"
 									]
 								}
 							},
@@ -5503,8 +5733,28 @@
 						{
 							"name": "compare",
 							"request": {
-								"method": "GET",
-								"header": []
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n  {\r\n    \"address\": \"Av. Colón 123, Córdoba, Argentina\",\r\n    \"price\": 95000,\r\n    \"area\": 70,\r\n    \"rooms\": 2,\r\n    \"bathrooms\": 1,\r\n    \"bedrooms\": 1,\r\n    \"coveredArea\": 60,\r\n    \"operation\": \"VENTA\",\r\n    \"type\": \"DEPARTAMENTO\",\r\n    \"amenities\": [\"Parrilla\", \"Pileta\"],\r\n    \"latitude\": null,\r\n    \"longitude\": null\r\n  },\r\n  {\r\n    \"address\": \"Calle Rivadavia 850, Córdoba, Argentina\",\r\n    \"price\": 87000,\r\n    \"area\": 65,\r\n    \"rooms\": 2,\r\n    \"bathrooms\": 1,\r\n    \"bedrooms\": 1,\r\n    \"coveredArea\": 60,\r\n    \"operation\": \"VENTA\",\r\n    \"type\": \"DEPARTAMENTO\",\r\n    \"amenities\": [\"Pileta\"],\r\n    \"latitude\": null,\r\n    \"longitude\": null\r\n  }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8083/compare",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"compare"
+									]
+								}
 							},
 							"response": []
 						}
@@ -7264,7 +7514,7 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "http://localhost:8081/appointments/status/3?status=RECHAZADO&address=Italia 2889",
+									"raw": "http://localhost:8081/appointments/status/1?status=ACEPTADO&address=Italia 2889",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -7273,12 +7523,12 @@
 									"path": [
 										"appointments",
 										"status",
-										"3"
+										"1"
 									],
 									"query": [
 										{
 											"key": "status",
-											"value": "RECHAZADO"
+											"value": "ACEPTADO"
 										},
 										{
 											"key": "address",
@@ -8122,13 +8372,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -8171,13 +8421,29 @@
 								"method": "POST",
 								"header": [],
 								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"date\": \"2025-05-27T15:30:00\",\r\n  \"title\": \"Corte de luz programado\",\r\n  \"description\": \"Habrá un corte de luz el próximo lunes por mantenimiento\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "userId",
+											"value": "484f3c6f-0683-4648-969c-d556742d965f",
+											"type": "text"
+										},
+										{
+											"key": "title",
+											"value": "Nueva ley",
+											"type": "text"
+										},
+										{
+											"key": "mainImage",
+											"type": "file",
+											"src": "/C:/users/pauli/Downloads/casa2.jpeg"
+										},
+										{
+											"key": "description",
+											"value": "Nueva ley",
+											"type": "text"
 										}
-									}
+									]
 								},
 								"url": {
 									"raw": "http://localhost:8081/notices/create",
@@ -8189,6 +8455,28 @@
 									"path": [
 										"notices",
 										"create"
+									],
+									"query": [
+										{
+											"key": "userId",
+											"value": "484f3c6f-0683-4648-969c-d556742d965f",
+											"disabled": true
+										},
+										{
+											"key": "title",
+											"value": "Ley alquler",
+											"disabled": true
+										},
+										{
+											"key": "mainImage",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "Nueva ley",
+											"disabled": true
+										}
 									]
 								}
 							},
@@ -8201,13 +8489,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -8250,16 +8538,38 @@
 								"method": "PUT",
 								"header": [],
 								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"id\": 2,\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"date\": \"2025-05-28T10:00:00\",\r\n  \"title\": \"Corte de luz reprogramado\",\r\n  \"description\": \"El corte será el martes en lugar del lunes\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "userId",
+											"value": "484f3c6f-0683-4648-969c-d556742d965f",
+											"type": "text"
+										},
+										{
+											"key": "date",
+											"value": "2025-07-13T23:18:08",
+											"type": "text"
+										},
+										{
+											"key": "title",
+											"value": "Update",
+											"type": "text"
+										},
+										{
+											"key": "mainImage",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "Actualizate porfa",
+											"type": "text"
 										}
-									}
+									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/notices/update",
+									"raw": "http://localhost:8081/notices/update/2",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -8267,7 +8577,8 @@
 									"port": "8081",
 									"path": [
 										"notices",
-										"update"
+										"update",
+										"2"
 									]
 								}
 							},
@@ -8963,13 +9274,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -9013,7 +9324,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"userId\": \"9c028d7c-76a8-430a-83b5-9a2f5caefae6\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-05-31T00:00:00\",\r\n  \"endDate\": \"2025-07-10T00:00:00\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"increase\": 10.0,\r\n  \"increaseFrequency\": 20\r\n}\r\n\r\n",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-05-31T00:00:00\",\r\n  \"endDate\": \"2025-09-10T00:00:00\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"increase\": 10.0,\r\n  \"increaseFrequency\": 20\r\n}\r\n\r\n",
 									"options": {
 										"raw": {
 											"language": "json"

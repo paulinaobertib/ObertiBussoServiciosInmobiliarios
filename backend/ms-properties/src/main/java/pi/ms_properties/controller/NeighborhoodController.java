@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.service.interf.INeighborhoodService;
@@ -43,5 +44,11 @@ public class NeighborhoodController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<NeighborhoodGetDTO> getById(@PathVariable Long id) {
         return neighborhoodService.getById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/search")
+    public ResponseEntity<List<NeighborhoodGetDTO>> searchNeighborhood(@RequestParam String search) {
+        return neighborhoodService.findBy(search);
     }
 }

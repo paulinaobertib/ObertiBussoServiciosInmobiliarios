@@ -43,4 +43,10 @@ public class TypeController {
     public ResponseEntity<Type> getById(@PathVariable Long id) {
         return typeService.getById(id);
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/search")
+    public ResponseEntity<List<Type>> searchType(@RequestParam String search) {
+        return typeService.findBy(search);
+    }
 }
