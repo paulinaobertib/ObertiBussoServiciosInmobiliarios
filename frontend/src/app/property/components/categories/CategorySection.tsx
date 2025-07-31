@@ -1,98 +1,157 @@
-import { useState } from 'react';
-import { Box, Typography, IconButton, useTheme, CircularProgress } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import { SearchBar } from '../../../shared/components/SearchBar';
-import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { useState, useCallback } from 'react';
+import { Box, CircularProgress, IconButton } from '@mui/material';
+import { GridColDef } from '@mui/x-data-grid';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { GridSection } from '../../../shared/components/GridSection';
 import { useCategorySection } from '../../hooks/useCategorySection';
-import { Category } from '../../context/PropertiesContext';
 import { translate } from '../../utils/translate';
 import { ModalItem, Info } from './CategoryModal';
-import { getAllOwners, getOwnersByText } from '../../services/owner.service';
-import { CategoryList } from './CategoryList';
 import { AmenityForm } from '../forms/AmenityForm';
 import { OwnerForm } from '../forms/OwnerForm';
 import { TypeForm } from '../forms/TypeForm';
 import { NeighborhoodForm } from '../forms/NeighborhoodForm';
-import { StatusForm } from '../forms/StatusForm';
-
-interface Props {
-  category: Category;
-}
+import type { Category } from '../../context/PropertiesContext';
 
 const formRegistry = {
   amenity: AmenityForm,
   owner: OwnerForm,
   type: TypeForm,
   neighborhood: NeighborhoodForm,
-  status: StatusForm,
 } as const;
 
-export const CategorySection = ({ category }: Props) => {
-  const theme = useTheme();
-  const { DialogUI } = useConfirmDialog();
-  const { data, loading, toggleSelect, isSelected, searchResults } = useCategorySection(category);
-  const [modal, setModal] = useState<Info | null>(null);
+export const CategorySection = ({ category }: { category: Category }) => {
+  const {
+    data,
+    loading,
+    refresh,
+    searchResults: onSearch,
+    toggleSelect: internalToggle,
+    isSelected: internalIsSelected,
+  } = useCategorySection(category);
 
-  const columnsMap: Record<Category, { label: string; key: string }[]> = {
+  // Adaptadores para GridSection
+  const gridToggleSelect = useCallback(
+    (selected: string | string[] | null) => {
+      const raw = Array.isArray(selected)
+        ? selected[selected.length - 1]
+        : selected;
+      const id = raw != null ? Number(raw) : null;
+      if (id !== null) internalToggle(id);
+    },
+    [internalToggle]
+  );
+
+  const gridIsSelected = useCallback(
+    (id: string) => internalIsSelected(Number(id)),
+    [internalIsSelected]
+  );
+
+  // Búsqueda local: no hay endpoint remoto, filtramos en memoria
+  const fetchAll = useCallback(async () => {
+    // Usamos refresh() para recargar datos si fuera necesario
+    await refresh();
+    // Mostramos todos
+    onSearch(data);
+    return data;
+  }, [refresh, onSearch, data]);
+
+  const fetchByText = useCallback(async (term: string) => {
+    const lower = term.trim().toLowerCase();
+    if (!lower) {
+      onSearch(data);
+      return data;
+    }
+    // Definimos campos a buscar según categoría
+    const columnsMap: Record<Category, string[]> = {
+      owner: ['fullName', 'email', 'phone'],
+      amenity: ['name'],
+      type: ['name'],
+      neighborhood: ['name', 'city', 'type'],
+    };
+    const keys = columnsMap[category] || [];
+    const filtered = data.filter(item =>
+      keys.some(key => {
+        const value = String((item as any)[key] ?? '').toLowerCase();
+        return value.includes(lower);
+      })
+    );
+    onSearch(filtered);
+    return filtered;
+  }, [category, data, onSearch]);
+
+  // Columnas dinámicas
+  const headersMap: Record<Category, { field: string; headerName: string }[]> = {
     owner: [
-      { label: 'Nombre Completo', key: 'fullName' },
-      { label: 'Email', key: 'email' },
-      { label: 'Teléfono', key: 'phone' },
+      { field: 'fullName', headerName: 'Nombre Completo' },
+      { field: 'email', headerName: 'Email' },
+      { field: 'phone', headerName: 'Teléfono' },
+    ],
+    amenity: [{ field: 'name', headerName: 'Nombre' }],
+    type: [
+      { field: 'name', headerName: 'Nombre' },
+      { field: 'hasRooms', headerName: 'Ambientes' },
+      { field: 'hasBedrooms', headerName: 'Dormitorios' },
+      { field: 'hasBathrooms', headerName: 'Baños' },
+      { field: 'hasCoveredArea', headerName: 'Área Cubierta' },
     ],
     neighborhood: [
-      { label: 'Nombre', key: 'name' },
-      { label: 'Ciudad', key: 'city' },
-      { label: 'Tipo de Barrio', key: 'type' },
-    ],
-    type: [
-      { label: 'Nombre', key: 'name' },
-      { label: 'Ambientes', key: 'hasRooms' },
-      { label: 'Dormitorios', key: 'hasBedrooms' },
-      { label: 'Baños', key: 'hasBathrooms' },
-      { label: 'Área Cubierta', key: 'hasCoveredArea' },
-    ],
-    amenity: [
-      { label: 'Nombre', key: 'name' },
+      { field: 'name', headerName: 'Nombre' },
+      { field: 'city', headerName: 'Ciudad' },
+      { field: 'type', headerName: 'Tipo' },
     ],
   };
 
-  const columns = columnsMap[category] || [];
-  const gridColumns = [
-    columns.length ? '1.3fr' : '',
-    ...Array(columns.length - 1).fill('1fr'),
-    '75px',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const columns: GridColDef[] = headersMap[category].map(col => ({
+    field: col.field,
+    headerName: col.headerName,
+    flex: 1,
+  }));
 
-  const handleAdd = () => setModal({
-    title: `Crear ${translate(category)}`,
-    Component: formRegistry[category],
-    componentProps: { action: 'add' as const },
+  // Columna de acciones
+  columns.push({
+    field: 'actions',
+    headerName: 'Acciones',
+    width: 120,
+    sortable: false,
+    filterable: false,
+    renderCell: params => {
+      const item = params.row;
+      return (
+        <Box>
+          <IconButton
+            size="small"
+            title="Editar"
+            onClick={() => handleOpen('edit', item)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            title="Eliminar"
+            onClick={() => handleOpen('delete', item)}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      );
+    },
   });
 
-  const handleEdit = (item: any) => setModal({
-    title: `Editar ${translate(category)}`,
-    Component: formRegistry[category],
-    componentProps: { action: 'edit' as const, item },
-  });
-
-  const handleDelete = (item: any) => setModal({
-    title: `Eliminar ${translate(category)}`,
-    Component: formRegistry[category],
-    componentProps: { action: 'delete' as const, item },
-  });
+  // Modal handlers
+  const [modal, setModal] = useState<Info | null>(null);
+  const handleOpen = (action: 'add' | 'edit' | 'delete', item?: any) => {
+    setModal({
+      title: `${action === 'add' ? 'Crear' : action === 'edit' ? 'Editar' : 'Eliminar'} ${translate(category)}`,
+      Component: formRegistry[category],
+      componentProps: { action, item },
+    });
+  };
 
   if (loading) {
     return (
       <Box
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: 3,
-        }}
+        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}
       >
         <CircularProgress size={36} />
       </Box>
@@ -100,62 +159,24 @@ export const CategorySection = ({ category }: Props) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      {/* Top bar */}
-      <Box
-        sx={{
-          px: 2, py: 1,
-          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-          borderBottom: `1px solid ${theme.palette.divider}`, flexShrink: 0,
-        }}
-      >
-        {category === 'owner' && (
-          <Box sx={{ mr: 1, width: { xs: '12rem', sm: '20rem' } }}>
-            <SearchBar
-              fetchAll={getAllOwners}
-              fetchByText={getOwnersByText}
-              onSearch={searchResults}
-              placeholder="Buscar propietario"
-              debounceMs={400}
-            />
-          </Box>
-        )}
-        <IconButton onClick={handleAdd}><AddIcon /></IconButton>
-      </Box>
-
-      {/* Headers (desktop) */}
-      <Box
-        sx={{
-          display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: gridColumns,
-          px: 2, py: 1, flexShrink: 0,
-        }}
-      >
-        {columns.map(c => <Typography key={c.key} fontWeight={700}
-          noWrap
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-
-        >{c.label}</Typography>)}
-        <Typography align="right" fontWeight={700}>Acciones</Typography>
-      </Box>
-
-      {/* Lista con scroll interno */}
-      <CategoryList
+    <>
+      <GridSection
         data={data}
+        loading={loading}
         columns={columns}
-        gridColumns={gridColumns}
-        toggleSelect={toggleSelect}
-        isSelected={isSelected}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onSearch={onSearch}
+        onCreate={() => handleOpen('add')}
+        onEdit={item => handleOpen('edit', item)}
+        onDelete={item => handleOpen('delete', item)}
+        toggleSelect={gridToggleSelect}
+        isSelected={gridIsSelected}
+        entityName={translate(category)}
+        showActions={true}
+        fetchAll={fetchAll}
+        fetchByText={fetchByText}
+        multiSelect={category === 'amenity'}
       />
-
       <ModalItem info={modal} close={() => setModal(null)} />
-      {DialogUI}
-    </Box>
+    </>
   );
 };

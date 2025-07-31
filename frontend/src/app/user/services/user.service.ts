@@ -88,8 +88,11 @@ export const searchUsersByText = async (searchTerm: string) => {
       params: { searchTerm },
       withCredentials: true,
     });
-    return data;
-  } catch (error) {
+    return data.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return [];
+    }
     console.error("Error searching users:", error);
     throw error;
   }

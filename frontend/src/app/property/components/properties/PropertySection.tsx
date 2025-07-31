@@ -1,18 +1,14 @@
-import { useState } from 'react';
-import { Box, Typography, IconButton, useTheme, CircularProgress } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { useCallback } from 'react';
+import { Box, CircularProgress, IconButton, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { usePropertyPanel } from '../../hooks/usePropertySection';
-import { ModalItem, Info } from '../categories/CategoryModal';
+import { GridSection } from '../../../shared/components/GridSection';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../../../shared/context/AlertContext';
-import { SearchBar } from '../../../shared/components/SearchBar';
+import { usePropertyPanel } from '../../hooks/usePropertySection';
 import { getAllProperties, getPropertiesByText, deleteProperty } from '../../services/property.service';
-import { getRowActions, RowAction } from '../ActionsRowItems';
-import { ROUTES } from '../../../../lib';
-import { PropertyList } from './PropertyList';
+import { getRowActions } from '../ActionsRowItems';
+import type { Property } from '../../types/property';
 
-interface ColumnDef { label: string; key: string }
 interface Props {
   toggleSelect?: (id: number) => void;
   isSelected?: (id: number) => boolean;
@@ -20,31 +16,59 @@ interface Props {
   filterAvailable?: boolean;
 }
 
-export const PropertySection = ({ toggleSelect: externalToggle, isSelected: externalIsSel, showActions = true,
+export const PropertySection = ({
+  toggleSelect: externalToggle,
+  isSelected: externalIsSelected,
+  showActions = true,
   filterAvailable = false,
 }: Props) => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
   const { showAlert } = useGlobalAlert();
-  const { data: properties, loading, onSearch, toggleSelect, isSelected, } = usePropertyPanel();
-  const selectFn = externalToggle ?? toggleSelect;
-  const isSelFn = externalIsSel ?? isSelected;
-  const [modal, setModal] = useState<Info | null>(null);
 
-  const columns: ColumnDef[] = [
-    { label: 'Título', key: 'title' },
-    { label: 'Operación', key: 'operation' },
-    { label: 'Precio', key: 'price' },
-  ];
+  const {
+    data: properties = [],
+    loading,
+    onSearch,
+    toggleSelect: internalToggle,
+    isSelected: internalIsSelected,
+  } = usePropertyPanel();
 
-  const gridCols = '1.7fr 0.6fr 1.4fr 75px';
+  // ——— Hooks y callbacks siempre al inicio —————————————————
 
-  const getActions = (prop: any): RowAction[] =>
-    showActions ? getRowActions('property', prop, setModal, ask, deleteProperty, showAlert) : [];
+  const gridToggleSelect = useCallback(
+    (selected: string | string[] | null) => {
+      const raw = Array.isArray(selected)
+        ? selected[selected.length - 1]
+        : selected;
+      const num = raw != null ? Number(raw) : null;
+      if (num !== null) (externalToggle ?? internalToggle)(num);
+    },
+    [externalToggle, internalToggle]
+  );
 
+  const gridIsSelected = useCallback(
+    (id: string) => {
+      const num = Number(id);
+      return (externalIsSelected ?? internalIsSelected)(num);
+    },
+    [externalIsSelected, internalIsSelected]
+  );
 
-  // ---- LOADING GLOBAL DE SECCIÓN ----
+  const fetchAll = useCallback(async () => {
+    const res = await getAllProperties();
+    onSearch(res);
+    return res;
+  }, [onSearch]);
+
+  const fetchByText = useCallback(async (term: string) => {
+    const list = await getPropertiesByText(term);
+    onSearch(list);
+    return list;
+  }, [onSearch]);
+
+  // —————————————————————————————————————————————————————————————
+
   if (loading) {
     return (
       <Box
@@ -61,83 +85,97 @@ export const PropertySection = ({ toggleSelect: externalToggle, isSelected: exte
     );
   }
 
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      {/* Top bar */}
-      <Box
-        sx={{
-          px: 2,
-          py: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          flexShrink: 0,
-        }}
-      >
-        <Box sx={{ width: { xs: '12rem', sm: '20rem' }, mr: 1 }}>
-          <SearchBar
-            fetchAll={getAllProperties}
-            fetchByText={getPropertiesByText}
-            onSearch={onSearch}
-            placeholder="Buscar propiedad"
-            debounceMs={400}
-          />
-        </Box>
-        <IconButton onClick={() => navigate(ROUTES.NEW_PROPERTY)}>
-          <AddIcon />
-        </IconButton>
-      </Box>
+  // Filtrado opcional de “disponibles”
+  const rows = filterAvailable
+    ? properties.filter(
+      (p) => !p.status || p.status.toLowerCase() === 'disponible'
+    )
+    : properties;
 
-      {/* Encabezados */}
-      <Box
-        sx={{
-          display: { xs: 'none', sm: 'grid' },
-          gridTemplateColumns: gridCols,
-          px: 2,
-          py: 1,
-          flexShrink: 0,
-        }}
-      >
-        {columns.map(col => (
-          <Typography
-            key={col.key}
-            fontWeight={700}
-            noWrap
-            sx={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {col.label}
+  // Columnas del grid
+  const columns = [
+    { field: 'title', headerName: 'Título', flex: 1 },
+    { field: 'operation', headerName: 'Operación', flex: 1 },
+    {
+      field: 'price',
+      headerName: 'Precio',
+      flex: 1,
+      renderCell: (params: any) => {
+        const row: Partial<Property> = params.row ?? {};
+        return (
+          <Typography>
+            {row.currency ?? ''} {row.price != null ? row.price : '—'}
           </Typography>
-        ))}
-        <Typography
-          fontWeight={700}
-          noWrap
-          sx={{ display: showActions ? 'block' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-        >
-          Acciones
-        </Typography>
-      </Box>
+        );
+      },
+    },
+    ...(showActions
+      ? [
+        {
+          field: 'actions',
+          headerName: 'Acciones',
+          width: 160,
+          sortable: false,
+          filterable: false,
+          renderCell: (params: any) => {
+            const actions = getRowActions(
+              'property',
+              params.row as Property,
+              () => { },
+              ask,
+              deleteProperty,
+              showAlert
+            );
+            return (
+              <Box
+                display="flex"
+                gap={1}
+                height="100%"
+                alignItems="center"
+                justifyContent="center"
+                width="100%"
+              >
+                {actions.map((a) => (
+                  <IconButton
+                    key={a.label}
+                    size="small"
+                    title={a.label}
+                    onClick={a.onClick}
+                  >
+                    {a.icon}
+                  </IconButton>
+                ))}
+              </Box>
+            );
+          },
+        },
+      ]
+      : []),
+  ];
 
-      {/* Lista */}
-      <PropertyList
-        properties={properties ?? []}
-        loading={false} // el loading global ya lo controla arriba
+  const openCreate = () => navigate('/properties/new');
+  const openEdit = (p: Property) => navigate(`/properties/${p.id}/edit`);
+
+  return (
+    <>
+      <GridSection
+        data={rows}
+        loading={loading}
         columns={columns}
-        gridCols={gridCols}
-        toggleSelect={selectFn}
-        isSelected={isSelFn}
-        getActions={getActions}
-        showActions={showActions}
-        filterAvailable={filterAvailable}
+        onSearch={onSearch}
+        onCreate={openCreate}
+        onEdit={openEdit}
+        onDelete={() => { }}
+        onRoles={undefined}
+        toggleSelect={gridToggleSelect}
+        isSelected={gridIsSelected}
+        entityName="Propiedad"
+        showActions={false}
+        fetchAll={fetchAll}
+        fetchByText={fetchByText}
+        multiSelect={false}
       />
-
-      {/* modal & dialog */}
-      <ModalItem info={modal} close={() => setModal(null)} />
       {DialogUI}
-    </Box>
+    </>
   );
 };

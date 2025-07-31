@@ -12,6 +12,7 @@ import { UsersSection } from '../app/user/components/users/panel/UsersSection';
 import { InquiriesSection } from '../app/property/components/inquiries/InquiriesSection';
 import ReplyIcon from '@mui/icons-material/Reply';
 import { ROUTES } from '../lib';
+import { SurveysSection } from '../app/property/components/survey/SurveySection';
 
 export default function AdministratorPage() {
     const { resetSelected, pickItem } = usePropertiesContext();
@@ -42,6 +43,11 @@ export default function AdministratorPage() {
             key: 'inquiries',
             label: 'CONSULTAS',
             content: <InquiriesSection />,
+        },
+        {
+            key: 'surveys',
+            label: 'RATING',
+            content: <SurveysSection />,
         },
         {
             key: 'appointments',
