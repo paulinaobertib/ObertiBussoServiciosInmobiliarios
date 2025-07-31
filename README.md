@@ -18,12 +18,19 @@ Esta solución mejora significativamente los procesos internos y la experiencia 
 ### Tecnologías Utilizadas
 | Categoría                 | Tecnología                                   |
 |---------------------------|----------------------------------------------|
-| Backend                   | Java, Spring Boot                            |
+| Backend                   | Java, Spring Boot, Python                    |
 | Frontend                  | React + TypeScript, Vite                     |
 | Base de Datos             | MySQL                                        |
-| Diseño                    | Figma                                        |
 | Almacenamiento de Imágenes| Azure Blob Storage                           |
 | Infraestructura           | Azure App Services, Docker                   |
 | CI/CD                     | GitHub Actions                               |
 | Testing                   | JUnit y Mockito (backend), Vitest (frontend) |
 | Control de Versiones      | GitHub                                       |
+
+### Herramientas
+| Uso                                                 | Herramienta              |
+|-----------------------------------------------------|--------------------------|
+| Diseño de interfaces y prototipos de usuario        | Figma                    |
+| Creación de diagramas                               | Draw io                  |
+| Selección de paletas de colores para el diseño UI   | Color Hunt               |
+
