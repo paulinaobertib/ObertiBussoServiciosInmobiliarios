@@ -23,6 +23,11 @@ public class UserNotificationPreferenceService implements IUserNotificationPrefe
 
     private final IUserRepository userRepository;
 
+    public void deleteUser(String userId) {
+        List<UserNotificationPreference> userNotificationPreferences = userNotificationPreferenceRepository.findByUserId(userId);
+        userNotificationPreferenceRepository.deleteAll(userNotificationPreferences);
+    }
+
     @Override
     public ResponseEntity<String> create(UserNotificationPreference userNotificationPreference) {
         userRepository.findById(userNotificationPreference.getUserId())
