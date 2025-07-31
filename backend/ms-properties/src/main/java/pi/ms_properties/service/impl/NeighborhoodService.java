@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Neighborhood;
@@ -12,6 +13,7 @@ import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.service.interf.INeighborhoodService;
+import pi.ms_properties.specification.NeighborhoodSpecification;
 
 import java.util.Arrays;
 import java.util.List;
@@ -113,5 +115,26 @@ public class NeighborhoodService implements INeighborhoodService {
 
         NeighborhoodGetDTO neighborhoodDTO = mapper.convertValue(neighborhood, NeighborhoodGetDTO.class);
         return ResponseEntity.ok(neighborhoodDTO);
+    }
+
+    @Override
+    public ResponseEntity<List<NeighborhoodGetDTO>> findBy(String search) {
+        Specification<Neighborhood> specification = NeighborhoodSpecification.textSearch(search);
+        List<Neighborhood> neighborhoods = neighborhoodRepository.findAll(specification);
+
+        List<NeighborhoodGetDTO> dtoList = neighborhoods.stream()
+                .map(n -> {
+                    NeighborhoodGetDTO dto = new NeighborhoodGetDTO();
+                    dto.setId(n.getId());
+                    dto.setName(n.getName());
+                    dto.setType(n.getType() != null ? n.getType().name() : null);
+                    dto.setCity(n.getCity());
+                    dto.setLatitude(n.getLatitude());
+                    dto.setLongitude(n.getLongitude());
+                    return dto;
+                })
+                .toList();
+
+        return ResponseEntity.ok(dtoList);
     }
 }

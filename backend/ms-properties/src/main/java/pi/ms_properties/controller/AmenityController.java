@@ -43,4 +43,10 @@ public class AmenityController {
     public ResponseEntity<Amenity> getById(@PathVariable Long id) {
         return amenityService.getById(id);
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/search")
+    public ResponseEntity<List<Amenity>> searchAmenity(@RequestParam String search) {
+        return amenityService.findBy(search);
+    }
 }

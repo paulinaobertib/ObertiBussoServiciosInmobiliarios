@@ -15,4 +15,6 @@ public interface ITypeService {
     ResponseEntity<List<Type>> getAll();
 
     ResponseEntity<Type> getById(Long id);
+
+    ResponseEntity<List<Type>> findBy(String search);
 }
