@@ -1,15 +1,10 @@
-// src/app/user/components/users/UserForm.tsx
 import { useState, useEffect, ChangeEvent } from 'react';
-import { Box, TextField, Grid, Button } from '@mui/material';
+import { Box, TextField, Grid } from '@mui/material';
 import { useAuthContext } from '../../../context/AuthContext';
-import {
-  postUser,
-  putUser,
-  deleteUser,
-  addRoleToUser
-} from '../../../services/user.service';
+import { postUser, putUser, deleteUser } from '../../../services/user.service';
 import { useGlobalAlert } from '../../../../shared/context/AlertContext';
 import type { User, UserCreate } from '../../../types/user';
+import { LoadingButton } from '@mui/lab';
 
 type Action = 'add' | 'edit' | 'delete';
 
@@ -45,6 +40,11 @@ export const UserForm = ({
 
   const [saving, setSaving] = useState(false);
 
+  const userNameValid = form.userName.trim().length >= 3;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+  const phoneValid = /^[0-9]{10,15}$/.test(form.phone.trim());
+  const formValid = isAdd ? userNameValid && emailValid && phoneValid : true;
+
   // si es edición, cargo datos al montar
   useEffect(() => {
     if (isEdit && item) {
@@ -65,10 +65,24 @@ export const UserForm = ({
     };
 
   const handleSubmit = async () => {
+    // si es creación, chequeo antes
+    if (isAdd) {
+      if (!userNameValid) {
+        showAlert('Username debe tener al menos 3 caracteres', 'warning');
+        return;
+      }
+      if (!emailValid) {
+        showAlert('Email inválido', 'warning');
+        return;
+      }
+      if (!phoneValid) {
+        showAlert('Teléfono debe tener entre 10 y 15 dígitos', 'warning');
+        return;
+      }
+    }
     setSaving(true);
     try {
       if (isAdd) {
-        // 1. Creamos el usuario
         const body: UserCreate = {
           userName: form.userName,
           email: form.email,
@@ -76,12 +90,11 @@ export const UserForm = ({
           lastName: form.lastName,
           phone: form.phone,
         };
-        const created: User = await postUser(body);  // postUser devuelve el User creado :contentReference[oaicite:0]{index=0}
 
-        // 2. Asignamos rol "user" por defecto
-        await addRoleToUser(created.id, 'user');      // addRoleToUser devuelve Role[] :contentReference[oaicite:1]{index=1}
+        const created: User = await postUser(body);
 
-        showAlert('Usuario creado con éxito y rol "user" asignado', 'success');
+        console.log(created);
+        showAlert('Usuario creado con éxito', 'success');
       } else if (isDelete && form.id) {
         await deleteUser(form.id);
         showAlert('Usuario eliminado con éxito', 'success');
@@ -161,25 +174,17 @@ export const UserForm = ({
         {/* Botones */}
         <Grid size={{ xs: 12 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            {!isDelete && (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={saving || (isAdd || isEdit ? false : true)}
-              >
-                {isAdd ? 'Crear usuario' : 'Guardar cambios'}
-              </Button>
-            )}
-            {isDelete && (
-              <Button
-                variant="contained"
-                color="error"
-                onClick={handleSubmit}
-                disabled={saving}
-              >
-                Eliminar usuario
-              </Button>
-            )}
+            <LoadingButton
+              variant="contained"
+              onClick={handleSubmit}
+              loading={saving}
+              disabled={saving || !formValid}
+              color={isDelete ? 'error' : 'primary'}
+            >
+              {isAdd ? 'Crear usuario'
+                : isEdit ? 'Guardar cambios'
+                  : 'Eliminar usuario'}
+            </LoadingButton>
           </Box>
         </Grid>
       </Grid>

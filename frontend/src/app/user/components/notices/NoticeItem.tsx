@@ -15,12 +15,7 @@ interface Props {
   onDeleteClick?: (id: number) => void;
 }
 
-export default function NoticeItem({
-  notice,
-  isAdmin = false,
-  onUpdate,
-  onDeleteClick,
-}: Props) {
+export const NoticeItem = ({ notice, isAdmin = false, onUpdate, onDeleteClick }: Props) => {
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const [canSave, setCanSave] = useState(false);

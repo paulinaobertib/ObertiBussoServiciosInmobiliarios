@@ -1,16 +1,15 @@
 import { Box, Typography, IconButton, Tooltip, Chip, Divider, Card } from '@mui/material';
-import BuildIcon from '@mui/icons-material/Build';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { Maintenance } from '../../types/maintenance';
 
-export interface MaintenanceItemProps {
+export interface Props {
     maintenance: Maintenance;
     onEdit: () => void;
     onDelete: () => void;
 }
 
-export const MaintenanceItem = ({ maintenance, onEdit, onDelete }: MaintenanceItemProps) => {
+export const MaintenanceItem = ({ maintenance, onEdit, onDelete }: Props) => {
     const date = new Date(maintenance.date);
     const isNew = Date.now() - date.getTime() < 3 * 24 * 60 * 60 * 1000;
 

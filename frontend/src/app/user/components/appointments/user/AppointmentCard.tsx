@@ -2,10 +2,7 @@ import { useState } from 'react';
 import { Box, Typography, Chip, useTheme } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import dayjs from 'dayjs';
-import type {
-    Appointment,
-    AvailableAppointment,
-} from '../../../types/appointment';
+import type { Appointment, AvailableAppointment, } from '../../../types/appointment';
 
 interface Props {
     appointment: Appointment;
@@ -15,13 +12,7 @@ interface Props {
     onSelect?: (a: Appointment) => void;
 }
 
-export const AppointmentCard = ({
-    appointment,
-    slot,
-    isAdmin = false,
-    onCancel,
-    onSelect,
-}: Props) => {
+export const AppointmentCard = ({ appointment, slot, isAdmin = false, onCancel, onSelect, }: Props) => {
     const theme = useTheme();
     const [loading, setLoading] = useState(false);
 

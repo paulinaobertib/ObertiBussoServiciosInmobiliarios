@@ -33,8 +33,6 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
 
     return (
         <Box component="form" noValidate>
-
-            {/* ─── Resumen selección ─── */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <Card variant="outlined"><CardContent>
@@ -50,11 +48,9 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
                 </Grid>
             </Grid>
 
-            {/* ─── Datos del contrato ─── */}
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
                 Datos del contrato
             </Typography>
-
             <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField select fullWidth required label="Tipo" size="small"
@@ -79,21 +75,19 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
 
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField type="date" fullWidth required label="Inicio" size="small"
-                        InputLabelProps={{ shrink: true }} value={values.startDate}
+                        InputLabelProps={{ shrink: true }} value={values.startDate || ""}
                         onChange={handleChange("startDate")} />
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField type="date" fullWidth required label="Fin" size="small"
-                        InputLabelProps={{ shrink: true }} value={values.endDate}
+                        InputLabelProps={{ shrink: true }} value={values.endDate || ""}
                         onChange={handleChange("endDate")} />
                 </Grid>
             </Grid>
 
-            {/* Divider */}
             <Divider sx={{ my: 2 }} />
 
-            {/* ─── Datos de pagos ─── */}
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
                 Datos de pagos
             </Typography>
@@ -101,10 +95,10 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField type="number" fullWidth required label="Monto inicial" size="small"
-                        inputProps={{ min: 0 }} value={values.amount === 0 ? "" : values.amount}
+                        inputProps={{ min: 0 }}
+                        value={values.amount === 0 ? "" : values.amount}
                         onChange={handleChange("amount")} />
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField select fullWidth required label="Moneda" size="small"
                         value={values.currency || ""}
@@ -113,16 +107,16 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
                         <MenuItem value="USD">Dólar</MenuItem>
                     </TextField>
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField type="number" required fullWidth label="Porcentaje de aumento" size="small"
-                        inputProps={{ min: 0 }} value={values.increase}
+                        inputProps={{ min: 0 }}
+                        value={values.increase === 0 ? "" : values.increase}
                         onChange={handleChange("increase")} />
                 </Grid>
-
                 <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField type="number" required fullWidth label="Frecuencia de aumento (meses)" size="small"
-                        inputProps={{ min: 0 }} value={values.increaseFrequency}
+                        inputProps={{ min: 0 }}
+                        value={values.increaseFrequency === 0 ? "" : values.increaseFrequency}
                         onChange={handleChange("increaseFrequency")} />
                 </Grid>
             </Grid>
