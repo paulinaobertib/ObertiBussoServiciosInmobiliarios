@@ -5,7 +5,10 @@ import type { Payment } from "../../types/payment";
 import type { ContractIncrease } from "../../types/contractIncrease";
 import type { Contract } from "../../types/contract";
 
-export function useContractHistory(contract: Contract | null) {
+export function useContractHistory(
+  contract: Contract | null,
+  refreshFlag: number
+) {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [increases, setIncreases] = useState<ContractIncrease[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -22,7 +25,7 @@ export function useContractHistory(contract: Contract | null) {
         setIncreases(inc);
       })
       .finally(() => setLoading(false));
-  }, [contract]);
+  }, [contract, refreshFlag]); // Añadimos `refreshFlag` como dependencia para forzar recarga
 
   return { payments, increases, loading };
 }

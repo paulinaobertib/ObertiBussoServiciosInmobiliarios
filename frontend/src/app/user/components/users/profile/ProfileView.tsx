@@ -1,4 +1,4 @@
-import { Box, Avatar, Typography, Stack, IconButton } from '@mui/material';
+import { Box, Avatar, Typography, Stack, IconButton, Button } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import type { User } from '../../../types/user';
@@ -8,9 +8,10 @@ interface ViewProps {
   editMode: boolean;
   saving: boolean;
   onToggleEdit: () => void;
+  onDeleteProfile?: () => void;
 }
 
-export function ProfileView({ user, editMode, saving, onToggleEdit }: ViewProps) {
+export function ProfileView({ user, editMode, saving, onToggleEdit, onDeleteProfile }: ViewProps) {
   return (
     <Box
       display="flex"
@@ -64,6 +65,16 @@ export function ProfileView({ user, editMode, saving, onToggleEdit }: ViewProps)
           {user.phone}
         </Typography>
       </Stack>
+
+
+      <Button
+        variant="outlined"
+        color="error"
+        sx={{ mt: 3 }}
+        onClick={onDeleteProfile}
+      >
+        Eliminar mi cuenta
+      </Button>
     </Box>
   );
 }

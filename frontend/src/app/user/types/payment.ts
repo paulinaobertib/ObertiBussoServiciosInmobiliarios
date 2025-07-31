@@ -19,3 +19,12 @@ export interface PaymentCreate {
   description: string;
   paymentCurrency: PaymentCurrency;
 }
+
+export interface PaymentUpdate {
+  id: number;
+  contract: { id: number };
+  amount: number;
+  date: string;
+  description: string;
+  paymentCurrency: PaymentCurrency;
+}
