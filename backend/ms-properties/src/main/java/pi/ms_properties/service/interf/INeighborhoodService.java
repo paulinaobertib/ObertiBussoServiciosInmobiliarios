@@ -1,6 +1,7 @@
 package pi.ms_properties.service.interf;
 
 import org.springframework.http.ResponseEntity;
+import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.dto.NeighborhoodGetDTO;
 
@@ -16,4 +17,6 @@ public interface INeighborhoodService {
     ResponseEntity<List<NeighborhoodGetDTO>> getAll();
 
     ResponseEntity<NeighborhoodGetDTO> getById(Long id);
+
+    ResponseEntity<List<NeighborhoodGetDTO>> findBy(String search);
 }

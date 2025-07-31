@@ -27,5 +27,4 @@ public class Amenity {
     @ManyToMany(mappedBy = "amenities")
     @JsonIgnore
     private List<Property> properties = new ArrayList<>();
-
 }

@@ -15,4 +15,6 @@ public interface IAmenityService {
     ResponseEntity<List<Amenity>> getAll();
 
     ResponseEntity<Amenity> getById(Long id);
+
+    ResponseEntity<List<Amenity>> findBy(String search);
 }
