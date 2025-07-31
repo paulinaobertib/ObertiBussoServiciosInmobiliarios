@@ -1,5 +1,9 @@
+// src/app/property/hooks/useViewsStats.ts
 import { useState, useEffect } from "react";
 import * as viewService from "../services/view.service";
+import * as inquiryService from "../services/inquiry.service";
+import * as surveyService from "../services/survey.service";
+
 import {
   ViewsByProperty,
   ViewsByPropertyType,
@@ -16,6 +20,7 @@ import {
 
 export const useViewStats = () => {
   const [stats, setStats] = useState<{
+    // — VISTAS —
     property: ViewsByProperty;
     propertyType: ViewsByPropertyType;
     day: ViewsByDay;
@@ -27,6 +32,19 @@ export const useViewStats = () => {
     operation: ViewsByOperation;
     rooms: ViewsByRooms;
     amenity: ViewsByAmenity;
+    // — ENCUESTAS —
+    surveysCount: number;
+    averageSurveyScore: number;
+    surveyScoreDistribution: Record<number, number>;
+    surveyDailyAverageScore: Record<string, number>;
+    surveyMonthlyAverageScore: Record<string, number>;
+    // — CONSULTAS —
+    inquiryResponseTime: string;
+    inquiryStatusDistribution: Record<string, number>;
+    inquiriesByDayOfWeek: Record<string, number>;
+    inquiriesByTimeRange: Record<string, number>;
+    inquiriesPerMonth: Record<string, number>;
+    mostConsultedProperties: Record<string, number>;
   }>({
     property: {},
     propertyType: {},
@@ -39,6 +57,17 @@ export const useViewStats = () => {
     operation: {},
     rooms: {},
     amenity: {},
+    surveysCount: 0,
+    averageSurveyScore: 0,
+    surveyScoreDistribution: {},
+    surveyDailyAverageScore: {},
+    surveyMonthlyAverageScore: {},
+    inquiryResponseTime: "",
+    inquiryStatusDistribution: {},
+    inquiriesByDayOfWeek: {},
+    inquiriesByTimeRange: {},
+    inquiriesPerMonth: {},
+    mostConsultedProperties: {},
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,8 +75,10 @@ export const useViewStats = () => {
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
+      setError(null);
       try {
         const [
+          // — VISTAS (11 llamadas) —
           property,
           propertyType,
           day,
@@ -59,6 +90,19 @@ export const useViewStats = () => {
           operation,
           rooms,
           amenity,
+          // — ENCUESTAS (5 llamadas) —
+          surveyList,
+          avgSurveyScore,
+          surveyScoreDistrib,
+          surveyDailyAvg,
+          surveyMonthlyAvg,
+          // — CONSULTAS (6 llamadas) —
+          resTimeResp,
+          statusDistResp,
+          byDayResp,
+          byTimeResp,
+          perMonthResp,
+          mostPropsResp,
         ] = await Promise.all([
           viewService.getViewsByProperty(),
           viewService.getViewsByPropertyType(),
@@ -71,7 +115,19 @@ export const useViewStats = () => {
           viewService.getViewsByOperation(),
           viewService.getViewsByRooms(),
           viewService.getViewsByAmenity(),
+          surveyService.getAllSurveys(),
+          surveyService.getAverageScore(),
+          surveyService.getScoreDistribution(),
+          surveyService.getDailyAverageScore(),
+          surveyService.getMonthlyAverageScore(),
+          inquiryService.getAverageInquiryResponseTime(),
+          inquiryService.getInquiryStatusDistribution(),
+          inquiryService.getInquiriesGroupedByDayOfWeek(),
+          inquiryService.getInquiriesGroupedByTimeRange(),
+          inquiryService.getInquiriesPerMonth(),
+          inquiryService.getMostConsultedProperties(),
         ]);
+
         setStats({
           property,
           propertyType,
@@ -84,6 +140,17 @@ export const useViewStats = () => {
           operation,
           rooms,
           amenity,
+          surveysCount: surveyList.length,
+          averageSurveyScore: avgSurveyScore,
+          surveyScoreDistribution: surveyScoreDistrib,
+          surveyDailyAverageScore: surveyDailyAvg,
+          surveyMonthlyAverageScore: surveyMonthlyAvg,
+          inquiryResponseTime: resTimeResp.data,
+          inquiryStatusDistribution: statusDistResp.data,
+          inquiriesByDayOfWeek: byDayResp.data,
+          inquiriesByTimeRange: byTimeResp.data,
+          inquiriesPerMonth: perMonthResp.data,
+          mostConsultedProperties: mostPropsResp.data,
         });
       } catch (e) {
         setError((e as Error).message);
@@ -91,7 +158,6 @@ export const useViewStats = () => {
         setLoading(false);
       }
     }
-
     fetchAll();
   }, []);
 

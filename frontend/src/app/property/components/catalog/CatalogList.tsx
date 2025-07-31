@@ -21,7 +21,6 @@ export const CatalogList = ({
 }: Props) => {
     const { isAdmin } = useAuthContext();
 
-
     // 1) Filtrado según permisos
     const filtered = useMemo(() => {
         return isAdmin
@@ -32,12 +31,16 @@ export const CatalogList = ({
             );
     }, [properties, isAdmin]);
 
-    // 2) Reordenar para que outstanding === true quede arriba
+    // 2) Ordenar: primero outstanding, luego por fecha descendente
     const sorted = useMemo(() => {
-        // copia para no mutar props
         return [...filtered].sort((a, b) => {
-            // convierte boolean a número (true → 1, false → 0)
-            return (b.outstanding ? 1 : 0) - (a.outstanding ? 1 : 0);
+            // 2.1) outstanding primero
+            if (a.outstanding && !b.outstanding) return -1;
+            if (!a.outstanding && b.outstanding) return 1;
+            // 2.2) misma condición de outstanding → ordenar por fecha (más nuevo primero)
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return dateB - dateA;
         });
     }, [filtered]);
 
