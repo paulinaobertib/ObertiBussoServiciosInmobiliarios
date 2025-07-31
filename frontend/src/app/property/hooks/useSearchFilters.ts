@@ -5,7 +5,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import { getPropertiesByFilters } from "../services/property.service";
 import { LIMITS } from "../utils/filterLimits";
 
-export function useSearchFilters(onSearch: (r: Property[]) => void) {
+export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
   const {
     buildSearchParams,
     typesList,
@@ -13,6 +13,7 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
     neighborhoodsList,
     selected,
     setSelected,
+    propertiesList,
     refreshAmenities,
     refreshTypes,
     refreshNeighborhoods,
@@ -24,6 +25,52 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
     refreshTypes();
     refreshNeighborhoods();
   }, [refreshAmenities, refreshTypes, refreshNeighborhoods]);
+
+  /* ───────── límites dinámicos (10 pasos) ───────── */
+  /* ───────── límites dinámicos (10 pasos, números redondos) ───────── */
+  const dynLimits = useMemo(() => {
+    const list = propertiesList ?? [];
+
+    /* helper → nice step: 1·, 2· o 5·10ⁿ  */
+    const niceStep = (rough: number) => {
+      const exp = Math.pow(10, Math.floor(Math.log10(rough)));
+      const f = rough / exp;
+      const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+      return nice * exp;
+    };
+
+    /* helper → alinear rango con 10 pasos “lindos” */
+    const buildRange = (rawMin: number, rawMax: number) => {
+      if (rawMin === rawMax) rawMax = rawMin + 1; // evita span 0
+      const step = niceStep((rawMax - rawMin) / 10);
+      const min = Math.floor(rawMin / step) * step; // múltiplo inferior
+      const max = min + step * 10; // exactamente 10 pasos
+      return { min, max: Math.max(max, rawMax), step };
+    };
+
+    /* precios USD / ARS */
+    const usd = list.filter((p) => p.currency === "USD").map((p) => p.price);
+    const ars = list.filter((p) => p.currency === "ARS").map((p) => p.price);
+
+    const usdRange = buildRange(
+      usd.length ? Math.min(...usd) : LIMITS.price.USD.min,
+      usd.length ? Math.max(...usd) : LIMITS.price.USD.max
+    );
+    const arsRange = buildRange(
+      ars.length ? Math.min(...ars) : LIMITS.price.ARS.min,
+      ars.length ? Math.max(...ars) : LIMITS.price.ARS.max
+    );
+
+    /* superficies (total y cubierta comparten rango) */
+    const areas = list.map((p) => Math.max(p.area ?? 0, p.coveredArea ?? 0));
+    const supMax = areas.length ? Math.max(...areas) : LIMITS.surface.max;
+    const supRange = buildRange(0, supMax); // min fijo en 0
+
+    return {
+      price: { USD: usdRange, ARS: arsRange },
+      surface: supRange,
+    };
+  }, [propertiesList]);
 
   /* ───────── filtros locales ───────── */
   const [params, setParams] = useState({
@@ -40,9 +87,29 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
       number,
       number
     ],
-    areaRange: [LIMITS.surface.min, LIMITS.surface.max] as [number, number],
-    coveredRange: [LIMITS.surface.min, LIMITS.surface.max] as [number, number],
+    areaRange: [0, dynLimits.surface.max] as [number, number],
+    coveredRange: [0, dynLimits.surface.max] as [number, number],
   });
+
+  /* superficies siempre se ajustan al nuevo máx */
+  useEffect(() => {
+    setParams((p) => ({
+      ...p,
+      areaRange: [0, dynLimits.surface.max] as [number, number],
+      coveredRange: [0, dynLimits.surface.max] as [number, number],
+    }));
+  }, [dynLimits.surface.max]);
+
+  /* reinicia priceRange al elegir moneda */
+  useEffect(() => {
+    if (params.currency === "USD" || params.currency === "ARS") {
+      const cfg = dynLimits.price[params.currency];
+      setParams((p) => ({
+        ...p,
+        priceRange: [cfg.min, cfg.max] as [number, number],
+      }));
+    }
+  }, [params.currency, dynLimits]);
 
   /* ───────── llamada al backend ───────── */
   async function apply(local = params) {
@@ -60,56 +127,61 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
       financing:
         local.operation === "VENTA" ? local.financing || undefined : undefined,
     };
+    delete base.rooms;
 
     const res = await getPropertiesByFilters(
       buildSearchParams(base) as SearchParams
     );
-    onSearch(res);
+
+    const filtered = local.rooms.length
+      ? res.filter((p) => {
+          const r = Number(p.rooms);
+          return local.rooms.some((n) => (n === 3 ? r >= 3 : r === n));
+        })
+      : res;
+
+    onSearch(filtered);
   }
 
-  /* ───────── disparar búsqueda sólo en cambios reales ───────── */
-  const prevParams = useRef(params);
-  const prevAmenRefs = useRef(selected.amenities);
-
+  /* ───────── disparar búsqueda ante cambios ───────── */
+  const prev = useRef({ params, amenities: selected.amenities });
   useEffect(() => {
-    const paramsChanged = prevParams.current !== params;
-    const amenitiesChanged = prevAmenRefs.current !== selected.amenities;
-
-    if (paramsChanged || amenitiesChanged) apply(); // ← sólo si cambió algo
-
-    prevParams.current = params;
-    prevAmenRefs.current = selected.amenities;
+    if (
+      prev.current.params !== params ||
+      prev.current.amenities !== selected.amenities
+    )
+      apply();
+    prev.current = { params, amenities: selected.amenities };
   }, [params, selected.amenities]);
 
-  /* ───────── helpers de modificación ───────── */
+  /* ───────── toggles ───────── */
   function toggleParam<
     K extends keyof typeof params,
     V extends (typeof params)[K] extends Array<infer U> ? U : (typeof params)[K]
   >(key: K, value: V) {
     setParams((p) => {
       const cur = p[key] as any;
-      return Array.isArray(cur)
-        ? {
-            ...p,
-            [key]: cur.includes(value)
-              ? cur.filter((v: any) => v !== value)
-              : [...cur, value],
-          }
-        : { ...p, [key]: cur === value ? "" : value };
-    }); // no llamamos apply aquí
+      if (Array.isArray(cur))
+        return {
+          ...p,
+          [key]: cur.includes(value)
+            ? cur.filter((x: any) => x !== value)
+            : [...cur, value],
+        };
+      return { ...p, [key]: cur === value ? "" : value };
+    });
   }
 
   function toggleAmenity(id: number) {
-    const list = selected.amenities.includes(id)
+    const next = selected.amenities.includes(id)
       ? selected.amenities.filter((a) => a !== id)
       : [...selected.amenities, id];
-    setSelected({ ...selected, amenities: list }); // el useEffect disparará apply
+    setSelected({ ...selected, amenities: next });
   }
 
   /* ───────── reset ───────── */
   async function reset() {
     const cleared = {
-      ...params,
       rooms: [],
       types: [],
       cities: [],
@@ -119,19 +191,16 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
       currency: "",
       credit: false,
       financing: false,
-      priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max] as [
+      priceRange: [dynLimits.price.ARS.min, dynLimits.price.ARS.max] as [
         number,
         number
       ],
-      areaRange: [LIMITS.surface.min, LIMITS.surface.max] as [number, number],
-      coveredRange: [LIMITS.surface.min, LIMITS.surface.max] as [
-        number,
-        number
-      ],
+      areaRange: [0, dynLimits.surface.max] as [number, number],
+      coveredRange: [0, dynLimits.surface.max] as [number, number],
     };
     setParams(cleared);
     setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
-    await apply(cleared); // fuerza búsqueda vacía tras limpiar
+    await apply(cleared as any);
   }
 
   /* ───────── chips (etiquetas) ───────── */
@@ -153,19 +222,29 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
     params.neighborhoodTypes.forEach((nt) => push(nt, "neighborhoodTypes", nt));
     params.rooms.forEach((r) => push(r === 3 ? "3+" : `${r}`, "rooms", r));
 
-    const [minP, maxP] = params.priceRange;
-    const maxAllowed =
-      params.currency === "USD" ? LIMITS.price.USD.max : LIMITS.price.ARS.max;
-    if (minP > LIMITS.price.USD.min || maxP < maxAllowed)
-      out.push({ label: `Precio ${minP}-${maxP}`, onClear: reset });
+    if (
+      params.priceRange[0] > dynLimits.price.ARS.min ||
+      params.priceRange[1] < dynLimits.price.ARS.max
+    )
+      out.push({
+        label: `Precio ${params.priceRange[0]}-${params.priceRange[1]}`,
+        onClear: reset,
+      });
 
-    const [minA, maxA] = params.areaRange;
-    if (minA > LIMITS.surface.min || maxA < LIMITS.surface.max)
-      out.push({ label: `Sup ${minA}-${maxA}`, onClear: reset });
+    if (params.areaRange[0] > 0 || params.areaRange[1] < dynLimits.surface.max)
+      out.push({
+        label: `Sup ${params.areaRange[0]}-${params.areaRange[1]}`,
+        onClear: reset,
+      });
 
-    const [minC, maxC] = params.coveredRange;
-    if (minC > LIMITS.surface.min || maxC < LIMITS.surface.max)
-      out.push({ label: `Cub ${minC}-${maxC}`, onClear: reset });
+    if (
+      params.coveredRange[0] > 0 ||
+      params.coveredRange[1] < dynLimits.surface.max
+    )
+      out.push({
+        label: `Cub ${params.coveredRange[0]}-${params.coveredRange[1]}`,
+        onClear: reset,
+      });
 
     if (selected.amenities.length)
       out.push({
@@ -174,11 +253,12 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
       });
 
     return out;
-  }, [params, selected.amenities]);
+  }, [params, selected.amenities, dynLimits]);
 
   /* ───────── exposición ───────── */
   return {
     params,
+    dynLimits,
     selected,
     typesList,
     amenitiesList,
@@ -190,4 +270,4 @@ export function useSearchFilters(onSearch: (r: Property[]) => void) {
     setParams,
     apply,
   };
-}
+};

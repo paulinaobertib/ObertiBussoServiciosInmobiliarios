@@ -1,4 +1,4 @@
-import { Payment, PaymentCreate } from "../types/payment";
+import { Payment, PaymentCreate, PaymentUpdate } from "../types/payment";
 import { api } from "../../../api";
 
 export const postPayment = async (paymentData: PaymentCreate) => {
@@ -13,7 +13,7 @@ export const postPayment = async (paymentData: PaymentCreate) => {
   }
 };
 
-export const putPayment = async (paymentData: Payment) => {
+export const putPayment = async (paymentData: PaymentUpdate) => {
   try {
     const response = await api.put(`/users/payments/update`, paymentData, {
       withCredentials: true,

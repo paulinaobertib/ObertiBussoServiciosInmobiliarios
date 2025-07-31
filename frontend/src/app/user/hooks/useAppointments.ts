@@ -21,17 +21,12 @@ import type {
   AppointmentCreate,
 } from "../types/appointment";
 
-/**
- * Hook: useAppointments
- * Centraliza la lógica de turnos y citas para admin y usuario,
- * además de la gestión de reserva y generación de turnos.
- */
 export function useAppointments() {
   // --- Auth Context ---
   const { info, isAdmin } = useAuthContext();
 
   // --- Admin Logic: fetch, filter, grouping, actions ---
-  const [adminLoading, setAdminLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [slots, setSlots] = useState<AvailableAppointment[]>([]);
   const [apptsBySlot, setApptsBySlot] = useState<Record<number, Appointment>>(
     {}
@@ -39,15 +34,20 @@ export function useAppointments() {
   const [filter, setFilter] = useState<
     "TODOS" | "DISPONIBLE" | "ESPERA" | "ACEPTADO" | "RECHAZADO"
   >("TODOS");
-
   const loadAdmin = useCallback(async () => {
     if (!isAdmin) return;
-    setAdminLoading(true);
+    setLoading(true);
     try {
       switch (filter) {
         case "DISPONIBLE": {
           const res = await getAvailableAppointments();
           setSlots(res.data);
+
+          const newSlotMap: Record<number, AvailableAppointment> = {};
+          res.data.forEach((slot: AvailableAppointment) => {
+            newSlotMap[slot.id] = slot;
+          });
+          setSlotMap(newSlotMap);
           setApptsBySlot({});
           break;
         }
@@ -68,11 +68,21 @@ export function useAppointments() {
             })
           );
           setSlots(pseudo);
+
           const dict: Record<number, Appointment> = {};
+          const newSlotMap: Record<number, AvailableAppointment> = {};
+
           res.data.forEach((a: Appointment) => {
             const key = a.availableAppointment?.id ?? a.id;
             dict[key] = a;
+            newSlotMap[key] = {
+              id: key,
+              date: a.appointmentDate,
+              availability: false,
+            };
           });
+
+          setSlotMap(newSlotMap);
           setApptsBySlot(dict);
           break;
         }
@@ -84,15 +94,24 @@ export function useAppointments() {
             getAppointmentsByStatus("ACEPTADO"),
           ]);
           setSlots(all.data);
+
           const dict: Record<number, Appointment> = {};
-          [...pend.data, ...acc.data].forEach((a) => {
+          const newSlotMap: Record<number, AvailableAppointment> = {};
+
+          all.data.forEach((slot: AvailableAppointment) => {
+            newSlotMap[slot.id] = slot;
+          });
+
+          [...pend.data, ...acc.data].forEach((a: Appointment) => {
             if (a.availableAppointment) dict[a.availableAppointment.id] = a;
           });
+
+          setSlotMap(newSlotMap);
           setApptsBySlot(dict);
         }
       }
     } finally {
-      setAdminLoading(false);
+      setLoading(false);
     }
   }, [filter, isAdmin]);
 
@@ -279,18 +298,18 @@ export function useAppointments() {
         endTime: `${genEndTime}:00`,
       };
       await createAvailability(dto);
-      loadGenSlots(genDate);
+      await loadAdmin();
     } catch (e: any) {
       setGenError(e.response?.data || e.message);
     } finally {
       setGenLoading(false);
     }
-  }, [genDate, genStartTime, genEndTime, loadGenSlots]);
+  }, [genDate, genStartTime, genEndTime, loadAdmin]);
 
   // --- Return all states and actions flatly ---
   return {
     // Admin
-    adminLoading,
+    loading,
     filter,
     setFilter,
     slotsByDate,

@@ -8,7 +8,12 @@ import {
   postContract,
   putContract,
 } from "../../services/contract.service";
-import type { Contract, ContractCreate } from "../../types/contract";
+import type {
+  Contract,
+  ContractCreate,
+  ContractStatus,
+  ContractType,
+} from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
 import { ROUTES } from "../../../../lib";
 
@@ -55,7 +60,7 @@ export function useManageContractPage() {
         setSelectedUserId(data.userId);
       } catch {
         // Si falla, enviamos al listado y mostramos alerta
-        navigate("/contracts");
+        navigate(ROUTES.CONTRACT);
         showAlert("Error al cargar contrato", "error");
       } finally {
         setLoading(false);
@@ -91,17 +96,23 @@ export function useManageContractPage() {
         const payload: ContractCreate = {
           propertyId: selectedPropertyId!,
           userId: selectedUserId!,
-          contractType: values.contractType,
-          contractStatus: values.contractStatus,
+          contractType: values.contractType as ContractType, // CAST
+          contractStatus: values.contractStatus as ContractStatus,
           startDate: values.startDate,
           endDate: values.endDate,
-          increase: values.amount,
-          increaseFrequency: values.increaseFrequency,
+          increase: Number(values.increase) || 0,
+          increaseFrequency: Number(values.increaseFrequency) || 0,
         };
-        await postContract(payload, values.amount, values.currency);
+
+        await postContract(
+          payload,
+          Number(values.amount) || 0,
+          values.currency || ""
+        );
+
         showAlert("Contrato creado", "success");
       }
-      navigate("/contracts");
+      navigate(ROUTES.CONTRACT);
     } catch {
       showAlert("Error al guardar contrato", "error");
     } finally {

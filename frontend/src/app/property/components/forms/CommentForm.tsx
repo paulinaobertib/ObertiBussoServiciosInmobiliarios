@@ -12,37 +12,32 @@ import {
 import type { Comment, CommentCreate } from '../../types/comment';
 
 interface Props {
-    propertyId: number;         // <― recibimos el id
+    propertyId: number;
     action: 'add' | 'edit' | 'delete';
     item?: Comment;
     refresh: () => Promise<void>;
     onDone: () => void;
 }
 
-export const CommentForm = ({
-    propertyId,
-    action,
-    item,
-    refresh,
-    onDone,
-}: Props) => {
+export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Props) => {
     const initialPayload = {
         id: item?.id ?? 0,
-        propertyId: propertyId,      // <― usamos ese propertyId
+        propertyId: propertyId,
         description: item?.description ?? '',
+        date: item?.date ?? ''
     };
 
-    const { form, setForm, invalid, run, loading } = useCategories(
-        initialPayload,
+    const { form, setForm, run, loading } = useCategories<Comment>({
+        initial: initialPayload,
         action,
-        async (payload) => {
+        save: async (payload) => {
             if (action === 'add') return postComment(payload as CommentCreate);
             if (action === 'edit') return putComment(payload as Comment);
             if (action === 'delete') return deleteComment(payload as Comment);
         },
-        refresh,  // <― se llama UNA sola vez tras run()
-        onDone
-    );
+        refresh,
+        onDone,
+    });
 
     useEffect(() => {
         if (action === 'edit' && item) {
@@ -50,14 +45,19 @@ export const CommentForm = ({
                 id: item.id,
                 propertyId,
                 description: item.description,
+                date: item.date,
             });
         } else {
             setForm(initialPayload);
         }
-    }, [action, item?.id, propertyId, setForm]);
+    }, [action, item?.id, propertyId]);
 
     const handleSubmit = async () => {
         await run();
+        setForm(initialPayload);
+    };
+
+    const handleCancel = () => {
         setForm(initialPayload);
         onDone();
     };
@@ -89,15 +89,14 @@ export const CommentForm = ({
                     mt: 2,
                 }}
             >
-                {/* Cancelar siempre disponible en modo edit */}
-                {action === 'edit' && (
+                {/* Cancelar disponible en add y edit */}
+                {(action === 'edit' || action === 'add') && (
                     <LoadingButton
                         loading={loading}
-                        onClick={() => {
-                            setForm(initialPayload);
-                            onDone();
-                        }}
-                        disabled={loading}
+                        onClick={handleCancel}
+                        disabled={
+                            loading || form.description.trim() === ''
+                        }
                     >
                         Cancelar
                     </LoadingButton>
@@ -106,7 +105,10 @@ export const CommentForm = ({
                 <LoadingButton
                     onClick={handleSubmit}
                     loading={loading}
-                    disabled={invalid || loading}
+                    disabled={
+                        loading ||
+                        (action !== 'delete' && form.description.trim() === '')
+                    }
                     variant="contained"
                     color={action === 'delete' ? 'error' : 'primary'}
                 >

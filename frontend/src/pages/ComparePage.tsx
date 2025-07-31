@@ -58,7 +58,7 @@ const Compare = () => {
 
       <BasePage>
 
-        <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, mb: -4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, mb: 0 }}>
           {!isAdmin && (
             <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
               Consultar por estas propiedades

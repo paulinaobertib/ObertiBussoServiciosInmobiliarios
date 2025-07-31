@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { usePropertiesContext } from "../context/PropertiesContext";
 import type { Property } from "../types/property";
 
-export function usePropertyPanel() {
+export const usePropertyPanel = () => {
   const {
     propertiesList,
     loading: ctxLoading,
@@ -23,7 +23,7 @@ export function usePropertyPanel() {
 
   // 2) cuando cambian en el contexto
   useEffect(() => {
-    setData(propertiesList);
+    setData(propertiesList ?? []); // <-- Corrige el warning
     setLocalLoading(false);
   }, [propertiesList]);
 
@@ -35,7 +35,7 @@ export function usePropertyPanel() {
   // 4) selección
   const toggleSelect = useCallback((id: number) => {
     setSelectedId((prev) => (prev === id ? null : id));
-    console.log("toggleSelect:", id);
+    // console.log("toggleSelect:", id);
   }, []);
 
   const isSelected = useCallback(
@@ -50,4 +50,4 @@ export function usePropertyPanel() {
     toggleSelect,
     isSelected,
   };
-}
+};

@@ -1,116 +1,112 @@
-// src/app/property/hooks/useCategorySection.ts
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePropertiesContext, Category } from "../context/PropertiesContext";
-
-/* ——— SERVICIOS REST (ajusta las rutas) ——— */
-import { getAllAmenities } from "../services/amenity.service";
-import { getAllOwners, getOwnersByText } from "../services/owner.service";
-import { getAllTypes } from "../services/type.service";
-import { getAllNeighborhoods } from "../services/neighborhood.service";
-
+import { getOwnersByText } from "../services/owner.service";
 import type { Owner } from "../types/owner";
 
-export function useCategorySection(category: Category) {
-  const { pickItem, selected, toggleSelect } = usePropertiesContext();
+export const useCategorySection = (category: Category) => {
+  const ctx = usePropertiesContext();
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
+  const [localLoading, setLocalLoading] = useState(true);
 
-  /* ----- estado local ----- */
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoad] = useState(false);
+  /* 1. Array global según categoría */
+  const data =
+    category === "owner"
+      ? ctx.ownersList
+      : category === "amenity"
+      ? ctx.amenitiesList
+      : category === "type"
+      ? ctx.typesList
+      : category === "neighborhood"
+      ? ctx.neighborhoodsList
+      : [];
 
-  /* ----- trae la lista que corresponde a la pestaña actual ----- */
-  const fetchList = useCallback(async () => {
-    setLoad(true);
-    try {
-      let list: any[] = [];
-      switch (category) {
-        case "amenity":
-          list = await getAllAmenities();
-          break;
-        case "owner":
-          list = await getAllOwners();
-          break;
-        case "type":
-          list = await getAllTypes();
-          break;
-        case "neighborhood":
-          list = await getAllNeighborhoods();
-          break;
-      }
-      setData(list);
-    } finally {
-      setLoad(false);
+  /* 2. Función refresh según categoría */
+  const refresh =
+    category === "owner"
+      ? ctx.refreshOwners
+      : category === "amenity"
+      ? ctx.refreshAmenities
+      : category === "type"
+      ? ctx.refreshTypes
+      : category === "neighborhood"
+      ? ctx.refreshNeighborhoods
+      : () => Promise.resolve();
+
+  /* 3. Refrescar al montar/cambiar categoría */
+  useEffect(() => {
+    setLocalLoading(true);
+    refresh().finally(() => setLocalLoading(false));
+  }, [category, refresh]);
+
+  /* 4. Limpiar búsqueda cuando los datos globales cambian */
+  useEffect(() => {
+    if (category === "owner") {
+      setSearchResults(null);
     }
-  }, [category]);
-
-  /* ----- en cuanto cambia la pestaña, carga su lista ----- */
-  useEffect(() => {
-    pickItem("category", category); // sincroniza contexto
-    fetchList();
-  }, [category, fetchList]);
-
-  /* ----- buscador (sólo owners) ----- */
-  const [ownersUI, setOwnersUI] = useState<Owner[]>([]);
-  useEffect(() => {
-    if (category === "owner") setOwnersUI(data as Owner[]);
   }, [category, data]);
 
+  /* 5. Búsqueda textual solo para owners */
   const searchOwnersText = useCallback(
     async (txt: string) => {
       if (category !== "owner") return;
-      const list = txt ? await getOwnersByText(txt) : await getAllOwners();
-      setOwnersUI(list);
+      if (txt) {
+        setSearchResults(await getOwnersByText(txt));
+      } else {
+        setLocalLoading(true);
+        await refresh();
+        setSearchResults(null);
+        setLocalLoading(false);
+      }
     },
-    [category]
+    [category, refresh]
   );
 
-  const searchResults = useCallback(
+  /* 6. Callback directo desde <SearchBar/> */
+  const searchResultsCb = useCallback(
     (items: Owner[]) => {
-      if (category === "owner") setOwnersUI(items);
+      if (category === "owner") setSearchResults(items);
     },
     [category]
   );
 
-  /* ----- helper de selección ----- */
+  /* 7. Selección */
   const isSelected = useCallback(
     (id: number) => {
       switch (category) {
         case "amenity":
-          return selected.amenities.includes(id);
+          return ctx.selected.amenities.includes(id);
         case "owner":
-          return selected.owner === id;
+          return ctx.selected.owner === id;
         case "neighborhood":
-          return selected.neighborhood === id;
+          return ctx.selected.neighborhood === id;
         case "type":
-          return selected.type === id;
+          return ctx.selected.type === id;
         default:
           return false;
       }
     },
-    [category, selected]
+    [category, ctx.selected]
   );
 
-  /* ----- datos finales para la tabla ----- */
-  const tableData = useMemo(
-    () =>
-      category === "owner"
-        ? ownersUI.map((o) => ({
-            ...o,
-            fullName: `${o.firstName} ${o.lastName}`.trim(),
-          }))
-        : data,
-    [category, ownersUI, data]
-  );
+  /* 8. Data de la tabla (fullName en owners) */
+  const tableData = useMemo(() => {
+    const arr = searchResults ?? data; // prioridad a resultados de búsqueda
+    if (category === "owner") {
+      return (arr as Owner[]).map((o) => ({
+        ...o,
+        fullName: `${o.firstName} ${o.lastName}`.trim(),
+      }));
+    }
+    return arr;
+  }, [category, data, searchResults]);
 
   return {
     data: tableData,
-    loading,
-    /* botón “Actualizar” */
-    refresh: fetchList,
-    /* buscador owners */
+    loading: localLoading,
+    refresh,
     searchOwnersText,
-    searchResults,
-    /* selección */
+    searchResults: searchResultsCb,
     isSelected,
-    toggleSelect: (id: number) => toggleSelect(id),
+    toggleSelect: (id: number) => ctx.toggleSelect(category, id),
   };
-}
+};

@@ -1,121 +1,96 @@
 // src/app/user/components/users/panel/UsersSection.tsx
-import React, { useState, useEffect } from "react";
-import {
-    Box,
-    Typography,
-    IconButton,
-    CircularProgress,
-    useTheme,
-    ToggleButton,
-    ToggleButtonGroup,
-    Menu,
-    MenuItem,
-    Button,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-
-import { Modal } from "../../../../shared/components/Modal";
-import { SearchBar } from "../../../../shared/components/SearchBar";
-import { UsersList } from "./UsersList";
-import { useUsers, Filter } from "../../../hooks/useUsers";
-
-import type { User } from "../../../types/user";
+import React, { useState } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import PeopleIcon from "@mui/icons-material/People";
 import { getRoles } from "../../../services/user.service";
+import { useUsers } from "../../../hooks/useUsers";
 import { UserForm } from "./UserForm";
 import { RoleForm } from "./RoleForm";
-
-const FILTERS: { label: string; value: Filter }[] = [
-    { label: "Todos", value: "TODOS" },
-    { label: "Administradores", value: "ADMIN" },
-    { label: "Usuarios", value: "USER" },
-    { label: "Inquilinos", value: "TENANT" },
-];
-interface UsersSectionProps {
-    toggleSelect?: (id: string) => void;
-    isSelected?: (id: string) => boolean;
-}
+import { Modal } from "../../../../shared/components/Modal";
+import { GridSection } from "../../../../shared/components/GridSection";
+import type { User } from "../../../types/user";
 
 export function UsersSection({
-    toggleSelect: externalToggle,
-    isSelected: externalIsSel,
-}: UsersSectionProps) {
+    toggleSelect,
+    isSelected,
+    showActions = true,
+}: {
+    toggleSelect?: (id: string | null) => void;
+    isSelected?: (id: string) => boolean;
+    showActions?: boolean;
+}) {
+    const { users, loading, load, fetchAll, fetchByText } = useUsers();
 
-    const theme = useTheme();
-    const {
-        users,
-        loading,
-        filter,
-        setFilter,
-        load,
-        fetchAll,
-        fetchByText,
-        toggleSelect,   // lógica de selección integrada 🔥
-        isSelected,     // lógica de selección integrada 🔥
-    } = useUsers();
+    // Adaptador para GridSection.toggleSelect
+    const gridToggleSelect = (selected: string | string[] | null) => {
+        const id = Array.isArray(selected)
+            ? selected[selected.length - 1]
+            : selected;
+        toggleSelect?.(id ?? null);
+    };
 
-    const selectFn = externalToggle ?? toggleSelect;
-    const isSelFn = externalIsSel ?? isSelected;
-
-    // Mostrar y filtrar
-    const [displayed, setDisplayed] = useState(users);
-    useEffect(() => { setDisplayed(users); }, [users]);
-
-    // Filtros móviles
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const openMenu = Boolean(anchorEl);
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
-    const handleMenuClose = () => setAnchorEl(null);
-
-    // Modales
+    // Modal state
     const [modalOpen, setModalOpen] = useState(false);
     const [modalTitle, setModalTitle] = useState("");
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // Crear usuario
+    // Handlers de Create/Edit/Delete/Roles
     const openCreate = () => {
         setModalTitle("Crear usuario");
         setModalContent(
             <UserForm
                 action="add"
-                onSuccess={() => { load(); setModalOpen(false); }}
+                onSuccess={() => {
+                    load();
+                    setModalOpen(false);
+                }}
                 onClose={() => setModalOpen(false)}
             />
         );
         setModalOpen(true);
     };
 
-    // Editar usuario
     const openEdit = (u: User) => {
         setModalTitle("Editar usuario");
         setModalContent(
             <UserForm
                 action="edit"
                 item={u}
-                onSuccess={() => { load(); setModalOpen(false); }}
+                onSuccess={() => {
+                    load();
+                    setModalOpen(false);
+                }}
                 onClose={() => setModalOpen(false)}
             />
         );
         setModalOpen(true);
     };
 
-    // Eliminar usuario
     const openDelete = (u: User) => {
         setModalTitle("Eliminar usuario");
         setModalContent(
             <UserForm
                 action="delete"
                 item={u}
-                onSuccess={() => { load(); setModalOpen(false); }}
+                onSuccess={() => {
+                    load();
+                    setModalOpen(false);
+                }}
                 onClose={() => setModalOpen(false)}
             />
         );
         setModalOpen(true);
     };
 
-    // Gestionar roles
     const openRoles = async (u: User) => {
         setModalTitle("Gestionar roles");
-        setModalContent(<Box textAlign="center" p={2}><CircularProgress /></Box>);
+        setModalContent(
+            <Box textAlign="center" p={2}>
+                <CircularProgress />
+            </Box>
+        );
         setModalOpen(true);
         try {
             const { data: roles } = await getRoles(u.id);
@@ -123,7 +98,10 @@ export function UsersSection({
                 <RoleForm
                     userId={u.id}
                     currentRoles={roles}
-                    onSuccess={() => { load(); setModalOpen(false); }}
+                    onSuccess={() => {
+                        load();
+                        setModalOpen(false);
+                    }}
                     onClose={() => setModalOpen(false)}
                 />
             );
@@ -132,120 +110,123 @@ export function UsersSection({
                 <RoleForm
                     userId={u.id}
                     currentRoles={[]}
-                    onSuccess={() => { load(); setModalOpen(false); }}
+                    onSuccess={() => {
+                        load();
+                        setModalOpen(false);
+                    }}
                     onClose={() => setModalOpen(false)}
                 />
             );
         }
     };
 
+    // Columnas del grid, ahora con íconos
+    const columns = [
+        {
+            field: "fullName",
+            headerName: "Nombre completo",
+            flex: 1,
+            renderCell: (params: any) =>
+                `${params.row.firstName} ${params.row.lastName}`,
+            sortable: false,
+            filterable: false,
+        },
+        { field: "email", headerName: "Email", flex: 1 },
+        { field: "phone", headerName: "Teléfono", flex: 1 },
+        {
+            field: "roles",
+            headerName: "Roles",
+            flex: 1,
+            renderCell: (params: any) =>
+                Array.isArray(params.row.roles) ? params.row.roles.join(", ") : "—",
+            sortable: false,
+            filterable: false,
+        },
+        ...(showActions
+            ? [
+                {
+                    field: "actions",
+                    headerName: "Acciones",
+                    width: 120,
+                    sortable: false,
+                    filterable: false,
+                    renderCell: (params: any) => (
+                        <Box
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={1}
+                            width="100%"
+                            height="100%"
+                        >
+                            <IconButton
+                                size="small"
+                                title="Editar"
+                                onClick={() => openEdit(params.row)}
+                            >
+                                <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                                size="small"
+                                title="Eliminar"
+                                onClick={() => openDelete(params.row)}
+                            >
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                                size="small"
+                                title="Roles"
+                                onClick={() => openRoles(params.row)}
+                            >
+                                <PeopleIcon fontSize="small" />
+                            </IconButton>
+                        </Box>
+                    ),
+                },
+            ]
+            : []),
+    ];
+
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    p: 3,
+                }}
+            >
+                <CircularProgress size={36} />
+            </Box>
+        );
+    }
+
     return (
         <>
-            {/* ─── Toolbar ─── */}
-            <Box
-                sx={{
-                    px: 2,
-                    py: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    gap: 1,
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                }}
+            <GridSection
+                data={users}
+                loading={loading}
+                columns={columns}
+                onSearch={() => { }}
+                onCreate={openCreate}
+                onEdit={openEdit}
+                onDelete={openDelete}
+                onRoles={openRoles}
+                toggleSelect={gridToggleSelect}
+                isSelected={isSelected}
+                entityName="Usuario"
+                showActions={showActions}
+                fetchAll={fetchAll}
+                fetchByText={fetchByText}
+                multiSelect={false}
+            />
+            <Modal
+                open={modalOpen}
+                title={modalTitle}
+                onClose={() => setModalOpen(false)}
             >
-                {/* Desktop filters */}
-                <Box sx={{ display: { xs: "none", sm: "block" } }}>
-                    <ToggleButtonGroup
-                        value={filter}
-                        exclusive
-                        size="small"
-                        onChange={(_, v) => v && setFilter(v)}
-                    >
-                        {FILTERS.map((f) => (
-                            <ToggleButton key={f.value} value={f.value}>
-                                {f.label}
-                            </ToggleButton>
-                        ))}
-                    </ToggleButtonGroup>
-                </Box>
-
-                {/* Mobile filters */}
-                <Box sx={{ display: { xs: "flex", sm: "none" } }}>
-                    <Button variant="outlined" size="small" onClick={handleMenuOpen}>
-                        Filtros
-                    </Button>
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={openMenu}
-                        onClose={handleMenuClose}
-                        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                    >
-                        {FILTERS.map((f) => (
-                            <MenuItem
-                                key={f.value}
-                                selected={filter === f.value}
-                                onClick={() => { setFilter(f.value); handleMenuClose(); }}
-                            >
-                                {f.label}
-                            </MenuItem>
-                        ))}
-                    </Menu>
-                </Box>
-
-                {/* Search + Add */}
-                <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box sx={{ flexGrow: 1, minWidth: { xs: 0, sm: "20rem" } }}>
-                        <SearchBar
-                            fetchAll={fetchAll}
-                            fetchByText={fetchByText}
-                            onSearch={(results) => setDisplayed(results)}
-                            placeholder="Buscar usuario…"
-                        />
-                    </Box>
-                    <IconButton onClick={openCreate}>
-                        <AddIcon />
-                    </IconButton>
-                </Box>
-            </Box>
-
-            {/* ─── Column headers (sm+) ─── */}
-            <Box
-                sx={{
-                    display: { xs: "none", sm: "grid" },
-                    gridTemplateColumns: "1fr 1fr 1fr 1fr 75px",
-                    px: 2,
-                    py: 1,
-                    bgcolor: theme.palette.background.paper,
-                    fontWeight: 700,
-                }}
-            >
-                <Typography fontWeight={700} noWrap>Nombre completo</Typography>
-                <Typography fontWeight={700} noWrap>Email</Typography>
-                <Typography fontWeight={700} noWrap>Teléfono</Typography>
-                <Typography fontWeight={700} noWrap>Roles</Typography>
-                <Typography fontWeight={700} noWrap>Acciones</Typography>
-            </Box>
-
-            {/* ─── Listado ─── */}
-            <Box sx={{ px: 2, flexGrow: 1, overflowY: "auto" }}>
-                {loading ? (
-                    <Box display="flex" justifyContent="center" p={3}>
-                        <CircularProgress size={28} />
-                    </Box>
-                ) : (
-                    <UsersList
-                        users={displayed}
-                        onEdit={openEdit}
-                        onDelete={openDelete}
-                        onRoles={openRoles}
-                        isSelected={isSelFn}
-                        toggleSelect={selectFn}
-                    />
-                )}
-            </Box>
-
-            {/* ─── Modal ─── */}
-            <Modal open={modalOpen} title={modalTitle} onClose={() => setModalOpen(false)}>
                 {modalContent}
             </Modal>
         </>
