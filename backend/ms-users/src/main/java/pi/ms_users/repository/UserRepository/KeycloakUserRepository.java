@@ -14,9 +14,10 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import pi.ms_users.domain.User;
+import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.dto.EmailNewUserDTO;
+import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.service.impl.EmailService;
-import pi.ms_users.service.impl.UserNotificationPreferenceService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +30,8 @@ public class KeycloakUserRepository implements IUserRepository {
     private final Keycloak keycloak;
 
     private final EmailService emailService;
-    private final UserNotificationPreferenceService userNotificationPreferenceService;
+
+    private final IUserNotificationPreferenceRepository userNotificationPreferenceRepository;
 
     @Value("${pi.keycloak.realm}")
     private String realm;
@@ -197,7 +199,8 @@ public class KeycloakUserRepository implements IUserRepository {
     @Override
     public void deleteUserById(String id) {
         keycloak.realm(realm).users().delete(id);
-        userNotificationPreferenceService.deleteUser(id);
+        List<UserNotificationPreference> userNotificationPreferences = userNotificationPreferenceRepository.findByUserId(id);
+        userNotificationPreferenceRepository.deleteAll(userNotificationPreferences);
     }
 
     @Override
