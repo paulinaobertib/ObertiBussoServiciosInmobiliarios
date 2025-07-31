@@ -6,6 +6,9 @@ import { useProfile } from '../../../hooks/useProfile';
 import { ProfileView } from './ProfileView';
 import { ProfileForm } from './ProfileForm';
 import type { User } from '../../../types/user';
+import { useConfirmDialog } from '../../../../shared/components/ConfirmDialog';
+import { deleteUser } from '../../../services/user.service';
+import { useAuthContext } from '../../../context/AuthContext';
 
 export function ProfileSection() {
   const { profile, loading, error, updateProfile } = useProfile();
@@ -14,6 +17,8 @@ export function ProfileSection() {
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(true);
   const initialized = useRef(false);
+  const { ask, DialogUI } = useConfirmDialog();
+  const { logout, setInfo, info } = useAuthContext();
 
   useEffect(() => {
     if (profile && !initialized.current) {
@@ -37,6 +42,47 @@ export function ProfileSection() {
   };
 
   const userData = form ?? profile;
+
+  const handleDeleteProfile = () => {
+    ask(
+      <>
+        <b>¿Seguro que quieres eliminar tu cuenta?</b>
+        <br />
+        Esta acción es irreversible.
+      </>,
+      async () => {
+        try {
+          if (!info) {
+            alert('No hay información de usuario. No puedes eliminar el perfil.');
+            return;
+          }
+          console.log("Intentando eliminar usuario con id:", info.id);
+          const res = await deleteUser(info.id); // Asegurate que deleteUser es una función
+          console.log("Respuesta de eliminación:", res);
+
+          // Limpiar sesión/contexto
+          setInfo(null);
+          sessionStorage.clear();
+          localStorage.clear();
+          logout();
+        } catch (err) {
+          console.error("Error eliminando usuario:", err);
+
+          // Si usás Axios, esto es lo más seguro:
+          if (
+            typeof err === 'object' &&
+            err !== null &&
+            'response' in err &&
+            (err as any).response?.data
+          ) {
+            alert(`Error: ${(err as any).response.data}`);
+          } else {
+            alert('Error al eliminar la cuenta. Intenta de nuevo.');
+          }
+        }
+      }
+    );
+  };
 
   // If collapsed, show small bar
   if (!open) {
@@ -95,6 +141,7 @@ export function ProfileSection() {
               editMode={editMode}
               saving={saving}
               onToggleEdit={handleToggleEdit}
+              onDeleteProfile={handleDeleteProfile}
             />
             <ProfileForm
               user={userData as User}
@@ -104,6 +151,7 @@ export function ProfileSection() {
           </Box>
         )}
       </Collapse>
+      {DialogUI}
     </Box>
   );
 }

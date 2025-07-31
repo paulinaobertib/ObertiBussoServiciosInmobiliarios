@@ -60,35 +60,7 @@ export const PropertyCard = ({
       }}
     >
 
-      {property.outstanding && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: -15,
-            left: 0,
-            width: 180,
-            height: 26,
-            bgcolor: theme.palette.quaternary.main,
-            borderRadius: "4px 4px 0 0",  // sólo esquinas de arriba
-            display: "flex",
-            // alignItems: "center",
-            justifyContent: "center",
-            zIndex: -1,
-          }}
-        >
-          <Typography
-            // variant="caption"
-            sx={{
-              color: 'black',
-              fontWeight: 600,
-              textTransform: "uppercase",
-              fontSize: '0.7rem'
-            }}
-          >
-            Propiedad destacada
-          </Typography>
-        </Box>
-      )}
+
 
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
@@ -106,6 +78,27 @@ export const PropertyCard = ({
           }}
         />
 
+        {property.outstanding && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              bgcolor: "#ff9800",
+              color: "white",
+              px: 2,
+              py: 0.6,
+              fontSize: "0.8rem",
+              fontWeight: "bold",
+              letterSpacing: 1,
+              borderRadius: 2,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+            }}
+          >
+            DESTACADA
+          </Box>
+        )}
 
         {/* Chips agrupados */}
         <Box

@@ -4,8 +4,8 @@ import { PaymentItem } from './PaymentItem';
 
 interface Props {
     payments: Payment[];
-    onEdit?: (p: Payment) => void;
-    onDelete?: (p: Payment) => void;
+    onEdit?: (p: Payment) => void | Promise<void>;
+    onDelete?: (p: Payment) => void | Promise<void>;
 }
 
 export const PaymentsList = ({ payments, onEdit, onDelete }: Props) => {

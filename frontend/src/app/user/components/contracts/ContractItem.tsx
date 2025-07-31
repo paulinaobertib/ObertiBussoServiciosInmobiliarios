@@ -133,7 +133,7 @@ export const ContractItem = ({
                     <strong>Hasta:</strong> {fmtDate(contract.endDate)}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>Monto:</strong> $ {contract.increase.toLocaleString()}
+                    <strong>Monto Inicial:</strong> $ {contract.increase.toLocaleString()}
                 </Typography>
                 <Typography variant="body2">
                     <strong>Frecuencia:</strong> {contract.increaseFrequency} meses

@@ -7,10 +7,12 @@ import {
   getInquiriesByProperty,
   updateInquiry,
 } from "../services/inquiry.service";
+import { getAllChatSessions } from "../../chat/services/chatSession.service"; // Asegúrate de importar correctamente
 import { getAllProperties } from "../services/property.service";
 import { Inquiry, InquiryStatus } from "../types/inquiry";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { buildRoute, ROUTES } from "../../../lib";
+import { ChatSessionDTO } from "../../chat/types/chatSession";
 
 export const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
 
@@ -19,7 +21,6 @@ interface UseInquiriesArgs {
 }
 
 export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
-  // ────── Contextos y navegación ──────
   const { info, isAdmin } = useAuthContext();
   const navigate = useNavigate();
 
@@ -28,8 +29,8 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const [properties, setProperties] = useState<{ id: number; title: string }[]>(
     []
   );
+  const [chatSessions, setChatSessions] = useState<ChatSessionDTO[]>([]);
 
-  // Estado UI
   const [loading, setLoading] = useState(true);
   const [errorList, setErrorList] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
@@ -54,6 +55,23 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       )
       .catch(() => setProperties([]));
   }, []);
+
+  // Llamada a las sesiones de chat solo para admins
+  const loadChatSessions = useCallback(async () => {
+    if (isAdmin && chatSessions.length === 0) {
+      // Verifica que no se hayan cargado previamente
+      try {
+        const sessions = await getAllChatSessions();
+        setChatSessions(sessions); // Guardar las sesiones de chat
+      } catch (error) {
+        console.error("Error fetching chat sessions:", error);
+      }
+    }
+  }, [isAdmin, chatSessions.length]); // Dependencia para evitar múltiples ejecuciones
+
+  useEffect(() => {
+    loadChatSessions(); // Llamar a las sesiones de chat solo cuando sea necesario
+  }, [loadChatSessions]);
 
   // Trae todas las consultas según usuario o admin
   const loadAll = useCallback(async () => {
@@ -101,7 +119,25 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     }
   }, [filterStatus, filterProp, loadAll]);
 
-  // ────── Marcar consulta como resuelta ──────
+  // Filtrado local para usuarios no administradores
+  useEffect(() => {
+    if (!isAdmin) {
+      const filteredInquiries = inquiries.filter((inq) => {
+        const matchesStatus = filterStatus ? inq.status === filterStatus : true;
+        const matchesProperty = filterProp
+          ? inq.propertyTitles?.includes(filterProp)
+          : true;
+        return matchesStatus && matchesProperty;
+      });
+
+      // Actualiza las consultas filtradas solo si hay un cambio
+      if (filteredInquiries.length !== inquiries.length) {
+        setInquiries(filteredInquiries);
+      }
+    }
+  }, [isAdmin, filterStatus, filterProp, inquiries]);
+
+  // Marcar consulta como resuelta
   const markResolved = async (inqId: number) => {
     setActionLoadingId(inqId);
     try {
@@ -117,11 +153,11 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     }
   };
 
-  // ────── Navegación a detalle de propiedad ──────
+  // Navegar a detalle de propiedad
   const goToProperty = (propId: number) =>
     navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
 
-  // ────── Efecto principal de carga (lista, filtros, por propiedad) ──────
+  // Efecto principal de carga (lista, filtros, por propiedad)
   useEffect(() => {
     if (propertyIds?.length) {
       (async () => {
@@ -147,7 +183,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     }
   }, [propertyIds, isAdmin, filterStatus, filterProp, loadAll, loadFiltered]);
 
-  // ────── Sincroniza selected.propertyTitles con selectedProps (detalles) ──────
+  // Sincroniza selected.propertyTitles con selectedProps (detalles)
   useEffect(() => {
     if (!selected) {
       setSelectedProps([]);
@@ -159,29 +195,23 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     setSelectedProps(mapped);
   }, [selected, properties]);
 
-  // ────── Return ordenado y explícito ──────
+  // Return ordenado y explícito
   return {
-    // Lista y estado principal
     inquiries,
     properties,
     loading,
     errorList,
-
-    // Selección/detalle
     selected,
     setSelected,
     selectedProps,
-
-    // Filtros
     filterStatus,
     setFilterStatus,
     filterProp,
     setFilterProp,
     STATUS_OPTIONS,
-
-    // Acciones
     markResolved,
     actionLoadingId,
     goToProperty,
+    chatSessions, // Ahora puedes acceder a las sesiones de chat
   };
 };
