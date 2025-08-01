@@ -823,4 +823,42 @@ public class PropertyServiceTest {
         verify(propertyRepository).findById(id);
         verify(propertyRepository, never()).save(any());
     }
+
+    @Test
+    void testCreateProperty_notificationThrowsException() {
+        when(mapper.convertValue(propertySaveDTO, PropertyUpdateDTO.class))
+                .thenReturn(propertyUpdateDTO);
+
+        when(mapper.convertValue(propertyUpdateDTO, Property.class))
+                .thenReturn(property);
+
+        when(ownerRepository.findById(1L)).thenReturn(Optional.of(owner));
+        when(neighborhoodRepository.findById(1L)).thenReturn(Optional.of(neighborhood));
+        when(typeRepository.findById(1L)).thenReturn(Optional.of(type));
+        when(amenityRepository.findById(1L)).thenReturn(Optional.of(amenities.iterator().next()));
+
+        when(propertyRepository.save(ArgumentMatchers.any())).thenReturn(property);
+
+        when(imageService.uploadImageToProperty(
+                any(MultipartFile.class),
+                any(),
+                eq(true)))
+                .thenReturn("https://example.com/mainImage.jpg");
+
+        when(imageService.uploadImageToProperty(
+                any(MultipartFile.class),
+                any(),
+                eq(false)))
+                .thenReturn("https://example.com/extra.jpg");
+
+        doThrow(new RuntimeException("Error al crear notificación"))
+                .when(notificationRepository)
+                .createNotification(any(NotificationDTO.class), any());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                propertyService.createProperty(propertySaveDTO)
+        );
+
+        assertTrue(exception.getMessage().contains("Error al crear la notificación"));
+    }
 }

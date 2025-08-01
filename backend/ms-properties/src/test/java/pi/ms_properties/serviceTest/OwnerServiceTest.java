@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -329,6 +330,20 @@ class OwnerServiceTest {
                 () -> ownerService.findContracts(999L));
 
         assertEquals("No se ha encontrado al propietario con ID: 999", thrown.getMessage());
+    }
+
+    @Test
+    void createOwner_shouldThrowIllegalArgumentException_whenEmailAlreadyExists() {
+        Owner owner = new Owner();
+        owner.setEmail("john.doe@email.com");
+
+        doThrow(new DataIntegrityViolationException("Duplicate key")).when(ownerRepository).save(owner);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            ownerService.createOwner(owner);
+        });
+
+        assertEquals("El email 'john.doe@email.com' ya existe", exception.getMessage());
     }
 }
 

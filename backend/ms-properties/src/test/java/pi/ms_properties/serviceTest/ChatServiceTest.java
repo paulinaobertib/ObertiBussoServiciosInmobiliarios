@@ -27,82 +27,82 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class ChatServiceTest {
+@ExtendWith(
+    MockitoExtension.class)
+    class ChatServiceTest {
 
-    @InjectMocks
-    private ChatService chatService;
+        @InjectMocks
+        private ChatService chatService;
 
-    @Mock
-    private IPropertyRepository propertyRepository;
+        @Mock
+        private IPropertyRepository propertyRepository;
 
-    @Mock
-    private IChatDerivationService chatDerivationService;
+        @Mock
+        private IChatDerivationService chatDerivationService;
 
-    @Mock
-    private IChatSessionRepository chatSessionRepository;
+        @Mock
+        private IChatSessionRepository chatSessionRepository;
 
-    @Mock
-    private IChatMessageService chatMessageService;
+        @Mock
+        private IChatMessageService chatMessageService;
 
-    @Mock
-    private AgentChatRepository agentChatRepository;
+        @Mock
+        private AgentChatRepository agentChatRepository;
 
-    @Mock
-    private IAgentAssignService agentAssignService;
+        @Mock
+        private IAgentAssignService agentAssignService;
 
-    @Mock
-    private IAgentAssignmentRepository agentAssigmentRepository;
+        @Mock
+        private IAgentAssignmentRepository agentAssigmentRepository;
 
-    @Mock
-    private IEmailService emailService;
+        @Mock
+        private IEmailService emailService;
 
-    private Property property;
-    private ChatSession chatSession;
+        private Property property;
+        private ChatSession chatSession;
 
-    @BeforeEach
-    void setUp() {
-        property = new Property();
-        property.setId(1L);
-        property.setShowPrice(true);
-        property.setPrice(BigDecimal.valueOf(100000));
-        property.setCurrency(Currency.USD);
-        property.setExpenses(BigDecimal.valueOf(5000));
-        property.setArea(100.0F);
-        property.setCoveredArea(80.0F);
-        property.setBedrooms(2F);
-        property.setBathrooms(1F);
-        property.setRooms(4F);
-        property.setFinancing(true);
-        property.setCredit(false);
+        @BeforeEach
+        void setUp() {
+            property = new Property();
+            property.setId(1L);
+            property.setShowPrice(true);
+            property.setPrice(BigDecimal.valueOf(100000));
+            property.setCurrency(Currency.USD);
+            property.setExpenses(BigDecimal.valueOf(5000));
+            property.setArea(100.0F);
+            property.setCoveredArea(80.0F);
+            property.setBedrooms(2F);
+            property.setBathrooms(1F);
+            property.setRooms(4F);
+            property.setFinancing(true);
+            property.setCredit(false);
 
-        Neighborhood neighborhood = new Neighborhood();
-        neighborhood.setCity("CiudadX");
-        neighborhood.setName("BarrioY");
-        neighborhood.setType(NeighborhoodType.ABIERTO);
-        property.setNeighborhood(neighborhood);
+            Neighborhood neighborhood = new Neighborhood();
+            neighborhood.setCity("CiudadX");
+            neighborhood.setName("BarrioY");
+            neighborhood.setType(NeighborhoodType.ABIERTO);
+            property.setNeighborhood(neighborhood);
 
-        Amenity amenity = new Amenity();
-        amenity.setName("Pileta");
-        property.setAmenities(Set.of(amenity));
+            Amenity amenity = new Amenity();
+            amenity.setName("Pileta");
+            property.setAmenities(Set.of(amenity));
 
-        chatSession = new ChatSession();
-        chatSession.setId(1L);
-    }
+            chatSession = new ChatSession();
+            chatSession.setId(1L);
+        }
 
-    // casos de exito
+        // casos de exito
 
-    @Test
-    void testResponseToUserMessage_VerPrecio_Success() {
-        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
-        when(chatSessionRepository.findById(1L)).thenReturn(Optional.of(chatSession));
+        @Test
+        void testResponseToUserMessage_VerPrecio_Success() {
+            when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+            when(chatSessionRepository.findById(1L)).thenReturn(Optional.of(chatSession));
 
-        String response = chatService.responseToUserMessage(ChatOption.VER_PRECIO, 1L, 1L);
+            String response = chatService.responseToUserMessage(ChatOption.VER_PRECIO, 1L, 1L);
 
-        assertTrue(response.contains("El precio de la propiedad es"));
-        verify(chatMessageService).create(any(ChatMessage.class));
-    }
-
+            assertTrue(response.contains("El precio de la propiedad es"));
+            verify(chatMessageService).create(any(ChatMessage.class));
+        }
     @Test
     void testResponseToUserMessage_VerArea_Success() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
@@ -328,6 +328,18 @@ class ChatServiceTest {
         assertEquals("No hay agentes habilitados.", exception.getMessage());
 
         verify(agentAssignService, never()).create(anyString());
+    }
+
+    @Test
+    void responseToUserMessage_shouldThrowNullPointerException_whenChatOptionIsNull() {
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(chatSessionRepository.findById(1L)).thenReturn(Optional.of(chatSession));
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
+            chatService.responseToUserMessage(null, 1L, 1L);
+        });
+
+        assertTrue(exception.getMessage().contains("chatOption"));
     }
 
     // casos de error

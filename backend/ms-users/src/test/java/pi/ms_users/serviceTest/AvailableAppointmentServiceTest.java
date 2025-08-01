@@ -18,7 +18,9 @@ import pi.ms_users.service.impl.AvailableAppointmentService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,7 +39,7 @@ class AvailableAppointmentServiceTest {
     @Test
     void create_shouldSaveAppointmentsEvery30Minutes() {
         AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
-        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setDate(LocalDate.now().plusDays(1));
         dto.setStartTime(LocalTime.of(9, 0));
         dto.setEndTime(LocalTime.of(10, 0));
 
@@ -60,7 +62,7 @@ class AvailableAppointmentServiceTest {
     @Test
     void create_shouldReturnMessageIfAppointmentsAlreadyExist() {
         AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
-        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setDate(LocalDate.now().plusDays(1));
         dto.setStartTime(LocalTime.of(9, 0));
         dto.setEndTime(LocalTime.of(10, 0));
 
@@ -82,7 +84,7 @@ class AvailableAppointmentServiceTest {
     @Test
     void create_shouldSaveOnlyNewAppointmentsIfSomeExist() {
         AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
-        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setDate(LocalDate.now().plusDays(1));
         dto.setStartTime(LocalTime.of(9, 0));
         dto.setEndTime(LocalTime.of(10, 30));
 
@@ -94,12 +96,21 @@ class AvailableAppointmentServiceTest {
 
         ResponseEntity<String> response = availableAppointmentService.create(dto);
 
-        verify(availableAppointmentRepository).saveAll(argThat((ArgumentMatcher<List<AvailableAppointment>>) list -> list.size() == 2));
+        verify(availableAppointmentRepository).saveAll(argThat(iterable -> {
+            int size = 0;
+            for (AvailableAppointment app : iterable) {
+                size++;
+                assertNotEquals(LocalDateTime.of(dto.getDate(), LocalTime.of(9, 0)), app.getDate());
+            }
+            return size == 2;
+        }));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().contains("Turnos ya existentes: 1. Turnos nuevos guardados:"));
-        assertTrue(response.getBody().contains("30/06/2025 09:30"));
-        assertTrue(response.getBody().contains("30/06/2025 10:00"));
+
+        assertTrue(response.getBody().contains("Turnos ya existentes: 1"));
+        assertTrue(response.getBody().contains("Turnos nuevos guardados: 2"));
+        assertTrue(response.getBody().contains(dto.getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " 09:30"));
+        assertTrue(response.getBody().contains(dto.getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " 10:00"));
     }
 
     @Test
@@ -178,7 +189,7 @@ class AvailableAppointmentServiceTest {
     @Test
     void create_shouldReturnBadRequestIfTimeRangeIsInvalid() {
         AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
-        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setDate(LocalDate.now().plusDays(1));
         dto.setStartTime(LocalTime.of(10, 0));
         dto.setEndTime(LocalTime.of(9, 0)); // inválido
 
@@ -191,9 +202,24 @@ class AvailableAppointmentServiceTest {
     }
 
     @Test
+    void create_shouldReturnBadRequestIfAppointmentDateTimeIsInThePast() {
+        AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
+        dto.setDate(LocalDate.of(2023, 1, 1));
+        dto.setStartTime(LocalTime.of(10, 0));
+        dto.setEndTime(LocalTime.of(11, 0));
+
+        ResponseEntity<String> response = availableAppointmentService.create(dto);
+
+        verify(availableAppointmentRepository, never()).saveAll(any());
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("La fecha y hora del turno no puede ser anterior a la fecha y hora actual.", response.getBody());
+    }
+
+    @Test
     void create_shouldReturnNoAppointmentsMessageIfNoTurnSlots() {
         AvailableAppointmentDTO dto = new AvailableAppointmentDTO();
-        dto.setDate(LocalDate.of(2025, 6, 30));
+        dto.setDate(LocalDate.now().plusDays(1));
         dto.setStartTime(LocalTime.of(10, 0));
         dto.setEndTime(LocalTime.of(10, 0));
 

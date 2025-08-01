@@ -19,6 +19,8 @@ import pi.ms_properties.dto.NeighborhoodGetDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.NeighborhoodService;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -120,6 +122,23 @@ class NeighborhoodControllerTest {
                 .andExpect(jsonPath("$.name").value("Altos del Sur"));
     }
 
+    @Test
+    @WithMockUser(roles = "admin")
+    void searchNeighborhood_shouldReturnOk_withResults() throws Exception {
+        NeighborhoodGetDTO dto1 = new NeighborhoodGetDTO(1L, "Altos del Sur", "CERRADO", "Córdoba", -45.89, 78.98);
+        NeighborhoodGetDTO dto2 = new NeighborhoodGetDTO(2L, "Bajo Lado", "ABIERTO", "Córdoba", -40.12, 75.43);
+        List<NeighborhoodGetDTO> resultList = Arrays.asList(dto1, dto2);
+
+        Mockito.when(neighborhoodService.findBy("Altos")).thenReturn(ResponseEntity.ok(resultList));
+
+        mockMvc.perform(get("/neighborhood/search")
+                        .param("search", "Altos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Altos del Sur"))
+                .andExpect(jsonPath("$[1].name").value("Bajo Lado"));
+    }
+
     // casos de error
 
     @Test
@@ -153,5 +172,31 @@ class NeighborhoodControllerTest {
 
         mockMvc.perform(get("/neighborhood/getById/99"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void searchNeighborhood_shouldReturnEmptyList_whenNoResults() throws Exception {
+        Mockito.when(neighborhoodService.findBy("XYZ")).thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        mockMvc.perform(get("/neighborhood/search")
+                        .param("search", "XYZ"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void searchNeighborhood_shouldReturnUnauthorized_whenNoUser() throws Exception {
+        mockMvc.perform(get("/neighborhood/search")
+                        .param("search", "Altos"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void searchNeighborhood_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(get("/neighborhood/search")
+                        .param("search", "Altos"))
+                .andExpect(status().isForbidden());
     }
 }
