@@ -247,3 +247,4 @@ jobs:
   #           --app-name "$SWA_FRONTEND_PROD" \
   #           --env production \
   #           --deployment-token "$DEPLOY_TOKEN"
+  
