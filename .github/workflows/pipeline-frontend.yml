@@ -128,7 +128,7 @@ jobs:
             az staticwebapp create \
               -g "$AZURE_RESOURCE_GROUP" \
               -n "${{ env.SWA_FRONTEND_DEV }}" \
-              --location "$SWA_LOCATION" \
+              --location centralus \
               --app-location frontend \
               --output-location frontend/dist \
               --sku Free
