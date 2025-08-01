@@ -1,20 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useImages } from '../../hooks/useImages';
+import { describe, it, expect } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useImages } from "../../hooks/useImages";
 
 // Definir el tipo Image para las pruebas
-type Image = string | File;
 
-describe('useImages', () => {
-  let initialMain: Image | null;
-  let initialGallery: Image[];
-
-  beforeEach(() => {
-    initialMain = null;
-    initialGallery = [];
-  });
-
-  it('inicializa correctamente con valores predeterminados', () => {
+describe("useImages", () => {
+  it("inicializa correctamente con valores predeterminados", () => {
     const { result } = renderHook(() => useImages());
 
     expect(result.current.mainImage).toBeNull();
@@ -22,9 +13,12 @@ describe('useImages', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('inicializa correctamente con valores iniciales', () => {
-    const mainImage = new File([''], 'main.jpg');
-    const gallery = [new File([''], 'gallery1.jpg'), 'https://example.com/image.jpg'];
+  it("inicializa correctamente con valores iniciales", () => {
+    const mainImage = new File([""], "main.jpg");
+    const gallery = [
+      new File([""], "gallery1.jpg"),
+      "https://example.com/image.jpg",
+    ];
     const { result } = renderHook(() => useImages(mainImage, gallery));
 
     expect(result.current.mainImage).toEqual(mainImage);
@@ -32,9 +26,9 @@ describe('useImages', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('setMain establece la imagen principal correctamente (File)', async () => {
+  it("setMain establece la imagen principal correctamente (File)", async () => {
     const { result } = renderHook(() => useImages());
-    const file = new File([''], 'main.jpg');
+    const file = new File([""], "main.jpg");
 
     await act(() => {
       result.current.setMain(file);
@@ -44,8 +38,8 @@ describe('useImages', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('setMain establece la imagen principal como null', async () => {
-    const mainImage = new File([''], 'main.jpg');
+  it("setMain establece la imagen principal como null", async () => {
+    const mainImage = new File([""], "main.jpg");
     const { result } = renderHook(() => useImages(mainImage));
 
     await act(() => {
@@ -56,9 +50,12 @@ describe('useImages', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('addToGallery agrega imágenes nuevas correctamente', async () => {
+  it("addToGallery agrega imágenes nuevas correctamente", async () => {
     const { result } = renderHook(() => useImages());
-    const newImages = [new File([''], 'image1.jpg'), 'https://example.com/new.jpg'];
+    const newImages = [
+      new File([""], "image1.jpg"),
+      "https://example.com/new.jpg",
+    ];
 
     await act(() => {
       result.current.addToGallery(newImages);
@@ -68,8 +65,8 @@ describe('useImages', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('remove elimina la imagen principal', async () => {
-    const mainImage = new File([''], 'main.jpg');
+  it("remove elimina la imagen principal", async () => {
+    const mainImage = new File([""], "main.jpg");
     const { result } = renderHook(() => useImages(mainImage));
 
     await act(() => {
@@ -81,8 +78,11 @@ describe('useImages', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('remove elimina una imagen de la galería', async () => {
-    const gallery = [new File([''], 'image1.jpg'), 'https://example.com/image.jpg'];
+  it("remove elimina una imagen de la galería", async () => {
+    const gallery = [
+      new File([""], "image1.jpg"),
+      "https://example.com/image.jpg",
+    ];
     const { result } = renderHook(() => useImages(null, gallery));
     const imageToRemove = gallery[0];
 
@@ -90,37 +90,37 @@ describe('useImages', () => {
       result.current.remove(imageToRemove);
     });
 
-    expect(result.current.gallery).toEqual(['https://example.com/image.jpg']);
+    expect(result.current.gallery).toEqual(["https://example.com/image.jpg"]);
     expect(result.current.error).toBeNull();
   });
 
-  it('setMain lanza error si la imagen ya es la principal (File con mismo nombre)', async () => {
-    const file = new File([''], 'duplicada.jpg');
+  it("setMain lanza error si la imagen ya es la principal (File con mismo nombre)", async () => {
+    const file = new File([""], "duplicada.jpg");
     const { result } = renderHook(() => useImages(file));
 
     await act(() => {
-      result.current.setMain(new File([''], 'duplicada.jpg'));
+      result.current.setMain(new File([""], "duplicada.jpg"));
     });
 
-    expect(result.current.error).toBe('Esta imagen ya es la principal');
+    expect(result.current.error).toBe("Esta imagen ya es la principal");
   });
 
-  it('addToGallery lanza error si todas las imágenes ya están cargadas', async () => {
-    const file = new File([''], 'image1.jpg');
+  it("addToGallery lanza error si todas las imágenes ya están cargadas", async () => {
+    const file = new File([""], "image1.jpg");
     const { result } = renderHook(() => useImages(file, [file]));
 
     await act(() => {
-      result.current.addToGallery([new File([''], 'image1.jpg')]);
+      result.current.addToGallery([new File([""], "image1.jpg")]);
     });
 
-    expect(result.current.error).toBe('Todos los archivos ya estaban cargados');
+    expect(result.current.error).toBe("Todos los archivos ya estaban cargados");
     expect(result.current.gallery).toEqual([file]);
   });
 
-  it('addToGallery agrega solo imágenes no duplicadas y lanza error parcial', async () => {
-    const img1 = new File([''], 'img1.jpg');
-    const img2 = new File([''], 'img2.jpg');
-    const img3 = new File([''], 'img3.jpg');
+  it("addToGallery agrega solo imágenes no duplicadas y lanza error parcial", async () => {
+    const img1 = new File([""], "img1.jpg");
+    const img2 = new File([""], "img2.jpg");
+    const img3 = new File([""], "img3.jpg");
 
     const { result } = renderHook(() => useImages(null, [img1]));
 
@@ -129,18 +129,20 @@ describe('useImages', () => {
     });
 
     expect(result.current.gallery).toEqual([img1, img2, img3]);
-    expect(result.current.error).toBe('Algunas imágenes fueron ignoradas por duplicadas');
+    expect(result.current.error).toBe(
+      "Algunas imágenes fueron ignoradas por duplicadas"
+    );
   });
 
-  it('clearError limpia el mensaje de error', async () => {
-    const file = new File([''], 'main.jpg');
+  it("clearError limpia el mensaje de error", async () => {
+    const file = new File([""], "main.jpg");
     const { result } = renderHook(() => useImages(file));
 
     await act(() => {
-      result.current.setMain(new File([''], 'main.jpg'));
+      result.current.setMain(new File([""], "main.jpg"));
     });
 
-    expect(result.current.error).toBe('Esta imagen ya es la principal');
+    expect(result.current.error).toBe("Esta imagen ya es la principal");
 
     await act(() => {
       result.current.clearError();

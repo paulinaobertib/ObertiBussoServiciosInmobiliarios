@@ -38,14 +38,14 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   const { info, isLogged } = useAuthContext();
   const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();
-  const { startSessionGuest, startSessionUser, loading: sessionLoading} = useChatSession();
+  const { startSessionGuest, startSessionUser, loading: sessionLoading } = useChatSession();
   const derivingRef = useRef(false);
-  
+
   // mostrar las opciones del chat
   const [showOptions, setShowOptions] = useState(false);
 
   // si hay una sesion previa, la cargo para que pueda seguir abierta cuando cambia de page
-  const [sessionId, setSessionId] = useState<number | null> (
+  const [sessionId, setSessionId] = useState<number | null>(
     Number(localStorage.getItem("chatSessionId")) || null
   );
 
@@ -62,13 +62,13 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     };
   });
 
-  const emailOK = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(guestData.email); 
+  const emailOK = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(guestData.email);
   const guestDataComplete =
     guestData.firstName.trim() &&
-    guestData.lastName.trim()  &&
-    guestData.phone.trim()     &&
-    guestData.email.trim()     &&
-    emailOK; 
+    guestData.lastName.trim() &&
+    guestData.phone.trim() &&
+    guestData.email.trim() &&
+    emailOK;
 
   const [chatActive, setChatActive] = useState(true);
 
@@ -104,7 +104,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   // si la propiedad viene desde una card
   useEffect(() => {
-    if (initialPropertyId) {
+    if (initialPropertyId && propertiesList) {
       const found = propertiesList.find(p => p.id === initialPropertyId);
       if (found) {
         setProperty(found);
@@ -128,12 +128,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   useEffect(() => {
     if (step === "chat" && showWelcome && !showOptions) {
-        const timer = setTimeout(() => {
-          setShowOptions(true);
-        }, 500);
+      const timer = setTimeout(() => {
+        setShowOptions(true);
+      }, 500);
 
-        return () => clearTimeout(timer);
-      }
+      return () => clearTimeout(timer);
+    }
   }, [step, showWelcome, showOptions]);
 
   // que muestre las opciones despues de cada respuesta del sistema
@@ -145,8 +145,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
     if (messages.length === 0) return;
 
-    setShowWelcome(false); 
-    
+    setShowWelcome(false);
+
     const lastMsg = messages[messages.length - 1];
     if (
       lastMsg.from === "system" &&
@@ -244,38 +244,38 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
     addUserMessage(trimmed);
 
-    const isInteger = /^\d+$/.test(trimmed); 
+    const isInteger = /^\d+$/.test(trimmed);
 
-     if (isInteger) {
-        if (keys[index]) {
-          setShowOptions(false);
-          await sendMessage(keys[index], property.id, sessionId);
-          if (keys[index] === "CERRAR") {
+    if (isInteger) {
+      if (keys[index]) {
+        setShowOptions(false);
+        await sendMessage(keys[index], property.id, sessionId);
+        if (keys[index] === "CERRAR") {
+          setChatActive(false);
+        }
+        if (keys[index] === "DERIVAR") {
+          derivingRef.current = true;
+          setTimeout(() => {
+            setCollapsed(true);
             setChatActive(false);
-          }
-          if (keys[index] === "DERIVAR") {
-            derivingRef.current = true;
-            setTimeout(() => {
-              setCollapsed(true);
-              setChatActive(false);
-              clearMessages();
-              if (onClose) onClose();
-            }, 1000);
-          }
-        } else {
-          addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
-          setShowOptions(true);
+            clearMessages();
+            if (onClose) onClose();
+          }, 1000);
         }
       } else {
-        addSystemMessage("Entrada inválida. Por favor escribí solo el número de una opción.");
+        addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
         setShowOptions(true);
       }
+    } else {
+      addSystemMessage("Entrada inválida. Por favor escribí solo el número de una opción.");
+      setShowOptions(true);
+    }
   };
 
   const sendCurrentInput = async () => {
     if (!inputValue.trim()) return;
     await handleTextInput(inputValue.trim());
-    setInputValue(""); 
+    setInputValue("");
   };
 
   useEffect(() => {
@@ -406,171 +406,171 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     </Box>
   );
 
-    return (
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 20,
-          right: 20,
-          width: 380,
-          maxHeight: collapsed ? "auto" : "80vh",
-          boxShadow: 6,
-          borderRadius: 3,
-          border: "1px solid #ccc",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          zIndex: 1500,
-          backgroundColor: "#fff",
-          transition: "max-height 0.2s ease"
-        }}
-      >
+  return (
+    <Box
+      sx={{
+        position: "fixed",
+        bottom: 20,
+        right: 20,
+        width: 380,
+        maxHeight: collapsed ? "auto" : "80vh",
+        boxShadow: 6,
+        borderRadius: 3,
+        border: "1px solid #ccc",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        zIndex: 1500,
+        backgroundColor: "#fff",
+        transition: "max-height 0.2s ease"
+      }}
+    >
 
-        <Box sx={{ p: 2, borderBottom: "1px solid #eee", position: "relative", bgcolor: "#EB7333", color: "#fff" }}>
-          <Typography variant="h6" fontWeight="bold">Asistente Virtual</Typography>
+      <Box sx={{ p: 2, borderBottom: "1px solid #eee", position: "relative", bgcolor: "#EB7333", color: "#fff" }}>
+        <Typography variant="h6" fontWeight="bold">Asistente Virtual</Typography>
 
-          <IconButton
-            aria-label={collapsed ? "Restaurar chat" : "Minimizar chat"}
-            onClick={() => setCollapsed(!collapsed)}
-            sx={{ position: "absolute", right: 48, top: 8, color: "#fff" }}
-          >
-            {collapsed ? <KeyboardArrowUpIcon /> : <RemoveIcon />}
-          </IconButton>
+        <IconButton
+          aria-label={collapsed ? "Restaurar chat" : "Minimizar chat"}
+          onClick={() => setCollapsed(!collapsed)}
+          sx={{ position: "absolute", right: 48, top: 8, color: "#fff" }}
+        >
+          {collapsed ? <KeyboardArrowUpIcon /> : <RemoveIcon />}
+        </IconButton>
 
-          <IconButton
-            aria-label="Cerrar chat"
-            onClick={handleClose}
-            sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Box>
+        <IconButton
+          aria-label="Cerrar chat"
+          onClick={handleClose}
+          sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </Box>
 
-        {!collapsed && (
-          <>
-            <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-              {step === "greeting" && (
-                <Box>
-                  <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
+      {!collapsed && (
+        <>
+          <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+            {step === "greeting" && (
+              <Box>
+                <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
 
-                  {showForm && (
-                    <Box mt={2}>
-                      <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
-                      <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
-                      <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        value={guestData.email}
-                        onChange={e => setGuestData({ ...guestData, email: e.target.value })}
-                        margin="dense"
-                        error={showForm && !emailOK}
-                        helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
-                      />
-                      <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
-                    </Box>
-                  )}
-
+                {showForm && (
                   <Box mt={2}>
-                    {initialPropertyId ? (
-                      <>
-                        <Typography>¿Querés consultar sobre esta propiedad?</Typography>
-                        <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>Sí</Button>
-                        <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
-                      </>
-                    ) : (
-                      <Button
-                        onClick={() => setStep("searchProperty")}
-                        disabled={showForm && !guestDataComplete}
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                      >
-                        Buscar propiedad para consultar
-                      </Button>
-                    )}
+                    <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
+                    <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
+                    <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      value={guestData.email}
+                      onChange={e => setGuestData({ ...guestData, email: e.target.value })}
+                      margin="dense"
+                      error={showForm && !emailOK}
+                      helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
+                    />
+                    <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
                   </Box>
-                </Box>
-              )}
+                )}
 
-              {step === "searchProperty" && (
                 <Box mt={2}>
-                  <Autocomplete
-                    fullWidth
-                    options={propertyOptions}
-                    getOptionLabel={(opt) => opt.title}
-                    onInputChange={(_, value) => handlePropertySearch(value)}
-                    onChange={(_, val) => setProperty(val)}
-                    renderInput={(params) => <TextField {...params} label="Buscar propiedad" />}
-                    noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
-                  />
-                  <Button
-                    onClick={handleStart}
-                    disabled={!property || (showForm && !guestDataComplete)}
-                    variant="contained"
-                    sx={{ mt: 2 }}
-                  >
-                    Confirmar propiedad
-                  </Button>
-                </Box>
-              )}
-
-              {step === "chat" && (
-                <>
-                  {property && (
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}
+                  {initialPropertyId ? (
+                    <>
+                      <Typography>¿Querés consultar sobre esta propiedad?</Typography>
+                      <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>Sí</Button>
+                      <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={() => setStep("searchProperty")}
+                      disabled={showForm && !guestDataComplete}
+                      variant="contained"
+                      sx={{ mt: 2 }}
                     >
-                      Propiedad en consulta: {property?.title || `#${property?.id}`}
-                    </Typography>
+                      Buscar propiedad para consultar
+                    </Button>
                   )}
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={handleChangeProperty}
-                    sx={{ mb: 1 }}
-                  >
-                    Consultar por otra propiedad
-                  </Button>
-                  {renderMessages()}
-                </>
-              )}
-            </Box>
-
-            {step === "chat" && chatActive && (
-              <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
-                <TextField
-                  fullWidth
-                  placeholder="Escribí el número de una opción"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={async (e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      await sendCurrentInput();
-                    }
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={sendCurrentInput}
-                          disabled={!inputValue.trim()}
-                        >
-                          <SendIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                </Box>
               </Box>
             )}
-          </>
-        )}
 
-        {(sessionLoading || loading) && (
-          <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />
-        )}
-      </Box>
-    );
+            {step === "searchProperty" && (
+              <Box mt={2}>
+                <Autocomplete
+                  fullWidth
+                  options={propertyOptions}
+                  getOptionLabel={(opt) => opt.title}
+                  onInputChange={(_, value) => handlePropertySearch(value)}
+                  onChange={(_, val) => setProperty(val)}
+                  renderInput={(params) => <TextField {...params} label="Buscar propiedad" />}
+                  noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
+                />
+                <Button
+                  onClick={handleStart}
+                  disabled={!property || (showForm && !guestDataComplete)}
+                  variant="contained"
+                  sx={{ mt: 2 }}
+                >
+                  Confirmar propiedad
+                </Button>
+              </Box>
+            )}
+
+            {step === "chat" && (
+              <>
+                {property && (
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}
+                  >
+                    Propiedad en consulta: {property?.title || `#${property?.id}`}
+                  </Typography>
+                )}
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleChangeProperty}
+                  sx={{ mb: 1 }}
+                >
+                  Consultar por otra propiedad
+                </Button>
+                {renderMessages()}
+              </>
+            )}
+          </Box>
+
+          {step === "chat" && chatActive && (
+            <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
+              <TextField
+                fullWidth
+                placeholder="Escribí el número de una opción"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    await sendCurrentInput();
+                  }
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={sendCurrentInput}
+                        disabled={!inputValue.trim()}
+                      >
+                        <SendIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          )}
+        </>
+      )}
+
+      {(sessionLoading || loading) && (
+        <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />
+      )}
+    </Box>
+  );
 }

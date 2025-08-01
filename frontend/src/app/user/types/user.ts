@@ -10,4 +10,10 @@ export interface User {
   roles: Role[];
 }
 
-export type UserCreate = Omit<User, "id">;
+export interface UserCreate {
+  firstName: string;
+  lastName: string;
+  userName: string;
+  email: string;
+  phone: string;
+}

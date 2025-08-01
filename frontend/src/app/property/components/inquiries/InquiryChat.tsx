@@ -1,13 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Box, Card, Typography, Chip, Divider, useTheme, useMediaQuery } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import type { ChatSession } from '../../../chat/types/chatSession';
 import { useAuthContext } from '../../../user/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { buildRoute, ROUTES } from '../../../../lib';
-import { getPropertyById } from '../../services/property.service';
 
 interface Props {
     session: ChatSession;
@@ -22,29 +18,12 @@ const statusMap: Record<'ABIERTA' | 'CERRADA', { label: string }> = {
 
 export const ChatSessionItem = ({ session, loading, onClose }: Props) => {
     const theme = useTheme();
-    const navigate = useNavigate();
     const { isAdmin } = useAuthContext();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const created = dayjs(session.date).locale('es');
     const closed = session.dateClose ? dayjs(session.dateClose).locale('es') : null;
     const status = session.dateClose ? statusMap.CERRADA : statusMap.ABIERTA;
     const isClosed = !!session.dateClose;
-
-    const [propertyTitle, setPropertyTitle] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchTitle = async () => {
-            if (session.propertyId) {
-                try {
-                    const res = await getPropertyById(session.propertyId);
-                    setPropertyTitle(res.title);
-                } catch {
-                    setPropertyTitle(null);
-                }
-            }
-        };
-        fetchTitle();
-    }, [session.propertyId]);
 
     // Contact information
     const ContactInfo = (
@@ -72,28 +51,6 @@ export const ChatSessionItem = ({ session, loading, onClose }: Props) => {
             </Typography>
             {/* Divider vertical */}
             <Divider orientation="vertical" flexItem sx={{ bgcolor: theme.palette.grey[300] }} />
-            {/* Propiedades consultadas o nota general */}
-            {session.propertyId ? (
-                <Box display="flex" alignItems="center" flexWrap="wrap" gap={1}>
-                    <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
-                        <strong>Propiedad consultada:</strong>
-                    </Typography>
-                    <Chip
-                        label={propertyTitle ? propertyTitle : `ID: ${session.propertyId}`}
-                        size="small"
-                        clickable
-                        onClick={() => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, session.propertyId))}
-                        sx={{ cursor: 'pointer' }}
-                    />
-                    {session.derived && (
-                        <Chip label="Derivada" color="secondary" size="small" />
-                    )}
-                </Box>
-            ) : (
-                <Typography variant="body2">
-                    <strong>Consulta general</strong>
-                </Typography>
-            )}
         </Box>
     );
 
