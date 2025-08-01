@@ -23,7 +23,7 @@ import { useAuthContext } from '../../../user/context/AuthContext';
 import { ModalItem, Info } from '../categories/CategoryModal';
 import { StatusForm } from '../forms/StatusForm';
 // Importa tu servicio de actualización si lo tienes
-import { putProperty } from '../../services/property.service';
+import { putPropertyOutstanding } from '../../services/property.service';
 
 interface Props { property: Property }
 
@@ -33,20 +33,17 @@ export const PropertyInfo = ({ property }: Props) => {
   const { isAdmin } = useAuthContext();
   const [statusModal, setStatusModal] = useState<Info | null>(null);
   const theme = useTheme();
-
-  // Estado local para el toggle "Destacar"
   const [outstanding, setOutstanding] = useState<boolean>(property.outstanding ?? false);
 
-  const handleToggleOutstanding = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleToggleOutstanding = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const newValue = event.target.checked;
-    setOutstanding(newValue);
     try {
-      await putProperty(property);
-      // Opcional: mostrar alerta de éxito
+      await putPropertyOutstanding(property.id, newValue);
+      setOutstanding(newValue);
     } catch (error) {
-      console.error(error);
-      // Opcional: mostrar alerta de error y revertir estado
-      setOutstanding(!newValue);
+      console.error("Error al actualizar outstanding:", error);
     }
   };
 
@@ -128,30 +125,22 @@ export const PropertyInfo = ({ property }: Props) => {
                   componentProps: { action: 'edit-status' as const, item: { id: property.id, status: property.status } }
                 })
               }
-              // sx={{ mb: { xs: 1, sm: 0 } }}
             >
               <EditIcon fontSize='small' />
             </IconButton>
 
             <Chip
-              label='Destacar'
-              clickable
-              size='medium'
-              onClick={() => handleToggleOutstanding({ target: { checked: !outstanding } } as any)}
+              label="Destacar"
+              variant="filled"
+              sx={{ ml: 'auto' }}
               icon={
                 <Switch
                   checked={outstanding}
                   onChange={handleToggleOutstanding}
+                  size="small"
                   onClick={e => e.stopPropagation()}
-                  size='small'
                 />
               }
-              sx={{
-                // mt: { xs: 1, sm: 0 },
-                ml: { xs: 'auto', sm: 'auto' },
-                mr: { xs: 'auto', sm: 0 },
-                fontSize: '0.875rem'
-              }}
             />
           </>
         )}

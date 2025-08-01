@@ -26,7 +26,7 @@ export default function Home() {
   const [results, setResults] = useState<Property[] | null>(null);
 
   useEffect(() => {
-    resetSelected();      // filtros vacíos
+    resetSelected(); 
     refreshProperties();    // snapshot más nuevo
   }, [resetSelected, refreshProperties]);
 
