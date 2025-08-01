@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      # - feature/pipeline-test
-      - main
+      - feature/pipelineDetails
+      # - main
 
 permissions:
   contents: read
@@ -18,7 +18,7 @@ env:
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  
+
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
