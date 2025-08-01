@@ -64,3 +64,16 @@ export const deleteType = async (typeData: Type) => {
     throw error;
   }
 };
+
+export const getTypesByText = async (search: string) => {
+  try {
+    const { data } = await api.get<Type[]>(`/properties/type/search`, {
+      params: { search },
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error searching by text:", error);
+    throw error;
+  }
+};

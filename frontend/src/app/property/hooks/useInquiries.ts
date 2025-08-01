@@ -7,12 +7,12 @@ import {
   getInquiriesByProperty,
   updateInquiry,
 } from "../services/inquiry.service";
-import { getAllChatSessions } from "../../chat/services/chatSession.service"; // Asegúrate de importar correctamente
+import { getAllChatSessions } from "../../chat/services/chatSession.service";
 import { getAllProperties } from "../services/property.service";
 import { Inquiry, InquiryStatus } from "../types/inquiry";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { buildRoute, ROUTES } from "../../../lib";
-import { ChatSessionDTO } from "../../chat/types/chatSession";
+import { ChatSession } from "../../chat/types/chatSession"; // <-- Asegurate que este tipo existe
 
 export const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
 
@@ -24,28 +24,25 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const { info, isAdmin } = useAuthContext();
   const navigate = useNavigate();
 
-  // Datos
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [properties, setProperties] = useState<{ id: number; title: string }[]>(
     []
   );
-  const [chatSessions, setChatSessions] = useState<ChatSessionDTO[]>([]);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]); // <-- ahora bien tipado
 
   const [loading, setLoading] = useState(true);
   const [errorList, setErrorList] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
-  // Filtros
   const [filterStatus, setFilterStatus] = useState<InquiryStatus | "">("");
   const [filterProp, setFilterProp] = useState<string>("");
 
-  // Selección/detalle
   const [selected, setSelected] = useState<Inquiry | null>(null);
   const [selectedProps, setSelectedProps] = useState<
     { id: number; title: string }[]
   >([]);
 
-  // ────── Fetch de propiedades para Autocomplete ──────
+  // Traer propiedades para Autocomplete
   useEffect(() => {
     getAllProperties()
       .then((r) =>
@@ -56,22 +53,45 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       .catch(() => setProperties([]));
   }, []);
 
-  // Llamada a las sesiones de chat solo para admins
+  // Traer sesiones de chat solo para admin (ahora mapeado correctamente)
   const loadChatSessions = useCallback(async () => {
-    if (isAdmin && chatSessions.length === 0) {
-      // Verifica que no se hayan cargado previamente
-      try {
-        const sessions = await getAllChatSessions();
-        setChatSessions(sessions); // Guardar las sesiones de chat
-      } catch (error) {
-        console.error("Error fetching chat sessions:", error);
-      }
+    if (!isAdmin) return;
+    try {
+      const sessions: ChatSession[] = await getAllChatSessions();
+      // Mapeá cada sesión para cumplir el tipo ChatSession (si hace falta)
+      const mapped: ChatSession[] = sessions.map((s) => ({
+        id: s.id,
+        userId: s.userId,
+        phone: s.phone,
+        email: s.email,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        date: s.date,
+        dateClose: s.dateClose,
+        derived: s.derived,
+        property: s.property,
+      }));
+      setChatSessions(mapped);
+    } catch {
+      setChatSessions([]);
     }
-  }, [isAdmin, chatSessions.length]); // Dependencia para evitar múltiples ejecuciones
+  }, [isAdmin]);
 
   useEffect(() => {
-    loadChatSessions(); // Llamar a las sesiones de chat solo cuando sea necesario
+    loadChatSessions();
   }, [loadChatSessions]);
+
+  // Función para cerrar chat
+  const closeChatSession = async (sessionId: number) => {
+    setActionLoadingId(sessionId);
+    try {
+      await loadChatSessions(); // refresca la lista
+    } catch {
+      // podrías setear error si querés
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   // Trae todas las consultas según usuario o admin
   const loadAll = useCallback(async () => {
@@ -130,7 +150,6 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
         return matchesStatus && matchesProperty;
       });
 
-      // Actualiza las consultas filtradas solo si hay un cambio
       if (filteredInquiries.length !== inquiries.length) {
         setInquiries(filteredInquiries);
       }
@@ -142,7 +161,6 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     setActionLoadingId(inqId);
     try {
       await updateInquiry(inqId);
-      // Recarga lista según contexto actual
       if (isAdmin && (filterStatus || filterProp)) {
         await loadFiltered();
       } else {
@@ -212,6 +230,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     markResolved,
     actionLoadingId,
     goToProperty,
-    chatSessions, // Ahora puedes acceder a las sesiones de chat
+    chatSessions, // Ahora es tipo ChatSession[]
+    closeChatSession, // Ya está lista para pasar a tu MixedList
   };
 };

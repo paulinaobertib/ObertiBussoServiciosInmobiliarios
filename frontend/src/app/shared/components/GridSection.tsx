@@ -120,6 +120,9 @@ export const GridSection = ({
                             display: 'flex',
                             alignItems: 'center',
                         },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            fontWeight: 'bold',
+                        },
                     }}
                 />
             </Box>
