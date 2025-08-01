@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import pi.ms_users.domain.User;
+import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.repository.UserRepository.KeycloakUserRepository;
 import pi.ms_users.service.impl.EmailService;
 
@@ -167,8 +168,17 @@ class KeycloakUserRepositoryTest {
     @Test
     void deleteUserById_success() {
         String id = "123";
+
+        List<UserNotificationPreference> mockPrefs = List.of(
+                new UserNotificationPreference(), new UserNotificationPreference()
+        );
+        when(userNotificationPreferenceRepository.findByUserId(id)).thenReturn(mockPrefs);
+
         repository.deleteUserById(id);
+
         verify(usersResource).delete(id);
+        verify(userNotificationPreferenceRepository).findByUserId(id);
+        verify(userNotificationPreferenceRepository).deleteAll(mockPrefs);
     }
 
     @Test

@@ -33,6 +33,20 @@ public class NoticeService implements INoticeService {
 
     private final ObjectMapper objectMapper;
 
+    private ResponseEntity<List<NoticeGetDTO>> getListResponseEntity(List<Notice> notices) {
+        List<NoticeGetDTO> dtoList = notices.stream()
+                .map(notice -> {
+                    NoticeGetDTO dto = objectMapper.convertValue(notice, NoticeGetDTO.class);
+                    if (dto.getMainImage() != null && !dto.getMainImage().isEmpty()) {
+                        dto.setMainImage(imageRepository.imageURL(notice.getMainImage()));
+                    }
+                    return dto;
+                })
+                .toList();
+
+        return ResponseEntity.ok(dtoList);
+    }
+
     @Override
     public ResponseEntity<String> create(NoticeDTO noticeDTO) {
         User user = userRepository.findById(noticeDTO.getUserId())
@@ -42,11 +56,15 @@ public class NoticeService implements INoticeService {
             throw new IllegalArgumentException("Este usuario no tiene permiso para crear una noticia");
         }
 
-        String image = imageRepository.uploadImage(noticeDTO.getMainImage());
-
         Notice notice = objectMapper.convertValue(noticeDTO, Notice.class);
         notice.setDate(LocalDateTime.now());
-        notice.setMainImage(image);
+
+        if (noticeDTO.getMainImage() != null && !noticeDTO.getMainImage().isEmpty()) {
+            String image = imageRepository.uploadImage(noticeDTO.getMainImage());
+            notice.setMainImage(image);
+        } else {
+            notice.setMainImage(null);
+        }
 
         noticeRepository.save(notice);
         return ResponseEntity.ok("Se ha guardado la noticia");
@@ -97,7 +115,9 @@ public class NoticeService implements INoticeService {
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado una noticia con ese id"));
 
         NoticeGetDTO noticeGetDTO = objectMapper.convertValue(notice, NoticeGetDTO.class);
-        noticeGetDTO.setMainImage(imageRepository.imageURL(notice.getMainImage()));
+        if (noticeGetDTO.getMainImage() != null && !noticeGetDTO.getMainImage().isEmpty()) {
+            noticeGetDTO.setMainImage(imageRepository.imageURL(notice.getMainImage()));
+        }
 
         return ResponseEntity.ok(noticeGetDTO);
     }
@@ -106,15 +126,7 @@ public class NoticeService implements INoticeService {
     public ResponseEntity<List<NoticeGetDTO>> getAll() {
         List<Notice> notices = noticeRepository.findAll();
 
-        List<NoticeGetDTO> dtoList = notices.stream()
-                .map(notice -> {
-                    NoticeGetDTO dto = objectMapper.convertValue(notice, NoticeGetDTO.class);
-                    dto.setMainImage(imageRepository.imageURL(notice.getMainImage()));
-                    return dto;
-                })
-                .toList();
-
-        return ResponseEntity.ok(dtoList);
+        return getListResponseEntity(notices);
     }
 
     @Override
@@ -122,14 +134,6 @@ public class NoticeService implements INoticeService {
         Specification<Notice> specification = NoticeSpecification.textSearch(search);
         List<Notice> notices = noticeRepository.findAll(specification);
 
-        List<NoticeGetDTO> dtoList = notices.stream()
-                .map(notice -> {
-                    NoticeGetDTO dto = objectMapper.convertValue(notice, NoticeGetDTO.class);
-                    dto.setMainImage(imageRepository.imageURL(notice.getMainImage()));
-                    return dto;
-                })
-                .toList();
-
-        return ResponseEntity.ok(dtoList);
+        return getListResponseEntity(notices);
     }
 }

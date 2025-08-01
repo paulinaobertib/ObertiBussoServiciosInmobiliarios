@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Type;
@@ -115,6 +116,53 @@ class TypeServiceTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
+    @Test
+    void findBy_success() {
+        Type type = new Type();
+        type.setId(1L);
+        type.setName("Casa");
+
+        when(typeRepository.findAll(any(Specification.class))).thenReturn(List.of(type));
+
+        ResponseEntity<List<Type>> response = typeService.findBy("Casa");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+        assertEquals(1, response.getBody().size());
+        assertEquals("Casa", response.getBody().get(0).getName());
+
+        verify(typeRepository).findAll(any(Specification.class));
+    }
+
+    @Test
+    void findBy_emptyResult() {
+        when(typeRepository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<Type>> response = typeService.findBy("NoExiste");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+
+        verify(typeRepository).findAll(any(Specification.class));
+    }
+
+    @Test
+    void findBy_shouldHandleNullSearchParameter() {
+        Type type = new Type();
+        type.setId(2L);
+        type.setName("Departamento");
+
+        when(typeRepository.findAll(any(Specification.class))).thenReturn(List.of(type));
+
+        ResponseEntity<List<Type>> response = typeService.findBy(null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.getBody().isEmpty());
+        assertEquals("Departamento", response.getBody().get(0).getName());
+    }
+
     // casos de error
 
     @Test
@@ -209,5 +257,48 @@ class TypeServiceTest {
             typeService.getAll());
 
         assertTrue(exception.getMessage().contains("Error!"));
+    }
+
+    @Test
+    void findBy_repositoryThrowsException() {
+        when(typeRepository.findAll(any(Specification.class)))
+                .thenThrow(new RuntimeException("Error inesperado"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                typeService.findBy("Casa")
+        );
+
+        assertTrue(exception.getMessage().contains("Error inesperado"));
+    }
+
+    @Test
+    void findBy_shouldThrowRuntimeException_whenRepositoryFails() {
+        when(typeRepository.findAll(any(Specification.class))).thenThrow(new RuntimeException("Error en DB"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> typeService.findBy("wifi"));
+
+        assertEquals("Error en DB", ex.getMessage());
+    }
+
+    @Test
+    void createType_shouldReturnBadRequest_whenNameIsNull() {
+        Type type = new Type();
+        type.setName(null);
+
+        ResponseEntity<String> response = typeService.createType(type);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El nombre no puede estar vacío", response.getBody());
+    }
+
+    @Test
+    void createType_shouldReturnBadRequest_whenNameIsBlank() {
+        Type type = new Type();
+        type.setName("   ");
+
+        ResponseEntity<String> response = typeService.createType(type);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("El nombre no puede estar vacío", response.getBody());
     }
 }

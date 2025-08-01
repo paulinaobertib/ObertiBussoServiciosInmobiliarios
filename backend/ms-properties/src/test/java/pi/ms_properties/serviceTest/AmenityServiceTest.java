@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Amenity;
@@ -90,6 +91,33 @@ public class AmenityServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(amenity, response.getBody());
+    }
+
+    @Test
+    void findBy_shouldReturnFilteredAmenities_whenSearchMatches() {
+        Amenity wifi = new Amenity(1L, "WiFi", new ArrayList<>());
+        Amenity pileta = new Amenity(2L, "Pileta", new ArrayList<>());
+
+        when(amenityRepository.findAll(any(Specification.class))).thenReturn(List.of(wifi, pileta));
+
+        ResponseEntity<List<Amenity>> response = amenityService.findBy("i");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+        verify(amenityRepository).findAll(any(Specification.class));
+    }
+
+    @Test
+    void findBy_shouldReturnAllAmenities_whenSearchIsNull() {
+        Amenity wifi = new Amenity(1L, "WiFi", new ArrayList<>());
+        Amenity pileta = new Amenity(2L, "Pileta", new ArrayList<>());
+
+        when(amenityRepository.findAll(any(Specification.class))).thenReturn(List.of(wifi, pileta));
+
+        ResponseEntity<List<Amenity>> response = amenityService.findBy(null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
     }
 
     // casos de error
@@ -203,4 +231,35 @@ public class AmenityServiceTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
+    @Test
+    void findBy_shouldReturnEmptyList_whenNoMatchFound() {
+        when(amenityRepository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<Amenity>> response = amenityService.findBy("nonexistent");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
+    }
+
+    @Test
+    void findBy_shouldThrowRuntimeException_whenRepositoryFails() {
+        when(amenityRepository.findAll(any(Specification.class))).thenThrow(new RuntimeException("Error en DB"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.findBy("wifi"));
+
+        assertEquals("Error en DB", ex.getMessage());
+    }
+
+    @Test
+    void createAmenity_shouldThrowDataIntegrityViolationException_whenNameExists() {
+        String name = "WiFi";
+
+        when(amenityRepository.existsByName(name)).thenReturn(true);
+
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            amenityService.createAmenity(name);
+        });
+
+        assertEquals("El servicio 'WiFi' ya existe", exception.getMessage());
+    }
 }
