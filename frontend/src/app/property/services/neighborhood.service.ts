@@ -73,3 +73,19 @@ export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
     throw error;
   }
 };
+
+export const getNeighborhoodByText = async (search: string) => {
+  try {
+    const { data } = await api.get<Neighborhood[]>(
+      `/properties/neighborhood/search`,
+      {
+        params: { search },
+        withCredentials: true,
+      }
+    );
+    return data;
+  } catch (error) {
+    console.error("Error searching by text:", error);
+    throw error;
+  }
+};

@@ -143,3 +143,16 @@ export const putPropertyStatus = async (id: number, status: string) => {
     throw error;
   }
 };
+
+export const putPropertyOutstanding = async (id: number, outstanding: boolean) => {
+  try {
+    const { data } = await api.put(`/properties/property/outstanding/${id}`, null, {
+      params: { outstanding },
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error updating property outstanding:", error);
+    throw error;
+  }
+};

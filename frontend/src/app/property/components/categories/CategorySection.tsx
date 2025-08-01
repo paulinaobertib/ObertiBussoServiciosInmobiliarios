@@ -25,7 +25,7 @@ export const CategorySection = ({ category }: { category: Category }) => {
     data,
     loading,
     refresh,
-    searchResults: onSearch,
+    onSearch,
     toggleSelect: internalToggle,
     isSelected: internalIsSelected,
   } = useCategorySection(category);
@@ -49,9 +49,7 @@ export const CategorySection = ({ category }: { category: Category }) => {
 
   // Búsqueda local: no hay endpoint remoto, filtramos en memoria
   const fetchAll = useCallback(async () => {
-    // Usamos refresh() para recargar datos si fuera necesario
     await refresh();
-    // Mostramos todos
     onSearch(data);
     return data;
   }, [refresh, onSearch, data]);

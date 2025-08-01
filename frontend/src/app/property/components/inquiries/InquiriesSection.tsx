@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { InquiriesList } from './InquiriesList';
+import { MixedList } from './InquiriesList';
 import { useInquiries, STATUS_OPTIONS } from '../../hooks/useInquiries';
 import { InquiriesFilter } from './InquiriesFilter';
 import { InquiryStatus } from '../../types/inquiry';
@@ -11,6 +11,7 @@ interface Props { propertyIds?: number[] }
 export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
     const {
         inquiries,
+        chatSessions, // ← debe salir de tu useInquiries
         properties,
         loading,
         errorList,
@@ -20,9 +21,9 @@ export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
         setFilterProp,
         markResolved,
         actionLoadingId,
+        closeChatSession, // ← asegurate de tener esto en el hook
     } = useInquiries({ propertyIds });
 
-    // --- Cambiado: ahora el loading cubre todo ---
     if (loading) {
         return (
             <Box
@@ -55,17 +56,19 @@ export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
                 />
             </Box>
 
-            {/* -------- lista -------- */}
+            {/* -------- lista mixta -------- */}
             <Box sx={{ px: 2, flexGrow: 1, overflowY: 'auto' }}>
                 {errorList ? (
                     <Typography color="error" align="center" py={3}>
                         {errorList}
                     </Typography>
                 ) : (
-                    <InquiriesList
-                        inquiries={inquiries}
+                    <MixedList
+                        inquiries={inquiries || []}
+                        chatSessions={chatSessions || []}
                         loadingId={actionLoadingId}
                         onResolve={markResolved}
+                        onCloseChat={closeChatSession}
                     />
                 )}
             </Box>

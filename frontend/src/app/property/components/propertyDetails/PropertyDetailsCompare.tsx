@@ -1,4 +1,4 @@
-import { Container, Box, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { Property } from '../../types/property';
 import { PropertyPanel } from './PropertyPanel';
 import PropertyInfoCompare from './PropertyInfoCompare';
@@ -12,16 +12,16 @@ export const PropertyDetailsCompare = ({ comparisonItems }: Props) => {
 
     if (comparisonItems.length < 2 || comparisonItems.length > 3) {
         return (
-            <Container maxWidth="lg" sx={{ py: 8 }}>
+            <Box maxWidth="lg" sx={{ py: 8 }}>
                 <Typography variant="h6" color="text.secondary">
                     Selecciona 2 o 3 propiedades para comparar.
                 </Typography>
-            </Container>
+            </Box>
         );
     }
 
     return (
-        <Container maxWidth="xl" sx={{ py: 2, px: 2 }}>
+        <Box sx={{ py: 2 }}>
             <Box
                 sx={{
                     display: 'grid',
@@ -48,6 +48,6 @@ export const PropertyDetailsCompare = ({ comparisonItems }: Props) => {
                     );
                 })}
             </Box>
-        </Container>
+        </Box>
     );
 };

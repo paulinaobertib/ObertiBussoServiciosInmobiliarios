@@ -1,4 +1,4 @@
-import { Container } from '@mui/material';
+import { Box } from '@mui/material';
 import { Property } from '../../types/property';
 import { PropertyPanel } from './PropertyPanel';
 import { PropertyInfo } from './PropertyInfo';
@@ -12,9 +12,9 @@ export const PropertyDetails = ({ property }: Props) => {
         : `${property.street}, Buenos Aires, Argentina`;
 
     return (
-        <Container maxWidth="xl" sx={{ py: 2 }}>
+        <Box py={2}>
             <PropertyPanel property={property} InfoComponent={PropertyInfo} />
             <MapSection address={address} />
-        </Container>
+        </Box>
     );
 };
