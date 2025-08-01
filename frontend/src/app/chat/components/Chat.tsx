@@ -105,7 +105,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // si la propiedad viene desde una card
   useEffect(() => {
     if (initialPropertyId) {
-      const found = propertiesList.find(p => p.id === initialPropertyId);
+      const found = propertiesList?.find(p => p.id === initialPropertyId);
       if (found) {
         setProperty(found);
       } else {
@@ -302,10 +302,11 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
       sx={{
         p: 2,
         flexGrow: 1,
-        overflowY: "auto",
+        overrlowY: "auto",
         border: "1px solid #ccc",
         borderRadius: 1,
         backgroundColor: "#fff",
+        minHeight: 0,
       }}
     >
       {showWelcome && (
@@ -448,7 +449,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
         {!collapsed && (
           <>
-            <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+            <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto", '&::-webkit-scrollbar': {width: '8px', }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1'}, '&::-webkit-scrollbar-thumb': { backgroundColor: '#FED7AA' }}}>
               {step === "greeting" && (
                 <Box>
                   <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
