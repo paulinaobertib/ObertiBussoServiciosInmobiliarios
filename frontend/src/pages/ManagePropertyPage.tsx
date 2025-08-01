@@ -1,16 +1,4 @@
-import {
-    Box,
-    Button,
-    Container,
-    Typography,
-    Stepper,
-    Step,
-    StepLabel,
-    CircularProgress,
-    useTheme,
-    Card,
-} from '@mui/material';
-
+import { Box, Button, Container, Typography, Stepper, Step, StepLabel, CircularProgress, useTheme, Card } from '@mui/material';
 import { BasePage } from './BasePage';
 import { PanelManager } from '../app/shared/components/PanelManager';
 import { CategorySection } from '../app/property/components/categories/CategorySection';
