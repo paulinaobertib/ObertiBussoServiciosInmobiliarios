@@ -366,5 +366,31 @@ class ImageServiceTest {
 
         assertTrue(ex.getMessage().contains("Error al leer el archivo"));
     }
-}
 
+    @Test
+    void uploadImageToProperty_shouldThrowRuntimeException_whenUnexpectedException() throws Exception {
+        Long propertyId = 1L;
+        when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(mockProperty));
+        when(multipartFile.getOriginalFilename()).thenReturn("image.jpg");
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+
+        doThrow(new RuntimeException("Error inesperado")).when(azureBlobStorage).create(any(Storage.class));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> imageService.uploadImageToProperty(multipartFile, propertyId, false));
+
+        assertTrue(exception.getMessage().contains("Ha habido un error inesperado"));
+    }
+
+    @Test
+    void uploadImageToProperty_shouldThrowRuntimeException_whenUnexpectedErrorInFindProperty() {
+        Long propertyId = 1L;
+
+        when(propertyRepository.findById(propertyId)).thenThrow(new RuntimeException("Error inesperado"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> imageService.uploadImageToProperty(multipartFile, propertyId, false));
+
+        assertTrue(exception.getMessage().toLowerCase().contains("error inesperado"));
+    }
+}

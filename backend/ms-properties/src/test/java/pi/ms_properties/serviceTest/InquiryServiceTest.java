@@ -627,4 +627,19 @@ class InquiryServiceTest {
             assertThrows(AccessDeniedException.class, () -> inquiryService.create(dto));
         }
     }
+
+    @Test
+    void create_shouldThrowIllegalArgumentException_whenUserDoesNotExist() {
+        InquirySaveDTO dto = getSampleDTO();
+
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(new Property()));
+
+        when(userRepository.exist(dto.getUserId())).thenReturn(false);;
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            inquiryService.create(dto);
+        });
+
+        assertEquals("No existe el usuario con id " + dto.getUserId(), exception.getMessage());
+    }
 }

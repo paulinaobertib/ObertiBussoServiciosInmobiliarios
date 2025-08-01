@@ -7,6 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springdoc.core.converters.models.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Neighborhood;
@@ -17,6 +20,7 @@ import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.service.impl.GeocodingNeighborhoodService;
 import pi.ms_properties.service.impl.NeighborhoodService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,6 +120,45 @@ class NeighborhoodServiceTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Sur", response.getBody().getName());
+    }
+
+    @Test
+    void findBy_shouldReturnMatchingNeighborhoods_whenSearchMatches() {
+        Neighborhood n1 = new Neighborhood(1L, "Palermo", NeighborhoodType.ABIERTO, "CABA", -34.6, -58.4);
+        Neighborhood n2 = new Neighborhood(2L, "Palermo Chico", NeighborhoodType.CERRADO, "CABA", -34.59, -58.41);
+        List<Neighborhood> entities = List.of(n1, n2);
+
+        when(repository.findAll(any(Specification.class))).thenReturn(entities);
+
+        ResponseEntity<List<NeighborhoodGetDTO>> response = service.findBy("Palermo");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+        assertEquals("Palermo", response.getBody().getFirst().getName());
+    }
+
+    @Test
+    void findBy_shouldReturnEmptyList_whenNoMatches() {
+        when(repository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<NeighborhoodGetDTO>> response = service.findBy("Inexistente");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+    }
+
+    @Test
+    void findBy_shouldReturnAllNeighborhoods_whenSearchIsNull() {
+        Neighborhood n1 = new Neighborhood(1L, "Recoleta", NeighborhoodType.SEMICERRADO, "CABA", -34.58, -58.39);
+
+        when(repository.findAll(any(Specification.class))).thenReturn(List.of(n1));
+
+        ResponseEntity<List<NeighborhoodGetDTO>> response = service.findBy(null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().size());
+        assertEquals("Recoleta", response.getBody().getFirst().getName());
     }
 
     // casos de error
@@ -278,5 +321,43 @@ class NeighborhoodServiceTest {
         assertEquals("Fallo al buscar barrio", exception.getMessage());
     }
 
-}
+    @Test
+    void findBy_shouldReturnInternalServerError_whenRepositoryFails() {
+        when(repository.findAll(any(Specification.class)))
+                .thenThrow(new RuntimeException("Database error"));
 
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            service.findBy("Palermo");
+        });
+
+        assertEquals("Database error", exception.getMessage());
+        verify(repository).findAll(any(Specification.class));
+    }
+
+    @Test
+    void findBy_shouldThrowIllegalArgumentException_whenSpecificationIsInvalid() {
+        when(repository.findAll(any(Specification.class)))
+                .thenThrow(new IllegalArgumentException("Invalid specification"));
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> service.findBy("###"));
+
+        assertEquals("Invalid specification", exception.getMessage());
+    }
+
+    @Test
+    void createNeighborhood_shouldThrowIllegalArgumentException_whenNeighborhoodAlreadyExists() {
+        NeighborhoodDTO dto = new NeighborhoodDTO(null, "Barrio Norte", "CERRADO", "CABA");
+
+        GeocodingNeighborhoodService.Coordinates coords = new GeocodingNeighborhoodService.Coordinates(-89.9, 87.90);
+        when(geocodingNeighborhoodService.getCoordinates("Barrio Norte", "CABA"))
+                .thenReturn(Optional.of(coords));
+
+        doThrow(new DataIntegrityViolationException("Duplicate key")).when(repository).save(any(Neighborhood.class));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            service.createNeighborhood(dto);
+        });
+
+        assertEquals("El barrio 'Barrio Norte' ya existe", exception.getMessage());
+    }
+}

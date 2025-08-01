@@ -18,6 +18,7 @@ import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.AmenityService;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -124,6 +125,29 @@ class AmenityControllerTest {
                 .andExpect(jsonPath("$.name").value("WiFi"));
     }
 
+    @Test
+    void searchAmenity_shouldReturnOk_withResults() throws Exception {
+        Amenity amenity1 = new Amenity();
+        amenity1.setId(1L);
+        amenity1.setName("WiFi");
+
+        Amenity amenity2 = new Amenity();
+        amenity2.setId(2L);
+        amenity2.setName("Garage");
+
+        List<Amenity> resultList = Arrays.asList(amenity1, amenity2);
+
+        when(amenityService.findBy("Wi")).thenReturn(ResponseEntity.ok(resultList));
+
+        mockMvc.perform(get("/amenity/search")
+                        .param("search", "Wi")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("WiFi"))
+                .andExpect(jsonPath("$[1].name").value("Garage"));
+    }
+
     // casos de error
 
     @Test
@@ -133,7 +157,7 @@ class AmenityControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "user") // no admin
+    @WithMockUser(roles = "user")
     void deleteAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(delete("/amenity/delete/1"))
                 .andExpect(status().isForbidden());
@@ -170,5 +194,31 @@ class AmenityControllerTest {
 
         mockMvc.perform(get("/amenity/getById/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void searchAmenity_shouldReturnEmptyList_whenNoResults() throws Exception {
+        when(amenityService.findBy("XYZ")).thenReturn(ResponseEntity.ok(Collections.emptyList()));
+
+        mockMvc.perform(get("/amenity/search")
+                        .param("search", "XYZ")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void searchAmenity_shouldReturnUnauthorized_whenNoUser() throws Exception {
+        mockMvc.perform(get("/amenity/search")
+                        .param("search", "Wi"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void searchAmenity_shouldReturnForbidden_whenNotAdmin() throws Exception {
+        mockMvc.perform(get("/amenity/search")
+                        .param("search", "Wi")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                .andExpect(status().isForbidden());
     }
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -105,7 +106,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void createInquiry_success() throws Exception {
-        Mockito.when(inquiryService.create(any())).thenReturn(ResponseEntity.ok("Creada"));
+        when(inquiryService.create(any())).thenReturn(ResponseEntity.ok("Creada"));
 
         mockMvc.perform(post("/inquiries/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +118,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void updateStatus_success() throws Exception {
-        Mockito.when(inquiryService.updateStatus(1L))
+        when(inquiryService.updateStatus(1L))
                 .thenReturn(ResponseEntity.ok("Actualizada"));
 
         mockMvc.perform(put("/inquiries/status/1"))
@@ -140,7 +141,7 @@ class InquiryControllerTest {
         sampleDTO.setDate(LocalDateTime.now());
         sampleDTO.setPropertyTitles(List.of("Propiedad A"));
 
-        Mockito.when(inquiryService.getById(1L))
+        when(inquiryService.getById(1L))
                 .thenReturn(ResponseEntity.ok(sampleDTO));
 
         mockMvc.perform(get("/inquiries/getById/1"))
@@ -165,7 +166,7 @@ class InquiryControllerTest {
         sampleDTO.setDate(LocalDateTime.now());
         sampleDTO.setPropertyTitles(List.of("Propiedad A"));
 
-        Mockito.when(inquiryService.getAll())
+        when(inquiryService.getAll())
                 .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getAll"))
@@ -180,7 +181,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "user")
     void getByUserId_success() throws Exception {
         InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
-        Mockito.when(inquiryService.getByUserId("user123"))
+        when(inquiryService.getByUserId("user123"))
                 .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/user/user123"))
@@ -196,7 +197,7 @@ class InquiryControllerTest {
         InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
         sampleDTO.setStatus(InquiryStatus.ABIERTA);
 
-        Mockito.when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
+        when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
                 .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getByStatus")
@@ -211,7 +212,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiriesPerMonth_success() throws Exception {
         Map<YearMonth, Long> stats = Map.of(YearMonth.of(2024, 5), 12L);
-        Mockito.when(inquiryService.getInquiriesPerMonth())
+        when(inquiryService.getInquiriesPerMonth())
                 .thenReturn(ResponseEntity.ok(stats));
 
         mockMvc.perform(get("/inquiries/statistics/month"))
@@ -223,7 +224,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiryStatusDistribution_success() throws Exception {
         Map<String, Long> data = Map.of("ABIERTA", 5L, "CERRADA", 3L);
-        Mockito.when(inquiryService.getInquiryStatusDistribution()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getInquiryStatusDistribution()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/status"))
                 .andExpect(status().isOk())
@@ -235,7 +236,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_success() throws Exception {
         Map<String, Long> data = Map.of("MONDAY", 4L, "TUESDAY", 2L);
-        Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getInquiriesGroupedByDayOfWeek()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/week"))
                 .andExpect(status().isOk())
@@ -246,7 +247,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByTimeRange_success() throws Exception {
         Map<String, Long> data = Map.of("08:00-12:00", 10L);
-        Mockito.when(inquiryService.getInquiriesGroupedByTimeRange()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getInquiriesGroupedByTimeRange()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/time"))
                 .andExpect(status().isOk())
@@ -257,7 +258,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getMostConsultedProperties_success() throws Exception {
         Map<String, Long> data = Map.of("Casa en Córdoba", 7L);
-        Mockito.when(inquiryService.getMostConsultedProperties()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getMostConsultedProperties()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/properties"))
                 .andExpect(status().isOk())
@@ -267,12 +268,29 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getAverageInquiryResponseTime_success() throws Exception {
-        Mockito.when(inquiryService.getAverageInquiryResponseTime())
+        when(inquiryService.getAverageInquiryResponseTime())
                 .thenReturn(ResponseEntity.ok("3 días promedio"));
 
         mockMvc.perform(get("/inquiries/statistics/duration"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("3 días promedio"));
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void getByPropertyId_success() throws Exception {
+        Long propertyId = 1L;
+
+        InquiryGetDTO dto = sampleInquiryGetDTO();
+
+        when(inquiryService.getByPropertyId(propertyId))
+                .thenReturn(ResponseEntity.ok(List.of(dto)));
+
+        mockMvc.perform(get("/inquiries/property/{propertyId}", propertyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(dto.getId()))
+                .andExpect(jsonPath("$[0].firstName").value(dto.getFirstName()));
     }
 
     // casos de error
@@ -305,7 +323,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_internalServerError() throws Exception {
-        Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek())
+        when(inquiryService.getInquiriesGroupedByDayOfWeek())
                 .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
 
         mockMvc.perform(get("/inquiries/statistics/week"))
@@ -315,7 +333,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void createInquiry_internalServerError() throws Exception {
-        Mockito.when(inquiryService.create(any()))
+        when(inquiryService.create(any()))
                 .thenReturn(ResponseEntity.internalServerError().build());
 
         mockMvc.perform(post("/inquiries/create")
@@ -327,7 +345,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getById_notFound() throws Exception {
-        Mockito.when(inquiryService.getById(999L))
+        when(inquiryService.getById(999L))
                 .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(get("/inquiries/getById/999"))
@@ -340,4 +358,10 @@ class InquiryControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+
+    @Test
+    void getByPropertyId_unauthorized() throws Exception {
+        mockMvc.perform(get("/inquiries/property/1"))
+                .andExpect(status().isUnauthorized());
+    }
 }
