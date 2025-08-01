@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.ChatSession;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.ChatSessionDTO;
+import pi.ms_properties.dto.ChatSessionGetDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IChatSessionRepository;
 import pi.ms_properties.repository.IPropertyRepository;
@@ -15,6 +16,7 @@ import pi.ms_properties.service.interf.IChatSessionService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,20 @@ public class ChatSessionService implements IChatSessionService {
     private final IPropertyRepository propertyRepository;
 
     private final ObjectMapper objectMapper;
+
+    private ChatSessionGetDTO mapToDTO(ChatSession chatSession) {
+        ChatSessionGetDTO dto = new ChatSessionGetDTO();
+        dto.setId(chatSession.getId());
+        dto.setUserId(chatSession.getUserId());
+        dto.setPhone(chatSession.getPhone());
+        dto.setEmail(chatSession.getEmail());
+        dto.setFirstName(chatSession.getFirstName());
+        dto.setLastName(chatSession.getLastName());
+        dto.setPropertyId(chatSession.getProperty().getId());
+        dto.setDate(chatSession.getDate());
+        dto.setDateClose(chatSession.getDateClose());
+        return dto;
+    }
 
     @Override
     public Long createFromUser(String userId, Long propertyId) {
@@ -76,12 +92,17 @@ public class ChatSessionService implements IChatSessionService {
     }
 
     @Override
-    public ChatSession getById(Long id) {
-        return chatSessionRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la sesion del chat"));
+    public ChatSessionGetDTO getById(Long id) {
+        ChatSession session = chatSessionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la sesion del chat"));
+        return mapToDTO(session);
     }
 
     @Override
-    public List<ChatSession> getAll() {
-        return chatSessionRepository.findAll();
+    public List<ChatSessionGetDTO> getAll() {
+        return chatSessionRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 }
