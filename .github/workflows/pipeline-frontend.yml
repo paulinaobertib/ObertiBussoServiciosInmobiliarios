@@ -64,23 +64,23 @@ jobs:
         with:
           files: ./frontend/vitest-report.xml
             
-      - name: Publish Coverage Summary
-        if: always()
-        working-directory: ./frontend
-        run: |
-          COV="coverage/coverage-summary.json"
-          LINES_TOTAL=$(jq '.total.lines.total'    $COV)
-          LINES_COVER=$(jq '.total.lines.covered'  $COV)
-          COVER_PCT=$(jq '.total.lines.pct'        $COV)
-          LINES_MISS=$((LINES_TOTAL - LINES_COVER))
+      # - name: Publish Coverage Summary
+      #   if: always()
+      #   working-directory: ./frontend
+      #   run: |
+      #     COV="coverage/coverage-summary.json"
+      #     LINES_TOTAL=$(jq '.total.lines.total'    $COV)
+      #     LINES_COVER=$(jq '.total.lines.covered'  $COV)
+      #     COVER_PCT=$(jq '.total.lines.pct'        $COV)
+      #     LINES_MISS=$((LINES_TOTAL - LINES_COVER))
       
-          echo "## Coverage Report: Vitest Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "| Outcome | Value |"                  >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|"                           >> $GITHUB_STEP_SUMMARY
-          echo "| Code Coverage % | ${COVER_PCT}% |" >> $GITHUB_STEP_SUMMARY
-          echo "| ✔️ Number of Lines Covered | ${LINES_COVER} |" >> $GITHUB_STEP_SUMMARY
-          echo "| ❌ Number of Lines Missed | ${LINES_MISS} |"   >> $GITHUB_STEP_SUMMARY
-          echo "| Total Number of Lines | ${LINES_TOTAL} |"      >> $GITHUB_STEP_SUMMARY
+      #     echo "## Coverage Report: Vitest Coverage" >> $GITHUB_STEP_SUMMARY
+      #     echo "| Outcome | Value |"                  >> $GITHUB_STEP_SUMMARY
+      #     echo "|---|---|"                           >> $GITHUB_STEP_SUMMARY
+      #     echo "| Code Coverage % | ${COVER_PCT}% |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| ✔️ Number of Lines Covered | ${LINES_COVER} |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| ❌ Number of Lines Missed | ${LINES_MISS} |"   >> $GITHUB_STEP_SUMMARY
+      #     echo "| Total Number of Lines | ${LINES_TOTAL} |"      >> $GITHUB_STEP_SUMMARY
               
       - name: Build
         working-directory: ./frontend
