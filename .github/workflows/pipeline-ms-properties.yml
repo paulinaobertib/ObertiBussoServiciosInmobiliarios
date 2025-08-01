@@ -97,16 +97,16 @@ jobs:
           minimum_coverage: 80
           publish_only_summary: false
 
-      - name: Publish JaCoCo Coverage on Summary
-        if: always()
-        run: |
-          echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
-          echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
+      # - name: Publish JaCoCo Coverage on Summary
+      #   if: always()
+      #   run: |
+      #     echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
+      #     echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
+      #     echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+      #     echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
