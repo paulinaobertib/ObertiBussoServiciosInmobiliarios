@@ -46,7 +46,7 @@ export default function AdministratorPage() {
         },
         {
             key: 'surveys',
-            label: 'RATING',
+            label: 'VALORACIONES',
             content: <SurveysSection />,
         },
         {

@@ -22,26 +22,34 @@ export const CatalogList = ({
     const { isAdmin } = useAuthContext();
 
     // 1) Filtrado según permisos
-    const filtered = useMemo(() => {
-        return isAdmin
-            ? properties
-            : properties.filter(
-                (p) =>
-                    p.status?.toLowerCase() === 'disponible' || !p.status
-            );
-    }, [properties, isAdmin]);
+    const filtered = useMemo(
+        () =>
+            isAdmin
+                ? properties
+                : properties.filter(
+                    (p) => p.status?.toLowerCase() === 'disponible' || !p.status
+                ),
+        [properties, isAdmin]
+    );
 
-    // 2) Ordenar: primero outstanding, luego por fecha descendente
+    // 2) Ordenar: primero outstanding por fecha, luego el resto por fecha
     const sorted = useMemo(() => {
-        return [...filtered].sort((a, b) => {
-            // 2.1) outstanding primero
-            if (a.outstanding && !b.outstanding) return -1;
-            if (!a.outstanding && b.outstanding) return 1;
-            // 2.2) misma condición de outstanding → ordenar por fecha (más nuevo primero)
-            const dateA = new Date(a.date).getTime();
-            const dateB = new Date(b.date).getTime();
-            return dateB - dateA;
-        });
+        // Función genérica para ordenar por fecha descendente
+        const byDateDesc = (a: Property, b: Property) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime();
+
+        // Destacadas ordenadas por fecha
+        const outstandingProps = filtered
+            .filter((p) => p.outstanding)
+            .sort(byDateDesc);
+
+        // No destacadas ordenadas por fecha
+        const normalProps = filtered
+            .filter((p) => !p.outstanding)
+            .sort(byDateDesc);
+
+        // Concateno primero las destacadas y luego las demás
+        return [...outstandingProps, ...normalProps];
     }, [filtered]);
 
     // 3) Mensaje si no hay nada

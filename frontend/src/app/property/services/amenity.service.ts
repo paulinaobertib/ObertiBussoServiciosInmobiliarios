@@ -62,3 +62,16 @@ export const deleteAmenity = async (amenityData: Amenity) => {
     throw error;
   }
 };
+
+export const getAmenitiesByText = async (search: string) => {
+  try {
+    const { data } = await api.get<Amenity[]>(`/properties/amenity/search`, {
+      params: { search },
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error searching by text:", error);
+    throw error;
+  }
+};
