@@ -26,6 +26,7 @@ Esta solución mejora significativamente los procesos internos y la experiencia 
 | CI/CD                     | GitHub Actions                               |
 | Testing                   | JUnit y Mockito (backend), Vitest (frontend) |
 | Control de Versiones      | GitHub                                       |
+| Gestión de Identidad      | Keycloak                                     |
 
 ### Herramientas
 | Uso                                                 | Herramienta              |
