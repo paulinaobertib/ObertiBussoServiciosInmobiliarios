@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pi.ms_properties.domain.ChatSession;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.ChatSessionDTO;
+import pi.ms_properties.dto.ChatSessionGetDTO;
 import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.IChatSessionRepository;
 import pi.ms_properties.repository.IPropertyRepository;
@@ -141,9 +142,15 @@ class ChatSessionServiceTest {
     void testGetById_Success() {
         when(chatSessionRepository.findById(1L)).thenReturn(Optional.of(chatSession));
 
-        ChatSession result = chatSessionService.getById(1L);
+        ChatSessionGetDTO result = chatSessionService.getById(1L);
 
         assertEquals(chatSession.getId(), result.getId());
+        assertEquals(chatSession.getUserId(), result.getUserId());
+        assertEquals(chatSession.getEmail(), result.getEmail());
+        assertEquals(chatSession.getPhone(), result.getPhone());
+        assertEquals(chatSession.getFirstName(), result.getFirstName());
+        assertEquals(chatSession.getLastName(), result.getLastName());
+        assertEquals(chatSession.getProperty().getId(), result.getPropertyId());
     }
 
     @Test
@@ -151,10 +158,18 @@ class ChatSessionServiceTest {
         List<ChatSession> sessions = List.of(chatSession);
         when(chatSessionRepository.findAll()).thenReturn(sessions);
 
-        List<ChatSession> result = chatSessionService.getAll();
+        List<ChatSessionGetDTO> result = chatSessionService.getAll();
 
         assertEquals(1, result.size());
-        assertEquals(chatSession.getId(), result.getFirst().getId());
+
+        ChatSessionGetDTO dto = result.get(0);
+        assertEquals(chatSession.getId(), dto.getId());
+        assertEquals(chatSession.getUserId(), dto.getUserId());
+        assertEquals(chatSession.getEmail(), dto.getEmail());
+        assertEquals(chatSession.getPhone(), dto.getPhone());
+        assertEquals(chatSession.getFirstName(), dto.getFirstName());
+        assertEquals(chatSession.getLastName(), dto.getLastName());
+        assertEquals(chatSession.getProperty().getId(), dto.getPropertyId());
     }
 
     // casos de error

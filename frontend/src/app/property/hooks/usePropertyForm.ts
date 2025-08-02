@@ -55,10 +55,10 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     credit: raw?.credit ?? false,
     financing: raw?.financing ?? false,
     showPrice: raw?.showPrice ?? false,
+    outstanding: raw?.outstanding ?? false,
 
     street: raw?.street ?? "",
     number: raw?.number ?? "",
-    outstanding: raw?.outstanding ?? false,
 
     /* ---------- relaciones ---------- */
     owner: raw?.owner ?? emptyOwner,
@@ -109,8 +109,8 @@ export const usePropertyForm = (
   const {
     mainImage,
     gallery,
-    error: imgError,
-    clearError,
+    // error: imgError,
+    // clearError,
     setMain,
     addToGallery,
     remove,
@@ -326,8 +326,8 @@ export const usePropertyForm = (
     /* imágenes */
     mainImage,
     gallery,
-    imgError,
-    clearError,
+    // imgError,
+    // clearError,
     setMain,
     addToGallery,
     remove,
