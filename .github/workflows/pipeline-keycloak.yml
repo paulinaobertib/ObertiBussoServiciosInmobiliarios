@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/pipelineDetails
-      # - main
+      - feature/pipelinesDetails
+        # - main
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
