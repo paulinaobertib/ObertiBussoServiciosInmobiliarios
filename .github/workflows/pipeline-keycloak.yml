@@ -136,7 +136,6 @@ jobs:
               "KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net" \
               "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" \
               "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
-              "KC_DB=postgres" \
               "KC_DB_URL=${{ secrets.KC_DB_URL }}" \
               "KC_DB_USERNAME=${{ secrets.KC_DB_USERNAME }}" \
               "KC_DB_PASSWORD=${{ secrets.KC_DB_PASSWORD }}"

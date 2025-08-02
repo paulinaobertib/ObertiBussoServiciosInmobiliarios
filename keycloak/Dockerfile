@@ -2,8 +2,7 @@ FROM quay.io/keycloak/keycloak:26.2.4
 
 # ─── 1) VARIABLES DE ENTORNO PARA H2 EN MODO "file" ───────────────────────────
 #    KC_DB_FILE_DIR: carpeta dentro de /home (persistente en App Service)
-ENV KC_DB=postgres \
-    KC_DB_URL=${KC_DB_URL} \
+ENV KC_DB_URL=${KC_DB_URL} \
     KC_DB_USERNAME=${KC_DB_USERNAME} \
     KC_DB_PASSWORD=${KC_DB_PASSWORD} \
     # Administración -------------------------------------------------------------
@@ -33,7 +32,6 @@ USER 1000
 # ─── 4) ENTRY POINT ORIGINAL, PERO APUNTA A /home/data/h2 EN LUGAR DE /opt/... ──
 ENTRYPOINT ["sh","-c", "\
   exec /opt/keycloak/bin/kc.sh start \
-       --db=${KC_DB} \
        --db-url=${KC_DB_URL} \
        --db-username=${KC_DB_USERNAME} \
        --db-password=${KC_DB_PASSWORD} \
