@@ -42,7 +42,6 @@ spring:
               # - "https://${SWA_FRONTEND}.azurestaticapps.net"
               - "https://victorious-sea-0c1ad030f.6.azurestaticapps.net/"
               - "https://witty-field-05be4e00f.6.azurestaticapps.net/"
-              - "https://ambitious-sky-0e7842f10.1.azurestaticapps.net/" # Temporal
             allowedHeaders: "*"
             allowedMethods:
               - GET
