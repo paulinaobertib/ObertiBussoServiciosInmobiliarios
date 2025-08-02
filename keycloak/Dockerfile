@@ -2,14 +2,21 @@ FROM quay.io/keycloak/keycloak:26.2.4
 
 # ─── 1) VARIABLES DE ENTORNO PARA H2 EN MODO "file" ───────────────────────────
 #    KC_DB_FILE_DIR: carpeta dentro de /home (persistente en App Service)
-ENV KC_DB=dev-file \
-    KC_DB_DEV_FILE_DIR=/home/data/h2 \
+ENV KC_DB=postgres \
+    KC_DB_URL=${KC_DB_URL} \
+    KC_DB_USERNAME=${KC_DB_USERNAME} \
+    KC_DB_PASSWORD=${KC_DB_PASSWORD} \
+    # Administración -------------------------------------------------------------
+    KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN} \
+    KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
+    # HTTP / proxy ---------------------------------------------------------------
     KC_HTTP_PORT=8080 \
-    KC_HEALTH_ENABLED=true \
-    KC_METRICS_ENABLED=true \
-    KC_PROXY=edge \
     KC_HOSTNAME_STRICT=false \
-    KC_PROXY_HEADERS=xforwarded
+    KC_PROXY=edge \
+    KC_PROXY_HEADERS=xforwarded \
+    # Salud / métricas -----------------------------------------------------------
+    KC_HEALTH_ENABLED=true \
+    KC_METRICS_ENABLED=true
 
 # Exponemos el puerto que Keycloak usará
 EXPOSE 8080
@@ -25,10 +32,17 @@ USER 1000
 
 # ─── 4) ENTRY POINT ORIGINAL, PERO APUNTA A /home/data/h2 EN LUGAR DE /opt/... ──
 ENTRYPOINT ["sh","-c", "\
-  mkdir -p /home/data/h2 && \
-  rm -f /home/data/h2/*.lock.db /home/data/h2/DATABASECHANGELOGLOCK* || true && \
-  exec /opt/keycloak/bin/kc.sh start-dev \
+  exec /opt/keycloak/bin/kc.sh start \
+       --db=${KC_DB} \
+       --db-url=${KC_DB_URL} \
+       --db-username=${KC_DB_USERNAME} \
+       --db-password=${KC_DB_PASSWORD} \
        --http-port=${KC_HTTP_PORT} \
-       --hostname-strict=false \
+       --hostname-strict=${KC_HOSTNAME_STRICT} \
+       --proxy=${KC_PROXY} \
+       --proxy-headers=${KC_PROXY_HEADERS} \
+       --health-enabled=${KC_HEALTH_ENABLED} \
+       --metrics-enabled=${KC_METRICS_ENABLED} \
+       --optimized \
        --bootstrap-admin-username=${KEYCLOAK_ADMIN} \
        --bootstrap-admin-password=${KEYCLOAK_ADMIN_PASSWORD}"]
