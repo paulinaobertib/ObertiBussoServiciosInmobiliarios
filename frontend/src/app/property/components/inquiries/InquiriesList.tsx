@@ -2,7 +2,7 @@ import { Box } from '@mui/material';
 import type { Inquiry } from '../../types/inquiry';
 import type { ChatSession } from '../../../chat/types/chatSession';
 import { InquiryItem } from './InquiryItem';
-import { ChatSessionItem } from './InquiryChat';
+import { ChatSessionItem } from '../../../chat/components/ChatSessionItem';
 
 interface Props {
   inquiries?: Inquiry[];

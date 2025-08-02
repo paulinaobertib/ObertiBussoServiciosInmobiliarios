@@ -149,7 +149,7 @@ export function useAppointments() {
   const acceptAppointment = useCallback(
     async (a: Appointment) => {
       await updateAppointmentStatus(a.id, "ACEPTADO");
-      loadAdmin();
+      await loadAdmin();
     },
     [loadAdmin]
   );
@@ -157,7 +157,7 @@ export function useAppointments() {
   const rejectAppointment = useCallback(
     async (a: Appointment) => {
       await updateAppointmentStatus(a.id, "RECHAZADO");
-      loadAdmin();
+      await loadAdmin();
     },
     [loadAdmin]
   );
@@ -165,7 +165,7 @@ export function useAppointments() {
   const removeAvailableSlot = useCallback(
     async (id: number) => {
       await deleteAvailability(id);
-      loadAdmin();
+      await loadAdmin();
     },
     [loadAdmin]
   );

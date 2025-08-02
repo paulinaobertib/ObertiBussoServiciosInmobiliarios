@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.ChatSessionController;
 import pi.ms_properties.domain.ChatSession;
 import pi.ms_properties.dto.ChatSessionDTO;
+import pi.ms_properties.dto.ChatSessionGetDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.interf.IChatSessionService;
 
@@ -88,7 +89,7 @@ class ChatSessionControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getById_success() throws Exception {
-        ChatSession session = new ChatSession();
+        ChatSessionGetDTO session = new ChatSessionGetDTO();
         session.setId(1L);
 
         Mockito.when(chatSessionService.getById(1L)).thenReturn(session);
@@ -99,16 +100,9 @@ class ChatSessionControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "user")
-    void getById_forbidden() throws Exception {
-        mockMvc.perform(get("/chatSession/getById/1"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
     @WithMockUser(roles = "admin")
     void getAll_success() throws Exception {
-        ChatSession session = new ChatSession();
+        ChatSessionGetDTO session = new ChatSessionGetDTO();
         session.setId(1L);
 
         Mockito.when(chatSessionService.getAll()).thenReturn(List.of(session));
@@ -140,6 +134,13 @@ class ChatSessionControllerTest {
     void getById_noRole_returnsForbidden() throws Exception {
         mockMvc.perform(get("/chatSession/getById/1"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void getById_forbidden() throws Exception {
+        mockMvc.perform(get("/chatSession/getById/1"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

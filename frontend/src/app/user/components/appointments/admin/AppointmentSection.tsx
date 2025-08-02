@@ -90,6 +90,7 @@ export const AppointmentSection = ({ loading, selectedDate, filter, setFilter, s
                     onSelect={onSelectSlot}
                 />
             </Box>
+
         </>
     );
 };

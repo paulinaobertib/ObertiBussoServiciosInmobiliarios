@@ -14,6 +14,8 @@ import type { Inquiry } from '../../types/inquiry';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { buildRoute, ROUTES } from '../../../../lib';
+import { useInquiries } from '../../hooks/useInquiries';
+import { findPropertyIdByTitle } from '../../utils/findPropertyIdByTitle';
 
 interface Props {
   inquiry: Inquiry;
@@ -31,14 +33,15 @@ export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { properties } = useInquiries();   // properties: Array<{ id, title }>
+
   const created = dayjs(inquiry.date).locale('es');
   const closed = inquiry.dateClose ? dayjs(inquiry.dateClose).locale('es') : null;
   const status = statusMap[inquiry.status] || { label: inquiry.status };
   const isClosed = inquiry.status === 'CERRADA';
 
-  // Contact information
   const ContactInfo = (
-    <Box display="flex" flexWrap="wrap" gap={2} mt={1} >
+    <Box display="flex" flexWrap="wrap" gap={2} mt={1}>
       <Typography variant="body2">
         <strong>Usuario:</strong> {inquiry.firstName} {inquiry.lastName}
       </Typography>
@@ -53,18 +56,12 @@ export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
     </Box>
   );
 
-  // Property & Title Section
   const PropertyInfo = (
     <Box display="flex" alignItems="center" flexWrap="wrap" gap={2} mb={1}>
-      {/* Título de la consulta */}
       <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
         <strong>Título:</strong> {inquiry.title}
       </Typography>
-
-      {/* Divider vertical */}
       <Divider orientation="vertical" flexItem sx={{ bgcolor: theme.palette.grey[300] }} />
-
-      {/* Propiedades consultadas o nota general */}
       {inquiry.propertyTitles.length === 0 ? (
         <Typography variant="body2">
           <strong>Consulta general</strong>
@@ -74,22 +71,24 @@ export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
           <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
             <strong>Propiedad{inquiry.propertyTitles.length > 1 ? 'es' : ''} consultada{inquiry.propertyTitles.length > 1 ? 's' : ''}:</strong>
           </Typography>
-          {inquiry.propertyTitles.map((title, idx) => (
-            <Chip
-              key={idx}
-              label={title}
-              size="small"
-              clickable
-              onClick={() => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, inquiry.id))}
-              sx={{ cursor: 'pointer' }}
-            />
-          ))}
+          {inquiry.propertyTitles.map((title, idx) => {
+            const propertyId = findPropertyIdByTitle(title, properties);
+            return (
+              <Chip
+                key={idx}
+                label={title}
+                size="small"
+                clickable={!!propertyId}
+                onClick={() => propertyId && navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propertyId))}
+                sx={{ cursor: propertyId ? 'pointer' : 'default' }}
+              />
+            );
+          })}
         </Box>
       )}
     </Box>
   );
 
-  // Date boxes
   const CreatedBox = (
     <Typography variant="body2">
       <strong>Fecha de envío:</strong> {created.format('D [de] MMM YYYY, HH:mm')}
@@ -102,7 +101,6 @@ export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
     </Typography>
   );
 
-  // Description
   const DescriptionSection = (
     <Box>
       <Typography variant="body2">
@@ -114,53 +112,33 @@ export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
     </Box>
   );
 
-  // Status chip for non-admin
   const StatusChip = (
     <Chip label={status.label} size="small" color="primary" variant="outlined" />
   );
 
-  // Action button for admin: LoadingButton shows loader, disabled if closed
   const ActionButton = isClosed ? (
     <LoadingButton size="small" variant="outlined" disabled>
       Resuelta
     </LoadingButton>
   ) : (
-    <LoadingButton
-      size="small"
-      variant="outlined"
-      loading={loading}
-      onClick={() => onResolve(inquiry.id)}
-    >
+    <LoadingButton size="small" variant="outlined" loading={loading} onClick={() => onResolve(inquiry.id)}>
       Marcar resuelta
     </LoadingButton>
   );
 
   return (
-    <Card
-      variant="outlined"
-      sx={{ p: 2 }}
-    >
-      {/* Contacto */}
+    <Card variant="outlined" sx={{ p: 2 }}>
       {isAdmin && PropertyInfo}
-
-      {/* Divider */}
       {isAdmin && <Divider sx={{ mb: 2 }} />}
-
       {isMobile ? (
         <Box display="flex" flexDirection="column" gap={2}>
           {CreatedBox}
           {ClosedBox}
-
           <Box display="flex" alignItems="center" justifyContent="space-between">
             {DescriptionSection}
             {!isAdmin && StatusChip}
           </Box>
-
-          {isAdmin && (
-            <Box display="flex" justifyContent="flex-end">
-              {ActionButton}
-            </Box>
-          )}
+          {isAdmin && <Box display="flex" justifyContent="flex-end">{ActionButton}</Box>}
         </Box>
       ) : (
         <Box display="flex" alignItems="center">
@@ -168,28 +146,17 @@ export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
             {CreatedBox}
             {ClosedBox}
           </Box>
-
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ mx: 3, bgcolor: theme.palette.grey[300] }}
-          />
-
+          <Divider orientation="vertical" flexItem sx={{ mx: 3, bgcolor: theme.palette.grey[300] }} />
           <Box flex={1}>
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
               {DescriptionSection}
               {!isAdmin && StatusChip}
             </Box>
           </Box>
-
           {isAdmin && <Box ml={3}>{ActionButton}</Box>}
         </Box>
       )}
-
-      {/* Divider */}
       {isAdmin && <Divider sx={{ mt: 2 }} />}
-
-      {/* Propiedades */}
       {ContactInfo}
     </Card>
   );

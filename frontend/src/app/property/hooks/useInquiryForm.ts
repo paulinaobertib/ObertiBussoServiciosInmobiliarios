@@ -42,9 +42,17 @@ export const useInquiryForm = ({ propertyIds }: Props = {}) => {
       setFormLoading(true);
       setFormError(null);
 
-      const title = `Consulta${
-        isLogged && info?.email ? ` (${info.email})` : ""
-      }`;
+      // Determinar el prefijo según la cantidad de propertyIds
+      const count = propertyIds?.length ?? 0;
+      let title: string;
+      if (count === 0) {
+        title = "Consulta General";
+      } else if (count === 1) {
+        title = "Consulta Individual";
+      } else {
+        title = "Consulta Grupal";
+      }
+
       const payloadBase: {
         title: string;
         description: string;
@@ -52,7 +60,7 @@ export const useInquiryForm = ({ propertyIds }: Props = {}) => {
       } = {
         title,
         description: form.description,
-        ...(propertyIds && propertyIds.length ? { propertyIds } : {}),
+        ...(count > 0 ? { propertyIds } : {}),
       };
 
       try {
