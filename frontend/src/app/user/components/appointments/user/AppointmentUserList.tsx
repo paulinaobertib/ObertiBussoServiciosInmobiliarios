@@ -11,13 +11,20 @@ interface Props {
 }
 
 export const AppointmentUserList = ({ appointments, slotMap, onCancel, reload }: Props) => {
-    // Filtra solo citas con slot válido
-    const vetted = appointments.filter((a) => {
+    const availables = appointments.filter((a) => {
         const id = a.availableAppointment?.id;
         return id != null && Boolean(slotMap[id]);
     });
 
-    if (vetted.length === 0) {
+    // 2) De esas, deja solo las de hoy en adelante
+    const todayStart = dayjs().startOf('day');
+    const upcoming = availables.filter((a) => {
+        const slot = slotMap[a.availableAppointment!.id];
+        // si la fecha del slot NO es anterior al inicio de hoy, lo incluimos
+        return !dayjs(slot.date).isBefore(todayStart);
+    });
+
+    if (upcoming.length === 0) {
         return (
             <Box sx={{ p: 3 }}>
                 <Typography color="text.secondary">Aún no tienes turnos.</Typography>
@@ -26,7 +33,7 @@ export const AppointmentUserList = ({ appointments, slotMap, onCancel, reload }:
     }
 
     // Ordena de más reciente a más antiguo
-    const sorted = [...vetted].sort((a, b) =>
+    const sorted = [...upcoming].sort((a, b) =>
         dayjs(slotMap[b.availableAppointment!.id].date).diff(
             dayjs(slotMap[a.availableAppointment!.id].date)
         )

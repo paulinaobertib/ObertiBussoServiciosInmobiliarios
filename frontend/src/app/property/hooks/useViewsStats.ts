@@ -1,4 +1,3 @@
-// src/app/property/hooks/useViewsStats.ts
 import { useState, useEffect } from "react";
 import * as viewService from "../services/view.service";
 import * as inquiryService from "../services/inquiry.service";

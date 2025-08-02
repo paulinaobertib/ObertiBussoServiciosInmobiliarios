@@ -1,5 +1,5 @@
-import { Card, CardContent, Typography, Box } from "@mui/material";
-import { BarChart } from "@mui/x-charts/BarChart";
+import { Card, CardContent, Typography, Box, useTheme } from '@mui/material';
+import { BarChart } from '@mui/x-charts/BarChart';
 
 interface ChartCardProps {
     title: string;
@@ -7,24 +7,31 @@ interface ChartCardProps {
 }
 
 export default function ChartCard({ title, data }: ChartCardProps) {
-    // Extraemos etiquetas y valores
+    const theme = useTheme();
     const categories = Object.keys(data);
     const values = Object.values(data);
 
     return (
-        <Card elevation={3}>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>
+        <Card
+            elevation={1}
+            sx={{
+                borderRadius: 2,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[4],
+                },
+            }}
+        >
+            <CardContent sx={{ p: 2 }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                     {title}
                 </Typography>
-                <Box width="100%" height={240}>
+                <Box width="100%" height={200}>
                     <BarChart
-                        // Altura interna del gráfico (ancho 100% del Box)
-                        height={200}
-                        // Le pasamos la serie de datos
+                        height={180}
                         series={[{ data: values }]}
-                        // Configuramos el eje X con escala de bandas y nuestras categorías
-                        xAxis={[{ data: categories, scaleType: "band" }]}
+                        xAxis={[{ data: categories, scaleType: 'band' }]}
                     />
                 </Box>
             </CardContent>

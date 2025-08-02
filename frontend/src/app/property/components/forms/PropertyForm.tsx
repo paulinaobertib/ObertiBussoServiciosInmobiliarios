@@ -48,7 +48,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
             form, fieldErrors, num,
             showRooms, showBedrooms, showBathrooms, showCoveredArea, colSize,
             setMain, addToGallery,
-            imgError, clearError,
+            // imgError, clearError,
         } = ctrl;
 
         /* ───────────────────── RENDER ───────────────────── */
@@ -157,14 +157,27 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                     </Grid>
 
                     {/* ---------- MOSTRAR PRECIO ---------- */}
-                    <Grid size={{ xs: 12 }}>
+                    <Grid size={{ xs: 8 }}>
                         <Stack direction="row" alignItems="center" px={1} py={0.5}
                             sx={{ border: '1px solid #ccc', borderRadius: 1, '&:hover': { borderColor: '#444' } }}>
                             <Checkbox checked={form.showPrice}
                                 onChange={e => ctrl.setField('showPrice', e.target.checked)}
                                 size="small" sx={{ p: .7 }} />
-                            <Typography color="text.secondary">
+                            <Typography noWrap color="text.secondary">
                                 Mostrar precio de {form.operation === 'VENTA' ? 'venta' : 'alquiler'} y expensas
+                            </Typography>
+                        </Stack>
+                    </Grid>
+
+                    {/* ---------- MOSTRAR COMO PROPIEDAD DESTACADA ---------- */}
+                    <Grid size={{ xs: 4 }}>
+                        <Stack direction="row" alignItems="center" px={1} py={0.5}
+                            sx={{ border: '1px solid #ccc', borderRadius: 1, '&:hover': { borderColor: '#444' } }}>
+                            <Checkbox checked={form.outstanding}
+                                onChange={e => ctrl.setField('outstanding', e.target.checked)}
+                                size="small" sx={{ p: .7 }} />
+                            <Typography color="text.secondary">
+                                Destacar
                             </Typography>
                         </Stack>
                     </Grid>
@@ -257,14 +270,14 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(
                         />
                     </Grid>
 
-                    {imgError && (
+                    {/* {imgError && (
                         <Grid size={{ xs: 6 }}>
                             <Typography variant="caption" color="error" sx={{ cursor: 'pointer' }}
                                 onClick={clearError}>
                                 {imgError}
                             </Typography>
                         </Grid>
-                    )}
+                    )} */}
                 </Grid>
             </Box>
         );
