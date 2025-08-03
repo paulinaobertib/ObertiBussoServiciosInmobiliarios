@@ -1,7 +1,9 @@
 package pi.ms_properties.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pi.ms_properties.domain.ChatMessage;
 
@@ -12,4 +14,8 @@ public interface IChatMessageRepository extends JpaRepository<ChatMessage, Long>
 
     @Query("select cm from ChatMessage cm where cm.chatSession.id = ?1")
     List<ChatMessage> findBySession(Long sessionId);
+
+    @Modifying
+    @Query("DELETE FROM ChatMessage cm WHERE cm.chatSession.id IN :sessionIds")
+    void deleteAllBySessionIds(@Param("sessionIds") List<Long> sessionIds);
 }

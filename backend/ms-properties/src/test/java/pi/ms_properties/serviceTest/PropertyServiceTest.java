@@ -76,6 +76,15 @@ public class PropertyServiceTest {
     @Mock
     private RecommendationService recommendationService;
 
+    @Mock
+    private IChatSessionRepository chatSessionRepository;
+
+    @Mock
+    private IChatMessageRepository chatMessageRepository;
+
+    @Mock
+    private IChatDerivationRepository chatDerivationRepository;
+
     @InjectMocks
     private PropertyService propertyService;
 
