@@ -1,12 +1,15 @@
 package pi.ms_properties.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -46,4 +49,12 @@ public class ChatSession {
     @JoinColumn(name = "property_id", nullable = false)
     @JsonBackReference
     private Property property;
+
+    @OneToMany(mappedBy = "chatSession", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ChatMessage> chatMessages = new HashSet<>();
+
+    @OneToOne(mappedBy = "chatSession", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private ChatDerivation chatDerivation;
 }
