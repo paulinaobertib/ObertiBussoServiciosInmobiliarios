@@ -14,7 +14,7 @@ class GeocodingNeighborhoodServiceTest {
     // casos de exito
 
     @Test
-    void getCoordinates_existingNeighborhood_success() {
+    void getCoordinates_existingNeighborhood_integrationSuccess() {
         Optional<GeocodingNeighborhoodService.Coordinates> result =
                 service.getCoordinates("Palermo", "Buenos Aires");
 
@@ -24,7 +24,6 @@ class GeocodingNeighborhoodServiceTest {
             System.out.println("Latitud: " + coordinates.latitude());
             System.out.println("Longitud: " + coordinates.longitude());
 
-            // Validar que latitud y longitud estén dentro de rangos posibles
             assertTrue(coordinates.latitude() >= -90 && coordinates.latitude() <= 90);
             assertTrue(coordinates.longitude() >= -180 && coordinates.longitude() <= 180);
         });
@@ -33,11 +32,10 @@ class GeocodingNeighborhoodServiceTest {
     // casos de error
 
     @Test
-    void getCoordinates_nonExistingNeighborhood_returnsEmpty() {
+    void getCoordinates_nonExistingNeighborhood_integrationReturnsEmpty() {
         Optional<GeocodingNeighborhoodService.Coordinates> result =
                 service.getCoordinates("BarrioQueNoExisteXYZ", "CiudadQueNoExisteXYZ");
 
         assertTrue(result.isEmpty(), "No debería devolver coordenadas para un barrio que no existe");
     }
 }
-
