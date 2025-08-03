@@ -110,4 +110,3 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=2
-            

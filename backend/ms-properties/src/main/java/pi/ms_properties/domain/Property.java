@@ -117,4 +117,8 @@ public class Property {
     @OneToMany(mappedBy = "property", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
     private Set<Comment> comments = new HashSet<>();
+
+    @OneToMany(mappedBy = "property", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Maintenance> maintenances = new HashSet<>();
 }
