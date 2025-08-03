@@ -1,23 +1,27 @@
-import { useState, useMemo } from 'react';
+// src/pages/AppointmentPage.tsx
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import {
     Box,
-    Button,
     Card,
     CardContent,
-    Chip,
-    Container,
-    IconButton,
-    Stack,
     Typography,
+    Stack,
+    Chip,
+    Button,
+    Tabs,
+    Tab,
+    IconButton,
+    Container,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
 import ReplyIcon from '@mui/icons-material/Reply';
+import AddIcon from '@mui/icons-material/Add';
 
 import BasePage from './BasePage';
 import { Calendar } from '../app/user/components/Calendar';
+import { PendingAppointmentsList } from '../app/user/components/appointments/admin/PendingAppointmentList';
 import { AppointmentSection } from '../app/user/components/appointments/admin/AppointmentSection';
 import { GenerateSlotsDialog } from '../app/user/components/appointments/admin/AppointmentsSlotsGenerator';
 import { AppointmentDetailsDialog } from '../app/user/components/appointments/admin/AppointmentDetails';
@@ -43,20 +47,21 @@ export default function AppointmentPage() {
     const [generateOpen, setGenerateOpen] = useState(false);
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
+    const [tab, setTab] = useState<'pending' | 'all'>('pending');
 
     const dateKey = selectedDate.format('YYYY-MM-DD');
     const daySlots = slotsByDate[dateKey] ?? [];
 
     const stats = useMemo(() => {
-        const disponible = daySlots.filter((s) => s.availability).length;
+        const disponible = daySlots.filter(s => s.availability).length;
         const espera = daySlots.filter(
-            (s) => !s.availability && apptsBySlot[s.id]?.status === 'ESPERA',
+            s => !s.availability && apptsBySlot[s.id]?.status === 'ESPERA'
         ).length;
         const aceptado = daySlots.filter(
-            (s) => !s.availability && apptsBySlot[s.id]?.status === 'ACEPTADO',
+            s => !s.availability && apptsBySlot[s.id]?.status === 'ACEPTADO'
         ).length;
         const rechazado = daySlots.filter(
-            (s) => !s.availability && apptsBySlot[s.id]?.status === 'RECHAZADO',
+            s => !s.availability && apptsBySlot[s.id]?.status === 'RECHAZADO'
         ).length;
         return { disponible, espera, aceptado, rechazado };
     }, [daySlots, apptsBySlot]);
@@ -65,6 +70,12 @@ export default function AppointmentPage() {
         setSelectedSlotId(id);
         setDetailsOpen(true);
     };
+
+    useEffect(() => {
+        if (tab === 'pending') {
+            setFilter('TODOS');
+        }
+    }, [tab, setFilter]);
 
     return (
         <>
@@ -82,14 +93,15 @@ export default function AppointmentPage() {
                         Turnero de Visitas
                     </Typography>
 
+                    {/* Layout: dos columnas en md+, columna única en xs */}
                     <Box
                         sx={{
                             display: 'flex',
                             flexDirection: { xs: 'column', md: 'row' },
-                            height: 'auto',
+                            gap: 2,
                         }}
                     >
-                        {/* Tarjeta Izquierda */}
+                        {/* Columna Izquierda: Calendario + Estadísticas */}
                         <Card
                             sx={{
                                 flexShrink: 0,
@@ -116,7 +128,7 @@ export default function AppointmentPage() {
                                     gutterBottom
                                     sx={{ mt: 2 }}
                                 >
-                                    Estadísticas
+                                    Resumen de Turnos del Día
                                 </Typography>
 
                                 <Stack spacing={1} sx={{ mb: 2 }}>
@@ -139,32 +151,43 @@ export default function AppointmentPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Tarjeta Derecha */}
-                        <Card
-                            sx={{
-                                flexGrow: 1,
-                                m: 1,
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}
-                        >
-                            <CardContent
-                                sx={{ p: 2, display: 'flex', flexDirection: 'column', flexGrow: 1 }}
-                            >
-                                <Typography variant="subtitle1" align="center" fontWeight="bold" gutterBottom>
-                                    Listado de Turnos
-                                </Typography>
+                        {/* Columna Derecha: Tabs de Turnos */}
+                        <Card sx={{ flexGrow: 1, p: 2 }}>
+                            <Typography variant="subtitle1" align="center" fontWeight="bold" gutterBottom>
+                                Listado de Turnos
+                            </Typography>
 
-                                <AppointmentSection
-                                    loading={loading}
-                                    selectedDate={selectedDate}
-                                    filter={filter}
-                                    setFilter={setFilter}
-                                    slotsByDate={slotsByDate}
-                                    apptsBySlot={apptsBySlot}
-                                    onSelectSlot={handleSelectSlot}
-                                />
-                            </CardContent>
+                            <Tabs
+                                value={tab}
+                                onChange={(_, value) => setTab(value)}
+                                indicatorColor="primary"
+                                textColor="primary"
+                                variant="fullWidth"
+                            >
+                                <Tab label="Pendientes" value="pending" />
+                                <Tab label="POR DIA" value="all" />
+                            </Tabs>
+
+                            <Box sx={{ p: 2 }}>
+                                {tab === 'pending' ? (
+                                    <PendingAppointmentsList
+                                        slotsByDate={slotsByDate}
+                                        apptsBySlot={apptsBySlot}
+                                        loading={loading}
+                                        onSelect={handleSelectSlot}
+                                    />
+                                ) : (
+                                    <AppointmentSection
+                                        loading={loading}
+                                        selectedDate={selectedDate}
+                                        filter={filter}
+                                        setFilter={setFilter}
+                                        slotsByDate={slotsByDate}
+                                        apptsBySlot={apptsBySlot}
+                                        onSelectSlot={handleSelectSlot}
+                                    />
+                                )}
+                            </Box>
                         </Card>
                     </Box>
 
@@ -173,7 +196,7 @@ export default function AppointmentPage() {
                         open={generateOpen}
                         onClose={() => {
                             setGenerateOpen(false);
-                            reloadAdmin(); // ← agrega esta línea
+                            reloadAdmin();
                         }}
                     />
 
@@ -184,15 +207,9 @@ export default function AppointmentPage() {
                             setDetailsOpen(false);
                             setSelectedSlotId(null);
                         }}
-                        onAccept={async (a) => {
-                            await acceptAppointment(a);
-                        }}
-                        onReject={async (a) => {
-                            await rejectAppointment(a);
-                        }}
-                        onDelete={async (id) => {
-                            await removeAvailableSlot(id);
-                        }}
+                        onAccept={acceptAppointment}
+                        onReject={rejectAppointment}
+                        onDelete={removeAvailableSlot}
                     />
                 </Container>
             </BasePage>

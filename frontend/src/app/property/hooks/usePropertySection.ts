@@ -3,12 +3,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import type { Property } from "../types/property";
 
 export const usePropertyPanel = () => {
-  const {
-    propertiesList,
-    loading: ctxLoading,
-    refreshProperties,
-  } = usePropertiesContext();
-
+  const { propertiesList, refreshProperties } = usePropertiesContext();
   // datos filtrados
   const [data, setData] = useState<Property[]>([]);
   const [localLoading, setLocalLoading] = useState(true);
@@ -45,7 +40,7 @@ export const usePropertyPanel = () => {
 
   return {
     data,
-    loading: ctxLoading || localLoading,
+    loading: localLoading,
     onSearch,
     toggleSelect,
     isSelected,

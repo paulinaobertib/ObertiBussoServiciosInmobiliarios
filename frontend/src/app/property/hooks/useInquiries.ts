@@ -12,7 +12,7 @@ import { getAllProperties } from "../services/property.service";
 import { Inquiry, InquiryStatus } from "../types/inquiry";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { buildRoute, ROUTES } from "../../../lib";
-import { ChatSession } from "../../chat/types/chatSession"; // <-- Asegurate que este tipo existe
+import { ChatSessionGetDTO } from "../../chat/types/chatSession"; // <-- Asegurate que este tipo existe
 
 export const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
 
@@ -28,7 +28,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const [properties, setProperties] = useState<{ id: number; title: string }[]>(
     []
   );
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]); // <-- ahora bien tipado
+  const [chatSessions, setChatSessions] = useState<ChatSessionGetDTO[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [errorList, setErrorList] = useState<string | null>(null);
@@ -57,9 +57,9 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const loadChatSessions = useCallback(async () => {
     if (!isAdmin) return;
     try {
-      const sessions: ChatSession[] = await getAllChatSessions();
+      const sessions: ChatSessionGetDTO[] = await getAllChatSessions();
       // Mapeá cada sesión para cumplir el tipo ChatSession (si hace falta)
-      const mapped: ChatSession[] = sessions.map((s) => ({
+      const mapped: ChatSessionGetDTO[] = sessions.map((s) => ({
         id: s.id,
         userId: s.userId,
         phone: s.phone,
@@ -68,8 +68,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
         lastName: s.lastName,
         date: s.date,
         dateClose: s.dateClose,
-        derived: s.derived,
-        property: s.property,
+        propertyId: s.propertyId,
       }));
       setChatSessions(mapped);
     } catch {
