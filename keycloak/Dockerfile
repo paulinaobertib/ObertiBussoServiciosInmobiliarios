@@ -6,7 +6,8 @@ ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
 
 # indicamos vendor database para el build (no afecta luego)
-ENV KC_DB=postgres
+ENV KC_DB=dev-file
+ENV KC_DB_FILE_DIR=/home/data/h2
 
 WORKDIR /opt/keycloak
 
