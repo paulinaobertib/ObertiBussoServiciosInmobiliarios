@@ -1,6 +1,10 @@
 server:
   port: ${SERVICE_PORT}
 
+user:
+  service:
+    url: http://localhost:8081
+
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}

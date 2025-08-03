@@ -1,6 +1,10 @@
 server:
   port: ${SERVICE_PORT}
 
+property:
+  service:
+    url: http://localhost:8083
+
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
@@ -66,14 +70,14 @@ logging:
 
 # Configuración para perfil "test" - Ver si esto sirve aca
 spring:
-   config:
-     activate:
-       on-profile: test
-   datasource:
-     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-     driver-class-name: org.h2.Driver
-     username: sa
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
     password:
-   jpa:
-     hibernate:
-       ddl-auto: create-drop
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
