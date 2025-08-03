@@ -161,10 +161,8 @@ public class PropertyService implements IPropertyService {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Propiedad no encontrada"));
 
-        // Obtener los IDs de las sesiones de chat asociadas
         List<Long> sessionIds = chatSessionRepository.findIdsByPropertyId(id);
 
-        // Eliminar directamente sin tocar la colección
         if (!sessionIds.isEmpty()) {
             chatMessageRepository.deleteAllBySessionIds(sessionIds);
             chatDerivationRepository.deleteAllBySessionIds(sessionIds);

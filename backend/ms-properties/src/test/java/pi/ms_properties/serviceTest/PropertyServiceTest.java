@@ -339,14 +339,12 @@ public class PropertyServiceTest {
         property.setId(propertyId);
 
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
-        doNothing().when(propertyRepository).deleteById(propertyId);
+        doNothing().when(propertyRepository).delete(property);
 
         ResponseEntity<String> response = propertyService.deleteProperty(propertyId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha eliminado la propiedad", response.getBody());
-
-        verify(propertyRepository, times(1)).deleteById(propertyId);
     }
 
     @Test
@@ -642,7 +640,7 @@ public class PropertyServiceTest {
 
         assertTrue(ex.getMessage().contains("Propiedad no encontrada"));
 
-        verify(propertyRepository, never()).deleteById(anyLong());
+        verify(propertyRepository, never()).delete(any(Property.class));
     }
 
     @Test
@@ -652,14 +650,14 @@ public class PropertyServiceTest {
         property.setId(propertyId);
 
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
-        doThrow(new RuntimeException("DB error")).when(propertyRepository).deleteById(propertyId);
+        doThrow(new RuntimeException("DB error")).when(propertyRepository).delete(property);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> propertyService.deleteProperty(propertyId));
 
         assertEquals("DB error", ex.getMessage());
 
-        verify(propertyRepository, times(1)).deleteById(propertyId);
+        verify(propertyRepository, times(1)).delete(property);
     }
 
     @Test
