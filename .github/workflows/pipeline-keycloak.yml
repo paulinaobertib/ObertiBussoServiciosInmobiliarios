@@ -139,7 +139,7 @@ jobs:
               "KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }}" \
               "KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
               "KC_DB=dev-file" \
-              "KC_DB_FILE_DIR=/home/data/h2"
+              "KC_DB_DEV_FILE_DIR=/opt/keycloak/data/h2"
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
