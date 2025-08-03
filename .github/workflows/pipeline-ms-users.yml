@@ -25,8 +25,8 @@ env:
 
   # Properties-specific
   IMAGE_NAME: ms-users
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_CORE_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_DEV }}
   APP_NAME_DEV: ${{ secrets.APP_USERS_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_USERS_PROD }}
   SERVICE_PORT: 8081
