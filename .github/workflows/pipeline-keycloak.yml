@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/pipelinesDetails
+      - feature/pipelines
         # - main
 
 # --------------------------------------------------------------
@@ -245,3 +245,4 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
             --docker-container-logging filesystem
+
