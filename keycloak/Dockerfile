@@ -1,17 +1,12 @@
 # ── STAGE 1: build (genera keystore y recursos de Quarkus) ────────────────
 FROM quay.io/keycloak/keycloak:latest AS builder
 
-# habilita health & metrics
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
-
-# indicamos vendor database para el build (no afecta luego)
-ENV KC_DB=dev-file
-ENV KC_DB_FILE_DIR=/home/data/h2
+ENV KC_DB=postgres
 
 WORKDIR /opt/keycloak
 
-# generamos un keystore PKCS12 (solo ejemplo; en prod usa tus propios certs)
 RUN keytool -genkeypair \
     -storetype PKCS12 -storepass password \
     -keyalg RSA -keysize 2048 \
@@ -20,39 +15,33 @@ RUN keytool -genkeypair \
     -ext "SAN:c=DNS:localhost,IP:127.0.0.1" \
     -keystore conf/server.keystore
 
-# compile Quarkus/Keycloak con providers, themes, etc.
 RUN /opt/keycloak/bin/kc.sh build
 
-# ── STAGE 2: runtime (solo runtime lean) ─────────────────────────────────
+# ── STAGE 2: runtime (más ligero) ────────────────────────────────────────
 FROM quay.io/keycloak/keycloak:latest
 
-# 1) copia los artefactos ya construidos
+# 1) copiar build
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
-# 2) creamos la carpeta persistente para H2 y fijamos permisos
+# 2) preparar carpeta de H2
 USER root
-RUN mkdir -p /home/data/h2 \
-    && chown -R 1000:1000 /home/data
-
-# 3) volvemos al usuario de Keycloak (UID 1000)
+RUN mkdir -p /home/data/h2 && chown -R 1000:1000 /home/data
 USER 1000
 
-# 4) exponemos el puerto que usará Keycloak
+# 3) exponer HTTP en 8080
 EXPOSE 8080
 
-# 5) configuramos Keycloak para usar H2 en modo "file"
+# 4) configuración de entorno para H2 file y admin
 ENV KC_DB=dev-file \
     KC_DB_DEV_FILE_DIR=/home/data/h2 \
     KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN} \
     KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
     KC_HTTP_PORT=8080 \
-    KC_HOSTNAME_STRICT=false \
-    KC_PROXY=edge \
-    KC_PROXY_HEADERS=xforwarded \
-    KC_HOSTNAME=${KC_HOSTNAME} \
+    KC_HTTPS_ENABLED=false \
+    KC_HTTP_ENABLED=true \
     KC_HEALTH_ENABLED=true \
-    KC_METRICS_ENABLED=true
+    KC_METRICS_ENABLED=true \
+    KC_HOSTNAME_STRICT=false
 
-# 6) ENTRYPOINT y CMD estándar
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start", "--optimized", "--http-enabled=true", "--http-port=8080", "--https-port=-1", "--hostname-strict=false", "--proxy=edge"]
+CMD ["start", "--optimized", "--http-port=8080", "--http-enabled=true"]
