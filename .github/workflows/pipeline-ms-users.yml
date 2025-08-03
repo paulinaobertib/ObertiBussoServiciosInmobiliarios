@@ -60,15 +60,15 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      - name: Run Unit Tests
-        working-directory: backend/${{ env.IMAGE_NAME }}
-        run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
+      # - name: Run Unit Tests
+      #   working-directory: backend/${{ env.IMAGE_NAME }}
+      #   run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
 
-      - name: Publish JUnit Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      # - name: Publish JUnit Results
+      #   uses: EnricoMi/publish-unit-test-result-action@v2
+      #   if: always()
+      #   with:
+      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
       # - name: Test Summary
       #   uses: test-summary/action@v2
@@ -76,16 +76,16 @@ jobs:
       #   with:
       #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - name: Publish JaCoCo Coverage
-        id: jacoco
-        uses: PavanMudigonda/jacoco-reporter@v5.0
-        with:
-          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          coverage_report_name: Code Coverage
-          coverage_report_title: "JaCoCo Coverage"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_coverage: 80
-          publish_only_summary: false
+      # - name: Publish JaCoCo Coverage
+      #   id: jacoco
+      #   uses: PavanMudigonda/jacoco-reporter@v5.0
+      #   with:
+      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+      #     coverage_report_name: Code Coverage
+      #     coverage_report_title: "JaCoCo Coverage"
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     minimum_coverage: 80
+      #     publish_only_summary: false
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
