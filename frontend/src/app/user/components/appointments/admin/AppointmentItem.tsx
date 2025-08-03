@@ -1,3 +1,4 @@
+// src/app/appointments/components/AppointmentItem.tsx
 import { useEffect, useState } from 'react';
 import { Paper, Stack, Typography, Chip, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
@@ -6,12 +7,6 @@ import type { Appointment, AvailableAppointment } from '../../../types/appointme
 import type { User } from '../../../types/user';
 
 type Status = 'DISPONIBLE' | 'ESPERA' | 'ACEPTADO' | 'RECHAZADO';
-
-interface Props {
-    slot: AvailableAppointment;
-    appt?: Appointment;
-    onClick: (slotId: number) => void;
-}
 
 const statusChip = (s: Status) => {
     switch (s) {
@@ -26,6 +21,12 @@ const statusChip = (s: Status) => {
     }
 };
 
+interface Props {
+    slot: AvailableAppointment;
+    appt?: Appointment;
+    onClick: (slotId: number) => void;
+}
+
 export const AppointmentItem = ({ slot, appt, onClick }: Props) => {
     const theme = useTheme();
     const status: Status = slot.availability ? 'DISPONIBLE' : (appt?.status as Status);
@@ -38,7 +39,7 @@ export const AppointmentItem = ({ slot, appt, onClick }: Props) => {
         if (appt?.userId) {
             setLoadingUser(true);
             getUserById(appt.userId)
-                .then((res) => setUser(res.data))
+                .then(res => setUser(res.data))
                 .catch(() => { })
                 .finally(() => setLoadingUser(false));
         }
@@ -57,8 +58,21 @@ export const AppointmentItem = ({ slot, appt, onClick }: Props) => {
         >
             <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Stack direction="row" alignItems="center" spacing={2}>
-                    <Typography variant="h6">{dayjs(slot.date).format('HH:mm')}</Typography>
-                    <Chip label={chip.label} variant="outlined" color="primary" size="small" />
+                    <Stack direction="column" alignItems="center" spacing={0.5}>
+                        <Typography variant="h6">
+                            {dayjs(slot.date).format('HH:mm')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {dayjs(slot.date).format('DD/MM')}
+                        </Typography>
+                    </Stack>
+
+                    <Chip
+                        label={chip.label}
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                    />
                 </Stack>
 
                 {appt ? (

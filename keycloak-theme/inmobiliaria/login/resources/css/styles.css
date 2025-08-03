@@ -320,3 +320,22 @@ body::before {
   margin-bottom: 1.5rem;
   font-weight: 400;
 }
+
+.kc-error-banner {
+  background-color: #EB7333;   
+  color: #ffffff;
+  padding: 1rem 1.5rem; 
+  border-radius: 0.5rem; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  font-size: 1rem;
+  font-weight: 600; 
+  max-width: 100%;
+  word-break: break-word; 
+  text-align: center;
+  z-index: 9999; 
+}
+
+.kc-error-banner.show {
+  display: block !important;
+  animation: fadeInDown 0.3s ease-out;
+}
