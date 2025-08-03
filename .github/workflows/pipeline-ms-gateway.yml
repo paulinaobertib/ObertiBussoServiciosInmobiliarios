@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipelinesDetails
+  push:
+    branches:
+      - feature/pipelines
       # - main
       
 # --------------------------------------------------------------
@@ -48,32 +48,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "24"
-
-      # - name: Run Backend Tests
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B test
-
-      # - name: Publish JUnit Results
-      #   uses: EnricoMi/publish-unit-test-result-action@v2
-      #   if: always()
-      #   with:
-      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Test Summary
-      #   uses: test-summary/action@v2
-      #   if: always()
-      #   with:
-      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Publish JaCoCo Coverage
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "📈 JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: true
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
