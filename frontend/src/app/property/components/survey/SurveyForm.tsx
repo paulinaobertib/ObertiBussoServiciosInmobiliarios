@@ -9,20 +9,15 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from '@mui/material/styles';
 
 const labels: { [key: number]: string } = {
-  0.5: "Muy insatisfecho",
-  1: "Insatisfecho",
-  1.5: "Aceptable",
-  2: "Regular",
-  2.5: "Bueno",
-  3: "Satisfecho",
-  3.5: "Muy satisfecho",
-  4: "Destacado",
-  4.5: "Excelente",
-  5: "Perfecto",
+    1: "Insatisfecho",
+    2: "Regular",
+    3: "Satisfecho",
+    4: "Destacado",
+    5: "Perfecto",
 };
 
 function getLabelText(value: number): string {
-  return `${value} Estrella${value !== 1 ? "s" : ""}, ${labels[value]}`;
+    return `${value} Estrella${value !== 1 ? "s" : ""}, ${labels[value]}`;
 }
 
 export const Survey = () => {
@@ -42,9 +37,9 @@ export const Survey = () => {
         if (!inquiryId) return;
 
         const dto: Omit<SurveyDTO, "id"> = {
-        score,
-        comment,
-        inquiryId: Number(inquiryId),
+            score,
+            comment,
+            inquiryId: Number(inquiryId),
         };
 
         try {
@@ -75,50 +70,50 @@ export const Survey = () => {
         }
     };
 
-  return (
-    <form onSubmit={handleSubmit} style={{display: "flex", flexWrap: "wrap", flexDirection: "column", alignItems: "center", justifyContent: "center"}}>
-        <Typography variant="h5" gutterBottom align="center" sx={{ width: "100%", mt: { xs: "8%", sm: "6%", md: "4%", lg: "2%" }, mb: { xs: "6%", sm: "4%", md: "2%", lg: "1%" } }}>
-            ¿Cómo calificarías tu nivel de satisfacción con nuestro servicio?
-        </Typography>
-
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%", mb: "0.5%" }}>
-            <Rating
-                name="hover-feedback"
-                value={score}
-                precision={0.5}
-                getLabelText={getLabelText}
-                onChange={(_event, newScore) => {
-                    if (newScore !== null) setScore(newScore);
-                }}
-                onChangeActive={(_event, newHover) => {
-                    setHover(newHover ?? -1);
-                }}
-                icon={<StarIcon sx={{ fontSize: 50 }} />} 
-                emptyIcon={<StarIcon style={{ fontSize: 50, opacity: 0.55 }} fontSize="inherit" />}
-                sx={{ fontSize: 50 }} 
-            />
-        </Box>
-        
-        <Box sx={{ width: "100%", textAlign: "center", mb: "2%"}}>
-            <Typography variant="caption" color="text.secondary">
-                {labels[hover !== -1 ? hover : score]}
+    return (
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexWrap: "wrap", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <Typography variant="h5" gutterBottom align="center" sx={{ width: "100%", mt: { xs: "8%", sm: "6%", md: "4%", lg: "2%" }, mb: { xs: "6%", sm: "4%", md: "2%", lg: "1%" } }}>
+                ¿Cómo calificarías tu nivel de satisfacción con nuestro servicio?
             </Typography>
-        </Box>
 
-        <TextField
-            fullWidth={false}
-            label="Comentario (Opcional)"
-            multiline
-            rows={4}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            margin="normal"
-            style={{width: "80%", marginBottom: "1%"}}
-        />
+            <Box sx={{ display: "flex", justifyContent: "center", width: "100%", mb: "0.5%" }}>
+                <Rating
+                    name="hover-feedback"
+                    value={score}
+                    precision={1}
+                    getLabelText={getLabelText}
+                    onChange={(_event, newScore) => {
+                        if (newScore !== null) setScore(newScore);
+                    }}
+                    onChangeActive={(_event, newHover) => {
+                        setHover(newHover ?? -1);
+                    }}
+                    icon={<StarIcon sx={{ fontSize: 50 }} />}
+                    emptyIcon={<StarIcon style={{ fontSize: 50, opacity: 0.55 }} fontSize="inherit" />}
+                    sx={{ fontSize: 50 }}
+                />
+            </Box>
 
-        <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: { xs: "5%", sm: "2%" }, width: "auto", alignSelf: "center", mb: { xs: "8%", sm: "2%" } }}>
-            {loading ? "Enviando..." : "Enviar"}
-        </Button>
-    </form>
-  );
+            <Box sx={{ width: "100%", textAlign: "center", mb: "2%" }}>
+                <Typography variant="caption" color="text.secondary">
+                    {labels[hover !== -1 ? hover : score]}
+                </Typography>
+            </Box>
+
+            <TextField
+                fullWidth={false}
+                label="Comentario (Opcional)"
+                multiline
+                rows={4}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                margin="normal"
+                style={{ width: "80%", marginBottom: "1%" }}
+            />
+
+            <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: { xs: "5%", sm: "2%" }, width: "auto", alignSelf: "center", mb: { xs: "8%", sm: "2%" } }}>
+                {loading ? "Enviando..." : "Enviar"}
+            </Button>
+        </form>
+    );
 };

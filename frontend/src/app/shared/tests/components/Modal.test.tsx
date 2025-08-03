@@ -30,10 +30,8 @@ describe('Modal', () => {
   });
 
   it('llama a onClose si el motivo NO es backdropClick', () => {
-    const { container } = renderWithTheme(<Modal {...defaultProps} />);
 
     // Simular cierre manual llamando el evento `onClose` con otro motivo
-    const dialog = container.querySelector('[role="dialog"]');
     fireEvent.click(screen.getByLabelText(/cerrar modal/i)); // click explícito
     expect(defaultProps.onClose).toHaveBeenCalled();
   });

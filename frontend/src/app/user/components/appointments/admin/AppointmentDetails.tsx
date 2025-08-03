@@ -63,6 +63,7 @@ export const AppointmentDetailsDialog = ({ open, slotId, onClose, onAccept, onRe
         setLoading(true);
         try {
             await fn();
+            await reloadAdmin();
         } finally {
             setLoading(false);
             onClose();
