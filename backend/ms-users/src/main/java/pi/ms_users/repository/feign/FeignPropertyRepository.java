@@ -9,7 +9,7 @@ import pi.ms_users.configuration.feign.FeignInterceptor;
 import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.feign.Status;
 
-@FeignClient(name = "ms-property", url = "http://localhost:8083", configuration = FeignInterceptor.class)
+@FeignClient(name = "ms-property", url = "${property.service.url}", configuration = FeignInterceptor.class)
 public interface FeignPropertyRepository {
 
     @RequestMapping(method = RequestMethod.GET, value = "/property/getSimple/{id}")
