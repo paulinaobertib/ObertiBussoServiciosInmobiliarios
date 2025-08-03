@@ -72,18 +72,17 @@ logging:
 
 ---
 
-
-# Configuración para perfil "test" - Ver este si hace falta
-# spring:
-#   config:
-#     activate:
-#       on-profile: test
-#   datasource:
-#     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
-#     driver-class-name: org.h2.Driver
-#     username: sa
-#     password:
-#   jpa:
-#     hibernate:
-#       ddl-auto: create-drop
-#     database-platform: org.hibernate.dialect.H2Dialect
+# Configuración para perfil "test"
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect

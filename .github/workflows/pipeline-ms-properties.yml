@@ -2,9 +2,9 @@ name: CI/CD - MS Properties
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelinesDetails
+  push:
+    branches:
+      - feature/pipelines
       # - main
 
 permissions:
@@ -61,41 +61,41 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      # - name: Run Unit Tests
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
+      - name: Run Unit Tests
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
 
-      # - name: Show first failing report (debug)
-      #   if: failure()
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: |
-      #     ls -1 target/surefire-reports | head -n 5
-      #     echo "─── FIRST REPORT ───"
-      #     FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
-      #     cat "$FIRST" | head -n 120
+      - name: Show first failing report (debug)
+        if: failure()
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: |
+          ls -1 target/surefire-reports | head -n 5
+          echo "─── FIRST REPORT ───"
+          FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
+          cat "$FIRST" | head -n 120
 
-      # - name: Publish JUnit Results
-      #   uses: EnricoMi/publish-unit-test-result-action@v2
-      #   if: always()
-      #   with:
-      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      - name: Publish JUnit Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
       # - name: Test Summary
-        # uses: test-summary/action@v2
-        # if: always()
-        # with:
-        #   paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Publish JaCoCo Coverage
-      #   id: jacoco
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
+      #   uses: test-summary/action@v2
+      #   if: always()
       #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: false
+      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+
+      - name: Publish JaCoCo Coverage
+        id: jacoco
+        uses: PavanMudigonda/jacoco-reporter@v5.0
+        with:
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: false
 
       # - name: Publish JaCoCo Coverage on Summary
       #   if: always()
