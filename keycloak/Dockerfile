@@ -1,44 +1,48 @@
-# ── STAGE 1: build (incluye módulo H2) ───────────────────────────────
-FROM quay.io/keycloak/keycloak:latest AS builder
+FROM quay.io/keycloak/keycloak:26.3.2 AS builder 
 
-# habilita health & metrics y añade H2 embebida
-ENV KC_HEALTH_ENABLED=true \
-    KC_METRICS_ENABLED=true \
-    KC_DB=dev-file \
-    KC_DB_DEV_FILE_DIR=/opt/keycloak/data/h2
+# Módulo H2 + health/metrics; la BD vivirá luego en /home/data/h2
+ENV KC_METRICS_ENABLED=true \
+    KC_HEALTH_ENABLED=true  \
+    KC_DB=dev-file          \
+    KC_DB_FILE_DIR=/home/data/h2
 
 WORKDIR /opt/keycloak
-
-# genera tu keystore (igual que antes)
-RUN keytool -genkeypair \
-    -storetype PKCS12 -storepass password \
-    -keyalg RSA -keysize 2048 \
-    -alias server \
-    -dname "CN=server" \
-    -ext "SAN:c=DNS:localhost,IP:127.0.0.1" \
-    -keystore conf/server.keystore
-
-# compila Quarkus/Keycloak con el provider dev-file
 RUN /opt/keycloak/bin/kc.sh build
 
-# ── STAGE 2: runtime (sólo runtime lean) ────────────────────────────
-FROM quay.io/keycloak/keycloak:latest
+FROM quay.io/keycloak/keycloak:26.3.2
 
+# Copiamos lo ya compilado
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
-EXPOSE 8080
-
-# en runtime sólo necesitas señalar dev-file de nuevo (ya está compilado)
-ENV KC_HTTP_ENABLED=true \
-    KC_HTTPS_PORT=-1 \
+# ─────────────── variables de entorno por defecto ────────────────
+ENV KC_DB=dev-file \
+    KC_DB_FILE_DIR=/home/data/h2 \
     KC_HTTP_PORT=8080 \
+    KC_HTTPS_PORT=-1 \
     KC_HOSTNAME_STRICT=false \
     KC_PROXY_HEADERS=xforwarded \
     KC_METRICS_ENABLED=true \
-    KC_HEALTH_ENABLED=true \
-    KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN} \
-    KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
-    KC_HOSTNAME=${KC_HOSTNAME}
+    KC_HEALTH_ENABLED=true
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start","--optimized","--http-port=8080","--https-port=-1"]
+# ─────────── carpeta persistente + permisos (UID 1000) ───────────
+USER root
+RUN mkdir -p /home/data/h2 && \
+    chown -R 1000:1000 /home/data
+USER 1000
+
+EXPOSE 8080
+
+# ────────────── ENTRYPOINT: borra solo locks, nunca la BD ─────────
+ENTRYPOINT ["sh","-c", "\
+  mkdir -p ${KC_DB_FILE_DIR} && \
+  rm -f  ${KC_DB_FILE_DIR}/*.lock.db ${KC_DB_FILE_DIR}/DATABASECHANGELOGLOCK* || true && \
+  exec /opt/keycloak/bin/kc.sh start \
+       --db=dev-file \
+       --optimized \
+       --http-port=${KC_HTTP_PORT} \
+       --https-port=${KC_HTTPS_PORT}"]
+
+######################################################################
+# Nada más: las credenciales de admin, hostname, etc. las inyecta
+# App Service como “App Settings”; NO se expanden en build-time.
+######################################################################
