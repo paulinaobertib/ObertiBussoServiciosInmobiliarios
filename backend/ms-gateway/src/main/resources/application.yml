@@ -22,7 +22,7 @@ spring:
       client:
         provider:
           keycloak-client:
-            issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+            issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios # Cambie a https
         registration:
           keycloak-client:
             client-id: ${KEYCLOAK_CLIENT_ID}
@@ -30,7 +30,7 @@ spring:
             scope:
               - openid
             authorization-grant-type: authorization_code
-            redirect-uri: http://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
+            redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak # Cambie a https
 
   cloud:
     gateway:
@@ -110,4 +110,9 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=2
-            
+
+debug: true
+logging:
+  level:
+    org.springframework.boot.context.config: DEBUG
+    org.springframework.core.env: DEBUG
