@@ -29,8 +29,8 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 EXPOSE 8080
 
 # en runtime sólo necesitas señalar dev-file de nuevo (ya está compilado)
-ENV KC_DB=dev-file \
-    KC_DB_DEV_FILE_DIR=/opt/keycloak/data/h2 \
+ENV KC_HTTP_ENABLED=true \
+    KC_HTTPS_PORT=-1 \
     KC_HTTP_PORT=8080 \
     KC_HOSTNAME_STRICT=false \
     KC_PROXY_HEADERS=xforwarded \
@@ -41,4 +41,4 @@ ENV KC_DB=dev-file \
     KC_HOSTNAME=${KC_HOSTNAME}
 
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start","--optimized"]
+CMD ["start","--optimized","--http-port=8080","--https-port=-1"]
