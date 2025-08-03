@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pi.ms_properties.domain.Neighborhood;
 import pi.ms_properties.dto.NeighborhoodDTO;
-import pi.ms_properties.service.impl.NeighborhoodService;
+import pi.ms_properties.dto.NeighborhoodGetDTO;
+import pi.ms_properties.service.interf.INeighborhoodService;
 
 import java.util.List;
 
@@ -14,7 +16,7 @@ import java.util.List;
 @RequestMapping("/neighborhood")
 public class NeighborhoodController {
 
-    private final NeighborhoodService neighborhoodService;
+    private final INeighborhoodService neighborhoodService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -30,17 +32,23 @@ public class NeighborhoodController {
 
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
-    public ResponseEntity<NeighborhoodDTO> updateNeighborhood(@PathVariable Long id, @RequestBody NeighborhoodDTO neighborhoodDTO) {
+    public ResponseEntity<NeighborhoodGetDTO> updateNeighborhood(@PathVariable Long id, @RequestBody NeighborhoodDTO neighborhoodDTO) {
         return neighborhoodService.updateNeighborhood(id, neighborhoodDTO);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<NeighborhoodDTO>> getAll() {
+    public ResponseEntity<List<NeighborhoodGetDTO>> getAll() {
         return neighborhoodService.getAll();
     }
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<NeighborhoodDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<NeighborhoodGetDTO> getById(@PathVariable Long id) {
         return neighborhoodService.getById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/search")
+    public ResponseEntity<List<NeighborhoodGetDTO>> searchNeighborhood(@RequestParam String search) {
+        return neighborhoodService.findBy(search);
     }
 }

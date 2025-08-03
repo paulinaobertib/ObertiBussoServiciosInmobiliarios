@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 
 @EnableMethodSecurity(prePostEnabled = true)
+@SuppressWarnings("unused")
 @Configuration
 public class WebSecurityConfig {
 
@@ -24,7 +25,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET,
-                                "/property/get",
+                                "/property/getAll",
                                 "/property/getById/**",
                                 "/property/getByTitle",
                                 "/property/search",
@@ -34,14 +35,18 @@ public class WebSecurityConfig {
                                 "/amenity/getById/**",
                                 "/amenity/getByName",
                                 "/image/getByProperty/**",
+                                "image/notice/getImage",
                                 "/neighborhood/getAll",
                                 "/neighborhood/getById/**",
                                 "/type/getAll",
                                 "/type/getById/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/inquiries/createWithoutUser",
-                                "/survey/create")
+                                "/inquiries/create",
+                                "/survey/create",
+                                "/compare/**",
+                                "/chat/message",
+                                "/chatSession/create")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

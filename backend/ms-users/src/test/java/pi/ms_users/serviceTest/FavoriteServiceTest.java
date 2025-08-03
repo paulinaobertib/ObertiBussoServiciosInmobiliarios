@@ -6,19 +6,25 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.domain.User;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.repository.IFavoriteRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.FavoriteService;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -92,10 +98,10 @@ class FavoriteServiceTest {
 
     @Test
     void findByPropertyId_success() {
-        Property property = new Property();
+        PropertyDTO propertyDTO = new PropertyDTO();
         List<Favorite> favorites = List.of(favorite);
 
-        when(propertyRepository.getById(100L)).thenReturn(property);
+        when(propertyRepository.getById(100L)).thenReturn(propertyDTO);
         when(favoriteRepository.findByPropertyId(100L)).thenReturn(favorites);
 
         ResponseEntity<List<Favorite>> response = favoriteService.findByPropertyId(100L);
@@ -104,89 +110,141 @@ class FavoriteServiceTest {
         assertEquals(favorites, response.getBody());
     }
 
+    @Test
+    void findAllUsers_success_shouldReturnUserList() {
+        List<String> mockUsers = List.of("user1", "user2", "user3");
+
+        when(favoriteRepository.findAllUsers()).thenReturn(mockUsers);
+
+        List<String> result = favoriteService.findAllUsers();
+
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        assertEquals("user1", result.get(0));
+        assertEquals("user2", result.get(1));
+        assertEquals("user3", result.get(2));
+
+        verify(favoriteRepository, times(1)).findAllUsers();
+    }
+
+    @Test
+    void findAllUsers_noUsers_shouldReturnEmptyList() {
+        when(favoriteRepository.findAllUsers()).thenReturn(Collections.emptyList());
+
+        List<String> result = favoriteService.findAllUsers();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(favoriteRepository).findAllUsers();
+    }
+
     // casos de error
 
     @Test
-    void create_userNotFound() {
+    void create_userNotFound_shouldThrowNotFoundException() {
         when(userRepository.findById("user123")).thenThrow(new NotFoundException("No encontrado"));
 
-        ResponseEntity<Favorite> response = favoriteService.create(favorite);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> favoriteService.create(favorite));
     }
 
     @Test
-    void create_dataIntegrityViolation() {
+    void create_dataIntegrityViolation_shouldThrowDataIntegrityViolationException() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(favoriteRepository.save(favorite)).thenThrow(DataIntegrityViolationException.class);
 
-        ResponseEntity<Favorite> response = favoriteService.create(favorite);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () -> favoriteService.create(favorite));
     }
 
     @Test
-    void create_genericError() {
+    void create_genericError_shouldThrowRuntimeException() {
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
         when(favoriteRepository.save(favorite)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<Favorite> response = favoriteService.create(favorite);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.create(favorite));
     }
 
     @Test
-    void delete_notFound() {
+    void delete_notFound_shouldThrowNoSuchElementException() {
         when(favoriteRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = favoriteService.delete(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NoSuchElementException.class, () -> favoriteService.delete(1L));
     }
 
     @Test
-    void delete_genericError() {
+    void delete_genericError_shouldThrowRuntimeException() {
         when(favoriteRepository.findById(1L)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<String> response = favoriteService.delete(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.delete(1L));
     }
 
     @Test
-    void findByUserId_notFound() {
+    void findByUserId_notFound_shouldThrowNotFoundException() {
         when(userRepository.findById("user123")).thenThrow(new NotFoundException("No encontrado"));
 
-        ResponseEntity<List<Favorite>> response = favoriteService.findByUserId("user123");
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> favoriteService.findByUserId("user123"));
     }
 
     @Test
-    void findByUserId_genericError() {
+    void findByUserId_genericError_shouldThrowRuntimeException() {
         when(userRepository.findById("user123")).thenThrow(RuntimeException.class);
 
-        ResponseEntity<List<Favorite>> response = favoriteService.findByUserId("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(RuntimeException.class, () -> favoriteService.findByUserId("user123"));
     }
 
     @Test
-    void findByPropertyId_propertyNull() {
-        when(propertyRepository.getById(100L)).thenReturn(null);
-
-        ResponseEntity<List<Favorite>> response = favoriteService.findByPropertyId(100L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void findByPropertyId_genericError() {
+    void findByPropertyId_genericError_shouldThrowRuntimeException() {
         when(propertyRepository.getById(100L)).thenThrow(RuntimeException.class);
 
-        ResponseEntity<List<Favorite>> response = favoriteService.findByPropertyId(100L);
+        assertThrows(RuntimeException.class, () -> favoriteService.findByPropertyId(100L));
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    @Test
+    void create_withDifferentUser_throwsAccessDenied() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> favoriteService.create(favorite));
+        }
+    }
+
+    @Test
+    void delete_withDifferentUser_throwsAccessDenied() {
+        when(favoriteRepository.findById(1L)).thenReturn(Optional.of(favorite));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> favoriteService.delete(1L));
+        }
+    }
+
+    @Test
+    void findByUserId_withDifferentUser_throwsAccessDenied() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> favoriteService.findByUserId("user123"));
+        }
+    }
+
+    @Test
+    void findAllUsers_repositoryThrowsException_shouldPropagateException() {
+        when(favoriteRepository.findAllUsers()).thenThrow(new RuntimeException("Error al acceder a la base de datos"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            favoriteService.findAllUsers());
+
+        assertEquals("Error al acceder a la base de datos", exception.getMessage());
+        verify(favoriteRepository).findAllUsers();
     }
 }
 

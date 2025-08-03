@@ -14,4 +14,7 @@ public interface IFavoriteRepository extends JpaRepository<Favorite, Long> {
 
     @Query("select f from Favorite f where f.propertyId = ?1")
     List<Favorite> findByPropertyId(Long propertyId);
+
+    @Query("select f.userId from Favorite f")
+    List<String> findAllUsers();
 }

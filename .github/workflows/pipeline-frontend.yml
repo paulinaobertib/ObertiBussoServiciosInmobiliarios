@@ -2,10 +2,14 @@ name: CI/CD - Frontend
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      # - feature/pipeline
-      - main
+  # push:
+    # branches:
+      # - feature/pipelinesDetails
+      # - main
+
+permissions:
+  contents: read 
+  checks: write
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -48,20 +52,36 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      # - name: Lint
-      #   working-directory: ./frontend
-      #   run: npm run lint
-
       # - name: Run Unit Tests
+      #   id: vitest
       #   working-directory: ./frontend
-      #   run: npm test # Ajusta este comando según tu script de pruebas definido en package.json
+      #   run: |
+      #     npx vitest run --coverage --reporter=junit --outputFile=vitest-report.xml
 
-      # - name: Upload test report (opcional)
-      #   uses: actions/upload-artifact@v3
+      # - name: Publish JUnit Results
+      #   uses: EnricoMi/publish-unit-test-result-action@v2
+      #   if: always()
       #   with:
-      #     name: test-report
-      #     path: frontend/test-results # Ajusta ruta si tus tests generan reportes en otro directorio
-
+      #     files: ./frontend/vitest-report.xml
+            
+      # - name: Publish Coverage Summary
+      #   if: always()
+      #   working-directory: ./frontend
+      #   run: |
+      #     COV="coverage/coverage-summary.json"
+      #     LINES_TOTAL=$(jq '.total.lines.total'    $COV)
+      #     LINES_COVER=$(jq '.total.lines.covered'  $COV)
+      #     COVER_PCT=$(jq '.total.lines.pct'        $COV)
+      #     LINES_MISS=$((LINES_TOTAL - LINES_COVER))
+      
+      #     echo "## Coverage Report: Vitest Coverage" >> $GITHUB_STEP_SUMMARY
+      #     echo "| Outcome | Value |"                  >> $GITHUB_STEP_SUMMARY
+      #     echo "|---|---|"                           >> $GITHUB_STEP_SUMMARY
+      #     echo "| Code Coverage % | ${COVER_PCT}% |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| ✔️ Number of Lines Covered | ${LINES_COVER} |" >> $GITHUB_STEP_SUMMARY
+      #     echo "| ❌ Number of Lines Missed | ${LINES_MISS} |"   >> $GITHUB_STEP_SUMMARY
+      #     echo "| Total Number of Lines | ${LINES_TOTAL} |"      >> $GITHUB_STEP_SUMMARY
+              
       - name: Build
         working-directory: ./frontend
         env:
@@ -205,7 +225,7 @@ jobs:
           echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_PROD"
           echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
 
-          API_ESCAPED=${API_URL_DEV//\//\\/}
+          API_ESCAPED=${API_URL_PROD//\//\\/}
           BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
 
           find frontend/dist -type f -name '*.js' -exec \

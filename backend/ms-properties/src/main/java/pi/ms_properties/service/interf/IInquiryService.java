@@ -1,8 +1,10 @@
 package pi.ms_properties.service.interf;
 
+import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 
 import java.time.YearMonth;
@@ -12,19 +14,17 @@ import java.util.Map;
 public interface IInquiryService {
     ResponseEntity<String> create(InquirySaveDTO inquirySaveDTO);
 
-    ResponseEntity<String> createWithoutUser(InquirySaveDTO inquirySaveDTO);
+    ResponseEntity<String> updateStatus(Long id) throws MessagingException;
 
-    ResponseEntity<String> updateStatus(Long id);
+    ResponseEntity<InquiryGetDTO> getById(Long id);
 
-    ResponseEntity<Inquiry> getById(Long id);
+    ResponseEntity<List<InquiryGetDTO>> getAll();
 
-    ResponseEntity<List<Inquiry>> getAll();
+    ResponseEntity<List<InquiryGetDTO>> getByUserId(String userId);
 
-    ResponseEntity<List<Inquiry>> getByUserId(String userId);
+    ResponseEntity<List<InquiryGetDTO>> getByPropertyId(Long propertyId);
 
-    ResponseEntity<List<Inquiry>> getByPropertyId(Long propertyId);
-
-    ResponseEntity<List<Inquiry>> getByStatus(InquiryStatus status);
+    ResponseEntity<List<InquiryGetDTO>> getByStatus(InquiryStatus status);
 
     ResponseEntity<Map<String, Long>> getInquiryStatusDistribution();
 

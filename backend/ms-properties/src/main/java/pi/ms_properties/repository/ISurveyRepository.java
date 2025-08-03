@@ -9,6 +9,9 @@ import java.util.List;
 
 @Repository
 public interface ISurveyRepository extends JpaRepository<Survey, Long> {
+    @Query("SELECT COUNT(s) FROM Survey s WHERE s.inquiry.id = ?1")
+    long countSurveysByInquiryId(Long inquiryId);
+
     @Query("SELECT AVG(s.score) FROM Survey s")
     Float findAverageScore();
 

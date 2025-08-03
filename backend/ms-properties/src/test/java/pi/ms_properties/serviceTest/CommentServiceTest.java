@@ -1,5 +1,6 @@
 package pi.ms_properties.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,11 +16,11 @@ import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.service.impl.CommentService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -39,7 +40,7 @@ public class CommentServiceTest {
 
     @Test
     void createComment_success() {
-        CommentDTO dto = new CommentDTO(0, "Buen lugar", 1L);
+        CommentDTO dto = new CommentDTO(0L, "Buen lugar", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
 
@@ -54,7 +55,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_success() {
-        CommentDTO dto = new CommentDTO(1L, "Actualizado", 1L);
+        CommentDTO dto = new CommentDTO(1L, "Actualizado", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
         Comment comment = new Comment();
@@ -85,7 +86,7 @@ public class CommentServiceTest {
     void getById_success() {
         Property property = new Property();
         property.setId(1L);
-        Comment comment = new Comment(1L, "Descripción", property);
+        Comment comment = new Comment(1L, "Descripción", LocalDateTime.now(), property);
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
 
@@ -101,8 +102,8 @@ public class CommentServiceTest {
         Property property = new Property();
         property.setId(1L);
         List<Comment> comments = List.of(
-                new Comment(1L, "Comentario 1", property),
-                new Comment(2L, "Comentario 2", property)
+                new Comment(1L, "Comentario 1", LocalDateTime.now(), property),
+                new Comment(2L, "Comentario 2", LocalDateTime.now(), property)
         );
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
@@ -118,89 +119,93 @@ public class CommentServiceTest {
 
     @Test
     void createComment_propertyNotFound() {
-        CommentDTO dto = new CommentDTO(0, "Fallo", 99L);
+        CommentDTO dto = new CommentDTO(0L, "Fallo", LocalDateTime.now(), 99L);
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = commentService.create(dto);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            commentService.create(dto));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("No se ha encontrado la propiedad con ese id", response.getBody());
+        assertEquals("No se ha encontrado la propiedad con ese id", ex.getMessage());
     }
 
     @Test
     void updateComment_notFound() {
-        CommentDTO dto = new CommentDTO(1L, "No existe", 1L);
+        CommentDTO dto = new CommentDTO(1L, "No existe", LocalDateTime.now(), 1L);
         when(commentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = commentService.update(dto);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            commentService.update(dto));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el comentario", response.getBody());
+        assertEquals("No se ha encontrado el comentario", ex.getMessage());
     }
 
     @Test
     void updateComment_propertyNotFound() {
-        CommentDTO dto = new CommentDTO(1L, "Fallo", 99L);
+        CommentDTO dto = new CommentDTO(1L, "Fallo", LocalDateTime.now(), 99L);
         when(commentRepository.findById(1L)).thenReturn(Optional.of(new Comment()));
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = commentService.update(dto);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            commentService.update(dto));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("No se ha encontrado la propiedad con ese id", response.getBody());
+        assertEquals("No se ha encontrado la propiedad con ese id", ex.getMessage());
     }
 
     @Test
     void deleteComment_notFound() {
         when(commentRepository.findById(100L)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = commentService.delete(100L);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            commentService.delete(100L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el comentario", response.getBody());
+        assertEquals("No se ha encontrado el comentario", ex.getMessage());
     }
 
     @Test
     void getById_notFound() {
         when(commentRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<CommentDTO> response = commentService.getById(1L);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            commentService.getById(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se ha encontrado el comentario", ex.getMessage());
     }
 
     @Test
     void getByPropertyId_propertyNotFound() {
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<List<CommentDTO>> response = commentService.getByPropertyId(99L);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            commentService.getByPropertyId(99L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se ha encontrado la propiedad con ese id", ex.getMessage());
     }
 
     @Test
     void createComment_genericException() {
-        CommentDTO dto = new CommentDTO(0, "Error", 1L);
+        CommentDTO dto = new CommentDTO(0L, "Error", LocalDateTime.now(), 1L);
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Error"));
 
-        ResponseEntity<String> response = commentService.create(dto);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            commentService.create(dto));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error", ex.getMessage());
     }
 
     @Test
     void updateComment_genericException() {
-        CommentDTO dto = new CommentDTO(1L, "Error", 1L);
+        CommentDTO dto = new CommentDTO(1L, "Error", LocalDateTime.now(), 1L);
         when(commentRepository.findById(1L)).thenThrow(new RuntimeException("Error"));
 
-        ResponseEntity<String> response = commentService.update(dto);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            commentService.update(dto));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error", ex.getMessage());
     }
 
     @Test
-    void create_shouldReturnBadRequest_whenDataIntegrityViolationException() {
-        CommentDTO commentDTO = new CommentDTO(1, "Comentario", 1L);
+    void create_shouldThrowDataIntegrityViolation() {
+        CommentDTO commentDTO = new CommentDTO(1L, "Comentario", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
 
@@ -208,14 +213,13 @@ public class CommentServiceTest {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(commentRepository).save(any(Comment.class));
 
-        ResponseEntity<String> response = commentService.create(commentDTO);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () ->
+            commentService.create(commentDTO));
     }
 
     @Test
-    void update_shouldReturnBadRequest_whenDataIntegrityViolationException() {
-        CommentDTO commentDTO = new CommentDTO(1L, "Comentario actualizado", 1L);
+    void update_shouldThrowDataIntegrityViolation() {
+        CommentDTO commentDTO = new CommentDTO(1L, "Comentario actualizado", LocalDateTime.now(), 1L);
         Comment comment = new Comment();
         comment.setId(1L);
         Property property = new Property();
@@ -226,13 +230,12 @@ public class CommentServiceTest {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(commentRepository).save(any(Comment.class));
 
-        ResponseEntity<String> response = commentService.update(commentDTO);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () ->
+            commentService.update(commentDTO));
     }
 
     @Test
-    void delete_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+    void delete_shouldThrowDataIntegrityViolation() {
         Comment comment = new Comment();
         comment.setId(1L);
 
@@ -240,29 +243,25 @@ public class CommentServiceTest {
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(commentRepository).delete(comment);
 
-        ResponseEntity<String> response = commentService.delete(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () ->
+            commentService.delete(1L));
     }
 
     @Test
-    void getById_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+    void getById_shouldThrowDataIntegrityViolation() {
         when(commentRepository.findById(1L)).thenThrow(new DataIntegrityViolationException("Violation"));
 
-        ResponseEntity<CommentDTO> response = commentService.getById(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNull(response.getBody());
+        assertThrows(DataIntegrityViolationException.class, () ->
+            commentService.getById(1L));
     }
 
     @Test
-    void getByPropertyId_shouldReturnBadRequest_whenDataIntegrityViolationException() {
+    void getByPropertyId_shouldThrowDataIntegrityViolation() {
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(new Property()));
         when(commentRepository.findByPropertyId(1L)).thenThrow(new DataIntegrityViolationException("Violation"));
 
-        ResponseEntity<List<CommentDTO>> response = commentService.getByPropertyId(1L);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertThrows(DataIntegrityViolationException.class, () ->
+            commentService.getByPropertyId(1L));
     }
 }
 

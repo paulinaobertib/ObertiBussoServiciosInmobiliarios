@@ -59,6 +59,8 @@ class ViewServiceTest {
         return view;
     }
 
+    // casos de exito
+
     @Test
     void createView_savesView() {
         Property property = new Property();

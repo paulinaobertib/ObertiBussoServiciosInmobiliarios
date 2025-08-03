@@ -2,10 +2,10 @@ name: CI/CD - Eureka Server
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      # - feature/pipeline
-      - main
+  # push:
+    # branches:
+      # - feature/pipelinesDetails
+      # - main
       
 # --------------------------------------------------------------
 # VARIABLES GLOBALES

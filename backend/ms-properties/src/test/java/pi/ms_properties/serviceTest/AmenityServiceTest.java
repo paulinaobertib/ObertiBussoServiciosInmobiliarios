@@ -1,11 +1,13 @@
 package pi.ms_properties.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Amenity;
@@ -17,8 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -57,15 +58,17 @@ public class AmenityServiceTest {
     }
 
     @Test
-    void updateAmenity_shouldReturnOk_whenAmenityExists() {
+    void updateAmenity_shouldReturnAmenity_whenAmenityExists() {
         Amenity amenity = new Amenity(1L, "Pileta", new ArrayList<>());
-        when(amenityRepository.findById(amenity.getId())).thenReturn(Optional.of(amenity));
+
+        when(amenityRepository.existsById(1L)).thenReturn(true);
         when(amenityRepository.save(amenity)).thenReturn(amenity);
 
-        ResponseEntity<Amenity> response = amenityService.updateAmenity(amenity);
+        Amenity result = amenityService.updateAmenity(amenity).getBody();
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(amenity, response.getBody());
+        assertEquals("Pileta", result.getName());
+        assertEquals(1L, result.getId());
+        verify(amenityRepository).save(amenity);
     }
 
     @Test
@@ -90,77 +93,134 @@ public class AmenityServiceTest {
         assertEquals(amenity, response.getBody());
     }
 
+    @Test
+    void findBy_shouldReturnFilteredAmenities_whenSearchMatches() {
+        Amenity wifi = new Amenity(1L, "WiFi", new ArrayList<>());
+        Amenity pileta = new Amenity(2L, "Pileta", new ArrayList<>());
+
+        when(amenityRepository.findAll(any(Specification.class))).thenReturn(List.of(wifi, pileta));
+
+        ResponseEntity<List<Amenity>> response = amenityService.findBy("i");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+        verify(amenityRepository).findAll(any(Specification.class));
+    }
+
+    @Test
+    void findBy_shouldReturnAllAmenities_whenSearchIsNull() {
+        Amenity wifi = new Amenity(1L, "WiFi", new ArrayList<>());
+        Amenity pileta = new Amenity(2L, "Pileta", new ArrayList<>());
+
+        when(amenityRepository.findAll(any(Specification.class))).thenReturn(List.of(wifi, pileta));
+
+        ResponseEntity<List<Amenity>> response = amenityService.findBy(null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+    }
+
     // casos de error
 
     @Test
-    void createAmenity_shouldReturnBadRequest_whenNameIsBlank() {
-        ResponseEntity<String> response = amenityService.createAmenity(" ");
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("El nombre no puede estar vacío", response.getBody());
+    void createAmenity_shouldThrowIllegalArgumentException_whenNameIsBlank() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> amenityService.createAmenity(" "));
+        assertEquals("El nombre no puede estar vacío", ex.getMessage());
         verify(amenityRepository, never()).save(any());
     }
 
     @Test
-    void createAmenity_shouldReturnBadRequest_whenDataIntegrityViolation() {
+    void createAmenity_shouldThrowDataIntegrityViolationException_whenDuplicateName() {
         String name = "WiFi";
-        doThrow(DataIntegrityViolationException.class).when(amenityRepository).save(any());
+        doThrow(new DataIntegrityViolationException("ya existe")).when(amenityRepository).save(any());
 
-        ResponseEntity<String> response = amenityService.createAmenity(name);
+        DataIntegrityViolationException ex = assertThrows(DataIntegrityViolationException.class, () -> amenityService.createAmenity(name));
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("ya existe"));
+        assertEquals("ya existe", ex.getMessage());
     }
 
     @Test
-    void createAmenity_shouldReturnInternalServerError_whenUnexpectedException() {
-        doThrow(RuntimeException.class).when(amenityRepository).save(any());
+    void createAmenity_shouldThrowRuntimeException_whenUnexpectedException() {
+        doThrow(new RuntimeException("Fallo inesperado")).when(amenityRepository).save(any());
 
-        ResponseEntity<String> response = amenityService.createAmenity("Parrilla");
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.createAmenity("Parrilla"));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido guardar"));
+        assertEquals("Fallo inesperado", ex.getMessage());
     }
 
     @Test
-    void deleteAmenity_shouldReturnNotFound_whenAmenityDoesNotExist() {
+    void deleteAmenity_shouldThrowEntityNotFoundException_whenAmenityDoesNotExist() {
         when(amenityRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = amenityService.deleteAmenity(1L);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> amenityService.deleteAmenity(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
         verify(amenityRepository, never()).deleteById(anyLong());
     }
 
     @Test
-    void deleteAmenity_shouldReturnInternalServerError_whenExceptionOccurs() {
-        when(amenityRepository.findById(anyLong())).thenThrow(RuntimeException.class);
+    void deleteAmenity_shouldThrowRuntimeException_whenExceptionOccurs() {
+        when(amenityRepository.findById(anyLong())).thenThrow(new RuntimeException("Error DB"));
 
-        ResponseEntity<String> response = amenityService.deleteAmenity(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.deleteAmenity(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido eliminar"));
+        assertEquals("Error DB", ex.getMessage());
     }
 
     @Test
-    void updateAmenity_shouldReturnNotFound_whenAmenityDoesNotExist() {
+    void updateAmenity_shouldThrowEntityNotFoundException_whenAmenityDoesNotExist() {
         Amenity amenity = new Amenity(1L, "Gimnasio", new ArrayList<>());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> amenityService.updateAmenity(amenity));
+
+        assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
+    }
+
+    @Test
+    void updateAmenity_shouldThrowRuntimeException_whenExceptionOccurs() {
+        Amenity amenity = new Amenity(1L, "Spa", new ArrayList<>());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.updateAmenity(amenity));
+
+        assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
+    }
+
+    @Test
+    void getAll_shouldReturnNoContent_whenNoAmenitiesFound() {
+        when(amenityRepository.findAll()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<Amenity>> response = amenityService.getAll();
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void getAll_shouldThrowRuntimeException_whenExceptionOccurs() {
+        when(amenityRepository.findAll()).thenThrow(new RuntimeException("Falló el findAll"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.getAll());
+
+        assertEquals("Falló el findAll", ex.getMessage());
+    }
+
+    @Test
+    void getById_shouldThrowEntityNotFoundException_whenAmenityDoesNotExist() {
         when(amenityRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        ResponseEntity<Amenity> response = amenityService.updateAmenity(amenity);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> amenityService.getById(1L));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No se encontró el servicio con ID 1", ex.getMessage());
     }
 
     @Test
-    void updateAmenity_shouldReturnInternalServerError_whenExceptionOccurs() {
-        Amenity amenity = new Amenity(1L, "Spa", new ArrayList<>());
-        when(amenityRepository.findById(anyLong())).thenThrow(RuntimeException.class);
+    void getById_shouldThrowRuntimeException_whenExceptionOccurs() {
+        when(amenityRepository.findById(anyLong())).thenThrow(new RuntimeException("Error inesperado"));
 
-        ResponseEntity<Amenity> response = amenityService.updateAmenity(amenity);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.getById(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error inesperado", ex.getMessage());
     }
+
 
     @Test
     void getAll_shouldReturnNoContent_whenEmptyList() {
@@ -172,29 +232,34 @@ public class AmenityServiceTest {
     }
 
     @Test
-    void getAll_shouldReturnInternalServerError_whenExceptionOccurs() {
-        when(amenityRepository.findAll()).thenThrow(RuntimeException.class);
+    void findBy_shouldReturnEmptyList_whenNoMatchFound() {
+        when(amenityRepository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<Amenity>> response = amenityService.getAll();
+        ResponseEntity<List<Amenity>> response = amenityService.findBy("nonexistent");
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
     }
 
     @Test
-    void getById_shouldReturnNotFound_whenAmenityDoesNotExist() {
-        when(amenityRepository.findById(anyLong())).thenReturn(Optional.empty());
+    void findBy_shouldThrowRuntimeException_whenRepositoryFails() {
+        when(amenityRepository.findAll(any(Specification.class))).thenThrow(new RuntimeException("Error en DB"));
 
-        ResponseEntity<Amenity> response = amenityService.getById(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> amenityService.findBy("wifi"));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Error en DB", ex.getMessage());
     }
 
     @Test
-    void getById_shouldReturnInternalServerError_whenExceptionOccurs() {
-        when(amenityRepository.findById(anyLong())).thenThrow(RuntimeException.class);
+    void createAmenity_shouldThrowDataIntegrityViolationException_whenNameExists() {
+        String name = "WiFi";
 
-        ResponseEntity<Amenity> response = amenityService.getById(1L);
+        when(amenityRepository.existsByName(name)).thenReturn(true);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            amenityService.createAmenity(name);
+        });
+
+        assertEquals("El servicio 'WiFi' ya existe", exception.getMessage());
     }
 }

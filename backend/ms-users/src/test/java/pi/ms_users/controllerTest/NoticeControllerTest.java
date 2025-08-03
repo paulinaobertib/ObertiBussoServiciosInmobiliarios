@@ -9,14 +9,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_users.controller.NoticeController;
-import pi.ms_users.domain.Notice;
+import pi.ms_users.dto.NoticeDTO;
+import pi.ms_users.dto.NoticeGetDTO;
 import pi.ms_users.security.WebSecurityConfig;
-import pi.ms_users.service.impl.NoticeService;
+import pi.ms_users.service.interf.INoticeService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@SuppressWarnings("unused")
 @WebMvcTest(NoticeController.class)
 @Import({NoticeControllerTest.Config.class, WebSecurityConfig.class})
 class NoticeControllerTest {
@@ -35,13 +37,13 @@ class NoticeControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private NoticeService noticeService;
+    private INoticeService noticeService;
 
     @TestConfiguration
     static class Config {
         @Bean
-        public NoticeService noticeService() {
-            return Mockito.mock(NoticeService.class);
+        public INoticeService noticeService() {
+            return Mockito.mock(INoticeService.class);
         }
     }
 
@@ -52,42 +54,69 @@ class NoticeControllerTest {
 
     @Test
     void createNotice_success_shouldReturnOk() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Title");
-        notice.setDescription("Description");
+        NoticeDTO dto = new NoticeDTO();
+        dto.setUserId("adminUser");
+        dto.setTitle("Title");
+        dto.setDescription("Description");
+        dto.setDate(LocalDateTime.now());
 
-        when(noticeService.create(any(Notice.class)))
+        when(noticeService.create(any(NoticeDTO.class)))
                 .thenReturn(ResponseEntity.ok("Created"));
 
-        mockMvc.perform(post("/notices/create")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notice)))
+        mockMvc.perform(multipart("/notices/create")
+                        .file(new MockMultipartFile("mainImage", "image.jpg", "image/jpeg", "data".getBytes()))
+                        .param("userId", "adminUser")
+                        .param("title", "Title")
+                        .param("description", "Description")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Created"));
     }
 
     @Test
     void updateNotice_success_shouldReturnOk() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Updated Title");
-        notice.setDescription("Updated Description");
+        NoticeDTO dto = new NoticeDTO();
+        dto.setId(1L);
+        dto.setUserId("adminUser");
+        dto.setTitle("Updated Title");
+        dto.setDescription("Updated Description");
+        dto.setDate(LocalDateTime.now());
 
-        when(noticeService.update(any(Notice.class)))
+        when(noticeService.update(any(NoticeDTO.class)))
                 .thenReturn(ResponseEntity.ok("Updated"));
 
-        mockMvc.perform(put("/notices/update")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notice)))
+        mockMvc.perform(multipart("/notices/update/1")
+                        .file(new MockMultipartFile("mainImage", "image.jpg", "image/jpeg", "data".getBytes()))
+                        .param("userId", "adminUser")
+                        .param("title", "Updated Title")
+                        .param("description", "Updated Description")
+                        .param("date", LocalDateTime.now().toString())
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Updated"));
+    }
+
+    @Test
+    void updateNotice_withoutImage_shouldReturnOk() throws Exception {
+        when(noticeService.update(any(NoticeDTO.class)))
+                .thenReturn(ResponseEntity.ok("Updated without image"));
+
+        mockMvc.perform(multipart("/notices/update/1")
+                        .param("userId", "adminUser")
+                        .param("title", "Updated title")
+                        .param("description", "Updated description")
+                        .param("date", LocalDateTime.now().toString())
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Updated without image"));
     }
 
     @Test
@@ -103,15 +132,16 @@ class NoticeControllerTest {
 
     @Test
     void getById_success_shouldReturnNotice() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Title");
-        notice.setDescription("Description");
+        NoticeGetDTO dto = new NoticeGetDTO();
+        dto.setId(1L);
+        dto.setUserId("adminUser");
+        dto.setTitle("Title");
+        dto.setDescription("Description");
+        dto.setDate(LocalDateTime.of(2023, 1, 1, 12, 0));
+        dto.setMainImage("https://storage.com/image.jpg");
 
         when(noticeService.getById(1L))
-                .thenReturn(ResponseEntity.ok(notice));
+                .thenReturn(ResponseEntity.ok(dto));
 
         mockMvc.perform(get("/notices/getById/1"))
                 .andExpect(status().isOk())
@@ -123,15 +153,16 @@ class NoticeControllerTest {
 
     @Test
     void getAll_success_shouldReturnList() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Title");
-        notice.setDescription("Description");
+        NoticeGetDTO dto = new NoticeGetDTO();
+        dto.setId(1L);
+        dto.setUserId("adminUser");
+        dto.setTitle("Title");
+        dto.setDescription("Description");
+        dto.setMainImage("https://storage.com/image.jpg");
+        dto.setDate(LocalDateTime.of(2023, 1, 1, 12, 0));
 
         when(noticeService.getAll())
-                .thenReturn(ResponseEntity.ok(List.of(notice)));
+                .thenReturn(ResponseEntity.ok(List.of(dto)));
 
         mockMvc.perform(get("/notices/getAll"))
                 .andExpect(status().isOk())
@@ -141,15 +172,16 @@ class NoticeControllerTest {
 
     @Test
     void search_success_shouldReturnList() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Title");
-        notice.setDescription("Description");
+        NoticeGetDTO dto = new NoticeGetDTO();
+        dto.setId(1L);
+        dto.setUserId("adminUser");
+        dto.setTitle("Title");
+        dto.setDescription("Description");
+        dto.setMainImage("https://storage.com/image.jpg");
+        dto.setDate(LocalDateTime.of(2023, 1, 1, 12, 0));
 
         when(noticeService.search("Title"))
-                .thenReturn(ResponseEntity.ok(List.of(notice)));
+                .thenReturn(ResponseEntity.ok(List.of(dto)));
 
         mockMvc.perform(get("/notices/search")
                         .param("text", "Title"))
@@ -161,61 +193,54 @@ class NoticeControllerTest {
 
     @Test
     void createNotice_unauthorized_shouldReturn401() throws Exception {
-        Notice notice = new Notice();
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Test title");
-        notice.setDescription("Test description");
-
-        mockMvc.perform(post("/notices/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notice)))
+        mockMvc.perform(multipart("/notices/create")
+                        .file(new MockMultipartFile("mainImage", "image.jpg", "image/jpeg", "data".getBytes()))
+                        .param("userId", "adminUser")
+                        .param("title", "Title")
+                        .param("description", "Description"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void createNotice_forbidden_shouldReturn403() throws Exception {
-        Notice notice = new Notice();
-        notice.setUserId("user123");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Title");
-        notice.setDescription("Description");
-
-        mockMvc.perform(post("/notices/create")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notice)))
+        mockMvc.perform(multipart("/notices/create")
+                        .file(new MockMultipartFile("mainImage", "image.jpg", "image/jpeg", "data".getBytes()))
+                        .param("userId", "user123")
+                        .param("title", "Title")
+                        .param("description", "Description")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void updateNotice_unauthorized_shouldReturn401() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("adminUser");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Updated title");
-        notice.setDescription("Updated description");
-
-        mockMvc.perform(put("/notices/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notice)))
+        mockMvc.perform(multipart("/notices/update")
+                        .file(new MockMultipartFile("mainImage", "image.jpg", "image/jpeg", "data".getBytes()))
+                        .param("id", "1")
+                        .param("userId", "adminUser")
+                        .param("title", "Updated title")
+                        .param("description", "Updated description")
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        }))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void updateNotice_forbidden_shouldReturn403() throws Exception {
-        Notice notice = new Notice();
-        notice.setId(1L);
-        notice.setUserId("user123");
-        notice.setDate(LocalDateTime.now());
-        notice.setTitle("Title");
-        notice.setDescription("Description");
-
-        mockMvc.perform(put("/notices/update")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(notice)))
+        mockMvc.perform(multipart("/notices/update/1")
+                        .file(new MockMultipartFile("mainImage", "image.jpg", "image/jpeg", "data".getBytes()))
+                        .param("id", "1")
+                        .param("userId", "user123")
+                        .param("title", "Title")
+                        .param("description", "Description")
+                        .param("date", LocalDateTime.now().toString())
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
                 .andExpect(status().isForbidden());
     }
 
@@ -262,4 +287,5 @@ class NoticeControllerTest {
                 .andExpect(content().json("[]"));
     }
 }
+
 

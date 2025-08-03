@@ -14,4 +14,8 @@ public interface IImageService {
     void deleteImageByName(String url);
 
     ResponseEntity<List<Image>> getAllByPropertyId(Long propertyId);
+
+    String uploadNoticeImage(MultipartFile file);
+
+    String getNoticeImageURL(String imageName);
 }

@@ -1,81 +1,83 @@
-import { Box, Button, Container, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, IconButton } from '@mui/material';
 import { BasePage } from './BasePage';
-import PropertyDetailsCompare from '../app/property/components/propertyDetails/PropertyDetailsCompare';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import { useNavigate } from 'react-router-dom';
+import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Modal } from '../app/shared/components/Modal';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
+import { useState } from 'react';
+import { ROUTES } from '../lib';
+import { useAuthContext } from '../app/user/context/AuthContext';
+import { PropertyDTOAI } from '../app/property/types/property';
+import { Comparer } from '../app/property/components/comparer/Comparer';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 const Compare = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { comparisonItems } = usePropertyCrud();
   const navigate = useNavigate();
-  const { clearComparison } = usePropertyCrud();
+  const { clearComparison, comparisonItems } = usePropertiesContext();
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const { isAdmin } = useAuthContext();
+
+  if (comparisonItems.length === 0) {
+    clearComparison();
+    return <Navigate to={ROUTES.HOME_APP} replace />;
+  }
 
   const handleBack = () => {
     clearComparison();
-    navigate('/');
+    navigate(-1);
   };
 
-  if (comparisonItems.length === 0) {
-    return (
-      <BasePage maxWidth={false}>
-        <Container sx={{ py: 8 }}>
-          <Typography variant="h5" color="text.secondary">
-            No hay propiedades para comparar.
-          </Typography>
-        </Container>
-      </BasePage>
-    );
-  }
+  const { selectedPropertyIds } = usePropertiesContext();
 
-  if (comparisonItems.length < 2 || comparisonItems.length > 3) {
-    return (
-      <BasePage maxWidth={false}>
-        <Container sx={{ py: 8 }}>
-          <Typography variant="h5" color="error">
-            Por favor selecciona 2 o 3 propiedades para comparar.
-          </Typography>
-        </Container>
-      </BasePage>
-    );
-  }
+  const comparisonDataAI: PropertyDTOAI[] = comparisonItems.map((property) => ({
+    name: property.title,
+    address: `${property.street} ${property.number}, ${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`,
+    latitude: 0,
+    longitude: 0,
+    rooms: property.rooms,
+    bathrooms: property.bathrooms,
+    bedrooms: property.bedrooms,
+    area: property.area,
+    coveredArea: property.coveredArea,
+    price: property.price,
+    operation: property.operation,
+    type: property.type.name,
+    amenities: new Set(property.amenities.map((a) => a.name)),
+  }));
 
   return (
-    <BasePage maxWidth={false}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
-          <Button variant="contained" color="primary" onClick={handleBack}>
-            VOLVER
-          </Button>
+    <>
+      <IconButton
+        size="small"
+        onClick={handleBack}
+        sx={{ position: 'absolute', top: 64, left: 8, zIndex: 1300 }}
+      >
+        <ReplyIcon />
+      </IconButton>
+
+      <BasePage>
+
+        <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, mb: 0 }}>
+          {!isAdmin && (
+            <Button variant="contained" color="primary" onClick={() => setInquiryOpen(true)}>
+              Consultar por estas propiedades
+            </Button>
+          )}
         </Box>
 
-      <Container maxWidth="xl">
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: 4,
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          <PropertyDetailsCompare comparisonItems={comparisonItems} />
+        <PropertyDetailsCompare comparisonItems={comparisonItems} />
+
+        <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1300 }}>
+          <Comparer data={comparisonDataAI} />
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 8 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            sx={{
-              minWidth: theme.spacing(25),
-            }}
-          >
-            Mandar consulta
-          </Button>
-        </Box>
+        <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)} >
+          <InquiryForm propertyIds={selectedPropertyIds} />
+        </Modal>
 
-      </Container>
-    </BasePage>
+      </BasePage>
+    </>
   );
 };
 
