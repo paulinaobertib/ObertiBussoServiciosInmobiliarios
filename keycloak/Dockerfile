@@ -1,44 +1,35 @@
-# ── STAGE 1: build (incluye módulo H2) ───────────────────────────────
-FROM quay.io/keycloak/keycloak:latest AS builder
+FROM quay.io/keycloak/keycloak:26.2.4
 
-# habilita health & metrics y añade H2 embebida
-ENV KC_HEALTH_ENABLED=true \
+# ─── 1) VARIABLES DE ENTORNO PARA H2 EN MODO "file" ───────────────────────────
+#    KC_DB_FILE_DIR: carpeta dentro de /home (persistente en App Service)
+ENV KC_DB=dev-file \
+    KC_DB_DEV_FILE_DIR=/home/data/h2 \ 
+    KC_HTTP_PORT=8080 \
+    KC_HEALTH_ENABLED=true \
     KC_METRICS_ENABLED=true \
-    KC_DB=dev-file \
-    KC_DB_DEV_FILE_DIR=/opt/keycloak/data/h2
+    KC_PROXY=edge \
+    KC_HOSTNAME_STRICT=false \
+    KC_PROXY_HEADERS=xforwarded
 
-WORKDIR /opt/keycloak
-
-# genera tu keystore (igual que antes)
-RUN keytool -genkeypair \
-    -storetype PKCS12 -storepass password \
-    -keyalg RSA -keysize 2048 \
-    -alias server \
-    -dname "CN=server" \
-    -ext "SAN:c=DNS:localhost,IP:127.0.0.1" \
-    -keystore conf/server.keystore
-
-# compila Quarkus/Keycloak con el provider dev-file
-RUN /opt/keycloak/bin/kc.sh build
-
-# ── STAGE 2: runtime (sólo runtime lean) ────────────────────────────
-FROM quay.io/keycloak/keycloak:latest
-
-COPY --from=builder /opt/keycloak/ /opt/keycloak/
-
+# Exponemos el puerto que Keycloak usará
 EXPOSE 8080
 
-# en runtime sólo necesitas señalar dev-file de nuevo (ya está compilado)
-ENV KC_HTTP_ENABLED=true \
-    KC_HTTPS_PORT=-1 \
-    KC_HTTP_PORT=8080 \
-    KC_HOSTNAME_STRICT=false \
-    KC_PROXY_HEADERS=xforwarded \
-    KC_METRICS_ENABLED=true \
-    KC_HEALTH_ENABLED=true \
-    KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN} \
-    KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
-    KC_HOSTNAME=${KC_HOSTNAME}
+# ─── 2) CREAR LA CARPETA PERSISTENTE Y AJUSTAR PERMISOS ────────────────────────
+# Keycloak corre como usuario 1000, así que la carpeta /home/data/h2 debe ser
+# propiedad de ese usuario para que pueda escribir los archivos H2 sin problemas.
+USER root
+RUN mkdir -p /home/data/h2 && \
+    chown -R 1000:1000 /home/data
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start","--optimized","--http-port=8080","--https-port=-1"]
+# ─── 3) VOLVEMOS AL USUARIO DE KEYCLOAK (UID 1000) ─────────────────────────────
+USER 1000
+
+# ─── 4) ENTRY POINT ORIGINAL, PERO APUNTA A /home/data/h2 EN LUGAR DE /opt/... ──
+ENTRYPOINT ["sh","-c", "\
+  mkdir -p /home/data/h2 && \
+  rm -f /home/data/h2/*.lock.db /home/data/h2/DATABASECHANGELOGLOCK* || true && \
+  exec /opt/keycloak/bin/kc.sh start-dev \
+       --http-port=${KC_HTTP_PORT} \
+       --hostname-strict=false \
+       --bootstrap-admin-username=${KEYCLOAK_ADMIN} \
+       --bootstrap-admin-password=${KEYCLOAK_ADMIN_PASSWORD}"]
