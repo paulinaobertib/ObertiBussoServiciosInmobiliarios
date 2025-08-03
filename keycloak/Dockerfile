@@ -55,4 +55,4 @@ ENV KC_DB=dev-file \
 
 # 6) ENTRYPOINT y CMD estándar
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start", "--optimized"]
+CMD ["start", "--optimized", "--http-enabled=true", "--http-port=8080", "--https-port=-1", "--hostname-strict=false", "--proxy=edge"]
