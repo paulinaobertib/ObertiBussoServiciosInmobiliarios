@@ -124,6 +124,8 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
+              "WEBSITE_DNS_SERVER=1.1.1.1" \
+              "WEBSITE_DNS_ALT_SERVER=8.8.8.8" \
               "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" \
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
@@ -134,8 +136,9 @@ jobs:
               "KC_HOSTNAME_STRICT=false" \
               "KC_PROXY_HEADERS=xforwarded" \
               "KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net" \
-              "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" \
-              "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
+              "KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }}" \
+              "KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
+              "KC_DB=postgres" \
               "KC_DB_URL=${{ secrets.KC_DB_URL }}" \
               "KC_DB_USERNAME=${{ secrets.KC_DB_USERNAME }}" \
               "KC_DB_PASSWORD=${{ secrets.KC_DB_PASSWORD }}"
