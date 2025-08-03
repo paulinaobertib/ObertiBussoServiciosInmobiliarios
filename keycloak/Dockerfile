@@ -5,7 +5,7 @@ FROM quay.io/keycloak/keycloak:latest AS builder
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
 
-# indicamos vendor database para el build
+# indicamos vendor database para el build (no afecta luego)
 ENV KC_DB=postgres
 
 WORKDIR /opt/keycloak
@@ -25,19 +25,25 @@ RUN /opt/keycloak/bin/kc.sh build
 # ── STAGE 2: runtime (solo runtime lean) ─────────────────────────────────
 FROM quay.io/keycloak/keycloak:latest
 
-# copia todo el /opt/keycloak ya construido
+# 1) copia los artefactos ya construidos
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
-# Expón el puerto que usarás en Azure
+# 2) creamos la carpeta persistente para H2 y fijamos permisos
+USER root
+RUN mkdir -p /home/data/h2 \
+    && chown -R 1000:1000 /home/data
+
+# 3) volvemos al usuario de Keycloak (UID 1000)
+USER 1000
+
+# 4) exponemos el puerto que usará Keycloak
 EXPOSE 8080
 
-# Variables que Keycloak leerá en runtime (valores concretos desde App Settings)
-ENV KC_DB=postgres \
+# 5) configuramos Keycloak para usar H2 en modo "file"
+ENV KC_DB=dev-file \
+    KC_DB_DEV_FILE_DIR=/home/data/h2 \
     KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN} \
     KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD} \
-    KC_DB_URL=${KC_DB_URL} \
-    KC_DB_USERNAME=${KC_DB_USERNAME} \
-    KC_DB_PASSWORD=${KC_DB_PASSWORD} \
     KC_HTTP_PORT=8080 \
     KC_HOSTNAME_STRICT=false \
     KC_PROXY=edge \
@@ -46,6 +52,6 @@ ENV KC_DB=postgres \
     KC_HEALTH_ENABLED=true \
     KC_METRICS_ENABLED=true
 
-# ENTRYPOINT + CMD: kc.sh toma las env vars y arranca optimizado
+# 6) ENTRYPOINT y CMD estándar
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
 CMD ["start", "--optimized"]
