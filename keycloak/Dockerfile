@@ -1,7 +1,10 @@
-
+# ────────────────────────────────────────────────────────────────
+# Keycloak 26 .x con base de datos H2 “dev-file” PERSISTENTE
+# Los datos se guardan en /home/data/h2  (que Azure monta en Azure Files)
+# ────────────────────────────────────────────────────────────────
 FROM quay.io/keycloak/keycloak:26.2.4
 
-# ────────────────────────── 1) Variables de entorno ──────────────────────────
+# ── 1) Variables de entorno que Keycloak necesita ───────────────
 ENV KC_DB=dev-file \
     KC_DB_FILE_DIR=/home/data/h2 \
     KC_HTTP_PORT=8080 \
@@ -11,23 +14,13 @@ ENV KC_DB=dev-file \
     KC_HOSTNAME_STRICT=false \
     KC_PROXY_HEADERS=xforwarded
 
-# Keycloak escuchará en 8080
 EXPOSE 8080
 
-# ─────────────────── 2) Crea la carpeta y asigna permisos ────────────────────
+# ── 2) Crear la carpeta donde se guardará la BD y dar permisos ──
 USER root
-RUN mkdir -p /home/data/h2 && \
-    chown -R 1000:1000 /home/data
+RUN mkdir -p /home/data/h2 && chown -R 1000:1000 /home/data
+USER 1000   # ← volvemos al usuario que ejecuta Keycloak
 
-# ────────────────────── 3) Vuelve al usuario Keycloak ────────────────────────
-USER 1000
-
-# ───────────────────── 4) Arranque de Keycloak (dev-file) ─────────────────────
-ENTRYPOINT ["sh","-c", "\
-    mkdir -p ${KC_DB_FILE_DIR} && \
-    rm -f ${KC_DB_FILE_DIR}/*.lock.db ${KC_DB_FILE_DIR}/DATABASECHANGELOGLOCK* || true && \
-    exec /opt/keycloak/bin/kc.sh start-dev \
-    --http-port=${KC_HTTP_PORT} \
-    --hostname-strict=false \
-    --bootstrap-admin-username=${KEYCLOAK_ADMIN} \
-    --bootstrap-admin-password=${KEYCLOAK_ADMIN_PASSWORD}"]
+# ── 3) Arranque: start-dev usa KEYCLOAK_ADMIN y la BD dev-file ──
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+CMD ["start-dev", "--http-port=8080", "--hostname-strict=false"]
