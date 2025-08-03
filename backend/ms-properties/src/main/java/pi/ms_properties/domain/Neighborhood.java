@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Neighborhood {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -23,4 +23,10 @@ public class Neighborhood {
 
     @Column(name = "city", nullable = false)
     private String city;
+
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
 }

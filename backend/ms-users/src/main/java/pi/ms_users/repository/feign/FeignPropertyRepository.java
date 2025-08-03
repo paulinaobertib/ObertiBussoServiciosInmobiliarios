@@ -1,16 +1,26 @@
 package pi.ms_users.repository.feign;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import pi.ms_users.configuration.feign.FeignInterceptor;
-import pi.ms_users.domain.feign.Property;
+import pi.ms_users.dto.feign.PropertyDTO;
+import pi.ms_users.dto.feign.Status;
 
 @FeignClient(name = "ms-property", url = "http://localhost:8083", configuration = FeignInterceptor.class)
 public interface FeignPropertyRepository {
 
     @RequestMapping(method = RequestMethod.GET, value = "/property/getSimple/{id}")
-    ResponseEntity<Property> getSimpleById(@PathVariable Long id);
+    ResponseEntity<PropertyDTO> getSimpleById(@PathVariable Long id);
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/property/status/{id}")
+    ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestParam Status status);
+
+    @RequestMapping(method = RequestMethod.POST, value = "/image/notice", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> uploadNoticeImage(@RequestPart("file") MultipartFile file);
+
+    @RequestMapping(method = RequestMethod.GET, value = "/image/notice/getImage")
+    ResponseEntity<String> getNoticeImage(@RequestParam("imageName")String imageName);
 }

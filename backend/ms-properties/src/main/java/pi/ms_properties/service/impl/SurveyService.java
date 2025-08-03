@@ -1,17 +1,20 @@
 package pi.ms_properties.service.impl;
 
+import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.Survey;
+import pi.ms_properties.domain.SurveyToken;
 import pi.ms_properties.dto.SurveyDTO;
 import pi.ms_properties.repository.IInquiryRepository;
 import pi.ms_properties.repository.ISurveyRepository;
+import pi.ms_properties.repository.ISurveyTokenRepository;
 import pi.ms_properties.service.interf.IEmailService;
 import pi.ms_properties.service.interf.ISurveyService;
+import pi.ms_properties.service.interf.ISurveyTokenService;
 
 import java.time.DayOfWeek;
 import java.time.YearMonth;
@@ -19,7 +22,6 @@ import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,74 +34,83 @@ public class SurveyService implements ISurveyService {
 
     private final IEmailService emailService;
 
+    private final ISurveyTokenService surveyTokenService;
+
     @Override
-    public ResponseEntity<String> sendSurvey(String emailTo, Long inquiryId) {
-        try {
-            emailService.sendEmailSurvey(emailTo, inquiryId);
-            return ResponseEntity.ok("Se ha enviado la encuesta");
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    public ResponseEntity<String> sendSurvey(String emailTo, Long inquiryId, String token) throws MessagingException {
+        emailService.sendEmailSurvey(emailTo, inquiryId, token);
+        return ResponseEntity.ok("Se ha enviado la encuesta");
     }
 
     @Override
-    public ResponseEntity<String> create(SurveyDTO surveyDTO) {
-        try {
-            Optional<Inquiry> inquiry = inquiryRepository.findById(surveyDTO.getInquiryId());
-            if (inquiry.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No se ha encontrado la consulta");
-            }
-            Survey survey = new Survey();
-            survey.setComment(surveyDTO.getComment());
-            survey.setScore(surveyDTO.getScore());
-            survey.setInquiry(inquiry.get());
-            surveyRepository.save(survey);
-            return ResponseEntity.ok("Se ha guardado correctamente la encuesta");
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+    public ResponseEntity<String> create(SurveyDTO surveyDTO, String token) {
+        SurveyToken surveyToken = surveyTokenService.findByToken(token);
+        if (surveyToken == null) {
+            return ResponseEntity.badRequest().body("El token no existe.");
         }
+
+        if (!surveyTokenService.isTokenValid(token)) {
+            return ResponseEntity.badRequest().body("El token no es valido.");
+        }
+
+        if (!surveyToken.getInquiry().getId().equals(surveyDTO.getInquiryId())) {
+            return ResponseEntity.badRequest().body("El token no coincide.");
+        }
+
+        Inquiry inquiry = inquiryRepository.findById(surveyDTO.getInquiryId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la consulta"));
+
+        if (surveyDTO.getScore() > 5 || surveyDTO.getScore() < 1) {
+            return ResponseEntity.badRequest().body("El score no puede ser menor a 1 ni mayor a 5.");
+        }
+
+        long count = surveyRepository.countSurveysByInquiryId(surveyDTO.getInquiryId());
+
+        if (count > 0) {
+            return ResponseEntity.badRequest().body("Ya existe una encuesta para esta consulta.");
+        }
+
+        Survey survey = new Survey();
+        survey.setComment(surveyDTO.getComment());
+        survey.setScore(surveyDTO.getScore());
+        survey.setInquiry(inquiry);
+
+        surveyRepository.save(survey);
+
+        surveyTokenService.markAsUsed(surveyToken);
+
+        return ResponseEntity.ok("Se ha guardado correctamente la encuesta");
     }
 
     @Override
     public ResponseEntity<SurveyDTO> getById(Long id) {
-        try {
-            Optional<Survey> survey = surveyRepository.findById(id);
-            if (survey.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            Survey get = survey.get();
-            SurveyDTO surveyDTO = new SurveyDTO(get.getId(), get.getScore(), get.getComment(), get.getInquiry().getId());
-            return ResponseEntity.ok(surveyDTO);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        Survey survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró la encuesta con ID: " + id));
+
+        SurveyDTO surveyDTO = new SurveyDTO(
+                survey.getId(),
+                survey.getScore(),
+                survey.getComment(),
+                survey.getInquiry().getId()
+        );
+
+        return ResponseEntity.ok(surveyDTO);
     }
 
     @Override
     public ResponseEntity<List<SurveyDTO>> getAll() {
-        try {
-            List<Survey> surveys = surveyRepository.findAll();
-            List<SurveyDTO> surveyDTOS = surveys
-                    .stream()
-                    .map(survey -> new SurveyDTO(
-                            survey.getId(),
-                            survey.getScore(),
-                            survey.getComment(),
-                            survey.getInquiry().getId()
-                    ))
-                    .toList();
-            return ResponseEntity.ok(surveyDTOS);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        List<Survey> surveys = surveyRepository.findAll();
+
+        List<SurveyDTO> surveyDTOS = surveys.stream()
+                .map(survey -> new SurveyDTO(
+                        survey.getId(),
+                        survey.getScore(),
+                        survey.getComment(),
+                        survey.getInquiry().getId()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(surveyDTOS);
     }
 
     @Override
@@ -111,11 +122,13 @@ public class SurveyService implements ISurveyService {
     @Override
     public ResponseEntity<Map<Integer, Long>> getScoreDistribution() {
         List<Object[]> data = surveyRepository.countScores();
+
         Map<Integer, Long> result = data.stream()
                 .collect(Collectors.toMap(
                         row -> (Integer) row[0],
                         row -> (Long) row[1]
                 ));
+
         return ResponseEntity.ok(result);
     }
 
@@ -128,7 +141,7 @@ public class SurveyService implements ISurveyService {
                         row -> {
                             int dayNumber = ((Number) row[0]).intValue();
                             DayOfWeek dayOfWeek = DayOfWeek.of(dayNumber == 1 ? 7 : dayNumber - 1);
-                            return dayOfWeek.getDisplayName(TextStyle.FULL, new Locale("es", "ES"));
+                            return dayOfWeek.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES"));
                         },
                         row -> (Double) row[1]
                 ));
@@ -139,11 +152,14 @@ public class SurveyService implements ISurveyService {
     @Override
     public ResponseEntity<Map<YearMonth, Double>> getMonthlyAverageScore() {
         List<Object[]> data = surveyRepository.findMonthlyAverageScore();
+
         Map<YearMonth, Double> result = data.stream()
                 .collect(Collectors.toMap(
                         row -> YearMonth.parse((String) row[0]),
                         row -> (Double) row[1]
                 ));
+
         return ResponseEntity.ok(result);
     }
 }
+

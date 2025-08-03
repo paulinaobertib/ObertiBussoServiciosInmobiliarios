@@ -1,26 +1,39 @@
 package pi.ms_properties.specification;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Property;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class PropertySpecification {
 
-    public static Specification<Property> hasPriceFrom(float priceFrom) {
+    private static Predicate getPredicate(List<String> types, CriteriaBuilder criteriaBuilder, Join<Object, Object> join) {
+        List<Predicate> predicates = types.stream()
+                .filter(type -> type != null && !type.isBlank())
+                .map(type -> criteriaBuilder.like(
+                        criteriaBuilder.lower(join.get("name")), "%" + type.toLowerCase() + "%"))
+                .toList();
+        return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
+    }
+
+    public static Specification<Property> hasPriceFrom(BigDecimal priceFrom) {
         return (root, query, criteriaBuilder) -> {
-            if (priceFrom == 0) {
+            if (priceFrom.compareTo(BigDecimal.ZERO) == 0) {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.greaterThanOrEqualTo(root.get("price"), priceFrom);
         };
     }
 
-    public static Specification<Property> hasPriceTo(float priceTo) {
+    public static Specification<Property> hasPriceTo(BigDecimal priceTo) {
         return (root, query, criteriaBuilder) -> {
-            if (priceTo == 0) {
+            if (priceTo.compareTo(BigDecimal.ZERO) == 0) {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.lessThanOrEqualTo(root.get("price"), priceTo);
@@ -63,12 +76,20 @@ public class PropertySpecification {
         };
     }
 
-    public static Specification<Property> hasRooms(float rooms) {
+    public static Specification<Property> hasRooms(List<Float> roomsList) {
         return (root, query, criteriaBuilder) -> {
-            if (rooms == 0) {
+            if (roomsList == null || roomsList.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
-            return criteriaBuilder.equal(root.get("rooms"), rooms);
+            CriteriaBuilder.In<Float> inClause = criteriaBuilder.in(root.get("rooms"));
+            boolean hasValidValues = false;
+            for (Float r : roomsList) {
+                if (r != null && r != 0) {
+                    inClause.value(r);
+                    hasValidValues = true;
+                }
+            }
+            return hasValidValues ? inClause : criteriaBuilder.conjunction();
         };
     }
 
@@ -81,19 +102,19 @@ public class PropertySpecification {
         };
     }
 
-    public static Specification<Property> hasType(String type) {
+    public static Specification<Property> hasType(List<String> types) {
         return (root, query, criteriaBuilder) -> {
-            if (type.isBlank()) {
+            if (types == null || types.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
             Join<Object, Object> join = root.join("type");
-            return criteriaBuilder.like(criteriaBuilder.lower(join.get("name")), "%" + type.toLowerCase() + "%");
+            return getPredicate(types, criteriaBuilder, join);
         };
     }
 
     public static Specification<Property> hasAmenity(List<String> amenities) {
         return (root, query, criteriaBuilder) -> {
-            if (amenities.isEmpty()) {
+            if (amenities == null || amenities.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
             List<String> lowerCaseAmenities = amenities.stream()
@@ -111,33 +132,45 @@ public class PropertySpecification {
         };
     }
 
-    public static Specification<Property> hasCity(String city) {
+    public static Specification<Property> hasCity(List<String> cities) {
         return (root, query, criteriaBuilder) -> {
-            if (city.isBlank()) {
+            if (cities == null || cities.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
             Join<Object, Object> join = root.join("neighborhood");
-            return criteriaBuilder.like(criteriaBuilder.lower(join.get("city")), "%" + city.toLowerCase() + "%");
+            List<Predicate> predicates = cities.stream()
+                    .filter(city -> city != null && !city.isBlank())
+                    .map(city -> criteriaBuilder.like(
+                            criteriaBuilder.lower(join.get("city")), "%" + city.toLowerCase() + "%"))
+                    .toList();
+            return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }
 
-    public static Specification<Property> hasNeighborhood(String neighborhood) {
+    public static Specification<Property> hasNeighborhood(List<String> neighborhoods) {
         return (root, query, criteriaBuilder) -> {
-            if (neighborhood.isBlank()) {
+            if (neighborhoods == null || neighborhoods.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
             Join<Object, Object> join = root.join("neighborhood");
-            return criteriaBuilder.like(criteriaBuilder.lower(join.get("name")), "%" + neighborhood.toLowerCase() + "%");
+            return getPredicate(neighborhoods, criteriaBuilder, join);
         };
     }
 
-    public static Specification<Property> hasNeighborhoodType(String neighborhoodType) {
+    public static Specification<Property> hasNeighborhoodType(List<String> neighborhoodTypes) {
         return (root, query, criteriaBuilder) -> {
-            if (neighborhoodType.isBlank()) {
+            if (neighborhoodTypes == null || neighborhoodTypes.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
             Join<Object, Object> join = root.join("neighborhood");
-            return criteriaBuilder.like(criteriaBuilder.lower(join.get("type")), "%" + neighborhoodType.toUpperCase() + "%");
+
+            List<Predicate> predicates = neighborhoodTypes.stream()
+                    .filter(t -> t != null && !t.isBlank())
+                    .map(t -> criteriaBuilder.equal(
+                            criteriaBuilder.lower(join.get("type")), t.toLowerCase().trim()))
+                    .toList();
+
+            return criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         };
     }
 
@@ -156,6 +189,15 @@ public class PropertySpecification {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.equal(root.get("financing"), financing);
+        };
+    }
+
+    public static Specification<Property> hasCurrency(Currency currency) {
+        return (root, query, criteriaBuilder) -> {
+            if (currency == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.equal(root.get("currency"), currency);
         };
     }
 

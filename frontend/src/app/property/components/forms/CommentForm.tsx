@@ -1,95 +1,120 @@
-import { useState } from 'react';
-import {
-    Grid, TextField, Box, Button,
-} from '@mui/material';
+// src/app/property/components/forms/CommentForm.tsx
+import { useEffect } from 'react';
+import { Grid, TextField, Box } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
-
+import { useCategories } from '../../hooks/useCategories';
 import {
     postComment,
     putComment,
     deleteComment,
 } from '../../services/comment.service';
-
-import {
-    Comment,
-    CommentCreate,
-} from '../../types/comment';
+import type { Comment, CommentCreate } from '../../types/comment';
 
 interface Props {
+    propertyId: number;
     action: 'add' | 'edit' | 'delete';
     item?: Comment;
+    refresh: () => Promise<void>;
     onDone: () => void;
 }
 
-export default function CommentForm({ action, item, onDone }: Props) {
-    const { refresh, pickedItem } = usePropertyCrud();
-    const { showAlert } = useGlobalAlert();
-
-    const [form, setForm] = useState<Comment>({
+export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Props) => {
+    const initialPayload = {
         id: item?.id ?? 0,
-        propertyId: item?.propertyId
-            ?? (pickedItem?.type === 'property' ? pickedItem.value?.id ?? 0 : 0),
-        description: item?.description ?? ''
+        propertyId: propertyId,
+        description: item?.description ?? '',
+        date: item?.date ?? ''
+    };
+
+    const { form, setForm, run, loading } = useCategories<Comment>({
+        initial: initialPayload,
+        action,
+        save: async (payload) => {
+            if (action === 'add') return postComment(payload as CommentCreate);
+            if (action === 'edit') return putComment(payload as Comment);
+            if (action === 'delete') return deleteComment(payload as Comment);
+        },
+        refresh,
+        onDone,
     });
 
-    const set =
-        (k: keyof Comment) =>
-            (e: React.ChangeEvent<HTMLInputElement>) =>
-                setForm(f => ({ ...f, [k]: e.target.value }));
-
-    const invalid =
-        action !== 'delete' &&
-        (!form.propertyId || !form.description.trim());
-
-    const save = async () => {
-        try {
-            if (action === 'add') {
-                await postComment(form as CommentCreate);
-                showAlert('Comentario creado!', 'success');
-            }
-            if (action === 'edit' && item) {
-                await putComment(form);
-                showAlert('Comentario actualizado', 'success');
-            }
-            if (action === 'delete' && item) {
-                await deleteComment(item);
-                showAlert('Comentario eliminado', 'success');
-            }
-
-            await refresh();
-            onDone();
-        } catch {
-            showAlert('Error al trabajar con el comentario', 'error');
+    useEffect(() => {
+        if (action === 'edit' && item) {
+            setForm({
+                id: item.id,
+                propertyId,
+                description: item.description,
+                date: item.date,
+            });
+        } else {
+            setForm(initialPayload);
         }
+    }, [action, item?.id, propertyId]);
+
+    const handleSubmit = async () => {
+        await run();
+        setForm(initialPayload);
+    };
+
+    const handleCancel = () => {
+        setForm(initialPayload);
+        onDone();
     };
 
     return (
-        <>
+        <Box component="form" noValidate>
             <Grid container spacing={2} mb={2}>
-
-                <Grid size={12}>
+                <Grid size={{ xs: 12 }}>
                     <TextField
-                        fullWidth multiline rows={5} size="small"
+                        fullWidth
+                        multiline
+                        rows={5}
                         label="Descripción"
-                        value={form.description} onChange={set('description')}
+                        size="small"
                         disabled={action === 'delete'}
+                        value={form.description}
+                        onChange={(e) =>
+                            setForm({ ...form, description: e.target.value })
+                        }
                     />
                 </Grid>
-
             </Grid>
 
-            <Box textAlign="right">
-                <Button
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 1,
+                    mt: 2,
+                }}
+            >
+                {/* Cancelar disponible en add y edit */}
+                {(action === 'edit' || action === 'add') && (
+                    <LoadingButton
+                        loading={loading}
+                        onClick={handleCancel}
+                        disabled={
+                            loading || form.description.trim() === ''
+                        }
+                    >
+                        Cancelar
+                    </LoadingButton>
+                )}
+
+                <LoadingButton
+                    onClick={handleSubmit}
+                    loading={loading}
+                    disabled={
+                        loading ||
+                        (action !== 'delete' && form.description.trim() === '')
+                    }
                     variant="contained"
                     color={action === 'delete' ? 'error' : 'primary'}
-                    disabled={invalid}
-                    onClick={save}
                 >
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
-                </Button>
+                </LoadingButton>
             </Box>
-        </>
+        </Box>
     );
-}
+};

@@ -1,9 +1,14 @@
+import React from 'react';
+
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import Routes from './Routes';
 import { BrowserRouter } from 'react-router-dom';
 import { PropertyCrudProvider } from './app/property/context/PropertiesContext';
-import { AlertProvider } from './app/property/context/AlertContext';
+import { AlertProvider } from './app/shared/context/AlertContext';
+import { AuthProvider } from "./app/user/context/AuthContext";
+import { ChatProvider } from './app/chat/context/ChatContext';
+import { ChatAlways } from './pages/ChatAlways';
 import "./index.css"
 
 function App() {
@@ -14,15 +19,22 @@ function App() {
   console.log('BASE URL en App:', baseUrl);
 
   return (
-    <ThemeProvider theme={theme}>
+    <React.StrictMode>
       <AlertProvider>
-        <PropertyCrudProvider>
-          <BrowserRouter>
-            <Routes />
-          </BrowserRouter>
-        </PropertyCrudProvider>
+        <AuthProvider>
+          <PropertyCrudProvider>
+            <ChatProvider>
+              <BrowserRouter>
+                <ThemeProvider theme={theme}>
+                  <Routes />
+                  <ChatAlways />
+                </ThemeProvider>
+              </BrowserRouter>
+            </ChatProvider>
+          </PropertyCrudProvider>
+        </AuthProvider>
       </AlertProvider>
-    </ThemeProvider>
+    </React.StrictMode>
   );
 }
 

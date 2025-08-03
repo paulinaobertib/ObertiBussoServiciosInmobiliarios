@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.Notification;
+import pi.ms_users.domain.NotificationType;
 import pi.ms_users.dto.NotificationDTO;
 import pi.ms_users.service.interf.INotificationService;
 
@@ -21,6 +22,12 @@ public class NotificationController {
     @PostMapping("/create/property")
     public ResponseEntity<String> createProperty(@RequestBody NotificationDTO notificationDTO, @RequestParam Long propertyId) {
         return notificationService.createProperty(notificationDTO, propertyId);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @PostMapping("/create/interestProperty")
+    public ResponseEntity<String> createPropertyInterest(@RequestParam("userId") String userId, @RequestParam("type")NotificationType type, @RequestParam("propertyId") Long propertyId) {
+        return notificationService.propertyInterest(userId, type, propertyId);
     }
 
     @PreAuthorize("hasAnyRole('admin', 'user')")

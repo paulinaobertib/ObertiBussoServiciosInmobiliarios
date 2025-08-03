@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -20,12 +21,17 @@ public class Appointment {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "date", nullable = false)
-    private LocalDateTime date;
-
     @Column(name = "comment", nullable = true)
     private String comment;
 
+    @Column(name = "appointment_date")
+    private LocalDateTime appointmentDate;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AppointmentStatus status;
+
+    @OneToOne
+    @JoinColumn(name = "availability_id", nullable = true, unique = true)
+    private AvailableAppointment availableAppointment;
 }

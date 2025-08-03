@@ -20,6 +20,7 @@ import pi.ms_users.domain.NotificationType;
 import pi.ms_users.dto.NotificationDTO;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.NotificationService;
+import pi.ms_users.service.interf.INotificationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +40,7 @@ class NotificationControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private NotificationService notificationService;
+    private INotificationService notificationService;
 
     @TestConfiguration
     static class Config {
@@ -71,6 +72,24 @@ class NotificationControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Created"));
+    }
+
+    @Test
+    void createPropertyInterest_adminRole_shouldReturnOk() throws Exception {
+        String userId = "user123";
+        NotificationType type = NotificationType.PROPIEDADNUEVA;
+        Long propertyId = 123L;
+
+        when(notificationService.propertyInterest(userId, type, propertyId))
+                .thenReturn(ResponseEntity.ok("Interés creado"));
+
+        mockMvc.perform(post("/notifications/create/interestProperty")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        .param("userId", userId)
+                        .param("type", type.name())
+                        .param("propertyId", propertyId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Interés creado"));
     }
 
     @Test
@@ -198,6 +217,25 @@ class NotificationControllerTest {
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void createPropertyInterest_nonAdminRole_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(post("/notifications/create/interestProperty")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user")))
+                        .param("userId", "user123")
+                        .param("type", "PROPIEDADNUEVA")
+                        .param("propertyId", "123"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createPropertyInterest_missingUserId_shouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post("/notifications/create/interestProperty")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin")))
+                        .param("type", "PROPIEDADNUEVA")
+                        .param("propertyId", "123"))
+                .andExpect(status().isBadRequest());
     }
 }
 

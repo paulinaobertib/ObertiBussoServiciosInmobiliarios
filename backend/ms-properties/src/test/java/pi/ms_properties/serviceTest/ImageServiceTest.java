@@ -2,6 +2,7 @@ package pi.ms_properties.serviceTest;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobStorageException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -151,6 +152,34 @@ class ImageServiceTest {
         verify(azureBlobStorage, times(2)).getImageUrl(anyString());
     }
 
+    @Test
+    void uploadNoticeImage_success() throws Exception {
+        String originalFilename = "notice-image.jpg";
+        when(multipartFile.getOriginalFilename()).thenReturn(originalFilename);
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+        when(multipartFile.getSize()).thenReturn(4L);
+        when(multipartFile.getContentType()).thenReturn("image/jpeg");
+
+        String result = imageService.uploadNoticeImage(multipartFile);
+
+        assertNotNull(result);
+        assertTrue(result.endsWith(".jpg"));
+        verify(azureBlobStorage).create(any(Storage.class));
+    }
+
+    @Test
+    void getNoticeImageURL_success() {
+        String imageName = "notice-image.jpg";
+        String expectedUrl = "https://storage/" + imageName;
+
+        when(azureBlobStorage.getImageUrl(imageName)).thenReturn(expectedUrl);
+
+        String url = imageService.getNoticeImageURL(imageName);
+
+        assertEquals(expectedUrl, url);
+        verify(azureBlobStorage).getImageUrl(imageName);
+    }
+
     // casos de error
 
     @Test
@@ -182,56 +211,6 @@ class ImageServiceTest {
     }
 
     @Test
-    void deleteImage_notFound() {
-        when(imageRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        ResponseEntity<String> response = imageService.deleteImage(123L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Imagen no encontrada", response.getBody());
-    }
-
-    @Test
-    void deleteImageByName_blobStorageException_simulation() {
-        String imageUrl = "image-path.jpg";
-
-        doThrow(new RuntimeException("simulated blob error")).when(azureBlobStorage).delete(any(Storage.class));
-
-        assertDoesNotThrow(() -> imageService.deleteImageByName(imageUrl));
-        verify(azureBlobStorage).delete(any(Storage.class));
-    }
-
-    @Test
-    void deleteImageByName_unexpectedException() {
-        String imageUrl = "image-path.jpg";
-        doThrow(new RuntimeException("Unexpected")).when(azureBlobStorage).delete(any(Storage.class));
-
-        assertDoesNotThrow(() -> imageService.deleteImageByName(imageUrl));
-        verify(azureBlobStorage).delete(any(Storage.class));
-    }
-
-    @Test
-    void getAllByPropertyId_propertyNotFound() {
-        Long propertyId = 1L;
-        when(propertyRepository.findById(propertyId)).thenReturn(Optional.empty());
-
-        ResponseEntity<List<Image>> response = imageService.getAllByPropertyId(propertyId);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(imageRepository, never()).findAllByPropertyId(anyLong());
-    }
-
-    @Test
-    void getAllByPropertyId_exceptionThrown() {
-        Long propertyId = 1L;
-        when(propertyRepository.findById(propertyId)).thenThrow(new RuntimeException("Database error"));
-
-        ResponseEntity<List<Image>> response = imageService.getAllByPropertyId(propertyId);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
     void uploadImageToProperty_shouldThrowRuntimeException_whenBlobStorageException() throws IOException {
         Long propertyId = 1L;
         Property property = new Property();
@@ -243,9 +222,8 @@ class ImageServiceTest {
         doThrow(new BlobStorageException("Error blob", null, null))
                 .when(azureBlobStorage).create(any(Storage.class));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            imageService.uploadImageToProperty(multipartFile, propertyId, false);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.uploadImageToProperty(multipartFile, propertyId, false));
 
         assertTrue(ex.getMessage().contains("No se ha podido subir la imagen"));
     }
@@ -259,15 +237,69 @@ class ImageServiceTest {
         when(multipartFile.getOriginalFilename()).thenReturn("foto.jpg");
         when(multipartFile.getInputStream()).thenThrow(new IOException("Error de lectura"));
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
-            imageService.uploadImageToProperty(multipartFile, propertyId, false);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.uploadImageToProperty(multipartFile, propertyId, false));
 
         assertTrue(ex.getMessage().contains("Error al leer el archivo"));
     }
 
     @Test
-    void deleteImage_shouldReturnInternalServerError_whenBlobStorageException() {
+    void deleteImage_notFound() {
+        when(imageRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            imageService.deleteImage(123L));
+
+        assertEquals("Imagen no encontrada", ex.getMessage());
+    }
+
+    @Test
+    void deleteImageByName_shouldThrow_whenBlobStorageFails() {
+        String imageUrl = "image-path.jpg";
+
+        doThrow(new RuntimeException("simulated blob error")).when(azureBlobStorage).delete(any(Storage.class));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.deleteImageByName(imageUrl));
+
+        assertEquals("simulated blob error", ex.getMessage());
+        verify(azureBlobStorage).delete(any(Storage.class));
+    }
+
+    @Test
+    void deleteImageByName_unexpectedException() {
+        String imageUrl = "image-path.jpg";
+        doThrow(new RuntimeException("Unexpected")).when(azureBlobStorage).delete(any(Storage.class));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.deleteImageByName(imageUrl));
+
+        assertEquals("Unexpected", ex.getMessage());
+    }
+
+    @Test
+    void getAllByPropertyId_propertyNotFound() {
+        Long propertyId = 1L;
+        when(propertyRepository.findById(propertyId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+            imageService.getAllByPropertyId(propertyId));
+
+        assertEquals("Propiedad no encontrada", ex.getMessage());
+    }
+
+    @Test
+    void getAllByPropertyId_exceptionThrown() {
+        when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Database error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.getAllByPropertyId(1L));
+
+        assertEquals("Database error", ex.getMessage());
+    }
+
+    @Test
+    void deleteImage_shouldThrowInternal_whenBlobStorageException() {
         Image image = new Image();
         image.setUrl("container/foto.jpg");
 
@@ -276,14 +308,14 @@ class ImageServiceTest {
         doThrow(new BlobStorageException("Error blob", null, null))
                 .when(azureBlobStorage).delete(any(Storage.class));
 
-        ResponseEntity<String> response = imageService.deleteImage(1L);
+        BlobStorageException ex = assertThrows(BlobStorageException.class, () ->
+            imageService.deleteImage(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("Error al eliminar la imagen del blob storage"));
+        assertEquals("Error blob", ex.getMessage());
     }
 
     @Test
-    void deleteImage_shouldReturnInternalServerError_whenUnexpectedException() {
+    void deleteImage_shouldThrowInternal_whenUnexpectedException() {
         Image image = new Image();
         image.setUrl("container/foto.jpg");
 
@@ -292,19 +324,73 @@ class ImageServiceTest {
         doThrow(new RuntimeException("Error inesperado"))
                 .when(azureBlobStorage).delete(any(Storage.class));
 
-        ResponseEntity<String> response = imageService.deleteImage(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.deleteImage(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("Error inesperado"));
+        assertEquals("Error inesperado", ex.getMessage());
     }
 
     @Test
-    void getAllByPropertyId_shouldReturnInternalServerError_whenException() {
+    void getAllByPropertyId_shouldThrow_whenException() {
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Error inesperado"));
 
-        ResponseEntity<List<Image>> response = imageService.getAllByPropertyId(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            imageService.getAllByPropertyId(1L));
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Error inesperado", ex.getMessage());
+    }
+
+    @Test
+    void uploadNoticeImage_shouldThrow_whenBlobFails() throws Exception {
+        when(multipartFile.getOriginalFilename()).thenReturn("notice.png");
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+        when(multipartFile.getSize()).thenReturn(4L);
+        when(multipartFile.getContentType()).thenReturn("image/png");
+
+        doThrow(new BlobStorageException("Blob error", null, null))
+                .when(azureBlobStorage).create(any(Storage.class));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                imageService.uploadNoticeImage(multipartFile));
+
+        assertTrue(ex.getMessage().contains("No se ha podido subir la imagen a Blob Storage"));
+    }
+
+    @Test
+    void uploadNoticeImage_shouldThrow_whenIOException() throws Exception {
+        when(multipartFile.getOriginalFilename()).thenReturn("notice.jpg");
+        when(multipartFile.getInputStream()).thenThrow(new IOException("IO error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                imageService.uploadNoticeImage(multipartFile));
+
+        assertTrue(ex.getMessage().contains("Error al leer el archivo"));
+    }
+
+    @Test
+    void uploadImageToProperty_shouldThrowRuntimeException_whenUnexpectedException() throws Exception {
+        Long propertyId = 1L;
+        when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(mockProperty));
+        when(multipartFile.getOriginalFilename()).thenReturn("image.jpg");
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("data".getBytes()));
+
+        doThrow(new RuntimeException("Error inesperado")).when(azureBlobStorage).create(any(Storage.class));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> imageService.uploadImageToProperty(multipartFile, propertyId, false));
+
+        assertTrue(exception.getMessage().contains("Ha habido un error inesperado"));
+    }
+
+    @Test
+    void uploadImageToProperty_shouldThrowRuntimeException_whenUnexpectedErrorInFindProperty() {
+        Long propertyId = 1L;
+
+        when(propertyRepository.findById(propertyId)).thenThrow(new RuntimeException("Error inesperado"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> imageService.uploadImageToProperty(multipartFile, propertyId, false));
+
+        assertTrue(exception.getMessage().toLowerCase().contains("error inesperado"));
     }
 }
-

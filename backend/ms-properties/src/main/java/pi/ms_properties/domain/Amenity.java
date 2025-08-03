@@ -11,15 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Entity
-@Table(name = "Amenity")
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "Amenity")
 public class Amenity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -27,5 +27,4 @@ public class Amenity {
     @ManyToMany(mappedBy = "amenities")
     @JsonIgnore
     private List<Property> properties = new ArrayList<>();
-
 }

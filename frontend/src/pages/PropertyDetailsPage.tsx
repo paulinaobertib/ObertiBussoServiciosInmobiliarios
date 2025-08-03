@@ -1,25 +1,23 @@
-// src/pages/PropertyDetailsPage.tsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import { BasePage } from './BasePage';
-import { usePropertyCrud } from '../app/property/context/PropertiesContext';
-import PropertyDetails from '../app/property/components/propertyDetails/PropertyDetails';
+import { usePropertiesContext } from '../app/property/context/PropertiesContext';
+import { PropertyDetails } from '../app/property/components/propertyDetails/PropertyDetails';
+import { Modal } from '../app/shared/components/Modal';
+import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
+import { useAuthContext } from '../app/user/context/AuthContext';
+import ReplyIcon from '@mui/icons-material/Reply';
+import { buildRoute, ROUTES } from '../lib';
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // Contexto
-  const { currentProperty, loadProperty } = usePropertyCrud();
-
-  // Locales para loading y error
+  const { currentProperty, loadProperty } = usePropertiesContext();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const handleBack = () => {
-    navigate('/');
-  };
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const { isAdmin } = useAuthContext();
 
   useEffect(() => {
     const fetch = async () => {
@@ -28,6 +26,7 @@ const PropertyDetailsPage = () => {
         setLoading(false);
         return;
       }
+      localStorage.setItem("selectedPropertyId", id.toString());
       setLoading(true);
       setError(null);
       try {
@@ -41,32 +40,70 @@ const PropertyDetailsPage = () => {
     fetch();
   }, [id, loadProperty]);
 
-  return (
-    <BasePage maxWidth={false}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mt: 2, mb: -4 }}>
-        <Button variant="contained" color="primary" onClick={handleBack}>
-          VOLVER
-        </Button>
-      </Box>
-
-      {loading && (
-        <Box sx={{ p: 4 }}>
-          <Typography variant="h5">Cargando...</Typography>
+  // ---- LOADING GLOBAL ----
+  if (loading) {
+    return (
+      <BasePage>
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 3 }}>
+          <CircularProgress size={36} />
         </Box>
-      )}
+      </BasePage>
+    );
+  }
 
-      {error && (
+  // ---- ERROR GLOBAL ----
+  if (error) {
+    return (
+      <BasePage>
         <Box sx={{ p: 4 }}>
           <Typography variant="h5" color="error">
             {error}
           </Typography>
         </Box>
-      )}
+      </BasePage>
+    );
+  }
 
-      {!loading && !error && currentProperty && (
+  // ---- CONTENIDO PRINCIPAL ----
+  if (!currentProperty) return null;
+
+  return (
+    <>
+      <IconButton
+        size="small"
+        onClick={() => navigate(-1)}
+        sx={{ position: 'absolute', top: 64, left: 8, zIndex: 1300 }}
+      >
+        <ReplyIcon />
+      </IconButton>
+
+      <BasePage>
+        <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2, gap: 1 }}>
+          {!isAdmin ? (
+            <Button variant="contained" onClick={() => setInquiryOpen(true)}>
+              Consultar por esta propiedad
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={() =>
+                navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))
+              }
+            >
+              Ver notas de la propiedad
+            </Button>
+          )}
+        </Box>
+
+        {/* Detalle */}
         <PropertyDetails property={currentProperty} />
-      )}
-    </BasePage>
+
+        {/* Modal para consulta */}
+        <Modal open={inquiryOpen} title="Enviar consulta" onClose={() => setInquiryOpen(false)}>
+          <InquiryForm propertyIds={[currentProperty.id]} />
+        </Modal>
+      </BasePage>
+    </>
   );
 };
 

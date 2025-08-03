@@ -28,6 +28,9 @@ public class Notice {
     @Column(name = "title", nullable = false)
     private String title;
 
+    @Column(name = "main_image", nullable = true)
+    private String mainImage;
+
     @Column(name = "description", nullable = false)
     private String description;
 }

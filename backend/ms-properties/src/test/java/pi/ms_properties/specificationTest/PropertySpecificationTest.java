@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.ActiveProfiles;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.PropertySpecification;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +19,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class PropertySpecificationTest {
 
     @Autowired
@@ -32,7 +35,7 @@ class PropertySpecificationTest {
         Owner owner = new Owner();
         owner.setFirstName("Juan");
         owner.setLastName("Pérez");
-        owner.setMail("juan@mail.com");
+        owner.setEmail("juan@email.com");
         owner.setPhone("123456");
         entityManager.persist(owner);
 
@@ -48,6 +51,8 @@ class PropertySpecificationTest {
         neighborhood.setName("Centro");
         neighborhood.setCity("Córdoba");
         neighborhood.setType(NeighborhoodType.ABIERTO);
+        neighborhood.setLatitude(-34.6037);
+        neighborhood.setLongitude(-58.3816);
         entityManager.persist(neighborhood);
 
         Amenity pileta = new Amenity();
@@ -63,9 +68,9 @@ class PropertySpecificationTest {
         property.setBedrooms(3f);
         property.setArea(120f);
         property.setCoveredArea(100f);
-        property.setPrice(95000f);
+        property.setPrice(BigDecimal.valueOf(150000.0));
         property.setShowPrice(true);
-        property.setExpenses(2000f);
+        property.setExpenses(BigDecimal.valueOf(2000));
         property.setDescription("Casa con pileta en el centro de Córdoba");
         property.setDate(LocalDateTime.now());
         property.setStatus(Status.DISPONIBLE);
@@ -73,6 +78,7 @@ class PropertySpecificationTest {
         property.setCurrency(Currency.ARS);
         property.setCredit(true);
         property.setFinancing(false);
+        property.setOutstanding(false);
         property.setOwner(owner);
         property.setNeighborhood(neighborhood);
         property.setType(type);
@@ -86,8 +92,8 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByPriceRange() {
-        Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(90000f))
-                .and(PropertySpecification.hasPriceTo(100000f));
+        Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(BigDecimal.valueOf(90000)))
+                .and(PropertySpecification.hasPriceTo(BigDecimal.valueOf(150000.0)));
         List<Property> results = propertyRepository.findAll(spec);
         assertEquals(1, results.size());
     }
@@ -109,14 +115,14 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByCity() {
-        Specification<Property> spec = PropertySpecification.hasCity("córdoba");
+        Specification<Property> spec = PropertySpecification.hasCity(List.of("córdoba"));
         List<Property> results = propertyRepository.findAll(spec);
         assertEquals(1, results.size());
     }
 
     @Test
     void shouldReturnPropertyByNeighborhood() {
-        Specification<Property> spec = PropertySpecification.hasNeighborhood("centro");
+        Specification<Property> spec = PropertySpecification.hasNeighborhood(List.of("centro"));
         List<Property> results = propertyRepository.findAll(spec);
         assertFalse(results.isEmpty());
     }
@@ -138,7 +144,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByRooms() {
-        Specification<Property> spec = PropertySpecification.hasRooms(3f);
+        Specification<Property> spec = PropertySpecification.hasRooms(List.of(3f));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.contains(testProperty));
     }
@@ -152,7 +158,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnPropertyByType() {
-        Specification<Property> spec = PropertySpecification.hasType("casa");
+        Specification<Property> spec = PropertySpecification.hasType(List.of("casa"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.contains(testProperty));
     }
@@ -172,11 +178,18 @@ class PropertySpecificationTest {
         assertTrue(results.isEmpty());
     }
 
+    @Test
+    void shouldReturnPropertyByCurrency() {
+        Specification<Property> spec = PropertySpecification.hasCurrency(Currency.ARS);
+        List<Property> results = propertyRepository.findAll(spec);
+        assertTrue(results.contains(testProperty));
+    }
+
     // casos de error
 
     @Test
     void shouldReturnEmptyWhenPriceTooLow() {
-        Specification<Property> spec = PropertySpecification.hasPriceFrom(200000f);
+        Specification<Property> spec = PropertySpecification.hasPriceFrom(BigDecimal.valueOf(200000));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
@@ -197,7 +210,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenCityDoesNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasCity("Buenos Aires");
+        Specification<Property> spec = PropertySpecification.hasCity(List.of("Buenos Aires"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
@@ -218,7 +231,7 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenRoomsDoNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasRooms(5f);
+        Specification<Property> spec = PropertySpecification.hasRooms(List.of(5f));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
@@ -232,14 +245,14 @@ class PropertySpecificationTest {
 
     @Test
     void shouldReturnEmptyWhenTypeDoesNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasType("departamento");
+        Specification<Property> spec = PropertySpecification.hasType(List.of("departamento"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }
 
     @Test
     void shouldReturnEmptyWhenNeighborhoodTypeDoesNotMatch() {
-        Specification<Property> spec = PropertySpecification.hasNeighborhoodType("cerrado");
+        Specification<Property> spec = PropertySpecification.hasNeighborhoodType(List.of("cerrado"));
         List<Property> results = propertyRepository.findAll(spec);
         assertTrue(results.isEmpty());
     }

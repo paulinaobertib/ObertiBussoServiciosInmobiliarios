@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.InquiryController;
 import pi.ms_properties.domain.Inquiry;
 import pi.ms_properties.domain.InquiryStatus;
+import pi.ms_properties.dto.InquiryGetDTO;
 import pi.ms_properties.dto.InquirySaveDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.interf.IInquiryService;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -83,12 +85,28 @@ class InquiryControllerTest {
         sampleInquiry.setProperties(List.of());
     }
 
+    private InquiryGetDTO sampleInquiryGetDTO() {
+        InquiryGetDTO dto = new InquiryGetDTO();
+        dto.setId(1L);
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
+        dto.setEmail("john@example.com");
+        dto.setPhone("123456789");
+        dto.setTitle("Consulta");
+        dto.setDescription("Descripción");
+        dto.setStatus(InquiryStatus.ABIERTA);
+        dto.setDate(LocalDateTime.now());
+        dto.setDateClose(null);
+        dto.setPropertyTitles(List.of("Propiedad 1", "Propiedad 2"));
+        return dto;
+    }
+
     // casos de exito
 
     @Test
     @WithMockUser(roles = "user")
     void createInquiry_success() throws Exception {
-        Mockito.when(inquiryService.create(any())).thenReturn(ResponseEntity.ok("Creada"));
+        when(inquiryService.create(any())).thenReturn(ResponseEntity.ok("Creada"));
 
         mockMvc.perform(post("/inquiries/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -98,21 +116,9 @@ class InquiryControllerTest {
     }
 
     @Test
-    void createWithoutUser_success() throws Exception {
-        Mockito.when(inquiryService.createWithoutUser(any()))
-                .thenReturn(ResponseEntity.ok("Creada sin user"));
-
-        mockMvc.perform(post("/inquiries/createWithoutUser")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(sampleDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Creada sin user"));
-    }
-
-    @Test
     @WithMockUser(roles = "admin")
     void updateStatus_success() throws Exception {
-        Mockito.when(inquiryService.updateStatus(1L))
+        when(inquiryService.updateStatus(1L))
                 .thenReturn(ResponseEntity.ok("Actualizada"));
 
         mockMvc.perform(put("/inquiries/status/1"))
@@ -123,52 +129,90 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void getById_success() throws Exception {
-        Mockito.when(inquiryService.getById(1L))
-                .thenReturn(ResponseEntity.ok(sampleInquiry));
+        InquiryGetDTO sampleDTO = new InquiryGetDTO();
+        sampleDTO.setId(1L);
+        sampleDTO.setFirstName("Juan");
+        sampleDTO.setLastName("Pérez");
+        sampleDTO.setEmail("juan@example.com");
+        sampleDTO.setPhone("123456789");
+        sampleDTO.setTitle("Consulta");
+        sampleDTO.setDescription("Descripción");
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+        sampleDTO.setDate(LocalDateTime.now());
+        sampleDTO.setPropertyTitles(List.of("Propiedad A"));
+
+        when(inquiryService.getById(1L))
+                .thenReturn(ResponseEntity.ok(sampleDTO));
 
         mockMvc.perform(get("/inquiries/getById/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.firstName").value("Juan"))
+                .andExpect(jsonPath("$.propertyTitles[0]").value("Propiedad A"));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getAll_success() throws Exception {
-        Mockito.when(inquiryService.getAll())
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+        InquiryGetDTO sampleDTO = new InquiryGetDTO();
+        sampleDTO.setId(1L);
+        sampleDTO.setFirstName("Juan");
+        sampleDTO.setLastName("Pérez");
+        sampleDTO.setEmail("juan@example.com");
+        sampleDTO.setPhone("123456789");
+        sampleDTO.setTitle("Consulta");
+        sampleDTO.setDescription("Descripción");
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+        sampleDTO.setDate(LocalDateTime.now());
+        sampleDTO.setPropertyTitles(List.of("Propiedad A"));
+
+        when(inquiryService.getAll())
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].firstName").value("Juan"))
+                .andExpect(jsonPath("$[0].propertyTitles[0]").value("Propiedad A"));
     }
 
     @Test
     @WithMockUser(roles = "user")
     void getByUserId_success() throws Exception {
-        Mockito.when(inquiryService.getByUserId("user123"))
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+        InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
+        when(inquiryService.getByUserId("user123"))
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/user/user123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleDTO.getId()))
+                .andExpect(jsonPath("$[0].firstName").value(sampleDTO.getFirstName()));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getByStatus_success() throws Exception {
-        Mockito.when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
-                .thenReturn(ResponseEntity.ok(List.of(sampleInquiry)));
+        InquiryGetDTO sampleDTO = sampleInquiryGetDTO();
+        sampleDTO.setStatus(InquiryStatus.ABIERTA);
+
+        when(inquiryService.getByStatus(InquiryStatus.ABIERTA))
+                .thenReturn(ResponseEntity.ok(List.of(sampleDTO)));
 
         mockMvc.perform(get("/inquiries/getByStatus")
                         .param("status", "ABIERTA"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(sampleDTO.getId()))
+                .andExpect(jsonPath("$[0].status").value("ABIERTA"));
     }
 
     @Test
     @WithMockUser(roles = "admin")
     void getInquiriesPerMonth_success() throws Exception {
         Map<YearMonth, Long> stats = Map.of(YearMonth.of(2024, 5), 12L);
-        Mockito.when(inquiryService.getInquiriesPerMonth())
+        when(inquiryService.getInquiriesPerMonth())
                 .thenReturn(ResponseEntity.ok(stats));
 
         mockMvc.perform(get("/inquiries/statistics/month"))
@@ -180,7 +224,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiryStatusDistribution_success() throws Exception {
         Map<String, Long> data = Map.of("ABIERTA", 5L, "CERRADA", 3L);
-        Mockito.when(inquiryService.getInquiryStatusDistribution()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getInquiryStatusDistribution()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/status"))
                 .andExpect(status().isOk())
@@ -192,7 +236,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_success() throws Exception {
         Map<String, Long> data = Map.of("MONDAY", 4L, "TUESDAY", 2L);
-        Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getInquiriesGroupedByDayOfWeek()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/week"))
                 .andExpect(status().isOk())
@@ -203,7 +247,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByTimeRange_success() throws Exception {
         Map<String, Long> data = Map.of("08:00-12:00", 10L);
-        Mockito.when(inquiryService.getInquiriesGroupedByTimeRange()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getInquiriesGroupedByTimeRange()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/time"))
                 .andExpect(status().isOk())
@@ -214,7 +258,7 @@ class InquiryControllerTest {
     @WithMockUser(roles = "admin")
     void getMostConsultedProperties_success() throws Exception {
         Map<String, Long> data = Map.of("Casa en Córdoba", 7L);
-        Mockito.when(inquiryService.getMostConsultedProperties()).thenReturn(ResponseEntity.ok(data));
+        when(inquiryService.getMostConsultedProperties()).thenReturn(ResponseEntity.ok(data));
 
         mockMvc.perform(get("/inquiries/statistics/properties"))
                 .andExpect(status().isOk())
@@ -224,12 +268,29 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getAverageInquiryResponseTime_success() throws Exception {
-        Mockito.when(inquiryService.getAverageInquiryResponseTime())
+        when(inquiryService.getAverageInquiryResponseTime())
                 .thenReturn(ResponseEntity.ok("3 días promedio"));
 
         mockMvc.perform(get("/inquiries/statistics/duration"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("3 días promedio"));
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void getByPropertyId_success() throws Exception {
+        Long propertyId = 1L;
+
+        InquiryGetDTO dto = sampleInquiryGetDTO();
+
+        when(inquiryService.getByPropertyId(propertyId))
+                .thenReturn(ResponseEntity.ok(List.of(dto)));
+
+        mockMvc.perform(get("/inquiries/property/{propertyId}", propertyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].id").value(dto.getId()))
+                .andExpect(jsonPath("$[0].firstName").value(dto.getFirstName()));
     }
 
     // casos de error
@@ -262,7 +323,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getInquiriesGroupedByDayOfWeek_internalServerError() throws Exception {
-        Mockito.when(inquiryService.getInquiriesGroupedByDayOfWeek())
+        when(inquiryService.getInquiriesGroupedByDayOfWeek())
                 .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
 
         mockMvc.perform(get("/inquiries/statistics/week"))
@@ -272,7 +333,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "user")
     void createInquiry_internalServerError() throws Exception {
-        Mockito.when(inquiryService.create(any()))
+        when(inquiryService.create(any()))
                 .thenReturn(ResponseEntity.internalServerError().build());
 
         mockMvc.perform(post("/inquiries/create")
@@ -284,7 +345,7 @@ class InquiryControllerTest {
     @Test
     @WithMockUser(roles = "admin")
     void getById_notFound() throws Exception {
-        Mockito.when(inquiryService.getById(999L))
+        when(inquiryService.getById(999L))
                 .thenReturn(ResponseEntity.notFound().build());
 
         mockMvc.perform(get("/inquiries/getById/999"))
@@ -297,4 +358,10 @@ class InquiryControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+
+    @Test
+    void getByPropertyId_unauthorized() throws Exception {
+        mockMvc.perform(get("/inquiries/property/1"))
+                .andExpect(status().isUnauthorized());
+    }
 }

@@ -1,11 +1,11 @@
-import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL;
 import { Amenity, AmenityCreate } from "../types/amenity";
+import { api } from "../../../api";
 
 export const getAllAmenities = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/amenity/getAll`);
+    const response = await api.get(`/properties/amenity/getAll`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching amenities:", error);
@@ -15,9 +15,9 @@ export const getAllAmenities = async () => {
 
 export const getAmenityById = async (id: number) => {
   try {
-    const response = await axios.get(
-      `${apiUrl}/properties/amenity/getById/${id}`
-    );
+    const response = await api.get(`/properties/amenity/getById/${id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error fetching amenity with ID ${id}:`, error);
@@ -27,15 +27,10 @@ export const getAmenityById = async (id: number) => {
 
 export const postAmenity = async (amenityData: AmenityCreate) => {
   try {
-    const response = await axios.post(
-      `${apiUrl}/properties/amenity/create`,
-      null,
-      {
-        params: {
-          name: amenityData.name,
-        },
-      }
-    );
+    const response = await api.post(`/properties/amenity/create`, null, {
+      params: { name: amenityData.name },
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating amenity:", error);
@@ -45,10 +40,9 @@ export const postAmenity = async (amenityData: AmenityCreate) => {
 
 export const putAmenity = async (amenityData: Amenity) => {
   try {
-    const response = await axios.put(
-      `${apiUrl}/properties/amenity/update`,
-      amenityData
-    );
+    const response = await api.put(`/properties/amenity/update`, amenityData, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error saving amenity:", error);
@@ -58,8 +52,9 @@ export const putAmenity = async (amenityData: Amenity) => {
 
 export const deleteAmenity = async (amenityData: Amenity) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/properties/amenity/delete/${amenityData.id}`
+    const response = await api.delete(
+      `/properties/amenity/delete/${amenityData.id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -68,3 +63,15 @@ export const deleteAmenity = async (amenityData: Amenity) => {
   }
 };
 
+export const getAmenitiesByText = async (search: string) => {
+  try {
+    const { data } = await api.get<Amenity[]>(`/properties/amenity/search`, {
+      params: { search },
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error searching by text:", error);
+    throw error;
+  }
+};

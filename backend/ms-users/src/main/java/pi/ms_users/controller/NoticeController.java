@@ -1,12 +1,17 @@
 package pi.ms_users.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pi.ms_users.domain.Notice;
-import pi.ms_users.service.impl.NoticeService;
+import org.springframework.web.multipart.MultipartFile;
+import pi.ms_users.dto.NoticeDTO;
+import pi.ms_users.dto.NoticeGetDTO;
+import pi.ms_users.service.interf.INoticeService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -14,18 +19,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoticeController {
 
-    private final NoticeService noticeService;
+    private final INoticeService noticeService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
-    public ResponseEntity<String> create(@RequestBody Notice notice) {
-        return noticeService.create(notice);
+    public ResponseEntity<String> create(@RequestParam("userId") String userId, @RequestParam("title") String title, @RequestParam("mainImage") MultipartFile mainImage, @RequestParam("description") String description) {
+        NoticeDTO noticeDTO = new NoticeDTO(null, userId, LocalDateTime.now(), title, mainImage, description);
+        return noticeService.create(noticeDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
-    @PutMapping("/update")
-    public ResponseEntity<String> update(@RequestBody Notice notice) {
-        return noticeService.update(notice);
+    @PutMapping("/update/{id}")
+    public ResponseEntity<String> update(@PathVariable Long id, @RequestParam("userId") String userId, @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date, @RequestParam("title") String title, @RequestParam(value = "mainImage", required = false) MultipartFile mainImage, @RequestParam("description") String description) {
+        NoticeDTO noticeDTO = new NoticeDTO(id, userId, date, title, mainImage, description);
+        return noticeService.update(noticeDTO);
     }
 
     @PreAuthorize("hasRole('admin')")
@@ -35,17 +42,17 @@ public class NoticeController {
     }
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<Notice> getById(@PathVariable Long id) {
+    public ResponseEntity<NoticeGetDTO> getById(@PathVariable Long id) {
         return noticeService.getById(id);
     }
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<Notice>> getAll() {
+    public ResponseEntity<List<NoticeGetDTO>> getAll() {
         return noticeService.getAll();
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Notice>> search(@RequestParam String text) {
+    public ResponseEntity<List<NoticeGetDTO>> search(@RequestParam String text) {
         return noticeService.search(text);
     }
 }

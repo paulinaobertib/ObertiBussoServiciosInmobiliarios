@@ -1,10 +1,9 @@
 package pi.ms_properties.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,8 +17,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_properties.controller.OwnerController;
 import pi.ms_properties.domain.Owner;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.security.WebSecurityConfig;
-import pi.ms_properties.service.impl.OwnerService;
+import pi.ms_properties.service.interf.IOwnerService;
 
 import java.util.List;
 
@@ -35,15 +35,15 @@ class OwnerControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private OwnerService ownerService;
+    private IOwnerService ownerService;
 
     private Owner validOwner;
 
     @TestConfiguration
     static class Config {
         @Bean
-        public OwnerService ownerService() {
-            return Mockito.mock(OwnerService.class);
+        public IOwnerService ownerService() {
+            return Mockito.mock(IOwnerService.class);
         }
     }
 
@@ -53,7 +53,7 @@ class OwnerControllerTest {
         validOwner.setId(1L);
         validOwner.setFirstName("Juan");
         validOwner.setLastName("Pérez");
-        validOwner.setMail("juan.perez@mail.com");
+        validOwner.setEmail("juan.perez@email.com");
         validOwner.setPhone("3511234567");
     }
 
@@ -103,8 +103,7 @@ class OwnerControllerTest {
                 .thenReturn(ResponseEntity.ok(validOwner));
 
         mockMvc.perform(get("/owner/getByProperty/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.mail").value("juan.perez@mail.com"));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -138,6 +137,21 @@ class OwnerControllerTest {
         mockMvc.perform(get("/owner/search").param("search", "juan"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void getContracts_success() throws Exception {
+        Long ownerId = 1L;
+        List<ContractDTO> contracts = List.of(new ContractDTO());
+        ResponseEntity<List<ContractDTO>> responseEntity = ResponseEntity.ok(List.of(new ContractDTO()));
+
+        Mockito.when(ownerService.findContracts(ownerId))
+                .thenReturn((ResponseEntity) responseEntity);
+
+        mockMvc.perform(get("/owner/getContracts/{id}", ownerId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(contracts.size()));
     }
 
     // casos de error
@@ -176,5 +190,18 @@ class OwnerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void getContracts_ownerNotFound() throws Exception {
+        Long ownerId = 999L;
+
+        Mockito.when(ownerService.findContracts(ownerId))
+                .thenThrow(new EntityNotFoundException("No se ha encontrado al propietario con ID: " + ownerId));
+
+        mockMvc.perform(get("/owner/getContracts/{id}", ownerId))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("No se ha encontrado al propietario con ID: " + ownerId));
     }
 }

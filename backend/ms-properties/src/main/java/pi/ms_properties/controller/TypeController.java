@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Type;
-import pi.ms_properties.service.impl.TypeService;
+import pi.ms_properties.service.interf.ITypeService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/type")
 public class TypeController {
 
-    private final TypeService typeService;
+    private final ITypeService typeService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -42,5 +42,11 @@ public class TypeController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<Type> getById(@PathVariable Long id) {
         return typeService.getById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/search")
+    public ResponseEntity<List<Type>> searchType(@RequestParam String search) {
+        return typeService.findBy(search);
     }
 }

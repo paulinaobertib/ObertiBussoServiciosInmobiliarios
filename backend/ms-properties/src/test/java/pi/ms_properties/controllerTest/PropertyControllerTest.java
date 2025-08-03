@@ -1,26 +1,22 @@
 package pi.ms_properties.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import pi.ms_properties.controller.PropertyController;
+import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Status;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
@@ -29,6 +25,7 @@ import pi.ms_properties.dto.PropertyUpdateDTO;
 import pi.ms_properties.security.WebSecurityConfig;
 import pi.ms_properties.service.impl.PropertyService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PropertyController.class)
@@ -111,11 +109,27 @@ class PropertyControllerTest {
 
     @Test
     @WithMockUser(roles = "admin")
+    void testUpdatePropertyOutstanding() throws Exception {
+        Long propertyId = 1L;
+        Boolean outstanding = true;
+
+        when(propertyService.updateOutstanding(propertyId, outstanding))
+                .thenReturn(ResponseEntity.ok("Se ha actualizado la prioridad de la propiedad."));
+
+        mockMvc.perform(put("/property/outstanding/{id}", propertyId)
+                        .param("outstanding", outstanding.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Se ha actualizado la prioridad de la propiedad."));
+    }
+
+    @Test
+    @WithMockUser(roles = "admin")
     void testGetAll() {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAll()).thenReturn(ResponseEntity.ok(list));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAll();
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Test
@@ -123,7 +137,7 @@ class PropertyControllerTest {
         List<PropertyDTO> list = new ArrayList<>();
         when(propertyService.getAllUsers()).thenReturn(ResponseEntity.ok(list));
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAllUsers();
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Test
@@ -144,12 +158,8 @@ class PropertyControllerTest {
 
     @Test
     void testSearchProperties() {
-        when(propertyService.findBy(anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyString(), anyString(), anyList(), anyString(), anyString(), anyString(), any(), any()))
-                .thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
-
-        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(
-                0, 100000, 0, 300, 0, 200, 3, "venta", "casa",
-                List.of("pileta"), "cordoba", "centro", "urbano", true, false);
+        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(), anyBoolean(), anyBoolean(), any(Currency.class))).thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
+        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, List.of(3f), "venta", List.of("casa"), List.of("pileta"), List.of("cordoba"), List.of("centro"), List.of("urbano"), true, false, Currency.ARS);
         assertEquals(1, response.getBody().size());
     }
 
@@ -229,6 +239,17 @@ class PropertyControllerTest {
     @WithMockUser(roles = "user")
     void getByStatus_shouldReturnForbidden_whenNotAdmin() throws Exception {
         mockMvc.perform(get("/property/getByStatus").param("status", "DISPONIBLE"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void testUpdatePropertyOutstanding_forbidden() throws Exception {
+        Long propertyId = 1L;
+
+        mockMvc.perform(put("/property/outstanding/{id}", propertyId)
+                        .param("outstanding", "true")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
     }
 }
