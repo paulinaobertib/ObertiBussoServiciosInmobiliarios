@@ -15,7 +15,7 @@ eureka:
 spring:
   application:
     name: ms-users
-    
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -58,22 +58,22 @@ pi:
 
 logging:
   level:
-    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG 
+    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
-    org.springframework.orm.jpa: DEBUG     
+    org.springframework.orm.jpa: DEBUG
 
 ---
 
 # Configuración para perfil "test" - Ver si esto sirve aca
-# spring:
-#   config:
-#     activate:
-#       on-profile: test
-#   datasource:
-#     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-#     driver-class-name: org.h2.Driver
-#     username: sa
-#     password:
-#   jpa:
-#     hibernate:
-#       ddl-auto: create-drop
+spring:
+   config:
+     activate:
+       on-profile: test
+   datasource:
+     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+     driver-class-name: org.h2.Driver
+     username: sa
+    password:
+   jpa:
+     hibernate:
+       ddl-auto: create-drop
