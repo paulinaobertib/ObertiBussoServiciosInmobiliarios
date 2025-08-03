@@ -16,24 +16,19 @@ spring:
   application:
     name: ms-properties
 
-# MOMENTANEO MIENTRAS NO ESTA EL FRONTEND LISTO EN SU PROPIO PIPELINE
-  # config:
-  #   ignore-unresolvable-placeholders: true
-
   # configuracion de la base de datos
   datasource:
-    url: ${DATASOURCE_URL}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: update # ver si se puede poner none
 
-  # configuracion del tamaño maximo de archivos
   servlet:
     multipart:
       max-file-size: 25MB
@@ -57,3 +52,38 @@ email:
 
 frontend:
   base-url: ${SWA_FRONTEND}
+
+client: # Cambiar a Variable de Entorno
+  secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
+
+ml:  # Cambiar a Variable de Entorno
+  api:
+    url: http://localhost:8000
+
+gemini:  # Cambiar a Variable de Entorno
+  api: 
+    key: AIzaSyDZSRdvhSrsFHSiQ2YY6xWd9yEoEuJObDI
+
+logging:
+  level:
+    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG 
+    org.hibernate.type.descriptor.sql: TRACE
+    org.springframework.orm.jpa: DEBUG     
+
+---
+
+
+# Configuración para perfil "test" - Ver este si hace falta
+# spring:
+#   config:
+#     activate:
+#       on-profile: test
+#   datasource:
+#     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+#     driver-class-name: org.h2.Driver
+#     username: sa
+#     password:
+#   jpa:
+#     hibernate:
+#       ddl-auto: create-drop
+#     database-platform: org.hibernate.dialect.H2Dialect

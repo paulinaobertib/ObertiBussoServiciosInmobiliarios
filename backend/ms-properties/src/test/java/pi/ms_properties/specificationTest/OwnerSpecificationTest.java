@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.ActiveProfiles;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.repository.IOwnerRepository;
 import pi.ms_properties.specification.OwnerSpecification;
@@ -15,6 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class OwnerSpecificationTest {
 
     @Autowired
@@ -28,13 +30,13 @@ class OwnerSpecificationTest {
         Owner owner1 = new Owner();
         owner1.setFirstName("Juan");
         owner1.setLastName("Pérez");
-        owner1.setMail("juan@example.com");
+        owner1.setEmail("juan@example.com");
         owner1.setPhone("123456");
 
         Owner owner2 = new Owner();
         owner2.setFirstName("Ana");
         owner2.setLastName("García");
-        owner2.setMail("ana@example.com");
+        owner2.setEmail("ana@example.com");
         owner2.setPhone("654321");
 
         entityManager.persist(owner1);

@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Owner;
-import pi.ms_properties.service.impl.OwnerService;
+import pi.ms_properties.service.interf.IOwnerService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/owner")
 public class OwnerController {
 
-    private final OwnerService ownerService;
+    private final IOwnerService ownerService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -56,5 +56,11 @@ public class OwnerController {
     @GetMapping("/search")
     public ResponseEntity<List<Owner>> searchOwners(@RequestParam String search) {
         return ownerService.findBy(search);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/getContracts/{id}")
+    public ResponseEntity<?> getContracts(@PathVariable Long id) {
+        return ownerService.findContracts(id);
     }
 }

@@ -1,5 +1,6 @@
 package pi.ms_properties.serviceTest;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,15 +13,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Owner;
 import pi.ms_properties.domain.Property;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.repository.IOwnerRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.feign.ContractRepository;
 import pi.ms_properties.service.impl.OwnerService;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -36,7 +38,18 @@ class OwnerServiceTest {
     @Mock
     private IPropertyRepository propertyRepository;
 
+    @Mock
+    private ContractRepository contractRepository;
+
     private Owner owner;
+
+    private Property property1;
+
+    private Property property2;
+
+    private ContractDTO contract1;
+
+    private ContractDTO contract2;
 
     @BeforeEach
     void setUp() {
@@ -44,8 +57,17 @@ class OwnerServiceTest {
         owner.setId(1L);
         owner.setFirstName("John");
         owner.setLastName("Doe");
-        owner.setMail("john.doe@mail.com");
+        owner.setEmail("john.doe@email.com");
         owner.setPhone("123456789");
+
+        property1 = new Property();
+        property1.setId(10L);
+
+        property2 = new Property();
+        property2.setId(20L);
+
+        contract1 = new ContractDTO();
+        contract2 = new ContractDTO();
     }
 
     // casos de exito
@@ -76,7 +98,6 @@ class OwnerServiceTest {
         ResponseEntity<Owner> response = ownerService.updateOwner(owner);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(owner, response.getBody());
         verify(ownerRepository).save(owner);
     }
 
@@ -125,98 +146,23 @@ class OwnerServiceTest {
         assertEquals(1, response.getBody().size());
     }
 
-    // casos de error
-
     @Test
-    void createOwner_DuplicateMail_ReturnsBadRequest() {
-        doThrow(DataIntegrityViolationException.class).when(ownerRepository).save(owner);
-
-        ResponseEntity<String> response = ownerService.createOwner(owner);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains(owner.getMail()));
-    }
-
-    @Test
-    void createOwner_InternalServerError() {
-        doThrow(new RuntimeException("DB error")).when(ownerRepository).save(owner);
-
-        ResponseEntity<String> response = ownerService.createOwner(owner);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido guardar el propietario"));
-    }
-
-    @Test
-    void deleteOwner_NotFound() {
-        when(ownerRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResponseEntity<String> response = ownerService.deleteOwner(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void deleteOwner_InternalServerError() {
-        when(ownerRepository.findById(1L)).thenReturn(Optional.of(owner));
-        doThrow(new RuntimeException("DB error")).when(ownerRepository).deleteById(1L);
-
-        ResponseEntity<String> response = ownerService.deleteOwner(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().contains("No se ha podido eliminar el propietario"));
-    }
-
-    @Test
-    void updateOwner_NotFound() {
-        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.empty());
-
-        ResponseEntity<Owner> response = ownerService.updateOwner(owner);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void updateOwner_InternalServerError() {
+    void findContracts_Success() {
         when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
-        doThrow(new RuntimeException("DB error")).when(ownerRepository).save(owner);
+        when(propertyRepository.findByOwner(owner.getId())).thenReturn(List.of(property1, property2));
+        when(contractRepository.findByPropertyId(property1.getId())).thenReturn(List.of(contract1));
+        when(contractRepository.findByPropertyId(property2.getId())).thenReturn(List.of(contract2));
 
-        ResponseEntity<Owner> response = ownerService.updateOwner(owner);
+        ResponseEntity<List<ContractDTO>> response = ownerService.findContracts(owner.getId());
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertTrue(response.getBody().contains(contract1));
+        assertTrue(response.getBody().contains(contract2));
     }
 
-    @Test
-    void getByPropertyId_PropertyNotFound() {
-        when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResponseEntity<Owner> response = ownerService.getByPropertyId(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void getByPropertyId_OwnerNotFound() {
-        Property property = new Property();
-        property.setId(1L);
-        property.setOwner(owner);
-
-        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
-        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.empty());
-
-        ResponseEntity<Owner> response = ownerService.getByPropertyId(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void getByPropertyId_InternalServerError() {
-        when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected error"));
-
-        ResponseEntity<Owner> response = ownerService.getByPropertyId(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
+    // casos de error
 
     @Test
     void getAll_Empty_ReturnsNoContent() {
@@ -228,40 +174,176 @@ class OwnerServiceTest {
     }
 
     @Test
-    void getAll_InternalServerError() {
-        when(ownerRepository.findAll()).thenThrow(new RuntimeException("Unexpected error"));
+    void createOwner_DuplicateMail_throwsDataIntegrityViolationException() {
+        doThrow(IllegalArgumentException.class).when(ownerRepository).save(owner);
 
-        ResponseEntity<List<Owner>> response = ownerService.getAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(IllegalArgumentException.class, () ->
+                ownerService.createOwner(owner)
+        );
     }
 
     @Test
-    void getById_NotFound() {
+    void createOwner_InternalServerError_throwsRuntimeException() {
+        doThrow(new RuntimeException("DB error")).when(ownerRepository).save(owner);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.createOwner(owner)
+        );
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void deleteOwner_NotFound_throwsEntityNotFoundException() {
         when(ownerRepository.findById(1L)).thenReturn(Optional.empty());
 
-        ResponseEntity<Owner> response = ownerService.getById(1L);
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                ownerService.deleteOwner(1L)
+        );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No existe el propietario con ID: 1", ex.getMessage());
     }
 
     @Test
-    void getById_InternalServerError() {
+    void deleteOwner_InternalServerError_throwsRuntimeException() {
+        when(ownerRepository.findById(1L)).thenReturn(Optional.of(owner));
+        doThrow(new RuntimeException("DB error")).when(ownerRepository).deleteById(1L);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.deleteOwner(1L)
+        );
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void updateOwner_NotFound_throwsEntityNotFoundException() {
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                ownerService.updateOwner(owner)
+        );
+
+        assertEquals("No existe el propietario con ID: 1", ex.getMessage());
+    }
+
+    @Test
+    void updateOwner_InternalServerError_throwsRuntimeException() {
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+        doThrow(new RuntimeException("DB error")).when(ownerRepository).save(owner);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.updateOwner(owner)
+        );
+
+        assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void getByPropertyId_PropertyNotFound_throwsEntityNotFoundException() {
+        when(propertyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                ownerService.getByPropertyId(1L)
+        );
+
+        assertEquals("No existe la propiedad con ID: 1", ex.getMessage());
+    }
+
+    @Test
+    void getByPropertyId_OwnerNotFound_throwsEntityNotFoundException() {
+        Property property = new Property();
+        property.setId(1L);
+        property.setOwner(owner);
+
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(ownerRepository.findById(owner.getId())).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                ownerService.getByPropertyId(1L)
+        );
+
+        assertEquals("No se encontró el propietario para la propiedad", ex.getMessage());
+    }
+
+    @Test
+    void getByPropertyId_InternalServerError_throwsRuntimeException() {
+        when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.getByPropertyId(1L)
+        );
+
+        assertEquals("Unexpected error", ex.getMessage());
+    }
+
+    @Test
+    void getAll_InternalServerError_throwsRuntimeException() {
+        when(ownerRepository.findAll()).thenThrow(new RuntimeException("Unexpected error"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.getAll()
+        );
+
+        assertEquals("Unexpected error", ex.getMessage());
+    }
+
+    @Test
+    void getById_NotFound_throwsEntityNotFoundException() {
+        when(ownerRepository.findById(1L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                ownerService.getById(1L)
+        );
+
+        assertEquals("No existe el propietario con ID: 1", ex.getMessage());
+    }
+
+    @Test
+    void getById_InternalServerError_throwsRuntimeException() {
         when(ownerRepository.findById(1L)).thenThrow(new RuntimeException("Unexpected error"));
 
-        ResponseEntity<Owner> response = ownerService.getById(1L);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.getById(1L)
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Unexpected error", ex.getMessage());
     }
 
     @Test
-    void findBy_InternalServerError() {
+    void findBy_InternalServerError_throwsRuntimeException() {
         when(ownerRepository.findAll(any(Specification.class)))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
-        ResponseEntity<List<Owner>> response = ownerService.findBy("error");
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                ownerService.findBy("error")
+        );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Unexpected error", ex.getMessage());
+    }
+
+    @Test
+    void findContracts_OwnerNotFound() {
+        when(ownerRepository.findById(999L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class,
+                () -> ownerService.findContracts(999L));
+
+        assertEquals("No se ha encontrado al propietario con ID: 999", thrown.getMessage());
+    }
+
+    @Test
+    void createOwner_shouldThrowIllegalArgumentException_whenEmailAlreadyExists() {
+        Owner owner = new Owner();
+        owner.setEmail("john.doe@email.com");
+
+        doThrow(new DataIntegrityViolationException("Duplicate key")).when(ownerRepository).save(owner);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            ownerService.createOwner(owner);
+        });
+
+        assertEquals("El email 'john.doe@email.com' ya existe", exception.getMessage());
     }
 }
 

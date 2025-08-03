@@ -1,21 +1,23 @@
-import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL;
 import { Neighborhood, NeighborhoodCreate } from "../types/neighborhood";
+import { api } from "../../../api";
 
 export const getAllNeighborhoods = async () => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/neighborhood/getAll`);
+    const response = await api.get(`/properties/neighborhood/getAll`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
-    console.error("Error fetching property types:", error);
+    console.error("Error fetching property neighborhoods:", error);
     throw error;
   }
 };
 
 export const getNeighborhoodById = async (id: number) => {
   try {
-    const response = await axios.get(`${apiUrl}/properties/neighborhood/getById/${id}`);
+    const response = await api.get(`/properties/neighborhood/getById/${id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error fetching neighborhood with ID ${id}:`, error);
@@ -27,9 +29,13 @@ export const postNeighborhood = async (
   neighborhoodData: NeighborhoodCreate
 ) => {
   try {
-    const response = await axios.post(
-      `${apiUrl}/properties/neighborhood/create`,
-      neighborhoodData
+    const response = await api.post(
+      `/properties/neighborhood/create`,
+      neighborhoodData,
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      }
     );
     return response.data;
   } catch (error) {
@@ -40,13 +46,12 @@ export const postNeighborhood = async (
 
 export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
   try {
-    const response = await axios.put(
-      `${apiUrl}/properties/neighborhood/update/${neighborhoodData.id}`,
+    const response = await api.put(
+      `/properties/neighborhood/update/${neighborhoodData.id}`,
       neighborhoodData,
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       }
     );
     return response.data;
@@ -58,8 +63,9 @@ export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
 
 export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/properties/neighborhood/delete/${neighborhoodData.id}`
+    const response = await api.delete(
+      `/properties/neighborhood/delete/${neighborhoodData.id}`,
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -68,3 +74,18 @@ export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
   }
 };
 
+export const getNeighborhoodByText = async (search: string) => {
+  try {
+    const { data } = await api.get<Neighborhood[]>(
+      `/properties/neighborhood/search`,
+      {
+        params: { search },
+        withCredentials: true,
+      }
+    );
+    return data;
+  } catch (error) {
+    console.error("Error searching by text:", error);
+    throw error;
+  }
+};

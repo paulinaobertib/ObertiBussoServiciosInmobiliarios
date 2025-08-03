@@ -18,15 +18,18 @@ export interface Property {
   area: number;
   coveredArea: number;
   price: number;
+  expenses: number | null;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
+  outstanding: boolean;
   owner: Owner;
   neighborhood: Neighborhood;
   type: Type;
   amenities: Amenity[];
   mainImage: File | string;
   images: File[];
+  date: string;
 }
 
 export interface PropertyCreate {
@@ -43,9 +46,11 @@ export interface PropertyCreate {
   area: number;
   coveredArea: number;
   price: number;
+  expenses: number | null;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
+  outstanding: boolean;
   ownerId: number;
   neighborhoodId: number;
   typeId: number;
@@ -69,9 +74,11 @@ export interface PropertyUpdate {
   area: number;
   coveredArea: number;
   price: number;
+  expenses: number | null;
   showPrice: boolean;
   credit: boolean;
   financing: boolean;
+  outstanding?: boolean;
   ownerId: number;
   neighborhoodId: number;
   typeId: number;
@@ -79,34 +86,18 @@ export interface PropertyUpdate {
   mainImage: File | string;
 }
 
-export const emptyProperty: Property = {
-  id: 0,
-  title: "",
-  street: "",
-  number: "",
-  description: "",
-  status: "",
-  operation: "",
-  currency: "",
-  rooms: 0,
-  bathrooms: 0,
-  bedrooms: 0,
-  area: 0,
-  coveredArea: 0,
-  price: 0,
-  showPrice: false,
-  credit: false,
-  financing: false,
-  owner: { firstName: "", lastName: "", mail: "", phone: "" } as Owner,
-  neighborhood: { id: 0, name: "", city: "", type: "" } as Neighborhood,
-  type: {
-    id: 0,
-    name: "",
-    hasRooms: false,
-    hasBathrooms: false,
-    hasBedrooms: false,
-  } as Type,
-  amenities: [],
-  mainImage: "",
-  images: [],
-};
+export interface PropertyDTOAI {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  rooms: number;
+  bathrooms: number;
+  bedrooms: number;
+  area: number;
+  coveredArea: number;
+  price: number;
+  operation: string;
+  type: string;
+  amenities: Set<string>;
+}

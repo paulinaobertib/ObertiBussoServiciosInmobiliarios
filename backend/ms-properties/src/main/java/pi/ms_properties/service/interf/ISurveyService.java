@@ -1,5 +1,6 @@
 package pi.ms_properties.service.interf;
 
+import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import pi.ms_properties.dto.SurveyDTO;
 
@@ -9,9 +10,9 @@ import java.util.Map;
 
 
 public interface ISurveyService {
-    ResponseEntity<String> sendSurvey(String emailTo, Long inquiryId);
+    ResponseEntity<String> sendSurvey(String emailTo, Long inquiryId, String token) throws MessagingException;
 
-    ResponseEntity<String> create(SurveyDTO surveyDTO);
+    ResponseEntity<String> create(SurveyDTO surveyDTO, String token);
 
     ResponseEntity<SurveyDTO> getById(Long id);
 

@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_users.domain.Favorite;
-import pi.ms_users.service.impl.FavoriteService;
+import pi.ms_users.service.interf.IFavoriteService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/favorites")
 public class FavoriteController {
 
-    private final FavoriteService favoriteService;
+    private final IFavoriteService favoriteService;
 
     @PreAuthorize("hasRole('user') and !hasRole('admin')")
     @PostMapping("/create")
@@ -32,6 +32,12 @@ public class FavoriteController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Favorite>> getByUserId(@PathVariable String userId) {
         return favoriteService.findByUserId(userId);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/internal/allUser")
+    public List<String> getAllUsers() {
+        return favoriteService.findAllUsers();
     }
 
     @PreAuthorize("hasRole('admin')")

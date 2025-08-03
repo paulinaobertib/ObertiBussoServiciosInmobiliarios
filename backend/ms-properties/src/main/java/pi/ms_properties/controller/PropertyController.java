@@ -5,13 +5,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Status;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
-import pi.ms_properties.service.impl.PropertyService;
+import pi.ms_properties.service.interf.IPropertyService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ import java.util.List;
 @RequestMapping("/property")
 public class PropertyController {
 
-    private final PropertyService propertyService;
+    private final IPropertyService propertyService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -49,6 +51,11 @@ public class PropertyController {
     }
 
     @PreAuthorize("hasRole('admin')")
+    @PutMapping("/outstanding/{id}")
+    public ResponseEntity<String> updatePropertyOutstanding(@PathVariable Long id, @RequestParam Boolean outstanding) {
+        return propertyService.updateOutstanding(id, outstanding);
+    }
+    
     @GetMapping("/getAll")
     public ResponseEntity<List<PropertyDTO>> getAll() {
         return propertyService.getAll();
@@ -70,9 +77,8 @@ public class PropertyController {
         return propertyService.getByStatus(status);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") float priceFrom, @RequestParam(defaultValue = "0") float priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float coveredAreaFrom, @RequestParam(defaultValue = "0") float coveredAreaTo, @RequestParam(defaultValue = "0") float rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(defaultValue = "") String type, @RequestParam(defaultValue = "") List<String> amenities, @RequestParam(defaultValue = "") String city, @RequestParam(defaultValue = "") String neighborhood, @RequestParam(defaultValue = "") String neighborhoodType, @RequestParam(required = false) Boolean credit, @RequestParam(required = false) Boolean financing) {
-        return propertyService.findBy(priceFrom, priceTo, areaFrom, areaTo, coveredAreaFrom, coveredAreaTo, rooms, operation, type, amenities, city, neighborhood, neighborhoodType, credit, financing);
+    @GetMapping("/search") public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") BigDecimal priceFrom, @RequestParam(defaultValue = "0") BigDecimal priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float coveredAreaFrom, @RequestParam(defaultValue = "0") float coveredAreaTo, @RequestParam(required = false) List<Float> rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(required = false) List<String> types, @RequestParam(required = false) List<String> amenities, @RequestParam(required = false) List<String> cities, @RequestParam(required = false) List<String> neighborhoods, @RequestParam(required = false) List<String> neighborhoodTypes, @RequestParam(required = false) Boolean credit, @RequestParam(required = false) Boolean financing, @RequestParam(required = false) Currency currency) {
+        return propertyService.findBy(priceFrom, priceTo, areaFrom, areaTo, coveredAreaFrom, coveredAreaTo, rooms, operation, types, amenities, cities, neighborhoods, neighborhoodTypes, credit, financing, currency);
     }
 
     @GetMapping("/text")

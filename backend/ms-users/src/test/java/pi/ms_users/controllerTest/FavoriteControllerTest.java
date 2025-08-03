@@ -16,6 +16,7 @@ import pi.ms_users.controller.FavoriteController;
 import pi.ms_users.domain.Favorite;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.impl.FavoriteService;
+import pi.ms_users.service.interf.IFavoriteService;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class FavoriteControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private FavoriteService favoriteService;
+    private IFavoriteService favoriteService;
 
     @TestConfiguration
     static class Config {
@@ -108,6 +109,20 @@ public class FavoriteControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1));
     }
 
+    @Test
+    void getAllUsers_withAdminRole_shouldReturnListOfUsers() throws Exception {
+        List<String> users = List.of("user1", "user2");
+
+        when(favoriteService.findAllUsers()).thenReturn(users);
+
+        mockMvc.perform(get("/favorites/internal/allUser")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(2))
+                .andExpect(jsonPath("$[0]").value("user1"))
+                .andExpect(jsonPath("$[1]").value("user2"));
+    }
+
     // casos de error
 
     @Test
@@ -180,5 +195,12 @@ public class FavoriteControllerTest {
         mockMvc.perform(get("/favorites/property/999")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_admin"))))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAllUsers_withoutAdminRole_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/favorites/internal/allUser")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_user"))))
+                .andExpect(status().isForbidden());
     }
 }

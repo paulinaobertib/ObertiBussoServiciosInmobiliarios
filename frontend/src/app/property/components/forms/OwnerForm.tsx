@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { TextField, Grid, Box, Button } from '@mui/material';
+import { Grid, TextField, Box } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { useCategories } from '../../hooks/useCategories';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 import { Owner, OwnerCreate } from '../../types/owner';
-import { postOwner, putOwner, deleteOwner } from '../../services/owner.service';
-import { usePropertyCrud } from '../../context/PropertiesContext';
-import { useGlobalAlert } from '../../context/AlertContext';
+import { postOwner, putOwner, deleteOwner, } from '../../services/owner.service';
 
 interface Props {
     action: 'add' | 'edit' | 'delete';
@@ -11,64 +11,102 @@ interface Props {
     onDone: () => void;
 }
 
-export default function OwnerForm({ action, item, onDone }: Props) {
-    const { refresh } = usePropertyCrud();
-    const { showAlert } = useGlobalAlert();
+export const OwnerForm = ({ action, item, onDone }: Props) => {
 
-    const [form, setForm] = useState<Owner>({
+    const { refreshOwners } = usePropertiesContext();
+    const initialPayload = {
         id: item?.id ?? 0,
         firstName: item?.firstName ?? '',
         lastName: item?.lastName ?? '',
-        mail: item?.mail ?? '',
+        email: item?.email ?? '',
         phone: item?.phone ?? '',
-    });
-
-    const set = (k: keyof typeof form) => (e: any) =>
-        setForm((f) => ({ ...f, [k]: e.target.value }));
-
-    const invalid =
-        action !== 'delete' &&
-        Object.values(form).some((v) => typeof v === 'string' && v.trim() === '');
-
-    const save = async () => {
-        try {
-            if (action === 'add') {
-                await postOwner({ ...form } as OwnerCreate);
-                showAlert('Propietario creado con éxito!', 'success');
-            }
-            if (action === 'edit' && item) {
-                await putOwner(form);
-                showAlert('Propietario editado con éxito!', 'success');
-            }
-            if (action === 'delete' && item) {
-                await deleteOwner(form);
-                showAlert('Propietario eliminado con éxito!', 'success');
-            }
-
-            await refresh();
-            onDone();
-        } catch {
-            showAlert('Error al trabajar con el propietario', 'error');
-        }
     };
+
+    /** hook genérico */
+    const { form, setForm, invalid, run, loading } = useCategories<Owner>({
+        initial: initialPayload,
+        action,
+        save: async (payload) => {
+            if (action === 'add') return postOwner(payload as OwnerCreate);
+            if (action === 'edit') return putOwner(payload as Owner);
+            if (action === 'delete') return deleteOwner(payload as Owner);
+        },
+        refresh: refreshOwners,
+        onDone,
+    });
 
     return (
         <>
+            {/* overlay de carga */}
+            {loading && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    zIndex={theme => theme.zIndex.modal + 1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                />
+            )}
 
+            {/* campos */}
             <Grid container spacing={2} mb={2}>
-                <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Nombre" value={form.firstName} onChange={set('firstName')} /></Grid>
-                <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Apellido" value={form.lastName} onChange={set('lastName')} /></Grid>
-                <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Mail" value={form.mail} onChange={set('mail')} /></Grid>
-                <Grid size={{ xs: 6 }}><TextField disabled={action === 'delete'} fullWidth label="Teléfono" value={form.phone} onChange={set('phone')} /></Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                        fullWidth
+                        label="Nombre"
+                        disabled={action === 'delete'}
+                        value={form.firstName}
+                        onChange={e => setForm({ ...form, firstName: e.target.value })}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                        fullWidth
+                        label="Apellido"
+                        disabled={action === 'delete'}
+                        value={form.lastName}
+                        onChange={e => setForm({ ...form, lastName: e.target.value })}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                        fullWidth
+                        label="Mail"
+                        disabled={action === 'delete'}
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                        fullWidth
+                        label="Teléfono"
+                        disabled={action === 'delete'}
+                        value={form.phone}
+                        onChange={e => setForm({ ...form, phone: e.target.value })}
+                    />
+                </Grid>
             </Grid>
 
-
+            {/* botón confirmar / eliminar */}
             <Box textAlign="right">
-                <Button variant="contained" onClick={save} disabled={invalid} color={action === 'delete' ? 'error' : 'primary'}>
+                <LoadingButton
+                    onClick={run}
+                    loading={loading}
+                    disabled={invalid || loading}
+                    variant="contained"
+                    color={action === 'delete' ? 'error' : 'primary'}
+                >
                     {action === 'delete' ? 'Eliminar' : 'Confirmar'}
-                </Button>
+                </LoadingButton>
             </Box>
         </>
     );
-}
-
+};

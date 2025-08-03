@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.dto.MaintenanceDTO;
-import pi.ms_properties.service.impl.MaintenanceService;
+import pi.ms_properties.service.interf.IMaintenanceService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/maintenance")
 public class MaintenanceController {
 
-    private final MaintenanceService maintenanceService;
+    private final IMaintenanceService maintenanceService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -34,13 +34,13 @@ public class MaintenanceController {
         return maintenanceService.deleteMaintenance(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<MaintenanceDTO> getById(@PathVariable Long id) {
         return maintenanceService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByPropertyId/{id}")
     public ResponseEntity<List<MaintenanceDTO>> getByPropertyId(@PathVariable Long id) {
         return maintenanceService.getByPropertyId(id);

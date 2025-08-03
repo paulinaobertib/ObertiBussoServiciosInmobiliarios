@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pi.ms_properties.domain.Amenity;
-import pi.ms_properties.service.impl.AmenityService;
+import pi.ms_properties.service.interf.IAmenityService;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/amenity")
 public class AmenityController {
 
-    private final AmenityService amenityService;
+    private final IAmenityService amenityService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -42,5 +42,11 @@ public class AmenityController {
     @GetMapping("/getById/{id}")
     public ResponseEntity<Amenity> getById(@PathVariable Long id) {
         return amenityService.getById(id);
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/search")
+    public ResponseEntity<List<Amenity>> searchAmenity(@RequestParam String search) {
+        return amenityService.findBy(search);
     }
 }

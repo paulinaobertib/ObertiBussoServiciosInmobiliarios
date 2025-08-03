@@ -2,7 +2,7 @@ export interface Neighborhood {
   id: number;
   name: string;
   city: string;
-  type: NeighborhoodType | '';
+  type: NeighborhoodType | "";
 }
 
 export enum NeighborhoodType {
@@ -11,4 +11,4 @@ export enum NeighborhoodType {
   ABIERTO = "ABIERTO",
 }
 
-export type NeighborhoodCreate = Omit<Neighborhood, 'id'>;
+export type NeighborhoodCreate = Omit<Neighborhood, "id">;

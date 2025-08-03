@@ -1,21 +1,28 @@
 package pi.ms_users.serviceTest;
 
-import jakarta.ws.rs.NotFoundException;
+import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
+import pi.ms_users.domain.AvailableAppointment;
 import pi.ms_users.domain.User;
 import pi.ms_users.dto.EmailDTO;
 import pi.ms_users.repository.IAppointmentRepository;
+import pi.ms_users.repository.IAvailableAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.AppointmentService;
-import pi.ms_users.service.impl.EmailService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,30 +43,40 @@ class AppointmentServiceTest {
     private IUserRepository userRepository;
 
     @Mock
-    private EmailService emailService;
+    private IEmailService emailService;
+
+    @Mock
+    private IAvailableAppointmentRepository availableAppointmentRepository;
 
     // casos de exito
 
     @Test
-    void create_success() {
+    void create_success() throws MessagingException {
         Appointment appointment = new Appointment();
         appointment.setUserId("user123");
-        appointment.setDate(LocalDateTime.now());
-        appointment.setStatus(AppointmentStatus.ESPERA);
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setAvailability(true);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
 
         User user = new User();
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
         user.setPhone("123");
         user.setFirstName("Ana");
         user.setLastName("Perez");
 
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
         when(appointmentRepository.save(appointment)).thenReturn(appointment);
 
         ResponseEntity<Appointment> response = appointmentService.create(appointment);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(appointment, response.getBody());
+        verify(availableAppointmentRepository).save(any());
+        verify(appointmentRepository).save(appointment);
         verify(emailService).sendAppointmentRequest(any(EmailDTO.class));
     }
 
@@ -68,20 +85,31 @@ class AppointmentServiceTest {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
-        appointment.setDate(LocalDateTime.now());
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setAvailability(false);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
 
         User user = new User();
-        user.setMail("mail@mail.com");
+        user.setEmail("mail@mail.com");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
 
-        ResponseEntity<String> response = appointmentService.delete(1L);
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(false);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha eliminado el turno", response.getBody());
-        verify(emailService).sendAppointmentCancelledMail(any(EmailDTO.class));
-        verify(appointmentRepository).delete(appointment);
+            ResponseEntity<String> response = appointmentService.delete(1L);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha eliminado el turno", response.getBody());
+            verify(emailService).sendAppointmentCancelledMail(any(EmailDTO.class));
+            verify(appointmentRepository).delete(appointment);
+            verify(availableAppointmentRepository).save(any());
+        }
     }
 
     @Test
@@ -89,20 +117,25 @@ class AppointmentServiceTest {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
-        appointment.setDate(LocalDateTime.now());
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
 
         User user = new User();
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
         user.setFirstName("Ana");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Se ha actualizado el estado del turno", response.getBody());
-        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), true, "Ana", appointment.getDate());
+        verify(emailService).sendAppointmentDecisionToClient(appointment.getId(), user.getEmail(), true, user.getFirstName(), available.getDate(), "Address");
     }
 
     @Test
@@ -110,32 +143,78 @@ class AppointmentServiceTest {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
-        appointment.setDate(LocalDateTime.now());
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setAvailability(false);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
 
         User user = new User();
-        user.setMail("user@mail.com");
+        user.setEmail("user@mail.com");
         user.setFirstName("Ana");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO);
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(emailService).sendAppointmentDecisionToClient(user.getMail(), false, "Ana", appointment.getDate());
+        verify(availableAppointmentRepository).save(available);
+        verify(emailService).sendAppointmentDecisionToClient(appointment.getId(), user.getEmail(), false, user.getFirstName(), available.getDate(), null);
+    }
+
+    @Test
+    void updateStatus_cancelaTurnoPrevioAceptado_enviaEmailDisculpa() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+        appointment.setStatus(AppointmentStatus.ACEPTADO);
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setAvailability(false);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
+
+        User user = new User();
+        user.setEmail("user@mail.com");
+        user.setFirstName("Ana");
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
+
+        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.RECHAZADO, "Address");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Se ha actualizado el estado del turno", response.getBody());
+
+        assertEquals(AppointmentStatus.RECHAZADO, appointment.getStatus());
+
+        verify(appointmentRepository).save(appointment);
+        verify(availableAppointmentRepository).save(available);
+
+        verify(emailService).sendApologyForCancelledAppointment(appointment.getId(), user.getEmail(), user.getFirstName(), available.getDate());
     }
 
     @Test
     void findById_success() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
+        appointment.setUserId("user123");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
 
-        ResponseEntity<Appointment> response = appointmentService.findById(1L);
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(true);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(appointment, response.getBody());
+            ResponseEntity<Appointment> response = appointmentService.findById(1L);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(appointment, response.getBody());
+        }
     }
 
     @Test
@@ -146,7 +225,6 @@ class AppointmentServiceTest {
 
         ResponseEntity<List<Appointment>> response = appointmentService.findAll();
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(appointments, response.getBody());
     }
 
@@ -156,149 +234,149 @@ class AppointmentServiceTest {
 
         when(appointmentRepository.findByUserId("user123")).thenReturn(appointments);
 
-        ResponseEntity<List<Appointment>> response = appointmentService.findByUserId("user123");
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(true);
+
+            ResponseEntity<List<Appointment>> response = appointmentService.findByUserId("user123");
+
+            assertEquals(appointments, response.getBody());
+        }
+    }
+
+    @Test
+    void findByStatus_success() {
+        AppointmentStatus status = AppointmentStatus.ESPERA;
+
+        Appointment a1 = new Appointment();
+        a1.setId(1L);
+        a1.setUserId("user1");
+        a1.setStatus(status);
+
+        Appointment a2 = new Appointment();
+        a2.setId(2L);
+        a2.setUserId("user2");
+        a2.setStatus(status);
+
+        List<Appointment> mockList = List.of(a1, a2);
+
+        when(appointmentRepository.findByStatus(status)).thenReturn(mockList);
+
+        ResponseEntity<List<Appointment>> response = appointmentService.findByStatus(status);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(appointments, response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals("user1", response.getBody().get(0).getUserId());
+        assertEquals(status, response.getBody().get(1).getStatus());
+
+        verify(appointmentRepository).findByStatus(status);
+    }
+
+    @Test
+    void findByStatus_emptyList() {
+        AppointmentStatus status = AppointmentStatus.RECHAZADO;
+
+        when(appointmentRepository.findByStatus(status)).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<Appointment>> response = appointmentService.findByStatus(status);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+
+        verify(appointmentRepository).findByStatus(status);
     }
 
     // casos de error
 
     @Test
-    void create_userNotFound() {
+    void create_turnoNoDisponible_shouldThrowIllegalStateException() {
         Appointment appointment = new Appointment();
         appointment.setUserId("user123");
 
-        when(userRepository.findById("user123")).thenThrow(new RuntimeException("User not found"));
-
-        ResponseEntity<Appointment> response = appointmentService.create(appointment);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    void create_shouldReturnNotFoundWhenUserRepositoryThrowsNotFoundException() {
-        Appointment appointment = new Appointment();
-        appointment.setUserId("user123");
-
-        when(userRepository.findById("user123")).thenThrow(new NotFoundException("User not found"));
-
-        ResponseEntity<Appointment> response = appointmentService.create(appointment);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-
-    @Test
-    void create_generalException() {
-        Appointment appointment = new Appointment();
-        appointment.setUserId("user123");
+        AvailableAppointment unavailable = new AvailableAppointment();
+        unavailable.setId(10L);
+        unavailable.setAvailability(false);
+        appointment.setAvailableAppointment(unavailable);
 
         when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
-        when(appointmentRepository.save(appointment)).thenThrow(new RuntimeException("DB error"));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(unavailable));
 
-        ResponseEntity<Appointment> response = appointmentService.create(appointment);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertThrows(IllegalStateException.class, () -> appointmentService.create(appointment));
     }
 
     @Test
-    void delete_notFound() {
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResponseEntity<String> response = appointmentService.delete(1L);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el turno", response.getBody());
-    }
-
-    @Test
-    void delete_generalException() {
+    void delete_withDifferentUser_throwsAccessDenied() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        doThrow(new RuntimeException("error")).when(appointmentRepository).delete(appointment);
 
-        ResponseEntity<String> response = appointmentService.delete(1L);
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            assertThrows(AccessDeniedException.class, () -> appointmentService.delete(1L));
+        }
     }
 
     @Test
-    void updateStatus_appointmentNotFound() {
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+    void updateStatus_disponibilidadNoExiste_shouldThrowEntityNotFound() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        appointment.setAvailableAppointment(available);
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado el turno", response.getBody());
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () ->
+                appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address"));
     }
 
     @Test
-    void updateStatus_userNotFound() {
+    void findById_withDifferentUser_throwsAccessDenied() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);
         appointment.setUserId("user123");
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(userRepository.findById("user123")).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("No se ha encontrado al usuario", response.getBody());
+            assertThrows(AccessDeniedException.class, () -> appointmentService.findById(1L));
+        }
     }
 
     @Test
-    void updateStatus_generalException() {
-        Appointment appointment = new Appointment();
-        appointment.setId(1L);
-        appointment.setUserId("user123");
+    void findByUserId_withDifferentUser_throwsAccessDenied() {
+        when(appointmentRepository.findByUserId("user123")).thenReturn(List.of());
 
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(userRepository.findById("user123")).thenThrow(new RuntimeException("DB error"));
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(false);
+            securityMock.when(SecurityUtils::isUser).thenReturn(true);
+            securityMock.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
 
-        ResponseEntity<String> response = appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            assertThrows(AccessDeniedException.class, () -> appointmentService.findByUserId("user123"));
+        }
     }
 
     @Test
-    void findById_notFound() {
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+    void findByStatus_repositoryThrowsException() {
+        AppointmentStatus status = AppointmentStatus.ACEPTADO;
 
-        ResponseEntity<Appointment> response = appointmentService.findById(1L);
+        when(appointmentRepository.findByStatus(status))
+                .thenThrow(new RuntimeException("Fallo en base de datos"));
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
+        assertThrows(RuntimeException.class, () -> appointmentService.findByStatus(status));
 
-    @Test
-    void findById_generalException() {
-        when(appointmentRepository.findById(1L)).thenThrow(new RuntimeException("DB error"));
-
-        ResponseEntity<Appointment> response = appointmentService.findById(1L);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    void findAll_generalException() {
-        when(appointmentRepository.findAll()).thenThrow(new RuntimeException("DB error"));
-
-        ResponseEntity<List<Appointment>> response = appointmentService.findAll();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    void findByUserId_generalException() {
-        when(appointmentRepository.findByUserId("user123")).thenThrow(new RuntimeException("DB error"));
-
-        ResponseEntity<List<Appointment>> response = appointmentService.findByUserId("user123");
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        verify(appointmentRepository).findByStatus(status);
     }
 }
-

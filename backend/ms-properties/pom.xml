@@ -146,18 +146,35 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- para la ejecucion de los test -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
 		<dependency>
 			<groupId>org.jacoco</groupId>
 			<artifactId>jacoco-maven-plugin</artifactId>
 			<version>0.8.12</version>
+		</dependency>
+
+		<!-- para la ejecucion de los test -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>mockwebserver</artifactId>
+			<version>4.12.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.genai</groupId>
+			<artifactId>google-genai</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 
 	</dependencies>
@@ -205,15 +222,18 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0</version>
-				<configuration>
-					<forkCount>1</forkCount>
-					<reuseForks>true</reuseForks>
-				</configuration>
-			</plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>3.0.0</version>
+              <configuration>
+                <forkCount>1</forkCount>
+                <reuseForks>true</reuseForks>
+                <systemPropertyVariables>
+                  <spring.profiles.active>test</spring.profiles.active>
+                </systemPropertyVariables>
+              </configuration>
+            </plugin>  
 		</plugins>
 	</build>
 </project>
