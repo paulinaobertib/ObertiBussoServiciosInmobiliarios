@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - feature/pipelines
-        # - main
+      - feature/pipelines
+      # - main
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -218,7 +218,7 @@ jobs:
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
               "KC_DB=dev-file" \
-              "KC_DB_DEV_FILE_DIR=/home/data/h2" \
+              "KC_DB_FILE_DIR=/home/data/h2" \
               "KC_HTTP_PORT=${{ env.SERVICE_PORT }}" \
               "KC_HEALTH_ENABLED=true" \
               "KC_METRICS_ENABLED=true" \
@@ -241,4 +241,3 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
             --docker-container-logging filesystem
-
