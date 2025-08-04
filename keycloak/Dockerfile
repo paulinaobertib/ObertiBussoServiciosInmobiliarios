@@ -8,7 +8,7 @@ ENV KC_DB=dev-file \
     KC_METRICS_ENABLED=true
 
 WORKDIR /opt/keycloak
-RUN /opt/keycloak/bin/kc.sh build --optimized
+RUN /opt/keycloak/bin/kc.sh build
 
 ####################  STAGE 2 – runtime  ##################
 FROM quay.io/keycloak/keycloak:26.3.2
