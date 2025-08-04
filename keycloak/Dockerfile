@@ -35,7 +35,7 @@ EXPOSE 8080
 ENTRYPOINT ["sh","-c", "\
     mkdir -p ${KC_DB_FILE_DIR} && \
     rm -f ${KC_DB_FILE_DIR}/*.lock.db ${KC_DB_FILE_DIR}/DATABASECHANGELOGLOCK* || true && \
-    exec /opt/keycloak/bin/kc.sh start \
+    exec /opt/keycloak/bin/kc.sh start-dev \
     #    --optimized \
     --db=dev-file \
     #    --http-enabled=true \
