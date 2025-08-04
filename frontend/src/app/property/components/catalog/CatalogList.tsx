@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const CatalogList = ({
-    properties,
+    properties = [],
     selectionMode = false,
     toggleSelection = () => { },
     isSelected = () => false,
@@ -21,15 +21,17 @@ export const CatalogList = ({
 }: Props) => {
     const { isAdmin } = useAuthContext();
 
+    const safeProperties = Array.isArray(properties) ? properties : [];
+
     // 1) Filtrado según permisos
     const filtered = useMemo(
         () =>
             isAdmin
-                ? properties
-                : properties.filter(
+                ? safeProperties
+                : safeProperties.filter(
                     (p) => p.status?.toLowerCase() === 'disponible' || !p.status
                 ),
-        [properties, isAdmin]
+        [safeProperties, isAdmin]
     );
 
     // 2) Ordenar: primero outstanding por fecha, luego el resto por fecha
