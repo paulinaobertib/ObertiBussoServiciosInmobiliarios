@@ -126,15 +126,17 @@ jobs:
             --settings \
               "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" \
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "KC_DB=dev-file" \
+              "KC_DB_FILE_DIR=/home/data/h2" \
               "KC_HTTP_PORT=${{ env.SERVICE_PORT }}" \
-              "KC_HTTP_ENABLED=true" \
-              "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" \
-              "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
-              "KC_METRICS_ENABLED=true" \
               "KC_HEALTH_ENABLED=true" \
+              "KC_METRICS_ENABLED=true" \
               "KC_PROXY=edge" \
               "KC_HOSTNAME_STRICT=false" \
               "KC_PROXY_HEADERS=xforwarded" \
+              "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" \
+              "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
               "KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net"
 
       - name: Reiniciar Web App para aplicar los App Settings
