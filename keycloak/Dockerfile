@@ -36,8 +36,5 @@ ENTRYPOINT ["sh","-c", "\
     mkdir -p ${KC_DB_FILE_DIR} && \
     rm -f ${KC_DB_FILE_DIR}/*.lock.db ${KC_DB_FILE_DIR}/DATABASECHANGELOGLOCK* || true && \
     exec /opt/keycloak/bin/kc.sh start-dev \
-    #    --optimized \
-    --db=dev-file \
-    #    --http-enabled=true \
-    --http-port=${KC_HTTP_PORT} \
-    #    --https-port=-1"]
+      --db=dev-file \
+      --http-port=${KC_HTTP_PORT}"]
