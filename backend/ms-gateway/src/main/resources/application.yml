@@ -11,8 +11,11 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
 frontend:
-  base-url: ${SWA_FRONTEND}
+  base-url:
+    - ${SWA_FRONTEND:}
+    - http://localhost:5173
 
 spring:
   application:
