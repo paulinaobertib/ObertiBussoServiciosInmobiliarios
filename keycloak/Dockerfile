@@ -1,26 +1,35 @@
-FROM quay.io/keycloak/keycloak:26.1.3 AS builder
+ARG KEYCLOAK_VERSION=26.1.3
+
+############################################
+# ETAPA 1 – Build del runtime optimizado
+############################################
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
+
+# Build-time options para incluir driver Postgres, health y métricas
+ENV KC_DB=postgres \
+    KC_HEALTH_ENABLED=true \
+    KC_METRICS_ENABLED=true
 
 WORKDIR /opt/keycloak
 
-RUN /opt/keycloak/bin/kc.sh build
+# Compila una vez el runtime Quarkus
+RUN /opt/keycloak/bin/kc.sh build --cache --optimized
 
-FROM quay.io/keycloak/keycloak:26.1.3
+############################################
+# ETAPA 2 – Imagen final ligera
+############################################
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
-ENV KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN}
-ENV KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-
-ENV KC_DB=postgres
-ENV KC_DB_URL=jdbc:postgresql://ep-proud-lab-a8civfa8-pooler.eastus2.azure.neon.tech:5432/neondb?sslmode=require
-ENV KC_DB_USERNAME=neondb_owner
-ENV KC_DB_PASSWORD=npg_t3buYnI7kPMK
-
-ENV KC_PROXY=edge
-ENV KC_HTTP_PORT=8443
-ENV KC_HTTP_ENABLED=true
-ENV KC_PROXY-HEADERS=xforwarded
-ENV KC_HOSTNAME-STRICT=false
+# Valores por defecto que coinciden con App Settings
+ENV KC_DB=postgres \
+    KC_HTTP_PORT=8443 \
+    KC_HTTP_ENABLED=true \
+    KC_PROXY=edge \
+    KC_PROXY_HEADERS=xforwarded \
+    KC_HOSTNAME_STRICT=false
 
 EXPOSE 8443
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start"]
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+CMD ["start", "--optimized", "--http-port=8443"]
