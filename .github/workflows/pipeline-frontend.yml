@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/pipelinesDetails
+      - feature/pipelines
       # - main
 
 permissions:
