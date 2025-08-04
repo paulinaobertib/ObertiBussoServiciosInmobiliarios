@@ -13,7 +13,7 @@ ENV KC_DB=postgres \
 WORKDIR /opt/keycloak
 
 # Compila una vez el runtime Quarkus
-RUN /opt/keycloak/bin/kc.sh build --cache --optimized
+RUN /opt/keycloak/bin/kc.sh build
 
 ############################################
 # ETAPA 2 – Imagen final ligera
