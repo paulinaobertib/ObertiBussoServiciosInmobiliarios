@@ -22,10 +22,7 @@ export function useNoticeForm(
   });
 
   /* ---------- imágenes ---------- */
-  const {
-    mainImage,
-    setMain,
-  } = useImages(initial?.mainImage ?? null, []);
+  const { mainImage, setMain } = useImages(initial?.mainImage ?? null, []);
 
   /* sincroniza la imagen principal con el form */
   useEffect(() => {

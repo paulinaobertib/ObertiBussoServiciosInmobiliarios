@@ -1,13 +1,17 @@
 server:
   port: ${SERVICE_PORT}
 
+user:
+  service:
+    url: "https://${USER_HOSTNAME}"
+
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
     nonSecurePortEnabled: true
     nonSecurePort: 80
     securePortEnabled: false
-    
+
   client:
     service-url:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
@@ -27,7 +31,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update # ver si se puede poner none
+      ddl-auto: update
 
   servlet:
     multipart:
@@ -61,14 +65,14 @@ ml:  # Cambiar a Variable de Entorno
     url: http://localhost:8000
 
 gemini:  # Cambiar a Variable de Entorno
-  api: 
-    key: AIzaSyDZSRdvhSrsFHSiQ2YY6xWd9yEoEuJObDI
+  api:
+    key: ${API_KEY_GEMINI}
 
 logging:
   level:
-    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG 
+    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
-    org.springframework.orm.jpa: DEBUG     
+    org.springframework.orm.jpa: DEBUG
 
 ---
 

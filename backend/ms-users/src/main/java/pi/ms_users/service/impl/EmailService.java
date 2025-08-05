@@ -34,7 +34,7 @@ public class EmailService implements IEmailService {
 
     private void setEmailContextVariables(Context context, EmailPropertyDTO dto) {
         context.setVariable("date", formatDate(dto.getDate()));
-        String propertyUrl = appProperties.getFrontendBaseUrl() + "?property=" + dto.getPropertyId();
+        String propertyUrl = appProperties.getFrontendBaseUrl() + "/properties/" + dto.getPropertyId();
         context.setVariable("propertyUrl", propertyUrl);
         context.setVariable("propertyDescription", dto.getPropertyDescription());
         context.setVariable("propertyTitle", dto.getPropertyTitle());
@@ -93,7 +93,7 @@ public class EmailService implements IEmailService {
             }
 
             if(!accepted) {
-                String rescheduleUrl = appProperties.getFrontendBaseUrl() + "?turno=" + appointmentId;
+                String rescheduleUrl = appProperties.getFrontendBaseUrl() + "/contact";
                 context.setVariable("rescheduleUrl", rescheduleUrl);
             }
 
@@ -119,7 +119,7 @@ public class EmailService implements IEmailService {
             Context context = new Context();
             context.setVariable("firstName", firstName);
             context.setVariable("date", formatDate(date));
-            String rescheduleUrl = appProperties.getFrontendBaseUrl() + "?turno=" + appointmentId;
+            String rescheduleUrl = appProperties.getFrontendBaseUrl() + "/contact";
             context.setVariable("rescheduleUrl", rescheduleUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -208,6 +208,7 @@ public class EmailService implements IEmailService {
             context.setVariable("name", emailData.getFirstName());
             context.setVariable("username", emailData.getUserName());
             context.setVariable("password", emailData.getPassword());
+            //LINK
             String loginUrl = appProperties.getFrontendBaseUrl() + "/login";
             context.setVariable("loginUrl", loginUrl);
 
@@ -231,7 +232,7 @@ public class EmailService implements IEmailService {
         try {
             Context context = new Context();
             context.setVariable("name", emailData.getFirstName());
-            String contractUrl = appProperties.getFrontendBaseUrl() + "?contract=" + emailData.getContractId();
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract";
             context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -257,7 +258,7 @@ public class EmailService implements IEmailService {
             context.setVariable("amount", emailData.getAmount());
             context.setVariable("frequency", emailData.getFrequency());
             context.setVariable("increase", emailData.getIncrease());
-            String contractUrl = appProperties.getFrontendBaseUrl() + "?contract=" + emailData.getContractId();
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract";
             context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -281,7 +282,8 @@ public class EmailService implements IEmailService {
             Context context = new Context();
             context.setVariable("name", emailData.getFirstName());
             context.setVariable("endDate", emailData.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            context.setVariable("contractUrl", "https://www.obertibusso.com/contratos");
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract";
+            context.setVariable("contractUrl", contractUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

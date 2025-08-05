@@ -2,9 +2,9 @@ name: CI/CD - MS Properties
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelines
+  push:
+    branches:
+      - feature/pipelines
       # - main
 
 permissions:
@@ -137,9 +137,9 @@ jobs:
           docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
           docker push $IMAGE
 
-  # # --------------------------------------------------------------
-  # # JOB 2: Deploy to Development
-  # # --------------------------------------------------------------
+  # --------------------------------------------------------------
+  # JOB 2: Deploy to Development
+  # --------------------------------------------------------------
   deploy-dev:
     name: Deploy to Development
     needs: build-and-push
@@ -219,7 +219,9 @@ jobs:
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
+              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "USER_HOSTNAME=${{ secrets.APP_USERS_DEV }}.azurewebsites.net" \
+              "API_KEY_GEMINI=${{ secrets.API_KEY_GEMINI }}"
 
       - name: Restart Web App to apply App Settings
         run: |
@@ -234,9 +236,9 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --docker-container-logging filesystem
 
-  # # --------------------------------------------------------------
-  # # JOB 3: Deploy to Production
-  # # --------------------------------------------------------------
+  # --------------------------------------------------------------
+  # JOB 3: Deploy to Production
+  # --------------------------------------------------------------
   deploy-prod:
     name: Deploy to Production
     needs: [deploy-dev, build-and-push]
@@ -316,7 +318,9 @@ jobs:
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING_DEV }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
+              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "USER_HOSTNAME=${{ secrets.APP_USERS_PROD }}.azurewebsites.net" \
+              "API_KEY_GEMINI=${{ secrets.API_KEY_GEMINI }}"
 
       - name: Restart Web App to apply App Settings
         run: |

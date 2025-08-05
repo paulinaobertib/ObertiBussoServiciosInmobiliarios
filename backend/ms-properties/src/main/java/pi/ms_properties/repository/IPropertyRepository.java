@@ -15,20 +15,20 @@ import java.util.Optional;
 
 @Repository
 public interface IPropertyRepository extends JpaRepository<Property, Long>, JpaSpecificationExecutor<Property> {
-    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments"})
+    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments", "maintenances"})
     List<Property> findAll();
 
-    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments"})
+    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments", "maintenances"})
     Optional<Property> findById(Long id);
 
     @Query("select p from Property p where p.status = ?1")
-    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments"})
+    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments", "maintenances"})
     List<Property> findByStatus(Status status);
 
-    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments"})
+    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments", "maintenances"})
     List<Property> findAll(@Nullable Specification<Property> specification);
 
     @Query("select p from Property p where p.owner.id = ?1")
-    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments"})
+    @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments", "maintenances"})
     List<Property> findByOwner(Long ownerId);
 }
