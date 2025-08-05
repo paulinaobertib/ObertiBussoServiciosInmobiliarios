@@ -223,14 +223,15 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     params.rooms.forEach((r) => push(r === 3 ? "3+" : `${r}`, "rooms", r));
 
     if (
-      params.priceRange[0] > dynLimits.price.ARS.min ||
-      params.priceRange[1] < dynLimits.price.ARS.max
-    )
+      params.currency &&
+      (params.priceRange[0] > dynLimits.price.ARS.min ||
+        params.priceRange[1] < dynLimits.price.ARS.max)
+    ) {
       out.push({
         label: `Precio ${params.priceRange[0]}-${params.priceRange[1]}`,
         onClear: reset,
       });
-
+    }
     if (params.areaRange[0] > 0 || params.areaRange[1] < dynLimits.surface.max)
       out.push({
         label: `Sup ${params.areaRange[0]}-${params.areaRange[1]}`,

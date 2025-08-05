@@ -9,7 +9,7 @@ import pi.ms_properties.dto.feign.*;
 import java.util.List;
 import java.util.Optional;
 
-@FeignClient(name = "ms-users", url = "http://localhost:8081", configuration = FeignInterceptor.class)
+@FeignClient(name = "ms-users", url = "${user.service.url}", configuration = FeignInterceptor.class)
 public interface FeignUserRepository {
 
     @RequestMapping(method = RequestMethod.POST, value = "/notifications/create/property")

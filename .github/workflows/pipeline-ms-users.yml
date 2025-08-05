@@ -2,10 +2,10 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelines
-      # - main
+  push:
+    branches:
+      - feature/pipelines
+  # - main
 
 permissions:
   contents: read
@@ -199,7 +199,8 @@ jobs:
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
+              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net"
 
       - name: Restart Web App to apply App Settings
         run: |
@@ -297,7 +298,8 @@ jobs:
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net"
+              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net"
 
       - name: Restart Web App to apply App Settings
         run: |

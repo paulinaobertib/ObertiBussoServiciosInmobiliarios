@@ -83,7 +83,7 @@ public class GeminiService {
             sb.append("\n");
         }
 
-        sb.append("Por favor, indicá los pros y contras de cada propiedad basándote en estos datos. Hacelo personal y amigable, para que el cliente se sienta cercano, sin usar negrita ni cursiva ni emojis. No mencionés negociar el precio. Limitá la respuesta a 1500 caracteres. Incluí recomendaciones sobre seguridad y tránsito en la zona, y un breve consejo. En todo esto, no incluyas la direccion exacta.");
+        sb.append("Por favor, indicá los pros y contras de cada propiedad basándote en estos datos. Hacelo personal y amigable, para que el cliente se sienta cercano, sin usar negrita ni cursiva ni emojis. No mencionés negociar el precio ni nada sobre el mismo. Podes hablar de distintos negocios que se encuentren cerca de la ubicacion para enriquecer la comparacion. Limitá la respuesta a 2000 caracteres. Incluí recomendaciones sobre seguridad y tránsito en la zona, y un breve consejo. En todo esto, no incluyas la direccion exacta.");
 
         return sb.toString();
     }

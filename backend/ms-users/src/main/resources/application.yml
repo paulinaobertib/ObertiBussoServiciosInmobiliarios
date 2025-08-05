@@ -1,6 +1,10 @@
 server:
   port: ${SERVICE_PORT}
 
+property:
+  service:
+    url: "https://${PROPERTY_HOSTNAME}"
+
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
@@ -27,10 +31,6 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-    # jpa: Ver esto que es nuevo
-    #   hibernate:
-    #     ddl-auto: create-drop
-    #   show-sql: true
 
   security:
     oauth2:
@@ -51,6 +51,7 @@ pi:
     realm: obertibussoserviciosinmobiliarios
     clientId: ${KEYCLOAK_SB_CLIENT_ID}
     clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
+
 
 # client: # Ver esto que es nuevo
 #   secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
