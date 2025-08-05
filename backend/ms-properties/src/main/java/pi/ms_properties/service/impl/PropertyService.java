@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
@@ -23,6 +24,7 @@ import pi.ms_properties.specification.PropertySpecification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -53,6 +55,12 @@ public class PropertyService implements IPropertyService {
     private final AzureBlobStorage azureBlobStorage;
 
     private final RecommendationService recommendationService;
+
+    private final IChatSessionRepository chatSessionRepository;
+
+    private final IChatMessageRepository chatMessageRepository;
+
+    private final IChatDerivationRepository chatDerivationRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -139,7 +147,6 @@ public class PropertyService implements IPropertyService {
             notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
             notificationRepository.createNotification(notificationDTO, property.getId());
         } catch (Exception e) {
-            System.out.println("ERROR " + e);
             throw new RuntimeException("Error al crear la notificación", e);
         }
 
@@ -148,12 +155,22 @@ public class PropertyService implements IPropertyService {
         return ResponseEntity.ok("Se ha guardado la propiedad");
     }
 
+    @Transactional
     @Override
     public ResponseEntity<String> deleteProperty(Long id) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Propiedad no encontrada"));
 
-        propertyRepository.deleteById(id);
+        List<Long> sessionIds = chatSessionRepository.findIdsByPropertyId(id);
+
+        if (!sessionIds.isEmpty()) {
+            chatMessageRepository.deleteAllBySessionIds(sessionIds);
+            chatDerivationRepository.deleteAllBySessionIds(sessionIds);
+        }
+
+        chatSessionRepository.deleteAllByPropertyId(id);
+        propertyRepository.delete(property);
+
         return ResponseEntity.ok("Se ha eliminado la propiedad");
     }
 
