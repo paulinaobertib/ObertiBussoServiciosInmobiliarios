@@ -2,9 +2,9 @@ name: CI/CD - Eureka Server
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipelines
+  # push:
+    # branches:
+      # - feature/pipelines
       # - main
       
 # --------------------------------------------------------------
@@ -23,7 +23,7 @@ env:
   # Eureka-specific
   IMAGE_NAME: eureka-server
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_EUREKA_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_EUREKA_PROD }}
 
