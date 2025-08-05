@@ -2,9 +2,9 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipelines
+  # push:
+    # branches:
+      # - feature/pipelines
   # - main
 
 permissions:
@@ -25,7 +25,7 @@ env:
 
   # Properties-specific
   IMAGE_NAME: ms-users
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_USERS_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_USERS_PROD }}
