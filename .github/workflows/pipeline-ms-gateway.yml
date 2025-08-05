@@ -22,7 +22,7 @@ env:
 
   # Gateway-specific
   IMAGE_NAME: ms-gateway
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_GATEWAY_PROD }}
