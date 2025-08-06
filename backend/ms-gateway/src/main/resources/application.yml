@@ -13,8 +13,7 @@ eureka:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
 
 frontend:
-  base-url:
-    - "https://${SWA_FRONTEND}"
+  base-url: "https://${SWA_FRONTEND}"
 
 spring:
   application:
