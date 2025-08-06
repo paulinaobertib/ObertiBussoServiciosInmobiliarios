@@ -45,4 +45,4 @@ EXPOSE 8443
 #       --db-username=\"$KC_DB_USERNAME\" \
 #       --db-password=\"$KC_DB_PASSWORD\""
 
-ENTRYPOINT ["/bin/sh","-c","exec /opt/keycloak/bin/kc.sh start --optimized --http-port=$KC_HTTP_PORT --db=postgres --db-url=$KC_DB_URL --db-username=$KC_DB_USERNAME --db-password=$KC_DB_PASSWORD"]
+ENTRYPOINT ["/bin/sh","-c","exec /opt/keycloak/bin/kc.sh start --optimized --http-port=$KC_HTTP_PORT --db-url=$KC_DB_URL --db-username=$KC_DB_USERNAME --db-password=$KC_DB_PASSWORD"]
