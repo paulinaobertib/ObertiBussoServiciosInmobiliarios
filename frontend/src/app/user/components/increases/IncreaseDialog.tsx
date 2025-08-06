@@ -5,6 +5,7 @@ import { IncreaseForm, IncreaseFormValues } from "../increases/IncreaseForm";
 import { postContractIncrease } from "../../services/contractIncrease.service";
 import type { Contract } from "../../types/contract";
 import { ContractIncreaseCurrency } from "../../../user/types/contractIncrease";
+import { useGlobalAlert } from "../../../shared/context/AlertContext";
 
 interface Props {
     open: boolean;
@@ -14,12 +15,15 @@ interface Props {
 }
 
 export const IncreaseDialog = ({ open, contract, onClose, onSaved }: Props) => {
+    const { showAlert } = useGlobalAlert();
+
     const empty: IncreaseFormValues = {
         date: "",
         amount: 0,
         currency: ContractIncreaseCurrency.ARS,
         frequency: 12,
     };
+
     const [vals, setVals] = useState<IncreaseFormValues>(empty);
     const [saving, setSaving] = useState(false);
 
@@ -31,7 +35,6 @@ export const IncreaseDialog = ({ open, contract, onClose, onSaved }: Props) => {
         if (!contract) return;
         setSaving(true);
 
-        // Ajuste: añadimos hora al campo date
         const payload = {
             ...vals,
             date: `${vals.date}T00:00:00`,
@@ -40,7 +43,10 @@ export const IncreaseDialog = ({ open, contract, onClose, onSaved }: Props) => {
 
         try {
             await postContractIncrease(payload);
+            showAlert("Aumento creado con éxito", "success");
             onSaved();
+        } catch (error) {
+            showAlert("Error al crear el aumento", "error");
         } finally {
             setSaving(false);
         }
