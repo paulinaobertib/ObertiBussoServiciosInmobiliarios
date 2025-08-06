@@ -5,6 +5,7 @@ import { IncreaseItem } from './IncreaseItem';
 interface Props {
   increases: ContractIncrease[];
   onDelete?: (inc: ContractIncrease) => void;
+  onEdit?: (inc: ContractIncrease) => void;
 }
 
 export const IncreasesList = ({ increases, onDelete }: Props) => {

@@ -303,7 +303,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         p: 2,
         flexGrow: 1,
         overrlowY: "auto",
-        border: "1px solid #ccc",
+        //border: "1px solid #ccc",
         borderRadius: 1,
         backgroundColor: "#fff",
         minHeight: 0,
