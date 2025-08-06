@@ -8,7 +8,7 @@ interface Props {
   onEdit?: (inc: ContractIncrease) => void;
 }
 
-export const IncreasesList = ({ increases, onDelete }: Props) => {
+export const IncreasesList = ({ increases, onDelete, onEdit }: Props) => {
   if (increases.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -24,6 +24,7 @@ export const IncreasesList = ({ increases, onDelete }: Props) => {
           key={inc.id}
           increase={inc}
           onDelete={onDelete}
+          onEdit={onEdit}
         />
       ))}
     </List>
