@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     ListItem,
     ListItemText,
@@ -33,6 +33,13 @@ export const IncreaseItem = ({ increase, onDelete, onEdit }: Props) => {
     const [date, setDate] = useState(increase.date);
     const theme = useTheme();
 
+    // Si el aumento cambia desde el padre, sincroniza el estado local
+    useEffect(() => {
+        setAmount(increase.amount);
+        setCurrency(increase.currency);
+        setDate(increase.date);
+    }, [increase]);
+
     const handleSave = () => {
         const hasChanges =
             amount !== increase.amount ||
@@ -40,12 +47,13 @@ export const IncreaseItem = ({ increase, onDelete, onEdit }: Props) => {
             date !== increase.date;
 
         if (onEdit && hasChanges) {
-            onEdit({
+            const updatedIncrease: ContractIncrease = {
                 ...increase,
                 amount,
                 currency,
                 date,
-            });
+            };
+            onEdit(updatedIncrease);
         }
 
         setEditMode(false);
@@ -55,7 +63,7 @@ export const IncreaseItem = ({ increase, onDelete, onEdit }: Props) => {
         <ListItem
             sx={{
                 position: 'relative',
-                backgroundColor: editMode ? theme.palette.quaternary.main : undefined,
+                backgroundColor: editMode ? theme.palette.quaternary?.main || '#f0f0f0' : undefined,
                 borderRadius: 1,
             }}
             alignItems="flex-start"
@@ -97,9 +105,7 @@ export const IncreaseItem = ({ increase, onDelete, onEdit }: Props) => {
             )}
 
             <ListItemText
-                primary={
-                    `${(editMode ? date : increase.date).split('T')[0]} - ${editMode ? amount : increase.amount} ${editMode ? currency : increase.currency}`
-                }
+                primary={`${date.split('T')[0]} - ${amount} ${currency}`}
                 secondary={
                     editMode ? (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
