@@ -224,9 +224,9 @@ jobs:
               KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
               KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
               KC_DB=postgres \
-              KC_DB_URL=${{ secrets.DB_PG_URL_PROD }} \
-              KC_DB_USERNAME=${{ secrets.DB_PG_USERNAME }}  \
-              KC_DB_PASSWORD=${{ secrets.DB_PG_PASSWORD }}  \
+              KC_DB_URL='${{ secrets.DB_PG_URL_PROD }}' \
+              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
+              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
               KC_HTTP_PORT=8443 \
               KC_HTTP_ENABLED=true \
               KC_PROXY=edge \
