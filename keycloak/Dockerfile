@@ -32,4 +32,4 @@ ENV KC_DB=postgres \
 EXPOSE 8443
 
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start", "--optimized", "--http-port=8443"]
+CMD ["start","--optimized","--http-port=8443","--db=postgres","--db-url=$KC_DB_URL","--db-username=$KC_DB_USERNAME","--db-password=$KC_DB_PASSWORD"]
