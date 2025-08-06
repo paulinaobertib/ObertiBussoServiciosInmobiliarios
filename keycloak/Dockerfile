@@ -31,5 +31,16 @@ ENV KC_DB=postgres \
 
 EXPOSE 8443
 
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start","--optimized","--http-port=8443","--db=postgres","--db-url=$KC_DB_URL","--db-username=$KC_DB_USERNAME","--db-password=$KC_DB_PASSWORD"]
+# ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+# CMD ["start", "--optimized", "--http-port=8443"]
+
+# 1) Le decimos a Docker que use un shell
+ENTRYPOINT ["/bin/sh", "-c"]
+
+# 2) Y le pasamos TODO el comando en un solo string,
+#    donde el shell hará la expansión de variables.
+CMD  "/opt/keycloak/bin/kc.sh start --optimized --http-port=8443 \
+      --db=postgres \
+      --db-url=\"$KC_DB_URL\" \
+      --db-username=\"$KC_DB_USERNAME\" \
+      --db-password=\"$KC_DB_PASSWORD\""
