@@ -2,9 +2,9 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelines
+  push:
+    branches:
+      - feature/pipelines
   # - main
 
 permissions:
@@ -32,9 +32,11 @@ env:
   SERVICE_PORT: 8081
 
   # Utils
-  SPRING_DATASOURCE_URL_DEV: ${{ secrets.DATASOURCE_URL_DEV }}
-  SPRING_DATASOURCE_USERNAME_DEV: ${{ secrets.DATASOURCE_USERNAME_DEV }}
-  SPRING_DATASOURCE_PASSWORD_DEV: ${{ secrets.DATASOURCE_PASSWORD_DEV }}
+  SPRING_DATASOURCE_URL_DEV: ${{ secrets.DB_SQL_URL_DEV }}
+  SPRING_DATASOURCE_URL_PROD: ${{ secrets.DB_SQL_URL_PROD }}
+  SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_SQL_USERNAME }}
+  SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_SQL_PASSWORD }}
+
   EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
   EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
   # FRONTEND_BASE_URL:
@@ -193,8 +195,8 @@ jobs:
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME_DEV }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD_DEV }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
@@ -291,15 +293,15 @@ jobs:
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
-              "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME_DEV }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD_DEV }}" \
+              "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_PROD }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
-              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net"
+              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net"
 
       - name: Restart Web App to apply App Settings
         run: |
