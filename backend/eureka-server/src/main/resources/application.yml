@@ -2,6 +2,19 @@ spring:
   application:
     name: eureka-server
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "ping,health"
+  health:
+    defaults:
+      enabled: false    # desactiva chequeos pesados
+    ping:
+      enabled: true     # responde apenas levante el contexto
+    probes:
+      enabled: true     # readiness/liveness internos
+
 server:
   port: ${SERVICE_PORT}
 
