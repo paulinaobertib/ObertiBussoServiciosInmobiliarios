@@ -3,6 +3,7 @@ import { Card, Box, Chip, Typography, useTheme, Checkbox } from '@mui/material';
 import { FavoriteButton } from '../../../user/components/favorites/FavoriteButtom';
 import { Property } from '../../types/property';
 import { useAuthContext } from '../../../user/context/AuthContext';
+//import { Star } from 'lucide-react';
 
 export interface Props {
   property: Property;
@@ -11,6 +12,17 @@ export interface Props {
   toggleSelection?: (id: number) => void;
   onClick?: () => void;
 }
+
+const getExtendingBadgeConfig = () => {
+  return {
+    position: { top: '96%', right: 0, transform: 'translateY(-50%)', },
+    gradient: 'linear-gradient(135deg, #ff6f00 0%, #e65100 50%, #ff6f00 100%)',
+    glowColor: 'rgba(255, 111, 0, 0.4)',
+    shadowColor: 'rgba(255, 111, 0, 0.15)',
+    //borderRadius: '20px',
+    borderRadius: '25px 0px 0px 25px',
+  };
+};
 
 export const PropertyCard = ({
   property,
@@ -41,6 +53,9 @@ export const PropertyCard = ({
       ? `${property.status} - ${property.operation}`
       : property.status || 'Sin Estado';
 
+
+  const badgeConfig = getExtendingBadgeConfig(); 
+
   return (
     <Card elevation={2}
       onClick={() => {
@@ -60,8 +75,6 @@ export const PropertyCard = ({
       }}
     >
 
-
-
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: 'relative' }}>
         <Box
@@ -78,25 +91,68 @@ export const PropertyCard = ({
           }}
         />
 
+        {/* Badge DESTACADA Extendido */}
         {property.outstanding && (
           <Box
             sx={{
               position: 'absolute',
-              bottom: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              bgcolor: "#ff9800",
+              ...badgeConfig.position,
+              background: badgeConfig.gradient,
               color: "white",
-              px: 2,
-              py: 0.6,
-              fontSize: "0.8rem",
-              fontWeight: "bold",
-              letterSpacing: 1,
-              borderRadius: 2,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              px: 3.5,
+              py: 1,
+              fontSize: "0.90rem",
+              fontWeight: "800",
+              letterSpacing: 1.5,
+              borderRadius: badgeConfig.borderRadius,
+              boxShadow: `0 6px 20px ${badgeConfig.glowColor}, 0 3px 6px rgba(0, 0, 0, 0.3)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 0.8,
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(6px)',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+              zIndex: 2,
+              minWidth: '120px',
+              backgroundSize: '200% 200%',
+              overflow: 'hidden',       // importantísimo para que no se salga el brillo
             }}
           >
-            DESTACADA
+            {/* Brillo interno limitado al chip */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: '-60%',      // comienza fuera a la izquierda
+                width: '60%',      // ancho controlado para que no se extienda más
+                height: '100%',
+                background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
+                borderRadius: 'inherit',
+                animation: 'shineSlide 2.5s ease-in-out infinite',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Texto encima del brillo */}
+            <Box sx={{ position: 'relative', zIndex: 2 }}>
+              DESTACADA
+            </Box>
+
+            {/* Animación CSS */}
+            <style>
+              {`
+                @keyframes shineSlide {
+                  0% {
+                    transform: translateX(0);
+                  }
+                  100% {
+                    transform: translateX(200%);
+                  }
+                }
+              `}
+            </style>
           </Box>
         )}
 
