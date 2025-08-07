@@ -5,10 +5,9 @@ import { IncreaseItem } from './IncreaseItem';
 interface Props {
   increases: ContractIncrease[];
   onDelete?: (inc: ContractIncrease) => void;
-  onEdit?: (inc: ContractIncrease) => void;
 }
 
-export const IncreasesList = ({ increases, onDelete, onEdit }: Props) => {
+export const IncreasesList = ({ increases, onDelete }: Props) => {
   if (increases.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -24,7 +23,6 @@ export const IncreasesList = ({ increases, onDelete, onEdit }: Props) => {
           key={inc.id}
           increase={inc}
           onDelete={onDelete}
-          onEdit={onEdit}
         />
       ))}
     </List>
