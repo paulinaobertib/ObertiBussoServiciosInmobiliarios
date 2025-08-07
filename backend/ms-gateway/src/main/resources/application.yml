@@ -1,5 +1,5 @@
 server:
-  port: ${WEBSITES_PORT}
+  port: ${SERVICE_PORT}
 
 eureka:
   instance:
