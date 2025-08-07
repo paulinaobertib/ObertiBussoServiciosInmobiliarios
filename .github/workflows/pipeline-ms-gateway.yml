@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelines
+  push:
+    branches:
+      - feature/pipelines
       # - main
 
 # --------------------------------------------------------------
@@ -152,6 +152,7 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
@@ -245,6 +246,7 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \

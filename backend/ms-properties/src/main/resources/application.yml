@@ -20,6 +20,19 @@ spring:
   application:
     name: ms-properties
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "ping,health"
+  health:
+    defaults:
+      enabled: false    # desactiva chequeos pesados
+    ping:
+      enabled: true     # responde apenas levante el contexto
+    probes:
+      enabled: true     # readiness/liveness internos
+
   # configuracion de la base de datos
   datasource:
     url: ${SPRING_DATASOURCE_URL}
