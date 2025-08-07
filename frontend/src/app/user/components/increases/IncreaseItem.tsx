@@ -18,11 +18,12 @@ import SaveIcon from '@mui/icons-material/Save';
 
 import type { ContractIncrease } from '../../types/contractIncrease';
 import { useAuthContext } from '../../context/AuthContext';
+import { updateContractIncrease } from '../../services/contractIncrease.service';
 
 interface Props {
     increase: ContractIncrease;
     onDelete?: (inc: ContractIncrease) => void;
-    onEdit?: (inc: ContractIncrease) => void;
+    onEdit?: (inc: ContractIncrease) => void; // Para actualizar la lista en el padre
 }
 
 export const IncreaseItem = ({ increase, onDelete, onEdit }: Props) => {
@@ -33,27 +34,34 @@ export const IncreaseItem = ({ increase, onDelete, onEdit }: Props) => {
     const [date, setDate] = useState(increase.date);
     const theme = useTheme();
 
-    // Si el aumento cambia desde el padre, sincroniza el estado local
+    // Sincroniza cuando cambia el aumento desde el padre
     useEffect(() => {
         setAmount(increase.amount);
         setCurrency(increase.currency);
         setDate(increase.date);
     }, [increase]);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const hasChanges =
             amount !== increase.amount ||
             currency !== increase.currency ||
             date !== increase.date;
 
-        if (onEdit && hasChanges) {
+        if (hasChanges) {
             const updatedIncrease: ContractIncrease = {
                 ...increase,
                 amount,
                 currency,
                 date,
             };
-            onEdit(updatedIncrease);
+
+            try {
+                await updateContractIncrease(updatedIncrease); // Actualiza en backend
+                onEdit?.(updatedIncrease); // Actualiza en UI
+            } catch (error) {
+                console.error('Error actualizando aumento:', error);
+                // Opcional: mostrar mensaje de error al usuario
+            }
         }
 
         setEditMode(false);
