@@ -2,9 +2,9 @@ name: CI/CD - Keycloak
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelines
+  push:
+    branches:
+      - feature/pipelines
       # - main
 
 # --------------------------------------------------------------

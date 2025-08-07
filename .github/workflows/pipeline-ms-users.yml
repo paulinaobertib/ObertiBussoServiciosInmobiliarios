@@ -194,6 +194,7 @@ jobs:
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
@@ -291,6 +292,7 @@ jobs:
             --settings \
               "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
