@@ -55,7 +55,7 @@ management:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
 
 # configuracion de azure
 azure:
