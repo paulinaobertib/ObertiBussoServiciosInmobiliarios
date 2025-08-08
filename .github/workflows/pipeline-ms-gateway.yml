@@ -26,7 +26,6 @@ env:
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_GATEWAY_PROD }}
-  SERVICE_PORT: 8090
 
 jobs:
   # --------------------------------------------------------------
@@ -149,9 +148,7 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
-                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
+            --settings APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
                        WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net \
@@ -245,9 +242,7 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
-                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
+            --settings APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
                        WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net \
