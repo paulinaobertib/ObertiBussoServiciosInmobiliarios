@@ -2,24 +2,29 @@
 FROM eclipse-temurin:24-jdk AS build
 WORKDIR /app
 
-# Instalamos Maven 3.9 (solo para compilar):
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends maven \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# (Opcional pero útil) Config de Maven en contenedor
+ENV MAVEN_CONFIG=/root/.m2
 
-# Copiamos el código y compilamos
+# Copiamos solo lo mínimo para resolver deps y aprovechar la caché
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw mvnw
+RUN chmod +x mvnw
+
+#  Pre-descarga de dependencias para modo offline
+RUN ./mvnw -B -q -e dependency:go-offline
+
+# Ahora sí, copiamos el código y compilamos
 COPY src ./src
-RUN chmod +x mvnw && ./mvnw -B clean package -DskipTests
+RUN ./mvnw -B clean package -DskipTests
 
 ################ Etapa de runtime ##############
-FROM eclipse-temurin:24-jdk 
+# Podés usar jre para reducir peso (si tu app no necesita jdk)
+FROM eclipse-temurin:24-jre
 WORKDIR /app
 
 # Copiamos sólo el JAR ya construido
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 8761
+EXPOSE 8090
 ENTRYPOINT ["java","-jar","app.jar"]

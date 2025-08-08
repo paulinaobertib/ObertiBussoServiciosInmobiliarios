@@ -23,7 +23,7 @@ spring:
       client:
         provider:
           keycloak-client:
-            issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+            issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
         registration:
           keycloak-client:
             client-id: ${KEYCLOAK_CLIENT_ID}

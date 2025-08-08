@@ -49,7 +49,7 @@ management:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
 
 email:
   username: ${EMAIL_USERNAME}
@@ -60,7 +60,7 @@ frontend:
 
 pi:
   keycloak:
-    serverUrl: http://${KEYCLOAK_HOSTNAME}/
+    serverUrl: https://${KEYCLOAK_HOSTNAME}/
     realm: obertibussoserviciosinmobiliarios
     clientId: ${KEYCLOAK_SB_CLIENT_ID}
     clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
