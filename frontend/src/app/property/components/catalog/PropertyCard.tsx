@@ -15,8 +15,8 @@ export interface Props {
 
 const getExtendingBadgeConfig = () => {
   return {
-    position: { top: '96%', right: 0, transform: 'translateY(-50%)', },
-    gradient: 'linear-gradient(135deg, #ff6f00 0%, #e65100 50%, #ff6f00 100%)',
+    position: { top: '96%', right: -0.95, transform: 'translateY(-40%)', },
+    gradient: 'linear-gradient(135deg, #FAB360 0%, #EB7333 60%, #EE671E 100%)',
     glowColor: 'rgba(255, 111, 0, 0.4)',
     shadowColor: 'rgba(255, 111, 0, 0.15)',
     //borderRadius: '20px',
@@ -98,23 +98,24 @@ export const PropertyCard = ({
               position: 'absolute',
               ...badgeConfig.position,
               background: badgeConfig.gradient,
-              color: "white",
-              px: 3.5,
-              py: 1,
-              fontSize: "0.90rem",
-              fontWeight: "800",
-              letterSpacing: 1.5,
+              color: "rgba(26, 26, 26, 0.7)",
+              px: { xs: 0.5, xl: 1 },
+              py: { xs: 0.5, xl: 1 },
+              fontSize: { xs: "0.50rem", xl: "0.70rem" },
+              fontWeight: { xs: 600, xl: 700 },
+              fontFamily: 'Helvetica',
+              letterSpacing: { xs: 0.5, md: 1 },
               borderRadius: badgeConfig.borderRadius,
               boxShadow: `0 6px 20px ${badgeConfig.glowColor}, 0 3px 6px rgba(0, 0, 0, 0.3)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 0.8,
+              gap: { xs: 0.4, sm: 0.6, xl: 0.8 },
               border: '2px solid rgba(255, 255, 255, 0.3)',
               backdropFilter: 'blur(6px)',
               textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
               zIndex: 2,
-              minWidth: '120px',
+              minWidth: { xs: '80px', sm: '100px', xl: '120px' },
               backgroundSize: '200% 200%',
               overflow: 'hidden',       // importantísimo para que no se salga el brillo
             }}
@@ -125,11 +126,11 @@ export const PropertyCard = ({
                 position: 'absolute',
                 top: 0,
                 left: '-60%',      // comienza fuera a la izquierda
-                width: '60%',      // ancho controlado para que no se extienda más
+                width: '70%',      // ancho controlado para que no se extienda más
                 height: '100%',
                 background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
                 borderRadius: 'inherit',
-                animation: 'shineSlide 2.5s ease-in-out infinite',
+                animation: 'shineSlide 3s ease-in-out infinite',
                 pointerEvents: 'none',
                 zIndex: 1,
               }}
