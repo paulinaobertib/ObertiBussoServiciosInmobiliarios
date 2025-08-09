@@ -191,7 +191,7 @@ jobs:
               "WEBSITES_PORT=8081" \
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
-              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "APP_HOSTNAME=${{ secrets.APP_USERS_DEV }}.azurewebsites.net" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
@@ -292,7 +292,7 @@ jobs:
               "WEBSITES_PORT=8081" \
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
-              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "APP_HOSTNAME=${{ secrets.APP_USERS_PROD }}.azurewebsites.net" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_PROD }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
