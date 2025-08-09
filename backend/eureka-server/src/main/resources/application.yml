@@ -16,7 +16,7 @@ management:
       enabled: true     # readiness/liveness internos
 
 server:
-  port: ${SERVICE_PORT}
+  port: 8761
 
 eureka:
   instance:
