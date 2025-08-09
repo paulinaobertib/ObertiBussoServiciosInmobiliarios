@@ -156,7 +156,7 @@ jobs:
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME \
-                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI= ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}
 
 
       - name: Restart Web App to apply App Settings
@@ -250,7 +250,7 @@ jobs:
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME
-                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI= ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
 
       - name: Restart Web App to apply App Settings

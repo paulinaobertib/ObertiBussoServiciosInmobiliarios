@@ -222,7 +222,7 @@ jobs:
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
               "USER_HOSTNAME=${{ secrets.APP_USERS_DEV }}.azurewebsites.net" \
               "API_KEY_GEMINI=${{ secrets.API_KEY_GEMINI }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI= ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
       - name: Configure health-check path
         run: |
@@ -328,7 +328,7 @@ jobs:
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
               "USER_HOSTNAME=${{ secrets.APP_USERS_PROD }}.azurewebsites.net" \
               "API_KEY_GEMINI=${{ secrets.API_KEY_GEMINI }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI= ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
 
 
       - name: Restart Web App to apply App Settings
