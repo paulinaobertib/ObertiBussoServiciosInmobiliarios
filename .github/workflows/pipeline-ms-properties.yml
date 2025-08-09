@@ -210,9 +210,7 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
               "WEBSITES_PORT=8083" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
-              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
