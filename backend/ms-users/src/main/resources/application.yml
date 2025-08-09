@@ -7,10 +7,11 @@ property:
 
 eureka:
   instance:
-    hostname: ${APP_HOSTNAME}
-    nonSecurePortEnabled: true
-    nonSecurePort: 80
-    securePortEnabled: false
+    hostname: ${WEBSITE_HOSTNAME}     # Azure lo inyecta: app-ms-xxx.azurewebsites.net
+    securePortEnabled: true
+    securePort: 443
+    nonSecurePortEnabled: false
+    preferIpAddress: false
 
   client:
     service-url:
