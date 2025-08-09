@@ -189,6 +189,8 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
+              "WEBSITES_PORT=8081" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
@@ -288,6 +290,8 @@ jobs:
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
+              "WEBSITES_PORT=8081" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
