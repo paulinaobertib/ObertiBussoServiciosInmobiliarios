@@ -1,38 +1,49 @@
-####################### Build stage #######################
+# syntax=docker/dockerfile:1.7
+
+######################## Build ########################
 FROM eclipse-temurin:24-jdk-alpine AS build
 WORKDIR /app
-
-# Maven cache path
 ENV MAVEN_CONFIG=/root/.m2
 
-# Copiamos solo lo necesario para deps
-COPY pom.xml .
+COPY pom.xml ./
 COPY .mvn .mvn/
 COPY mvnw mvnw
-RUN chmod +x mvnw
+RUN chmod +x mvnw && ./mvnw -q -B dependency:go-offline
 
-# Descarga dependencias en paralelo
-RUN ./mvnw -B -q -Dmaven.artifact.threads=8 dependency:go-offline
-
-# Copiamos código y compilamos
 COPY src ./src
-RUN ./mvnw -T 1C -B -q -Dmaven.artifact.threads=8 clean package -DskipTests
+RUN ./mvnw -q -B -T 1C clean package -DskipTests
 
-####################### Runtime stage #######################
-FROM eclipse-temurin:24-jre-alpine
+# ---- jlink: runtime mínimo según tu JAR ----
+# Añadimos jdk.crypto.ec (TLS) y jdk.unsupported por si alguna lib lo usa.
+RUN jdeps --ignore-missing-deps -q --multi-release 24 --print-module-deps target/*.jar > /tmp/deps \
+ && echo ",jdk.crypto.ec,jdk.unsupported" >> /tmp/deps \
+ && MODS=$(tr -d '\n' </tmp/deps | sed 's/^,//') \
+ && $JAVA_HOME/bin/jlink \
+      --add-modules ${MODS} \
+      --strip-debug --no-man-pages --no-header-files --compress=2 \
+      --output /jre-min
+
+######################## Runtime ########################
+FROM alpine:3.20
 WORKDIR /app
 
-# Configuración de Java para Azure (rápido en startup)
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+# Copiamos runtime mínimo y app
+COPY --from=build /jre-min /opt/jre
+COPY --from=build /app/target/*.jar /app/app.jar
 
-# Copiamos solo el JAR
-COPY --from=build /app/target/*.jar app.jar
+# Usuario no root
+RUN addgroup -S app && adduser -S app -G app
+USER app
 
-# Puerto
+ENV PATH="/opt/jre/bin:${PATH}"
+ENV PORT=8090
+ENV JAVA_TOOL_OPTIONS="\
+ -XX:+UseSerialGC \
+ -XX:TieredStopAtLevel=1 \
+ -XX:InitialRAMPercentage=40 \
+ -XX:MaxRAMPercentage=70 \
+ -XX:+ExitOnOutOfMemoryError \
+ -Dserver.port=${PORT} \
+"
 EXPOSE 8090
-
-# Limpieza de archivos innecesarios (reduce tamaño)
-RUN rm -rf /tmp/* /var/tmp/* /usr/share/man /usr/share/doc
-
-# Comando de arranque
-ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh","-c","exec /opt/jre/bin/java $JAVA_TOOL_OPTIONS -jar /app/app.jar"]
