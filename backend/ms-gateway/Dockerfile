@@ -1,30 +1,40 @@
-################ Etapa de build ################
-FROM eclipse-temurin:24-jdk AS build
+# syntax=docker/dockerfile:1.7
+
+####################### Build stage #######################
+FROM eclipse-temurin:24-jdk-alpine AS build
 WORKDIR /app
 
-# (Opcional pero útil) Config de Maven en contenedor
+# Maven cache path
 ENV MAVEN_CONFIG=/root/.m2
 
-# Copiamos solo lo mínimo para resolver deps y aprovechar la caché
+# Copiamos solo lo necesario para deps
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw mvnw
 RUN chmod +x mvnw
 
-#  Pre-descarga de dependencias para modo offline
-RUN ./mvnw -B -q -e dependency:go-offline
+# Descarga dependencias en paralelo
+RUN ./mvnw -B -q -Dmaven.artifact.threads=8 dependency:go-offline
 
-# Ahora sí, copiamos el código y compilamos
+# Copiamos código y compilamos
 COPY src ./src
-RUN ./mvnw -B clean package -DskipTests
+RUN ./mvnw -T 1C -B -q -Dmaven.artifact.threads=8 clean package -DskipTests
 
-################ Etapa de runtime ##############
-# Podés usar jre para reducir peso (si tu app no necesita jdk)
-FROM eclipse-temurin:24-jre
+####################### Runtime stage #######################
+FROM eclipse-temurin:24-jre-alpine
 WORKDIR /app
 
-# Copiamos sólo el JAR ya construido
+# Configuración de Java para Azure (rápido en startup)
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
+# Copiamos solo el JAR
 COPY --from=build /app/target/*.jar app.jar
 
+# Puerto
 EXPOSE 8090
-ENTRYPOINT ["java","-jar","app.jar"]
+
+# Limpieza de archivos innecesarios (reduce tamaño)
+RUN rm -rf /tmp/* /var/tmp/* /usr/share/man /usr/share/doc
+
+# Comando de arranque
+ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]
