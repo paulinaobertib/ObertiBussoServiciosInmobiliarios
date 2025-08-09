@@ -2,9 +2,9 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipelines
+  # push:
+    # branches:
+      # - feature/pipelines
       # - main
 
 # --------------------------------------------------------------
@@ -249,7 +249,7 @@ jobs:
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net \
-                       SWA_FRONTEND=$FRONTEND_HOSTNAME
+                       SWA_FRONTEND=$FRONTEND_HOSTNAME \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
 
