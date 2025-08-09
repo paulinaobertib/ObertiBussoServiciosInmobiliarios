@@ -11,7 +11,8 @@ eureka:
     nonSecurePortEnabled: true
     nonSecurePort: 80
     securePortEnabled: false
-    
+    instance-id: ${APP_HOSTNAME}:${spring.application.name}
+
   client:
     service-url:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
