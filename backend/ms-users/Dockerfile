@@ -22,8 +22,19 @@ RUN ./mvnw -T 1C -B -q -Dmaven.artifact.threads=8 clean package -DskipTests
 FROM eclipse-temurin:24-jre-alpine
 WORKDIR /app
 
-# Configuración de Java para Azure (rápido en startup)
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+# Puerto del contenedor (debe matchear WEBSITES_PORT en Azure)
+ENV PORT=8081
+
+# Flags JVM para arrancar más rápido en B1 y limitar memoria
+ENV JAVA_TOOL_OPTIONS="\
+ -XX:+UseSerialGC \
+ -XX:TieredStopAtLevel=1 \
+ -XX:InitialRAMPercentage=40 \
+ -XX:MaxRAMPercentage=70 \
+ -XX:+ExitOnOutOfMemoryError \
+ -XX:+UseContainerSupport \
+ -Dserver.port=${PORT} \
+"
 
 # Copiamos solo el JAR
 COPY --from=build /app/target/*.jar app.jar
