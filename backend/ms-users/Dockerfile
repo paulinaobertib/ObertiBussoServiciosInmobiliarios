@@ -1,11 +1,18 @@
 # syntax=docker/dockerfile:1.7
 
 ######################## Build ########################
-FROM eclipse-temurin:24-jdk-alpine AS build
+FROM alpine:3.20 AS build
 WORKDIR /app
+
+# JDK con jmods (MUSL) + utilidades mínimas
+RUN apk add --no-cache openjdk24-jdk bash coreutils ca-certificates \
+    && update-ca-certificates
+
+ENV JAVA_HOME=/usr/lib/jvm/java-24-openjdk
+ENV PATH="$JAVA_HOME/bin:$PATH"
 ENV MAVEN_CONFIG=/root/.m2
 
-# Prepara wrapper y cachea dependencias
+# Wrapper Maven y cache de dependencias
 COPY pom.xml ./
 COPY .mvn .mvn/
 COPY mvnw mvnw
@@ -13,17 +20,18 @@ RUN chmod +x mvnw
 RUN --mount=type=cache,target=/root/.m2 \
     ./mvnw -q -B dependency:go-offline
 
-# Compila
+# Compilar
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 \
     ./mvnw -q -B -T 1C clean package -DskipTests
 
-# Extrae CAPAS del jar (para que en redeploy baje sólo application/)
+# Extraer CAPAS del jar (para pulls rápidos)
 RUN mkdir -p /layers \
-    && java -Djarmode=layertools -jar target/*.jar extract --destination /layers
+    && java -Djarmode=tools -jar target/*.jar extract --layers --launcher --destination /layers
 
 # ---- jlink: runtime con TODOS los módulos del JDK ----
-# Incluye java.se completo + jdk.* (management, jfr, zipfs, charsets, localedata, etc.)
+# Usamos ALL-MODULE-PATH sobre los .jmod del JDK de Alpine (musl),
+# así el binario resultante corre en Alpine runtime.
 RUN $JAVA_HOME/bin/jlink -J-Xmx2g --verbose \
     --module-path "$JAVA_HOME/jmods" \
     --add-modules ALL-MODULE-PATH \
@@ -34,18 +42,20 @@ RUN $JAVA_HOME/bin/jlink -J-Xmx2g --verbose \
 FROM alpine:3.20
 WORKDIR /app
 
-# Runtime y capas
+# Certificados y usuario no root
+RUN apk add --no-cache ca-certificates \
+    && update-ca-certificates \
+    && addgroup -S app && adduser -S app -G app
+USER app
+
+# Copiamos runtime y capas
 COPY --from=build /jre-full /opt/jre
 COPY --from=build /layers/dependencies/          ./dependencies/
 COPY --from=build /layers/snapshot-dependencies/ ./snapshot-dependencies/
 COPY --from=build /layers/spring-boot-loader/    ./spring-boot-loader/
 COPY --from=build /layers/application/           ./application/
 
-# Usuario no root
-RUN addgroup -S app && adduser -S app -G app
-USER app
-
-# Java + flags de arranque
+# Vars
 ENV PATH="/opt/jre/bin:${PATH}"
 ENV PORT=8083
 ENV JAVA_TOOL_OPTIONS="\
@@ -59,5 +69,5 @@ ENV JAVA_TOOL_OPTIONS="\
 
 EXPOSE 8081
 
-# Ejecuta por capas con el JarLauncher de Spring Boot
+# Arranque por capas con JarLauncher
 ENTRYPOINT ["sh","-lc","exec java $JAVA_TOOL_OPTIONS -cp /app:/app/dependencies/*:/app/snapshot-dependencies/*:/app/spring-boot-loader/*:/app/application/* org.springframework.boot.loader.launch.JarLauncher"]
