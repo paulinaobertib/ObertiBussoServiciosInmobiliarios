@@ -9,9 +9,9 @@ eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
     nonSecurePortEnabled: true
-    nonSecurePort: 8083
+    nonSecurePort: 80
     securePortEnabled: false
-    prefer-ip-address: false
+    
   client:
     service-url:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/

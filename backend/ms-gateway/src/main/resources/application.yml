@@ -4,8 +4,7 @@ server:
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
-    nonSecurePort: 80 # Ver si se puede eliminar este
-    prefer-ip-address: false # Ver si este se puede agregar
+    nonSecurePort: 80 
   client:
     register-with-eureka: true
     fetch-registry: true
