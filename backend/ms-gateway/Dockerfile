@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 ####################### Build stage #######################
 FROM eclipse-temurin:24-jdk-alpine AS build
 WORKDIR /app
