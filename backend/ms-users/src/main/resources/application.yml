@@ -9,7 +9,7 @@ eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
     nonSecurePortEnabled: true
-    nonSecurePort: 80
+    nonSecurePort: 8081
     securePortEnabled: false
 
   client:
