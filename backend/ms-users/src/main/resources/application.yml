@@ -12,7 +12,7 @@ eureka:
     securePort: 443
     nonSecurePortEnabled: false
     preferIpAddress: false
-    instance-id: ${APP_HOSTNAME}:${spring.application.name}:${random.value}
+    instance-id: ${APP_HOSTNAME}:${spring.application.name}
 
   client:
     service-url:
