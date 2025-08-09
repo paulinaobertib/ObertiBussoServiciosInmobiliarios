@@ -16,7 +16,7 @@ RUN ./mvnw -q -B -T 1C clean package -DskipTests
 # ---- jlink: runtime mínimo según tu JAR ----
 # Añadimos jdk.crypto.ec (TLS) y jdk.unsupported por si alguna lib lo usa.
 RUN jdeps --ignore-missing-deps -q --multi-release 24 --print-module-deps target/*.jar > /tmp/deps \
- && echo ",jdk.crypto.ec,jdk.unsupported" >> /tmp/deps \
+ && echo ",jdk.crypto.ec,jdk.unsupported,java.desktop" >> /tmp/deps \
  && MODS=$(tr -d '\n' </tmp/deps | sed 's/^,//') \
  && $JAVA_HOME/bin/jlink \
       --add-modules ${MODS} \
