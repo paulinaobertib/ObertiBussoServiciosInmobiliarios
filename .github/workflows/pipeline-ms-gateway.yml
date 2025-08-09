@@ -252,7 +252,6 @@ jobs:
                        SWA_FRONTEND=$FRONTEND_HOSTNAME \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
-
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
