@@ -7,10 +7,10 @@ property:
 
 eureka:
   instance:
-    hostname: ${WEBSITE_HOSTNAME}
+    hostname: ${WEBSITE_HOSTNAME:${APP_HOSTNAME}}
     nonSecurePortEnabled: false
     nonSecurePort: 8081
-    securePort: 8081
+    securePort: 443
     securePortEnabled: true
     prefer-ip-address: false
 
