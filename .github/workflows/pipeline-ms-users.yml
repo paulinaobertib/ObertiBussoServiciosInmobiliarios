@@ -191,7 +191,6 @@ jobs:
             --settings \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
@@ -202,7 +201,7 @@ jobs:
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
               "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI= ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
 
       - name: Restart Web App to apply App Settings
@@ -289,7 +288,6 @@ jobs:
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
@@ -302,7 +300,7 @@ jobs:
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
               "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI= ${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
 
 
       - name: Restart Web App to apply App Settings
