@@ -11,7 +11,7 @@ eureka:
     nonSecurePortEnabled: true
     nonSecurePort: 80
     securePortEnabled: false
-    instance-id: ${APP_HOSTNAME}:${spring.application.name}
+    instance-id: ${APP_HOSTNAME}
 
   client:
     service-url:
