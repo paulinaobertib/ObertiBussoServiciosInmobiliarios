@@ -2,9 +2,9 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipelines
+  # push:
+    # branches:
+      # - feature/pipelines
   # - main
 
 permissions:
@@ -29,6 +29,7 @@ env:
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_USERS_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_USERS_PROD }}
+  SERVICE_PORT: 8081
 
   # Utils
   SPRING_DATASOURCE_URL_DEV: ${{ secrets.DB_SQL_URL_DEV }}
@@ -188,10 +189,10 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITES_PORT=8081" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
-              "APP_HOSTNAME=${{ secrets.APP_USERS_DEV }}.azurewebsites.net" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
@@ -288,10 +289,10 @@ jobs:
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITES_PORT=8081" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
-              "APP_HOSTNAME=${{ secrets.APP_USERS_PROD }}.azurewebsites.net" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_PROD }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
@@ -303,8 +304,7 @@ jobs:
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
               "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
-
-
+              
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
@@ -317,5 +317,3 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
             --docker-container-logging filesystem
-
-            
