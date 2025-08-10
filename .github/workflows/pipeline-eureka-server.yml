@@ -2,9 +2,9 @@ name: CI/CD - Eureka Server
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/pipelines
+  # push:
+    # branches:
+      # - feature/pipelines
       # - main
       
 # --------------------------------------------------------------
@@ -169,7 +169,6 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings
@@ -248,7 +247,6 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings

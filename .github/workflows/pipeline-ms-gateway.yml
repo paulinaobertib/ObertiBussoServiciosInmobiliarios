@@ -152,7 +152,6 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
-                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
@@ -160,8 +159,6 @@ jobs:
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}
-
-
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
@@ -248,7 +245,6 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
-                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net \
                        KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
