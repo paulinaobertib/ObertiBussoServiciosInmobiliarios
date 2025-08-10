@@ -84,7 +84,6 @@ export const NavBar = () => {
               justifyContent: 'center',
             }}
           >
-
             <Box
               sx={{
                 position: 'absolute',
@@ -111,7 +110,6 @@ export const NavBar = () => {
               >
                 <RealEstateAgentIcon />
               </IconButton>
-
             </Box>
 
             <Box
@@ -141,7 +139,7 @@ export const NavBar = () => {
             >
               <SettingsDrawer />
               {isLogged && (
-                <Tooltip title="Notificaciones">
+                <Tooltip title="Salir">
                   <IconButton
                     color="inherit"
                     aria-label="logout"
@@ -153,6 +151,7 @@ export const NavBar = () => {
                 </Tooltip>
               )}
             </Box>
+
             <Menu
               anchorEl={anchorElNav}
               open={Boolean(anchorElNav)}
@@ -160,9 +159,17 @@ export const NavBar = () => {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
             >
-              <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
-                CONTACTO
-              </MenuItem>
+              {/* ADMIN => TURNERO / Others => CONTACTO */}
+              {isAdmin ? (
+                <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
+                  TURNERO
+                </MenuItem>
+              ) : (
+                <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
+                  CONTACTO
+                </MenuItem>
+              )}
+
               <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
                 NOTICIAS
               </MenuItem>
@@ -190,15 +197,16 @@ export const NavBar = () => {
           {/* Desktop Links */}
           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
             <Button
-              onClick={() => navigate(ROUTES.CONTACT)}
+              onClick={() => navigate(isAdmin ? ROUTES.APPOINTMENTS : ROUTES.CONTACT)}
               sx={{
                 color: palette.common.white,
                 textTransform: 'none',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
               }}
             >
-              CONTACTO
+              {isAdmin ? 'TURNERO' : 'CONTACTO'}
             </Button>
+
             <Button
               onClick={() => navigate(ROUTES.NEWS)}
               sx={{
@@ -209,6 +217,7 @@ export const NavBar = () => {
             >
               NOTICIAS
             </Button>
+
             {isTenant && (
               <Button
                 onClick={() => navigate(ROUTES.CONTRACT)}
@@ -234,7 +243,6 @@ export const NavBar = () => {
                 CONTRATOS
               </Button>
             )}
-
           </Box>
 
           {/* Desktop Actions */}
@@ -271,7 +279,7 @@ export const NavBar = () => {
             )}
           </Box>
         </Toolbar>
-      </Box >
-    </AppBar >
+      </Box>
+    </AppBar>
   );
 };

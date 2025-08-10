@@ -3,8 +3,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import CompareIcon from '@mui/icons-material/Compare';
+import selectIcon from '../../../../assets/ic_select.png';
+import compareIcon from '../../../../assets/ic_comparer.png'
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { usePropertiesContext } from '../../context/PropertiesContext';
 import { useState } from 'react';
@@ -73,7 +73,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
                 color: '#fff',
               }}
             >
-              <CompareIcon />
+              <img src={compareIcon} alt="Comparer" style={{ width: '2.2rem', height: '2.2rem' }} />
             </Fab>
           </span>
         </Tooltip>
@@ -95,7 +95,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
               color: '#fff',
             }}
           >
-            <CheckBoxIcon />
+            <img src={selectIcon} alt="Select" style={{ width: '2.2rem', height: '2.2rem' }} />
           </Fab>
         </Tooltip>
       )}

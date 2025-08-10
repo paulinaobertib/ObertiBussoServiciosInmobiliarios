@@ -16,6 +16,20 @@ export const postContractIncrease = async (data: ContractIncreaseCreate) => {
   }
 };
 
+export const updateContractIncrease = async (data: ContractIncrease) => {
+  try {
+    const response = await api.put(
+      `/users/contractIncreases/update/${data.id}`,
+      data,
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating contract increase:", error);
+    throw error;
+  }
+};
+
 export const deleteContractIncrease = async (data: ContractIncrease) => {
   try {
     const response = await api.delete(
