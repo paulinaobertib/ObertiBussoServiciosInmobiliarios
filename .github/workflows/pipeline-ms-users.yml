@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/pipelines
-  # - main
+    - main
 
 permissions:
   contents: read

@@ -2,10 +2,10 @@ name: CI/CD - Frontend
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelines
-      # - main
+  push:
+    branches:
+    - feature/pipelines
+    - main
 
 permissions:
   contents: read 
@@ -28,6 +28,8 @@ env:
   # Utils
   API_URL_DEV: "https://${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net/api"
   API_URL_PROD: "https://${{ secrets.APP_GATEWAY_PROD }}.azurewebsites.net/api"
+  GATEWAY_URL_DEV: "https://${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net"
+  GATEWAY_URL_PROD: "https://${{ secrets.APP_GATEWAY_PROD }}.azurewebsites.net"
 
 jobs:
   # --------------------------------------------------------------
@@ -87,6 +89,7 @@ jobs:
         env:
           VITE_API_URL: "__API_URL_PLACEHOLDER__"
           VITE_BASE_URL: "__BASE_URL_PLACEHOLDER__"
+          VITE_GATEWAY_URL: "__GATEWAY_URL_PLACEHOLDER__"
           CI: "true"
         run: npm run build -- --mode production
 
@@ -148,11 +151,16 @@ jobs:
       - name: Insert DEV URLs
         shell: bash
         run: |
-          echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_DEV"
-          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
+          echo "Reemplazando __GATEWAY_URL_PLACEHOLDER__ por $GATEWAY_URL_DEV"
+          echo "Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_DEV"
+          echo "Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
 
+          GATEWAY_ESCAPED=${GATEWAY_URL_DEV//\//\\/}
           API_ESCAPED=${API_URL_DEV//\//\\/}
           BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
+
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
 
           find frontend/dist -type f -name '*.js' -exec \
             sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
@@ -222,11 +230,16 @@ jobs:
       - name: Insert DEV URLs
         shell: bash
         run: |
-          echo "→ Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_PROD"
-          echo "→ Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
+          echo "Reemplazando __GATEWAY_URL_PLACEHOLDER__ por $GATEWAY_URL_PROD"
+          echo "Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_PROD"
+          echo "Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
 
+          GATEWAY_ESCAPED=${GATEWAY_URL_PROD//\//\\/}
           API_ESCAPED=${API_URL_PROD//\//\\/}
           BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
+
+          find frontend/dist -type f -name '*.js' -exec \
+            sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
 
           find frontend/dist -type f -name '*.js' -exec \
             sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
