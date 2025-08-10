@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: ${SERVICE_PORT}
 
 property:
   service:
@@ -7,12 +7,10 @@ property:
 
 eureka:
   instance:
-    hostname: ${WEBSITE_HOSTNAME:${APP_HOSTNAME}}
-    securePortEnabled: true
-    securePort: 443
-    nonSecurePortEnabled: false
-    preferIpAddress: false
-    instance-id: ${APP_HOSTNAME}
+    hostname: ${WEBSITE_HOSTNAME}
+    nonSecurePortEnabled: true
+    nonSecurePort: 80
+    securePortEnabled: false
 
   client:
     service-url:
