@@ -27,7 +27,9 @@ export const MapSection = ({ address }: Props) => {
             .finally(() => setLoading(false));
     }, [address]);
 
-    const gm = `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
+    const gm = coords
+        ? `https://www.google.com/maps?q=${coords[0]},${coords[1]}`
+        : `https://www.google.com/maps?q=${encodeURIComponent(address)}`;
 
     return (
         <Box sx={{
@@ -44,21 +46,36 @@ export const MapSection = ({ address }: Props) => {
                 </Box>
             ) : coords ? (
                 <>
-                    <MapContainer center={coords} zoom={15}
-                        style={{ width: '100%', height: '100%' }}>
+                    <MapContainer
+                        center={coords}
+                        zoom={15}
+                        style={{ width: '100%', height: '100%' }}
+                    >
                         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                        <Circle center={coords} radius={300}
+                        <Circle
+                            center={coords}
+                            radius={300}
                             pathOptions={{
                                 stroke: false,
-                                fillColor: theme.palette.secondary.main, fillOpacity: .3
-                            }} />
+                                fillColor: theme.palette.secondary.main,
+                                fillOpacity: 0.3
+                            }}
+                        />
                     </MapContainer>
-                    <Button variant="contained" size="small"
+                    <Button
+                        variant="contained"
+                        size="small"
                         sx={{
-                            pos: 'absolute', top: 8, right: 8, bgcolor: '#fff',
-                            color: 'text.primary', zIndex: 1
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            bgcolor: '#fff',
+                            color: 'text.primary',
+                            zIndex: 1000,
+                            textTransform: 'none'
                         }}
-                        onClick={() => window.open(gm, '_blank')}>
+                        onClick={() => window.open(gm, '_blank')}
+                    >
                         Abrir en Maps
                     </Button>
                 </>
@@ -68,7 +85,7 @@ export const MapSection = ({ address }: Props) => {
                     justifyContent: 'center', bgcolor: '#fff',
                     color: 'text.secondary'
                 }}>
-                    <Typography>Ubicación no encontrada. </Typography>
+                    <Typography>Ubicación no encontrada.</Typography>
                 </Box>
             )}
         </Box>

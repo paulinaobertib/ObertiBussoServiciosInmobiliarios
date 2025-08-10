@@ -121,7 +121,11 @@ export default function ViewStatsPage() {
                             <InfoCard
                                 icon={<AccessTimeIcon fontSize="large" color="warning" />}
                                 title="Tiempo Prom. Respuesta (h)"
-                                value={stats.inquiryResponseTime.fixed()}
+                                value={
+                                    stats.inquiryResponseTime && !isNaN(Number(stats.inquiryResponseTime))
+                                        ? Number(stats.inquiryResponseTime).toFixed(2)
+                                        : "0.00"
+                                }
                             />
                         </Grid>
                     )}

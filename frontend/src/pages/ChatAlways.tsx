@@ -1,5 +1,5 @@
 import { Box, Fab, Tooltip } from "@mui/material";
-import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
+import ChatIconUrl from '../assets/ic_chat.png';
 import { useState } from "react";
 import { Chat } from "../app/chat/components/Chat";
 import { useAuthContext } from "../app/user/context/AuthContext";
@@ -26,7 +26,7 @@ export function ChatAlways() {
               color: '#fff',
             }}
           >
-            <ChatBubbleIcon />
+            <img src={ChatIconUrl} alt="Chat" style={{ width: '2.2rem', height: '2.2rem' }} />
           </Fab>
         </Tooltip>
       ) : (
