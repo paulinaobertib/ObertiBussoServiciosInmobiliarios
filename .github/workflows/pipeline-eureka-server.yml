@@ -27,6 +27,8 @@ env:
   APP_NAME_DEV: ${{ secrets.APP_EUREKA_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_EUREKA_PROD }}
 
+  SERVICE_PORT: 8761
+
 jobs:
   # --------------------------------------------------------------
   # JOB 1: Build · Test · Docker
@@ -165,7 +167,9 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings
@@ -242,7 +246,9 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        EUREKA_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings

@@ -1,16 +1,15 @@
-name: CI/CD - MS Properties
+name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
   push:
     branches:
       - feature/pipelines
-      # - main
+  # - main
 
 permissions:
   contents: read
   checks: write
-
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
 # --------------------------------------------------------------
@@ -19,18 +18,18 @@ env:
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-  AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING }}
 
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   # Properties-specific
-  IMAGE_NAME: ms-properties
+  IMAGE_NAME: ms-users
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
-  APP_NAME_DEV: ${{ secrets.APP_PROPERTIES_DEV }}
-  APP_NAME_PROD: ${{ secrets.APP_PROPERTIES_PROD }}
+  APP_NAME_DEV: ${{ secrets.APP_USERS_DEV }}
+  APP_NAME_PROD: ${{ secrets.APP_USERS_PROD }}
+  SERVICE_PORT: 8081
 
   # Utils
   SPRING_DATASOURCE_URL_DEV: ${{ secrets.DB_SQL_URL_DEV }}
@@ -65,15 +64,6 @@ jobs:
       #   working-directory: backend/${{ env.IMAGE_NAME }}
       #   run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
 
-      - name: Show first failing report (debug)
-        if: failure()
-        working-directory: backend/${{ env.IMAGE_NAME }}
-        run: |
-          ls -1 target/surefire-reports | head -n 5
-          echo "─── FIRST REPORT ───"
-          FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
-          cat "$FIRST" | head -n 120
-
       # - name: Publish JUnit Results
       #   uses: EnricoMi/publish-unit-test-result-action@v2
       #   if: always()
@@ -96,17 +86,6 @@ jobs:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
       #     minimum_coverage: 80
       #     publish_only_summary: false
-
-      # - name: Publish JaCoCo Coverage on Summary
-      #   if: always()
-      #   run: |
-      #     echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
-      #     echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
-      #     echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-      #     echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
-      #     echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
-      #     echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
-      #     echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
@@ -203,40 +182,34 @@ jobs:
           echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
           echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
 
-      - name: Set environment variables (App Settings Dev)
+      - name: Set environment variables (App Settings)
         run: |
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITES_PORT=8083" \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
-              "APP_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
               "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD }}" \
-              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
+              "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
+              "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
-              "USER_HOSTNAME=${{ secrets.APP_USERS_DEV }}.azurewebsites.net" \
-              "API_KEY_GEMINI=${{ secrets.API_KEY_GEMINI }}" \
+              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
-
-      - name: Configure health-check path
-        run: |
-          az webapp config set \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --generic-configurations '{"health_check_path":"/actuator/health"}'
 
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+          --name ${{ env.APP_NAME_DEV }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Enable Container Logs
         run: |
@@ -316,29 +289,28 @@ jobs:
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITES_PORT=8083" \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
-              "APP_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
               "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_PROD }}" \
               "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
               "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD }}" \
-              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
               "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
+              "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
+              "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
-              "USER_HOSTNAME=${{ secrets.APP_USERS_PROD }}.azurewebsites.net" \
-              "API_KEY_GEMINI=${{ secrets.API_KEY_GEMINI }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
-
+              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net" \
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
-            --name ${{ env.APP_NAME_PROD }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+          --name ${{ env.APP_NAME_PROD }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Enable Container Logs
         run: |

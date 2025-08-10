@@ -204,7 +204,6 @@ jobs:
               "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
-
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
