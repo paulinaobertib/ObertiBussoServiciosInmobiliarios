@@ -1,12 +1,11 @@
 server:
-  port: 8090
+  port: ${SERVICE_PORT}
 
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
-    nonSecurePort: 80 
-    instance-id: ${APP_HOSTNAME}
-
+    nonSecurePort: 80 # Ver si se puede eliminar este
+  #  prefer-ip-address: true # Ver si este se puede agregar
   client:
     register-with-eureka: true
     fetch-registry: true
