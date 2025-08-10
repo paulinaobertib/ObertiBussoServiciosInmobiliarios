@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useComparerProperty } from "../../hooks/useComparer";
 import { PropertyDTOAI } from "../../types/property";
 import { Box, CircularProgress, Typography, Paper, Avatar, Fade } from "@mui/material";
-import HouseIcon from "@mui/icons-material/House";
+import houseIcon from "../../../../assets/ic_casa2.png"
 
 type Props = {
   data: PropertyDTOAI[];
@@ -22,7 +22,7 @@ export const Comparer = ({ data }: Props) => {
   return (
     <Box sx={{ pl: 2, display: "flex", alignItems: "flex-start", maxWidth: 700, mx: "auto" }}>
       <Avatar onClick={() => setOpen((o) => !o)} sx={{ mr: 1.5, bgcolor: "#EE671E", width: 56, height: 56, fontSize: 30, cursor: "pointer", userSelect: "none" }}>
-        <HouseIcon />
+        <img src={houseIcon} alt="House" style={{ width: '2.2rem', height: '2.2rem' }} />
       </Avatar>
 
       {open && (

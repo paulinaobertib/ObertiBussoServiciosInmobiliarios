@@ -1,4 +1,3 @@
-// src/components/payments/PaymentDialog.tsx
 import { useState, useEffect } from "react";
 import { Box, Button } from "@mui/material";
 import { Modal } from "../../../shared/components/Modal";
@@ -7,6 +6,7 @@ import { postPayment } from "../../services/payment.service";
 import type { Contract } from "../../types/contract";
 import type { PaymentCreate } from "../../types/payment";
 import { PaymentCurrency } from "../../types/payment";
+import { useGlobalAlert } from "../../../shared/context/AlertContext";
 
 interface Props {
   open: boolean;
@@ -16,6 +16,8 @@ interface Props {
 }
 
 export const PaymentDialog = ({ open, contract, onClose, onSaved }: Props) => {
+  const { showAlert } = useGlobalAlert();
+
   const empty: PaymentFormValues = {
     date: "",
     amount: 0,
@@ -43,10 +45,12 @@ export const PaymentDialog = ({ open, contract, onClose, onSaved }: Props) => {
 
     try {
       await postPayment(payload);
+      showAlert("Pago creado con éxito", "success"); 
       onSaved();
       onClose();
     } catch (e) {
       console.error("Error creating payment:", e);
+      showAlert("Error al crear el pago", "error");
     } finally {
       setSaving(false);
     }
