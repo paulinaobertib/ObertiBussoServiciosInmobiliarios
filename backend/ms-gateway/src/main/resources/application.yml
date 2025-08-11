@@ -56,7 +56,7 @@ spring:
               - DELETE
               - OPTIONS
             allowCredentials: true # Ver si se puede sacar
-      # default-filters: TokenRelay
+      default-filters: TokenRelay
       routes:
         - id: ms-properties-public
           uri: lb://ms-properties
