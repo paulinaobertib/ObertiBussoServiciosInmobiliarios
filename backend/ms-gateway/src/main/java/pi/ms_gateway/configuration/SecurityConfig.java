@@ -8,6 +8,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.config.Customizer;
 
 
 @Configuration
@@ -26,9 +27,11 @@ public class SecurityConfig {
         logoutSuccessHandler.setPostLogoutRedirectUri(frontUrl);
 
         http
-                .csrf().disable()
-                .authorizeExchange(ex -> ex.anyExchange().permitAll())
+                .cors(Customizer.withDefaults())
+                .csrf(cs -> cs.disable())
+                .authorizeExchange(ex -> ex.anyExchange().permitAll()) // sin listas
                 .oauth2Login(o -> o.authenticationSuccessHandler(loginSuccessHandler))
+                .oauth2Client(Customizer.withDefaults())
                 .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler));
 
         return http.build();
