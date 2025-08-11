@@ -1,6 +1,12 @@
 server:
   port: ${WEBSITES_PORT}
-
+  reactive:
+    session:
+      cookie:
+        name: SESSION
+        secure: true
+        same-site: none
+        
 eureka:
   instance:
     hostname: ${WEBSITE_HOSTNAME}
@@ -33,14 +39,7 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
-server:
-  reactive:
-    session:
-      cookie:
-        name: SESSION
-        secure: true
-        same-site: none
-        
+
   cloud:
     gateway:
       globalcors:
