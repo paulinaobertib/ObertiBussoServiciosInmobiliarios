@@ -3,7 +3,7 @@ server:
 
 user:
   service:
-    url: http://localhost:8081
+    url: "https://${USER_HOSTNAME}"
 
 eureka:
   instance:
@@ -31,7 +31,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update # ver si se puede poner none
+      ddl-auto: update
 
   servlet:
     multipart:
@@ -42,7 +42,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
 
 # configuracion de azure
 azure:
@@ -66,7 +66,7 @@ ml:  # Cambiar a Variable de Entorno
 
 gemini:  # Cambiar a Variable de Entorno
   api:
-    key: AIzaSyDZSRdvhSrsFHSiQ2YY6xWd9yEoEuJObDI
+    key: ${API_KEY_GEMINI}
 
 logging:
   level:
@@ -75,7 +75,6 @@ logging:
     org.springframework.orm.jpa: DEBUG
 
 ---
-
 
 # Configuración para perfil "test"
 spring:

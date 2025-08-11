@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/pipelinesDetails
-        # - main
+    - main
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -22,8 +21,8 @@ env:
 
   # Properties-specific
   IMAGE_NAME: keycloak
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_KEYCLOAK_PROD }}
   SERVICE_PORT: 8080
@@ -46,6 +45,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
+          registry: docker.io
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
@@ -124,24 +124,22 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITE_DNS_SERVER=1.1.1.1" \
-              "WEBSITE_DNS_ALT_SERVER=8.8.8.8" \
-              "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" \
-              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
-              "KC_HTTP_PORT=${{ env.SERVICE_PORT }}" \
-              "KC_HEALTH_ENABLED=true" \
-              "KC_METRICS_ENABLED=true" \
-              "KC_PROXY=edge" \
-              "KC_HOSTNAME_STRICT=false" \
-              "KC_PROXY_HEADERS=xforwarded" \
-              "KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net" \
-              "KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }}" \
-              "KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
-              "KC_DB=postgres" \
-              "KC_DB_URL=${{ secrets.KC_DB_URL }}" \
-              "KC_DB_USERNAME=${{ secrets.KC_DB_USERNAME }}" \
-              "KC_DB_PASSWORD=${{ secrets.KC_DB_PASSWORD }}"
+              WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+              WEBSITES_PORT=8443 \
+              SERVICE_PORT=8443 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
+              KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+              KC_DB=postgres \
+              KC_DB_URL='${{ secrets.DB_PG_URL_DEV }}' \
+              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
+              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
+              KC_HTTP_PORT=8443 \
+              KC_HTTP_ENABLED=true \
+              KC_PROXY=edge \
+              KC_PROXY_HEADERS=xforwarded \
+              KC_HOSTNAME_STRICT=false \
+              KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
@@ -218,20 +216,22 @@ jobs:
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
-              "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" \
-              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
-              "KC_DB=dev-file" \
-              "KC_DB_DEV_FILE_DIR=/home/data/h2" \
-              "KC_HTTP_PORT=${{ env.SERVICE_PORT }}" \
-              "KC_HEALTH_ENABLED=true" \
-              "KC_METRICS_ENABLED=true" \
-              "KC_PROXY=edge" \
-              "KC_HOSTNAME_STRICT=false" \
-              "KC_PROXY_HEADERS=xforwarded" \
-              "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" \
-              "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" \
-              "KC_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net"
+              WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+              WEBSITES_PORT=8443 \
+              SERVICE_PORT=8443 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
+              KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+              KC_DB=postgres \
+              KC_DB_URL='${{ secrets.DB_PG_URL_PROD }}' \
+              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
+              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
+              KC_HTTP_PORT=8443 \
+              KC_HTTP_ENABLED=true \
+              KC_PROXY=edge \
+              KC_PROXY_HEADERS=xforwarded \
+              KC_HOSTNAME_STRICT=false \
+              KC_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
