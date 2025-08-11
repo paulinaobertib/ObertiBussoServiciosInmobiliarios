@@ -100,11 +100,23 @@ export const CategorySection = ({ category }: { category: Category }) => {
     ],
   };
 
-  const columns: GridColDef[] = headersMap[category].map(col => ({
-    field: col.field,
-    headerName: col.headerName,
-    flex: 1,
-  }));
+  const columns: GridColDef[] = headersMap[category].map(col => {
+    const isBooleanField =
+      category === 'type' &&
+      ['hasRooms', 'hasBedrooms', 'hasBathrooms', 'hasCoveredArea'].includes(col.field);
+
+    return {
+      field: col.field,
+      headerName: col.headerName,
+      flex: 1,
+      renderCell: isBooleanField
+        ? (params: any) => {
+            const value = params.row?.[col.field];
+            return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
+          }
+        : undefined,
+    };
+  });
 
   // Columna de acciones
   columns.push({
