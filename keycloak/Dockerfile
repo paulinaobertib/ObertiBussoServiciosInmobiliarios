@@ -12,6 +12,8 @@ ENV KC_DB=postgres \
 
 WORKDIR /opt/keycloak
 
+COPY keycloak-theme/inmobiliaria /opt/keycloak/themes/inmobiliaria
+
 # Compila una vez el runtime Quarkus
 RUN /opt/keycloak/bin/kc.sh build
 
