@@ -1,5 +1,5 @@
 server:
-  port: ${SERVICE_PORT}
+  port: ${WEBSITES_PORT}
 
 eureka:
   instance:
@@ -11,8 +11,9 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
 frontend:
-  base-url: ${SWA_FRONTEND}
+  base-url: "https://${SWA_FRONTEND}"
 
 spring:
   application:
@@ -22,7 +23,7 @@ spring:
       client:
         provider:
           keycloak-client:
-            issuer-uri: https://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios # Cambie a https
+            issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
         registration:
           keycloak-client:
             client-id: ${KEYCLOAK_CLIENT_ID}
@@ -30,18 +31,15 @@ spring:
             scope:
               - openid
             authorization-grant-type: authorization_code
-            redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak # Cambie a https
+            redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
   cloud:
     gateway:
       globalcors:
         corsConfigurations:
           "[/**]":
-            allowedOrigins: # Ver si aca puede pasarse el SWA_FRONTEND
-              - "http://localhost:5173/"
-              # - "https://${SWA_FRONTEND}.azurestaticapps.net"
-              - "https://victorious-sea-0c1ad030f.6.azurestaticapps.net/"
-              - "https://witty-field-05be4e00f.6.azurestaticapps.net/"
+            allowedOrigins:
+              - "https://${SWA_FRONTEND}"
             allowedHeaders: "*"
             allowedMethods:
               - GET
