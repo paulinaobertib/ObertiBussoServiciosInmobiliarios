@@ -2,10 +2,9 @@ name: CI/CD - Eureka Server
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/pipelinesDetails
-      # - main
+  push:
+    branches:
+    - main
       
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -22,8 +21,8 @@ env:
 
   # Eureka-specific
   IMAGE_NAME: eureka-server
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_EUREKA_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_EUREKA_PROD }}
 
@@ -89,6 +88,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
+          registry: docker.io
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
