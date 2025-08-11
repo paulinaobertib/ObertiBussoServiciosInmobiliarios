@@ -2,11 +2,10 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - feature/pipelinesDetails
-      # - main
-      
+  push:
+    branches:
+    - main
+
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
 # --------------------------------------------------------------
@@ -22,8 +21,8 @@ env:
 
   # Gateway-specific
   IMAGE_NAME: ms-gateway
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_CORE_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_GATEWAY_PROD }}
   SERVICE_PORT: 8090
@@ -49,32 +48,6 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      # - name: Run Backend Tests
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B test
-
-      # - name: Publish JUnit Results
-      #   uses: EnricoMi/publish-unit-test-result-action@v2
-      #   if: always()
-      #   with:
-      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Test Summary
-      #   uses: test-summary/action@v2
-      #   if: always()
-      #   with:
-      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
-
-      # - name: Publish JaCoCo Coverage
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "📈 JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: true
-
       - name: Build & Package JAR
         working-directory: backend/${{ env.IMAGE_NAME }}
         run: mvn -B package -DskipTests
@@ -88,6 +61,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
+          registry: docker.io
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
@@ -182,8 +156,8 @@ jobs:
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
-                       SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
-
+                       SWA_FRONTEND=$FRONTEND_HOSTNAME \
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
@@ -275,7 +249,8 @@ jobs:
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
                        GATEWAY_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net \
-                       SWA_FRONTEND=$FRONTEND_HOSTNAME.azurestaticapps.net
+                       SWA_FRONTEND=$FRONTEND_HOSTNAME \
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
       - name: Restart Web App to apply App Settings
         run: |

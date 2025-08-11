@@ -1,12 +1,12 @@
 import { Box } from '@mui/material';
 import type { Inquiry } from '../../types/inquiry';
-import type { ChatSession } from '../../../chat/types/chatSession';
+import type { ChatSessionGetDTO } from '../../../chat/types/chatSession';
 import { InquiryItem } from './InquiryItem';
 import { ChatSessionItem } from '../../../chat/components/ChatSessionItem';
 
 interface Props {
   inquiries?: Inquiry[];
-  chatSessions?: ChatSession[];
+  chatSessions?: ChatSessionGetDTO[];
   loadingId: number | null;
   onResolve: (id: number) => void;
   onCloseChat: (id: number) => void;
@@ -14,7 +14,7 @@ interface Props {
 
 type MixedItem =
   | { type: 'inquiry'; date: string; id: number; data: Inquiry }
-  | { type: 'chat'; date: string; id: number; data: ChatSession };
+  | { type: 'chat'; date: string; id: number; data: ChatSessionGetDTO };
 
 export const MixedList = ({
   inquiries = [],

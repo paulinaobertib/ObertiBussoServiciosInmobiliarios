@@ -22,12 +22,7 @@ export function useNoticeForm(
   });
 
   /* ---------- imágenes ---------- */
-  const {
-    mainImage,
-    setMain,
-    error: imgError,
-    clearError,
-  } = useImages(initial?.mainImage ?? null, []);
+  const { mainImage, setMain } = useImages(initial?.mainImage ?? null, []);
 
   /* sincroniza la imagen principal con el form */
   useEffect(() => {
@@ -59,8 +54,6 @@ export function useNoticeForm(
 
   return {
     form,
-    imgError,
-    clearError,
     /* API pública para el componente */
     setField,
     setMain,
