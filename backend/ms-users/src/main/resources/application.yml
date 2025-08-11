@@ -3,7 +3,7 @@ server:
 
 property:
   service:
-    url: http://localhost:8083
+    url: "https://${PROPERTY_HOSTNAME}"
 
 eureka:
   instance:
@@ -31,16 +31,12 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-    # jpa: Ver esto que es nuevo
-    #   hibernate:
-    #     ddl-auto: create-drop
-    #   show-sql: true
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://${KEYCLOAK_HOSTNAME}/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
 
 email:
   username: ${EMAIL_USERNAME}
@@ -51,7 +47,7 @@ frontend:
 
 pi:
   keycloak:
-    serverUrl: http://${KEYCLOAK_HOSTNAME}/
+    serverUrl: https://${KEYCLOAK_HOSTNAME}
     realm: obertibussoserviciosinmobiliarios
     clientId: ${KEYCLOAK_SB_CLIENT_ID}
     clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}

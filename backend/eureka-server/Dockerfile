@@ -1,25 +1,38 @@
-################ Etapa de build ################
-FROM eclipse-temurin:24-jdk AS build
+####################### Build stage #######################
+FROM eclipse-temurin:24-jdk-alpine AS build
 WORKDIR /app
 
-# Instalamos Maven 3.9 (solo para compilar):
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends maven \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Maven cache path
+ENV MAVEN_CONFIG=/root/.m2
 
-# Copiamos el código y compilamos
+# Copiamos solo lo necesario para deps
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw mvnw
-COPY src ./src
-RUN chmod +x mvnw && ./mvnw -B clean package -DskipTests
+RUN chmod +x mvnw
 
-################ Etapa de runtime ##############
-FROM eclipse-temurin:24-jdk 
+# Descarga dependencias en paralelo
+RUN ./mvnw -B -q -Dmaven.artifact.threads=8 dependency:go-offline
+
+# Copiamos código y compilamos
+COPY src ./src
+RUN ./mvnw -T 1C -B -q -Dmaven.artifact.threads=8 clean package -DskipTests
+
+####################### Runtime stage #######################
+FROM eclipse-temurin:24-jre-alpine
 WORKDIR /app
 
-# Copiamos sólo el JAR ya construido
+# Configuración de Java para Azure (rápido en startup)
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+
+# Copiamos solo el JAR
 COPY --from=build /app/target/*.jar app.jar
 
+# Puerto
 EXPOSE 8761
-ENTRYPOINT ["java","-jar","app.jar"]
+
+# Limpieza de archivos innecesarios (reduce tamaño)
+RUN rm -rf /tmp/* /var/tmp/* /usr/share/man /usr/share/doc
+
+# Comando de arranque
+ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]
