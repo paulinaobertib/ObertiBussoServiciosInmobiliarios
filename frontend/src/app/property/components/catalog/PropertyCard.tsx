@@ -204,6 +204,10 @@ export const PropertyCard = ({
               bottom: 8,
               left: 8,
               p: 0,
+              color: '#d25d1eff',
+              '&.Mui-checked': {
+                color: '#d25d1eff',
+              },
             }}
           />
         )}
