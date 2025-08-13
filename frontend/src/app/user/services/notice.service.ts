@@ -1,4 +1,3 @@
-// 👉 ajusta la ruta según tu estructura
 import { api } from "../../../api";
 import { Notice, NoticeCreate } from "../types/notice";
 

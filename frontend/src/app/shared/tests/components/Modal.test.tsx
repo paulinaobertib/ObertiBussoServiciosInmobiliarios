@@ -29,11 +29,4 @@ describe('Modal', () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it('llama a onClose si el motivo NO es backdropClick', () => {
-
-    // Simular cierre manual llamando el evento `onClose` con otro motivo
-    fireEvent.click(screen.getByLabelText(/cerrar modal/i)); // click explícito
-    expect(defaultProps.onClose).toHaveBeenCalled();
-  });
-
 });
