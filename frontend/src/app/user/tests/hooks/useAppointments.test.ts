@@ -33,11 +33,11 @@ const getAllAvailabilities = service.getAllAvailabilities as MockedFunction<type
 const getAvailableAppointments = service.getAvailableAppointments as MockedFunction<typeof service.getAvailableAppointments>;
 const getAppointmentsByStatus = service.getAppointmentsByStatus as MockedFunction<typeof service.getAppointmentsByStatus>;
 const getAppointmentsByUser = service.getAppointmentsByUser as MockedFunction<typeof service.getAppointmentsByUser>;
-const createAvailability = service.createAvailability as MockedFunction<typeof service.createAvailability>;
+//const createAvailability = service.createAvailability as MockedFunction<typeof service.createAvailability>;
 const createAppointment = service.createAppointment as MockedFunction<typeof service.createAppointment>;
-const deleteAvailability = service.deleteAvailability as MockedFunction<typeof service.deleteAvailability>;
+//const deleteAvailability = service.deleteAvailability as MockedFunction<typeof service.deleteAvailability>;
 const deleteAppointment = service.deleteAppointment as MockedFunction<typeof service.deleteAppointment>;
-const updateAppointmentStatus = service.updateAppointmentStatus as MockedFunction<typeof service.updateAppointmentStatus>;
+//const updateAppointmentStatus = service.updateAppointmentStatus as MockedFunction<typeof service.updateAppointmentStatus>;
 
 const useAuthContext = _useAuthContext as MockedFunction<typeof _useAuthContext>;
 
@@ -63,7 +63,7 @@ const today = dayjs().startOf("day");
 const d0 = today.hour(10).toISOString();
 const d1 = today.add(1, "day").hour(11).toISOString();
 const d2 = today.add(2, "day").hour(12).toISOString();
-const past = today.subtract(1, "day").hour(9).toISOString();
+//const past = today.subtract(1, "day").hour(9).toISOString();
 
 describe("useAppointments", () => {
   beforeEach(() => {
