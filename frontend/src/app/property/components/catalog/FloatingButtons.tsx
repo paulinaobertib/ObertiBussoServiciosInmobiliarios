@@ -27,7 +27,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
   const theme = useTheme();
   const { isAdmin } = useAuthContext();
   const { disabledCompare } = usePropertiesContext();
-  const size = { xs: '3rem', sm: '3.5rem' };
+  const size = { xs: '4rem', sm: '3.5rem' };
   const off = 16;
 
   const handleOpen = () => {

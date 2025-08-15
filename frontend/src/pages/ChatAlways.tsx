@@ -8,7 +8,7 @@ export function ChatAlways() {
   const [open, setOpen] = useState(false);
   const initialId = Number(localStorage.getItem("selectedPropertyId") || "");
   const { isAdmin } = useAuthContext();
-  const fabSize = { xs: '3rem', sm: '3.5rem' };
+  const fabSize = { xs: '4rem', sm: '3.5rem' };
 
   if (isAdmin) return null;
 

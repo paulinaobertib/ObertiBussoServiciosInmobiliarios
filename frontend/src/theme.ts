@@ -1,5 +1,5 @@
 // theme.ts
-import { createTheme } from "@mui/material/styles";
+import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
 // 1) Ampliamos los tipos de Palette para incluir tertiary y quaternary
 declare module "@mui/material/styles" {
@@ -14,7 +14,7 @@ declare module "@mui/material/styles" {
 }
 
 // 2) Creamos el tema con 4 colores de marca
-const theme = createTheme({
+let theme = createTheme({
   palette: {
     primary: { main: "#EE671E" },
     secondary: { main: "#EB7333" },
@@ -45,5 +45,7 @@ const theme = createTheme({
     },
   },
 });
+
+theme = responsiveFontSizes(theme);
 
 export default theme;

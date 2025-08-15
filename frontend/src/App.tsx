@@ -20,20 +20,20 @@ function App() {
 
   return (
     <React.StrictMode>
-      <AlertProvider>
-        <AuthProvider>
-          <PropertyCrudProvider>
-            <ChatProvider>
-              <BrowserRouter>
-                <ThemeProvider theme={theme}>
+      <ThemeProvider theme={theme}>
+        <AlertProvider>
+          <AuthProvider>
+            <PropertyCrudProvider>
+              <ChatProvider>
+                <BrowserRouter>
                   <Routes />
                   <ChatAlways />
-                </ThemeProvider>
-              </BrowserRouter>
-            </ChatProvider>
-          </PropertyCrudProvider>
-        </AuthProvider>
-      </AlertProvider>
+                </BrowserRouter>
+              </ChatProvider>
+            </PropertyCrudProvider>
+          </AuthProvider>
+        </AlertProvider>
+      </ThemeProvider>
     </React.StrictMode>
   );
 }

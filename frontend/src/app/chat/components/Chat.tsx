@@ -91,7 +91,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   const optionLabels: Record<string, string> = {
     VER_PRECIO: "¿Cuál es el precio?",
-    VER_HABITACIONES: "¿Cuántas habitaciones tiene?",
+    VER_HABITACIONES: "¿Cuántos ambientes tiene?",
     VER_AREA: "¿Qué superficie tiene?",
     VER_UBICACION: "¿Dónde está ubicado?",
     VER_CARACTERISTICAS: "¿Qué características ofrece?",

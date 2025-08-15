@@ -21,7 +21,7 @@ export const Comparer = ({ data }: Props) => {
 
   return (
     <Box sx={{ pl: 2, display: "flex", alignItems: "flex-start", maxWidth: 700, mx: "auto" }}>
-      <Avatar onClick={() => setOpen((o) => !o)} sx={{ mr: 1.5, bgcolor: "#EE671E", width: 56, height: 56, fontSize: 30, cursor: "pointer", userSelect: "none" }}>
+      <Avatar onClick={() => setOpen((o) => !o)} sx={{ mr: 1.5, bgcolor: "#EE671E", width: "4rem", height: "4rem", fontSize: 30, cursor: "pointer", userSelect: "none" }}>
         <img src={houseIcon} alt="House" style={{ width: '2.2rem', height: '2.2rem' }} />
       </Avatar>
 
