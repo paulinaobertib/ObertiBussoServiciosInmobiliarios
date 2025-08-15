@@ -132,8 +132,9 @@ export const addRoleToUser = async (id: string, role: string) => {
       { params: { role }, withCredentials: true }
     );
     return data;
-  } catch (error) {
-    console.error("Error adding role:", error);
+  } catch (error: any) {
+    const backendMessage = error.response?.data?.message || error.response?.data || error.message;
+    console.error("Error adding role:", backendMessage);
     throw error;
   }
 };

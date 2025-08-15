@@ -140,12 +140,16 @@ public class UserService implements IUserService {
         }
 
         if (Objects.equals(role, "admin")) {
-            AgentChat agentChat = new AgentChat();
-            agentChat.setUserId(id);
-            agentChat.setEnabled(Boolean.FALSE);
-            String name = user.getFirstName().trim() + " " + user.getLastName().trim();
-            agentChat.setName(name);
-            agentChatService.create(agentChat);
+            try {
+                AgentChat agentChat = new AgentChat();
+                agentChat.setUserId(id);
+                agentChat.setEnabled(Boolean.FALSE);
+                String name = user.getFirstName().trim() + " " + user.getLastName().trim();
+                agentChat.setName(name);
+                agentChatService.create(agentChat);
+            } catch (Exception e) {
+                throw new RuntimeException("Error al crear el chat del agente: " + e.getMessage(), e);
+            }
         }
 
         return ResponseEntity.ok(roles);

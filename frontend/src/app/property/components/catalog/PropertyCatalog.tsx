@@ -23,24 +23,6 @@ export const PropertyCatalog = ({ properties, mode, onFinishAction, selectionMod
     [handleClick, mode]
   );
 
-  // spinner mientras carga o mientras propertiesList sigue en null
-  // if (loading || propertiesList === null) {
-  //   return (
-  //     <Box
-  //       sx={{
-  //         flex: 1,
-  //         display: 'flex',
-  //         alignItems: 'center',
-  //         justifyContent: 'center',
-  //         minHeight: 200,
-  //       }}
-  //     >
-  //       <CircularProgress size={36}
-  //       />
-  //     </Box>
-  //   );
-  // }
-
   return (
     <>
       <CatalogList
