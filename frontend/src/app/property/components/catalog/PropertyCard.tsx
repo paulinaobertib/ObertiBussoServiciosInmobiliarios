@@ -15,12 +15,9 @@ export interface Props {
 
 const getExtendingBadgeConfig = () => {
   return {
-    position: { top: '96%', right: -0.95, transform: 'translateY(-40%)', },
     gradient: 'linear-gradient(135deg, #FAB360 0%, #EB7333 60%, #EE671E 100%)',
     glowColor: 'rgba(255, 111, 0, 0.4)',
     shadowColor: 'rgba(255, 111, 0, 0.15)',
-    //borderRadius: '20px',
-    borderRadius: '25px 0px 0px 25px',
   };
 };
 
@@ -54,7 +51,7 @@ export const PropertyCard = ({
       : property.status || 'Sin Estado';
 
 
-  const badgeConfig = getExtendingBadgeConfig(); 
+  const badgeConfig = getExtendingBadgeConfig();
 
   return (
     <Card elevation={2}
@@ -96,28 +93,22 @@ export const PropertyCard = ({
           <Box
             sx={{
               position: 'absolute',
-              ...badgeConfig.position,
+              right: 0,
+              transform: 'translateY(-70%)',
               background: badgeConfig.gradient,
-              color: "rgba(26, 26, 26, 0.7)",
-              px: { xs: 0.5, xl: 1 },
-              py: { xs: 0.5, xl: 1 },
-              fontSize: { xs: "0.50rem", xl: "0.70rem" },
-              fontWeight: { xs: 600, xl: 700 },
+              py: 1,
+              fontSize: "0.70rem",
+              fontWeight: 700,
               fontFamily: 'Helvetica',
-              letterSpacing: { xs: 0.5, md: 1 },
-              borderRadius: badgeConfig.borderRadius,
-              boxShadow: `0 6px 20px ${badgeConfig.glowColor}, 0 3px 6px rgba(0, 0, 0, 0.3)`,
+              letterSpacing: 0.5,
+              borderRadius: '25px 0px 0px 25px',
+              boxShadow: `-1px 6px 15px ${badgeConfig.glowColor}, 0 3px 6px rgba(0, 0, 0, 0.3)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: { xs: 0.4, sm: 0.6, xl: 0.8 },
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              backdropFilter: 'blur(6px)',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
-              zIndex: 2,
               minWidth: { xs: '80px', sm: '100px', xl: '120px' },
               backgroundSize: '200% 200%',
-              overflow: 'hidden',       // importantísimo para que no se salga el brillo
+              overflow: 'hidden',
             }}
           >
             {/* Brillo interno limitado al chip */}
@@ -125,8 +116,8 @@ export const PropertyCard = ({
               sx={{
                 position: 'absolute',
                 top: 0,
-                left: '-60%',      // comienza fuera a la izquierda
-                width: '70%',      // ancho controlado para que no se extienda más
+                left: '-60%',
+                width: '70%',
                 height: '100%',
                 background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
                 borderRadius: 'inherit',
@@ -331,6 +322,6 @@ export const PropertyCard = ({
           )}
         </Box>
       </Box>
-    </Card>
+    </Card >
   );
 };
