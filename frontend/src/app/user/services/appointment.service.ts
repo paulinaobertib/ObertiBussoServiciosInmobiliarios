@@ -1,12 +1,7 @@
 import { api } from "../../../api";
-import {
-  AvailableAppointmentCreate,
-  AppointmentStatus,
-  AppointmentCreate,
-} from "../types/appointment";
+import { AvailableAppointmentCreate, AppointmentStatus, AppointmentCreate } from "../types/appointment";
 
-export const createAvailability = async (body: AvailableAppointmentCreate
-) => {
+export const createAvailability = async (body: AvailableAppointmentCreate) => {
   try {
     const data = await api.post(`/users/availableAppointments/create`, body, {
       withCredentials: true,
@@ -21,11 +16,9 @@ export const createAvailability = async (body: AvailableAppointmentCreate
 /** `/availableAppointments/updateAvailability/{id}` */
 export const updateAvailability = async (id: number) => {
   try {
-    const data = await api.patch(
-      `/users/availableAppointments/updateAvailability/${id}`,
-      null,
-      { withCredentials: true }
-    );
+    const data = await api.patch(`/users/availableAppointments/updateAvailability/${id}`, null, {
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error("Error updating availability:", error);
@@ -100,7 +93,6 @@ export const getUnavailableAppointments = async () => {
 
 /** `/appointments/create` */
 export const createAppointment = async (body: AppointmentCreate) => {
-  console.log(body);
   try {
     const data = await api.post(`/users/appointments/create`, body, {
       withCredentials: true,
@@ -126,11 +118,7 @@ export const deleteAppointment = async (id: number) => {
 };
 
 /** `/appointments/status/{id}` */
-export const updateAppointmentStatus = async (
-  id: number,
-  status: AppointmentStatus,
-  address?: string
-) => {
+export const updateAppointmentStatus = async (id: number, status: AppointmentStatus, address?: string) => {
   try {
     const data = await api.put(`/users/appointments/status/${id}`, null, {
       params: { status, ...(address && { address }) },

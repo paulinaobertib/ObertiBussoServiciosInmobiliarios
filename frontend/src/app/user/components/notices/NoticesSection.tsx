@@ -9,10 +9,11 @@ import { Modal } from '../../../shared/components/Modal';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { NoticeForm, NoticeFormHandle } from './NoticeForm';
 import { NoticesList } from './NoticesList';
+import { LoadingButton } from '@mui/lab';
 
 export default function NoticesSection() {
   /* ───────────── datos del hook ───────────── */
-  const { notices, add, edit, remove, fetchAll, search } = useNotices();
+  const { notices, add, edit, remove, fetchAll, search, loading } = useNotices();
   const { isAdmin, info } = useAuthContext();
 
 
@@ -111,7 +112,7 @@ export default function NoticesSection() {
             onClick={openCreate}
             sx={{ whiteSpace: 'nowrap' }}
           >
-            Nueva novedad
+            Nueva noticia
           </Button>
         )}
       </Box>
@@ -163,16 +164,17 @@ export default function NoticesSection() {
       </Box>
 
       {/* MODAL CREAR */}
-      <Modal open={createOpen} title="Crear novedad" onClose={closeCreate}>
+      <Modal open={createOpen} title="Crear Noticia" onClose={closeCreate}>
         <NoticeForm ref={formRef} onValidityChange={setCanCreate} />
         <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-          <Button
+          <LoadingButton
             variant="contained"
             onClick={handleCreate}
             disabled={!canCreate}
+            loading={loading}
           >
             Crear
-          </Button>
+          </LoadingButton>
         </Box>
       </Modal>
 
