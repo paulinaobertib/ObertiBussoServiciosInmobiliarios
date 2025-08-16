@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { MixedList } from './InquiriesList';
 import { useInquiries, STATUS_OPTIONS } from '../../hooks/useInquiries';
 import { InquiriesFilter } from './InquiriesFilter';
@@ -14,7 +14,6 @@ export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
         chatSessions, // ← debe salir de tu useInquiries
         properties,
         loading,
-        errorList,
         filterStatus,
         setFilterStatus,
         filterProp,
@@ -58,19 +57,13 @@ export const InquiriesSection: React.FC<Props> = ({ propertyIds }) => {
 
             {/* -------- lista mixta -------- */}
             <Box sx={{ px: 2, flexGrow: 1, overflowY: 'auto' }}>
-                {errorList ? (
-                    <Typography color="error" align="center" py={3}>
-                        {errorList}
-                    </Typography>
-                ) : (
-                    <MixedList
-                        inquiries={inquiries || []}
-                        chatSessions={chatSessions || []}
-                        loadingId={actionLoadingId}
-                        onResolve={markResolved}
-                        onCloseChat={closeChatSession}
-                    />
-                )}
+                <MixedList
+                    inquiries={inquiries || []}
+                    chatSessions={chatSessions || []}
+                    loadingId={actionLoadingId}
+                    onResolve={markResolved}
+                    onCloseChat={closeChatSession}
+                />
             </Box>
         </>
     );

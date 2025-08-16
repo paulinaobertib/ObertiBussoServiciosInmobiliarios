@@ -6,6 +6,7 @@ import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
 import { Property } from "../types/property";
 import { buildRoute, ROUTES } from "../../../lib";
 import { useAuthContext } from "../../user/context/AuthContext";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 interface Props {
   onFinish: () => void;
@@ -16,13 +17,9 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
   const navigate = useNavigate();
   const { showAlert } = useGlobalAlert();
   const { ask, DialogUI } = useConfirmDialog();
+  const { handleError } = useApiErrors();
 
-  const {
-    propertiesList,
-    refreshProperties,
-    selectedPropertyIds,
-    toggleCompare,
-  } = usePropertiesContext();
+  const { propertiesList, refreshProperties, selectedPropertyIds, toggleCompare } = usePropertiesContext();
 
   const { isAdmin } = useAuthContext();
 
@@ -37,15 +34,27 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
       onFinish();
       return;
     }
+
     if (mode === "delete") {
       ask(`¿Eliminar "${prop.title}"?`, async () => {
-        await deleteProperty(prop);
-        showAlert("Propiedad eliminada con éxito!", "success");
-        refreshProperties();
-        onFinish();
+        try {
+          await deleteProperty(prop);
+          showAlert("Propiedad eliminada con éxito!", "success");
+          try {
+            await refreshProperties();
+          } catch (e) {
+            // si falla el refresh, también mostramos el error
+            handleError(e);
+          }
+        } catch (e) {
+          handleError(e); // muestra el mensaje que venga del backend
+        } finally {
+          onFinish();
+        }
       });
       return;
     }
+
     navigate(buildRoute(ROUTES.PROPERTY_DETAILS, prop.id));
     onFinish();
   };

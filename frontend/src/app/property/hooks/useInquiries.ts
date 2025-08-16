@@ -12,7 +12,8 @@ import { getAllProperties } from "../services/property.service";
 import { Inquiry, InquiryStatus } from "../types/inquiry";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { buildRoute, ROUTES } from "../../../lib";
-import { ChatSessionGetDTO } from "../../chat/types/chatSession"; // <-- Asegurate que este tipo existe
+import { ChatSessionGetDTO } from "../../chat/types/chatSession";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const STATUS_OPTIONS: InquiryStatus[] = ["ABIERTA", "CERRADA"];
 
@@ -23,43 +24,37 @@ interface UseInquiriesArgs {
 export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const { info, isAdmin } = useAuthContext();
   const navigate = useNavigate();
+  const { handleError } = useApiErrors();
 
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [properties, setProperties] = useState<{ id: number; title: string }[]>(
-    []
-  );
+  const [properties, setProperties] = useState<{ id: number; title: string }[]>([]);
   const [chatSessions, setChatSessions] = useState<ChatSessionGetDTO[]>([]);
 
   const [loading, setLoading] = useState(true);
-  const [errorList, setErrorList] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
   const [filterStatus, setFilterStatus] = useState<InquiryStatus | "">("");
   const [filterProp, setFilterProp] = useState<string>("");
 
   const [selected, setSelected] = useState<Inquiry | null>(null);
-  const [selectedProps, setSelectedProps] = useState<
-    { id: number; title: string }[]
-  >([]);
+  const [selectedProps] = useState<{ id: number; title: string }[]>([]);
 
   // Traer propiedades para Autocomplete
   useEffect(() => {
     getAllProperties()
-      .then((r) =>
-        setProperties(
-          r.map((p: { id: any; title: any }) => ({ id: p.id, title: p.title }))
-        )
-      )
-      .catch(() => setProperties([]));
+      .then((r) => setProperties(r.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title }))))
+      .catch((e) => {
+        handleError(e);
+        setProperties([]);
+      });
   }, []);
 
-  // Traer sesiones de chat solo para admin (ahora mapeado correctamente)
+  // Traer sesiones de chat (solo admin)
   const loadChatSessions = useCallback(async () => {
     if (!isAdmin) return;
     try {
       const sessions: ChatSessionGetDTO[] = await getAllChatSessions();
-      // Mapeá cada sesión para cumplir el tipo ChatSession (si hace falta)
-      const mapped: ChatSessionGetDTO[] = sessions.map((s) => ({
+      const mapped = sessions.map((s) => ({
         id: s.id,
         userId: s.userId,
         phone: s.phone,
@@ -71,7 +66,8 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
         propertyId: s.propertyId,
       }));
       setChatSessions(mapped);
-    } catch {
+    } catch (e) {
+      handleError(e);
       setChatSessions([]);
     }
   }, [isAdmin]);
@@ -80,13 +76,13 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     loadChatSessions();
   }, [loadChatSessions]);
 
-  // Función para cerrar chat
+  // Función para cerrar chat (si tenés endpoint, llamalo acá; por ahora solo refresca)
   const closeChatSession = async (sessionId: number) => {
     setActionLoadingId(sessionId);
     try {
-      await loadChatSessions(); // refresca la lista
-    } catch {
-      // podrías setear error si querés
+      await loadChatSessions();
+    } catch (e) {
+      handleError(e);
     } finally {
       setActionLoadingId(null);
     }
@@ -97,19 +93,18 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     if (!info?.id) return;
     setLoading(true);
     try {
-      const res = isAdmin
-        ? await getAllInquiries()
-        : await getInquiriesByUser(info.id);
+      const res = isAdmin ? await getAllInquiries() : await getInquiriesByUser(info.id);
       setInquiries(res.data);
-      setErrorList(null);
-    } catch {
-      setErrorList("Error al cargar consultas");
+      return res.data;
+    } catch (e) {
+      handleError(e);
+      return [];
     } finally {
       setLoading(false);
     }
   }, [info?.id, isAdmin]);
 
-  // Aplica los filtros de estado y propiedad
+  // Aplica filtros de estado/propiedad (admin)
   const loadFiltered = useCallback(async () => {
     setLoading(true);
     try {
@@ -117,9 +112,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       let data: Inquiry[] = [];
 
       if (filterStatus && pid) {
-        data = (await getInquiriesByProperty(pid)).data.filter(
-          (i: { status: string }) => i.status === filterStatus
-        );
+        data = (await getInquiriesByProperty(pid)).data.filter((i: { status: string }) => i.status === filterStatus);
       } else if (filterStatus) {
         data = (await getInquiriesByStatus(filterStatus)).data;
       } else if (pid) {
@@ -130,9 +123,8 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       }
 
       setInquiries(data);
-      setErrorList(null);
-    } catch {
-      setErrorList("Error al aplicar filtros");
+    } catch (e) {
+      handleError(e);
     } finally {
       setLoading(false);
     }
@@ -143,9 +135,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     if (!isAdmin) {
       const filteredInquiries = inquiries.filter((inq) => {
         const matchesStatus = filterStatus ? inq.status === filterStatus : true;
-        const matchesProperty = filterProp
-          ? inq.propertyTitles?.includes(filterProp)
-          : true;
+        const matchesProperty = filterProp ? inq.propertyTitles?.includes(filterProp) : true;
         return matchesStatus && matchesProperty;
       });
 
@@ -165,14 +155,15 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       } else {
         await loadAll();
       }
+    } catch (e) {
+      handleError(e);
     } finally {
       setActionLoadingId(null);
     }
   };
 
   // Navegar a detalle de propiedad
-  const goToProperty = (propId: number) =>
-    navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
+  const goToProperty = (propId: number) => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
 
   // Efecto principal de carga (lista, filtros, por propiedad)
   useEffect(() => {
@@ -186,9 +177,8 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
             all.push(...res.data);
           }
           setInquiries(all);
-          setErrorList(null);
-        } catch {
-          setErrorList("Error al cargar consultas");
+        } catch (e) {
+          handleError(e);
         } finally {
           setLoading(false);
         }
@@ -200,24 +190,10 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     }
   }, [propertyIds, isAdmin, filterStatus, filterProp, loadAll, loadFiltered]);
 
-  // Sincroniza selected.propertyTitles con selectedProps (detalles)
-  useEffect(() => {
-    if (!selected) {
-      setSelectedProps([]);
-      return;
-    }
-    const mapped = (selected.propertyTitles ?? [])
-      .map((t) => properties.find((p) => p.title === t))
-      .filter((p): p is { id: number; title: string } => Boolean(p));
-    setSelectedProps(mapped);
-  }, [selected, properties]);
-
-  // Return ordenado y explícito
   return {
     inquiries,
     properties,
     loading,
-    errorList,
     selected,
     setSelected,
     selectedProps,
@@ -229,7 +205,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     markResolved,
     actionLoadingId,
     goToProperty,
-    chatSessions, // Ahora es tipo ChatSession[]
-    closeChatSession, // Ya está lista para pasar a tu MixedList
+    chatSessions,
+    closeChatSession,
   };
 };

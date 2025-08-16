@@ -9,7 +9,7 @@ type Props = {
 };
 
 export const Comparer = ({ data }: Props) => {
-  const { compare, loading, result, error } = useComparerProperty();
+  const { compare, loading, result } = useComparerProperty();
 
   const [open, setOpen] = useState(true);
 
@@ -36,14 +36,6 @@ export const Comparer = ({ data }: Props) => {
             </Paper>
           )}
 
-          {error && (
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 4, border: "2px solid red", backgroundColor: "#ffe5e5" }} >
-              <Typography variant="body2" color="error">
-                {error}
-              </Typography>
-            </Paper>
-          )}
-
           {result && (
             <Fade in={true} timeout={600}>
               <Paper elevation={4} sx={{ p: 2, borderRadius: 4, backgroundColor: "#f5f5f5", border: "2px solid #EB7333", position: "relative", "::before": { content: "''", position: "absolute", left: -10, top: 20, width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderRight: "10px solid #EE671E" } }} >
@@ -52,7 +44,7 @@ export const Comparer = ({ data }: Props) => {
             </Fade>
           )}
 
-          {!loading && !result && !error && (
+          {!loading && !result && (
             <Typography variant="body2" color="text.secondary">
               Seleccioná entre 2 y 3 propiedades para comparar.
             </Typography>
