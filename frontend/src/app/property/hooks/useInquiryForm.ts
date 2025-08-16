@@ -1,6 +1,7 @@
 import { useState, ChangeEvent, FormEvent, useCallback } from "react";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { postInquiry } from "../services/inquiry.service";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 type InquiryFormFields = {
   firstName: string;
@@ -16,6 +17,7 @@ interface Props {
 
 export const useInquiryForm = ({ propertyIds }: Props = {}) => {
   const { info, isLogged } = useAuthContext();
+  const { handleError } = useApiErrors();
 
   const [form, setForm] = useState<InquiryFormFields>({
     firstName: info?.firstName ?? "",
@@ -25,33 +27,20 @@ export const useInquiryForm = ({ propertyIds }: Props = {}) => {
     description: "",
   });
   const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
-      setForm((f) => ({ ...f, [name]: value }));
-    },
-    []
-  );
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  }, []);
 
   const handleSubmit = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
       setFormLoading(true);
-      setFormError(null);
 
-      // Determinar el prefijo según la cantidad de propertyIds
       const count = propertyIds?.length ?? 0;
-      let title: string;
-      if (count === 0) {
-        title = "Consulta General";
-      } else if (count === 1) {
-        title = "Consulta Individual";
-      } else {
-        title = "Consulta Grupal";
-      }
+      const title = count === 0 ? "Consulta General" : count === 1 ? "Consulta Individual" : "Consulta Grupal";
 
       const payloadBase: {
         title: string;
@@ -76,19 +65,19 @@ export const useInquiryForm = ({ propertyIds }: Props = {}) => {
           });
         }
         setSubmitted(true);
-      } catch (err: any) {
-        setFormError(err.response?.data || err.message || "Error al enviar");
+      } catch (err) {
+        // handleError muestra el toast y devuelve el string
+        handleError(err);
       } finally {
         setFormLoading(false);
       }
     },
-    [form, isLogged, info, propertyIds]
+    [form, isLogged, info, propertyIds, handleError]
   );
 
   return {
     form,
     formLoading,
-    formError,
     submitted,
     handleChange,
     handleSubmit,

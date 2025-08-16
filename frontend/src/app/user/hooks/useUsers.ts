@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  getAllUsers,
-  getTenants,
-  searchUsersByText,
-  getRoles,
-} from "../services/user.service";
+import { getAllUsers, getTenants, searchUsersByText, getRoles } from "../services/user.service";
 import type { User, Role } from "../types/user";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export type Filter = "TODOS" | "ADMIN" | "USER" | "TENANT";
 
@@ -14,6 +10,7 @@ export function useUsers(initialFilter: Filter = "TODOS") {
   const [users, setUsers] = useState<(User & { roles: Role[] })[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<Filter>(initialFilter);
+  const { handleError } = useApiErrors();
 
   /* ── selección ── */
   const [selected, setSelected] = useState<string | null>(null);
@@ -21,21 +18,15 @@ export function useUsers(initialFilter: Filter = "TODOS") {
   /**
    * toggleSelect ahora acepta string | string[] | null para encajar con GridSection
    */
-  const toggleSelect = useCallback(
-    (selectedInput: string | string[] | null) => {
-      let id: string | null;
-      if (Array.isArray(selectedInput)) {
-        id =
-          selectedInput.length > 0
-            ? selectedInput[selectedInput.length - 1]
-            : null;
-      } else {
-        id = selectedInput;
-      }
-      setSelected((prev) => (prev === id ? null : id));
-    },
-    []
-  );
+  const toggleSelect = useCallback((selectedInput: string | string[] | null) => {
+    let id: string | null;
+    if (Array.isArray(selectedInput)) {
+      id = selectedInput.length > 0 ? selectedInput[selectedInput.length - 1] : null;
+    } else {
+      id = selectedInput;
+    }
+    setSelected((prev) => (prev === id ? null : id));
+  }, []);
 
   const isSelected = useCallback((id: string) => selected === id, [selected]);
 
@@ -59,18 +50,16 @@ export function useUsers(initialFilter: Filter = "TODOS") {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const base =
-        filter === "TENANT"
-          ? (await getTenants()).data
-          : (await getAllUsers()).data;
+      const base = filter === "TENANT" ? (await getTenants()).data : (await getAllUsers()).data;
 
       let enriched = await enrich(base);
-      if (filter === "ADMIN")
-        enriched = enriched.filter((u) => u.roles.includes("admin"));
-      if (filter === "USER")
-        enriched = enriched.filter((u) => u.roles.includes("user"));
+      if (filter === "ADMIN") enriched = enriched.filter((u) => u.roles.includes("admin"));
+      if (filter === "USER") enriched = enriched.filter((u) => u.roles.includes("user"));
 
       setUsers(enriched);
+    } catch (error) {
+      handleError(error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -82,18 +71,28 @@ export function useUsers(initialFilter: Filter = "TODOS") {
 
   /* ── buscador ── */
   const fetchAll = useCallback(async () => {
-    const res = await getAllUsers();
-    const enriched = await enrich(res.data);
-    setUsers(enriched); // ← vuelco al state
-    return enriched;
+    try {
+      const res = await getAllUsers();
+      const enriched = await enrich(res.data);
+      setUsers(enriched); // ← vuelco al state
+      return enriched;
+    } catch (error) {
+      handleError(error);
+      return [];
+    }
   }, [enrich]);
 
   const fetchByText = useCallback(
     async (txt: string) => {
-      const list = await searchUsersByText(txt);  // ahora devuelve Array<User>
-      const enriched = await enrich(list);
-      setUsers(enriched);
-      return enriched;
+      try {
+        const list = await searchUsersByText(txt); // ahora devuelve Array<User>
+        const enriched = await enrich(list);
+        setUsers(enriched);
+        return enriched;
+      } catch (error) {
+        handleError(error);
+        return [];
+      }
     },
     [enrich]
   );

@@ -12,7 +12,6 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
   const {
     form,
     formLoading,
-    formError,
     submitted,
     handleChange,
     handleSubmit,
@@ -96,12 +95,6 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           fullWidth
           required
         />
-
-        {formError && (
-          <Typography color="error" align="center">
-            {formError}
-          </Typography>
-        )}
 
         <Button
           type="submit"
