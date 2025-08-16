@@ -170,6 +170,7 @@ public class ContractService implements IContractService {
         return ResponseEntity.ok("Se ha actualizado el estado del contrato a " + contract.getContractStatus());
     }
 
+    // AGREGAR VALIDACION PORQUE CUANDO ELIMINE UNA PROPIEDAD QUE TIENE CONTRATOS NO LO VA A DEJAR
     @Override
     public ResponseEntity<String> delete(Long id) {
         Contract contract = contractRepository.findById(id)
