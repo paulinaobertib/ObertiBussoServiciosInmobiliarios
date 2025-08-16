@@ -22,6 +22,7 @@ interface GridSectionProps {
     fetchByText: (searchTerm: string) => Promise<any[]>;
     multiSelect?: boolean;
     selectedIds?: string[];
+    selectable?: boolean;
 }
 
 export const GridSection = ({
@@ -36,6 +37,7 @@ export const GridSection = ({
     fetchByText,
     multiSelect = false,
     selectedIds,
+    selectable = true,
 }: GridSectionProps) => {
     // Si se controla desde afuera, usar el prop. Si no, manejar interno.
     const [internalSelection, setInternalSelection] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
@@ -105,10 +107,18 @@ export const GridSection = ({
                     rows={data}
                     columns={columns}
                     loading={loading}
-                    checkboxSelection
-                    rowSelectionModel={internalSelection}
-                    onRowSelectionModelChange={handleRowSelection}
+                    checkboxSelection={selectable}
+                    disableRowSelectionOnClick
+                    hideFooterSelectedRowCount
+                    {...(selectable
+                        ? {
+                            rowSelectionModel: internalSelection,
+                            onRowSelectionModelChange: (newModel: GridRowSelectionModel) =>
+                                handleRowSelection(newModel),
+                        }
+                        : {})}
                     localeText={{ noRowsLabel: `No hay resultados.` }}
+
                     sx={{
                         // Centra verticalmente todas las celdas de datos...
                         '& .MuiDataGrid-cell': {

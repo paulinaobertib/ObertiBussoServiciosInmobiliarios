@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   getInquiriesByUser,
   getAllInquiries,
-  getInquiriesByStatus,
   getInquiriesByProperty,
   updateInquiry,
 } from "../services/inquiry.service";
@@ -26,30 +25,39 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const navigate = useNavigate();
   const { handleError } = useApiErrors();
 
+  // Datos "crudos" (sin filtrar)
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [properties, setProperties] = useState<{ id: number; title: string }[]>([]);
+  const [properties, setProperties] = useState<{ id: number; title: string }[]>(
+    []
+  );
   const [chatSessions, setChatSessions] = useState<ChatSessionGetDTO[]>([]);
 
+  // Loading SOLO para el bootstrap inicial / cambios reales de dataset
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
+  // Filtros (UI state) — NO disparan fetch
   const [filterStatus, setFilterStatus] = useState<InquiryStatus | "">("");
   const [filterProp, setFilterProp] = useState<string>("");
 
+  // Otros estados que ya usabas
   const [selected, setSelected] = useState<Inquiry | null>(null);
   const [selectedProps] = useState<{ id: number; title: string }[]>([]);
 
-  // Traer propiedades para Autocomplete
+  // ---------- Cargar catálogo de propiedades (una vez) ----------
   useEffect(() => {
-    getAllProperties()
-      .then((r) => setProperties(r.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title }))))
-      .catch((e) => {
+    (async () => {
+      try {
+        const r = await getAllProperties();
+        setProperties(r.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title })));
+      } catch (e) {
         handleError(e);
         setProperties([]);
-      });
+      }
+    })();
   }, []);
 
-  // Traer sesiones de chat (solo admin)
+  // ---------- Cargar sesiones de chat (solo admin) ----------
   const loadChatSessions = useCallback(async () => {
     if (!isAdmin) return;
     try {
@@ -70,13 +78,14 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       handleError(e);
       setChatSessions([]);
     }
-  }, [isAdmin]);
+  }, [isAdmin, handleError]);
 
   useEffect(() => {
+    // No seteamos loading acá — no queremos ocultar la UI por recargar chats
     loadChatSessions();
   }, [loadChatSessions]);
 
-  // Función para cerrar chat (si tenés endpoint, llamalo acá; por ahora solo refresca)
+  // (Opcional) cerrar chat — refresca SOLO el listado de chats
   const closeChatSession = async (sessionId: number) => {
     setActionLoadingId(sessionId);
     try {
@@ -88,124 +97,93 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     }
   };
 
-  // Trae todas las consultas según usuario o admin
+  // ---------- Cargar consultas ----------
   const loadAll = useCallback(async () => {
     if (!info?.id) return;
     setLoading(true);
     try {
-      const res = isAdmin ? await getAllInquiries() : await getInquiriesByUser(info.id);
-      setInquiries(res.data);
-      return res.data;
-    } catch (e) {
-      handleError(e);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [info?.id, isAdmin]);
-
-  // Aplica filtros de estado/propiedad (admin)
-  const loadFiltered = useCallback(async () => {
-    setLoading(true);
-    try {
-      const pid = filterProp ? parseInt(filterProp, 10) : undefined;
-      let data: Inquiry[] = [];
-
-      if (filterStatus && pid) {
-        data = (await getInquiriesByProperty(pid)).data.filter((i: { status: string }) => i.status === filterStatus);
-      } else if (filterStatus) {
-        data = (await getInquiriesByStatus(filterStatus)).data;
-      } else if (pid) {
-        data = (await getInquiriesByProperty(pid)).data;
-      } else {
-        await loadAll();
+      if (propertyIds?.length) {
+        // Lista por propiedades específicas (ej. vista por propiedad)
+        const all: Inquiry[] = [];
+        for (const pid of propertyIds) {
+          const res = await getInquiriesByProperty(pid);
+          all.push(...res.data);
+        }
+        setInquiries(all);
         return;
       }
 
-      setInquiries(data);
+      // Admin ve todas, usuario ve las suyas
+      const res = isAdmin
+        ? await getAllInquiries()
+        : await getInquiriesByUser(info.id);
+
+      setInquiries(res.data);
     } catch (e) {
       handleError(e);
+      setInquiries([]);
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, filterProp, loadAll]);
+  }, [info?.id, isAdmin, propertyIds, handleError]);
 
-  // Filtrado local para usuarios no administradores
+  // Bootstrap / recarga cuando cambian deps REALES
   useEffect(() => {
-    if (!isAdmin) {
-      const filteredInquiries = inquiries.filter((inq) => {
-        const matchesStatus = filterStatus ? inq.status === filterStatus : true;
-        const matchesProperty = filterProp ? inq.propertyTitles?.includes(filterProp) : true;
-        return matchesStatus && matchesProperty;
-      });
+    loadAll();
+  }, [loadAll]);
 
-      if (filteredInquiries.length !== inquiries.length) {
-        setInquiries(filteredInquiries);
-      }
-    }
-  }, [isAdmin, filterStatus, filterProp, inquiries]);
-
-  // Marcar consulta como resuelta
+  // ---------- Marcar consulta como resuelta (optimista) ----------
   const markResolved = async (inqId: number) => {
     setActionLoadingId(inqId);
     try {
       await updateInquiry(inqId);
-      if (isAdmin && (filterStatus || filterProp)) {
-        await loadFiltered();
-      } else {
-        await loadAll();
-      }
+      // Update local sin refrescar todo
+      setInquiries((prev) =>
+        prev.map((i) =>
+          i.id === inqId
+            ? {
+                ...i,
+                status: "CERRADA",
+                dateClose: new Date().toISOString(),
+              }
+            : i
+        )
+      );
     } catch (e) {
       handleError(e);
+      // fallback: si preferís, podrías llamar loadAll() acá
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // Navegar a detalle de propiedad
-  const goToProperty = (propId: number) => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
-
-  // Efecto principal de carga (lista, filtros, por propiedad)
-  useEffect(() => {
-    if (propertyIds?.length) {
-      (async () => {
-        setLoading(true);
-        try {
-          const all: Inquiry[] = [];
-          for (const pid of propertyIds) {
-            const res = await getInquiriesByProperty(pid);
-            all.push(...res.data);
-          }
-          setInquiries(all);
-        } catch (e) {
-          handleError(e);
-        } finally {
-          setLoading(false);
-        }
-      })();
-    } else if (isAdmin && (filterStatus || filterProp)) {
-      loadFiltered();
-    } else {
-      loadAll();
-    }
-  }, [propertyIds, isAdmin, filterStatus, filterProp, loadAll, loadFiltered]);
+  // ---------- Navegar a propiedad ----------
+  const goToProperty = (propId: number) =>
+    navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
 
   return {
+    // datasets base (sin filtrar)
     inquiries,
     properties,
-    loading,
+    chatSessions,
+
+    // estados UI
+    loading,              // ahora sólo durante el bootstrap/cambios de dataset
+    actionLoadingId,
     selected,
     setSelected,
     selectedProps,
+
+    // filtros (sólo UI; filtra la lista en el render, no en el hook)
     filterStatus,
     setFilterStatus,
     filterProp,
     setFilterProp,
     STATUS_OPTIONS,
+
+    // acciones
     markResolved,
-    actionLoadingId,
     goToProperty,
-    chatSessions,
     closeChatSession,
   };
 };

@@ -56,9 +56,7 @@ export function ProfileSection() {
             alert('No hay información de usuario. No puedes eliminar el perfil.');
             return;
           }
-          console.log("Intentando eliminar usuario con id:", info.id);
-          const res = await deleteUser(info.id); // Asegurate que deleteUser es una función
-          console.log("Respuesta de eliminación:", res);
+          await deleteUser(info.id); // Asegurate que deleteUser es una función
 
           // Limpiar sesión/contexto
           setInfo(null);
@@ -66,7 +64,6 @@ export function ProfileSection() {
           localStorage.clear();
           logout();
         } catch (err) {
-          console.error("Error eliminando usuario:", err);
 
           // Si usás Axios, esto es lo más seguro:
           if (

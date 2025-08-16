@@ -115,7 +115,6 @@ export const putUser = async (body: User) => {
     const { data } = await api.put(`/users/user/update`, body, {
       withCredentials: true,
     });
-    console.log(data);
     return data;
   } catch (error) {
     console.error("Error updating user:", error);
@@ -126,11 +125,10 @@ export const putUser = async (body: User) => {
 /** `/users/user/update/role/{id}?role=` */
 export const addRoleToUser = async (id: string, role: string) => {
   try {
-    const { data } = await api.put<Role[]>(
-      `/users/user/update/role/${id}`,
-      null,
-      { params: { role }, withCredentials: true }
-    );
+    const { data } = await api.put<Role[]>(`/users/user/update/role/${id}`, null, {
+      params: { role },
+      withCredentials: true,
+    });
     return data;
   } catch (error: any) {
     const backendMessage = error.response?.data?.message || error.response?.data || error.message;

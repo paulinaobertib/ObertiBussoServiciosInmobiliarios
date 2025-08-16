@@ -1,8 +1,9 @@
 import {
-  Box, TextField, Button, Stack,
+  Box, TextField, Stack,
   CircularProgress, Typography,
 } from '@mui/material';
 import { useInquiryForm } from '../../hooks/useInquiryForm';
+import { LoadingButton } from '@mui/lab';
 
 interface Props {
   propertyIds?: number[];
@@ -96,7 +97,8 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           required
         />
 
-        <Button
+        <LoadingButton
+          loading={formLoading}
           type="submit"
           variant="contained"
           disabled={formLoading}
@@ -108,8 +110,7 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           }
           sx={{ mt: 'auto' }}
         >
-          {formLoading ? 'Enviando…' : 'Enviar Consulta'}
-        </Button>
+        </LoadingButton>
       </Stack>
     </Box>
   );

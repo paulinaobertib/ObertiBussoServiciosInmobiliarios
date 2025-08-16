@@ -14,13 +14,13 @@ import type { Inquiry } from '../../types/inquiry';
 import { useAuthContext } from '../../../user/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { buildRoute, ROUTES } from '../../../../lib';
-import { useInquiries } from '../../hooks/useInquiries';
 import { findPropertyIdByTitle } from '../../utils/findPropertyIdByTitle';
 
 interface Props {
   inquiry: Inquiry;
   loading: boolean;
   onResolve: (id: number) => void;
+  properties: { id: number; title: string }[];
 }
 
 const statusMap: Record<string, { label: string }> = {
@@ -28,12 +28,11 @@ const statusMap: Record<string, { label: string }> = {
   CERRADA: { label: 'Cerrada' },
 };
 
-export const InquiryItem = ({ inquiry, loading, onResolve }: Props) => {
+export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { properties } = useInquiries();   // properties: Array<{ id, title }>
 
   const created = dayjs(inquiry.date).locale('es');
   const closed = inquiry.dateClose ? dayjs(inquiry.dateClose).locale('es') : null;
