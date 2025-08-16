@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_users.controller.ContractIncreaseController;
-import pi.ms_users.domain.ContractIncreaseCurrency;
+import pi.ms_users.domain.PaymentCurrency;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.ContractIncreaseDTOContractGet;
 import pi.ms_users.security.WebSecurityConfig;
@@ -58,7 +58,7 @@ class ContractIncreaseControllerTest {
         ContractIncreaseDTO dto = new ContractIncreaseDTO();
         dto.setId(1L);
         dto.setAmount(BigDecimal.valueOf(1000));
-        dto.setCurrency(ContractIncreaseCurrency.USD);
+        dto.setCurrency(PaymentCurrency.USD);
         dto.setDate(LocalDateTime.now());
         dto.setContractId(123L);
 

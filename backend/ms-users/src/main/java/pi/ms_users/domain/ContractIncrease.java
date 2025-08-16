@@ -24,10 +24,26 @@ public class ContractIncrease {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false)
-    private ContractIncreaseCurrency currency;
+    private PaymentCurrency currency;
 
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
+
+    @Column(name = "adjustment", nullable = false)
+    private BigDecimal adjustment;
+
+    @Column(name = "note", nullable = true)
+    private String note;
+
+    @Column(name = "period_from", nullable = true)
+    private LocalDateTime periodFrom;
+
+    @Column(name = "period_to", nullable = true)
+    private LocalDateTime periodTo;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "index_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_increase__index"))
+    private IncreaseIndex index;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contract_id", nullable = false)
