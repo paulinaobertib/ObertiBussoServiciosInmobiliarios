@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,14 +40,37 @@ public class Contract {
     @Column(name = "status", nullable = false)
     private ContractStatus contractStatus;
 
-    @Column(name = "increase", nullable = false)
-    private float increase;
+    @Column(name = "currency", nullable = false)
+    private PaymentCurrency currency;
 
-    @Column(name = "increase_frequency", nullable = false)
-    private Long increaseFrequency;
+    @Column(name = "initial_amount", nullable = false)
+    private BigDecimal initialAmount;
+
+    @Column(name = "adjustment_frequency_months", nullable = false)
+    private Integer adjustmentFrequencyMonths;
+
+    @Column(name = "last_paid_amount", nullable = true)
+    private BigDecimal lastPaidAmount;
+
+    @Column(name = "last_paid_date", nullable = true)
+    private LocalDateTime lastPaidDate;
+
+    @Column(name = "note", nullable = true)
+    private String note;
+
+    // FIJARSE ACA NO PUEDO ELIMINAR UN INDICE SI TIENE UN CONTRATO VINCULADO
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "adjustment_index_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_adjustment_index"))
+    private IncreaseIndex adjustmentIndex;
+
+    @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContractUtility> contractUtilities = new ArrayList<>();
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContractIncrease> contractIncrease = new ArrayList<>();
+
+    @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Commission> commissions = new ArrayList<>();
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();

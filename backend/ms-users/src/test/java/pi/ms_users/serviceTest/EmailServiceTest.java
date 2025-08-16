@@ -12,7 +12,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Appointment;
-import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.dto.*;
 import org.thymeleaf.context.Context;
 import pi.ms_users.service.impl.EmailService;
