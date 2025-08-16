@@ -91,9 +91,7 @@ export const UserForm = ({
           phone: form.phone,
         };
 
-        const created: User = await postUser(body);
-
-        console.log(created);
+        await postUser(body);
         showAlert('Usuario creado con éxito', 'success');
       } else if (isDelete && form.id) {
         await deleteUser(form.id);

@@ -16,8 +16,11 @@ import {
   ViewsByRooms,
   ViewsByAmenity,
 } from "../types/view";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const useViewStats = () => {
+  const { handleError } = useApiErrors();
+
   const [stats, setStats] = useState<{
     // — VISTAS —
     property: ViewsByProperty;
@@ -152,7 +155,7 @@ export const useViewStats = () => {
           mostConsultedProperties: mostPropsResp.data,
         });
       } catch (e) {
-        setError((e as Error).message);
+        handleError(e); // toast + mensaje legible
       } finally {
         setLoading(false);
       }
