@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
-import {
-  ContractCreate,
-  ContractStatus,
-  ContractType,
-  Contract,
-} from "../../types/contract";
+import { ContractCreate, ContractStatus, ContractType, Contract } from "../../types/contract";
 import { getPropertyById } from "../../../property/services/property.service";
 import type { Property } from "../../../property/types/property";
 import { getUserById } from "../../services/user.service";
@@ -13,12 +8,7 @@ import type { User } from "../../types/user";
 
 export type ContractFormValues = Omit<
   ContractCreate,
-  | "contractType"
-  | "contractStatus"
-  | "amount"
-  | "increase"
-  | "increaseFrequency"
-  | "currency"
+  "contractType" | "contractStatus" | "amount" | "increase" | "increaseFrequency" | "currency"
 > & {
   contractType: ContractType | "";
   contractStatus: ContractStatus | "";
@@ -75,11 +65,8 @@ export function useContractForm(
     let mounted = true;
     (async () => {
       try {
-        console.log("Obteniendo propiedad con ID:", initialPropertyId);
-        console.log("Obteniendo usuario con ID:", initialUserId);
         const prop = await getPropertyById(initialPropertyId);
         const resp = await getUserById(initialUserId);
-        console.log("Respuesta getUserById:", resp);
         const usr = resp?.data;
         if (!usr) throw new Error("Usuario no encontrado");
         if (mounted) {
@@ -110,19 +97,12 @@ export function useContractForm(
     if (!values.contractStatus) e.contractStatus = "Requerido";
     if (!values.startDate) e.startDate = "Requerido";
     if (!values.endDate) e.endDate = "Requerido";
-    if (
-      values.startDate &&
-      values.endDate &&
-      dayjs(values.endDate).isBefore(values.startDate)
-    )
+    if (values.startDate && values.endDate && dayjs(values.endDate).isBefore(values.startDate))
       e.endDate = "Fin anterior al inicio";
 
-    if (values.increase === "" || Number(values.increase) < 0)
-      e.increase = "No negativo";
-    if (values.increaseFrequency === "" || Number(values.increaseFrequency) < 0)
-      e.increaseFrequency = "No negativo";
-    if (values.amount === "" || Number(values.amount) <= 0)
-      e.amount = "Debe > 0";
+    if (values.increase === "" || Number(values.increase) < 0) e.increase = "No negativo";
+    if (values.increaseFrequency === "" || Number(values.increaseFrequency) < 0) e.increaseFrequency = "No negativo";
+    if (values.amount === "" || Number(values.amount) <= 0) e.amount = "Debe > 0";
     if (!values.currency) e.currency = "Requerido";
 
     setErrors(e);
@@ -135,17 +115,15 @@ export function useContractForm(
   }, [values, validate]);
 
   /* ---------- handlers ---------- */
-  const handleChange =
-    (field: keyof ContractFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value;
-      setValues((prev) => ({
-        ...prev,
-        [field]: ["amount", "increase", "increaseFrequency"].includes(field)
-          ? raw // numéricos: se guarda string vacío o string con número, se convierte al enviar
-          : raw,
-      }));
-    };
+  const handleChange = (field: keyof ContractFormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setValues((prev) => ({
+      ...prev,
+      [field]: ["amount", "increase", "increaseFrequency"].includes(field)
+        ? raw // numéricos: se guarda string vacío o string con número, se convierte al enviar
+        : raw,
+    }));
+  };
 
   const reset = useCallback(() => {
     setValues({

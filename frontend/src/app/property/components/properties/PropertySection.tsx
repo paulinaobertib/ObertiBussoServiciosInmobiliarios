@@ -14,6 +14,7 @@ interface Props {
   isSelected?: (id: number) => boolean;
   showActions?: boolean;
   filterAvailable?: boolean;
+  selectable?: boolean,
 }
 
 export const PropertySection = ({
@@ -21,6 +22,7 @@ export const PropertySection = ({
   isSelected: externalIsSelected,
   showActions = true,
   filterAvailable = false,
+  selectable = true,
 }: Props) => {
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
@@ -174,6 +176,8 @@ export const PropertySection = ({
         fetchAll={fetchAll}
         fetchByText={fetchByText}
         multiSelect={false}
+        selectable={selectable}
+
       />
       {DialogUI}
     </>
