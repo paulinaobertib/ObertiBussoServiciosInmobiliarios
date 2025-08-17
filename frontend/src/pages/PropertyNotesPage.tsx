@@ -58,7 +58,6 @@ export const PropertyNotesPage = () => {
             </IconButton>
 
             <BasePage>
-                {/* — Header — */}
                 <Card
                     variant="elevation"
                     sx={{
@@ -77,7 +76,7 @@ export const PropertyNotesPage = () => {
                 </Card>
 
                 {/* — Tabs — */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
                     <Button
                         variant={activeTab === 'comments' ? 'contained' : 'outlined'}
                         onClick={() => setActiveTab('comments')}

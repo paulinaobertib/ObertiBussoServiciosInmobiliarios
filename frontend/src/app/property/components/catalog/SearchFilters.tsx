@@ -85,9 +85,10 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           display="flex"
           justifyContent="space-between"
           alignItems="center"
-          mb={1}
+          p={2}
+          mb={2}
         >
-          <Typography variant="subtitle1">Filtros de Búsqueda</Typography>
+          <Typography variant="subtitle1" fontSize={'1.2rem'} fontWeight={600}>Filtros de Búsqueda</Typography>
           <IconButton size="small" onClick={() => setOpen(false)}>
             <CloseIcon />
           </IconButton>

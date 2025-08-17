@@ -3,4 +3,4 @@ html, body, #root {
     margin: 0;
   }
 
-html { font-size: clamp(12px, calc(10.7px + 0.42vw), 16px); }
+html { font-size: clamp(14px, calc(12.667px + 0.4167vw), 18px);}
