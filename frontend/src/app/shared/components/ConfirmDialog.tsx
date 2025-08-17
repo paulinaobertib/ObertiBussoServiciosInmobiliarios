@@ -57,7 +57,7 @@ export function useConfirmDialog() {
 
       <DialogContent sx={{ mt: 2 }}>
         <Typography sx={{ textAlign: 'center', fontSize: 16 }}>
-          Ten en cuenta que no podrás volver atrás.
+          Ten en cuenta que no podrás deshacer el cambio.
         </Typography>
       </DialogContent>
 

@@ -1,7 +1,4 @@
-import {
-  Box, TextField, Stack,
-  CircularProgress, Typography,
-} from '@mui/material';
+import { Box, TextField, Stack, Typography, } from '@mui/material';
 import { useInquiryForm } from '../../hooks/useInquiryForm';
 import { LoadingButton } from '@mui/lab';
 
@@ -103,13 +100,8 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           variant="contained"
           disabled={formLoading}
           fullWidth
-          startIcon={
-            formLoading
-              ? <CircularProgress size={20} color="inherit" />
-              : undefined
-          }
-          sx={{ mt: 'auto' }}
         >
+          Enviar Consulta
         </LoadingButton>
       </Stack>
     </Box>

@@ -43,9 +43,6 @@ export const SurveysSection = () => {
     }
 
     return (
-        <Box sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Encuestas</Typography>
-            <SurveysList surveys={surveys} />
-        </Box>
+        <SurveysList surveys={surveys} />
     );
 };

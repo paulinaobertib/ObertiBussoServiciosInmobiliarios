@@ -63,28 +63,6 @@ export default function NoticesSection() {
   /* ───────────── render ───────────── */
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh">
-      {/* HEADER */}
-      {/* <Box
-        component="header"
-        sx={{
-          background: theme.palette.quaternary.main,
-          color: 'common.black',
-          textAlign: 'center',
-          py: { xs: 4, md: 6 },
-        }}
-      >
-        <Typography variant="h2" component="h1" sx={{ fontWeight: 700 }}>
-          Sección de{' '}
-          <Typography
-            component="span"
-            color="primary.main"
-            variant="h2"
-            sx={{ fontWeight: 700 }}
-          >
-            Novedades
-          </Typography>
-        </Typography>
-      </Box> */}
 
       {/* BUSCADOR + CREAR */}
       <Box
@@ -118,18 +96,31 @@ export default function NoticesSection() {
       </Box>
 
       {/* SLIDER */}
-      <Box sx={{ position: 'relative', width: '100%', py: 2 }}>
+      <Box
+        sx={{
+          position: 'relative',
+          width: '100%',
+          py: 2,
+          overflow: 'visible', // permite que las flechas “salgan” a los costados
+        }}
+      >
         {/* Flecha Izquierda */}
         <IconButton
           onClick={prev}
           disabled={idx === 0 || sorted.length === 0}
           sx={{
             position: 'absolute',
-            left: 0,
             top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 1,
+            left: 0,                     // en xs queda adentro, en sm+ pega al borde
+            transform: {
+              xs: 'translateY(-50%)',                    // xs: no la sacamos
+              sm: 'translate(-100%, -50%)',              // sm+: la empujamos al gutter
+            },
+            zIndex: 2,
             bgcolor: 'background.paper',
+            boxShadow: 2,
+            border: '1px solid',
+            borderColor: 'divider',
           }}
         >
           <ChevronLeftIcon />
@@ -147,16 +138,20 @@ export default function NoticesSection() {
         {/* Flecha Derecha */}
         <IconButton
           onClick={next}
-          disabled={
-            idx + visibleCount >= sorted.length || sorted.length === 0
-          }
+          disabled={idx + visibleCount >= sorted.length || sorted.length === 0}
           sx={{
             position: 'absolute',
-            right: 0,
             top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 1,
+            right: 0,
+            transform: {
+              xs: 'translateY(-50%)',
+              sm: 'translate(100%, -50%)',
+            },
+            zIndex: 2,
             bgcolor: 'background.paper',
+            boxShadow: 2,
+            border: '1px solid',
+            borderColor: 'divider',
           }}
         >
           <ChevronRightIcon />
