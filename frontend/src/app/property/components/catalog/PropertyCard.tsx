@@ -165,10 +165,7 @@ export const PropertyCard = ({
               sx={{
                 bgcolor: theme.palette.quaternary.main,
                 color: theme.palette.quaternary.contrastText,
-                fontSize: '0.65rem',
-                fontWeight: 500,
-                textTransform: 'uppercase',
-                pointerEvents: 'none',
+                fontSize: '0.70rem',
               }}
             />
           )}
@@ -177,10 +174,7 @@ export const PropertyCard = ({
             size="small"
             sx={{
               bgcolor: 'rgba(255,255,255,0.8)',
-              fontSize: '0.65rem',
-              fontWeight: 500,
-              textTransform: 'capitalize',
-              pointerEvents: 'none',
+              fontSize: '0.70rem',
             }}
           />
         </Box>
@@ -227,12 +221,12 @@ export const PropertyCard = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            p: 1,
           }}
         >
           <Typography
             variant="subtitle1"
             sx={{
+              fontSize: '1rem',
               fontWeight: 600,
               lineHeight: '1.3rem',
               overflow: 'hidden',
@@ -252,7 +246,7 @@ export const PropertyCard = ({
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                gap: 0.5,
+                gap: '0.5rem',
               }}
             >
               <Box
@@ -266,6 +260,7 @@ export const PropertyCard = ({
                 <Typography
                   variant="caption"
                   color="text.secondary"
+                  fontSize={'0.75rem'}
                 >
                   Precio
                 </Typography>
@@ -273,6 +268,7 @@ export const PropertyCard = ({
                   variant="subtitle2"
                   noWrap
                   sx={{ whiteSpace: 'nowrap' }}
+                  fontSize={'0.85rem'}
                 >
                   {`${property.currency} $${property.price}`}
                 </Typography>
@@ -288,15 +284,17 @@ export const PropertyCard = ({
                 <Typography
                   variant="caption"
                   color="text.secondary"
+                  fontSize={'0.75rem'}
                 >
                   Expensas
                 </Typography>
                 <Typography
                   variant="subtitle2"
                   noWrap sx={{ whiteSpace: 'nowrap' }}
+                  fontSize={'0.85rem'}
                 >
                   {property?.expenses ?? 0 > 0
-                    ? `${property.currency} $${property.expenses}`
+                    ? `ARS $${property.expenses}`
                     : 'No'}
                 </Typography>
               </Box>
@@ -312,10 +310,11 @@ export const PropertyCard = ({
               <Typography
                 variant="caption"
                 color="text.secondary"
+                fontSize={'0.75rem'}
               >
                 Precio - Expensas
               </Typography>
-              <Typography variant="subtitle2">
+              <Typography variant="subtitle2" fontSize={'0.85rem'}>
                 Consultar
               </Typography>
             </Box>

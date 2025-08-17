@@ -26,7 +26,7 @@ export const Modal = ({ open, title, onClose, children }: Props) => {
             onClose={(_, reason) => {
                 if (reason !== "backdropClick") onClose();
             }}
-            PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
+            PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
         >
             <DialogTitle
                 sx={{
@@ -34,7 +34,6 @@ export const Modal = ({ open, title, onClose, children }: Props) => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontWeight: "bold",
-                    fontSize: "1.25rem",
                     color: theme.palette.primary.main,
                     mb: 1,
                 }}

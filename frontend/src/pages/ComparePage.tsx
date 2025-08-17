@@ -68,7 +68,7 @@ const Compare = () => {
 
         <PropertyDetailsCompare comparisonItems={comparisonItems} />
 
-        <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1300 }}>
+        <Box sx={{ position: "fixed", bottom: 16, left: 16, mr: 2, zIndex: 1300 }}>
           <Comparer data={comparisonDataAI} />
         </Box>
 

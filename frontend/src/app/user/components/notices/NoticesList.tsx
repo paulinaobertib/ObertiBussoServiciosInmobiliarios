@@ -26,7 +26,6 @@ export const NoticesList = ({
         display: 'flex',
         overflow: 'hidden',
         gap: 2,
-        pr: 6,              // mismo padding-right que usabas
       }}
     >
       {notices.map(n => (

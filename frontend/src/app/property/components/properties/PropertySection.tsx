@@ -6,7 +6,7 @@ import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { usePropertyPanel } from '../../hooks/usePropertySection';
 import { getAllProperties, getPropertiesByText, deleteProperty } from '../../services/property.service';
-import { getRowActions } from '../ActionsRowItems';
+import { getRowActions } from './ActionsRowItems';
 import type { Property } from '../../types/property';
 
 interface Props {
@@ -123,7 +123,6 @@ export const PropertySection = ({
             const actions = getRowActions(
               'property',
               params.row as Property,
-              () => { },
               ask,
               deleteProperty,
               showAlert
@@ -137,7 +136,7 @@ export const PropertySection = ({
                 justifyContent="center"
                 width="100%"
               >
-                {actions.map((a) => (
+                {(actions ?? []).map((a) => (
                   <IconButton
                     key={a.label}
                     size="small"
