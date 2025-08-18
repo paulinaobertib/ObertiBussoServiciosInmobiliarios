@@ -35,6 +35,7 @@ export function ProfileView({ user, editMode, saving, onToggleEdit, onDeleteProf
           disableRipple
           onClick={onToggleEdit}
           disabled={saving}
+          aria-label={editMode ? "save" : "edit"}
           sx={{
             position: 'absolute',
             bottom: -4,
