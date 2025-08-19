@@ -28,7 +28,7 @@ import { SearchBar as SearchBarMock } from "../../../shared/components/SearchBar
 const SearchBar = SearchBarMock as unknown as Mock;
 
 vi.mock("@mui/x-data-grid", () => {
-  const DataGrid = vi.fn((props: any) => <div data-testid="datagrid" />);
+  const DataGrid = vi.fn(() => <div data-testid="datagrid" />);
   return { DataGrid };
 });
 import { DataGrid as DataGridMock } from "@mui/x-data-grid";
