@@ -57,7 +57,6 @@ vi.mock("../../../components/notices/NoticeForm", () => {
   return { NoticeForm };
 });
 
-// ---------- helpers ----------
 const makeNotice = (over: Partial<any> = {}) => ({
   id: 7,
   title: "Título",
@@ -119,13 +118,9 @@ describe("<NoticeItem />", () => {
       <NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />
     );
 
-    // click en la card (cualquier lugar fuera de botones)
-    // tomamos el botón 'Leer más' para no confundir con icon buttons
     fireEvent.click(screen.getByRole("button", { name: /Leer más/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/news/101");
 
-    // hacer click sobre el contenedor principal también dispara navegación
-    // (tomamos el título como target de click)
     fireEvent.click(screen.getByText("Título"));
     expect(mockNavigate).toHaveBeenCalledWith("/news/101");
   });
@@ -141,8 +136,7 @@ describe("<NoticeItem />", () => {
         onDeleteClick={onDeleteClick}
       />
     );
-
-    // Heurística: los IconButton no tienen texto visible; filtramos los buttons que contienen un <svg>
+    
     const iconButtons = screen
       .getAllByRole("button")
       .filter((b) => b.querySelector("svg"));
