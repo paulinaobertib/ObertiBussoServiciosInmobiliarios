@@ -1,0 +1,201 @@
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { PaymentDialog } from "../../../components/payments/PaymentDialog";
+
+// ====== Mocks ======
+vi.mock("../../../../shared/components/Modal", () => ({
+  Modal: ({ open, title, children }: any) =>
+    open ? (
+      <div data-testid="modal">
+        <h2>{title}</h2>
+        {children}
+      </div>
+    ) : null,
+}));
+
+const showAlert = vi.fn();
+vi.mock("../../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => ({ showAlert }),
+}));
+
+vi.mock("../../../services/payment.service", () => ({
+  postPayment: vi.fn(),
+}));
+import { postPayment } from "../../../services/payment.service";
+
+// ====== Helpers ======
+const fillForm = async (overrides?: {
+  date?: string;
+  amount?: string;
+  description?: string;
+  currency?: "ARS" | "USD";
+}) => {
+  const user = userEvent.setup();
+
+  const date = screen.getByLabelText("Fecha") as HTMLInputElement;
+  const amount = screen.getByLabelText("Monto") as HTMLInputElement;
+  const description = screen.getByLabelText("Descripción") as HTMLInputElement;
+  const currencyButton = screen.getByLabelText("Moneda"); 
+
+  if (overrides?.date) {
+    await user.clear(date);
+    await user.type(date, overrides.date);
+  }
+  if (overrides?.amount) {
+    await user.clear(amount);
+    await user.type(amount, overrides.amount);
+  }
+  if (overrides?.description) {
+    await user.clear(description);
+    await user.type(description, overrides.description);
+  }
+  if (overrides?.currency) {
+    await user.click(currencyButton);
+    const opt = await screen.findByRole("option", { name: overrides.currency });
+    await user.click(opt);
+  }
+};
+
+const clickSave = async () => {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: /guardar/i }));
+};
+
+// ====== Fixtures ======
+const contractA = { id: 10 } as any;
+
+describe("PaymentDialog", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("no hace nada si contract es null (Guardar)", async () => {
+    const onClose = vi.fn();
+    const onSaved = vi.fn();
+
+    render(
+      <PaymentDialog open={true} contract={null} onClose={onClose} onSaved={onSaved} />
+    );
+
+    await clickSave();
+
+    expect(postPayment).not.toHaveBeenCalled();
+    expect(showAlert).not.toHaveBeenCalled();
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("guarda OK: payload correcto, muestra success y llama onSaved + onClose", async () => {
+    const onClose = vi.fn();
+    const onSaved = vi.fn();
+
+    // promesa controlada para chequear estado 'Guardando…'
+    let resolveFn: (v?: unknown) => void = () => {};
+    (postPayment as any).mockImplementation(
+      () => new Promise((res) => (resolveFn = res))
+    );
+
+    render(
+      <PaymentDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
+    );
+
+    // Completar formulario
+    await fillForm({
+      date: "2025-08-21",
+      amount: "1500",
+      description: "Expensas Agosto",
+      currency: "USD",
+    });
+
+    // Guardar
+    await clickSave();
+
+    // Mientras está pendiente, debería mostrar "Guardando…" y deshabilitar botones
+    expect(screen.getByRole("button", { name: /guardando…/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
+
+    // Resolver la promesa
+    resolveFn({});
+
+    // Esperar efectos
+    await waitFor(() => {
+      expect(postPayment).toHaveBeenCalledTimes(1);
+      expect(showAlert).toHaveBeenCalledWith("Pago creado con éxito", "success");
+      expect(onSaved).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    // Payload exacto
+    expect(postPayment).toHaveBeenCalledWith({
+      contract: { id: contractA.id },
+      amount: 1500,
+      date: "2025-08-21T00:00:00",
+      description: "Expensas Agosto",
+      paymentCurrency: "USD",
+    });
+  });
+
+  it("maneja error: muestra alerta de error y no llama onSaved ni onClose", async () => {
+    const onClose = vi.fn();
+    const onSaved = vi.fn();
+
+    (postPayment as any).mockRejectedValueOnce(new Error("boom"));
+
+    render(
+      <PaymentDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
+    );
+
+    await fillForm({
+      date: "2025-08-22",
+      amount: "999",
+      description: "Pago fallido",
+      currency: "ARS",
+    });
+
+    await clickSave();
+
+    await waitFor(() => {
+      expect(postPayment).toHaveBeenCalledTimes(1);
+      expect(showAlert).toHaveBeenCalledWith("Error al crear el pago", "error");
+      expect(onSaved).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  it("botón Cancelar dispara onClose y respeta disabled mientras guarda", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    const onSaved = vi.fn();
+
+    let resolveFn: (v?: unknown) => void = () => {};
+    (postPayment as any).mockImplementation(
+      () => new Promise((res) => (resolveFn = res))
+    );
+
+    render(
+      <PaymentDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
+    );
+
+    await fillForm({
+      date: "2025-08-21",
+      amount: "1",
+      description: "x",
+      currency: "ARS",
+    });
+
+    // Cancelar antes de guardar
+    await user.click(screen.getByRole("button", { name: /cancelar/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    // Guardar y verificar disabled en Cancelar
+    await clickSave();
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
+
+    resolveFn({});
+    await waitFor(() => {
+      expect(showAlert).toHaveBeenCalledWith("Pago creado con éxito", "success");
+    });
+  });
+});

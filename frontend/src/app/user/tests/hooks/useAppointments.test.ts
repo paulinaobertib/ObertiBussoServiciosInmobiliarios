@@ -1,4 +1,3 @@
-// src/app/appointment/__tests__/useAppointments.test.tsx
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { MockedFunction } from "vitest";
 import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
@@ -25,24 +24,34 @@ vi.mock("../../../user/context/AuthContext", () => ({
   useAuthContext: vi.fn(),
 }));
 
-// ---------- Imports de mocks ----------
 import * as service from "../../services/appointment.service";
-import { useAuthContext as _useAuthContext } from "../../../user/context/AuthContext"; 
+import { useAuthContext as _useAuthContext } from "../../../user/context/AuthContext";
 
-const getAllAvailabilities = service.getAllAvailabilities as MockedFunction<typeof service.getAllAvailabilities>;
-const getAvailableAppointments = service.getAvailableAppointments as MockedFunction<typeof service.getAvailableAppointments>;
-const getAppointmentsByStatus = service.getAppointmentsByStatus as MockedFunction<typeof service.getAppointmentsByStatus>;
-const getAppointmentsByUser = service.getAppointmentsByUser as MockedFunction<typeof service.getAppointmentsByUser>;
-//const createAvailability = service.createAvailability as MockedFunction<typeof service.createAvailability>;
-const createAppointment = service.createAppointment as MockedFunction<typeof service.createAppointment>;
-//const deleteAvailability = service.deleteAvailability as MockedFunction<typeof service.deleteAvailability>;
-const deleteAppointment = service.deleteAppointment as MockedFunction<typeof service.deleteAppointment>;
-//const updateAppointmentStatus = service.updateAppointmentStatus as MockedFunction<typeof service.updateAppointmentStatus>;
+const getAllAvailabilities = service.getAllAvailabilities as MockedFunction<
+  typeof service.getAllAvailabilities
+>;
+const getAvailableAppointments = service.getAvailableAppointments as MockedFunction<
+  typeof service.getAvailableAppointments
+>;
+const getAppointmentsByStatus = service.getAppointmentsByStatus as MockedFunction<
+  typeof service.getAppointmentsByStatus
+>;
+const getAppointmentsByUser = service.getAppointmentsByUser as MockedFunction<
+  typeof service.getAppointmentsByUser
+>;
+const createAppointment = service.createAppointment as MockedFunction<
+  typeof service.createAppointment
+>;
+const deleteAppointment = service.deleteAppointment as MockedFunction<
+  typeof service.deleteAppointment
+>;
 
 const useAuthContext = _useAuthContext as MockedFunction<typeof _useAuthContext>;
 
-// ---------- Helper AxiosResponse válido ----------
-function axiosResponse<T>(data: T, init?: Partial<AxiosResponse<T>>): AxiosResponse<T> {
+function axiosResponse<T>(
+  data: T,
+  init?: Partial<AxiosResponse<T>>
+): AxiosResponse<T> {
   const config = {
     url: "/",
     method: "get",
@@ -58,17 +67,39 @@ function axiosResponse<T>(data: T, init?: Partial<AxiosResponse<T>>): AxiosRespo
   };
 }
 
-// ---------- Fechas para los tests ----------
 const today = dayjs().startOf("day");
 const d0 = today.hour(10).toISOString();
 const d1 = today.add(1, "day").hour(11).toISOString();
 const d2 = today.add(2, "day").hour(12).toISOString();
-//const past = today.subtract(1, "day").hour(9).toISOString();
 
 describe("useAppointments", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Auth por defecto
     useAuthContext.mockReturnValue({ info: { id: 1 }, isAdmin: true } as any);
+
+    // ===== Mocks por defecto para todas las llamadas del mount =====
+    getAllAvailabilities.mockResolvedValue(
+      axiosResponse<AvailableAppointment[]>([])
+    );
+
+    getAppointmentsByStatus.mockResolvedValue(
+      axiosResponse<Appointment[]>([])
+    );
+    
+    getAppointmentsByUser.mockResolvedValue(
+      axiosResponse<Appointment[]>([])
+    );
+
+    // Por si el hook consulta disponibles en el inicio en algún flujo
+    getAvailableAppointments.mockResolvedValue(
+      axiosResponse<AvailableAppointment[]>([])
+    );
+
+    // Stubs neutros por si se invocan en el flujo (no afectan los tests)
+    createAppointment.mockResolvedValue(axiosResponse({}));
+    deleteAppointment.mockResolvedValue(axiosResponse({}));
   });
 
   it("DISPONIBLE: usa getAvailableAppointments y limpia apptsBySlot", async () => {
