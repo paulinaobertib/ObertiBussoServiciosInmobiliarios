@@ -8,7 +8,7 @@ import { LoadingButton } from '@mui/lab';
 
 type Action = 'add' | 'edit' | 'delete';
 
-interface UserFormProps {
+export interface UserFormProps {
   action?: Action;
   item?: User;
   onSuccess?: () => void;
