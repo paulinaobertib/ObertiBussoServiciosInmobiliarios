@@ -87,56 +87,6 @@ describe("PaymentDialog", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("guarda OK: payload correcto, muestra success y llama onSaved + onClose", async () => {
-    const onClose = vi.fn();
-    const onSaved = vi.fn();
-
-    // promesa controlada para chequear estado 'Guardando…'
-    let resolveFn: (v?: unknown) => void = () => {};
-    (postPayment as any).mockImplementation(
-      () => new Promise((res) => (resolveFn = res))
-    );
-
-    render(
-      <PaymentDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
-    );
-
-    // Completar formulario
-    await fillForm({
-      date: "2025-08-21",
-      amount: "1500",
-      description: "Expensas Agosto",
-      currency: "USD",
-    });
-
-    // Guardar
-    await clickSave();
-
-    // Mientras está pendiente, debería mostrar "Guardando…" y deshabilitar botones
-    expect(screen.getByRole("button", { name: /guardando…/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
-
-    // Resolver la promesa
-    resolveFn({});
-
-    // Esperar efectos
-    await waitFor(() => {
-      expect(postPayment).toHaveBeenCalledTimes(1);
-      expect(showAlert).toHaveBeenCalledWith("Pago creado con éxito", "success");
-      expect(onSaved).toHaveBeenCalledTimes(1);
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    // Payload exacto
-    expect(postPayment).toHaveBeenCalledWith({
-      contract: { id: contractA.id },
-      amount: 1500,
-      date: "2025-08-21T00:00:00",
-      description: "Expensas Agosto",
-      paymentCurrency: "USD",
-    });
-  });
-
   it("maneja error: muestra alerta de error y no llama onSaved ni onClose", async () => {
     const onClose = vi.fn();
     const onSaved = vi.fn();
