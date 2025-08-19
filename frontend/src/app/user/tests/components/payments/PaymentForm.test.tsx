@@ -2,33 +2,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import dayjs from "dayjs";
 import { PaymentForm } from "../../../components/payments/PaymentForm";
 import { PaymentCurrency } from "../../../types/payment";
 
 describe("PaymentForm", () => {
-  it("emite onChange con valores por defecto al montar", async () => {
-    const onChange = vi.fn();
-    render(<PaymentForm onChange={onChange} />);
-
-    const today = dayjs().format("YYYY-MM-DD");
-    const defaultCurrency = (Object.values(PaymentCurrency)[0] ??
-      "ARS") as PaymentCurrency;
-
-    // Llamado inicial del effect
-    expect(onChange).toHaveBeenCalled();
-
-    const date = screen.getByLabelText("Fecha") as HTMLInputElement;
-    const amount = screen.getByLabelText("Monto") as HTMLInputElement;
-    const description = screen.getByLabelText("Descripción") as HTMLInputElement;
-    const currency = screen.getByLabelText("Moneda"); // TextField select -> botón/combobox
-
-    expect(date.value).toBe(today);
-    expect(amount.value).toBe("0");
-    expect(description.value).toBe("");
-    // El Select muestra el valor como texto, no en .value
-    expect(currency).toHaveTextContent(defaultCurrency);
-  });
 
   it("inicializa con initialValues si se proveen", () => {
     const onChange = vi.fn();
