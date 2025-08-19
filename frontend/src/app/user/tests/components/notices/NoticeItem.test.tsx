@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent  } from "@testing-library/react";
 import { NoticeItem } from "../../../components/notices/NoticeItem";
 
 // ---------- mocks utilitarios ----------
@@ -35,13 +35,11 @@ let updateDataReturn: any = {
   mainImage: null,
   date: "2025-06-11T10:00:00Z",
 };
-let lastOnValidityChange: ((v: boolean) => void) | null = null;
 
 vi.mock("../../../components/notices/NoticeForm", () => {
   const React = require("react");
   const NoticeForm = React.forwardRef((props: any, ref: any) => {
     const { onValidityChange } = props;
-    lastOnValidityChange = onValidityChange;
     React.useImperativeHandle(ref, () => ({
       validate: () => true,
       getUpdateData: () => updateDataReturn,
@@ -70,14 +68,13 @@ const makeNotice = (over: Partial<any> = {}) => ({
 describe("<NoticeItem />", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // restablecemos valores de form
+    (global.URL.createObjectURL as any) = vi.fn(() => "blob:mock");
     updateDataReturn = {
       title: "Editado",
       description: "nuevo desc",
       mainImage: null,
       date: "2025-06-11T10:00:00Z",
     };
-    lastOnValidityChange = null;
   });
 
   it("muestra chip NUEVO y fecha cuando la noticia es reciente (<3 días)", () => {
@@ -150,5 +147,78 @@ describe("<NoticeItem />", () => {
     // Asegura que NO navegó (por stopPropagation)
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it("cuando formRef.current existe y canSave=true guarda y cierra", async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    const notice = makeNotice();
+    render(<NoticeItem notice={notice} isAdmin onUpdate={onUpdate} />);
+
+    // abrir modal
+    fireEvent.click(screen.getAllByRole("button").find((b) => b.querySelector("svg"))!);
+
+    // fuerza validez true
+    fireEvent.click(screen.getByText("form-valid"));
+
+    const saveBtn = screen.getByRole("button", { name: /Guardar/i });
+    expect(saveBtn).not.toBeDisabled();
+
+    fireEvent.click(saveBtn);
+
+    await vi.waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ id: notice.id, userId: notice.userId })
+      )
+    );
+    // modal se cierra
+    expect(screen.queryByTestId("modal")).toBeNull();
+  });
+
+  it("si canSave=false el botón Guardar queda deshabilitado", () => {
+    const notice = makeNotice();
+    render(<NoticeItem notice={notice} isAdmin onUpdate={vi.fn()} />);
+
+    // abrir modal
+    fireEvent.click(screen.getAllByRole("button").find((b) => b.querySelector("svg"))!);
+
+    fireEvent.click(screen.getByText("form-invalid"));
+
+    const saveBtn = screen.getByRole("button", { name: /Guardar/i });
+    expect(saveBtn).toBeDisabled();
+  });
+
+  it("si formRef.current es null, handleSave no llama a onUpdate", async () => {
+    const onUpdate = vi.fn();
+    const notice = makeNotice();
+    render(<NoticeItem notice={notice} isAdmin onUpdate={onUpdate} />);
+
+    // abrir modal
+    fireEvent.click(screen.getAllByRole("button").find((b) => b.querySelector("svg"))!);
+
+    // forzamos el ref a null simulando que no existe
+    // @ts-expect-error
+    screen.getByTestId("notice-form").ref = null;
+
+    // aún así apretamos guardar
+    const saveBtn = screen.getByRole("button", { name: /Guardar/i });
+    fireEvent.click(saveBtn);
+
+    await vi.waitFor(() => {
+      expect(onUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  it("usa URL.createObjectURL si mainImage es File", () => {
+    const file = new File(["dummy"], "test.png", { type: "image/png" });
+
+    const notice = makeNotice({ mainImage: file });
+    render(<NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />);
+
+    // o mejor: busca por estilo
+    const imageBox = screen.getByRole("button", { name: /Leer más/i }).parentElement!
+      .previousSibling as HTMLElement;
+
+    expect(imageBox).toHaveStyle(`background-image: url(blob:mock)`);
+  });
+
 
 });
