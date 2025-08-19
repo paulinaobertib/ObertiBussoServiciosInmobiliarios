@@ -9,7 +9,7 @@ vi.mock("../../../hooks/useNoticeForm", () => ({
   useNoticeForm: vi.fn(),
 }));
 
-vi.mock("../../../shared/components/images/ImageUploader", () => ({
+vi.mock("../../../../shared/components/images/ImageUploader", () => ({
   ImageUploader: ({ label, onSelect }: any) => (
     <button data-testid="uploader" onClick={() => onSelect([{ name: "mock.jpg" }])}>
       {label || "MockUploader"}
@@ -17,7 +17,7 @@ vi.mock("../../../shared/components/images/ImageUploader", () => ({
   ),
 }));
 
-vi.mock("../../../shared/components/images/ImagePreview", () => ({
+vi.mock("../../../../shared/components/images/ImagePreview", () => ({
   ImagePreview: ({ onDelete }: any) => (
     <button data-testid="preview-delete" onClick={onDelete}>
       DeleteImage
@@ -89,8 +89,6 @@ describe("NoticeForm", () => {
     expect(ref.current?.validate()).toBe(false);
   });
 
-  // ────────── Extras agregados ──────────
-
   it("inicializa los inputs con los valores del formulario", () => {
     setupHookReturn({
       form: {
@@ -118,6 +116,27 @@ describe("NoticeForm", () => {
     render(<NoticeForm initialData={initial} onValidityChange={onValidityChange} />);
 
     expect(useNoticeForm).toHaveBeenCalledWith(initial, onValidityChange);
+  });
+
+  it("setea la imagen principal al seleccionar en ImageUploader (toma el primer archivo)", () => {
+    render(<NoticeForm />);
+    // nuestro mock de ImageUploader llama onSelect([{ name: "mock.jpg" }]) al click
+    fireEvent.click(screen.getByTestId("uploader"));
+    expect(mockSetPrincipal).toHaveBeenCalledWith(expect.objectContaining({ name: "mock.jpg" }));
+  });
+
+  it("elimina la imagen principal al clickear el delete del ImagePreview", () => {
+    render(<NoticeForm />);
+    fireEvent.click(screen.getByTestId("preview-delete"));
+    expect(mockSetPrincipal).toHaveBeenCalledWith(null);
+  });
+
+  it("el form hace preventDefault en el submit", () => {
+    const { container } = render(<NoticeForm />);
+    const form = container.querySelector("form")!;
+    const evt = new Event("submit", { bubbles: true, cancelable: true });
+    form.dispatchEvent(evt);
+    expect(evt.defaultPrevented).toBe(true);
   });
 
 });
