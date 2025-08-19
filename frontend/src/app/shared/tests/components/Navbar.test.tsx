@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { NavBar } from '../../components/Navbar';
@@ -181,9 +181,6 @@ describe('NavBar', () => {
     expect(mockLogout).toHaveBeenCalled();
   });
 
-
-  // ======= Tests adicionales para mejorar coverage =======
-
 it('abre y cierra menú móvil al hacer click en ícono menú', () => {
   renderNavBar();
 
@@ -193,7 +190,6 @@ it('abre y cierra menú móvil al hacer click en ícono menú', () => {
   const mobileMenu = screen.getByRole('menu');
   expect(within(mobileMenu).getByText(/CONTACTO/i)).toBeVisible();
 
-  // Cerrar menú
   fireEvent.click(document.body);
 });
 
@@ -241,5 +237,94 @@ it('menú móvil muestra opción INICIAR SESIÓN si no está logueado', () => {
     fireEvent.click(agentButton);
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
   });
+
+  it('desktop (admin): muestra TURNERO y CONTRATOS y navega', () => {
+  setAuthMock({ isLogged: true, isAdmin: true });
+  renderNavBar();
+
+  fireEvent.click(screen.getByText(/TURNERO/i));
+  expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APPOINTMENTS);
+
+  fireEvent.click(screen.getByText(/CONTRATOS/i));
+  expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+});
+
+it('menú móvil: admin → TURNERO navega y cierra el menú', async () => {
+  setAuthMock({ isLogged: true, isAdmin: true });
+  renderNavBar();
+
+  fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+  const menu = await screen.findByRole('menu');
+
+  fireEvent.click(within(menu).getByText(/TURNERO/i));
+  expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APPOINTMENTS);
+
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+});
+
+it('menú móvil: NOTICIAS navega y cierra el menú', async () => {
+  renderNavBar();
+
+  fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+  const menu = await screen.findByRole('menu');
+
+  fireEvent.click(within(menu).getByText(/NOTICIAS/i));
+  expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEWS);
+
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+});
+
+it('menú móvil: PERFIL (no admin) navega a USER_PROFILE y cierra', async () => {
+  setAuthMock({ isLogged: true, isAdmin: false });
+  renderNavBar();
+
+  fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+  const menu = await screen.findByRole('menu');
+
+  fireEvent.click(within(menu).getByText(/PERFIL/i));
+  expect(mockNavigate).toHaveBeenCalledWith(ROUTES.USER_PROFILE);
+
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+});
+
+it('menú móvil: MIS FAVORITOS (no admin) navega y cierra', async () => {
+  setAuthMock({ isLogged: true, isAdmin: false });
+  renderNavBar();
+
+  fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+  const menu = await screen.findByRole('menu');
+
+  fireEvent.click(within(menu).getByText(/MIS FAVORITOS/i));
+  expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES);
+
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+});
+
+it('menú móvil: INICIAR SESIÓN llama a login y cierra', async () => {
+  renderNavBar();
+
+  fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+  const menu = await screen.findByRole('menu');
+
+  const iniciar = within(menu).getByText(/INICIAR SESIÓN/i);
+  fireEvent.click(iniciar);
+
+  expect(mockLogin).toHaveBeenCalled();
+
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+});
+
+// (opcional) logout en área móvil (a la derecha del header)
+it('móvil: botón logout dispara logout', () => {
+  setAuthMock({ isLogged: true });
+  renderNavBar();
+
+  // hay dos íconos de logout (desktop y mobile); con el primero alcanza para cubrir la rama
+  const logoutBtn = screen.getAllByLabelText(/logout/i)[0];
+  fireEvent.click(logoutBtn);
+
+  expect(mockLogout).toHaveBeenCalled();
+});
+
 
 });
