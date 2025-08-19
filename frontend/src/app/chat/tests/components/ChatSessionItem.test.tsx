@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -22,11 +22,11 @@ vi.mock("../../../user/context/AuthContext", () => ({
   useAuthContext: () => ({}),
 }));
 
-const buildRouteMock = vi.fn((route: string, id: number) => `/details/${id}`);
+const buildRouteMock = vi.fn(( id: number) => `/details/${id}`);
 vi.mock("../../../../lib", () => ({
   ROUTES: { PROPERTY_DETAILS: "/details/:id" },
   // tipar la firma exacta evita el error del spread
-  buildRoute: (route: string, id: number) => buildRouteMock(route, id),
+  buildRoute: (id: number) => buildRouteMock(id),
 }));
 
 const getPropertyById = vi.fn<(id: number) => Promise<{ id: number; title: string }>>();
