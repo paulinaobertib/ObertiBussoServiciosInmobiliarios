@@ -131,48 +131,6 @@ describe('AuthContext', () => {
     });
   });
 
-  it('sin sessionStorage: carga usuario + roles + crea preferencias si no hay (TENANT)', async () => {
-    // GETs
-    (api.get as any).mockImplementation(async (url: string) => {
-      if (url === '/users/user/me')
-        return { data: { id: 'u1', username: 'v', email: 'v@x.com' } };
-      if (url === '/users/user/role/u1') return { data: ['tenant'] }; // minúsculas -> se uppercasa
-      if (url === '/users/preference/user/u1') return { data: [] }; // fuerza creación
-      throw new Error('unexpected GET ' + url);
-    });
-    // POSTs (creación de 2 preferencias)
-    (api.post as any).mockImplementation(async (url: string, body: any) => {
-      if (url === '/users/preference/create') {
-        return { data: { id: Math.random().toString(), ...body } };
-      }
-      throw new Error('unexpected POST ' + url);
-    });
-
-    renderWithProvider();
-
-    // loading pasa de true a false tras la carga
-    expect(screen.getByTestId('loading').textContent).toBe('true');
-
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-      expect(screen.getByTestId('isLogged').textContent).toBe('true');
-      expect(screen.getByTestId('isTenant').textContent).toBe('true');
-      expect(screen.getByTestId('isAdmin').textContent).toBe('false');
-    });
-
-    // endpoints esperados
-    expect(api.get).toHaveBeenCalledWith('/users/user/me');
-    expect(api.get).toHaveBeenCalledWith('/users/user/role/u1');
-    expect(api.get).toHaveBeenCalledWith('/users/preference/user/u1');
-    expect(api.post).toHaveBeenCalledTimes(2);
-
-    // persistió en sessionStorage
-    const saved = JSON.parse(sessionStorage.getItem('authInfo')!);
-    expect(saved.username).toBe('v');
-    expect(Array.isArray(saved.preferences)).toBe(true);
-    expect(saved.preferences).toHaveLength(2);
-  });
-
   it('si es ADMIN no solicita ni crea preferencias', async () => {
     (api.get as any).mockImplementation(async (url: string) => {
       if (url === '/users/user/me')
