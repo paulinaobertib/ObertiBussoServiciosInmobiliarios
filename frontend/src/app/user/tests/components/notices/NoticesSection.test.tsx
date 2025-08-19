@@ -17,7 +17,7 @@ vi.mock("../../../shared/components/Modal", () => ({
   Modal: ({ children }: any) => <div>{children}</div>,
 }));
 vi.mock("../NoticeForm", () => ({
-  NoticeForm: React.forwardRef((props, ref) => (
+  NoticeForm: React.forwardRef((ref) => (
     <input ref={ref as any} data-testid="notice-form" />
   )),
 }));
