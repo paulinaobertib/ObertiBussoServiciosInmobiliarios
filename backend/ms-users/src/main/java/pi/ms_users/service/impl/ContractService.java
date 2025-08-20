@@ -57,8 +57,6 @@ public class ContractService implements IContractService {
         dto.setStartDate(contract.getStartDate());
         dto.setEndDate(contract.getEndDate());
         dto.setContractStatus(contract.getContractStatus());
-        dto.setIncrease(contract.getIncrease());
-        dto.setIncreaseFrequency(contract.getIncreaseFrequency());
 
         List<ContractIncreaseDTO> increases = contract.getContractIncrease().stream().map(increase -> {
             ContractIncreaseDTO increaseDTO = new ContractIncreaseDTO();
@@ -170,7 +168,6 @@ public class ContractService implements IContractService {
         return ResponseEntity.ok("Se ha actualizado el estado del contrato a " + contract.getContractStatus());
     }
 
-    // AGREGAR VALIDACION PORQUE CUANDO ELIMINE UNA PROPIEDAD QUE TIENE CONTRATOS NO LO VA A DEJAR
     @Override
     public ResponseEntity<String> delete(Long id) {
         Contract contract = contractRepository.findById(id)

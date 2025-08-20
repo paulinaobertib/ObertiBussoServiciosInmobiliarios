@@ -69,8 +69,8 @@ public class Contract {
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContractIncrease> contractIncrease = new ArrayList<>();
 
-    @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Commission> commissions = new ArrayList<>();
+    @OneToOne(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Commission commission;
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();

@@ -23,6 +23,7 @@ import java.util.List;
 public class PaymentService implements IPaymentService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
+
     private final IPaymentRepository paymentRepository;
 
     private final IContractRepository contractRepository;
