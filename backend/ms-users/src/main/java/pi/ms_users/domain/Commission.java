@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class Commission {
     private BigDecimal totalAmount;
 
     @Column(name = "date", nullable = false)
-    private LocalDateTime date;
+    private LocalDate date;
 
     @Column(name = "payment_type", nullable = false)
     private CommissionPaymentType paymentType;
@@ -41,8 +41,8 @@ public class Commission {
     @Column(name = "note", nullable = true)
     private String note;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "contract_id", foreignKey = @ForeignKey(name = "fk_commission_contract"))
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "contract_id", unique = true, nullable = false, foreignKey = @ForeignKey(name = "fk_commission_contract"))
     private Contract contract;
 
     @OneToMany(mappedBy = "commission", cascade = CascadeType.ALL, orphanRemoval = false)

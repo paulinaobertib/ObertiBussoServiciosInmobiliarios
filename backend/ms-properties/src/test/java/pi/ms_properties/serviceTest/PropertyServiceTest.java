@@ -2,6 +2,7 @@ package pi.ms_properties.serviceTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.ws.rs.BadRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,9 +19,11 @@ import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.domain.Currency;
 import pi.ms_properties.dto.*;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.dto.feign.NotificationDTO;
 import pi.ms_properties.recommendation.service.RecommendationService;
 import pi.ms_properties.repository.*;
+import pi.ms_properties.repository.feign.ContractRepository;
 import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.impl.AzureBlobStorage;
 import pi.ms_properties.service.impl.ImageService;
@@ -84,6 +87,9 @@ public class PropertyServiceTest {
 
     @Mock
     private IChatDerivationRepository chatDerivationRepository;
+
+    @Mock
+    private ContractRepository contractRepository;
 
     @InjectMocks
     private PropertyService propertyService;
@@ -339,6 +345,8 @@ public class PropertyServiceTest {
         property.setId(propertyId);
 
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
+        when(contractRepository.findByPropertyId(propertyId)).thenReturn(List.of());
+        when(chatSessionRepository.findIdsByPropertyId(propertyId)).thenReturn(List.of());
         doNothing().when(propertyRepository).delete(property);
 
         ResponseEntity<String> response = propertyService.deleteProperty(propertyId);
@@ -580,6 +588,29 @@ public class PropertyServiceTest {
         assertEquals(property.getCurrency().name(), dto.getCurrency());
         assertEquals(property.getNeighborhood().getName(), dto.getNeighborhood());
         assertEquals(property.getType().getName(), dto.getType());
+    }
+
+    @Test
+    void deleteProperty_success_withChat() {
+        Long propertyId = 1L;
+        Property property = new Property();
+        property.setId(propertyId);
+
+        List<Long> sessionIds = List.of(10L, 11L);
+
+        when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
+        when(contractRepository.findByPropertyId(propertyId)).thenReturn(List.of());
+        when(chatSessionRepository.findIdsByPropertyId(propertyId)).thenReturn(sessionIds);
+
+        ResponseEntity<String> response = propertyService.deleteProperty(propertyId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Se ha eliminado la propiedad", response.getBody());
+
+        verify(chatMessageRepository).deleteAllBySessionIds(sessionIds);
+        verify(chatDerivationRepository).deleteAllBySessionIds(sessionIds);
+        verify(chatSessionRepository).deleteAllByPropertyId(propertyId);
+        verify(propertyRepository).delete(property);
     }
 
     // casos de error
@@ -867,5 +898,24 @@ public class PropertyServiceTest {
         );
 
         assertTrue(exception.getMessage().contains("Error al crear la notificación"));
+    }
+
+    @Test
+    void deleteProperty_withContracts() {
+        Long propertyId = 1L;
+        Property property = new Property();
+        property.setId(propertyId);
+
+        when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
+        when(contractRepository.findByPropertyId(propertyId)).thenReturn(
+                List.of(new ContractDTO())
+        );
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> propertyService.deleteProperty(propertyId));
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("No se puede eliminar una propiedad que tiene contratos vinculados", ex.getReason());
+
+        verifyNoInteractions(chatSessionRepository, chatMessageRepository, chatDerivationRepository);
+        verify(propertyRepository, never()).delete((Property) any());
     }
 }
