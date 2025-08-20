@@ -64,6 +64,7 @@ CREATE TABLE Property (
 
 CREATE TABLE Comment (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     date DATETIME NOT NULL,
 	property_id BIGINT NOT NULL,
@@ -158,7 +159,7 @@ CREATE TABLE Contract_Increase (
 
 CREATE TABLE Commission (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  contract_id BIGINT NOT NULL,
+  contract_id BIGINT NOT NULL UNIQUE,
   currency ENUM('USD','ARS') NOT NULL,
   total_amount DECIMAL(15,2) NOT NULL,
   date DATE NOT NULL,                 
