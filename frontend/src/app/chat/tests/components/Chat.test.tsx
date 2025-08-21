@@ -66,4 +66,42 @@ describe("Componente Chat", () => {
     await act(async () => fireEvent.click(btnMinimizar));
     expect(screen.getByLabelText(/Restaurar chat/i)).toBeInTheDocument();
   });
+
+  it("busca propiedades usando la barra de búsqueda", async () => {
+    render(<Chat initialPropertyId={1} />);
+    const btnNo = await screen.findByText(/No, buscar otra/i);
+    await act(async () => fireEvent.click(btnNo));
+
+    const input = await screen.findByLabelText(/Buscar propiedad/i);
+    await act(async () => fireEvent.change(input, { target: { value: "Propiedad" } }));
+
+    await waitFor(() => expect(propertyService.getPropertiesByText).toHaveBeenCalledWith("Propiedad"));
+  });
+
+  it("cierra chat correctamente", async () => {
+    // Mock con al menos un mensaje para evitar undefined
+    (useChatContext as Mock).mockReturnValue({
+      messages: [{ from: "system", content: "Hola" }],
+      sendMessage: mockSendMessage,
+      loading: false,
+      addSystemMessage: mockAddSystemMessage,
+      addUserMessage: mockAddUserMessage,
+      clearMessages: mockClearMessages,
+    });
+
+    render(<Chat initialPropertyId={1} onClose={vi.fn()} />);
+    const btnClose = screen.getByLabelText(/Cerrar chat/i);
+
+    await act(async () => fireEvent.click(btnClose));
+
+    expect(mockClearMessages).toHaveBeenCalled();
+  });
+
+  it("valida campos de invitado y habilita botón", () => {
+    (useAuthContext as Mock).mockReturnValue({ info: null, isLogged: false });
+    render(<Chat />);
+    expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+  });
+
 });
