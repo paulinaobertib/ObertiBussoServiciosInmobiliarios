@@ -177,6 +177,7 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> delete(Long id) {
         if (!paymentRepository.existsById(id)) {
             throw new EntityNotFoundException("No se ha encontrado el pago.");
