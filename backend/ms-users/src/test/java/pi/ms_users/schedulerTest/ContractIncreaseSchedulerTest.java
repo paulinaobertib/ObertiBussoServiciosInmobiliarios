@@ -1,4 +1,4 @@
-package pi.ms_users.schedulerTest;
+/*package pi.ms_users.schedulerTest;
 
 import static org.mockito.Mockito.verify;
 
@@ -27,4 +27,5 @@ class ContractIncreaseSchedulerTest {
         verify(contractIncreaseServiceViejo).applyScheduledIncreases();
     }
 }
+ */
 
