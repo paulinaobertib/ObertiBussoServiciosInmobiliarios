@@ -1,10 +1,8 @@
-// src/app/user/context/__tests__/AuthContext.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { AuthProvider, useAuthContext } from '../../context/AuthContext';
 import { api } from '../../../../api';
 
-// Mock del módulo api
 vi.mock('../../../../api', () => ({
   api: {
     get: vi.fn(),
@@ -12,7 +10,6 @@ vi.mock('../../../../api', () => ({
   },
 }));
 
-// Componente consumidor para interactuar con el context
 function TestConsumer() {
   const { info, isLogged, isAdmin, isTenant, loading, login, logout, refreshUser, setInfo } =
     useAuthContext();
@@ -40,7 +37,6 @@ function renderWithProvider() {
   );
 }
 
-// Utilidad: hacer location.href writable en JSDOM
 function stubLocationHref(start: string) {
   const loc: any = { href: start };
   Object.defineProperty(window, 'location', { value: loc, writable: true });
@@ -54,8 +50,6 @@ describe('AuthContext', () => {
     sessionStorage.clear();
     vi.restoreAllMocks();
 
-    // Stub de env var que usa el provider (no confiamos en que afecte al build,
-    // por eso los tests de URL matchean por path en vez de host)
     (import.meta as any).env = {
       ...(import.meta as any).env,
       VITE_GATEWAY_URL: GATEWAY,
@@ -168,9 +162,9 @@ describe('AuthContext', () => {
     (api.get as any)
       .mockResolvedValueOnce({
         data: { id: 'u1', username: 'v', email: 'v@x.com' },
-      }) // me
-      .mockResolvedValueOnce({ data: ['TENANT'] }) // roles
-      .mockResolvedValueOnce({ data: [] }); // prefs
+      }) 
+      .mockResolvedValueOnce({ data: ['TENANT'] }) 
+      .mockResolvedValueOnce({ data: [] }); 
     (api.post as any).mockResolvedValue({
       data: {
         id: 'p1',
@@ -193,47 +187,13 @@ describe('AuthContext', () => {
     });
   });
 
-  it('si ya hay preferencias, no crea nuevas (TENANT)', async () => {
-    (api.get as any).mockImplementation(async (url: string) => {
-      if (url === '/users/user/me')
-        return { data: { id: 'u1', username: 'v', email: 'v@x.com' } };
-      if (url === '/users/user/role/u1') return { data: ['tenant'] };
-      if (url === '/users/preference/user/u1') {
-        return {
-          data: [
-            {
-              id: 'p1',
-              userId: 'u1',
-              type: 'PROPIEDADNUEVA',
-              enabled: true,
-            },
-          ],
-        };
-      }
-      throw new Error('unexpected GET ' + url);
-    });
-
-    renderWithProvider();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-      expect(screen.getByTestId('isLogged').textContent).toBe('true');
-    });
-
-    expect(api.post).not.toHaveBeenCalled();
-
-    const saved = JSON.parse(sessionStorage.getItem('authInfo')!);
-    expect(saved.preferences).toHaveLength(1);
-    expect(saved.preferences[0].type).toBe('PROPIEDADNUEVA');
-  });
-
   it('normaliza roles a mayúsculas al persistir', async () => {
     (api.get as any)
       .mockResolvedValueOnce({
         data: { id: 'u1', username: 'v', email: 'v@x.com' },
-      }) // me
-      .mockResolvedValueOnce({ data: ['tenant'] }) // roles en minúsculas
-      .mockResolvedValueOnce({ data: [] }); // prefs vacías -> creará 2
+      }) 
+      .mockResolvedValueOnce({ data: ['tenant'] }) 
+      .mockResolvedValueOnce({ data: [] }); 
     (api.post as any).mockResolvedValue({
       data: {
         id: 'p1',

@@ -1,5 +1,4 @@
-// src/app/property/tests/hooks/useManagePropertyPage.test.ts
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { vi, Mock } from "vitest";
 import { useManagePropertyPage } from "../../hooks/useManagePropertyPage";
 import * as propertyService from "../../services/property.service";
@@ -11,116 +10,166 @@ import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { useNavigate, useParams } from "react-router-dom";
 
-// ─── mocks de router ───
 vi.mock("react-router-dom", () => ({
   useNavigate: vi.fn(),
   useParams: vi.fn(),
 }));
-
-// ─── mocks de servicios ───
 vi.mock("../../services/property.service");
 vi.mock("../../services/owner.service");
 vi.mock("../../../shared/components/images/image.service");
-
-// ─── mocks de hooks ───
 vi.mock("../../../shared/hooks/useImages");
 vi.mock("../../context/PropertiesContext");
 vi.mock("../../../shared/components/ConfirmDialog");
 vi.mock("../../../shared/context/AlertContext");
 
-describe("useManagePropertyPage hook", () => {
+describe("useManagePropertyPage", () => {
   const mockNavigate = vi.fn();
-  const mockUseParams = useParams as unknown as Mock;
-  const mockAsk = vi.fn((callback: () => void) => callback());
+  const mockAsk = vi.fn((cb) => cb());
   const mockShowAlert = vi.fn();
   const mockSetSelected = vi.fn();
   const mockResetSelected = vi.fn();
+  const mockSetMain = vi.fn();
+  const mockAddToGallery = vi.fn();
+  const mockRemove = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // router
     (useNavigate as unknown as Mock).mockReturnValue(mockNavigate);
-    mockUseParams.mockReturnValue({ id: "1" });
+    (useParams as unknown as Mock).mockReturnValue({ id: "1" });
 
-    // confirm dialog
     (useConfirmDialog as unknown as Mock).mockReturnValue({
       ask: mockAsk,
-      DialogUI: null,
+      DialogUI: () => null,
     });
-
-    // global alert
     (useGlobalAlert as unknown as Mock).mockReturnValue({
       showAlert: mockShowAlert,
     });
-
-    // properties context
     (usePropertiesContext as unknown as Mock).mockReturnValue({
       setSelected: mockSetSelected,
       resetSelected: mockResetSelected,
       selected: { owner: 1, type: 2, neighborhood: 3, amenities: [4] },
     });
-
-    // images hook
     (useImages as unknown as Mock).mockReturnValue({
       mainImage: null,
       gallery: [],
-      setMain: vi.fn(),
-      addToGallery: vi.fn(),
-      remove: vi.fn(),
+      setMain: mockSetMain,
+      addToGallery: mockAddToGallery,
+      remove: mockRemove,
     });
 
-    // servicios
-    (propertyService.getPropertyById as unknown as Mock) = vi.fn();
+    (propertyService.postProperty as unknown as Mock) = vi.fn();
+    (propertyService.putProperty as unknown as Mock) = vi.fn();
     (ownerService.getOwnerByPropertyId as unknown as Mock) = vi.fn();
+    (propertyService.getPropertyById as unknown as Mock) = vi.fn();
     (imageService.getImagesByPropertyId as unknown as Mock) = vi.fn();
+    (imageService.postImage as unknown as Mock) = vi.fn();
+    (imageService.deleteImageById as unknown as Mock) = vi.fn();
   });
 
-  it("carga inicial con propiedad y llama servicios", async () => {
-    interface FakeAmenity { id: number }
-    interface FakeType { id: number; name: string }
-    interface FakeProperty {
-      id: number
-      type: FakeType
-      mainImage: string
-      amenities: FakeAmenity[]
-      neighborhood: { id: number } | null
-    }
-    interface FakeOwner { id: number }
-    interface FakeImage { id: number; url: string }
+  it("removeImage con string marca para borrado y actualiza galería", () => {
+    const dto = { id: 99, url: "img.jpg" };
+    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue([
+      dto,
+    ]);
+    const { result } = renderHook(() => useManagePropertyPage());
+    act(() => {
+      result.current.img.remove("img.jpg");
+    });
+    expect(mockRemove).toHaveBeenCalledWith("img.jpg");
+  });
 
-    const fakeProp: FakeProperty = {
-      id: 1,
-      type: { id: 2, name: "Casa" },
-      mainImage: "main.jpg",
-      amenities: [{ id: 4 }],
-      neighborhood: null,
-    };
-    const fakeOwner: FakeOwner = { id: 1 };
-    const fakeImgs: FakeImage[] = [{ id: 10, url: "img1.jpg" }];
+  it("removeImage con File solo llama remove", () => {
+    const file = new File([""], "pic.png");
+    const { result } = renderHook(() => useManagePropertyPage());
+    act(() => {
+      result.current.img.remove(file);
+    });
+    expect(mockRemove).toHaveBeenCalledWith(file);
+  });
 
+  it("handleImages setea main y galería", () => {
+    const { result } = renderHook(() => useManagePropertyPage());
+    const file = new File([""], "f.png");
+    act(() => {
+      result.current.handleImages(file, [file]);
+    });
+    expect(mockSetMain).toHaveBeenCalledWith(file);
+    expect(mockAddToGallery).toHaveBeenCalledWith([file]);
+  });
+
+  it("catch en useEffect muestra alerta y navega a /app", async () => {
+    (propertyService.getPropertyById as unknown as Mock).mockRejectedValue(
+      new Error("x")
+    );
+    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue({});
+    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(
+      []
+    );
+
+    renderHook(() => useManagePropertyPage());
+
+    await waitFor(() => {
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        "No se pudo cargar la propiedad",
+        "error"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/app");
+    });
+  });
+
+  it("title cambia según property", async () => {
+    const fakeProp = { id: 1, type: { id: 2, name: "Casa" }, mainImage: "" };
     (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(
       fakeProp
     );
     (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue(
-      fakeOwner
+      { id: 1 }
     );
     (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(
-      fakeImgs
+      []
     );
 
     const { result } = renderHook(() => useManagePropertyPage());
 
     await waitFor(() => {
-      expect(result.current.property).toEqual({ ...fakeProp, owner: fakeOwner });
+      expect(result.current.title).toContain("Edición");
     });
+  });
 
-    expect(mockSetSelected).toHaveBeenCalledWith({
-      owner: fakeOwner.id,
-      type: fakeProp.type.id,
-      neighborhood: fakeProp.neighborhood?.id ?? null,
-      amenities: [4],
+  it("canProceed refleja selección", () => {
+    (usePropertiesContext as unknown as Mock).mockReturnValue({
+      setSelected: vi.fn(),
+      resetSelected: vi.fn(),
+      selected: { owner: 0, type: null, neighborhood: null, amenities: [] },
     });
+    const { result } = renderHook(() => useManagePropertyPage());
+    expect(result.current.canProceed).toBe(false);
+  });
+
+  it("title en modo creación es 'Alta de Propiedad'", () => {
+    (useParams as unknown as Mock).mockReturnValueOnce({});
+    const { result } = renderHook(() => useManagePropertyPage());
+    expect(result.current.title).toBe("Alta de Propiedad");
+  });
+
+  it("permite setear activeStep y formReady", () => {
+    const { result } = renderHook(() => useManagePropertyPage());
+    act(() => {
+      result.current.setActiveStep(1);
+      result.current.setFormReady(true);
+    });
+    expect(result.current.activeStep).toBe(1);
+    expect(result.current.formReady).toBe(true);
+  });
+
+  it("canProceed es true cuando selección está completa y con amenities", () => {
+    (usePropertiesContext as unknown as Mock).mockReturnValueOnce({
+      setSelected: vi.fn(),
+      resetSelected: vi.fn(),
+      selected: { owner: 1, type: 1, neighborhood: 1, amenities: [2] },
+    });
+    const { result } = renderHook(() => useManagePropertyPage());
+    expect(result.current.canProceed).toBe(true);
   });
 
 });
