@@ -10,7 +10,7 @@ import pi.ms_users.service.interf.IUtilityService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/utility")
+@RequestMapping("/utilities")
 @RequiredArgsConstructor
 public class UtilityController {
 

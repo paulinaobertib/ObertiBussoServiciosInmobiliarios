@@ -1,9 +1,8 @@
-package pi.ms_users.service.impl;
+/*package pi.ms_users.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
-import feign.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,6 @@ import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
-import pi.ms_users.service.interf.IContractIncreaseService;
 import pi.ms_users.service.interf.IContractService;
 import pi.ms_users.service.interf.IEmailService;
 
@@ -38,7 +36,7 @@ public class ContractService implements IContractService {
 
     private final IContractRepository contractRepository;
 
-    private final IContractIncreaseService contractIncreaseService;
+    private final IContractIncreaseServiceViejo contractIncreaseService;
 
     private final IUserRepository userRepository;
 
@@ -335,3 +333,5 @@ public class ContractService implements IContractService {
         }
     }
 }
+
+ */

@@ -1,23 +1,43 @@
 package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
-import pi.ms_users.domain.Payment;
+import pi.ms_users.domain.PaymentConcept;
+import pi.ms_users.domain.PaymentCurrency;
+import pi.ms_users.dto.PaymentDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IPaymentService {
-    ResponseEntity<String> createPayment(Payment payment);
+    ResponseEntity<String> create(PaymentDTO paymentDTO);
 
-    ResponseEntity<String> updatePayment(Payment payment);
+    ResponseEntity<String> update(PaymentDTO paymentDTO);
 
-    ResponseEntity<String> deletePayment(Long id);
+    ResponseEntity<String> delete(Long id);
 
-    ResponseEntity<Payment> getById(Long id);
+    ResponseEntity<PaymentDTO> getById(Long id);
 
-    ResponseEntity<List<Payment>> getByContractId(Long contractId);
+    ResponseEntity<List<PaymentDTO>> getByContract(Long contractId);
 
-    ResponseEntity<List<Payment>> getByDate(Long contractId, LocalDateTime date);
+    ResponseEntity<List<PaymentDTO>> getByContractUtility(Long contractUtilityId);
 
-    ResponseEntity<List<Payment>> getByDateBetween(Long contractId, LocalDateTime start, LocalDateTime end);
+    ResponseEntity<List<PaymentDTO>> getByCommission(Long commissionId);
+
+    ResponseEntity<PaymentDTO> getLastByContract(Long contractId);
+
+    ResponseEntity<PaymentDTO> getLastByContractUtility(Long contractUtilityId);
+
+    ResponseEntity<PaymentDTO> getLastByCommission(Long commissionId);
+
+    ResponseEntity<List<PaymentDTO>> getByDateRange(LocalDateTime from, LocalDateTime to);
+
+    ResponseEntity<List<PaymentDTO>> getByDateRangeAndContract(Long contractId, LocalDateTime from, LocalDateTime to);
+
+    ResponseEntity<List<PaymentDTO>> getByDateRangeAndUtility(Long contractUtilityId, LocalDateTime from, LocalDateTime to);
+
+    ResponseEntity<List<PaymentDTO>> getByDateRangeAndCommission(Long commissionId, LocalDateTime from, LocalDateTime to);
+
+    ResponseEntity<List<PaymentDTO>> getByConcept(PaymentConcept concept);
+
+    ResponseEntity<List<PaymentDTO>> getByCurrency(PaymentCurrency currency);
 }

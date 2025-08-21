@@ -10,7 +10,12 @@ import java.time.LocalDateTime;
 public class ContractIncreaseDTO {
     private Long id;
     private LocalDateTime date;
-    private BigDecimal amount;
     private PaymentCurrency currency;
+    private BigDecimal amount;
+    private BigDecimal adjustment;
+    private String note;
+    private LocalDateTime periodFrom;
+    private LocalDateTime periodTo;
     private Long contractId;
+    private Long indexId;
 }

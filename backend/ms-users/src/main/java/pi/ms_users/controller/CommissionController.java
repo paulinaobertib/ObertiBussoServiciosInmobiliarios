@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/commission")
+@RequestMapping("/commissions")
 @RequiredArgsConstructor
 public class CommissionController {
 
