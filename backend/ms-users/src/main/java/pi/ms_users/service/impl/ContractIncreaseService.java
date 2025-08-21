@@ -92,6 +92,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> create(ContractIncreaseDTO contractIncreaseDTO) {
         if (contractIncreaseDTO.getId() != null) {
             throw new BadRequestException("El id debe ser null al crear un incremento.");
@@ -148,6 +149,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> delete(Long id) {
         if (!contractIncreaseRepository.existsById(id)) {
             throw new EntityNotFoundException("No se ha encontrado el incremento que se quiere eliminar.");
@@ -157,6 +159,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> deleteByContractId(Long contractId) {
         if (!contractRepository.existsById(contractId)) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");

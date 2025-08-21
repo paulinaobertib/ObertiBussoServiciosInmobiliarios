@@ -81,6 +81,7 @@ public class ContractUtilityService implements IContractUtilityService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> create(ContractUtilityDTO contractUtilityDTO) {
         if (contractUtilityDTO.getContractId() == null) throw new BadRequestException("Falta contractId.");
         if (contractUtilityDTO.getUtilityId() == null)  throw new BadRequestException("Falta utilityId.");
@@ -135,6 +136,7 @@ public class ContractUtilityService implements IContractUtilityService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> delete(Long id) {
         if (!contractUtilityRepository.existsById(id)) {
             throw new EntityNotFoundException("No se ha encontrado el servicio del contrato.");
@@ -144,6 +146,7 @@ public class ContractUtilityService implements IContractUtilityService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> deleteByContract(Long contractId) {
         if (!contractRepository.existsById(contractId)) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");

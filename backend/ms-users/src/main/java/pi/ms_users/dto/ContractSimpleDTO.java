@@ -9,7 +9,9 @@ import pi.ms_users.domain.ContractType;
 import pi.ms_users.domain.PaymentCurrency;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ContractSimpleDTO {
@@ -17,8 +19,8 @@ public class ContractSimpleDTO {
     private String userId;
     private Long propertyId;
     private ContractType contractType;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private ContractStatus contractStatus;
     private PaymentCurrency currency;
     private BigDecimal initialAmount;
@@ -26,4 +28,8 @@ public class ContractSimpleDTO {
     private BigDecimal lastPaidAmount;
     private LocalDateTime lastPaidDate;
     private String note;
+    private Long adjustmentIndexId;
+    private List<Long> contractUtilitiesIds;
+    private Long commissionId;
+    private List<Long> paymentsIds;
 }

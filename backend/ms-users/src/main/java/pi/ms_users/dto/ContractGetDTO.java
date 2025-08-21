@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-public class ContractDTO {
+public class ContractGetDTO {
     private Long id;
     private String userId;
     private Long propertyId;
@@ -23,5 +23,9 @@ public class ContractDTO {
     private BigDecimal lastPaidAmount;
     private LocalDateTime lastPaidDate;
     private String note;
-    private Long adjustmentIndexId;
+    private IncreaseIndex adjustmentIndex;
+    private List<ContractUtility> contractUtilities;
+    private List<ContractIncrease> contractIncrease;
+    private Commission commission;
+    private List<Payment> payments;
 }
