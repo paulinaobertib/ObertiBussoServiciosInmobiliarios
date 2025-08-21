@@ -40,7 +40,6 @@ public class ContractUtility {
     @JoinColumn(name = "contract_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_utility__contract"))
     private Contract contract;
 
-    // FIJARSE QUE NO PUEDE ELIMINAR UNA UTILITY SI LA TIENE VINCULADA ACA
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "utility_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_utility__utility"))
     private Utility utility;
