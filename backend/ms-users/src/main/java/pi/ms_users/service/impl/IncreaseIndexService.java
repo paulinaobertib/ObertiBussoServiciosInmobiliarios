@@ -44,6 +44,7 @@ public class IncreaseIndexService implements IIncreaseIndexService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> create(IncreaseIndex increaseIndex) {
         increaseIndexRepository.findByCode(increaseIndex.getCode()).ifPresent(x -> {
             throw new IllegalArgumentException("Ya existe un índice con ese código.");
@@ -54,6 +55,7 @@ public class IncreaseIndexService implements IIncreaseIndexService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> update(IncreaseIndex increaseIndex) {
         IncreaseIndex found = increaseIndexRepository.findById(increaseIndex.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el indice de aumento."));
@@ -64,6 +66,7 @@ public class IncreaseIndexService implements IIncreaseIndexService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> delete(Long id) {
         IncreaseIndex found = increaseIndexRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el indice de aumento."));

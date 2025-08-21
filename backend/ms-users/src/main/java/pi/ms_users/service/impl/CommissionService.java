@@ -67,6 +67,7 @@ public class CommissionService implements ICommissionService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> create(CommissionDTO commissionDTO) {
         if (!contractRepository.existsById(commissionDTO.getContractId())) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");
@@ -77,6 +78,7 @@ public class CommissionService implements ICommissionService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> update(CommissionDTO commissionDTO) {
         if (!contractRepository.existsById(commissionDTO.getContractId())) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");
@@ -92,6 +94,7 @@ public class CommissionService implements ICommissionService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> updateStatus(Long id, CommissionStatus status) {
         Optional<Commission> commission = commissionRepository.findById(id);
         if (commission.isEmpty()) {
@@ -103,6 +106,7 @@ public class CommissionService implements ICommissionService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> delete(Long id) {
         Optional<Commission> commission = commissionRepository.findById(id);
         if (commission.isEmpty()) {
