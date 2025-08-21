@@ -1,3 +1,4 @@
+/*
 package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
@@ -32,3 +33,5 @@ public interface IContractService {
 
     ResponseEntity<List<ContractDTO>> getAll();
 }
+
+ */

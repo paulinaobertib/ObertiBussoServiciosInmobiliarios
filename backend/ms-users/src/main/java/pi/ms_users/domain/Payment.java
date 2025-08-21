@@ -38,7 +38,6 @@ public class Payment {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "contract_id", nullable = false, foreignKey = @ForeignKey(name = "fk_payment_contract"))
-    // @JsonProperty(access = Access.WRITE_ONLY)
     private Contract contract;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
