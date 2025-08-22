@@ -20,6 +20,7 @@ public class Commission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false)
     private PaymentCurrency currency;
 
@@ -29,12 +30,14 @@ public class Commission {
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_type", nullable = false)
     private CommissionPaymentType paymentType;
 
     @Column(name = "installments", nullable = true)
     private Integer installments;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private CommissionStatus status;
 

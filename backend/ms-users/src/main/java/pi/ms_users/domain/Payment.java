@@ -33,6 +33,7 @@ public class Payment {
     @Column(name = "description", nullable = true)
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "concept", nullable = false)
     private PaymentConcept concept;
 

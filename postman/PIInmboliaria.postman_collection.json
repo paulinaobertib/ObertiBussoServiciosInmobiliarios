@@ -6146,12 +6146,10 @@
 									}
 								],
 								"url": {
-									"raw": "http://localhost:8081/user/getById/9b91445d-7e61-4f0e-82af-f3c4cf9a2d46",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/getById/9b91445d-7e61-4f0e-82af-f3c4cf9a2d46",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"getById",
@@ -6217,12 +6215,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/getAll",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/getAll",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"getAll"
@@ -6287,12 +6283,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/role/e54611c2-0add-474f-8513-dd555c0e4943",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/role/e54611c2-0add-474f-8513-dd555c0e4943",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"role",
@@ -6358,12 +6352,10 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/delete/f207b4cc-a3c3-41d4-8ab9-716af70c3012",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/delete/f207b4cc-a3c3-41d4-8ab9-716af70c3012",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"delete",
@@ -6439,12 +6431,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/user/delete/role/f135f4b2-f24e-40d6-80cd-27ed880c5387",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/delete/role/f135f4b2-f24e-40d6-80cd-27ed880c5387",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"delete",
@@ -6520,12 +6510,10 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8081/user/update",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/update",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"update"
@@ -6607,12 +6595,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/user/update/role/8e75cbea-b7cc-4a3a-a1bc-787ba39821ca",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/update/role/8e75cbea-b7cc-4a3a-a1bc-787ba39821ca",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"update",
@@ -6679,12 +6665,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/findUser?searchTerm=ad",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/findUser?searchTerm=ad",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"findUser"
@@ -6755,12 +6739,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/exist/f135f4b2-f24e-40d6-80cd-27ed880c5387",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/exist/f135f4b2-f24e-40d6-80cd-27ed880c5387",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"exist",
@@ -6826,12 +6808,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/me",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/me",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"me"
@@ -6921,12 +6901,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/user/create",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/create",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"create"
@@ -7013,12 +6991,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/user/getTenants",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/user/getTenants",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"user",
 										"getTenants"
@@ -7097,12 +7073,10 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8081/favorites/create",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/favorites/create",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"favorites",
 										"create"
@@ -7171,12 +7145,10 @@
 									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"propertyId\": 1\r\n}\r\n"
 								},
 								"url": {
-									"raw": "http://localhost:8081/favorites/delete/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/favorites/delete/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"favorites",
 										"delete",
@@ -7249,12 +7221,10 @@
 									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"propertyId\": 1\r\n}\r\n"
 								},
 								"url": {
-									"raw": "http://localhost:8081/favorites/user/a1e8d160-5fda-47c5-bbcf-53762bc77ae6",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/favorites/user/a1e8d160-5fda-47c5-bbcf-53762bc77ae6",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"favorites",
 										"user",
@@ -7327,12 +7297,10 @@
 									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"propertyId\": 1\r\n}\r\n"
 								},
 								"url": {
-									"raw": "http://localhost:8081/favorites/property/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/favorites/property/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"favorites",
 										"property",
@@ -7365,12 +7333,10 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8081/appointments/create",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/create",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"create"
@@ -7439,12 +7405,10 @@
 									"raw": "{\r\n  \"userId\": \"9b91445d-7e61-4f0e-82af-f3c4cf9a2d46\",\r\n  \"propertyId\": 1\r\n}\r\n"
 								},
 								"url": {
-									"raw": "http://localhost:8081/appointments/delete/2",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/delete/2",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"delete",
@@ -7514,12 +7478,10 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "http://localhost:8081/appointments/status/1?status=ACEPTADO&address=Italia 2889",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/status/1?status=ACEPTADO&address=Italia 2889",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"status",
@@ -7595,12 +7557,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/appointments/getById/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/getById/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"getById",
@@ -7666,12 +7626,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/appointments/getAll",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/getAll",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"getAll"
@@ -7736,12 +7694,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/appointments/user/9c028d7c-76a8-430a-83b5-9a2f5caefae6",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/user/9c028d7c-76a8-430a-83b5-9a2f5caefae6",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"user",
@@ -7807,12 +7763,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/appointments/status?status=ESPERA",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/appointments/status?status=ESPERA",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"appointments",
 										"status"
@@ -7897,12 +7851,10 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8081/preference/create",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/preference/create",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"preference",
 										"create"
@@ -7967,12 +7919,10 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/preference/update/1?enabled=true",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/preference/update/1?enabled=true",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"preference",
 										"update",
@@ -8044,12 +7994,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/preference/getById/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/preference/getById/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"preference",
 										"getById",
@@ -8115,12 +8063,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/preference/user/9c028d7c-76a8-430a-83b5-9a2f5caefae6",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/preference/user/9c028d7c-76a8-430a-83b5-9a2f5caefae6",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"preference",
 										"user",
@@ -8186,12 +8132,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/preference/active?type=PROPIEDADNUEVA",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/preference/active?type=PROPIEDADNUEVA",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"preference",
 										"active"
@@ -8267,12 +8211,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/notifications/getById/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notifications/getById/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notifications",
 										"getById",
@@ -8338,12 +8280,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/notifications/getAll",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notifications/getAll",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notifications",
 										"getAll"
@@ -8446,12 +8386,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/notices/create",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notices/create",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notices",
 										"create"
@@ -8569,12 +8507,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/notices/update/2",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notices/update/2",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notices",
 										"update",
@@ -8640,12 +8576,10 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/notices/delete/2",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notices/delete/2",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notices",
 										"delete",
@@ -8661,12 +8595,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/notices/getById/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notices/getById/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notices",
 										"getById",
@@ -8682,12 +8614,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/notices/getAll",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notices/getAll",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notices",
 										"getAll"
@@ -8702,12 +8632,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/notices/search?text=prog",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/notices/search?text=prog",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"notices",
 										"search"
@@ -8717,1715 +8645,6 @@
 											"key": "text",
 											"value": "prog"
 										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Payment",
-					"item": [
-						{
-							"name": "create",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"paymentCurrency\": \"USD\",\r\n  \"amount\": 1500.50,\r\n  \"date\": \"2025-06-09T10:30:00\",\r\n  \"description\": \"Pago mensual de alquiler\",\r\n  \"contract\": {\r\n    \"id\": 1\r\n  }\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:8081/payments/create",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"create"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "delete",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/payments/delete/2",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"delete",
-										"2"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "update",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 75000,\r\n  \"date\": \"2025-06-09T12:00:00\",\r\n  \"description\": \"Pago actualizado\",\r\n  \"contract\": {\r\n    \"id\": 1\r\n  }\r\n}\r\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:8081/payments/update",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"update"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getById",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/payments/getById/1",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"getById",
-										"1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByContract",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/payments/contract/1",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"contract",
-										"1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByDate",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/payments/getByDate?contract=1&date=2025-06-09T12:00:00",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"getByDate"
-									],
-									"query": [
-										{
-											"key": "contract",
-											"value": "1"
-										},
-										{
-											"key": "date",
-											"value": "2025-06-09T12:00:00"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByDateBetween",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/payments/getByDateBetween?contractId=1&start=2025-06-01T00:00:00&end=2025-06-30T23:59:59",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"payments",
-										"getByDateBetween"
-									],
-									"query": [
-										{
-											"key": "contractId",
-											"value": "1"
-										},
-										{
-											"key": "start",
-											"value": "2025-06-01T00:00:00"
-										},
-										{
-											"key": "end",
-											"value": "2025-06-30T23:59:59"
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Contract",
-					"item": [
-						{
-							"name": "create",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "clientSecret",
-											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
-											"type": "string"
-										},
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-05-31T00:00:00\",\r\n  \"endDate\": \"2025-09-10T00:00:00\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"increase\": 10.0,\r\n  \"increaseFrequency\": 20\r\n}\r\n\r\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:8081/contracts/create?amount=100000&currency=ARS",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"create"
-									],
-									"query": [
-										{
-											"key": "name",
-											"value": "Paulina",
-											"disabled": true
-										},
-										{
-											"key": "lastName",
-											"value": "ObertiBusso",
-											"disabled": true
-										},
-										{
-											"key": "email",
-											"value": "pauobertibussoprueba@gmail.com",
-											"disabled": true
-										},
-										{
-											"key": "phone",
-											"value": "1234567829",
-											"disabled": true
-										},
-										{
-											"key": "amount",
-											"value": "100000"
-										},
-										{
-											"key": "currency",
-											"value": "ARS"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "update",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"id\": 1,\r\n  \"userId\": \"96856721-9ae7-49d8-92f0-c4231b7109a6\",\r\n  \"propertyId\": 1,\r\n  \"contractType\": \"TEMPORAL\",\r\n  \"startDate\": \"2025-07-01T00:00:00\",\r\n  \"endDate\": \"2026-07-01T00:00:00\",\r\n  \"contractStatus\": \"INACTIVO\",\r\n  \"increase\": 7.0,\r\n  \"increaseFrequency\": 6\r\n}\r\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:8081/contracts/update",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"update"
-									],
-									"query": [
-										{
-											"key": "name",
-											"value": "Paulina",
-											"disabled": true
-										},
-										{
-											"key": "lastName",
-											"value": "ObertiBusso",
-											"disabled": true
-										},
-										{
-											"key": "email",
-											"value": "pauobertibussoprueba@gmail.com",
-											"disabled": true
-										},
-										{
-											"key": "phone",
-											"value": "1234567829",
-											"disabled": true
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "updateStatus",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PATCH",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/updateStatus/1",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"updateStatus",
-										"1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "delete",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/delete/2",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"delete",
-										"2"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByUser",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/user/96856721-9ae7-49d8-92f0-c4231b7109a6",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"user",
-										"96856721-9ae7-49d8-92f0-c4231b7109a6"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByProperty",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/property/1",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"property",
-										"1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByType",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/type?type=VIVIENDA",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"type"
-									],
-									"query": [
-										{
-											"key": "type",
-											"value": "VIVIENDA"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByStatus",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/status?status=ACTIVO",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"status"
-									],
-									"query": [
-										{
-											"key": "status",
-											"value": "ACTIVO"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByDateRange",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/dateRange?start=2025-01-01T00:00:00&end=2025-12-31T23:59:59",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"dateRange"
-									],
-									"query": [
-										{
-											"key": "start",
-											"value": "2025-01-01T00:00:00"
-										},
-										{
-											"key": "end",
-											"value": "2025-12-31T23:59:59"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getById",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/getById/1",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"getById",
-										"1"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getAll",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contracts/getAll",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contracts",
-										"getAll"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "ContractIncreases",
-					"item": [
-						{
-							"name": "create",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"contractId\": 9, \r\n  \"date\": \"2025-06-09T00:00:00\",\r\n  \"amount\": 100000,\r\n  \"currency\": \"ARS\"\r\n}\r\n\r\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:8081/contractIncreases/create",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contractIncreases",
-										"create"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "delete",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contractIncreases/delete/4",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contractIncreases",
-										"delete",
-										"4"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getById",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contractIncreases/getById/3",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contractIncreases",
-										"getById",
-										"3"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "getByContract",
-							"request": {
-								"auth": {
-									"type": "oauth2",
-									"oauth2": [
-										{
-											"key": "addTokenTo",
-											"value": "header",
-											"type": "string"
-										},
-										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
-											"type": "string"
-										},
-										{
-											"key": "clientId",
-											"value": "api-gateway-client",
-											"type": "string"
-										},
-										{
-											"key": "grant_type",
-											"value": "authorization_code",
-											"type": "string"
-										},
-										{
-											"key": "redirect_uri",
-											"value": "https://oauth.pstmn.io/v1/browser-callback",
-											"type": "string"
-										},
-										{
-											"key": "tokenName",
-											"value": "inmobiliaria",
-											"type": "string"
-										},
-										{
-											"key": "authUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
-											"type": "string"
-										},
-										{
-											"key": "accessTokenUrl",
-											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
-											"type": "string"
-										},
-										{
-											"key": "scope",
-											"value": "openid",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "http://localhost:8081/contractIncreases/contract/1",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "8081",
-									"path": [
-										"contractIncreases",
-										"contract",
-										"1"
 									]
 								}
 							},
@@ -10509,12 +8728,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/agentChat/enabled/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/agentChat/enabled/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"agentChat",
 										"enabled",
@@ -10600,12 +8817,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/agentChat/getById/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/agentChat/getById/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"agentChat",
 										"getById",
@@ -10691,12 +8906,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/agentChat/getByUserId/8e75cbea-b7cc-4a3a-a1bc-787ba39821ca",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/agentChat/getByUserId/8e75cbea-b7cc-4a3a-a1bc-787ba39821ca",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"agentChat",
 										"getByUserId",
@@ -10782,12 +8995,10 @@
 									]
 								},
 								"url": {
-									"raw": "http://localhost:8081/agentChat/getEnabledTrue",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/agentChat/getEnabledTrue",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"agentChat",
 										"getEnabledTrue"
@@ -10866,12 +9077,10 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/create",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/create",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"create"
@@ -10936,12 +9145,10 @@
 								"method": "PATCH",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/updateAvailability/3",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/updateAvailability/3",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"updateAvailability",
@@ -11007,12 +9214,10 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/delete/2",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/delete/2",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"delete",
@@ -11078,12 +9283,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/getById/1",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/getById/1",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"getById",
@@ -11149,12 +9352,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/getAll",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/getAll",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"getAll"
@@ -11219,12 +9420,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/available",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/available",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"available"
@@ -11289,12 +9488,10 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8081/availableAppointments/unavailable",
-									"protocol": "http",
+									"raw": "{{baseURLUser}}/availableAppointments/unavailable",
 									"host": [
-										"localhost"
+										"{{baseURLUser}}"
 									],
-									"port": "8081",
 									"path": [
 										"availableAppointments",
 										"unavailable"
@@ -11304,8 +9501,2432 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Utility",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientSecret",
+											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Luz\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/utilities/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"name\": \"Impuestos\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/utilities/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"name\": \"Impuestos\"\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/utilities/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/utilities/getById/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"getById",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getAll",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/utilities/getAll",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"utilities",
+										"getAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByName",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/utilities/getByName?name=Agua",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"getByName"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Agua"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getContracts",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/utilities/contracts/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"contracts",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getUtilitiesByContracts",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/utilities/getByContract/5",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"utilities",
+										"getByContract",
+										"5"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "IncreaseIndex",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"code\": \"IPC\",\r\n  \"name\": \"Índice de Precios al Consumidor\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"code\": \"IPC2025\",\r\n  \"name\": \"Índice actualizado\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"code\": \"IPC2025\",\r\n  \"name\": \"Índice actualizado\"\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"code\": \"IPC2025\",\r\n  \"name\": \"Índice actualizado\"\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/getById/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"getById",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getAll",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"code\": \"IPC2025\",\r\n  \"name\": \"Índice actualizado\"\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/getAll",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"getAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByName",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/getByName?name=Índice actualizado",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"getByName"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "Índice actualizado"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByCode",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/getByCode?code=IPC2025",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"getByCode"
+									],
+									"query": [
+										{
+											"key": "code",
+											"value": "IPC2025"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getContracts",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/contracts/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"contracts",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getIndexByContract",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/increaseIndex/getByContract/5",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"increaseIndex",
+										"getByContract",
+										"5"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Contract",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"COMERCIAL\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/update/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"update",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "updateStatus",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/updateStatus/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"updateStatus",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteByProperty",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/deleteByProperty/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"deleteByProperty",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteByUser",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/contracts/deleteByUser/de9c7e3a-caf1-453e-9f14-08c2820c65e7",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"deleteByUser",
+										"de9c7e3a-caf1-453e-9f14-08c2820c65e7"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getById/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getById",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getAll",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getAll",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByUser",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByUser/de9c7e3a-caf1-453e-9f14-08c2820c65e7",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByUser",
+										"de9c7e3a-caf1-453e-9f14-08c2820c65e7"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByStatus",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByStatus?status=ACTIVO",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByStatus"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "ACTIVO"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByType",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByType?type=VIVIENDA",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByType"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "VIVIENDA"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "active",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/active",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"active"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByProperty",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByProperty/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByProperty",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByPropertyMS",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByPropertyMS/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByPropertyMS",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDate",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByDate?date=2025-01-01",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByDate"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2025-01-01"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDateRange",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/getByDateRange?from=2025-01-01&to=2026-01-01",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"getByDateRange"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01"
+										},
+										{
+											"key": "to",
+											"value": "2026-01-01"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByExpiringDays",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/expiringWithinDays?days=150",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"expiringWithinDays"
+									],
+									"query": [
+										{
+											"key": "days",
+											"value": "150"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByExpiringOn",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/endingOn?date=2026-01-01",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"endingOn"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2026-01-01"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByExpiringBetween",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"userId\": \"de9c7e3a-caf1-453e-9f14-08c2820c65e7\",\r\n  \"propertyId\": 2,\r\n  \"contractType\": \"VIVIENDA\",\r\n  \"startDate\": \"2025-01-01\",\r\n  \"endDate\": \"2026-01-01\",\r\n  \"contractStatus\": \"ACTIVO\",\r\n  \"currency\": \"ARS\",\r\n  \"initialAmount\": 250000,\r\n  \"adjustmentFrequencyMonths\": 6,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"note\": \"Contrato de prueba 1\",\r\n  \"adjustmentIndexId\": 1\r\n}\r\n\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contracts/endingBetween?from=2025-10-01&to=2026-06-09",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contracts",
+										"endingBetween"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-10-01"
+										},
+										{
+											"key": "to",
+											"value": "2026-06-09"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ContractUtility",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 15000.0,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"notes\": \"Agua mensual contrato 6\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteByContract",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/deleteByContract/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"deleteByContract",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/getById/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"getById",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByContract",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/getByContract/5",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"getByContract",
+										"5"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByUtility",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/getByUtility/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"getByUtility",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByPeriodicity",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 25000.0,\r\n  \"lastPaidAmount\": 22000.0,\r\n  \"lastPaidDate\": \"2025-05-01T00:00:00\",\r\n  \"notes\": \"Actualizado util 2\",\r\n  \"contractId\": 6,\r\n  \"utilityId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractUtilities/getByPeriodicity/MENSUAL",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractUtilities",
+										"getByPeriodicity",
+										"MENSUAL"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Commission",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 3,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "updateStatus",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/updateStatus/2?status=PAGADA",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"updateStatus",
+										"2"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "PAGADA"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/getById/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"getById",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getAll",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/getAll",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"getAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByContract",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/contract/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"contract",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDate",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/date?date=2025-01-15",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"date"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2025-01-15"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByDateRange",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/dateRange?from=2025-01-01&to=2025-03-31",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"dateRange"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01"
+										},
+										{
+											"key": "to",
+											"value": "2025-03-31"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByInstallments",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/installments?installments=3",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"installments"
+									],
+									"query": [
+										{
+											"key": "installments",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByStatus",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/status?status=PENDIENTE",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"status"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "PENDIENTE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByPaymentType",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/paymentType?paymentType=CUOTAS",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"paymentType"
+									],
+									"query": [
+										{
+											"key": "paymentType",
+											"value": "CUOTAS"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "totalByStatus",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/total/byStatus?status=PENDIENTE&currency=ARS",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"total",
+										"byStatus"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "PENDIENTE"
+										},
+										{
+											"key": "currency",
+											"value": "ARS"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "totalByDateRange",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/total/byDateRange?from=2025-01-01&to=2025-12-31&currency=ARS",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"total",
+										"byDateRange"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01"
+										},
+										{
+											"key": "to",
+											"value": "2025-12-31"
+										},
+										{
+											"key": "currency",
+											"value": "ARS"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "totalByYearMonth",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/total/byYearMonth?currency=ARS&year=2025",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"total",
+										"byYearMonth"
+									],
+									"query": [
+										{
+											"key": "currency",
+											"value": "ARS"
+										},
+										{
+											"key": "year",
+											"value": "2025"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "totalByStatus",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 2,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/commissions/total/status",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"commissions",
+										"total",
+										"status"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ContractIncrease",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"date\": \"2025-03-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"date\": \"2025-06-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC ACTUALIZADO\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"date\": \"2025-06-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC ACTUALIZADO\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteByContract",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"date\": \"2025-06-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC ACTUALIZADO\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/deleteByContract/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"deleteByContract",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"date\": \"2025-06-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC ACTUALIZADO\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/getById/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"getById",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByContract",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"date\": \"2025-06-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC ACTUALIZADO\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/getByContract/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"getByContract",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getLastByContract",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 2,\r\n  \"date\": \"2025-06-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC ACTUALIZADO\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/contractIncreases/getLast/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"contractIncreases",
+										"getLast",
+										"6"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Payment",
+					"item": [
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo\",\r\n  \"concept\": \"COMISION\",\r\n  \"contractId\": 5,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": 1\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/create",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/update",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"update"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/delete/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"delete",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getById",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/getById/3",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getById",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByContract",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/getByContract/6",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByContract",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByUtility",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/getByUtility/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByUtility",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByCommission",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/getByCommission/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByCommission",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "lastCommission",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"id\": 1,\r\n  \"paymentCurrency\": \"ARS\",\r\n  \"amount\": 120000.0,\r\n  \"date\": \"2025-03-05T10:00:00\",\r\n  \"description\": \"Pago alquiler marzo actualizado\",\r\n  \"concept\": \"ALQUILER\",\r\n  \"contractId\": 6,\r\n  \"contractUtilityId\": null,\r\n  \"commissionId\": null\r\n}\r\n"
+								},
+								"url": {
+									"raw": "http://localhost:8081/payments/last/getByCommission/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"last",
+										"getByCommission",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "lastUtility",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/last/getByUtility/1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"last",
+										"getByUtility",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "lastContract",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/last/getByContract/5",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"last",
+										"getByContract",
+										"5"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "dateRange",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByRange?from=2025-01-01T00:00:00&to=2025-12-31T23:59:59",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByRange"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01T00:00:00"
+										},
+										{
+											"key": "to",
+											"value": "2025-12-31T23:59:59"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "contractRange",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByContract/range/5?from=2025-01-01T00:00:00&to=2025-12-31T23:59:59",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByContract",
+										"range",
+										"5"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01T00:00:00"
+										},
+										{
+											"key": "to",
+											"value": "2025-12-31T23:59:59"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "commissionRange",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByCommission/range/1?from=2025-01-01T00:00:00&to=2025-12-31T23:59:59",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByCommission",
+										"range",
+										"1"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01T00:00:00"
+										},
+										{
+											"key": "to",
+											"value": "2025-12-31T23:59:59"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "utilityRange",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByUtility/range/1?from=2025-01-01T00:00:00&to=2025-12-31T23:59:59",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByUtility",
+										"range",
+										"1"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2025-01-01T00:00:00"
+										},
+										{
+											"key": "to",
+											"value": "2025-12-31T23:59:59"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByConcept",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByConcept/COMISION",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByConcept",
+										"COMISION"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getByCurrency",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8081/payments/getByCurrency/ARS",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8081",
+									"path": [
+										"payments",
+										"getByCurrency",
+										"ARS"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURLUser",
+			"value": "http://localhost:8081",
+			"type": "default"
 		}
 	]
 }

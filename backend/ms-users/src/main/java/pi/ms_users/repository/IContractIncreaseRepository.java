@@ -20,6 +20,6 @@ public interface IContractIncreaseRepository extends JpaRepository<ContractIncre
     @Query("select ci from ContractIncrease ci where ci.contract.id = ?1 ORDER BY ci.date DESC")
     List<ContractIncrease> findByContractId(Long contractId);
 
-    @Query("SELECT ci FROM ContractIncrease ci WHERE ci.contract.id = ?1 ORDER BY ci.date DESC")
+    @Query("SELECT ci FROM ContractIncrease ci WHERE ci.contract.id = ?1 ORDER BY ci.date DESC LIMIT 1")
     Optional<ContractIncrease> findLastByContractId(Long contractId);
 }

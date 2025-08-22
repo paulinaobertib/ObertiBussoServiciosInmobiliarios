@@ -14,7 +14,7 @@ public interface IUtilityRepository extends JpaRepository<Utility, Long> {
     @Query("select u from Utility u where u.name = ?1")
     Optional<Utility> findByName(String name);
 
-    @Query("select cfrom Contract c join c.contractUtilities cu where cu.utility.id = ?1")
+    @Query("select c from Contract c join c.contractUtilities cu where cu.utility.id = ?1")
     List<Contract> findAllContractsByUtilityId(Long utilityId);
 
     @Query("select u from Utility u join u.contractUtilities cu where cu.contract.id = ?1 ")

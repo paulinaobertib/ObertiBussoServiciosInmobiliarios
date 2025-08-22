@@ -20,13 +20,13 @@ public interface IPaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.commission.id = ?1")
     List<Payment> findByCommissionId(Long commissionId);
 
-    @Query("SELECT p FROM Payment p WHERE p.contract.id = ?1 ORDER BY p.date DESC")
+    @Query("SELECT p FROM Payment p WHERE p.contract.id = ?1 ORDER BY p.date DESC LIMIT 1")
     Optional<Payment> findLastByContractId(Long contractId);
 
-    @Query("SELECT p FROM Payment p WHERE p.contractUtility.id = ?1 ORDER BY p.date DESC")
+    @Query("SELECT p FROM Payment p WHERE p.contractUtility.id = ?1 ORDER BY p.date DESC LIMIT 1")
     Optional<Payment> findLastByContractUtilityId(Long contractUtilityId);
 
-    @Query("SELECT p FROM Payment p WHERE p.commission.id = ?1 ORDER BY p.date DESC")
+    @Query("SELECT p FROM Payment p WHERE p.commission.id = ?1 ORDER BY p.date DESC LIMIT 1")
     Optional<Payment> findLastByCommissionId(Long commissionId);
 
     @Query("SELECT p FROM Payment p WHERE p.date BETWEEN ?1 AND ?2")
@@ -38,7 +38,7 @@ public interface IPaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.contractUtility.id = ?1 AND p.date BETWEEN ?2 AND ?3")
     List<Payment> findByDateRangeAndContractUtility(Long contractUtilityId, LocalDateTime from, LocalDateTime to);
 
-    @Query("SELECT p FROM Payment p WHERE p.commission.id = ?1AND p.date BETWEEN ?2 AND ?3")
+    @Query("SELECT p FROM Payment p WHERE p.commission.id = ?1 AND p.date BETWEEN ?2 AND ?3")
     List<Payment> findByDateRangeAndCommission(Long commissionId, LocalDateTime from, LocalDateTime to);
 
     @Query("SELECT p FROM Payment p WHERE p.concept = ?1")
