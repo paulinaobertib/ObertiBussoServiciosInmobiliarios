@@ -1,16 +1,17 @@
 package pi.ms_users.dto;
 
 import lombok.Data;
-import pi.ms_users.domain.*;
+import pi.ms_users.domain.ContractStatus;
+import pi.ms_users.domain.ContractType;
+import pi.ms_users.domain.PaymentCurrency;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Data
-public class ContractGetDTO {
+public class ContractGuarantorGetDTO {
     private Long id;
     private String userId;
     private Long propertyId;
@@ -32,5 +33,4 @@ public class ContractGetDTO {
     private List<ContractIncreaseContractDTO> contractIncrease;
     private CommissionContractDTO commission;
     private List<PaymentContractDTO> payments;
-    private Set<GuarantorGetContractDTO> guarantors;
 }

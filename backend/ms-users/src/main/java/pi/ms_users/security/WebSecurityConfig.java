@@ -33,7 +33,8 @@ public class WebSecurityConfig {
                                 "/contractIncreases/**",
                                 "/contracts/**",
                                 "/contractUtilities/**",
-                                "/payments/**").permitAll()
+                                "/payments/**",
+                                "/guarantors/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/availableAppointments/getAll",
                                 "/notices/getById/{id}",
@@ -46,7 +47,8 @@ public class WebSecurityConfig {
                                 "/contractIncreases/**",
                                 "/contracts/**",
                                 "/contractUtilities/**",
-                                "/payments/**").permitAll()
+                                "/payments/**",
+                                "/guarantors/**").permitAll()
                         .requestMatchers(HttpMethod.PUT,
                                 "/utilities/**",
                                 "/increaseIndex/**",
@@ -54,7 +56,8 @@ public class WebSecurityConfig {
                                 "/contractIncreases/**",
                                 "/contracts/**",
                                 "/contractUtilities/**",
-                                "/payments/**").permitAll()
+                                "/payments/**",
+                                "/guarantors/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE,
                                 "/utilities/**",
                                 "/increaseIndex/**",
@@ -62,7 +65,8 @@ public class WebSecurityConfig {
                                 "/contractIncreases/**",
                                 "/contracts/**",
                                 "/contractUtilities/**",
-                                "/payments/**").permitAll()
+                                "/payments/**",
+                                "/guarantors/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH,
                                 "/utilities/**",
                                 "/increaseIndex/**",
@@ -70,7 +74,8 @@ public class WebSecurityConfig {
                                 "/contractIncreases/**",
                                 "/contracts/**",
                                 "/contractUtilities/**",
-                                "/payments/**").permitAll()
+                                "/payments/**",
+                                "/guarantors/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

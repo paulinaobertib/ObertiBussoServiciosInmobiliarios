@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class ContractSimpleDTO {
@@ -28,8 +29,12 @@ public class ContractSimpleDTO {
     private BigDecimal lastPaidAmount;
     private LocalDateTime lastPaidDate;
     private String note;
+    private Boolean hasDeposit;
+    private BigDecimal depositAmount;
+    private String depositNote;
     private Long adjustmentIndexId;
     private List<Long> contractUtilitiesIds;
     private Long commissionId;
     private List<Long> paymentsIds;
+    private Set<Long> guarantorsIds;
 }

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class ContractDTO {
@@ -27,4 +28,5 @@ public class ContractDTO {
     private List<Long> contractUtilitiesIds;
     private Long commissionId;
     private List<Long> paymentsIds;
+    private Set<Long> guarantorsIds;
 }
