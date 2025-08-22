@@ -125,8 +125,26 @@ CREATE TABLE Contract (
   adjustment_frequency_months INT NOT NULL,                    
   last_paid_amount DECIMAL(15,2) NULL,
   last_paid_date DATETIME NULL,
+  has_deposit BOOLEAN NOT NULL DEFAULT 0,
+  deposit_amount DECIMAL(15,2) NULL,
+  deposit_note VARCHAR(1000) NULL,
   FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE RESTRICT,
   FOREIGN KEY (adjustment_index_id) REFERENCES Increase_Index(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE Guarantor (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Contract_Guarantor (
+    contract_id BIGINT NOT NULL,
+    guarantor_id BIGINT NOT NULL,
+    PRIMARY KEY (contract_id, guarantor_id),
+    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE,
+    FOREIGN KEY (guarantor_id) REFERENCES Guarantor(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE Contract_Utility (

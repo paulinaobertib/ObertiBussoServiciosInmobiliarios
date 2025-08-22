@@ -6,6 +6,7 @@ import pi.ms_users.domain.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 public class ContractDTO {
@@ -22,5 +23,9 @@ public class ContractDTO {
     private BigDecimal lastPaidAmount;
     private LocalDateTime lastPaidDate;
     private String note;
+    private Boolean hasDeposit;
+    private BigDecimal depositAmount;
+    private String depositNote;
     private Long adjustmentIndexId;
+    private Set<Long> guarantorsIds;
 }
