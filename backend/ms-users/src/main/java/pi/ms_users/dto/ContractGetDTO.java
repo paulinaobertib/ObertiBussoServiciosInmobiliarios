@@ -24,9 +24,9 @@ public class ContractGetDTO {
     private BigDecimal lastPaidAmount;
     private LocalDateTime lastPaidDate;
     private String note;
-    private IncreaseIndex adjustmentIndex;
-    private Set<ContractUtility> contractUtilities;
-    private Set<ContractIncrease> contractIncrease;
-    private Commission commission;
-    private Set<Payment> payments;
+    private IncreaseIndexContractDTO adjustmentIndex;
+    private List<ContractUtilityContractDTO> contractUtilities;
+    private List<ContractIncreaseContractDTO> contractIncrease;
+    private CommissionContractDTO commission;
+    private List<PaymentContractDTO> payments;
 }
