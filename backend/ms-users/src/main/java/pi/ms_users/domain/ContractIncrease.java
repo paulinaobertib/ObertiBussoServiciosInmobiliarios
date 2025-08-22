@@ -43,6 +43,7 @@ public class ContractIncrease {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "index_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_increase__index"))
+    @JsonIgnore
     private IncreaseIndex index;
 
     @ManyToOne(fetch = FetchType.LAZY)

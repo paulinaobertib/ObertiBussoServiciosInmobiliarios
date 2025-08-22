@@ -261,7 +261,7 @@ public class ContractService implements IContractService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<List<ContractSimpleDTO>> getByPropertyForMS(Long propertyId) {
-        List<Contract> contracts = contractRepository.findByProperty(propertyId);
+        List<Contract> contracts = contractRepository.findByPropertyMS(propertyId);
         List<ContractSimpleDTO> contractSimpleDTOS = contracts.stream().map(this::toSimpleDTO).toList();
         return ResponseEntity.ok(contractSimpleDTOS);
     }
@@ -285,7 +285,8 @@ public class ContractService implements IContractService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<List<ContractGetDTO>> getContractsExpiringWithin(int days) {
-        List<Contract> contracts = contractRepository.findExpiringWithinDaysNative(days);
+        LocalDate to = LocalDate.now().plusDays(days);
+        List<Contract> contracts = contractRepository.findExpiringUntil(to);
         List<ContractGetDTO> contractGetDTOS = contracts.stream().map(this::toGetDTO).toList();
         return ResponseEntity.ok(contractGetDTOS);
     }

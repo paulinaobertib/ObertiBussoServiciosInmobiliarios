@@ -1,6 +1,7 @@
-package pi.ms_users.dto;
+/*package pi.ms_users.dto;
 
 import lombok.Data;
+import pi.ms_users.domain.PaymentCurrency;
 
 import java.math.BigDecimal;
 
@@ -13,6 +14,8 @@ public class EmailContractIncreaseDTO {
     private BigDecimal amount;
     private Long frequency;
     private float increase;
-    private ContractIncreaseCurrency currency;
+    private PaymentCurrency currency;
     private Long contractId;
 }
+
+ */

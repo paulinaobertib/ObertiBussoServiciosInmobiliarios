@@ -1,4 +1,4 @@
-package pi.ms_users.dto;
+/*package pi.ms_users.dto;
 
 import lombok.Data;
 
@@ -13,3 +13,5 @@ public class EmailPaymentReminderDTO {
     private LocalDate dueDate;
     private ContractIncreaseCurrency currency;
 }
+
+ */
