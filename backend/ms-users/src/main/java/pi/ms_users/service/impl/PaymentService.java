@@ -156,6 +156,8 @@ public class PaymentService implements IPaymentService {
 
         validateConceptRules(dto, entity);
 
+        paymentRepository.save(entity);
+
         return ResponseEntity.ok("Se ha creado el pago.");
     }
 
@@ -172,6 +174,8 @@ public class PaymentService implements IPaymentService {
         Payment entity = toEntity(dto);
 
         validateConceptRules(dto, entity);
+
+        paymentRepository.save(entity);
 
         return ResponseEntity.ok("Se ha actualizado el pago.");
     }

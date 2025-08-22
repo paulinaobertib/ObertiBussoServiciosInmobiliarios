@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -41,6 +41,7 @@ public class Contract {
     @Column(name = "status", nullable = false)
     private ContractStatus contractStatus;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false)
     private PaymentCurrency currency;
 
@@ -59,20 +60,19 @@ public class Contract {
     @Column(name = "note", nullable = true)
     private String note;
 
-    // FIJARSE ACA NO PUEDO ELIMINAR UN INDICE SI TIENE UN CONTRATO VINCULADO
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "adjustment_index_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_adjustment_index"))
     private IncreaseIndex adjustmentIndex;
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContractUtility> contractUtilities = new ArrayList<>();
+    private Set<ContractUtility> contractUtilities = new HashSet<>();
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContractIncrease> contractIncrease = new ArrayList<>();
+    private Set<ContractIncrease> contractIncrease = new HashSet<>();
 
     @OneToOne(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private Commission commission;
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment> payments = new ArrayList<>();
+    private Set<Payment> payments = new HashSet<>();
 }

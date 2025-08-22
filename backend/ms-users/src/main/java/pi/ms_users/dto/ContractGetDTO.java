@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class ContractGetDTO {
@@ -24,8 +25,8 @@ public class ContractGetDTO {
     private LocalDateTime lastPaidDate;
     private String note;
     private IncreaseIndex adjustmentIndex;
-    private List<ContractUtility> contractUtilities;
-    private List<ContractIncrease> contractIncrease;
+    private Set<ContractUtility> contractUtilities;
+    private Set<ContractIncrease> contractIncrease;
     private Commission commission;
-    private List<Payment> payments;
+    private Set<Payment> payments;
 }
