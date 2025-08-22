@@ -422,7 +422,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        zIndex: 1500,
+        zIndex: 10,
         backgroundColor: "#fff",
         transition: "max-height 0.2s ease"
       }}
