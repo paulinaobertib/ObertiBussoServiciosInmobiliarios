@@ -7,7 +7,7 @@ export const fabSlot = (slot: number, size = "3.5rem", gap: Gap = { xs: 8, sm: 1
 
   return {
     position: "fixed" as const,
-    zIndex: 1300,
+    zIndex: 10,
     bottom: 16,
     right: {
       xs: `calc(16px + env(safe-area-inset-right) + ${slot} * (${size} + ${gx}px))`,
