@@ -8,9 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
-import pi.ms_users.dto.ContractDTO;
-import pi.ms_users.dto.ContractGetDTO;
-import pi.ms_users.dto.ContractSimpleDTO;
+import pi.ms_users.dto.*;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
 import pi.ms_users.service.interf.IContractService;
@@ -30,8 +28,10 @@ public class ContractService implements IContractService {
     @PersistenceContext
     private EntityManager em;
 
+    @Transactional(readOnly = true)
     public ContractGetDTO toGetDTO(Contract entity) {
         if (entity == null) return null;
+
         ContractGetDTO dto = new ContractGetDTO();
         dto.setId(entity.getId());
         dto.setUserId(entity.getUserId());
@@ -46,13 +46,94 @@ public class ContractService implements IContractService {
         dto.setLastPaidAmount(entity.getLastPaidAmount());
         dto.setLastPaidDate(entity.getLastPaidDate());
         dto.setNote(entity.getNote());
-        dto.setAdjustmentIndex(entity.getAdjustmentIndex());
-        dto.setContractUtilities(entity.getContractUtilities());
-        dto.setContractIncrease(entity.getContractIncrease());
-        dto.setCommission(entity.getCommission());
-        dto.setPayments(entity.getPayments());
+
+        dto.setAdjustmentIndex(mapIncreaseIndex(entity.getAdjustmentIndex()));
+
+        dto.setContractUtilities(entity.getContractUtilities() == null ? List.of()
+                        : entity.getContractUtilities().stream()
+                        .map(this::mapContractUtility)
+                        .toList()
+        );
+
+        dto.setContractIncrease(entity.getContractIncrease() == null ? List.of()
+                        : entity.getContractIncrease().stream()
+                        .map(this::mapContractIncrease)
+                        .toList()
+        );
+
+        dto.setCommission(mapCommission(entity.getCommission()));
+
+        dto.setPayments(entity.getPayments() == null ? List.of()
+                        : entity.getPayments().stream()
+                        .map(this::mapPayment)
+                        .toList()
+        );
+
         return dto;
     }
+
+    private IncreaseIndexContractDTO mapIncreaseIndex(IncreaseIndex ii) {
+        if (ii == null) return null;
+        IncreaseIndexContractDTO d = new IncreaseIndexContractDTO();
+        d.setId(ii.getId());
+        d.setCode(ii.getCode());
+        d.setName(ii.getName());
+        return d;
+    }
+
+    private ContractUtilityContractDTO mapContractUtility(ContractUtility cu) {
+        ContractUtilityContractDTO d = new ContractUtilityContractDTO();
+        d.setId(cu.getId());
+        d.setPeriodicity(cu.getPeriodicity());
+        d.setInitialAmount(cu.getInitialAmount());
+        d.setLastPaidAmount(cu.getLastPaidAmount());
+        d.setLastPaidDate(cu.getLastPaidDate());
+        d.setNotes(cu.getNotes());
+        d.setUtilityId(cu.getUtility() != null ? cu.getUtility().getId() : null);
+        return d;
+    }
+
+    private ContractIncreaseContractDTO mapContractIncrease(ContractIncrease ci) {
+        ContractIncreaseContractDTO d = new ContractIncreaseContractDTO();
+        d.setId(ci.getId());
+        d.setDate(ci.getDate());
+        d.setCurrency(ci.getCurrency());
+        d.setAmount(ci.getAmount());
+        d.setAdjustment(ci.getAdjustment());
+        d.setNote(ci.getNote());
+        d.setPeriodFrom(ci.getPeriodFrom());
+        d.setPeriodTo(ci.getPeriodTo());
+        d.setIndexId(ci.getIndex() != null ? ci.getIndex().getId() : null);
+        return d;
+    }
+
+    private CommissionContractDTO mapCommission(Commission c) {
+        if (c == null) return null;
+        CommissionContractDTO d = new CommissionContractDTO();
+        d.setId(c.getId());
+        d.setCurrency(c.getCurrency());
+        d.setTotalAmount(c.getTotalAmount());
+        d.setDate(c.getDate());
+        d.setPaymentType(c.getPaymentType());
+        d.setInstallments(c.getInstallments());
+        d.setStatus(c.getStatus());
+        d.setNote(c.getNote());
+        return d;
+    }
+
+    private PaymentContractDTO mapPayment(Payment p) {
+        PaymentContractDTO d = new PaymentContractDTO();
+        d.setId(p.getId());
+        d.setPaymentCurrency(p.getPaymentCurrency());
+        d.setAmount(p.getAmount());
+        d.setDate(p.getDate());
+        d.setDescription(p.getDescription());
+        d.setConcept(p.getConcept());
+        d.setContractUtilityId(p.getContractUtility() != null ? p.getContractUtility().getId() : null);
+        d.setCommissionId(p.getCommission() != null ? p.getCommission().getId() : null);
+        return d;
+    }
+
 
     public ContractSimpleDTO toSimpleDTO(Contract entity) {
         if (entity == null) return null;
