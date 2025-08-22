@@ -60,6 +60,15 @@ public class Contract {
     @Column(name = "note", nullable = true)
     private String note;
 
+    @Column(name = "has_deposit", nullable = false)
+    private boolean hasDeposit = false;
+
+    @Column(name = "deposit_amount", precision = 15, scale = 2)
+    private BigDecimal depositAmount;    
+
+    @Column(name = "deposit_note", length = 1000)
+    private String depositNote;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "adjustment_index_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_adjustment_index"))
     private IncreaseIndex adjustmentIndex;
@@ -75,6 +84,10 @@ public class Contract {
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Payment> payments = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "Contract_Guarantor", joinColumns = @JoinColumn(name = "contract_id"), inverseJoinColumns = @JoinColumn(name = "guarantor_id"))
+    private Set<Guarantor> guarantors = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

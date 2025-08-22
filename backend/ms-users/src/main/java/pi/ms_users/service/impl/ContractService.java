@@ -3,6 +3,7 @@ package pi.ms_users.service.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -13,8 +14,10 @@ import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
 import pi.ms_users.service.interf.IContractService;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +49,9 @@ public class ContractService implements IContractService {
         dto.setLastPaidAmount(entity.getLastPaidAmount());
         dto.setLastPaidDate(entity.getLastPaidDate());
         dto.setNote(entity.getNote());
+        dto.setHasDeposit(entity.isHasDeposit());
+        dto.setDepositAmount(entity.getDepositAmount());
+        dto.setDepositNote(entity.getDepositNote());
 
         dto.setAdjustmentIndex(mapIncreaseIndex(entity.getAdjustmentIndex()));
 
@@ -68,6 +74,11 @@ public class ContractService implements IContractService {
                         .map(this::mapPayment)
                         .toList()
         );
+
+        dto.setGuarantors(entity.getGuarantors() == null ? Set.of()
+                : entity.getGuarantors().stream()
+                .map(this::mapGuarantor)
+                .collect(Collectors.toSet()));
 
         return dto;
     }
@@ -134,6 +145,14 @@ public class ContractService implements IContractService {
         return d;
     }
 
+    private GuarantorGetContractDTO mapGuarantor(Guarantor g) {
+        GuarantorGetContractDTO d = new GuarantorGetContractDTO();
+        d.setId(g.getId());
+        d.setName(g.getName());
+        d.setPhone(g.getPhone());
+        d.setEmail(g.getEmail());
+        return d;
+    }
 
     public ContractSimpleDTO toSimpleDTO(Contract entity) {
         if (entity == null) return null;
@@ -151,12 +170,17 @@ public class ContractService implements IContractService {
         dto.setLastPaidAmount(entity.getLastPaidAmount());
         dto.setLastPaidDate(entity.getLastPaidDate());
         dto.setNote(entity.getNote());
+        dto.setHasDeposit(entity.isHasDeposit());
+        dto.setDepositAmount(entity.getDepositAmount());
+        dto.setDepositNote(entity.getDepositNote());
         dto.setAdjustmentIndexId(entity.getAdjustmentIndex() != null ? entity.getAdjustmentIndex().getId() : null);
-        dto.setContractUtilitiesIds(entity.getContractUtilities()
-                .stream().map(ContractUtility::getId).collect(Collectors.toList()));
+        dto.setContractUtilitiesIds(entity.getContractUtilities().stream().map(ContractUtility::getId).collect(Collectors.toList()));
         dto.setCommissionId(entity.getCommission() != null ? entity.getCommission().getId() : null);
-        dto.setPaymentsIds(entity.getPayments()
-                .stream().map(Payment::getId).collect(Collectors.toList()));
+        dto.setPaymentsIds(entity.getPayments().stream().map(Payment::getId).collect(Collectors.toList()));
+        dto.setGuarantorsIds(entity.getGuarantors() == null ? Set.of()
+                : entity.getGuarantors().stream()
+                .map(Guarantor::getId)
+                .collect(Collectors.toSet()));
         return dto;
     }
 
@@ -177,11 +201,42 @@ public class ContractService implements IContractService {
         entity.setLastPaidDate(dto.getLastPaidDate());
         entity.setNote(dto.getNote());
 
+        if (dto.getHasDeposit() != null) {
+            entity.setHasDeposit(dto.getHasDeposit());
+        }
+
+        if (Boolean.TRUE.equals(dto.getHasDeposit())) {
+            entity.setDepositAmount(dto.getDepositAmount());
+            entity.setDepositNote(dto.getDepositNote());
+        } else {
+            entity.setDepositAmount(null);
+            entity.setDepositNote(null);
+        }
+
         if (dto.getAdjustmentIndexId() != null) {
             entity.setAdjustmentIndex(em.getReference(IncreaseIndex.class, dto.getAdjustmentIndexId()));
         }
 
+        if (dto.getGuarantorsIds() != null && !dto.getGuarantorsIds().isEmpty()) {
+            Set<Guarantor> gs = dto.getGuarantorsIds().stream()
+                    .map(id -> em.getReference(Guarantor.class, id))
+                    .collect(Collectors.toSet());
+            entity.setGuarantors(gs);
+        } else {
+            entity.getGuarantors().clear();
+        }
+
         return entity;
+    }
+
+    private void validateDeposit(Boolean hasDeposit, BigDecimal amount, String note) {
+        boolean hd = Boolean.TRUE.equals(hasDeposit);
+        if (hd && (amount == null || amount.compareTo(BigDecimal.ZERO) < 0)) {
+            throw new BadRequestException("Si hasDeposit=true, depositAmount debe ser >= 0.");
+        }
+        if (!hd && (amount != null || note != null)) {
+            throw new BadRequestException("Si hasDeposit=false, depositAmount y depositNote deben ser null.");
+        }
     }
 
     @Override
@@ -189,6 +244,10 @@ public class ContractService implements IContractService {
     public ResponseEntity<String> create(ContractDTO contractDTO) {
         if (contractDTO.getAdjustmentIndexId() == null || !increaseIndexRepository.existsById(contractDTO.getAdjustmentIndexId())) {
             throw new EntityNotFoundException("No se ha encontrado el índice de aumento con ID: " + contractDTO.getAdjustmentIndexId());
+        }
+
+        if (contractDTO.getHasDeposit()) {
+            validateDeposit(true, contractDTO.getDepositAmount(), contractDTO.getDepositNote());
         }
 
         Contract entity = toEntity(contractDTO);
