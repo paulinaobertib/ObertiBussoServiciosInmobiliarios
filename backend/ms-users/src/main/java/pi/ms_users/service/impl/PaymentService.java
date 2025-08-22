@@ -20,6 +20,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static pi.ms_users.domain.PaymentConcept.ALQUILER;
+import static pi.ms_users.domain.PaymentConcept.EXTRA;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentService implements IPaymentService {
@@ -99,7 +102,7 @@ public class PaymentService implements IPaymentService {
             if (!contractUtilityRepository.existsById(dto.getContractUtilityId())) {
                 throw new EntityNotFoundException("No se ha encontrado el servicio del contrato.");
             }
-        } else if (dto.getConcept() == PaymentConcept.EXTRA) {
+        } else if (dto.getConcept() == EXTRA) {
             throw new BadRequestException("Extra requiere contractUtilityId.");
         }
     }
@@ -145,6 +148,32 @@ public class PaymentService implements IPaymentService {
         }
     }
 
+    private void updateLastPaidForContract(Contract contract) {
+        Optional<Payment> last = paymentRepository.findTopByContractAndConceptOrderByDateDesc(contract, PaymentConcept.ALQUILER);
+
+        if (last.isPresent()) {
+            contract.setLastPaidAmount(last.get().getAmount());
+            contract.setLastPaidDate(last.get().getDate());
+        } else {
+            contract.setLastPaidAmount(null);
+            contract.setLastPaidDate(null);
+        }
+        contractRepository.save(contract);
+    }
+
+    private void updateLastPaidForUtility(ContractUtility cu) {
+        Optional<Payment> last = paymentRepository.findTopByContractUtilityAndConceptOrderByDateDesc(cu, PaymentConcept.EXTRA);
+
+        if (last.isPresent()) {
+            cu.setLastPaidAmount(last.get().getAmount());
+            cu.setLastPaidDate(last.get().getDate());
+        } else {
+            cu.setLastPaidAmount(null);
+            cu.setLastPaidDate(null);
+        }
+        contractUtilityRepository.save(cu);
+    }
+
     @Override
     @Transactional
     public ResponseEntity<String> create(PaymentDTO dto) {
@@ -157,6 +186,12 @@ public class PaymentService implements IPaymentService {
         validateConceptRules(dto, entity);
 
         paymentRepository.save(entity);
+
+        switch (entity.getConcept()) {
+            case ALQUILER -> updateLastPaidForContract(entity.getContract());
+            case EXTRA    -> updateLastPaidForUtility(entity.getContractUtility());
+            default       -> {}
+        }
 
         return ResponseEntity.ok("Se ha creado el pago.");
     }

@@ -2,9 +2,7 @@ package pi.ms_users.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import pi.ms_users.domain.Payment;
-import pi.ms_users.domain.PaymentConcept;
-import pi.ms_users.domain.PaymentCurrency;
+import pi.ms_users.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,4 +44,8 @@ public interface IPaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT p FROM Payment p WHERE p.paymentCurrency = ?1")
     List<Payment> findByCurrency(PaymentCurrency currency);
+
+    Optional<Payment> findTopByContractAndConceptOrderByDateDesc(Contract contract, PaymentConcept concept);
+
+    Optional<Payment> findTopByContractUtilityAndConceptOrderByDateDesc(ContractUtility cu, PaymentConcept concept);
 }

@@ -75,4 +75,16 @@ public class Contract {
 
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Payment> payments = new HashSet<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Contract c)) return false;
+        return id != null && id.equals(c.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }

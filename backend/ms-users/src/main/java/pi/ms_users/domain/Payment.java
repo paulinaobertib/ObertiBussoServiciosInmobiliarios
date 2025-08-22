@@ -1,7 +1,5 @@
 package pi.ms_users.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,6 +1,5 @@
 package pi.ms_users.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,11 +42,9 @@ public class ContractIncrease {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "index_id", nullable = false, foreignKey = @ForeignKey(name = "fk_contract_increase__index"))
-    @JsonIgnore
     private IncreaseIndex index;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contract_id", nullable = false)
-    @JsonIgnore
     private Contract contract;
 }
