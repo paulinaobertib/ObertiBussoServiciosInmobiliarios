@@ -145,6 +145,7 @@ public class UserService implements IUserService {
             agentChat.setEnabled(Boolean.FALSE);
             String name = user.getFirstName().trim() + " " + user.getLastName().trim();
             agentChat.setName(name);
+            agentChat.setPhone(user.getPhone());
             agentChatService.create(agentChat);
         }
 

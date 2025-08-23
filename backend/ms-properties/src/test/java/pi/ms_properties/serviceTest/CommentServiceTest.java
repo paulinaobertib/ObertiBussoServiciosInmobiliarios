@@ -12,8 +12,10 @@ import org.springframework.http.ResponseEntity;
 import pi.ms_properties.domain.Comment;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.CommentDTO;
+import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.impl.CommentService;
 
 import java.time.LocalDateTime;
@@ -36,15 +38,21 @@ public class CommentServiceTest {
     @Mock
     private IPropertyRepository propertyRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     // casos de exito
 
     @Test
     void createComment_success() {
-        CommentDTO dto = new CommentDTO(0L, "Buen lugar", LocalDateTime.now(), 1L);
+        CommentDTO dto = new CommentDTO(0L, "userId", "Buen lugar" , LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
+        var userDTO = new UserDTO();
+        userDTO.setId("userId");
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(userRepository.findById("userId")).thenReturn(userDTO);
 
         ResponseEntity<String> response = commentService.create(dto);
 
@@ -55,13 +63,17 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_success() {
-        CommentDTO dto = new CommentDTO(1L, "Actualizado", LocalDateTime.now(), 1L);
+        CommentDTO dto = new CommentDTO(1L, "userId", "Buen lugar" , LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
+        var userDTO = new UserDTO();
+        userDTO.setId("userId");
+
         Comment comment = new Comment();
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(userRepository.findById("userId")).thenReturn(userDTO);
 
         ResponseEntity<String> response = commentService.update(dto);
 
@@ -86,7 +98,7 @@ public class CommentServiceTest {
     void getById_success() {
         Property property = new Property();
         property.setId(1L);
-        Comment comment = new Comment(1L, "Descripción", LocalDateTime.now(), property);
+        Comment comment = new Comment(1L, "userId", "Descripción", LocalDateTime.now(), property);
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
 
@@ -102,8 +114,8 @@ public class CommentServiceTest {
         Property property = new Property();
         property.setId(1L);
         List<Comment> comments = List.of(
-                new Comment(1L, "Comentario 1", LocalDateTime.now(), property),
-                new Comment(2L, "Comentario 2", LocalDateTime.now(), property)
+                new Comment(1L, "userId", "Comentario 1", LocalDateTime.now(), property),
+                new Comment(2L, "userId", "Comentario 2", LocalDateTime.now(), property)
         );
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
@@ -119,7 +131,7 @@ public class CommentServiceTest {
 
     @Test
     void createComment_propertyNotFound() {
-        CommentDTO dto = new CommentDTO(0L, "Fallo", LocalDateTime.now(), 99L);
+        CommentDTO dto = new CommentDTO(0L, "userId", "Fallo", LocalDateTime.now(), 99L);
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
@@ -130,7 +142,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_notFound() {
-        CommentDTO dto = new CommentDTO(1L, "No existe", LocalDateTime.now(), 1L);
+        CommentDTO dto = new CommentDTO(1L, "userId", "No existe", LocalDateTime.now(), 1L);
         when(commentRepository.findById(1L)).thenReturn(Optional.empty());
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
@@ -141,7 +153,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_propertyNotFound() {
-        CommentDTO dto = new CommentDTO(1L, "Fallo", LocalDateTime.now(), 99L);
+        CommentDTO dto = new CommentDTO(1L, "userId", "Fallo", LocalDateTime.now(), 99L);
         when(commentRepository.findById(1L)).thenReturn(Optional.of(new Comment()));
         when(propertyRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -183,7 +195,7 @@ public class CommentServiceTest {
 
     @Test
     void createComment_genericException() {
-        CommentDTO dto = new CommentDTO(0L, "Error", LocalDateTime.now(), 1L);
+        CommentDTO dto = new CommentDTO(0L, "userId", "Error", LocalDateTime.now(), 1L);
         when(propertyRepository.findById(1L)).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
@@ -194,7 +206,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_genericException() {
-        CommentDTO dto = new CommentDTO(1L, "Error", LocalDateTime.now(), 1L);
+        CommentDTO dto = new CommentDTO(1L, "userId", "Error", LocalDateTime.now(), 1L);
         when(commentRepository.findById(1L)).thenThrow(new RuntimeException("Error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
@@ -205,11 +217,14 @@ public class CommentServiceTest {
 
     @Test
     void create_shouldThrowDataIntegrityViolation() {
-        CommentDTO commentDTO = new CommentDTO(1L, "Comentario", LocalDateTime.now(), 1L);
+        CommentDTO commentDTO = new CommentDTO(1L, "userId", "Comentario", LocalDateTime.now(), 1L);
         Property property = new Property();
         property.setId(1L);
+        var userDTO = new UserDTO();
+        userDTO.setId("userId");
 
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(userRepository.findById("userId")).thenReturn(userDTO);
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(commentRepository).save(any(Comment.class));
 
@@ -219,14 +234,17 @@ public class CommentServiceTest {
 
     @Test
     void update_shouldThrowDataIntegrityViolation() {
-        CommentDTO commentDTO = new CommentDTO(1L, "Comentario actualizado", LocalDateTime.now(), 1L);
+        CommentDTO commentDTO = new CommentDTO(1L, "userId", "Comentario actualizado", LocalDateTime.now(), 1L);
         Comment comment = new Comment();
         comment.setId(1L);
         Property property = new Property();
         property.setId(1L);
+        var userDTO = new UserDTO();
+        userDTO.setId("userId");
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
         when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(userRepository.findById("userId")).thenReturn(userDTO);
         doThrow(new DataIntegrityViolationException("Violation"))
                 .when(commentRepository).save(any(Comment.class));
 
@@ -262,6 +280,40 @@ public class CommentServiceTest {
 
         assertThrows(DataIntegrityViolationException.class, () ->
             commentService.getByPropertyId(1L));
+    }
+
+    @Test
+    void create_userNoFound() {
+        CommentDTO dto = new CommentDTO(0L, "userId", "Buen lugar", LocalDateTime.now(), 1L);
+
+        Property property = new Property();
+        property.setId(1L);
+
+        when(propertyRepository.findById(1L)).thenReturn(Optional.of(property));
+        when(userRepository.findById("userId")).thenReturn(null); // 👈 simulamos que NO existe el usuario
+
+        EntityNotFoundException ex = assertThrows(
+                EntityNotFoundException.class,
+                () -> commentService.create(dto)
+        );
+
+        assertEquals("No se ha encontrado al usuario.", ex.getMessage());
+
+        verify(commentRepository, never()).save(any());
+    }
+
+    @Test
+    void update_userNoFound() {
+        CommentDTO dto = new CommentDTO(99L, "userId", "Nuevo texto", LocalDateTime.now(), 1L);
+
+        when(commentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(
+                EntityNotFoundException.class,
+                () -> commentService.update(dto)
+        );
+
+        assertEquals("No se ha encontrado el comentario", ex.getMessage());
     }
 }
 
