@@ -40,6 +40,7 @@ export const OwnerForm = ({ action, item, onDone }: Props) => {
             {/* overlay de carga */}
             {loading && (
                 <Box
+                    data-testid="overlay"
                     position="fixed"
                     top={0}
                     left={0}
