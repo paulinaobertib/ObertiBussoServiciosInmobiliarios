@@ -2840,13 +2840,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -2889,7 +2889,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8083/owner/getContracts/1",
+									"raw": "http://localhost:8083/owner/getContracts/2",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2898,7 +2898,7 @@
 									"path": [
 										"owner",
 										"getContracts",
-										"1"
+										"2"
 									]
 								}
 							},
@@ -6372,13 +6372,13 @@
 									"type": "oauth2",
 									"oauth2": [
 										{
-											"key": "addTokenTo",
-											"value": "header",
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
 											"type": "string"
 										},
 										{
-											"key": "clientSecret",
-											"value": "jGLYVuOPXaNKCuSi0bITzURkaeRLOxIP",
+											"key": "addTokenTo",
+											"value": "header",
 											"type": "string"
 										},
 										{
@@ -6425,13 +6425,13 @@
 									"formdata": [
 										{
 											"key": "role",
-											"value": "app_user",
+											"value": "admin",
 											"type": "text"
 										}
 									]
 								},
 								"url": {
-									"raw": "{{baseURLUser}}/user/delete/role/f135f4b2-f24e-40d6-80cd-27ed880c5387",
+									"raw": "{{baseURLUser}}/user/delete/role/54f66b7c-93c3-4145-8be9-84ff0d2b8ceb",
 									"host": [
 										"{{baseURLUser}}"
 									],
@@ -6439,7 +6439,7 @@
 										"user",
 										"delete",
 										"role",
-										"f135f4b2-f24e-40d6-80cd-27ed880c5387"
+										"54f66b7c-93c3-4145-8be9-84ff0d2b8ceb"
 									]
 								}
 							},
@@ -10770,11 +10770,14 @@
 						{
 							"name": "create",
 							"request": {
+								"auth": {
+									"type": "noauth"
+								},
 								"method": "POST",
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 3,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 6\r\n}\r\n",
+									"raw": "{\r\n  \"currency\": \"ARS\",\r\n  \"totalAmount\": 350000.0,\r\n  \"date\": \"2025-01-15\",\r\n  \"paymentType\": \"CUOTAS\",\r\n  \"installments\": 3,\r\n  \"status\": \"PENDIENTE\",\r\n  \"note\": \"Comisión contrato 1\",\r\n  \"contractId\": 1\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"
