@@ -1,7 +1,7 @@
 package pi.ms_users.dto;
 
 import lombok.Data;
-import pi.ms_users.domain.ContractIncreaseCurrency;
+import pi.ms_users.domain.PaymentCurrency;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,7 +10,12 @@ import java.time.LocalDateTime;
 public class ContractIncreaseDTO {
     private Long id;
     private LocalDateTime date;
+    private PaymentCurrency currency;
     private BigDecimal amount;
-    private ContractIncreaseCurrency currency;
+    private BigDecimal adjustment;
+    private String note;
+    private LocalDateTime periodFrom;
+    private LocalDateTime periodTo;
     private Long contractId;
+    private Long indexId;
 }

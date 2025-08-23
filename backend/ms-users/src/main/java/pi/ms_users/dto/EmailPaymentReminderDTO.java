@@ -1,7 +1,6 @@
-package pi.ms_users.dto;
+/*package pi.ms_users.dto;
 
 import lombok.Data;
-import pi.ms_users.domain.ContractIncreaseCurrency;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,3 +13,5 @@ public class EmailPaymentReminderDTO {
     private LocalDate dueDate;
     private ContractIncreaseCurrency currency;
 }
+
+ */

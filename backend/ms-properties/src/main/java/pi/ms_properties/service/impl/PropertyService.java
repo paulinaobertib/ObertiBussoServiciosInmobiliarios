@@ -2,6 +2,7 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -12,10 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.dto.*;
+import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.dto.feign.NotificationDTO;
 import pi.ms_properties.dto.feign.NotificationType;
 import pi.ms_properties.recommendation.service.RecommendationService;
 import pi.ms_properties.repository.*;
+import pi.ms_properties.repository.feign.ContractRepository;
 import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IImageService;
 import pi.ms_properties.service.interf.IPropertyService;
@@ -61,6 +64,8 @@ public class PropertyService implements IPropertyService {
     private final IChatMessageRepository chatMessageRepository;
 
     private final IChatDerivationRepository chatDerivationRepository;
+
+    private final ContractRepository contractRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -160,6 +165,11 @@ public class PropertyService implements IPropertyService {
     public ResponseEntity<String> deleteProperty(Long id) {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Propiedad no encontrada"));
+
+        List<ContractDTO> contractDTOS = contractRepository.findByPropertyId(property.getId());
+        if (!contractDTOS.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar una propiedad que tiene contratos vinculados");
+        }
 
         List<Long> sessionIds = chatSessionRepository.findIdsByPropertyId(id);
 

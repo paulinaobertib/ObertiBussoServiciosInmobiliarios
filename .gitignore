@@ -1,2 +1,3 @@
 .vscode/
 **/application-local.yml
+**/application-nube.yml
