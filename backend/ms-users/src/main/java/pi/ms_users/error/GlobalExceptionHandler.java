@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
-        return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        return ResponseEntity.badRequest().body("Violación de integridad de datos" + ex.getMessage());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

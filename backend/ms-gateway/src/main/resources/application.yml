@@ -1,18 +1,19 @@
 server:
-  port: 8090
+  port: ${WEBSITES_PORT}
 
 eureka:
   instance:
-    hostname: localhost
-    prefer-ip-address: true
+    hostname: ${WEBSITE_HOSTNAME}
+    nonSecurePort: 80 # Ver si se puede eliminar este
+  #  prefer-ip-address: true # Ver si este se puede agregar
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
 
 frontend:
-  base-url: http://localhost:5173
+  base-url: "https://${SWA_FRONTEND}"
 
 spring:
   application:
@@ -22,22 +23,23 @@ spring:
       client:
         provider:
           keycloak-client:
-            issuer-uri: http://localhost:8080/realms/obertibussoserviciosinmobiliarios
+            issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
         registration:
           keycloak-client:
-            client-id: api-gateway-client
-            client-secret: 75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A
+            client-id: ${KEYCLOAK_CLIENT_ID}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
             scope:
               - openid
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8090/login/oauth2/code/keycloak
+            redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
   cloud:
     gateway:
       globalcors:
         corsConfigurations:
-          '[/**]':
-            allowedOrigins: "http://localhost:5173"
+          "[/**]":
+            allowedOrigins:
+              - "https://${SWA_FRONTEND}"
             allowedHeaders: "*"
             allowedMethods:
               - GET
@@ -46,6 +48,7 @@ spring:
               - PATCH
               - DELETE
               - OPTIONS
+            allowCredentials: true # Ver si se puede sacar
       default-filters: TokenRelay
       routes:
         - id: ms-properties-public
