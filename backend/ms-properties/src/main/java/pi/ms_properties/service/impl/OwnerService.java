@@ -30,16 +30,27 @@ public class OwnerService implements IOwnerService {
     private final ContractRepository contractRepository;
 
     private static ContractDTO getContractDTO(ContractDTO contract) {
+        if (contract == null) return null;
+
         ContractDTO contractDTO = new ContractDTO();
         contractDTO.setId(contract.getId());
+        contractDTO.setUserId(contract.getUserId());
         contractDTO.setPropertyId(contract.getPropertyId());
-        contractDTO.setContractStatus(contract.getContractStatus());
         contractDTO.setContractType(contract.getContractType());
-        contractDTO.setIncrease(contract.getIncrease());
         contractDTO.setStartDate(contract.getStartDate());
         contractDTO.setEndDate(contract.getEndDate());
-        contractDTO.setUserId(contract.getUserId());
-        contractDTO.setIncreaseFrequency(contract.getIncreaseFrequency());
+        contractDTO.setContractStatus(contract.getContractStatus());
+        contractDTO.setCurrency(contract.getCurrency());
+        contractDTO.setInitialAmount(contract.getInitialAmount());
+        contractDTO.setAdjustmentFrequencyMonths(contract.getAdjustmentFrequencyMonths());
+        contractDTO.setLastPaidAmount(contract.getLastPaidAmount());
+        contractDTO.setLastPaidDate(contract.getLastPaidDate());
+        contractDTO.setNote(contract.getNote());
+        contractDTO.setAdjustmentIndexId(contract.getAdjustmentIndexId());
+        contractDTO.setContractUtilitiesIds(contract.getContractUtilitiesIds());
+        contractDTO.setCommissionId(contract.getCommissionId());
+        contractDTO.setPaymentsIds(contract.getPaymentsIds());
+
         return contractDTO;
     }
 

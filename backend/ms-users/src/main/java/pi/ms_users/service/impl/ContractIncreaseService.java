@@ -1,157 +1,206 @@
 package pi.ms_users.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncrease;
-import pi.ms_users.domain.ContractStatus;
-import pi.ms_users.domain.User;
+import pi.ms_users.domain.IncreaseIndex;
 import pi.ms_users.dto.ContractIncreaseDTO;
-import pi.ms_users.dto.ContractIncreaseDTOContractGet;
-import pi.ms_users.dto.EmailContractIncreaseDTO;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
-import pi.ms_users.repository.UserRepository.IUserRepository;
-import pi.ms_users.security.SecurityUtils;
+import pi.ms_users.repository.IIncreaseIndexRepository;
 import pi.ms_users.service.interf.IContractIncreaseService;
-import pi.ms_users.service.interf.IEmailService;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ContractIncreaseService implements IContractIncreaseService {
 
-    private final IContractIncreaseRepository contractIncreaseRepository;
+    public final IContractIncreaseRepository contractIncreaseRepository;
 
-    private final IContractRepository contractRepository;
+    public final IContractRepository contractRepository;
 
-    private final ObjectMapper objectMapper;
+    public final IIncreaseIndexRepository increaseIndexRepository;
 
-    private final IUserRepository userRepository;
+    @PersistenceContext
+    private EntityManager em;
 
-    private final IEmailService emailService;
+    public ContractIncreaseDTO toDTO(ContractIncrease entity) {
+        if (entity == null) return null;
 
-    @Override
-    public ResponseEntity<String> create(ContractIncreaseDTO contractIncreaseDTO) {
-        Contract contract = contractRepository.findById(contractIncreaseDTO.getContractId())
-                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el contrato."));
-
-        ContractIncrease contractIncrease = objectMapper.convertValue(contractIncreaseDTO, ContractIncrease.class);
-        contractIncrease.setContract(contract);
-        contractIncreaseRepository.save(contractIncrease);
-
-        return ResponseEntity.ok("Se ha guardado el monto del contrato");
+        ContractIncreaseDTO dto = new ContractIncreaseDTO();
+        dto.setId(entity.getId());
+        dto.setDate(entity.getDate());
+        dto.setCurrency(entity.getCurrency());
+        dto.setAmount(entity.getAmount());
+        dto.setAdjustment(entity.getAdjustment());
+        dto.setNote(entity.getNote());
+        dto.setPeriodFrom(entity.getPeriodFrom());
+        dto.setPeriodTo(entity.getPeriodTo());
+        dto.setContractId(entity.getContract() != null ? entity.getContract().getId() : null);
+        dto.setIndexId(entity.getIndex() != null ? entity.getIndex().getId() : null);
+        return dto;
     }
 
-    @Override
-    public ResponseEntity<String> delete(Long id) {
-        ContractIncrease contractIncrease = contractIncreaseRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el monto."));
+    public ContractIncrease toEntity(ContractIncreaseDTO dto) {
+        if (dto == null) return null;
 
-        contractIncreaseRepository.delete(contractIncrease);
-        return ResponseEntity.ok("Se ha eliminado el monto.");
-    }
+        ContractIncrease entity = new ContractIncrease();
+        entity.setId(dto.getId());
+        entity.setDate(dto.getDate());
+        entity.setCurrency(dto.getCurrency());
+        entity.setAmount(dto.getAmount());
+        entity.setAdjustment(dto.getAdjustment());
+        entity.setNote(dto.getNote());
+        entity.setPeriodFrom(dto.getPeriodFrom());
+        entity.setPeriodTo(dto.getPeriodTo());
 
-    @Override
-    public ResponseEntity<ContractIncreaseDTO> getById(Long id) {
-        ContractIncrease contractIncrease = contractIncreaseRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el monto."));
-
-        if (SecurityUtils.isTenant() &&
-                !contractIncrease.getContract().getUserId().equals(SecurityUtils.getCurrentUserId())) {
-            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        if (dto.getContractId() != null) {
+            entity.setContract(em.getReference(Contract.class, dto.getContractId()));
+        } else {
+            entity.setContract(null);
         }
 
-        ContractIncreaseDTO contractIncreaseDTO = objectMapper.convertValue(contractIncrease, ContractIncreaseDTO.class);
-        contractIncreaseDTO.setContractId(contractIncrease.getContract().getId());
+        if (dto.getIndexId() != null) {
+            entity.setIndex(em.getReference(IncreaseIndex.class, dto.getIndexId()));
+        } else {
+            entity.setIndex(null);
+        }
 
+        return entity;
+    }
+
+    private void validateDtoBusiness(ContractIncreaseDTO dto) {
+        if (dto.getAmount() != null && dto.getAmount().signum() < 0) {
+            throw new BadRequestException("El monto no puede ser negativo.");
+        }
+        if (dto.getAdjustment() != null && dto.getAdjustment().signum() < 0) {
+            throw new BadRequestException("El ajuste no puede ser negativo.");
+        }
+        if (dto.getPeriodFrom() != null && dto.getPeriodTo() != null &&
+                dto.getPeriodFrom().isAfter(dto.getPeriodTo())) {
+            throw new BadRequestException("periodFrom no puede ser posterior a periodTo.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> create(ContractIncreaseDTO contractIncreaseDTO) {
+        if (contractIncreaseDTO.getId() != null) {
+            throw new BadRequestException("El id debe ser null al crear un incremento.");
+        }
+
+        validateDtoBusiness(contractIncreaseDTO);
+
+        if (!increaseIndexRepository.existsById(contractIncreaseDTO.getIndexId())) {
+            throw new EntityNotFoundException("No se ha encontrado el indice de aumento.");
+        }
+
+        if (!contractRepository.existsById(contractIncreaseDTO.getContractId())) {
+            throw new EntityNotFoundException("No se ha encontrado el contrato.");
+        }
+
+        ContractIncrease contractIncrease = toEntity(contractIncreaseDTO);
+        contractIncreaseRepository.save(contractIncrease);
+
+        return ResponseEntity.ok("Se ha guardado el incremento del contrato.");
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<String> update(ContractIncreaseDTO dto) {
+        if (dto.getId() == null) {
+            throw new BadRequestException("Falta el id del incremento a actualizar.");
+        }
+
+        validateDtoBusiness(dto);
+
+        ContractIncrease entity = contractIncreaseRepository.findById(dto.getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el incremento que se quiere actualizar."));
+
+        if (dto.getDate() != null)        entity.setDate(dto.getDate());
+        if (dto.getCurrency() != null)    entity.setCurrency(dto.getCurrency());
+        if (dto.getAmount() != null)      entity.setAmount(dto.getAmount());
+        if (dto.getAdjustment() != null)  entity.setAdjustment(dto.getAdjustment());
+        if (dto.getNote() != null)        entity.setNote(dto.getNote());
+        if (dto.getPeriodFrom() != null)  entity.setPeriodFrom(dto.getPeriodFrom());
+        if (dto.getPeriodTo() != null)    entity.setPeriodTo(dto.getPeriodTo());
+
+        if (dto.getContractId() != null &&
+                (entity.getContract() == null || !entity.getContract().getId().equals(dto.getContractId()))) {
+            entity.setContract(em.getReference(Contract.class, dto.getContractId()));
+        }
+
+        if (dto.getIndexId() != null && (entity.getIndex() == null || !entity.getIndex().getId().equals(dto.getIndexId()))) {
+            entity.setIndex(em.getReference(IncreaseIndex.class, dto.getIndexId()));
+        }
+
+        contractIncreaseRepository.save(entity);
+
+        return ResponseEntity.ok("Se ha actualizado el incremento.");
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> delete(Long id) {
+        if (!contractIncreaseRepository.existsById(id)) {
+            throw new EntityNotFoundException("No se ha encontrado el incremento que se quiere eliminar.");
+        }
+        contractIncreaseRepository.deleteById(id);
+        return ResponseEntity.ok("Se ha eliminado el incremento.");
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> deleteByContractId(Long contractId) {
+        if (!contractRepository.existsById(contractId)) {
+            throw new EntityNotFoundException("No se ha encontrado el contrato.");
+        }
+        contractIncreaseRepository.deleteByContractId(contractId);
+        return ResponseEntity.ok("Se han eliminado los incrementos vinculados al contrato.");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<ContractIncreaseDTO> getById(Long id) {
+        Optional<ContractIncrease> contractIncrease = contractIncreaseRepository.findById(id);
+        if (contractIncrease.isEmpty()) {
+            throw new EntityNotFoundException("No se ha encontrado el incremento.");
+        }
+        ContractIncreaseDTO contractIncreaseDTO = toDTO(contractIncrease.get());
         return ResponseEntity.ok(contractIncreaseDTO);
     }
 
     @Override
-    public ResponseEntity<List<ContractIncreaseDTOContractGet>> getByContract(Long contractId) {
-        Contract contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new NoSuchElementException("No se ha encontrado el contrato."));
-
-        if (SecurityUtils.isTenant() &&
-                !contract.getUserId().equals(SecurityUtils.getCurrentUserId())) {
-            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<ContractIncreaseDTO>> getByContractId(Long contractId) {
+        if (!contractRepository.existsById(contractId)) {
+            throw new EntityNotFoundException("No se ha encontrado el contrato.");
         }
-
         List<ContractIncrease> contractIncreases = contractIncreaseRepository.findByContractId(contractId);
-        List<ContractIncreaseDTOContractGet> contractIncreaseDTOs = contractIncreases.stream()
-                .map(increase -> objectMapper.convertValue(increase, ContractIncreaseDTOContractGet.class))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(contractIncreaseDTOs);
+        List<ContractIncreaseDTO> contractIncreaseDTOS = contractIncreases.stream().map(this::toDTO).toList();
+        return ResponseEntity.ok(contractIncreaseDTOS);
     }
 
-    // Para actualizar automaticamente el monto del contrato
-    @Transactional
-    public void applyScheduledIncreases() {
-        List<Contract> activeContracts = contractRepository.findByStatusAndEndDateAfter(ContractStatus.ACTIVO, LocalDateTime.now());
-
-        for (Contract contract : activeContracts) {
-            Optional<ContractIncrease> lastIncreaseOpt = contractIncreaseRepository.findTopByContractOrderByDateDesc(contract);
-
-            if (lastIncreaseOpt.isPresent()) {
-                ContractIncrease lastIncrease = lastIncreaseOpt.get();
-                LocalDateTime nextIncreaseDate = lastIncrease.getDate().plusDays(contract.getIncreaseFrequency());
-                BigDecimal newAmount = lastIncrease.getAmount().multiply(BigDecimal.valueOf(1 + contract.getIncrease() / 100.0));
-
-                // Verificar si la fecha de aumento está exactamente a 10 días
-                LocalDateTime tenDaysFromNow = LocalDateTime.now().plusDays(10).withHour(0).withMinute(0).withSecond(0).withNano(0);
-                LocalDateTime nextIncreaseDateStart = nextIncreaseDate.withHour(0).withMinute(0).withSecond(0).withNano(0);
-
-                // Aplicar el aumento si la fecha ya pasó o es hoy
-                if (!nextIncreaseDate.isAfter(LocalDateTime.now())) {
-                    ContractIncrease newIncrease = new ContractIncrease();
-                    newIncrease.setContract(contract);
-                    newIncrease.setDate(nextIncreaseDate);
-                    newIncrease.setAmount(newAmount.setScale(2, RoundingMode.HALF_UP));
-                    newIncrease.setCurrency(lastIncrease.getCurrency());
-
-                    contractIncreaseRepository.save(newIncrease);
-                }
-
-                if (nextIncreaseDateStart.isEqual(tenDaysFromNow)) {
-                    // Enviar correo de notificación
-                    User user = userRepository.findById(contract.getUserId())
-                            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-                    EmailContractIncreaseDTO emailData = getEmailContractIncreaseDTO(contract, user, newAmount);
-
-                    try {
-                        emailService.sendContractIncreaseEmail(emailData);
-                    } catch (Exception e) {
-                        // Loggear el error pero no interrumpir el proceso
-                        System.err.println("Error al enviar correo de aumento: " + e.getMessage());
-                    }
-                }
-            }
+    @Override
+    @Transactional(readOnly = true)
+    public ResponseEntity<ContractIncreaseDTO> getLastByContractId(Long contractId) {
+        if (!contractRepository.existsById(contractId)) {
+            throw new EntityNotFoundException("No se ha encontrado el contrato.");
         }
-    }
-
-    private static EmailContractIncreaseDTO getEmailContractIncreaseDTO(Contract contract, User user, BigDecimal newAmount) {
-        EmailContractIncreaseDTO emailData = new EmailContractIncreaseDTO();
-        emailData.setTo(user.getEmail());
-        emailData.setTitle("Notificación de Aumento de Contrato");
-        emailData.setFirstName(user.getFirstName());
-        emailData.setAmount(newAmount);
-        emailData.setFrequency(contract.getIncreaseFrequency());
-        emailData.setIncrease(contract.getIncrease());
-        emailData.setContractId(contract.getId());
-        return emailData;
+        Optional<ContractIncrease> contractIncrease = contractIncreaseRepository.findLastByContractId(contractId);
+        if (contractIncrease.isEmpty()) {
+            throw new EntityNotFoundException("No se ha encontrado ningun incremento vinculado al contrato.");
+        }
+        ContractIncreaseDTO contractIncreaseDTO = toDTO(contractIncrease.get());
+        return ResponseEntity.ok(contractIncreaseDTO);
     }
 }

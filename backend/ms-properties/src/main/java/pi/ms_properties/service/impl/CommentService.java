@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Comment;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.CommentDTO;
+import pi.ms_properties.dto.feign.UserDTO;
 import pi.ms_properties.repository.ICommentRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.interf.ICommentService;
 
 import java.time.LocalDateTime;
@@ -22,12 +24,20 @@ public class CommentService implements ICommentService {
 
     private final IPropertyRepository propertyRepository;
 
+    private final UserRepository userRepository;
+
     @Override
     public ResponseEntity<String> create(CommentDTO commentDTO) {
         Property property = propertyRepository.findById(commentDTO.getPropertyId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la propiedad con ese id"));
 
+        UserDTO userDTO = userRepository.findById(commentDTO.getUserId());
+        if (userDTO == null) {
+            throw new EntityNotFoundException("No se ha encontrado al usuario.");
+        }
+
         Comment comment = new Comment();
+        comment.setUserId(userDTO.getId());
         comment.setDescription(commentDTO.getDescription());
         comment.setDate(LocalDateTime.now());
         comment.setProperty(property);
@@ -44,6 +54,12 @@ public class CommentService implements ICommentService {
         Property property = propertyRepository.findById(commentDTO.getPropertyId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la propiedad con ese id"));
 
+        UserDTO userDTO = userRepository.findById(commentDTO.getUserId());
+        if (userDTO == null) {
+            throw new EntityNotFoundException("No se ha encontrado al usuario.");
+        }
+
+        existing.setUserId(userDTO.getId());
         existing.setDescription(commentDTO.getDescription());
         existing.setProperty(property);
         commentRepository.save(existing);
@@ -65,7 +81,7 @@ public class CommentService implements ICommentService {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el comentario"));
 
-        CommentDTO commentDTO = new CommentDTO(comment.getId(), comment.getDescription(), comment.getDate(), comment.getProperty().getId());
+        CommentDTO commentDTO = new CommentDTO(comment.getId(), comment.getUserId(), comment.getDescription(), comment.getDate(), comment.getProperty().getId());
         return ResponseEntity.ok(commentDTO);
     }
 
@@ -78,6 +94,7 @@ public class CommentService implements ICommentService {
         List<CommentDTO> commentDTOS = comments.stream()
                 .map(comment -> new CommentDTO(
                         comment.getId(),
+                        comment.getUserId(),
                         comment.getDescription(),
                         comment.getDate(),
                         comment.getProperty().getId()

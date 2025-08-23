@@ -1,4 +1,4 @@
-package pi.ms_users.controllerTest;
+/*package pi.ms_users.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -13,12 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
-import pi.ms_users.controller.ContractIncreaseController;
-import pi.ms_users.domain.ContractIncreaseCurrency;
+import pi.ms_users.controller.ContractIncreaseControllerViejo;
+import pi.ms_users.domain.PaymentCurrency;
 import pi.ms_users.dto.ContractIncreaseDTO;
 import pi.ms_users.dto.ContractIncreaseDTOContractGet;
 import pi.ms_users.security.WebSecurityConfig;
-import pi.ms_users.service.interf.IContractIncreaseService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,21 +29,21 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ContractIncreaseController.class)
-@Import({ContractIncreaseControllerTest.Config.class, WebSecurityConfig.class})
-class ContractIncreaseControllerTest {
+@WebMvcTest(ContractIncreaseControllerViejo.class)
+@Import({ContractIncreaseControllerViejoTest.Config.class, WebSecurityConfig.class})
+class ContractIncreaseControllerViejoTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private IContractIncreaseService contractIncreaseService;
+    private IContractIncreaseServiceViejo contractIncreaseService;
 
     @TestConfiguration
     static class Config {
         @Bean
-        public IContractIncreaseService contractIncreaseService() {
-            return Mockito.mock(IContractIncreaseService.class);
+        public IContractIncreaseServiceViejo contractIncreaseService() {
+            return Mockito.mock(IContractIncreaseServiceViejo.class);
         }
     }
 
@@ -58,7 +57,7 @@ class ContractIncreaseControllerTest {
         ContractIncreaseDTO dto = new ContractIncreaseDTO();
         dto.setId(1L);
         dto.setAmount(BigDecimal.valueOf(1000));
-        dto.setCurrency(ContractIncreaseCurrency.USD);
+        dto.setCurrency(PaymentCurrency.USD);
         dto.setDate(LocalDateTime.now());
         dto.setContractId(123L);
 
@@ -152,3 +151,4 @@ class ContractIncreaseControllerTest {
                 .andExpect(status().isBadRequest());
     }
 }
+*/

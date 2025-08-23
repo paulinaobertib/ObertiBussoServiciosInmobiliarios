@@ -64,6 +64,7 @@ CREATE TABLE Property (
 
 CREATE TABLE Comment (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     date DATETIME NOT NULL,
 	property_id BIGINT NOT NULL,
@@ -98,36 +99,108 @@ CREATE TABLE Image (
     FOREIGN KEY (property_id) REFERENCES Property(id)
 );
 
+CREATE TABLE Increase_Index (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) UNIQUE NOT NULL,            
+  name VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE Utility (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,          
+  name VARCHAR(150) NOT NULL
+);
+
 CREATE TABLE Contract (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(100) NOT NULL,
+  property_id BIGINT NOT NULL,
+  type ENUM('TEMPORAL', 'VIVIENDA', 'COMERCIAL') NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  status ENUM('ACTIVO', 'INACTIVO') NOT NULL,
+  currency ENUM('USD','ARS') NOT NULL DEFAULT 'ARS',
+  initial_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  note VARCHAR(1000) NULL,
+  adjustment_index_id BIGINT NOT NULL,                     
+  adjustment_frequency_months INT NOT NULL,                    
+  last_paid_amount DECIMAL(15,2) NULL,
+  last_paid_date DATETIME NULL,
+  has_deposit BOOLEAN NOT NULL DEFAULT 0,
+  deposit_amount DECIMAL(15,2) NULL,
+  deposit_note VARCHAR(1000) NULL,
+  FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE RESTRICT,
+  FOREIGN KEY (adjustment_index_id) REFERENCES Increase_Index(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE Guarantor (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(100) NOT NULL,
-    property_id BIGINT NOT NULL,
-    type ENUM('TEMPORAL', 'VIVIENDA', 'COMERCIAL') NOT NULL,
-    start_date DATETIME NOT NULL,
-    end_date DATETIME NOT NULL,
-    status ENUM('ACTIVO', 'INACTIVO') NOT NULL,
-    increase DECIMAL(5,2) NOT NULL,
-    increase_frequency BIGINT NOT NULL,
-    FOREIGN KEY (property_id) REFERENCES Property(id) ON DELETE CASCADE
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Contract_Guarantor (
+    contract_id BIGINT NOT NULL,
+    guarantor_id BIGINT NOT NULL,
+    PRIMARY KEY (contract_id, guarantor_id),
+    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE,
+    FOREIGN KEY (guarantor_id) REFERENCES Guarantor(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE Contract_Utility (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  contract_id BIGINT NOT NULL,
+  utility_id BIGINT NOT NULL,
+  periodicity ENUM('UNICO', 'MENSUAL', 'BIMENSUAL', 'TRIMESTRAL', 'SEMESTRAL', 'ANUAL') NOT NULL DEFAULT 'MENSUAL',
+  initial_amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  last_paid_amount DECIMAL(15,2) NULL,
+  last_paid_date DATETIME NULL,
+  notes VARCHAR(1000) NULL,
+  FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE,
+  FOREIGN KEY (utility_id) REFERENCES Utility(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE Contract_Increase (
-	id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    contract_id BIGINT NOT NULL,
-    date DATETIME NOT NULL,
-    currency ENUM('USD', 'ARS') NOT NULL,
-	amount DECIMAL(15,2) NOT NULL,
-    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  contract_id BIGINT NOT NULL,
+  date DATETIME NOT NULL,
+  currency ENUM('USD', 'ARS') NOT NULL,
+  amount DECIMAL(15,2) NOT NULL,                 
+  index_id BIGINT NOT NULL,   
+  adjustment BIGINT NOT NULL,
+  note VARCHAR(1000) NULL,
+  period_from DATE NULL,                 
+  period_to DATE NULL,
+  FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE,
+  FOREIGN KEY (index_id) REFERENCES Increase_Index(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE Commission (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  contract_id BIGINT NOT NULL UNIQUE,
+  currency ENUM('USD','ARS') NOT NULL,
+  total_amount DECIMAL(15,2) NOT NULL,
+  date DATE NOT NULL,                 
+  payment_type ENUM('COMPLETO', 'CUOTAS') NOT NULL DEFAULT 'COMPLETO',
+  installments INT NULL,
+  status ENUM('PENDIENTE','PARCIAL','PAGADA') NOT NULL DEFAULT 'PENDIENTE',
+  note VARCHAR(1000) NULL,
+  FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Payment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    contract_id BIGINT NOT NULL,
     currency ENUM('USD', 'ARS') NOT NULL,
 	amount DECIMAL(15,2) NOT NULL,
     date DATETIME NOT NULL,
-    description VARCHAR(2000) NOT NULL,
-    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE
+    description VARCHAR(2000) NULL,
+	concept ENUM('ALQUILER','EXTRA', 'COMISION') NOT NULL,
+	contract_id BIGINT NOT NULL,
+	contract_utility_id BIGINT NULL,
+    commission_id BIGINT NULL,
+    FOREIGN KEY (contract_id) REFERENCES Contract(id) ON DELETE CASCADE,
+    FOREIGN KEY (contract_utility_id) REFERENCES Contract_Utility(id) ON DELETE SET NULL,
+    FOREIGN KEY (commission_id) REFERENCES Commission(id) ON DELETE SET NULL
 );
 
 CREATE TABLE User_Notification_Preference (

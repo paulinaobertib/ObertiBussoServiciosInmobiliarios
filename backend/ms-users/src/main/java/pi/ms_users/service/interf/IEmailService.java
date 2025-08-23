@@ -20,6 +20,7 @@ public interface IEmailService {
 
     void sendNewUserCredentialsEmail(EmailNewUserDTO emailData);
 
+    /*
     void sendNewContractEmail(EmailContractDTO emailData);
 
     void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData);
@@ -27,4 +28,5 @@ public interface IEmailService {
     void sendContractExpirationReminder(EmailExpirationContract emailData);
 
     void sendRentPaymentReminder(EmailPaymentReminderDTO emailData);
+     */
 }
