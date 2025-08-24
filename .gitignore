@@ -1,3 +1,5 @@
 .vscode/
 **/application-local.yml
 .pretierrc
+.DS_Store
+venv/
