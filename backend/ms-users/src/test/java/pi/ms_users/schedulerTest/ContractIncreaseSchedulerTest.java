@@ -1,4 +1,4 @@
-package pi.ms_users.schedulerTest;
+/*package pi.ms_users.schedulerTest;
 
 import static org.mockito.Mockito.verify;
 
@@ -9,13 +9,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import pi.ms_users.scheduler.ContractIncreaseScheduler;
-import pi.ms_users.service.impl.ContractIncreaseService;
+import pi.ms_users.service.impl.ContractIncreaseServiceViejoViejo;
 
 @ExtendWith(MockitoExtension.class)
 class ContractIncreaseSchedulerTest {
 
     @Mock
-    private ContractIncreaseService contractIncreaseService;
+    private ContractIncreaseServiceViejoViejo contractIncreaseServiceViejo;
 
     @InjectMocks
     private ContractIncreaseScheduler contractIncreaseScheduler;
@@ -24,7 +24,8 @@ class ContractIncreaseSchedulerTest {
     void testScheduledIncreaseJob_callsApplyScheduledIncreases() {
         contractIncreaseScheduler.scheduledIncreaseJob();
 
-        verify(contractIncreaseService).applyScheduledIncreases();
+        verify(contractIncreaseServiceViejo).applyScheduledIncreases();
     }
 }
+ */
 

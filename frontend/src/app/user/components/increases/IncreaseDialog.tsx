@@ -39,10 +39,12 @@ export const IncreaseDialog = ({ open, contract, onClose, onSaved }: Props) => {
         };
 
         try {
-            await postContractIncrease(payload);
-            onSaved();
+        await postContractIncrease(payload);
+        onSaved();
+        } catch (e) {
+        console.error("Error creating contract increase:", e);
         } finally {
-            setSaving(false);
+        setSaving(false);
         }
     };
 

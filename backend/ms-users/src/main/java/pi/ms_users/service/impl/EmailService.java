@@ -226,6 +226,7 @@ public class EmailService implements IEmailService {
         }
     }
 
+    /*
     // cuando el administrador crea un contrato
     @Override
     public void sendNewContractEmail(EmailContractDTO emailData) {
@@ -322,5 +323,5 @@ public class EmailService implements IEmailService {
             throw new RuntimeException("Error al enviar el recordatorio de alquiler: " + e.getMessage(), e);
         }
     }
-
+     */
 }

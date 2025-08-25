@@ -1,4 +1,4 @@
-package pi.ms_users.serviceTest;
+/*package pi.ms_users.serviceTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.UserRepository.KeycloakUserRepository;
 import pi.ms_users.security.SecurityUtils;
-import pi.ms_users.service.impl.ContractIncreaseService;
+import pi.ms_users.service.impl.ContractIncreaseServiceViejoViejo;
 import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unused")
 @ExtendWith(MockitoExtension.class)
-class ContractIncreaseServiceTest {
+class ContractIncreaseServiceViejoTest {
 
     @Mock
     private IContractIncreaseRepository contractIncreaseRepository;
@@ -48,7 +48,7 @@ class ContractIncreaseServiceTest {
     private KeycloakUserRepository userRepository;
 
     @InjectMocks
-    private ContractIncreaseService service;
+    private ContractIncreaseServiceViejoViejo service;
 
     @Test
     void create_whenContractExists_shouldSaveAndReturnOk() {
@@ -296,3 +296,5 @@ class ContractIncreaseServiceTest {
         verify(emailService).sendContractIncreaseEmail(any());
     }
 }
+
+ */

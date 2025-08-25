@@ -99,4 +99,66 @@ describe('AlertProvider', () => {
         expect(alert).toHaveClass('MuiAlert-filledError');
     });
 
+    it('usa severidad "info" por defecto cuando no se especifica el tipo', async () => {
+    const TestComponent = () => {
+        const { showAlert } = useGlobalAlert();
+        return <button onClick={() => showAlert('Info by default')}>Show Alert</button>;
+    };
+
+    render(
+        <AlertProvider>
+        <TestComponent />
+        </AlertProvider>
+    );
+
+    await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /show alert/i }));
+    });
+
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveClass('MuiAlert-filledInfo'); // variante + severidad por defecto
+    expect(screen.getByText('Info by default')).toBeInTheDocument();
+    // no hay título si no lo pasamos
+    expect(screen.queryByText(/Test title/i)).not.toBeInTheDocument();
+    });
+
+it('reemplaza mensaje/título/severidad si se llama showAlert dos veces seguidas', async () => {
+  const TestComponent = () => {
+    const { showAlert } = useGlobalAlert();
+    return (
+      <>
+        <button onClick={() => showAlert('One', 'warning', 'T1')}>Open A</button>
+        <button onClick={() => showAlert('Two', 'success', 'T2')}>Open B</button>
+      </>
+    );
+  };
+
+  render(
+    <AlertProvider>
+      <TestComponent />
+    </AlertProvider>
+  );
+
+  // primera invocación
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /open a/i }));
+  });
+  let alert = screen.getByRole('alert');
+  expect(alert).toHaveClass('MuiAlert-filledWarning');
+  expect(screen.getByText('One')).toBeInTheDocument();
+  expect(screen.getByText('T1')).toBeInTheDocument();
+
+  // segunda invocación reemplaza contenido inmediatamente
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /open b/i }));
+  });
+  alert = screen.getByRole('alert');
+  expect(alert).toHaveClass('MuiAlert-filledSuccess');
+  expect(screen.queryByText('One')).toBeNull();
+  expect(screen.queryByText('T1')).toBeNull();
+  expect(screen.getByText('Two')).toBeInTheDocument();
+  expect(screen.getByText('T2')).toBeInTheDocument();
+});
+
+
 });

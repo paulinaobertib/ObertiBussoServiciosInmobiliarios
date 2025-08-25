@@ -24,7 +24,7 @@ public interface FeignUserRepository {
     @RequestMapping(method = RequestMethod.GET, value = "/user/exist/{id}")
     Boolean exist(@PathVariable String id);
 
-    @RequestMapping(method = RequestMethod.GET, value = "/contracts/property/{propertyId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/contracts/getByPropertyMS/{propertyId}")
     ResponseEntity<List<ContractDTO>> getContractsByPropertyId(@PathVariable Long propertyId);
 
     @RequestMapping(method = RequestMethod.GET, value = "/favorites/user/{userId}")
