@@ -97,10 +97,10 @@ export const NoticeDetails = () => {
             <Box display="flex" justifyContent="flex-end" mb={2}>
               {isAdmin && (
                 <>
-                  <IconButton size="small" onClick={openEdit}>
+                  <IconButton size="small" onClick={openEdit} aria-label="Editar noticia">
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" onClick={handleDelete}>
+                  <IconButton size="small" onClick={handleDelete} aria-label="Eliminar noticia">
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </>

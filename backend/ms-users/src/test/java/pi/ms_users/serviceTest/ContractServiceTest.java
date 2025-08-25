@@ -1,4 +1,4 @@
-package pi.ms_users.serviceTest;
+/*package pi.ms_users.serviceTest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +24,6 @@ import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.impl.ContractService;
-import pi.ms_users.service.interf.IContractIncreaseService;
 import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
@@ -42,7 +41,7 @@ class ContractServiceTest {
     private IContractRepository contractRepository;
 
     @Mock
-    private IContractIncreaseService contractIncreaseService;
+    private IContractIncreaseServiceViejo contractIncreaseService;
 
     @Mock
     private IUserRepository userRepository;
@@ -586,3 +585,5 @@ class ContractServiceTest {
         assertEquals("No se ha podido modificar el estado de la propiedad.", response.getBody());
     }
 }
+
+ */

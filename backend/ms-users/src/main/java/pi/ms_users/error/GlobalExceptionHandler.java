@@ -3,6 +3,7 @@ package pi.ms_users.error;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -49,7 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
-        return ResponseEntity.badRequest().body("Violación de integridad de datos");
+        return ResponseEntity.badRequest().body("Violación de integridad de datos" + ex.getMessage());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -87,7 +88,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado: " + ex.getMessage());
     }
 
-    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class, BadRequestException.class})
     public ResponseEntity<String> handleBadRequest(Exception ex) {
         return ResponseEntity.badRequest().body("Bad request: " + ex.getMessage());
     }

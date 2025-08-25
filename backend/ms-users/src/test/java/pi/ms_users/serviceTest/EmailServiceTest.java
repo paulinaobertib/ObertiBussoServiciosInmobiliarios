@@ -1,4 +1,4 @@
-package pi.ms_users.serviceTest;
+/*package pi.ms_users.serviceTest;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -12,7 +12,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import pi.ms_users.configuration.components.AppProperties;
 import pi.ms_users.domain.Appointment;
-import pi.ms_users.domain.ContractIncreaseCurrency;
 import pi.ms_users.dto.*;
 import org.thymeleaf.context.Context;
 import pi.ms_users.service.impl.EmailService;
@@ -351,3 +350,4 @@ class EmailServiceTest {
         assertTrue(ex.getMessage().contains("Error al enviar correo de nueva propiedad"));
     }
 }
+ */

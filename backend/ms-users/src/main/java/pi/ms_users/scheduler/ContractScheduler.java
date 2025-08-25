@@ -1,4 +1,5 @@
-package pi.ms_users.scheduler;
+/*package pi.ms_users.scheduler;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,3 +29,5 @@ public class ContractScheduler {
         contractService.applyScheduledPayment();
     }
 }
+
+ */
