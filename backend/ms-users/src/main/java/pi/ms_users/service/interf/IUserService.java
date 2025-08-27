@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface IUserService {
+    void addPrincipalRole(Jwt jwt);
+
     ResponseEntity<String> createUser(String firstName, String lastName, String email, String phone);
 
     Map<String, String> getUserInfo(Jwt jwt);
