@@ -19,6 +19,11 @@ public class UserController {
 
     private final IUserService userService;
 
+    @PostMapping("/registerRole")
+    public void addPrincipalRole(@AuthenticationPrincipal Jwt jwt) {
+        userService.addPrincipalRole(jwt);
+    }
+
     @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/me")
     public Map<String, String> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
