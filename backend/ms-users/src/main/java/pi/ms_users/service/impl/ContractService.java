@@ -6,12 +6,14 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
+import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractService;
 
 import java.math.BigDecimal;
@@ -361,6 +363,9 @@ public class ContractService implements IContractService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<List<ContractGetDTO>> getByUserId(String userId) {
+        if (SecurityUtils.isUser() && !userId.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
         List<Contract> contracts = contractRepository.findByUserId(userId);
         List<ContractGetDTO> contractGetDTOS = contracts.stream().map(this::toGetDTO).toList();
         return ResponseEntity.ok(contractGetDTOS);
