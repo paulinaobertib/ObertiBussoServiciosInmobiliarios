@@ -1,99 +1,90 @@
-import { useState, useRef } from 'react';
-import type { Image } from '../components/images/image';
+import { useCallback, useMemo, useState } from "react";
+import type { Image } from "../components/images/image";
 
-/* Clave única: nombre del File o string (URL) */
-const keyOf = (img: Image) => (img instanceof File ? img.name : img);
+/** Stable key for any Image (File or URL) */
+const keyOf = (img: Image) => (img instanceof File ? `${img.name}#${img.size}#${img.lastModified}` : img);
 
-export function useImages(
-  initialMain: Image | null = null,
-  initialGallery: Image[] = []
-) {
-  /* ---------- estado visible ---------- */
+/**
+ * Unifies image state handling (main + gallery) for both existing (URL) and local (File) items.
+ * - Keeps preview state as the single source of truth (no hidden "queues").
+ * - Removing an item really removes it from state, so it won’t be uploaded later.
+ * - Works for any combination: start empty, start with backend URLs, mix with new Files, etc.
+ */
+export function useImages(initialMain: Image | null = null, initialGallery: Image[] = []) {
+  /** Visible state (single source of truth) */
   const [mainImage, setMainImage] = useState<Image | null>(initialMain);
-  const [gallery,   setGallery]   = useState<Image[]>(initialGallery);
-
-  /* ---------- refs sincronizados ---------- */
-  const mainRef    = useRef<Image | null>(initialMain);
-  const galleryRef = useRef<Image[]>(initialGallery);
-
-  /* Recordamos nombres eliminados para ignorar futuras selecciones */
-  const deleted = useRef<Set<string>>(new Set());
-
-  /* Helper: actualiza state + ref a la vez */
-  const updateGallery = (updater: (prev: Image[]) => Image[]) => {
-    setGallery(prev => {
-      const next = updater(prev);
-      galleryRef.current = next;   // ← ref siempre al día
-      return next;
-    });
-  };
-
-  /* ─── Cambiar principal ─── */
-  function setMain(file: Image | null) {
-    if (!file) { setMainImage(null); mainRef.current = null; return; }
-
-    if (mainRef.current && keyOf(file) === keyOf(mainRef.current)) return; // ya era principal
-
-    updateGallery(prev => prev.filter(img => keyOf(img) !== keyOf(file)));
-    setMainImage(file);            // React state
-    mainRef.current = file;        // ref
-  }
-
-  /* ─── Agregar a galería ─── */
-  function addToGallery(items: Image[]) {
-    updateGallery(prev => {
-      const existing = new Set(prev.map(keyOf));
-      if (mainRef.current) existing.add(keyOf(mainRef.current));
-
-      const valid = items.filter(img => {
-        const k = keyOf(img);
-        return !existing.has(k) && !deleted.current.has(k);
-      });
-
-      return valid.length ? [...prev, ...valid] : prev;
-    });
-  }
-
-  /* ─── Eliminar ─── */
-  function remove(img: Image) {
-    const k = keyOf(img);
-
-    updateGallery(prev => prev.filter(i => keyOf(i) !== k));
-
-    if (mainRef.current && keyOf(mainRef.current) === k) {
-      setMainImage(null);
-      mainRef.current = null;
+  const [gallery, setGallery] = useState<Image[]>(() => {
+    // Ensure we don’t duplicate the main in the gallery
+    const mainK = initialMain ? keyOf(initialMain) : null;
+    const dedup = new Map<string, Image>();
+    for (const g of initialGallery) {
+      const k = keyOf(g);
+      if (k !== mainK && !dedup.has(k)) dedup.set(k, g);
     }
-    deleted.current.add(k);  // impide volver a cargarlo en esta sesión
-  }
+    return Array.from(dedup.values());
+  });
 
-  /* ─── Archivos listos para enviar ─── */
-  function getFilesForUpload(): File[] {
-    const list: File[] = [];
-    if (mainRef.current instanceof File) list.push(mainRef.current);
-    galleryRef.current.forEach(img => {
-      if (img instanceof File) list.push(img);
-    });
-    return list;
-  }
+  /** Public actions */
+  const setMain = useCallback(
+    (img: Image | null) => {
+      if (img == null) {
+        setMainImage(null);
+        return;
+      }
+      // If the image we set as main was in the gallery, remove it there
+      const k = keyOf(img);
+      setGallery((prev) => prev.filter((g) => keyOf(g) !== k));
+      setMainImage(img);
+    },
+    [setGallery]
+  );
 
-  /* (opcional) Permite re-subir eliminados tras reset/submit */
-  function clearDeleted() {
-    deleted.current.clear();
-  }
+  const addToGallery = useCallback(
+    (items: Image[] | Image) => {
+      const list = Array.isArray(items) ? items : [items];
+      setGallery((prev) => {
+        const out = new Map(prev.map((g) => [keyOf(g), g]));
+        const mainK = mainImage ? keyOf(mainImage) : null;
+        for (const it of list) {
+          const k = keyOf(it);
+          if (k === mainK) continue; // never duplicate the main in gallery
+          if (!out.has(k)) out.set(k, it);
+        }
+        return Array.from(out.values());
+      });
+    },
+    [mainImage]
+  );
+
+  const remove = useCallback(
+    (img: Image) => {
+      const k = keyOf(img);
+      // If it's the current main → clear it
+      setMainImage((curr) => (curr && keyOf(curr) === k ? null : curr));
+      // Remove from gallery if present
+      setGallery((prev) => prev.filter((g) => keyOf(g) !== k));
+    },
+    [setMainImage, setGallery]
+  );
+
+  /** Derived helpers for persistence layers */
+  const newMainFile = useMemo(() => (mainImage instanceof File ? mainImage : null), [mainImage]);
+  const newGalleryFiles = useMemo(() => gallery.filter((g): g is File => g instanceof File), [gallery]);
 
   return {
-    /* estado expuesto */
+    /** state */
     mainImage,
     gallery,
 
-    /* acciones */
+    /** actions */
     setMain,
     addToGallery,
     remove,
 
-    /* helpers */
-    getFilesForUpload,
-    clearDeleted,
+    /** helpers */
+    getFilesForUpload: () => ({
+      main: newMainFile,
+      gallery: newGalleryFiles,
+    }),
   };
 }
