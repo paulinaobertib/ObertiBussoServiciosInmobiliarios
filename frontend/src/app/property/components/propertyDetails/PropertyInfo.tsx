@@ -118,6 +118,7 @@ export const PropertyInfo = ({ property }: Props) => {
           <>
             <IconButton
               size='small'
+              aria-label='Editar estado'
               onClick={() =>
                 setStatusModal({
                   title: 'Editar estado',
