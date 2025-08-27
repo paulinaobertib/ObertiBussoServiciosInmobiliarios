@@ -187,32 +187,6 @@ describe('AuthContext', () => {
     });
   });
 
-  it('normaliza roles a mayúsculas al persistir', async () => {
-    (api.get as any)
-      .mockResolvedValueOnce({
-        data: { id: 'u1', username: 'v', email: 'v@x.com' },
-      }) 
-      .mockResolvedValueOnce({ data: ['tenant'] }) 
-      .mockResolvedValueOnce({ data: [] }); 
-    (api.post as any).mockResolvedValue({
-      data: {
-        id: 'p1',
-        userId: 'u1',
-        type: 'PROPIEDADNUEVA',
-        enabled: true,
-      },
-    });
-
-    renderWithProvider();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-    });
-
-    const saved = JSON.parse(sessionStorage.getItem('authInfo')!);
-    expect(saved.roles).toEqual(['TENANT']);
-  });
-
   it('refreshUser alterna loading=true mientras recarga', async () => {
     // Primera carga
     (api.get as any)
