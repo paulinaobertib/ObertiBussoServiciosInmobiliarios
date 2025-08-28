@@ -1,142 +1,190 @@
-import { describe, it, vi, expect, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useChatSession } from '../../hooks/useChatSession';
-import * as ChatSessionService from '../../services/chatSession.service';
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import type { Mock } from "vitest";
 
-// Mock de las funciones del servicio chatSession.service
-vi.mock('../../services/chatSession.service', () => ({
-  createChatSession: vi.fn(),
-  createChatSessionWithUser: vi.fn(),
-  getChatSessionById: vi.fn(),
-  getAllChatSessions: vi.fn(),
+const createChatSessionMock = vi.fn();
+const createChatSessionWithUserMock = vi.fn();
+const getChatSessionByIdMock = vi.fn();
+const getAllChatSessionsMock = vi.fn();
+
+vi.mock("../../../chat/services/chatSession.service", () => ({
+  createChatSession: (...args: any[]) => createChatSessionMock(...args),
+  createChatSessionWithUser: (...args: any[]) => createChatSessionWithUserMock(...args),
+  getChatSessionById: (...args: any[]) => getChatSessionByIdMock(...args),
+  getAllChatSessions: (...args: any[]) => getAllChatSessionsMock(...args),
 }));
 
-describe('Hook useChatSession', () => {
+const handleErrorMock = vi.fn();
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({ handleError: handleErrorMock }),
+}));
+
+import { useChatSession } from "../../../chat/hooks/useChatSession";
+
+describe("useChatSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('inicializa los estados correctamente', () => {
+  it("estado inicial: loading=false", () => {
     const { result } = renderHook(() => useChatSession());
-
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
   });
 
-  it('startSessionUser maneja el flujo exitoso correctamente', async () => {
-    const mockResponse = { id: 1, userId: 'user123', propertyId: 123 };
-    (ChatSessionService.createChatSessionWithUser as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
-
-    const { result } = renderHook(() => useChatSession());
-
-    let response: any;
-    await act(async () => {
-      response = await result.current.startSessionUser('user123', 123);
-    });
-
-    expect(response).toEqual(mockResponse);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(ChatSessionService.createChatSessionWithUser).toHaveBeenCalledWith('user123', 123);
-  });
-
-  it('startSessionUser maneja errores correctamente', async () => {
-    const mockError = new Error('Error al crear sesión de usuario');
-    (ChatSessionService.createChatSessionWithUser as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
-
-    const { result } = renderHook(() => useChatSession());
-
-    await act(async () => {
-      await expect(result.current.startSessionUser('user123', 123)).rejects.toThrow('Error al crear sesión de usuario');
-    });
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toEqual(mockError);
-    expect(ChatSessionService.createChatSessionWithUser).toHaveBeenCalledWith('user123', 123);
-  });
-
-  it('getSession maneja el flujo exitoso correctamente', async () => {
-    const mockResponse = { id: 1, propertyId: 123 };
-    (ChatSessionService.getChatSessionById as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
-
-    const { result } = renderHook(() => useChatSession());
-
-    let response: any;
-    await act(async () => {
-      response = await result.current.getSession(1);
-    });
-
-    expect(response).toEqual(mockResponse);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(ChatSessionService.getChatSessionById).toHaveBeenCalledWith(1);
-  });
-
-  it('getSession maneja errores correctamente', async () => {
-    const mockError = new Error('Error al obtener sesión');
-    (ChatSessionService.getChatSessionById as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
-
-    const { result } = renderHook(() => useChatSession());
-
-    await act(async () => {
-      await expect(result.current.getSession(1)).rejects.toThrow('Error al obtener sesión');
-    });
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toEqual(mockError);
-    expect(ChatSessionService.getChatSessionById).toHaveBeenCalledWith(1);
-  });
-
-  it('getAllSessions maneja el flujo exitoso correctamente', async () => {
-    const mockResponse = [{ id: 1, propertyId: 123 }, { id: 2, propertyId: 456 }];
-    (ChatSessionService.getAllChatSessions as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
-
-    const { result } = renderHook(() => useChatSession());
-
-    let response: any;
-    await act(async () => {
-      response = await result.current.getAllSessions();
-    });
-
-    expect(response).toEqual(mockResponse);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(ChatSessionService.getAllChatSessions).toHaveBeenCalled();
-  });
-
-  it('getAllSessions maneja errores correctamente', async () => {
-    const mockError = new Error('Error al obtener todas las sesiones');
-    (ChatSessionService.getAllChatSessions as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
-
-    const { result } = renderHook(() => useChatSession());
-
-    await act(async () => {
-      await expect(result.current.getAllSessions()).rejects.toThrow('Error al obtener todas las sesiones');
-    });
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toEqual(mockError);
-    expect(ChatSessionService.getAllChatSessions).toHaveBeenCalled();
-  });
-
-  it('getAllSessions actualiza loading correctamente', async () => {
-    (ChatSessionService.getAllChatSessions as ReturnType<typeof vi.fn>).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
+  it("startSessionGuest: éxito (string) y observa loading intermedio", async () => {
+    // Promesa diferida para controlar el momento de resolución
+    let resolveFn!: (v: any) => void;
+    (createChatSessionMock as Mock).mockImplementationOnce(
+      () => new Promise((resolve) => { resolveFn = resolve; })
     );
 
     const { result } = renderHook(() => useChatSession());
 
-    let promise: Promise<any>;
+    const dto = { firstName: "Ana", lastName: "T", email: "a@b.com", phone: "1", propertyId: 123 };
+
+    // Lanzamos el flujo SIN await, así podemos observar el estado intermedio
+    let inFlight!: Promise<any>;
     act(() => {
-      promise = result.current.getAllSessions();
+      inFlight = result.current.startSessionGuest(dto as any);
     });
 
-    expect(result.current.loading).toBe(true);
+    // Esperamos a ver loading=true (estado intermedio) antes de resolver el mock
+    await waitFor(() => {
+      expect(result.current.loading).toBe(true);
+    });
+    expect(createChatSessionMock).toHaveBeenCalledWith(dto);
 
+    // Ahora resolvemos la promesa del servicio y esperamos el fin
+    resolveFn("SESSION_OK");
     await act(async () => {
-      await promise;
+      await inFlight;
     });
 
+    // Estado final
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it("startSessionGuest: éxito estilo Axios ({ data })", async () => {
+    (createChatSessionMock as Mock).mockResolvedValueOnce({ data: 987 });
+    const { result } = renderHook(() => useChatSession());
+
+    let ret: any;
+    await act(async () => {
+      ret = await result.current.startSessionGuest({} as any);
+    });
+
+    expect(ret).toBe(987);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("startSessionGuest: error llama handleError y re-lanza", async () => {
+    const boom = new Error("fail guest");
+    (createChatSessionMock as Mock).mockRejectedValueOnce(boom);
+
+    const { result } = renderHook(() => useChatSession());
+
+    await expect(
+      act(async () => {
+        await result.current.startSessionGuest({} as any);
+      })
+    ).rejects.toThrow("fail guest");
+
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("startSessionUser: éxito (string) y verifica args", async () => {
+    (createChatSessionWithUserMock as Mock).mockResolvedValueOnce("USER_OK");
+    const { result } = renderHook(() => useChatSession());
+
+    let ret: any;
+    await act(async () => {
+      ret = await result.current.startSessionUser("user-1", 456);
+    });
+
+    expect(createChatSessionWithUserMock).toHaveBeenCalledWith("user-1", 456);
+    expect(ret).toBe("USER_OK");
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("startSessionUser: error llama handleError y re-lanza", async () => {
+    const boom = new Error("fail user");
+    (createChatSessionWithUserMock as Mock).mockRejectedValueOnce(boom);
+
+    const { result } = renderHook(() => useChatSession());
+
+    await expect(
+      act(async () => {
+        await result.current.startSessionUser("u", 1);
+      })
+    ).rejects.toThrow("fail user");
+
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("getSession: éxito ({data}) y verifica args", async () => {
+    (getChatSessionByIdMock as Mock).mockResolvedValueOnce({ data: { id: 11 } });
+
+    const { result } = renderHook(() => useChatSession());
+
+    let ret: any;
+    await act(async () => {
+      ret = await result.current.getSession(11);
+    });
+
+    expect(getChatSessionByIdMock).toHaveBeenCalledWith(11);
+    expect(ret).toEqual({ id: 11 });
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("getSession: error llama handleError y re-lanza", async () => {
+    const boom = new Error("fail get");
+    (getChatSessionByIdMock as Mock).mockRejectedValueOnce(boom);
+
+    const { result } = renderHook(() => useChatSession());
+
+    await expect(
+      act(async () => {
+        await result.current.getSession(9);
+      })
+    ).rejects.toThrow("fail get");
+
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("getAllSessions: éxito ({data})", async () => {
+    (getAllChatSessionsMock as Mock).mockResolvedValueOnce({ data: [{ id: 1 }, { id: 2 }] });
+
+    const { result } = renderHook(() => useChatSession());
+
+    let ret: any;
+    await act(async () => {
+      ret = await result.current.getAllSessions();
+    });
+
+    expect(getAllChatSessionsMock).toHaveBeenCalledTimes(1);
+    expect(ret).toEqual([{ id: 1 }, { id: 2 }]);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("getAllSessions: error llama handleError y re-lanza", async () => {
+    const boom = new Error("fail all");
+    (getAllChatSessionsMock as Mock).mockRejectedValueOnce(boom);
+
+    const { result } = renderHook(() => useChatSession());
+
+    await expect(
+      act(async () => {
+        await result.current.getAllSessions();
+      })
+    ).rejects.toThrow("fail all");
+
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
     expect(result.current.loading).toBe(false);
   });
 });
