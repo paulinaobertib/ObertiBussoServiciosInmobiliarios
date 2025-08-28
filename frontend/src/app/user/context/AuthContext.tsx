@@ -86,12 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // 1) datos básicos
       const { data: user } = await getMe();
-      console.log({ user });
 
       // 3) si no hay roles, asignar principal y reintentar obtenerlos
       await addPrincipalRole();
       // pequeña espera para que Keycloak/DB refleje el cambio
-      await sleep(4000);
+      await sleep(100000);
 
       // 2) roles (pueden venir vacíos en primer login)
       let { data: rawRoles } = await getRoles(user.id);
