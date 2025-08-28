@@ -1,69 +1,74 @@
 import { useState } from "react";
-import { createChatSession, createChatSessionWithUser, getChatSessionById, getAllChatSessions } from "../services/chatSession.service";
+import {
+  createChatSession,
+  createChatSessionWithUser,
+  getChatSessionById,
+  getAllChatSessions,
+} from "../services/chatSession.service";
 import { ChatSessionDTO } from "../types/chatSession";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const useChatSession = () => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { handleError } = useApiErrors();
 
-    const startSessionGuest = async (dto: ChatSessionDTO) => {
-        try {
-            setLoading(true);
-            const result = await createChatSession(dto);
-            return result;
-        } catch (err) {
-            setError(err as Error);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
+  const startSessionGuest = async (dto: ChatSessionDTO) => {
+    setLoading(true);
+    try {
+      const res = await createChatSession(dto);
+      return (res as any)?.data ?? res;
+    } catch (e) {
+      handleError(e);
+      throw e;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const startSessionUser = async (userId: string, propertyId: number) => {
-        try {
-            setLoading(true);
-            const result = await createChatSessionWithUser(userId, propertyId);
-            return result;
-        } catch (err) {
-            setError(err as Error);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
+  const startSessionUser = async (userId: string, propertyId: number) => {
+    setLoading(true);
+    try {
+      const res = await createChatSessionWithUser(userId, propertyId);
+      return (res as any)?.data ?? res;
+    } catch (e) {
+      handleError(e);
+      throw e;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const getSession = async (id: number) => {
-        try {
-            setLoading(true);
-            const result = await getChatSessionById(id);
-            return result;
-        } catch (err) {
-            setError(err as Error);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
+  const getSession = async (id: number) => {
+    setLoading(true);
+    try {
+      const res = await getChatSessionById(id);
+      return (res as any)?.data ?? res;
+    } catch (e) {
+      handleError(e);
+      throw e;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const getAllSessions = async () => {
-        try {
-            setLoading(true);
-            const result = await getAllChatSessions();
-            return result;
-        } catch (err) {
-            setError(err as Error);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
+  const getAllSessions = async () => {
+    setLoading(true);
+    try {
+      const res = await getAllChatSessions();
+      return (res as any)?.data ?? res;
+    } catch (e) {
+      handleError(e);
+      throw e;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return {
-        loading,
-        error,
-        startSessionGuest,
-        startSessionUser,
-        getSession,
-        getAllSessions
-    }
-}
+  return {
+    loading,
+    startSessionGuest,
+    startSessionUser,
+    getSession,
+    getAllSessions,
+  };
+};
