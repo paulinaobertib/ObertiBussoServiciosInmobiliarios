@@ -1,7 +1,7 @@
 import { User, UserCreate, Role } from "../types/user";
 import { api } from "../../../api";
 
-/** `/users/user/me` */
+/** `/users/user/registerRole` */
 export const addPrincipalRole = async () => {
   try {
     const data = await api.post(`/users/user/registerRole`, {
