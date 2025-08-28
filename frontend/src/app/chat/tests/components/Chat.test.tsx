@@ -23,6 +23,7 @@ describe("Componente Chat", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     (useChatContext as Mock).mockReturnValue({
       messages: [],
       sendMessage: mockSendMessage,
@@ -43,12 +44,16 @@ describe("Componente Chat", () => {
     (usePropertiesContext as Mock).mockReturnValue({
       propertiesList: [{ id: 1, title: "Propiedad 1" }],
     });
-    (propertyService.getPropertiesByText as Mock).mockResolvedValue([{ id: 2, title: "Propiedad 2" }]);
+    (propertyService.getPropertiesByText as Mock).mockResolvedValue([
+      { id: 2, title: "Propiedad 2", status: "disponible" },
+    ]);
   });
 
   it("muestra el saludo inicial", () => {
     render(<Chat />);
-    expect(screen.getByText(/Hola, soy tu asistente virtual/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Hola, soy tu asistente virtual/i)
+    ).toBeInTheDocument();
   });
 
   it("inicia sesión para usuario logueado", async () => {
@@ -56,7 +61,9 @@ describe("Componente Chat", () => {
     render(<Chat initialPropertyId={1} />);
     const btn = await screen.findByText("Sí");
     await act(async () => fireEvent.click(btn));
-    await waitFor(() => expect(mockStartSessionUser).toHaveBeenCalledWith(1, 1));
+    await waitFor(() =>
+      expect(mockStartSessionUser).toHaveBeenCalledWith(1, 1)
+    );
     expect(localStorage.getItem("chatSessionId")).toBe("100");
   });
 
@@ -73,13 +80,18 @@ describe("Componente Chat", () => {
     await act(async () => fireEvent.click(btnNo));
 
     const input = await screen.findByLabelText(/Buscar propiedad/i);
-    await act(async () => fireEvent.change(input, { target: { value: "Propiedad" } }));
+    await act(async () =>
+      fireEvent.change(input, { target: { value: "Propiedad" } })
+    );
 
-    await waitFor(() => expect(propertyService.getPropertiesByText).toHaveBeenCalledWith("Propiedad"));
+    await waitFor(() =>
+      expect(propertyService.getPropertiesByText).toHaveBeenCalledWith(
+        "Propiedad"
+      )
+    );
   });
 
   it("cierra chat correctamente", async () => {
-    // Mock con al menos un mensaje para evitar undefined
     (useChatContext as Mock).mockReturnValue({
       messages: [{ from: "system", content: "Hola" }],
       sendMessage: mockSendMessage,
@@ -91,9 +103,7 @@ describe("Componente Chat", () => {
 
     render(<Chat initialPropertyId={1} onClose={vi.fn()} />);
     const btnClose = screen.getByLabelText(/Cerrar chat/i);
-
     await act(async () => fireEvent.click(btnClose));
-
     expect(mockClearMessages).toHaveBeenCalled();
   });
 
@@ -104,4 +114,86 @@ describe("Componente Chat", () => {
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
   });
 
+  it("muestra error de email inválido", () => {
+    (useAuthContext as Mock).mockReturnValue({ info: null, isLogged: false });
+    render(<Chat />);
+    const emailInput = screen.getByLabelText(/Email/i);
+    act(() => {
+      fireEvent.change(emailInput, { target: { value: "invalido@" } });
+    });
+    expect(
+      screen.getByText(/Ingresá un email válido/i)
+    ).toBeInTheDocument();
+  });
+
+  it("en chat: enviar número fuera de rango agrega mensaje de 'Opción inválida'", async () => {
+    mockStartSessionUser.mockResolvedValue(200);
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+
+    const input = await screen.findByPlaceholderText(/Escribí el número/i);
+    fireEvent.change(input, { target: { value: "999" } });
+    const btnSend = screen.getByRole("button", { name: "" });
+    await act(async () => fireEvent.click(btnSend));
+
+    expect(mockAddUserMessage).toHaveBeenCalledWith("999");
+    expect(mockAddSystemMessage).toHaveBeenCalledWith(
+      "Opción inválida. Por favor seleccioná un número de la lista."
+    );
+  });
+
+  it("en chat: enviar texto no numérico agrega 'Entrada inválida'", async () => {
+    mockStartSessionUser.mockResolvedValue(201);
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+
+    const input = await screen.findByPlaceholderText(/Escribí el número/i);
+    fireEvent.change(input, { target: { value: "hola" } });
+    const btnSend = screen.getByRole("button", { name: "" });
+    await act(async () => fireEvent.click(btnSend));
+
+    expect(mockAddUserMessage).toHaveBeenCalledWith("hola");
+    expect(mockAddSystemMessage).toHaveBeenCalledWith(
+      "Entrada inválida. Por favor escribí solo el número de una opción."
+    );
+  });
+
+  it("cambia de propiedad y envía CERRAR", async () => {
+    mockStartSessionUser.mockResolvedValue(300);
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+
+    const btnOtra = await screen.findByRole("button", {
+      name: /Consultar por otra propiedad/i,
+    });
+    await act(async () => fireEvent.click(btnOtra));
+
+    expect(mockSendMessage).toHaveBeenCalledWith("CERRAR", 1, 300);
+    expect(await screen.findByLabelText(/Buscar propiedad/i)).toBeInTheDocument();
+  });
+
+  it("flujo invitado: completa formulario y llama startSessionGuest", async () => {
+    (useAuthContext as Mock).mockReturnValue({ info: null, isLogged: false });
+    mockStartSessionGuest.mockResolvedValue(400);
+
+    render(<Chat initialPropertyId={1} />);
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: "Ana" },
+    });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), {
+      target: { value: "Perez" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Email/i), {
+      target: { value: "ana@test.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Teléfono/i), {
+      target: { value: "3511231234" },
+    });
+
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+    await waitFor(() => {
+      expect(mockStartSessionGuest).toHaveBeenCalled();
+    });
+    expect(localStorage.getItem("chatSessionId")).toBe("400");
+  });
 });

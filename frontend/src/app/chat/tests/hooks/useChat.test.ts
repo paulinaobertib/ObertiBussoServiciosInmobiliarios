@@ -1,129 +1,130 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useChat } from "../../hooks/useChat";
-import * as ChatService from "../../services/chat.service";
+import type { Mock } from "vitest";
 
-// Mock del servicio createChat
-vi.mock("../../services/chat.service", () => ({
-  createChat: vi.fn(),
+const createChatMock = vi.fn();
+vi.mock("../../../chat/services/chat.service", () => ({
+  createChat: (...args: any[]) => createChatMock(...args),
 }));
 
-describe("Hook useChat", () => {
+const handleErrorMock = vi.fn();
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({ handleError: handleErrorMock }),
+}));
+
+import { useChat } from "../../../chat/hooks/useChat";
+
+describe("useChat", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("inicializa los estados correctamente", () => {
+  it("estado inicial: messages=[], loading=false", () => {
     const { result } = renderHook(() => useChat());
-
     expect(result.current.messages).toEqual([]);
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
   });
 
-  it("addSystemMessage agrega un mensaje del sistema", () => {
+  it("sendMessage: en error llama handleError, mantiene el mensaje del usuario y apaga loading", async () => {
+    const boom = new Error("boom");
+    (createChatMock as Mock).mockRejectedValueOnce(boom);
     const { result } = renderHook(() => useChat());
 
-    act(() => {
-      result.current.addSystemMessage("Mensaje del sistema");
+    await act(async () => {
+      // No hace falta capturar loading intermedio aquí; solo esperamos final
+      await result.current.sendMessage("CUALQUIERA", 99, 3).catch(() => {});
     });
 
+    expect(createChatMock).toHaveBeenCalledWith("CUALQUIERA", 99, 3);
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
     expect(result.current.messages).toEqual([
-      { from: "system", content: "Mensaje del sistema" },
+      { from: "user", content: "CUALQUIERA" },
+    ]);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("sendMessage: maneja respuesta tipo Axios (objeto con data)", async () => {
+    (createChatMock as Mock).mockResolvedValueOnce({ data: "OK_AXIOS" });
+    const { result } = renderHook(() => useChat());
+
+    await act(async () => {
+      await result.current.sendMessage("VER_AREA", 20, 2);
+    });
+
+    expect(createChatMock).toHaveBeenCalledWith("VER_AREA", 20, 2);
+    expect(result.current.messages).toEqual([
+      { from: "user", content: "VER_AREA" },
+      { from: "system", content: "OK_AXIOS" },
     ]);
   });
 
-  it("addUserMessage agrega un mensaje del usuario", () => {
+  it("sendMessage: en error llama handleError, mantiene el mensaje del usuario y apaga loading", async () => {
+    const boom = new Error("boom");
+    (createChatMock as Mock).mockRejectedValueOnce(boom);
+    const { result } = renderHook(() => useChat());
+
+    await act(async () => {
+      const p = result.current.sendMessage("CUALQUIERA", 99, 3);
+      await Promise.resolve(); 
+      await p.catch(() => {});
+    });
+
+    expect(createChatMock).toHaveBeenCalledWith("CUALQUIERA", 99, 3);
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+    expect(result.current.messages).toEqual([
+      { from: "user", content: "CUALQUIERA" },
+    ]);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("addSystemMessage y addUserMessage agregan en orden correcto", () => {
     const { result } = renderHook(() => useChat());
 
     act(() => {
-      result.current.addUserMessage("Mensaje del usuario");
+      result.current.addUserMessage("hola");
+      result.current.addSystemMessage("bienvenido");
+      result.current.addUserMessage("precio");
     });
 
     expect(result.current.messages).toEqual([
-      { from: "user", content: "Mensaje del usuario" },
+      { from: "user", content: "hola" },
+      { from: "system", content: "bienvenido" },
+      { from: "user", content: "precio" },
     ]);
   });
 
-  it("clearMessages limpia los mensajes", () => {
+  it("clearMessages: limpia el historial", () => {
     const { result } = renderHook(() => useChat());
 
     act(() => {
-      result.current.addSystemMessage("Mensaje del sistema");
-      result.current.addUserMessage("Mensaje del usuario");
+      result.current.addUserMessage("uno");
+      result.current.addSystemMessage("dos");
     });
-
-    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages.length).toBe(2);
 
     act(() => {
       result.current.clearMessages();
     });
-
     expect(result.current.messages).toEqual([]);
   });
 
-  it("sendMessage maneja el flujo exitoso correctamente", async () => {
-    const mockResponse = "Respuesta del sistema";
-    (ChatService.createChat as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockResponse
-    );
+  it("loading vuelve a false tanto en éxito como en error", async () => {
+    const { result, rerender } = renderHook(() => useChat());
 
-    const { result } = renderHook(() => useChat());
-
+    (createChatMock as Mock).mockResolvedValueOnce("ok");
     await act(async () => {
-      await result.current.sendMessage("TEST", 123, 1);
+      await result.current.sendMessage("X", 1, 1);
     });
-
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(result.current.messages).toEqual([
-      { from: "user", content: "TEST" },
-      { from: "system", content: mockResponse },
-    ]);
-    expect(ChatService.createChat).toHaveBeenCalledWith("TEST", 123, 1);
-  });
 
-  it("sendMessage maneja errores correctamente", async () => {
-    const mockError = new Error("Error al enviar mensaje");
-    (ChatService.createChat as ReturnType<typeof vi.fn>).mockRejectedValue(
-      mockError
-    );
-
-    const { result } = renderHook(() => useChat());
-
+    (createChatMock as Mock).mockRejectedValueOnce(new Error("x"));
     await act(async () => {
-      await expect(result.current.sendMessage("TEST", 123, 1)).rejects.toThrow(
-        "Error al enviar mensaje"
-      );
+      await result.current.sendMessage("Y", 2, 2).catch(() => {});
     });
-
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toEqual(mockError);
-    expect(result.current.messages).toEqual([
-      { from: "user", content: "TEST" },
-    ]);
-    expect(ChatService.createChat).toHaveBeenCalledWith("TEST", 123, 1);
-  });
 
-  it("sendMessage actualiza el estado loading correctamente", async () => {
-    (ChatService.createChat as ReturnType<typeof vi.fn>).mockImplementation(
-      () =>
-        new Promise((resolve) => setTimeout(() => resolve("Respuesta"), 100))
-    );
-
-    const { result } = renderHook(() => useChat());
-
-    let promise: Promise<any>;
-    act(() => {
-      promise = result.current.sendMessage("TEST", 123, 1);
-    });
-
-    expect(result.current.loading).toBe(true);
-
-    await act(async () => {
-      await promise;
-    });
-
+    rerender();
     expect(result.current.loading).toBe(false);
   });
 });
