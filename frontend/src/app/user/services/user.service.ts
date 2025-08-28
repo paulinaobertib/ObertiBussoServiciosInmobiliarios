@@ -2,6 +2,19 @@ import { User, UserCreate, Role } from "../types/user";
 import { api } from "../../../api";
 
 /** `/users/user/me` */
+export const addPrincipalRole = async () => {
+  try {
+    const data = await api.post(`/users/user/registerRole`, {
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error assigning principal role:", error);
+    throw error;
+  }
+};
+
+/** `/users/user/me` */
 export const getMe = async () => {
   try {
     const data = await api.get(`/users/user/me`, {
