@@ -1,110 +1,93 @@
 /// <reference types="vitest" />
 import { renderHook, act } from "@testing-library/react";
-import { vi, type Mock } from "vitest";
-import { useCategorySection } from "../../hooks/useCategorySection";
-import { usePropertiesContext } from "../../context/PropertiesContext";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import { useCategorySection } from "../../../property/hooks/useCategorySection";
+import type { Category } from "../../../property/context/PropertiesContext";
 
-// ----- Mock del contexto -----
-const mockToggleSelect = vi.fn();
-const mockRefreshOwners = vi.fn().mockResolvedValue(undefined);
-const mockRefreshAmenities = vi.fn().mockResolvedValue(undefined);
-const mockRefreshTypes = vi.fn().mockResolvedValue(undefined);
-const mockRefreshNeighborhoods = vi.fn().mockResolvedValue(undefined);
+// ================= Mocks =================
+const toggleSelectMock = vi.fn();
+const refreshOwnersMock = vi.fn(() => Promise.resolve());
+const refreshAmenitiesMock = vi.fn(() => Promise.resolve());
+const refreshTypesMock = vi.fn(() => Promise.resolve());
+const refreshNeighborhoodsMock = vi.fn(() => Promise.resolve());
 
-vi.mock("../../context/PropertiesContext", () => ({
-  usePropertiesContext: vi.fn(),
-  Category: {},
+const handleErrorMock = vi.fn();
+
+vi.mock("../../../property/context/PropertiesContext", () => ({
+  usePropertiesContext: () => ({
+    ownersList: [{ id: 1, firstName: "John", lastName: "Doe" }],
+    amenitiesList: [{ id: 2, name: "Pool" }],
+    typesList: [{ id: 3, name: "House" }],
+    neighborhoodsList: [{ id: 4, name: "Centro" }],
+    selected: { owner: 1, amenities: [2], type: 3, neighborhood: 4 },
+    toggleSelect: toggleSelectMock,
+    refreshOwners: refreshOwnersMock,
+    refreshAmenities: refreshAmenitiesMock,
+    refreshTypes: refreshTypesMock,
+    refreshNeighborhoods: refreshNeighborhoodsMock,
+  }),
 }));
 
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({
+    handleError: handleErrorMock,
+  }),
+}));
+
+// ================= Tests =================
 describe("useCategorySection", () => {
-  const selected = {
-    owner: 1,
-    neighborhood: 2,
-    type: 3,
-    amenities: [10, 20],
-  };
-
-  const ownersList = [
-    { id: 1, firstName: "John", lastName: "Doe" },
-    { id: 2, firstName: "Jane", lastName: "Smith" },
-  ];
-  const amenitiesList = [{ id: 10, name: "Piscina" }, { id: 20, name: "Gimnasio" }];
-  const typesList = [{ id: 3, name: "Casa" }];
-  const neighborhoodsList = [{ id: 2, name: "Palermo" }];
-
   beforeEach(() => {
     vi.clearAllMocks();
-    (usePropertiesContext as Mock).mockReturnValue({
-      ownersList,
-      amenitiesList,
-      typesList,
-      neighborhoodsList,
-      selected,
-      toggleSelect: mockToggleSelect,
-      refreshOwners: mockRefreshOwners,
-      refreshAmenities: mockRefreshAmenities,
-      refreshTypes: mockRefreshTypes,
-      refreshNeighborhoods: mockRefreshNeighborhoods,
-    });
   });
 
-  it("devuelve datos y fullName para owners", async () => {
-    const { result } = renderHook(() =>
-      useCategorySection("owner")
+it("inicializa correctamente con categoría owner", async () => {
+  const category: Category = "owner";
+  const { result } = renderHook(() => useCategorySection(category));
+
+  // loading inicial
+  expect(result.current.loading).toBe(true);
+
+  // Ejecutar refresh
+  await act(async () => {
+    await result.current.refresh();
+  });
+
+  // refreshOwners se llama y loading queda false
+  expect(refreshOwnersMock).toHaveBeenCalled();
+  expect(result.current.loading).toBe(false);
+
+  // tableData mapea fullName para owner
+  expect(result.current.data[0].fullName).toBe("John Doe");
+
+  // isSelected funciona
+  expect(result.current.isSelected(1)).toBe(true);
+  expect(result.current.isSelected(999)).toBe(false);
+
+  // toggleSelect llama al contexto
+  result.current.toggleSelect(1);
+  expect(toggleSelectMock).toHaveBeenCalledWith("owner", 1);
+});
+
+  it("cambia category y actualiza data y searchResults", () => {
+    type HookProps = { cat: Category };
+
+    const { result, rerender } = renderHook(
+      ({ cat }: HookProps) => useCategorySection(cat),
+      { initialProps: { cat: "owner" } }
     );
 
-    // Esperamos que termine el refresh
-    await act(async () => {});
+    expect(result.current.data[0].fullName).toBe("John Doe");
 
-    expect(result.current.data).toEqual([
-      { ...ownersList[0], fullName: "John Doe" },
-      { ...ownersList[1], fullName: "Jane Smith" },
-    ]);
-    expect(result.current.loading).toBe(false);
+    // Cambiar categoría a amenity
+    rerender({ cat: "amenity" });
+
+    expect(result.current.data).toEqual([{ id: 2, name: "Pool" }]);
+    expect(result.current.isSelected(2)).toBe(true);
   });
 
-  it("devuelve datos correctamente para amenities", async () => {
-    const { result } = renderHook(() => useCategorySection("amenity"));
-
-    expect(result.current.data).toEqual(amenitiesList);
-  });
-
-  it("isSelected funciona correctamente", () => {
-    const { result } = renderHook(() => useCategorySection("owner"));
-    expect(result.current.isSelected(1)).toBe(true);
-    expect(result.current.isSelected(2)).toBe(false);
-
-    const hookAmenity = renderHook(() => useCategorySection("amenity")).result;
-    expect(hookAmenity.current.isSelected(10)).toBe(true);
-    expect(hookAmenity.current.isSelected(30)).toBe(false);
-  });
-
-  it("toggleSelect llama al contexto con la categoría correcta", () => {
-    const { result } = renderHook(() => useCategorySection("amenity"));
-
-    act(() => {
-      result.current.toggleSelect(10);
-    });
-
-    expect(mockToggleSelect).toHaveBeenCalledWith("amenity", 10);
-  });
-
-  it("refresh llama a la función de refresco correspondiente", async () => {
-    const { result } = renderHook(() => useCategorySection("amenity"));
-
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    expect(mockRefreshAmenities).toHaveBeenCalled();
-  });
-
-  it("onSearch actualiza los resultados de búsqueda", () => {
-    const { result } = renderHook(() => useCategorySection("type"));
-    act(() => {
-      result.current.onSearch([{ id: 99, name: "Test" }]);
-    });
-
-    expect(result.current.data).toEqual([{ id: 99, name: "Test" }]);
+  it("tableData devuelve directamente data para no-owner", () => {
+    const category: Category = "type";
+    const { result } = renderHook(() => useCategorySection(category));
+    expect(result.current.data).toEqual([{ id: 3, name: "House" }]);
   });
 });

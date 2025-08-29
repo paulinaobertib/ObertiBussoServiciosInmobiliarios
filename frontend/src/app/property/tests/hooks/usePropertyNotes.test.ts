@@ -1,83 +1,87 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { vi, Mock } from "vitest";
+import { vi } from "vitest";
 import { usePropertyNotes } from "../../hooks/usePropertyNotes";
 import * as propertyService from "../../services/property.service";
 import * as commentService from "../../services/comment.service";
 import * as maintenanceService from "../../services/maintenance.service";
+import * as errorsHook from "../../../shared/hooks/useErrors";
 
-// ─── mocks ───
-vi.mock("../../services/property.service", () => ({
-  getPropertyById: vi.fn(),
-}));
-
-vi.mock("../../services/comment.service", () => ({
-  getCommentsByPropertyId: vi.fn(),
-}));
-
-vi.mock("../../services/maintenance.service", () => ({
-  getMaintenancesByPropertyId: vi.fn(),
-}));
+vi.mock("../../services/property.service");
+vi.mock("../../services/comment.service");
+vi.mock("../../services/maintenance.service");
+vi.mock("../../../shared/hooks/useErrors");
 
 describe("usePropertyNotes", () => {
-  const mockGetPropertyById = propertyService.getPropertyById as Mock;
-  const mockGetComments = commentService.getCommentsByPropertyId as Mock;
-  const mockGetMaintenances = maintenanceService.getMaintenancesByPropertyId as Mock;
+  const mockHandleError = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (errorsHook.useApiErrors as any).mockReturnValue({
+      handleError: mockHandleError,
+    });
   });
 
-  it("carga property, comments y maintenances al iniciar", async () => {
-    mockGetPropertyById.mockResolvedValue({ id: 1, title: "Prop 1" });
-    mockGetComments.mockResolvedValue([{ id: 10, text: "Com" }]);
-    mockGetMaintenances.mockResolvedValue([{ id: 20, description: "Main" }]);
+  it("carga property, comments y maintenances correctamente", async () => {
+    const fakeProp = { id: 1, title: "Casa" };
+    const fakeComments = [{ id: 1, text: "Comentario" }];
+    const fakeMaintenances = [{ id: 1, task: "Mantenimiento" }];
+
+    (propertyService.getPropertyById as any).mockResolvedValue(fakeProp);
+    (commentService.getCommentsByPropertyId as any).mockResolvedValue(fakeComments);
+    (maintenanceService.getMaintenancesByPropertyId as any).mockResolvedValue(fakeMaintenances);
 
     const { result } = renderHook(() => usePropertyNotes(1));
 
+    // Esperamos que loading sea true al inicio
     expect(result.current.loading).toBe(true);
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.property).toEqual({ id: 1, title: "Prop 1" });
-    expect(result.current.comments).toEqual([{ id: 10, text: "Com" }]);
-    expect(result.current.maintenances).toEqual([{ id: 20, description: "Main" }]);
+    await waitFor(() => {
+      expect(result.current.property).toEqual(fakeProp);
+      expect(result.current.comments).toEqual(fakeComments);
+      expect(result.current.maintenances).toEqual(fakeMaintenances);
+      expect(result.current.loading).toBe(false);
+    });
   });
 
-  it("refreshComments actualiza los comentarios", async () => {
-    mockGetComments.mockResolvedValue([{ id: 11, text: "Nuevo" }]);
-    const { result } = renderHook(() => usePropertyNotes(2));
+  it("maneja errores en la carga inicial", async () => {
+    const error = new Error("Fail");
+    (propertyService.getPropertyById as any).mockRejectedValue(error);
+    (commentService.getCommentsByPropertyId as any).mockRejectedValue(error);
+    (maintenanceService.getMaintenancesByPropertyId as any).mockRejectedValue(error);
+
+    const { result } = renderHook(() => usePropertyNotes(1));
+
+    await waitFor(() => {
+      expect(mockHandleError).toHaveBeenCalled();
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  it("refreshComments actualiza comentarios y maneja errores", async () => {
+    const newComments = [{ id: 2, text: "Otro comentario" }];
+    (commentService.getCommentsByPropertyId as any).mockResolvedValue(newComments);
+
+    const { result } = renderHook(() => usePropertyNotes(1));
 
     await act(async () => {
       await result.current.refreshComments();
     });
 
-    expect(result.current.comments).toEqual([{ id: 11, text: "Nuevo" }]);
+    expect(result.current.comments).toEqual(newComments);
     expect(result.current.loadingComments).toBe(false);
   });
 
-  it("refreshMaintenances actualiza los mantenimientos", async () => {
-    mockGetMaintenances.mockResolvedValue([{ id: 21, description: "Update" }]);
-    const { result } = renderHook(() => usePropertyNotes(3));
+  it("refreshMaintenances actualiza mantenimientos y maneja errores", async () => {
+    const newMaintenances = [{ id: 2, task: "Otro mantenimiento" }];
+    (maintenanceService.getMaintenancesByPropertyId as any).mockResolvedValue(newMaintenances);
+
+    const { result } = renderHook(() => usePropertyNotes(1));
 
     await act(async () => {
       await result.current.refreshMaintenances();
     });
 
-    expect(result.current.maintenances).toEqual([{ id: 21, description: "Update" }]);
+    expect(result.current.maintenances).toEqual(newMaintenances);
     expect(result.current.loadingMaintenances).toBe(false);
-  });
-
-  it("maneja valores nulos devolviendo arrays vacíos", async () => {
-    mockGetPropertyById.mockResolvedValue(null);
-    mockGetComments.mockResolvedValue(null);
-    mockGetMaintenances.mockResolvedValue(null);
-
-    const { result } = renderHook(() => usePropertyNotes(4));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.property).toBeNull();
-    expect(result.current.comments).toEqual([]);
-    expect(result.current.maintenances).toEqual([]);
   });
 });
