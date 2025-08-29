@@ -1,93 +1,99 @@
-// src/app/property/tests/hooks/useSurvey.test.ts
-import { renderHook, act } from "@testing-library/react";
-import { vi, Mock } from "vitest";
-import { useSurvey } from "../../hooks/useSurvey";
-import { createSurvey } from "../../services/survey.service";
-import { CreateSurveyDTO } from "../../types/survey";
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import type { Mock } from "vitest";
 
-// ─── Mock del servicio ───
+// --- Mocks con RUTAS CORRECTAS ---
+const createSurveyMock = vi.fn();
 vi.mock("../../services/survey.service", () => ({
-  createSurvey: vi.fn(),
+  createSurvey: (...args: any[]) => createSurveyMock(...args),
 }));
 
-describe("useSurvey hook", () => {
-  const mockCreateSurvey = createSurvey as unknown as Mock;
+const handleErrorMock = vi.fn();
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({ handleError: handleErrorMock }),
+}));
 
+import { useSurvey } from "../../hooks/useSurvey";
+
+describe("useSurvey", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("inicializa correctamente", () => {
+  it("estado inicial: loading=false", () => {
     const { result } = renderHook(() => useSurvey());
-
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
-    expect(typeof result.current.postSurvey).toBe("function");
   });
 
-  it("ejecuta postSurvey correctamente y retorna datos", async () => {
-    const fakeResponse = { id: 1, score: 5, comment: "Good", inquiryId: 10 };
-    mockCreateSurvey.mockResolvedValueOnce(fakeResponse);
+  it("postSurvey: muestra loading intermedio y retorna el resultado (promesa controlada)", async () => {
+    // Promesa controlada para poder asertar loading=true antes de resolver
+    let resolveFn!: (v: any) => void;
+    (createSurveyMock as Mock).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFn = resolve;
+        })
+    );
 
     const { result } = renderHook(() => useSurvey());
 
-    const data: CreateSurveyDTO = {
-      score: 5,
-      comment: "Good",
-      inquiryId: 10,
-    };
+    const dto = { q1: "a", q2: "b" } as any;
+    const token = "tok_test";
 
-    let response;
+    let retPromise!: Promise<any>;
     await act(async () => {
-      response = await result.current.postSurvey(data, "token123");
+      retPromise = result.current.postSurvey(dto, token) as Promise<any>;
+      // microtick para aplicar setState
+      await Promise.resolve();
     });
 
-    expect(mockCreateSurvey).toHaveBeenCalledWith(data, "token123");
-    expect(response).toEqual(fakeResponse);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
+    // loading intermedio
+    expect(result.current.loading).toBe(true);
+    // argumentos correctos al servicio
+    expect(createSurveyMock).toHaveBeenCalledWith(dto, token);
+
+    // resolvemos la promesa del servicio
+    await act(async () => {
+      resolveFn("OK_RESULT");
+      const ret = await retPromise;
+      expect(ret).toBe("OK_RESULT");
+    });
+
+    // vuelve a false
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
-  it("maneja errores en postSurvey", async () => {
-    const fakeError = { response: { data: "Error en servidor" } };
-    mockCreateSurvey.mockRejectedValueOnce(fakeError);
+  it("postSurvey: éxito simple (resolved) y devuelve lo que responde el servicio", async () => {
+    (createSurveyMock as Mock).mockResolvedValueOnce({ status: 201, id: 9 });
 
     const { result } = renderHook(() => useSurvey());
 
-    const data: CreateSurveyDTO = {
-      score: 3,
-      comment: "Bad",
-      inquiryId: 11,
-    };
-
+    let out: any;
     await act(async () => {
-      await expect(result.current.postSurvey(data, "token123")).rejects.toEqual(
-        fakeError
-      );
+      out = await result.current.postSurvey({ any: "dto" } as any, "tkn");
     });
 
+    expect(createSurveyMock).toHaveBeenCalledWith({ any: "dto" }, "tkn");
+    expect(out).toEqual({ status: 201, id: 9 });
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe("Error en servidor");
   });
 
-  it("maneja errores desconocidos en postSurvey", async () => {
-    mockCreateSurvey.mockRejectedValueOnce({});
+  it("postSurvey: error → llama handleError, retorna undefined y resetea loading", async () => {
+    const boom = new Error("survey fail");
+    (createSurveyMock as Mock).mockRejectedValueOnce(boom);
 
     const { result } = renderHook(() => useSurvey());
 
-    const data: CreateSurveyDTO = {
-      score: 2,
-      comment: "Fail",
-      inquiryId: 12,
-    };
-
+    let out: any;
     await act(async () => {
-      await expect(result.current.postSurvey(data, "token123")).rejects.toEqual(
-        {}
-      );
+      out = await result.current.postSurvey({} as any, "bad");
     });
 
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+    expect(out).toBeUndefined();
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe("Error desconocido");
   });
 });

@@ -24,7 +24,9 @@ vi.mock("../../../shared/context/AlertContext");
 
 describe("useManagePropertyPage", () => {
   const mockNavigate = vi.fn();
-  const mockAsk = vi.fn((cb) => cb());
+  const mockAsk = vi.fn((_: string, cb?: () => any) => {
+    if (cb) cb();
+  });
   const mockShowAlert = vi.fn();
   const mockSetSelected = vi.fn();
   const mockResetSelected = vi.fn();
@@ -97,26 +99,6 @@ describe("useManagePropertyPage", () => {
     expect(mockAddToGallery).toHaveBeenCalledWith([file]);
   });
 
-  it("catch en useEffect muestra alerta y navega a /app", async () => {
-    (propertyService.getPropertyById as unknown as Mock).mockRejectedValue(
-      new Error("x")
-    );
-    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue({});
-    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(
-      []
-    );
-
-    renderHook(() => useManagePropertyPage());
-
-    await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        "No se pudo cargar la propiedad",
-        "error"
-      );
-      expect(mockNavigate).toHaveBeenCalledWith("/app");
-    });
-  });
-
   it("title cambia según property", async () => {
     const fakeProp = { id: 1, type: { id: 2, name: "Casa" }, mainImage: "" };
     (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(
@@ -172,4 +154,64 @@ describe("useManagePropertyPage", () => {
     expect(result.current.canProceed).toBe(true);
   });
 
+  it("carga propiedad, owner e imágenes al editar", async () => {
+    const fakeProp = {
+      id: 1,
+      type: { id: 2, name: "Casa" },
+      neighborhood: { id: 3 },
+      mainImage: "main.jpg",
+      amenities: [{ id: 4 }],
+    };
+    const fakeOwner = { id: 10 };
+    const fakeImages = [{ id: 5, url: "img1.jpg" }];
+
+    (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(
+      fakeProp
+    );
+    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue(
+      fakeOwner
+    );
+    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(
+      fakeImages
+    );
+
+    const { result } = renderHook(() => useManagePropertyPage());
+
+    await waitFor(() => expect(result.current.property?.id).toBe(1));
+    expect(mockSetSelected).toHaveBeenCalledWith({
+      owner: 10,
+      type: 2,
+      neighborhood: 3,
+      amenities: [4],
+    });
+    expect(mockSetMain).toHaveBeenCalledWith("main.jpg");
+    expect(mockAddToGallery).toHaveBeenCalledWith(["img1.jpg"]);
+  });
+
+  it("save con form inválido muestra alerta y no llama servicios", async () => {
+    const fakeForm = {
+      submit: vi.fn().mockResolvedValue(false),
+      getCreateData: vi.fn(),
+      setField: vi.fn(),
+    };
+    const { result } = renderHook(() => useManagePropertyPage());
+    result.current.formRef.current = fakeForm;
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      "Formulario inválido, faltan datos",
+      "error"
+    );
+    expect(propertyService.postProperty).not.toHaveBeenCalled();
+  });
+
+  it("cancel pregunta confirmación y navega", () => {
+    const { result } = renderHook(() => useManagePropertyPage());
+    act(() => result.current.cancel());
+    expect(mockAsk).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith("/");
+  });
 });

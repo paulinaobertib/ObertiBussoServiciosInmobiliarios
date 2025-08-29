@@ -4,6 +4,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render as rtlRender } from "@testing-library/react";
 
+vi.mock("@mui/x-data-grid/esm/index.css", () => ({}));
+
 const h = vi.hoisted(() => {
   return {
     navigateMock: vi.fn(),
@@ -59,6 +61,12 @@ vi.mock("../../../../shared/components/GridSection", () => ({
         <button data-testid="isSel" onClick={() => props.isSelected?.("42")}>
           isSel
         </button>
+        {/* Render de la celda “price” para validar renderCell */}
+        <div data-testid="cell-price">
+          {props.columns
+            ?.find((c: any) => c.field === "price")
+            ?.renderCell?.({ row: props.data?.[0] ?? {} })}
+        </div>
       </div>
     );
   },
@@ -116,6 +124,7 @@ vi.mock("../../../components/properties/ActionsRowItems", () => ({
   getRowActions: h.getRowActionsMock,
 }));
 
+// ---- SUT ----
 import { PropertySection } from "../../../components/properties/PropertySection";
 
 const renderSUT = (
@@ -156,10 +165,12 @@ describe("<PropertySection />", () => {
     const priceCol = cols.find((c: any) => c.field === "price");
     expect(priceCol).toBeTruthy();
 
+    // ARS con precio nulo => “—”
     const el1 = priceCol.renderCell({ row: { currency: "ARS", price: null } });
     const { container: c1 } = rtlRender(el1);
     expect(c1.textContent).toContain("ARS —");
 
+    // USD con precio 100 => “USD 100”
     const el2 = priceCol.renderCell({ row: { currency: "USD", price: 100 } });
     const { container: c2 } = rtlRender(el2);
     expect(c2.textContent).toContain("USD 100");
