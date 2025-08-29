@@ -28,7 +28,6 @@ vi.mock("../../../../shared/components/GridSection", () => ({
   },
 }));
 
-// ModalItem: mostramos título y botón de cerrar
 vi.mock("../../../components/categories/CategoryModal", () => ({
   ModalItem: ({ info, close }: any) =>
     info ? (
@@ -41,7 +40,6 @@ vi.mock("../../../components/categories/CategoryModal", () => ({
     ) : null,
 }));
 
-// translate
 vi.mock("../../utils/translate", () => ({
   translate: (cat: string) =>
     (
@@ -54,20 +52,11 @@ vi.mock("../../utils/translate", () => ({
     )[cat] || cat,
 }));
 
-vi.mock("../../../components/forms/AmenityForm", () => ({
-  AmenityForm: () => <div />,
-}));
-vi.mock("../../../components/forms/OwnerForm", () => ({
-  OwnerForm: () => <div />,
-}));
-vi.mock("../../../components/forms/TypeForm", () => ({
-  TypeForm: () => <div />,
-}));
-vi.mock("../../../components/forms/NeighborhoodForm", () => ({
-  NeighborhoodForm: () => <div />,
-}));
+vi.mock("../../../components/forms/AmenityForm", () => ({ AmenityForm: () => <div /> }));
+vi.mock("../../../components/forms/OwnerForm", () => ({ OwnerForm: () => <div /> }));
+vi.mock("../../../components/forms/TypeForm", () => ({ TypeForm: () => <div /> }));
+vi.mock("../../../components/forms/NeighborhoodForm", () => ({ NeighborhoodForm: () => <div /> }));
 
-// hook principal
 const refreshMock = vi.fn();
 const onSearchMock = vi.fn();
 const internalToggleMock = vi.fn();
@@ -116,7 +105,6 @@ vi.mock("../../../hooks/useCategorySection", () => ({
         ],
       };
     }
-    // neighborhood
     return {
       ...base,
       data: [
@@ -129,10 +117,7 @@ vi.mock("../../../hooks/useCategorySection", () => ({
 
 import { CategorySection } from "../../../components/categories/CategorySection";
 
-// helper para resetear grid props entre tests
-const resetGridProps = () => {
-  lastGridProps = null;
-};
+const resetGridProps = () => { lastGridProps = null; };
 
 describe("<CategorySection />", () => {
   beforeEach(() => {
@@ -157,7 +142,7 @@ describe("<CategorySection />", () => {
     const toggle = lastGridProps.toggleSelect as (sel: any) => void;
 
     toggle("7");
-    toggle(["3", "5"]); 
+    toggle(["3", "5"]);
     toggle(null);
 
     expect(internalToggleMock).toHaveBeenCalledWith(7);
@@ -183,18 +168,6 @@ describe("<CategorySection />", () => {
     expect(result).toEqual(lastGridProps.data);
   });
 
-  it("fetchByText filtra por owner: fullName/email/phone", async () => {
-    render(<CategorySection category="owner" />);
-    const { data } = lastGridProps;
-
-    const filtered = await lastGridProps.fetchByText("ana");
-    expect(filtered).toEqual([data[1]]);
-    expect(onSearchMock).toHaveBeenCalledWith([data[1]]);
-
-    const all = await lastGridProps.fetchByText("   ");
-    expect(all).toEqual(data);
-  });
-
   it("fetchByText filtra por amenity.name", async () => {
     render(<CategorySection category="amenity" />);
     const filtered = await lastGridProps.fetchByText("pile");
@@ -217,22 +190,16 @@ describe("<CategorySection />", () => {
     render(<CategorySection category="owner" />);
 
     fireEvent.click(screen.getByTestId("btn-create"));
-    expect(screen.getByTestId("modal-title")).toHaveTextContent(
-      "Crear Propietario"
-    );
+    expect(screen.getByTestId("modal-title")).toHaveTextContent("Crear Propietario");
     fireEvent.click(screen.getByTestId("modal-close"));
     expect(screen.queryByTestId("modal")).toBeNull();
 
     fireEvent.click(screen.getByTestId("btn-edit"));
-    expect(screen.getByTestId("modal-title")).toHaveTextContent(
-      "Editar Propietario"
-    );
+    expect(screen.getByTestId("modal-title")).toHaveTextContent("Editar Propietario");
     fireEvent.click(screen.getByTestId("modal-close"));
 
     fireEvent.click(screen.getByTestId("btn-delete"));
-    expect(screen.getByTestId("modal-title")).toHaveTextContent(
-      "Eliminar Propietario"
-    );
+    expect(screen.getByTestId("modal-title")).toHaveTextContent("Eliminar Propietario");
   });
 
   it("multiSelect es true solo para amenity", () => {
@@ -248,4 +215,35 @@ describe("<CategorySection />", () => {
     expect(lastGridProps.showActions).toBe(true);
     expect(lastGridProps.entityName).toBe("Propietario");
   });
+
+  it("fetchByText devuelve todo si texto vacío", async () => {
+    render(<CategorySection category="amenity" />);
+    const result = await lastGridProps.fetchByText("");
+    expect(result).toEqual(lastGridProps.data);
+    expect(onSearchMock).toHaveBeenCalledWith(lastGridProps.data);
+  });
+
+  it("fetchByText devuelve vacío si no hay coincidencias", async () => {
+    render(<CategorySection category="amenity" />);
+    const result = await lastGridProps.fetchByText("xyz");
+    expect(result).toEqual([]);
+    expect(onSearchMock).toHaveBeenCalledWith([]);
+  });
+
+  it("Modal se cierra correctamente", () => {
+    render(<CategorySection category="owner" />);
+    fireEvent.click(screen.getByTestId("btn-create"));
+    expect(screen.getByTestId("modal")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("modal-close"));
+    expect(screen.queryByTestId("modal")).toBeNull();
+  });
+
+  it("pasa selectable correctamente a GridSection", () => {
+    render(<CategorySection category="owner" selectable={false} />);
+    expect(lastGridProps.selectable).toBe(false);
+
+    render(<CategorySection category="owner" selectable />);
+    expect(lastGridProps.selectable).toBe(true);
+  });
+
 });

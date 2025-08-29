@@ -117,8 +117,8 @@ export const PropertyInfo = ({ property }: Props) => {
         {isAdmin && (
           <>
             <IconButton
+              aria-label="editar estado"
               size='small'
-              aria-label='Editar estado'
               onClick={() =>
                 setStatusModal({
                   title: 'Editar estado',
@@ -136,6 +136,7 @@ export const PropertyInfo = ({ property }: Props) => {
               sx={{ ml: 'auto' }}
               icon={
                 <Switch
+                  aria-label="Destacar propiedad"
                   checked={outstanding}
                   onChange={handleToggleOutstanding}
                   size="small"
@@ -152,20 +153,29 @@ export const PropertyInfo = ({ property }: Props) => {
       {(features.length || amenities.length) && (
         <Box>
           <Divider />
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 2 }}>
-            {/* Features */}
-            <Stack spacing={2}>
+          <Box
+            sx={{
+              mt: 2,
+              display: 'grid',
+              // 2 columnas en todos los breakpoints (incluido xs)
+              gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', sm: 'repeat(2, minmax(0,1fr))' },
+              columnGap: { xs: 2, sm: 3 },
+              rowGap: 2,
+              alignItems: 'start',
+            }}
+          >
+            {/* Especificaciones (izquierda) */}
+            <Stack spacing={{ xs: 1.25, sm: 2 }}>
               <Typography variant='subtitle1' fontWeight={600}>Especificaciones</Typography>
               {features.map((f, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
                   {f.icon}
                   <Typography variant='body2'>{f.label}</Typography>
                 </Box>
               ))}
             </Stack>
 
-            {/* Amenities */}
-            <Stack spacing={1}>
+            <Stack spacing={{ xs: 1, sm: 1.25 }}>
               <Typography variant='subtitle1' fontWeight={600}>Características</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {rawAmenities.map((am, i) => (

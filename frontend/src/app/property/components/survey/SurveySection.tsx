@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { getAllSurveys } from '../../services/survey.service'; 
+import { getAllSurveys } from '../../services/survey.service'; // Ajusta el path si es necesario
 import { SurveysList } from './SurveyList';
 
 interface Survey {
@@ -43,9 +43,6 @@ export const SurveysSection = () => {
     }
 
     return (
-        <Box sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Encuestas</Typography>
-            <SurveysList surveys={surveys} />
-        </Box>
+        <SurveysList surveys={surveys} />
     );
 };
