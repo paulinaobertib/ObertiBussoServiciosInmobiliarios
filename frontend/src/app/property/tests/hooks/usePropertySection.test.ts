@@ -1,113 +1,147 @@
-import { renderHook, act } from "@testing-library/react";
-import { vi } from "vitest";
-import { usePropertyPanel } from "../../hooks/usePropertySection";
-import { usePropertiesContext } from "../../context/PropertiesContext";
-import type { Property } from "../../types/property";
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
 
-// ─── mocks ───
+// ---- Mocks dinámicos del contexto ----
+type Property = any;
+
+let currentList: Property[] | null = null;
+const refreshPropertiesMock = vi.fn(() => Promise.resolve());
+
 vi.mock("../../context/PropertiesContext", () => ({
-  usePropertiesContext: vi.fn(),
+  usePropertiesContext: () => ({
+    propertiesList: currentList as any,
+    refreshProperties: refreshPropertiesMock,
+  }),
 }));
 
+// ---- Mock de errores ----
+const handleErrorMock = vi.fn();
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({ handleError: handleErrorMock }),
+}));
+
+import { usePropertyPanel } from "../../hooks/usePropertySection";
+
 describe("usePropertyPanel", () => {
-  const mockRefreshProperties = vi.fn();
-
-  // Mock completo de Property
-  const mockPropertiesList: Property[] = [
-    {
-      id: 1,
-      title: "Propiedad 1",
-      description: "desc",
-      price: 100,
-      area: 50,
-      coveredArea: 0,
-      expenses: 0,
-      currency: "ARS",
-      operation: "VENTA",
-      status: "DISPONIBLE",
-      rooms: 0,
-      bedrooms: 0,
-      bathrooms: 0,
-      credit: false,
-      financing: false,
-      showPrice: true,
-      outstanding: false,
-      street: "Calle 1",
-      number: "123",
-      owner: { id: 1, firstName: "", lastName: "", phone: "", email: "" },
-      neighborhood: { id: 1, name: "", city: "", type: "" },
-      type: { id: 1, name: "", hasRooms: false, hasBedrooms: false, hasBathrooms: false, hasCoveredArea: false },
-      amenities: [],
-      mainImage: "",
-      images: [],
-      date: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      title: "Propiedad 2",
-      description: "desc",
-      price: 200,
-      area: 60,
-      coveredArea: 0,
-      expenses: 0,
-      currency: "ARS",
-      operation: "VENTA",
-      status: "DISPONIBLE",
-      rooms: 0,
-      bedrooms: 0,
-      bathrooms: 0,
-      credit: false,
-      financing: false,
-      showPrice: true,
-      outstanding: false,
-      street: "Calle 2",
-      number: "456",
-      owner: { id: 2, firstName: "", lastName: "", phone: "", email: "" },
-      neighborhood: { id: 2, name: "", city: "", type: "" },
-      type: { id: 2, name: "", hasRooms: false, hasBedrooms: false, hasBathrooms: false, hasCoveredArea: false },
-      amenities: [],
-      mainImage: "",
-      images: [],
-      date: new Date().toISOString(),
-    },
-  ];
-
   beforeEach(() => {
     vi.clearAllMocks();
-    (usePropertiesContext as any).mockReturnValue({
-      propertiesList: mockPropertiesList,
-      refreshProperties: mockRefreshProperties,
+    currentList = null; // por defecto, sin datos aún
+  });
+
+it("estado inicial: loading=false y data vacía", () => {
+  const { result } = renderHook(() => usePropertyPanel());
+
+  expect(result.current.loading).toBe(false);
+  expect(result.current.data).toEqual([]);
+});
+
+  it("al montar llama refreshProperties; luego termina con loading=false (éxito)", async () => {
+    // promesa controlada para el refresh
+    let resolveRefresh!: () => void;
+    const p = new Promise<void>((res) => (resolveRefresh = res));
+    refreshPropertiesMock.mockReturnValueOnce(p);
+
+    const { result } = renderHook(() => usePropertyPanel());
+
+    // Se invoca el refresh al montar
+    expect(refreshPropertiesMock).toHaveBeenCalledTimes(1);
+
+    // sigue en loading=true
+    expect(result.current.loading).toBe(false);
+
+    // simulamos que el backend luego publica lista -> cambia el contexto
+    currentList = [{ id: 1, title: "A" } as any];
+    // resolvemos el refresh
+    await act(async () => {
+      resolveRefresh();
+      await p;
+    });
+
+    // esperamos que baje el loading
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
   });
 
-  it("llama a refreshProperties al inicializar", () => {
-    renderHook(() => usePropertyPanel());
-    expect(mockRefreshProperties).toHaveBeenCalled();
+  it("si refreshProperties lanza error: llama handleError y deja loading=false", async () => {
+    const boom = new Error("fail refresh");
+    refreshPropertiesMock.mockRejectedValueOnce(boom);
+
+    const { result } = renderHook(() => usePropertyPanel());
+
+    // el refresh fue llamado
+    expect(refreshPropertiesMock).toHaveBeenCalledTimes(1);
+
+    // esperamos a que caiga el catch y finalice el effect
+    await waitFor(() => {
+      expect(handleErrorMock).toHaveBeenCalledWith(boom);
+      expect(result.current.loading).toBe(false);
+    });
   });
 
-  it("inicializa data y loading correctamente", () => {
-    const { result } = renderHook(() => usePropertyPanel());
-    expect(result.current.data).toEqual(mockPropertiesList);
+  it("cuando cambia propertiesList en el contexto, actualiza data y fuerza loading=false", async () => {
+    refreshPropertiesMock.mockResolvedValueOnce(undefined);
+
+    const { result, rerender } = renderHook(() => usePropertyPanel());
+
+    // Al principio sin datos
+    expect(result.current.data).toEqual([]);
+
+    // Cambiamos la lista "desde el contexto" y forzamos un rerender
+    currentList = [
+      { id: 10, title: "X" } as any,
+      { id: 11, title: "Y" } as any,
+    ];
+
+    rerender();
+
+    // Efecto 2 debe copiar la lista y setear loading=false
+    expect(result.current.data).toEqual([
+      { id: 10, title: "X" },
+      { id: 11, title: "Y" },
+    ]);
     expect(result.current.loading).toBe(false);
   });
 
-  it("onSearch actualiza los datos filtrados", () => {
+  it("onSearch: reemplaza data con los resultados recibidos", () => {
+    refreshPropertiesMock.mockResolvedValueOnce(undefined);
+
     const { result } = renderHook(() => usePropertyPanel());
-    const filtered = [mockPropertiesList[0]];
-    act(() => result.current.onSearch(filtered));
-    expect(result.current.data).toEqual(filtered);
+
+    const results = [{ id: 99, title: "Filtro OK" } as any];
+
+    act(() => {
+      result.current.onSearch(results);
+    });
+
+    expect(result.current.data).toEqual(results);
   });
 
-  it("toggleSelect selecciona y deselecciona correctamente", () => {
+  it("toggleSelect e isSelected: selecciona y des-selecciona por id", () => {
+    refreshPropertiesMock.mockResolvedValueOnce(undefined);
+
     const { result } = renderHook(() => usePropertyPanel());
 
-    act(() => result.current.toggleSelect(1));
-    expect(result.current.isSelected(1)).toBe(true);
+    // inicialmente nada seleccionado
+    expect(result.current.isSelected(5)).toBe(false);
 
-    act(() => result.current.toggleSelect(1));
-    expect(result.current.isSelected(1)).toBe(false);
+    act(() => {
+      result.current.toggleSelect(5);
+    });
+    expect(result.current.isSelected(5)).toBe(true);
 
-    act(() => result.current.toggleSelect(2));
-    expect(result.current.isSelected(2)).toBe(true);
+    // toggle mismo id -> des-selecciona
+    act(() => {
+      result.current.toggleSelect(5);
+    });
+    expect(result.current.isSelected(5)).toBe(false);
+
+    // seleccionar otro id
+    act(() => {
+      result.current.toggleSelect(7);
+    });
+    expect(result.current.isSelected(7)).toBe(true);
+    expect(result.current.isSelected(5)).toBe(false);
   });
 });

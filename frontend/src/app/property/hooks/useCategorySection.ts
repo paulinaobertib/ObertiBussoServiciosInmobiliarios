@@ -1,79 +1,108 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { usePropertiesContext, Category } from "../context/PropertiesContext";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const useCategorySection = (category: Category) => {
   const ctx = usePropertiesContext();
+  const { handleError } = useApiErrors();
+
   const [searchResults, setSearchResults] = useState<any[] | null>(null);
   const [localLoading, setLocalLoading] = useState(true);
+  const mountedRef = useRef(true);
 
-  // 1. Datos globales según categoría
+  // 1) Datos globales según categoría (desestructuro para deps más estables)
+  const {
+    ownersList,
+    amenitiesList,
+    typesList,
+    neighborhoodsList,
+    selected,
+    toggleSelect: toggleSelectCtx,
+    refreshOwners,
+    refreshAmenities,
+    refreshTypes,
+    refreshNeighborhoods,
+  } = ctx;
+
   const data = useMemo(() => {
     switch (category) {
       case "owner":
-        return ctx.ownersList;
+        return ownersList;
       case "amenity":
-        return ctx.amenitiesList;
+        return amenitiesList;
       case "type":
-        return ctx.typesList;
+        return typesList;
       case "neighborhood":
-        return ctx.neighborhoodsList;
+        return neighborhoodsList;
       default:
         return [];
     }
-  }, [category, ctx]);
+  }, [category, ownersList, amenitiesList, typesList, neighborhoodsList]);
 
-  // 2. Función refresh según categoría
+  // 2) Función refresh según categoría
   const refresh = useCallback(() => {
     switch (category) {
       case "owner":
-        return ctx.refreshOwners();
+        return refreshOwners();
       case "amenity":
-        return ctx.refreshAmenities();
+        return refreshAmenities();
       case "type":
-        return ctx.refreshTypes();
+        return refreshTypes();
       case "neighborhood":
-        return ctx.refreshNeighborhoods();
+        return refreshNeighborhoods();
       default:
         return Promise.resolve();
     }
-  }, [category, ctx]);
+  }, [category, refreshOwners, refreshAmenities, refreshTypes, refreshNeighborhoods]);
 
-  // 3. Refrescar al montar o cambiar categoría
+  // 3) Refrescar al montar o cambiar categoría, con manejo de error
   useEffect(() => {
-    setLocalLoading(true);
-    refresh().finally(() => setLocalLoading(false));
-  }, [category]);
+    mountedRef.current = true;
+    (async () => {
+      setLocalLoading(true);
+      try {
+        await refresh();
+      } catch (e) {
+        if (mountedRef.current) handleError(e);
+      } finally {
+        if (mountedRef.current) setLocalLoading(false);
+      }
+    })();
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [refresh, handleError]);
 
-  // 4. Limpiar búsqueda cuando cambian datos o categoría
+  // 4) Limpiar búsqueda cuando cambian datos o categoría
   useEffect(() => {
     setSearchResults(null);
   }, [category, data]);
 
-  // 5. Callback genérico para resultados de búsqueda
+  // 5) Callback genérico para resultados de búsqueda
   const onSearch = useCallback((items: any[]) => {
     setSearchResults(items);
   }, []);
 
-  // 6. Determinar selección
+  // 6) Determinar selección
   const isSelected = useCallback(
     (id: number) => {
       switch (category) {
         case "amenity":
-          return ctx.selected.amenities.includes(id);
+          return selected.amenities.includes(id);
         case "owner":
-          return ctx.selected.owner === id;
+          return selected.owner === id;
         case "neighborhood":
-          return ctx.selected.neighborhood === id;
+          return selected.neighborhood === id;
         case "type":
-          return ctx.selected.type === id;
+          return selected.type === id;
         default:
           return false;
       }
     },
-    [category, ctx.selected]
+    [category, selected]
   );
 
-  // 7. Preparar datos para tabla (fullName para owners)
+  // 7) Preparar datos para tabla (fullName para owners)
   const tableData = useMemo(() => {
     const list = searchResults ?? data;
     if (category === "owner") {
@@ -91,6 +120,6 @@ export const useCategorySection = (category: Category) => {
     refresh,
     onSearch,
     isSelected,
-    toggleSelect: (id: number) => ctx.toggleSelect(category, id),
+    toggleSelect: (id: number) => toggleSelectCtx(category, id),
   };
 };

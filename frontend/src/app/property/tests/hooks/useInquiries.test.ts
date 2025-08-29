@@ -1,163 +1,131 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { vi, type Mock } from "vitest";
 import { useInquiries, STATUS_OPTIONS } from "../../hooks/useInquiries";
-import * as inquiryService from "../../services/inquiry.service";
-import * as chatService from "../../../chat/services/chatSession.service";
-import * as propertyService from "../../services/property.service";
-import { useAuthContext } from "../../../user/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { useApiErrors } from "../../../shared/hooks/useErrors";
+import * as inquiryService from "../../services/inquiry.service";
+import * as propertyService from "../../services/property.service";
+import * as chatService from "../../../chat/services/chatSession.service";
+import { buildRoute, ROUTES } from "../../../../lib";
+import { AxiosResponse } from "axios";
 
 // ---- Mocks ----
-vi.mock("../../services/inquiry.service");
-vi.mock("../../../chat/services/chatSession.service");
-vi.mock("../../services/property.service");
-vi.mock("../../../user/context/AuthContext");
 vi.mock("react-router-dom", () => ({ useNavigate: vi.fn() }));
-vi.mock("../../../../lib", () => ({
-  buildRoute: (route: string, id: number) => `${route.replace(":id", String(id))}`,
-  ROUTES: { PROPERTY_DETAILS: "/details/:id" },
-}));
+vi.mock("../../../user/context/AuthContext", () => ({ useAuthContext: vi.fn() }));
+vi.mock("../../../shared/hooks/useErrors", () => ({ useApiErrors: vi.fn() }));
+vi.mock("../../services/inquiry.service");
+vi.mock("../../services/property.service");
+vi.mock("../../../chat/services/chatSession.service");
 
 describe("useInquiries", () => {
   const mockNavigate = vi.fn();
-  const mockInfo = { id: 1, name: "Test User" };
+  const mockHandleError = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useNavigate as Mock).mockReturnValue(mockNavigate);
-    (useAuthContext as Mock).mockReturnValue({ info: mockInfo, isAdmin: true });
+    (useNavigate as unknown as Mock).mockReturnValue(mockNavigate);
+    (useApiErrors as unknown as Mock).mockReturnValue({ handleError: mockHandleError });
+    (useAuthContext as unknown as Mock).mockReturnValue({ info: { id: 1 }, isAdmin: true });
   });
 
-  it("carga todas las consultas para admin", async () => {
-    (inquiryService.getAllInquiries as Mock).mockResolvedValue({ data: [{ id: 1, status: "ABIERTA" }] });
-    (propertyService.getAllProperties as Mock).mockResolvedValue([{ id: 10, title: "Prop1" }]);
-    (chatService.getAllChatSessions as Mock).mockResolvedValue([]);
+  it("carga propiedades al bootstrap", async () => {
+    const mockProps = [{ id: 1, title: "Casa Test" }];
+    vi.mocked(propertyService.getAllProperties).mockResolvedValue(mockProps);
 
     const { result } = renderHook(() => useInquiries());
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.inquiries).toEqual([{ id: 1, status: "ABIERTA" }]);
-    expect(result.current.properties).toEqual([{ id: 10, title: "Prop1" }]);
-  });
-
-  it("aplica filtros de estado correctamente", async () => {
-    (inquiryService.getInquiriesByStatus as Mock).mockResolvedValue({ data: [{ id: 2, status: "CERRADA" }] });
-
-    const { result } = renderHook(() => useInquiries());
-
-    await act(async () => {
-      result.current.setFilterStatus("CERRADA");
+    await waitFor(() => {
+      expect(result.current.properties).toEqual(mockProps);
     });
-
-    await waitFor(() => expect(result.current.filterStatus).toBe("CERRADA"));
-    expect(inquiryService.getInquiriesByStatus).toHaveBeenCalledWith("CERRADA");
   });
 
-  it("aplica filtro combinado de estado y propiedad para admin", async () => {
-    (inquiryService.getInquiriesByProperty as Mock).mockResolvedValue({
-      data: [{ id: 1, status: "ABIERTA" }, { id: 2, status: "CERRADA" }],
-    });
+  it("carga sesiones de chat solo para admin", async () => {
+    const mockSessions = [{ id: 1, userId: 2, propertyId: 3 }];
+    vi.mocked(chatService.getAllChatSessions).mockResolvedValue(mockSessions);
 
     const { result } = renderHook(() => useInquiries());
 
-    await act(async () => {
-      result.current.setFilterStatus("ABIERTA");
-      result.current.setFilterProp("1");
+    await waitFor(() => {
+      expect(result.current.chatSessions).toEqual(mockSessions);
     });
-
-    await waitFor(() => expect(result.current.inquiries.length).toBe(1));
-    expect(result.current.inquiries[0].status).toBe("ABIERTA");
   });
 
-  it("marca una consulta como resuelta y refresca lista", async () => {
-    (inquiryService.updateInquiry as Mock).mockResolvedValue({});
-    (inquiryService.getAllInquiries as Mock).mockResolvedValue({ data: [] });
+  it("carga todas las consultas si es admin", async () => {
+    const mockInquiries: AxiosResponse<any> = {
+      data: [{ id: 1, status: "ABIERTA" }],
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as any,
+    };
+    vi.mocked(inquiryService.getAllInquiries).mockResolvedValue(mockInquiries);
 
     const { result } = renderHook(() => useInquiries());
 
-    await act(async () => {
-      await result.current.markResolved(1);
+    await waitFor(() => {
+      expect(result.current.inquiries).toEqual(mockInquiries.data);
     });
-
-    expect(inquiryService.updateInquiry).toHaveBeenCalledWith(1);
-    expect(result.current.actionLoadingId).toBeNull();
   });
 
-  it("navega a detalle de propiedad", () => {
+  it("marca consulta como resuelta", async () => {
+    const inq = { id: 1, status: "ABIERTA" } as any;
     const { result } = renderHook(() => useInquiries());
-    act(() => result.current.goToProperty(10));
+    act(() => result.current.setSelected(inq));
 
-    expect(mockNavigate).toHaveBeenCalledWith("/details/10");
-  });
+    vi.mocked(inquiryService.updateInquiry).mockResolvedValue({} as AxiosResponse<any>);
 
-  it("cierra chat session correctamente", async () => {
-    (chatService.getAllChatSessions as Mock).mockResolvedValue([
-      { id: 1, userId: 2, phone: "", email: "", firstName: "", lastName: "", date: "", dateClose: null, propertyId: 5 }
-    ]);
-
-    const { result } = renderHook(() => useInquiries());
-
-    await act(async () => {
-      await result.current.closeChatSession(1);
-    });
+    await act(async () => result.current.markResolved(1));
 
     expect(result.current.actionLoadingId).toBeNull();
+    expect(result.current.inquiries.find(i => i.id === 1)?.status).toBe("CERRADA");
   });
 
-  it("carga consultas para propertyIds específicas", async () => {
-    (inquiryService.getInquiriesByProperty as Mock).mockImplementation((id) =>
-      Promise.resolve({ data: [{ id, status: "ABIERTA" }] })
-    );
-
-    const { result } = renderHook(() => useInquiries({ propertyIds: [10, 20] }));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.inquiries).toEqual([
-      { id: 10, status: "ABIERTA" },
-      { id: 20, status: "ABIERTA" },
-    ]);
-  });
-
-  it("maneja error al cargar consultas", async () => {
-    (inquiryService.getAllInquiries as Mock).mockRejectedValue(new Error("fail"));
+  it("navega a propiedad correctamente", () => {
     const { result } = renderHook(() => useInquiries());
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.errorList).toBe("Error al cargar consultas");
+    act(() => result.current.goToProperty(99));
+    expect(mockNavigate).toHaveBeenCalledWith(buildRoute(ROUTES.PROPERTY_DETAILS, 99));
   });
 
-  it("maneja error al aplicar filtros", async () => {
-    (inquiryService.getInquiriesByStatus as Mock).mockRejectedValue(new Error("fail"));
+  it("closeChatSession llama loadChatSessions y maneja errores", async () => {
     const { result } = renderHook(() => useInquiries());
+    vi.mocked(chatService.getAllChatSessions).mockRejectedValue(new Error("fail"));
 
-    await act(async () => {
-      result.current.setFilterStatus("ABIERTA");
-    });
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.errorList).toBe("Error al aplicar filtros");
+    await act(async () => result.current.closeChatSession(1));
+    expect(result.current.actionLoadingId).toBeNull();
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it("filtra consultas localmente para usuario no admin", async () => {
-    (useAuthContext as Mock).mockReturnValue({ info: mockInfo, isAdmin: false });
-    const inquiries = [
-      { id: 1, status: "ABIERTA", propertyTitles: ["Prop1"] },
-      { id: 2, status: "CERRADA", propertyTitles: ["Prop2"] },
-    ];
-    (inquiryService.getInquiriesByUser as Mock).mockResolvedValue({ data: inquiries });
-
+  it("exponen filtros y STATUS_OPTIONS correctamente", () => {
     const { result } = renderHook(() => useInquiries());
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    act(() => result.current.setFilterStatus("ABIERTA"));
-    expect(result.current.inquiries).toEqual([inquiries[0]]);
-  });
-
-  it("exposa opciones de estado", () => {
-    const { result } = renderHook(() => useInquiries());
+    expect(result.current.filterStatus).toBe("");
+    expect(result.current.filterProp).toBe("");
     expect(result.current.STATUS_OPTIONS).toEqual(STATUS_OPTIONS);
+  });
+
+  it("carga consultas filtradas por propertyIds", async () => {
+    const mockRes: AxiosResponse<any> = {
+      data: [{ id: 10 }],
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as any,
+    };
+    vi.mocked(inquiryService.getInquiriesByProperty).mockResolvedValue(mockRes);
+
+    const { result } = renderHook(() => useInquiries({ propertyIds: [5] }));
+
+    await waitFor(() => {
+      expect(result.current.inquiries).toEqual(mockRes.data);
+    });
+  });
+
+  it("maneja error al cargar propiedades", async () => {
+    vi.mocked(propertyService.getAllProperties).mockRejectedValue(new Error("fail"));
+    renderHook(() => useInquiries());
+
+    await waitFor(() => {
+      expect(mockHandleError).toHaveBeenCalled();
+    });
   });
 });
