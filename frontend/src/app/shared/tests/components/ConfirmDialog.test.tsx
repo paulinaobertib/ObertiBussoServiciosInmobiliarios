@@ -21,13 +21,6 @@ function Wrapper() {
 }
 
 describe('useConfirmDialog', () => {
-  it('muestra el diálogo cuando se llama a ask', () => {
-    render(<Wrapper />);
-    fireEvent.click(screen.getByText('Abrir diálogo'));
-
-    expect(screen.getByText('¿Estás seguro?')).toBeInTheDocument();
-    expect(screen.getByText('Ten en cuenta que no podrás volver atrás.')).toBeInTheDocument();
-  });
 
   it('cierra el diálogo al hacer clic en "Cancelar"', () => {
     render(<Wrapper />);

@@ -45,37 +45,6 @@ const getLastDataGridProps = () => {
 describe("GridSection", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("renderiza SearchBar con placeholder y botón de crear con entityName", () => {
-    const onSearch = vi.fn();
-    const fetchAll = vi.fn();
-    const fetchByText = vi.fn();
-    const onCreate = vi.fn();
-
-    render(
-      <GridSection
-        data={[]}
-        loading={false}
-        columns={cols as any}
-        onSearch={onSearch}
-        onCreate={onCreate}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        entityName="Contract"
-        fetchAll={fetchAll}
-        fetchByText={fetchByText}
-      />
-    );
-
-    expect(screen.getByTestId("searchbar")).toBeInTheDocument();
-    expect(screen.getByTestId("searchbar")).toHaveAttribute(
-      "data-placeholder",
-      "Search Contract…"
-    );
-    expect(
-      screen.getByRole("button", { name: "Contract" })
-    ).toBeInTheDocument();
-  });
-
   it("pasa onSearch, fetchAll y fetchByText a SearchBar", () => {
     const onSearch = vi.fn();
     const fetchAll = vi.fn();

@@ -112,7 +112,7 @@ vi.mock("../../../services/property.service", () => ({
   deleteProperty: h.delPropMock,
 }));
 
-vi.mock("../../components/ActionsRowItems", () => ({
+vi.mock("../../../components/properties/ActionsRowItems", () => ({
   getRowActions: h.getRowActionsMock,
 }));
 
