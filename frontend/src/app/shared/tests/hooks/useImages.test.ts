@@ -1,145 +1,134 @@
+/// <reference types="vitest" />
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useImages } from "../../hooks/useImages";
+import { useImages } from "../../../shared/hooks/useImages";
 
-// Definir el tipo Image para las pruebas
+const f = (name: string, size = 123, lastModified = Date.now()) =>
+  new File(["x".repeat(size)], name, { lastModified, type: "image/png" });
 
 describe("useImages", () => {
-  it("inicializa correctamente con valores predeterminados", () => {
-    const { result } = renderHook(() => useImages());
-
-    expect(result.current.mainImage).toBeNull();
-    expect(result.current.gallery).toEqual([]);
-  });
-
-  it("inicializa correctamente con valores iniciales", () => {
-    const mainImage = new File([""], "main.jpg");
+  it("inicializa deduplicando la main fuera de la gallery", () => {
+    const main = "https://cdn/test/main.jpg";
     const gallery = [
-      new File([""], "gallery1.jpg"),
-      "https://example.com/image.jpg",
+      "https://cdn/test/main.jpg", // duplicada de main → debe excluirse
+      "https://cdn/test/other1.jpg",
+      "https://cdn/test/other1.jpg", // duplicado → debe excluirse
+      "https://cdn/test/other2.jpg",
     ];
-    const { result } = renderHook(() => useImages(mainImage, gallery));
 
-    expect(result.current.mainImage).toEqual(mainImage);
-    expect(result.current.gallery).toEqual(gallery);
+    const { result } = renderHook(() => useImages(main, gallery));
+
+    expect(result.current.mainImage).toBe(main);
+    expect(result.current.gallery).toEqual([
+      "https://cdn/test/other1.jpg",
+      "https://cdn/test/other2.jpg",
+    ]);
   });
 
-  it("setMain establece la imagen principal correctamente (File)", async () => {
-    const { result } = renderHook(() => useImages());
-    const file = new File([""], "main.jpg");
+  it("setMain: mueve imagen desde la gallery a main y la quita de la gallery", () => {
+    const main = "https://cdn/test/main.jpg";
+    const other = "https://cdn/test/other.jpg";
 
-    await act(() => {
-      result.current.setMain(file);
+    const { result } = renderHook(() => useImages(main, [other]));
+    expect(result.current.mainImage).toBe(main);
+    expect(result.current.gallery).toEqual([other]);
+
+    act(() => {
+      result.current.setMain(other);
     });
 
-    expect(result.current.mainImage).toEqual(file);
+    expect(result.current.mainImage).toBe(other);
+    expect(result.current.gallery).toEqual([]); // se quitó de gallery
   });
 
-  it("setMain establece la imagen principal como null", async () => {
-    const mainImage = new File([""], "main.jpg");
-    const { result } = renderHook(() => useImages(mainImage));
+  it("setMain(null): limpia la imagen principal", () => {
+    const main = "https://cdn/test/main.jpg";
+    const { result } = renderHook(() => useImages(main, []));
 
-    await act(() => {
+    act(() => {
       result.current.setMain(null);
     });
 
     expect(result.current.mainImage).toBeNull();
+    expect(result.current.gallery).toEqual([]); // sin cambios inesperados
   });
 
-  it("addToGallery agrega imágenes nuevas correctamente", async () => {
-    const { result } = renderHook(() => useImages());
-    const newImages = [
-      new File([""], "image1.jpg"),
-      "https://example.com/new.jpg",
-    ];
+  it("addToGallery: agrega sin duplicar y nunca agrega la main", () => {
+    const main = "https://cdn/test/main.jpg";
+    const a = "https://cdn/test/a.jpg";
+    const b = "https://cdn/test/b.jpg";
 
-    await act(() => {
-      result.current.addToGallery(newImages);
+    const { result } = renderHook(() => useImages(main, [a]));
+
+    // agrega existentes + main + nuevos
+    act(() => {
+      result.current.addToGallery([a, main, b]);
     });
 
-    expect(result.current.gallery).toEqual(newImages);
+    expect(result.current.gallery).toEqual([a, b]); // no repite a, no agrega main
   });
 
-  it("remove elimina la imagen principal", async () => {
-    const mainImage = new File([""], "main.jpg");
-    const { result } = renderHook(() => useImages(mainImage));
+  it("addToGallery: acepta item único (no array) y deduplica por clave estable", () => {
+    const mfile = f("main.png", 10, 111);
+    const g1 = f("g1.png", 5, 222);
+    const dupG1 = f("g1.png", 5, 222); // misma clave: name + size + lastModified
 
-    await act(() => {
-      result.current.remove(mainImage);
+    const { result } = renderHook(() => useImages(mfile, [g1]));
+
+    act(() => {
+      result.current.addToGallery(dupG1); // no debería duplicarse
     });
 
+    expect(result.current.gallery.length).toBe(1);
+    expect((result.current.gallery[0] as File).name).toBe("g1.png");
+  });
+
+  it("remove: si quita la main, la deja en null; si quita un gallery, lo saca", () => {
+    const mfile = f("m.png", 10, 1);
+    const g1 = f("g1.png", 5, 2);
+    const g2 = "https://cdn/x.jpg";
+
+    const { result } = renderHook(() => useImages(mfile, [g1, g2]));
+
+    // quitar gallery file
+    act(() => {
+      result.current.remove(g1);
+    });
+    expect(result.current.gallery).toEqual([g2]);
+    expect(result.current.mainImage).toBe(mfile);
+
+    // quitar main
+    act(() => {
+      result.current.remove(mfile);
+    });
     expect(result.current.mainImage).toBeNull();
+    expect(result.current.gallery).toEqual([g2]);
+
+    // quitar url restante
+    act(() => {
+      result.current.remove(g2 as any);
+    });
     expect(result.current.gallery).toEqual([]);
   });
 
-  it("remove elimina una imagen de la galería", async () => {
-    const gallery = [
-      new File([""], "image1.jpg"),
-      "https://example.com/image.jpg",
-    ];
-    const { result } = renderHook(() => useImages(null, gallery));
-    const imageToRemove = gallery[0];
+  it("getFilesForUpload: devuelve sólo Files (main y gallery) para persistir", () => {
+    const main = f("main.png", 10, 1);
+    const gFile1 = f("g1.png", 7, 2);
+    const gUrl = "https://cdn/only-preview.jpg";
 
-    await act(() => {
-      result.current.remove(imageToRemove);
+    const { result } = renderHook(() => useImages(main, [gFile1, gUrl]));
+
+    const out1 = result.current.getFilesForUpload();
+    expect(out1.main).toBe(main);
+    expect(out1.gallery).toEqual([gFile1]);
+
+    // si seteo main a una URL, deja de devolver main File
+    act(() => {
+      result.current.setMain("https://cdn/new-main.jpg");
     });
 
-    expect(result.current.gallery).toEqual(["https://example.com/image.jpg"]);
+    const out2 = result.current.getFilesForUpload();
+    expect(out2.main).toBeNull();
+    expect(out2.gallery).toEqual([gFile1]); // la galería mantiene sólo los files
   });
-
-  // it("setMain lanza error si la imagen ya es la principal (File con mismo nombre)", async () => {
-  //   const file = new File([""], "duplicada.jpg");
-  //   const { result } = renderHook(() => useImages(file));
-
-  //   await act(() => {
-  //     result.current.setMain(new File([""], "duplicada.jpg"));
-  //   });
-
-  // });
-
-  // it("addToGallery lanza error si todas las imágenes ya están cargadas", async () => {
-  //   const file = new File([""], "image1.jpg");
-  //   const { result } = renderHook(() => useImages(file, [file]));
-
-  //   await act(() => {
-  //     result.current.addToGallery([new File([""], "image1.jpg")]);
-  //   });
-
-  //   expect(result.current.error).toBe("Todos los archivos ya estaban cargados");
-  //   expect(result.current.gallery).toEqual([file]);
-  // });
-
-  // it("addToGallery agrega solo imágenes no duplicadas y lanza error parcial", async () => {
-  //   const img1 = new File([""], "img1.jpg");
-  //   const img2 = new File([""], "img2.jpg");
-  //   const img3 = new File([""], "img3.jpg");
-
-  //   const { result } = renderHook(() => useImages(null, [img1]));
-
-  //   await act(() => {
-  //     result.current.addToGallery([img1, img2, img3]);
-  //   });
-
-  //   expect(result.current.gallery).toEqual([img1, img2, img3]);
-  //   expect(result.current.error).toBe(
-  //     "Algunas imágenes fueron ignoradas por duplicadas"
-  //   );
-  // });
-
-  // it("clearError limpia el mensaje de error", async () => {
-  //   const file = new File([""], "main.jpg");
-  //   const { result } = renderHook(() => useImages(file));
-
-  //   await act(() => {
-  //     result.current.setMain(new File([""], "main.jpg"));
-  //   });
-
-  //   expect(result.current.error).toBe("Esta imagen ya es la principal");
-
-  //   await act(() => {
-  //     result.current.clearError();
-  //   });
-
-  //   expect(result.current.error).toBeNull();
-  // });
 });
