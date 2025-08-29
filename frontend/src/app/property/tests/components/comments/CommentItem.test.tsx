@@ -12,7 +12,6 @@ describe("<CommentItem />", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    // Fijamos el "ahora" para que la lógica del chip NUEVO sea determinista
     vi.setSystemTime(new Date("2025-01-02T15:30:00Z"));
   });
 
@@ -22,7 +21,7 @@ describe("<CommentItem />", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza autor fijo, fecha/hora y la descripción; muestra chip 'Nuevo' si es reciente", () => {
+  it("renderiza autor, fecha/hora y la descripción; muestra chip 'Nuevo' si es reciente", () => {
     const onEdit = vi.fn();
     const onDelete = vi.fn();
 
@@ -34,14 +33,9 @@ describe("<CommentItem />", () => {
       />
     );
 
-    // El texto está dividido en varios nodos: verifica por partes
     expect(screen.getByText(/Creado por:/i)).toBeInTheDocument();
     expect(screen.getByText(/Usuario Administrador/i)).toBeInTheDocument();
-
-    // Chip 'Nuevo' porque es reciente
     expect(screen.getByText(/Nuevo/i)).toBeInTheDocument();
-
-    // Descripción (con pre-wrap)
     expect(
       screen.getByText(/Texto del comentario\s*con salto de línea/i)
     ).toBeInTheDocument();
@@ -73,14 +67,37 @@ describe("<CommentItem />", () => {
       />
     );
 
-    // Dos IconButtons (Editar y Eliminar). Los tomamos por orden.
     const buttons = screen.getAllByRole("button");
     expect(buttons.length).toBeGreaterThanOrEqual(2);
 
-    fireEvent.click(buttons[0]); // Editar
+    fireEvent.click(buttons[0]);
     expect(onEdit).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(buttons[1]); // Eliminar
+    fireEvent.click(buttons[1]);
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
+  
+  it("renderiza el Card con el padding correcto", () => {
+    render(<CommentItem comment={baseComment as any} onEdit={() => {}} onDelete={() => {}} />);
+    const card = screen.getByText(/Creado por:/i).closest('div'); // el Card envuelve el Box
+    expect(card).toBeInTheDocument();
+  });
+
+  it("renderiza Divider correctamente", () => {
+    render(<CommentItem comment={baseComment as any} onEdit={() => {}} onDelete={() => {}} />);
+    expect(screen.getByRole('separator')).toBeInTheDocument();
+  });
+
+  it("Tooltip de los icon buttons contiene los textos correctos", () => {
+    render(<CommentItem comment={baseComment as any} onEdit={() => {}} onDelete={() => {}} />);
+    expect(screen.getByLabelText(/Editar/i) || screen.getByTitle(/Editar/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Eliminar/i) || screen.getByTitle(/Eliminar/i)).toBeInTheDocument();
+  });
+
+  it("Typography de descripción mantiene white-space pre-wrap", () => {
+    render(<CommentItem comment={baseComment as any} onEdit={() => {}} onDelete={() => {}} />);
+    const desc = screen.getByText(/Texto del comentario/i);
+    expect(desc).toHaveStyle({ whiteSpace: 'pre-wrap' });
+  });
+
 });

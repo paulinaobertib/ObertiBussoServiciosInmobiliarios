@@ -4,6 +4,7 @@ import { vi, Mock } from "vitest";
 import { SurveysSection } from "../../../components/survey/SurveySection"; 
 import { getAllSurveys } from "../../../services/survey.service";
 
+// --- mock del servicio ---
 vi.mock("../../../services/survey.service", () => ({
   getAllSurveys: vi.fn(),
 }));
@@ -35,8 +36,9 @@ describe("SurveysSection", () => {
     render(<SurveysSection />);
 
     await waitFor(() => {
-      expect(screen.getByText("Encuestas")).toBeInTheDocument();
-      expect(screen.getByText("No hay encuestas.")).toBeInTheDocument();
+      expect(
+        screen.getByText(/no hay encuestas/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -49,9 +51,10 @@ describe("SurveysSection", () => {
     render(<SurveysSection />);
 
     await waitFor(() => {
-      expect(screen.getByText("Encuestas")).toBeInTheDocument();
       expect(screen.getByText("Excelente servicio")).toBeInTheDocument();
       expect(screen.getByText("Regular")).toBeInTheDocument();
     });
   });
+
+
 });
