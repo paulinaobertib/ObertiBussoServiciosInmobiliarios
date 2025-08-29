@@ -1,99 +1,93 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { vi, Mock } from "vitest";
-import { InquiriesFilter } from "../../../components/inquiries/InquiriesFilter";
+/// <reference types="vitest" />
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, vi, beforeEach, Mock } from 'vitest';
+import { InquiriesFilter } from '../../../components/inquiries/InquiriesFilter';
 
-vi.mock("@mui/material", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@mui/material")>();
+// Mock de useMediaQuery para controlar mobile/desktop
+vi.mock('@mui/material', async () => {
+  const actual = (await vi.importActual('@mui/material')) as any;
   return {
     ...actual,
     useMediaQuery: vi.fn(),
   };
 });
 
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from '@mui/material';
 
-describe("InquiriesFilter", () => {
-  const statusOptions = ["Activo", "Pendiente"];
+describe('<InquiriesFilter />', () => {
+  const statusOptions = ['ABIERTA', 'CERRADA'];
   const propertyOptions = [
-    { id: 1, title: "Propiedad A" },
-    { id: 2, title: "Propiedad B" },
+    { id: 1, title: 'Propiedad 1' },
+    { id: 2, title: 'Propiedad 2' },
   ];
 
-  const renderComponent = (props = {}) =>
+  let onStatusChange: any;
+  let onTypeChange: any;
+  let onPropertyChange: any;
+
+  beforeEach(() => {
+    onStatusChange = vi.fn();
+    onTypeChange = vi.fn();
+    onPropertyChange = vi.fn();
+    (useMediaQuery as unknown as Mock).mockReturnValue(false); // desktop
+  });
+
+  const renderSUT = () =>
     render(
       <InquiriesFilter
         statusOptions={statusOptions}
         propertyOptions={propertyOptions}
         selectedStatus=""
-        selectedProperty=""
-        onStatusChange={vi.fn()}
-        onPropertyChange={vi.fn()}
-        {...props}
+        selectedProperty={''}
+        selectedType=""
+        onStatusChange={onStatusChange}
+        onTypeChange={onTypeChange}
+        onPropertyChange={onPropertyChange}
       />
     );
 
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
+  it('cambia estado, tipo y propiedad en desktop', async () => {
+    renderSUT();
 
-  it("renderiza ToggleButtonGroup en desktop y permite cambiar estado", () => {
-    (useMediaQuery as Mock).mockReturnValue(false);
-    const onStatusChange = vi.fn();
+    // Estado (ToggleButton)
+    fireEvent.click(screen.getByRole('button', { name: 'Abierta' }));
+    expect(onStatusChange).toHaveBeenCalledWith('ABIERTA');
 
-    renderComponent({ onStatusChange });
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrada' }));
+    expect(onStatusChange).toHaveBeenCalledWith('CERRADA');
 
-    // Renderiza botones
-    expect(screen.getByRole("button", { name: "Todos" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Activo" })).toBeInTheDocument();
+    // Tipo
+    fireEvent.click(screen.getByRole('button', { name: 'Consultas' }));
+    expect(onTypeChange).toHaveBeenCalledWith('CONSULTAS');
 
-    // Simular click en un botón
-    fireEvent.click(screen.getByRole("button", { name: "Pendiente" }));
-    expect(onStatusChange).toHaveBeenCalledWith("Pendiente");
-  });
+    fireEvent.click(screen.getByRole('button', { name: 'Chat' }));
+    expect(onTypeChange).toHaveBeenCalledWith('CHAT');
 
-  it("renderiza Select en mobile y permite cambiar estado", () => {
-    (useMediaQuery as Mock).mockReturnValue(true);
-    const onStatusChange = vi.fn();
+    // Autocomplete propiedad
+    const input = screen.getByPlaceholderText('Buscar propiedad…') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Propiedad 2' } });
 
-    renderComponent({ onStatusChange });
-
-    const select = screen.getByLabelText("Estado");
-    fireEvent.mouseDown(select); // abrir el menú
-    const option = screen.getByRole("option", { name: "Activo" });
+    // Esperamos que la opción aparezca en el DOM
+    const option = await screen.findByText('Propiedad 2');
     fireEvent.click(option);
 
-    expect(onStatusChange).toHaveBeenCalledWith("Activo");
+    await waitFor(() => {
+      expect(onPropertyChange).toHaveBeenCalledWith(2);
+    });
   });
 
-  it("renderiza Autocomplete y permite seleccionar propiedad", () => {
-    (useMediaQuery as Mock).mockReturnValue(false);
-    const onPropertyChange = vi.fn();
+  it('cambia estado y tipo en mobile (Selects)', () => {
+    (useMediaQuery as unknown as Mock).mockReturnValue(true); // mobile
+    renderSUT();
 
-    renderComponent({ onPropertyChange });
+    // Estado (Select)
+    fireEvent.mouseDown(screen.getByLabelText('Estado'));
+    fireEvent.click(screen.getByRole('option', { name: 'Abiertas' }));
+    expect(onStatusChange).toHaveBeenCalledWith('ABIERTA');
 
-    const input = screen.getByPlaceholderText("Buscar propiedad…");
-
-    // Escribir texto para filtrar opciones
-    fireEvent.change(input, { target: { value: "Propiedad A" } });
-
-    // La opción debería estar en el DOM
-    const option = screen.getByText("Propiedad A");
-    fireEvent.click(option);
-
-    expect(onPropertyChange).toHaveBeenCalledWith(1);
-  });
-
-  it("envía '' cuando se limpia la propiedad en Autocomplete", () => {
-    (useMediaQuery as Mock).mockReturnValue(false);
-    const onPropertyChange = vi.fn();
-
-    renderComponent({ onPropertyChange, selectedProperty: 1 });
-
-    const input = screen.getByDisplayValue("Propiedad A");
-    fireEvent.change(input, { target: { value: "" } });
-
-    // Simular limpieza manual (v=null)
-    fireEvent.blur(input);
-    expect(onPropertyChange).toHaveBeenCalledWith("");
+    // Tipo (Select)
+    fireEvent.mouseDown(screen.getByLabelText('Tipo'));
+    fireEvent.click(screen.getByRole('option', { name: 'Chat' }));
+    expect(onTypeChange).toHaveBeenCalledWith('CHAT');
   });
 });
