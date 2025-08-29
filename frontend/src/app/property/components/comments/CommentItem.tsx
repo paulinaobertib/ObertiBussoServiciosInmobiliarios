@@ -32,22 +32,24 @@ export const CommentItem = ({ comment, onEdit, onDelete }: Props) => {
                 <Box>
                     {isNew && <Chip label="Nuevo" color="primary" size="small" sx={{ mr: 1 }} />}
 
-                    <Tooltip title="Editar">
-                        <IconButton size="small" onClick={onEdit}>
-                            <EditIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Eliminar">
-                        <IconButton size="small" onClick={onDelete}>
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
+                    <Box display={'flex'}>
+                        <Tooltip title="Editar">
+                            <IconButton size="small" onClick={onEdit}>
+                                <EditIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Eliminar">
+                            <IconButton size="small" onClick={onDelete}>
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
                 </Box>
             </Box>
             <Divider sx={{ my: 1 }} />
             <Typography variant="body1" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>
                 {comment.description}
             </Typography>
-        </Card>
+        </Card >
     );
 };
