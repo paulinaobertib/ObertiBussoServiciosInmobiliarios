@@ -122,7 +122,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     }
   };
 
-
   const buildSearchParams = useCallback((numeric: Partial<SearchParams>) => {
     const amNames = selected.amenities
       .map(id => amenitiesList.find(a => a.id === id)?.name)

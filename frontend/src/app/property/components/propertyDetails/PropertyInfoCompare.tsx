@@ -80,35 +80,45 @@ export const PropertyInfoCompare = ({ property }: Props) => {
         <Chip label={property.status} size='small' variant='outlined' sx={{ fontSize: '0.75rem' }} />
       </Box>
 
-      {/* Specifications Title with reserved space */}
-      {features.length > 0 && (
+      {/* Two-column Features & Amenities */}
+      {(features.length || amenities.length) && (
         <Box>
           <Divider />
-          <Typography variant='subtitle1' fontWeight={600} sx={{ mt: 2 }}>
-            Especificaciones
-          </Typography>
-          <Stack spacing={1.5} sx={{ mt: 1, overflow: 'hidden' }}>
-            {features.map((f, i) => (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '1.5rem' }}>
-                {f.icon}
-                <Typography variant='body2'>{f.label}</Typography>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
-      )}
+          <Box
+            sx={{
+              mt: 2,
+              display: 'grid',
+              // 2 columnas en todos los breakpoints (incluido xs)
+              gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', sm: 'repeat(2, minmax(0,1fr))' },
+              columnGap: { xs: 2, sm: 3 },
+              rowGap: 2,
+              alignItems: 'start',
+            }}
+          >
+            {/* Especificaciones (izquierda) */}
+            <Stack spacing={{ xs: 1.25, sm: 2 }}>
+              <Typography variant='subtitle1' fontWeight={600}>Especificaciones</Typography>
+              {features.map((f, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                  {f.icon}
+                  <Typography variant='body2'>{f.label}</Typography>
+                </Box>
+              ))}
+            </Stack>
 
-      {/* Amenities Title with reserved space */}
-      {amenities.length > 0 && (
-        <Box>
-          <Divider />
-          <Typography variant='subtitle1' fontWeight={600} sx={{ mt: 2 }}>
-            Características
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mt: 1, overflow: 'hidden' }}>
-            {rawAmenities.map((am, i) => (
-              <Chip key={keyOfAmenity(am, i)} label={labelOfAmenity(am)} size='small' variant='outlined' sx={{ fontSize: '0.75rem' }} />
-            ))}
+            <Stack spacing={{ xs: 1, sm: 1.25 }}>
+              <Typography variant='subtitle1' fontWeight={600}>Características</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {rawAmenities.map((am, i) => (
+                  <Chip
+                    key={keyOfAmenity(am, i)}
+                    label={labelOfAmenity(am)}
+                    size='small'
+                    variant='outlined'
+                  />
+                ))}
+              </Box>
+            </Stack>
           </Box>
         </Box>
       )}

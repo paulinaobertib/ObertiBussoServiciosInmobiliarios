@@ -1,9 +1,6 @@
-// src/app/appointment/components/Calendar.tsx
 import { useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import {
-  LocalizationProvider,
-} from '@mui/x-date-pickers/LocalizationProvider';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { Box } from '@mui/material';
@@ -13,10 +10,7 @@ export interface Props {
   initialDate?: Dayjs;
 }
 
-export const Calendar = ({
-  onSelectDate,
-  initialDate = dayjs(),
-}: Props) => {
+export const Calendar = ({ onSelectDate, initialDate = dayjs() }: Props) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(initialDate);
 
   const handleDayChange = (d: Dayjs | null) => {
@@ -27,12 +21,18 @@ export const Calendar = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box >
+      <Box sx={{ width: '100%', display: 'grid', placeItems: 'center' }}>
         <DateCalendar
           value={selectedDate}
           onChange={handleDayChange}
           disablePast
-          shouldDisableDate={d => d.day() === 0 || d.day() === 6}
+          shouldDisableDate={(d) => d.day() === 0 || d.day() === 6}
+          // Responsivo y centrado
+          sx={{
+            width: '100%',
+            maxWidth: 360,
+            mx: 'auto',
+          }}
         />
       </Box>
     </LocalizationProvider>

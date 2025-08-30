@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { getPropertyById } from "../services/property.service";
 import { getCommentsByPropertyId } from "../services/comment.service";
 import { getMaintenancesByPropertyId } from "../services/maintenance.service";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const usePropertyNotes = (propertyId: number) => {
+  const { handleError } = useApiErrors();
   const [property, setProperty] = useState<any>();
   const [comments, setComments] = useState<any[]>([]);
   const [maintenances, setMaintenances] = useState<any[]>([]);
@@ -18,20 +20,23 @@ export const usePropertyNotes = (propertyId: number) => {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    Promise.all([
-      getPropertyById(propertyId),
-      getCommentsByPropertyId(propertyId),
-      getMaintenancesByPropertyId(propertyId),
-    ])
-      .then(([prop, coms, mains]) => {
+    (async () => {
+      try {
+        const [prop, coms, mains] = await Promise.all([
+          getPropertyById(propertyId),
+          getCommentsByPropertyId(propertyId),
+          getMaintenancesByPropertyId(propertyId),
+        ]);
         if (!mounted) return;
         setProperty(prop);
         setComments(coms ?? []);
         setMaintenances(mains ?? []);
-      })
-      .finally(() => {
+      } catch (e) {
+        if (mounted) handleError(e);
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    })();
     return () => {
       mounted = false;
     };
@@ -39,16 +44,26 @@ export const usePropertyNotes = (propertyId: number) => {
 
   const refreshComments = useCallback(async () => {
     setLoadingComments(true);
-    const coms = await getCommentsByPropertyId(propertyId);
-    setComments(coms ?? []);
-    setLoadingComments(false);
+    try {
+      const coms = await getCommentsByPropertyId(propertyId);
+      setComments(coms ?? []);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setLoadingComments(false);
+    }
   }, [propertyId]);
 
   const refreshMaintenances = useCallback(async () => {
     setLoadingMaintenances(true);
-    const mains = await getMaintenancesByPropertyId(propertyId);
-    setMaintenances(mains ?? []);
-    setLoadingMaintenances(false);
+    try {
+      const mains = await getMaintenancesByPropertyId(propertyId);
+      setMaintenances(mains ?? []);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setLoadingMaintenances(false);
+    }
   }, [propertyId]);
 
   return {

@@ -1,8 +1,6 @@
-import {
-  Box, TextField, Button, Stack,
-  CircularProgress, Typography,
-} from '@mui/material';
+import { Box, TextField, Stack, Typography, } from '@mui/material';
 import { useInquiryForm } from '../../hooks/useInquiryForm';
+import { LoadingButton } from '@mui/lab';
 
 interface Props {
   propertyIds?: number[];
@@ -12,7 +10,6 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
   const {
     form,
     formLoading,
-    formError,
     submitted,
     handleChange,
     handleSubmit,
@@ -97,26 +94,15 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           required
         />
 
-        {formError && (
-          <Typography color="error" align="center">
-            {formError}
-          </Typography>
-        )}
-
-        <Button
+        <LoadingButton
+          loading={formLoading}
           type="submit"
           variant="contained"
           disabled={formLoading}
           fullWidth
-          startIcon={
-            formLoading
-              ? <CircularProgress size={20} color="inherit" />
-              : undefined
-          }
-          sx={{ mt: 'auto' }}
         >
-          {formLoading ? 'Enviando…' : 'Enviar Consulta'}
-        </Button>
+          Enviar Consulta
+        </LoadingButton>
       </Stack>
     </Box>
   );
