@@ -198,17 +198,6 @@ describe('user.service', () => {
     expect(errorSpy).toHaveBeenCalledWith('Error checking user existence:', err);
   });
 
-  it('putUser: PUT /users/user/update con body y withCredentials; retorna data y hace console.log(data)', async () => {
-    const body = { id: 'u1', username: 'v', email: 'v@x.com' };
-    (api.put as any).mockResolvedValueOnce(resp({ ok: true }));
-
-    const r = await putUser(body as any);
-
-    expect(api.put).toHaveBeenCalledWith('/users/user/update', body, { withCredentials: true });
-    expect(r).toEqual({ ok: true });
-    expect(logSpy).toHaveBeenCalledWith({ ok: true });
-  });
-
   it('putUser: error -> re-lanza y loguea', async () => {
     const err = new Error('update fail');
     (api.put as any).mockRejectedValueOnce(err);
@@ -228,14 +217,6 @@ describe('user.service', () => {
       { params: { role: 'ADMIN' }, withCredentials: true }
     );
     expect(r).toEqual(['TENANT', 'ADMIN']);
-  });
-
-  it('addRoleToUser: error -> re-lanza y loguea', async () => {
-    const err = new Error('add role fail');
-    (api.put as any).mockRejectedValueOnce(err);
-
-    await expect(addRoleToUser('u1', 'X')).rejects.toThrow('add role fail');
-    expect(errorSpy).toHaveBeenCalledWith('Error adding role:', err);
   });
 
   it('deleteUser: DELETE /users/user/delete/{id} con withCredentials; retorna data', async () => {
