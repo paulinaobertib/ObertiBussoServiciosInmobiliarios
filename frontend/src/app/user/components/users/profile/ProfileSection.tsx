@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Typography, Collapse, Button } from '@mui/material';
+import { Box, CircularProgress, Collapse, Button } from '@mui/material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useProfile } from '../../../hooks/useProfile';
@@ -11,7 +11,7 @@ import { deleteUser } from '../../../services/user.service';
 import { useAuthContext } from '../../../context/AuthContext';
 
 export function ProfileSection() {
-  const { profile, loading, error, updateProfile } = useProfile();
+  const { profile, loading, updateProfile } = useProfile();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<User | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,9 +56,7 @@ export function ProfileSection() {
             alert('No hay información de usuario. No puedes eliminar el perfil.');
             return;
           }
-          console.log("Intentando eliminar usuario con id:", info.id);
-          const res = await deleteUser(info.id); // Asegurate que deleteUser es una función
-          console.log("Respuesta de eliminación:", res);
+          await deleteUser(info.id); // Asegurate que deleteUser es una función
 
           // Limpiar sesión/contexto
           setInfo(null);
@@ -66,7 +64,6 @@ export function ProfileSection() {
           localStorage.clear();
           logout();
         } catch (err) {
-          console.error("Error eliminando usuario:", err);
 
           // Si usás Axios, esto es lo más seguro:
           if (
@@ -122,10 +119,6 @@ export function ProfileSection() {
         {loading && !userData ? (
           <Box textAlign="center" my={4}>
             <CircularProgress />
-          </Box>
-        ) : error && !userData ? (
-          <Box textAlign="center" my={4}>
-            <Typography color="error">{error}</Typography>
           </Box>
         ) : (
           <Box
