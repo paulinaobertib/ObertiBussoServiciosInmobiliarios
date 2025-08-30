@@ -82,7 +82,7 @@ describe('FloatingButtons', () => {
     const settingsButton = screen.getByLabelText(/Acciones de Propiedad/i);
     fireEvent.click(settingsButton);
 
-    // Los actions se identifican por aria-label (no por title)
+    // Los actions se identifican por aria-label
     const addButton = await screen.findByLabelText(/Agregar/i);
     const editButton = await screen.findByLabelText(/Editar/i);
     const deleteButton = await screen.findByLabelText(/Eliminar/i);
@@ -118,4 +118,64 @@ describe('FloatingButtons', () => {
     expect(mockToggleSelectionMode).toHaveBeenCalled();
   });
 
+  it('deshabilita el botón "Comparer" cuando disabledCompare=true y no dispara onCompare', () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: false });
+    (usePropertiesContext as any).mockReturnValue({ disabledCompare: true });
+
+    render(
+      <FloatingButtons
+        onAction={mockOnAction}
+        selectionMode={false}
+        toggleSelectionMode={mockToggleSelectionMode}
+        onCompare={mockOnCompare}
+      />
+    );
+
+    const compareImg = screen.getByAltText('Comparer');
+    const compareBtn = compareImg.closest('button') as HTMLButtonElement;
+
+    expect(compareBtn).toBeDisabled();
+
+    fireEvent.click(compareBtn);
+    expect(mockOnCompare).not.toHaveBeenCalled(); // no debe disparar por estar disabled
+  });
+
+  it('no muestra FABs de usuario cuando es admin (solo SpeedDial)', () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+
+    render(
+      <FloatingButtons
+        onAction={mockOnAction}
+        selectionMode={false}
+        toggleSelectionMode={mockToggleSelectionMode}
+        onCompare={mockOnCompare}
+      />
+    );
+
+    expect(screen.queryByAltText('Comparer')).not.toBeInTheDocument();
+    expect(screen.queryByAltText('Select')).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Acciones de Propiedad/i)).toBeInTheDocument();
+  });
+
+  it('cuando selectionMode=false, al elegir una acción NO llama toggleSelectionMode (solo onAction)', async () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+
+    render(
+      <FloatingButtons
+        onAction={mockOnAction}
+        selectionMode={false}
+        toggleSelectionMode={mockToggleSelectionMode}
+        onCompare={mockOnCompare}
+      />
+    );
+
+    const settingsButton = screen.getByLabelText(/Acciones de Propiedad/i);
+    fireEvent.click(settingsButton);
+
+    const editButton = await screen.findByLabelText(/Editar/i);
+    fireEvent.click(editButton);
+
+    expect(mockOnAction).toHaveBeenCalledWith('edit');
+    expect(mockToggleSelectionMode).not.toHaveBeenCalled();
+  });
 });
