@@ -40,7 +40,7 @@ export const GenerateSlotsDialog = ({ open, onClose }: Props) => {
 
   return (
     <Modal open={open} title="Generar turnos" onClose={onClose}>
-      <Stack spacing={3}>
+      <Stack spacing={1}>
         <Calendar initialDate={genDate} onSelectDate={setGenDate} />
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -62,7 +62,7 @@ export const GenerateSlotsDialog = ({ open, onClose }: Props) => {
           />
         </Stack>
 
-        <Alert severity="info">
+        <Alert severity="error">
           Se generarán <strong>{slots.length}</strong> turnos cada&nbsp;30&nbsp;min.
         </Alert>
 
