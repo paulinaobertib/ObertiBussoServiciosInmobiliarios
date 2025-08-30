@@ -121,4 +121,29 @@ describe("<Calendar />", () => {
     expect(lastDateCalendarProps).toBeTruthy();
     expect(dayjs.isDayjs(lastDateCalendarProps.value)).toBe(true);
   });
+
+    it("renderiza dentro de LocalizationProvider (mockeado) y expone el contenido", () => {
+    const onSelectDate = vi.fn();
+    render(<Calendar onSelectDate={onSelectDate} />);
+    expect(screen.getByTestId("lp")).toBeInTheDocument(); // wrapper del provider
+    // y el DateCalendar mock está adentro (usa el div con value-string como prueba de vida)
+    expect(screen.getByTestId("value-string")).toBeInTheDocument();
+  });
+
+  it("pasa estilos de layout en sx al DateCalendar", () => {
+    const initial = dayjs("2025-06-10T10:00:00.000Z");
+    const onSelectDate = vi.fn();
+
+    render(<Calendar initialDate={initial} onSelectDate={onSelectDate} />);
+
+    expect(lastDateCalendarProps).toBeTruthy();
+    // Verificamos que el sx contenga las claves de layout declaradas en el componente
+    expect(lastDateCalendarProps.sx).toEqual(
+      expect.objectContaining({
+        width: "100%",
+        maxWidth: 360,
+        mx: "auto",
+      })
+    );
+  });
 });
