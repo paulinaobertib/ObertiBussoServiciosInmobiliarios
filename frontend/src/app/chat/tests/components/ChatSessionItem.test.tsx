@@ -1,51 +1,45 @@
 /// <reference types="vitest" />
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { ChatSessionItem } from "../../../chat/components/ChatSessionItem";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
 
-// ======= Mocks =======
 const mockNavigate = vi.fn();
-
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
+  const actual = await vi.importActual<any>("react-router-dom");
+  return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// Mock de AuthContext (el componente lo llama pero no usa valores)
 vi.mock("../../../user/context/AuthContext", () => ({
   useAuthContext: () => ({}),
 }));
 
-const buildRouteMock = vi.fn(( id: number) => `/details/${id}`);
+const useMediaQueryMock = vi.fn().mockReturnValue(false);
+vi.mock("@mui/material", async () => {
+  const actual = await vi.importActual<any>("@mui/material");
+  return { ...actual, useMediaQuery: (...args: any[]) => useMediaQueryMock(...args) };
+});
+
+// Solo usamos el id, ignoramos el primer arg
+const buildRouteMock = vi.fn((_: string, id: number) => `/details/${id}`);
 vi.mock("../../../../lib", () => ({
   ROUTES: { PROPERTY_DETAILS: "/details/:id" },
-  // tipar la firma exacta evita el error del spread
-  buildRoute: (id: number) => buildRouteMock(id),
+  buildRoute: (_: string, id: number) => buildRouteMock(_, id),
 }));
 
-const getPropertyById = vi.fn<(id: number) => Promise<{ id: number; title: string }>>();
-vi.mock("../../../property/services/property.service", () => ({
-  // idem: firma explícita
-  getPropertyById: (id: number) => getPropertyById(id),
-}));
+import { ChatSessionItem } from "../../../chat/components/ChatSessionItem";
 
-// Helper render con Theme
 const renderWithTheme = (ui: React.ReactElement) => {
   const theme = createTheme();
   return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 };
 
-// ======= Fixtures =======
 const baseSession = {
   id: 10,
   propertyId: 123,
-  date: "2025-01-02T15:30:00.000Z",
+  date: "2025-01-02T15:30:00",
   dateClose: null,
   firstName: "Ana",
   lastName: "Test",
@@ -53,77 +47,93 @@ const baseSession = {
   phone: "123456",
 } as any;
 
-// ======= Tests =======
 describe("ChatSessionItem", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useMediaQueryMock.mockReturnValue(false);
   });
 
-  it("si getPropertyById falla, el chip muestra 'ID: <propertyId>'", async () => {
-    getPropertyById.mockRejectedValueOnce(new Error("boom"));
-
-    const onClose = vi.fn();
-    renderWithTheme(
-      <ChatSessionItem session={{ ...baseSession, propertyId: 99 }} loading={false} onClose={onClose} />
-    );
-
-    // Debe caer al fallback de ID
-    const chip = await screen.findByText("ID: 99");
-    expect(chip).toBeInTheDocument();
+  afterEach(() => {
+    cleanup();
   });
 
   it("muestra 'Consulta general' cuando no hay propertyId", () => {
     const session = { ...baseSession, propertyId: null };
-    const onClose = vi.fn();
-
-    renderWithTheme(<ChatSessionItem session={session} loading={false} onClose={onClose} />);
+    renderWithTheme(<ChatSessionItem session={session} loading={false} onClose={vi.fn()} />);
 
     expect(screen.getByText(/Consulta general/i)).toBeInTheDocument();
-    // No debería haber chip clickeable
-    expect(screen.queryByRole("button", { name: /ID:/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("cuando la sesión está cerrada, muestra botón 'Resuelta' deshabilitado", () => {
-    const session = { ...baseSession, dateClose: "2025-02-01T10:00:00.000Z" };
-    const onClose = vi.fn();
-
-    renderWithTheme(<ChatSessionItem session={session} loading={false} onClose={onClose} />);
-
-    const btn = screen.getByRole("button", { name: /Resuelta/i });
-    expect(btn).toBeDisabled();
-  });
-
-  it("cuando la sesión está abierta, muestra 'Cerrar chat' y dispara onClose(id)", async () => {
-    const onClose = vi.fn();
-
-    renderWithTheme(<ChatSessionItem session={baseSession} loading={false} onClose={onClose} />);
-
-    const btn = screen.getByRole("button", { name: /Cerrar chat/i });
-    expect(btn).toBeEnabled();
-
-    await userEvent.click(btn);
-    expect(onClose).toHaveBeenCalledWith(10);
-  });
-
-  it("pasa la prop 'loading' al LoadingButton (se deshabilita mientras carga)", async () => {
-    const onClose = vi.fn();
-
-    const { rerender } = renderWithTheme(
-      <ChatSessionItem session={baseSession} loading={false} onClose={onClose} />
+  it("muestra chip con el propertyTitle provisto y navega al detalle al clickear", () => {
+    renderWithTheme(
+      <ChatSessionItem
+        session={{ ...baseSession, propertyId: 77 }}
+        loading={false}
+        onClose={vi.fn()}
+        propertyTitle="Depto céntrico"
+      />
     );
 
-    let btn = screen.getByRole("button", { name: /Cerrar chat/i });
-    expect(btn).toBeEnabled();
+    const chip = screen.getByRole("button", { name: /depto céntrico/i });
+    fireEvent.click(chip);
+    expect(buildRouteMock).toHaveBeenCalledWith("/details/:id", 77);
+    expect(mockNavigate).toHaveBeenCalledWith("/details/77");
+  });
 
-    // Re-render con loading=true
-    rerender(
-      <ThemeProvider theme={createTheme()}>
-        <ChatSessionItem session={baseSession} loading={true} onClose={onClose} />
-      </ThemeProvider>
+  it("si no se pasa propertyTitle, el chip muestra 'ID: <propertyId>'", () => {
+    renderWithTheme(
+      <ChatSessionItem session={{ ...baseSession, propertyId: 99 }} loading={false} onClose={vi.fn()} />
     );
 
-    // LoadingButton con loading suele quedar disabled
-    btn = screen.getByRole("button", { name: /Cerrar chat/i });
-    expect(btn).toBeDisabled();
+    const chip = screen.getByRole("button", { name: /ID: 99/i });
+    fireEvent.click(chip);
+    expect(buildRouteMock).toHaveBeenCalledWith("/details/:id", 99);
+    expect(mockNavigate).toHaveBeenCalledWith("/details/99");
+  });
+
+  it("muestra datos de contacto (con teléfono)", () => {
+    renderWithTheme(<ChatSessionItem session={baseSession} loading={false} onClose={vi.fn()} />);
+
+    const userLine = screen.getByText(/Usuario:/i).parentElement!;
+    expect(userLine).toHaveTextContent("Usuario:");
+    expect(userLine).toHaveTextContent("Ana Test");
+
+    const emailLine = screen.getByText(/Email:/i).parentElement!;
+    expect(emailLine).toHaveTextContent("Email:");
+    expect(emailLine).toHaveTextContent("ana@test.com");
+
+    const telLine = screen.getByText(/Teléfono:/i).parentElement!;
+    expect(telLine).toHaveTextContent("Teléfono:");
+    expect(telLine).toHaveTextContent("123456");
+  });
+
+  it("oculta teléfono cuando no existe", () => {
+    renderWithTheme(
+      <ChatSessionItem session={{ ...baseSession, phone: "" }} loading={false} onClose={vi.fn()} />
+    );
+    expect(screen.queryByText(/Teléfono:/i)).not.toBeInTheDocument();
+  });
+
+  it("renderiza en mobile (useMediaQuery=true) sin romper el layout", () => {
+    useMediaQueryMock.mockReturnValue(true);
+    renderWithTheme(<ChatSessionItem session={baseSession} loading={false} onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Título:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Consulta via ChatBot/i)).toBeInTheDocument();
+  });
+
+  it("muestra la fecha de consulta con formato en español (usando dayjs como el SUT)", () => {
+    renderWithTheme(<ChatSessionItem session={baseSession} loading={false} onClose={vi.fn()} />);
+
+    const expectedDatePart = dayjs(baseSession.date)
+      .locale("es")
+      .format("D [de] MMM YYYY");
+
+    // Tomamos la última coincidencia dentro de este render para evitar colisiones
+    const labels = screen.getAllByText(/Fecha de consulta:/i);
+    const strongFecha = labels[labels.length - 1];
+    const linea = strongFecha.parentElement!;
+    expect(linea.textContent).toContain(expectedDatePart);
   });
 });

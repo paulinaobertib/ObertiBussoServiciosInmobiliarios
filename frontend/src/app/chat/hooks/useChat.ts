@@ -1,52 +1,54 @@
 import { useState } from "react";
 import { createChat } from "../services/chat.service";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 interface ChatMessage {
-    from: "user" | "system";
-    content: string;
-    options?: string[];
+  from: "user" | "system";
+  content: string;
+  options?: string[];
 }
 
 export const useChat = () => {
-    const [messages, setMessages] = useState<ChatMessage[]>([])
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
+  const { handleError } = useApiErrors();
 
-    const sendMessage = async(option: string, propertyId: number, sessionId: number) => {
-        try {
-            setLoading(true);
-            setMessages((prev) => [...prev, { from: "user", content: option}])
-            const result = await createChat(option, propertyId, sessionId);
-            setMessages((prev) => [...prev, { from: "system", content: result}])
-            return result;
-        } catch (err) {
-            setError(err as Error);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const sendMessage = async (option: string, propertyId: number, sessionId: number) => {
+    setLoading(true);
+    // mostramos el mensaje del usuario inmediatamente
+    setMessages((prev) => [...prev, { from: "user", content: option }]);
+
+    try {
+      const res = await createChat(option, propertyId, sessionId);
+      const reply = (res as any)?.data ?? res; // Axios-safe
+      setMessages((prev) => [...prev, { from: "system", content: String(reply) }]);
+      return reply;
+    } catch (e) {
+      handleError(e); // toast + string legible
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const addSystemMessage = (content: string) => {
-        setMessages((prev) => [...prev, { from: "system", content }]);
-    };
+  const addSystemMessage = (content: string) => {
+    setMessages((prev) => [...prev, { from: "system", content }]);
+  };
 
-    const addUserMessage = (content: string) => {
-        setMessages((prev) => [...prev, { from: "user", content }]);
-    };
+  const addUserMessage = (content: string) => {
+    setMessages((prev) => [...prev, { from: "user", content }]);
+  };
 
+  const clearMessages = () => {
+    setMessages([]);
+  };
 
-    const clearMessages = () => {
-        setMessages([]);
-    };
-
-    return {
-        messages,
-        loading,
-        error,
-        sendMessage,
-        addSystemMessage,
-        addUserMessage,
-        clearMessages
-    }
-}
+  return {
+    messages,
+    loading,
+    sendMessage,
+    addSystemMessage,
+    addUserMessage,
+    clearMessages,
+  };
+};

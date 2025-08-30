@@ -1,4 +1,3 @@
-// src/app/user/components/users/panel/UsersSection.tsx
 import React, { useState } from "react";
 import { Box, CircularProgress, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -10,16 +9,38 @@ import { UserForm } from "./UserForm";
 import { RoleForm } from "./RoleForm";
 import { Modal } from "../../../../shared/components/Modal";
 import { GridSection } from "../../../../shared/components/GridSection";
-import type { User } from "../../../types/user";
+import type { User, Role } from "../../../types/user";
+
+const ROLE_TRANSLATE: Record<Role, string> = {
+    admin: "Administrador",
+    user: "Usuario",
+    tenant: "Inquilino",
+};
+
+const translateRoles = (raw: unknown): string => {
+    if (!Array.isArray(raw) || raw.length === 0) return "—";
+
+    // normalizamos a array de strings
+    const names = raw.map((r: any) =>
+        typeof r === "string" ? r : r?.name ?? ""
+    );
+
+    return names
+        .filter(Boolean)
+        .map((n) => ROLE_TRANSLATE[n as Role])
+        .join(", ");
+};
 
 export function UsersSection({
     toggleSelect,
     isSelected,
     showActions = true,
+    selectable = true,
 }: {
     toggleSelect?: (id: string | null) => void;
     isSelected?: (id: string) => boolean;
     showActions?: boolean;
+    selectable?: boolean;
 }) {
     const { users, loading, load, fetchAll, fetchByText } = useUsers();
 
@@ -122,23 +143,15 @@ export function UsersSection({
 
     // Columnas del grid, ahora con íconos
     const columns = [
-        {
-            field: "fullName",
-            headerName: "Nombre completo",
-            flex: 1,
-            renderCell: (params: any) =>
-                `${params.row.firstName} ${params.row.lastName}`,
-            sortable: false,
-            filterable: false,
-        },
+        { field: "firstName", headerName: "Nombre", flex: 1, },
+        { field: "lastName", headerName: "Apellido", flex: 1, },
         { field: "email", headerName: "Email", flex: 1 },
         { field: "phone", headerName: "Teléfono", flex: 1 },
         {
             field: "roles",
             headerName: "Roles",
             flex: 1,
-            renderCell: (params: any) =>
-                Array.isArray(params.row.roles) ? params.row.roles.join(", ") : "—",
+            renderCell: (params: any) => translateRoles(params.row.roles),
             sortable: false,
             filterable: false,
         },
@@ -221,6 +234,7 @@ export function UsersSection({
                 fetchAll={fetchAll}
                 fetchByText={fetchByText}
                 multiSelect={false}
+                selectable={selectable}
             />
             <Modal
                 open={modalOpen}

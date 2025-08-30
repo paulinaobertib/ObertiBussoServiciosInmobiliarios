@@ -1,16 +1,40 @@
 import { useEffect, useState } from "react";
 import { useComparerProperty } from "../../hooks/useComparer";
 import { PropertyDTOAI } from "../../types/property";
-import { Box, CircularProgress, Typography, Paper, Avatar, Fade } from "@mui/material";
+import { Box, CircularProgress, Typography, Paper, Fade, Fab, useTheme, Tooltip } from "@mui/material";
 import houseIcon from "../../../../assets/ic_casa2.png"
 
 type Props = {
   data: PropertyDTOAI[];
 };
 
+const bubbleBase = {
+  p: 2,
+  borderRadius: 2,
+  border: "2px solid #EB7333",
+  position: "relative" as const,
+  maxWidth: { xs: "100%", sm: "70%" },
+  wordBreak: "break-word" as const,
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    width: 0,
+    height: 0,
+
+    // Flecha
+    bottom: { xs: -20, sm: 20 },
+    left: { xs: 14, sm: -20 },
+
+    borderLeft: { xs: "10px solid transparent", sm: "10px solid transparent" },
+    borderRight: { xs: "10px solid transparent", sm: "10px solid #EE671E" },
+    borderTop: { xs: "10px solid #EE671E", sm: "10px solid transparent" },
+    borderBottom: { xs: "10px solid transparent", sm: "10px solid transparent" },
+  },
+} as const;
+
 export const Comparer = ({ data }: Props) => {
   const { compare, loading, result, error } = useComparerProperty();
-
+  const theme = useTheme();
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
@@ -20,34 +44,65 @@ export const Comparer = ({ data }: Props) => {
   }, [data]);
 
   return (
-    <Box sx={{ pl: 2, display: "flex", alignItems: "flex-start", maxWidth: 700, mx: "auto" }}>
-      <Avatar onClick={() => setOpen((o) => !o)} sx={{ mr: 1.5, bgcolor: "#EE671E", width: 56, height: 56, fontSize: 30, cursor: "pointer", userSelect: "none" }}>
-        <img src={houseIcon} alt="House" style={{ width: '2.2rem', height: '2.2rem' }} />
-      </Avatar>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column-reverse", sm: "row" },
+        alignItems: { xs: "flex-start", sm: "flex-end" },
+        gap: 2,
+      }}
+    >
+      <Tooltip title={'Comparación'} arrow>
+
+        <Fab onClick={() => setOpen((o) => !o)}
+          sx={{
+            bgcolor: "#EE671E",
+            width: { xs: "3.5rem" },
+            height: { xs: "3.5rem" },
+            cursor: "pointer",
+            userSelect: "none",
+            '&:hover': { bgcolor: theme.palette.primary.dark },
+          }}
+        >
+          <img src={houseIcon} alt="House" style={{ width: '2.2rem', height: '2.2rem' }} />
+        </Fab>
+      </Tooltip>
 
       {open && (
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           {loading && (
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 4, border: "2px solid #EB7333", position: "relative", backgroundColor: "#EB7333", "::before": { content: "''", position: "absolute", left: -10, top: 20, width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderRight: "10px solid #EE671E" } }}>
+            <Paper
+              sx={{
+                ...bubbleBase,
+                backgroundColor: "#EB7333",
+              }}
+            >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <CircularProgress size={18} sx={{ color: "#FED7AA" }} />
-                <Typography variant="body1" sx={{ color: "#FED7AA" }}>Estoy analizando las propiedades...</Typography>
+                <Typography sx={{ color: "#FED7AA", fontSize: { xs: "1rem", sm: "0.9rem" } }}>Estoy analizando las propiedades...</Typography>
               </Box>
             </Paper>
           )}
 
           {error && (
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 4, border: "2px solid red", backgroundColor: "#ffe5e5" }} >
-              <Typography variant="body2" color="error">
+            <Paper sx={{ p: 2, borderRadius: 4, border: "2px solid red", backgroundColor: "#ffe5e5" }} >
+              <Typography color="error" sx={{ fontSize: { xs: "1rem", sm: "0.9rem" } }}>
                 {error}
               </Typography>
             </Paper>
           )}
 
           {result && (
-            <Fade in={true} timeout={600}>
-              <Paper elevation={4} sx={{ p: 2, borderRadius: 4, backgroundColor: "#f5f5f5", border: "2px solid #EB7333", position: "relative", "::before": { content: "''", position: "absolute", left: -10, top: 20, width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderRight: "10px solid #EE671E" } }} >
-                <Typography variant="body1">{result}</Typography>
+            <Fade in timeout={600}>
+              <Paper
+                sx={{
+                  ...bubbleBase,
+                  backgroundColor: "#f5f5f5",
+                }}
+              >
+                <Typography sx={{ fontSize: { xs: "1rem", sm: "0.9rem" } }}>
+                  {result}
+                </Typography>
               </Paper>
             </Fade>
           )}

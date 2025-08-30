@@ -20,7 +20,8 @@ const formRegistry = {
   neighborhood: NeighborhoodForm,
 } as const;
 
-export const CategorySection = ({ category }: { category: Category }) => {
+export const CategorySection = ({ category, selectable = true,
+}: { category: Category, selectable?: boolean }) => {
   const {
     data,
     loading,
@@ -62,7 +63,7 @@ export const CategorySection = ({ category }: { category: Category }) => {
     }
     // Definimos campos a buscar según categoría
     const columnsMap: Record<Category, string[]> = {
-      owner: ['fullName', 'email', 'phone'],
+      owner: ['firstName', 'lastName', 'email', 'phone'],
       amenity: ['name'],
       type: ['name'],
       neighborhood: ['name', 'city', 'type'],
@@ -81,7 +82,8 @@ export const CategorySection = ({ category }: { category: Category }) => {
   // Columnas dinámicas
   const headersMap: Record<Category, { field: string; headerName: string }[]> = {
     owner: [
-      { field: 'fullName', headerName: 'Nombre Completo' },
+      { field: 'firstName', headerName: 'Nombre' },
+      { field: 'lastName', headerName: 'Apellido' },
       { field: 'email', headerName: 'Email' },
       { field: 'phone', headerName: 'Teléfono' },
     ],
@@ -111,9 +113,9 @@ export const CategorySection = ({ category }: { category: Category }) => {
       flex: 1,
       renderCell: isBooleanField
         ? (params: any) => {
-            const value = params.row?.[col.field];
-            return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
-          }
+          const value = params.row?.[col.field];
+          return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
+        }
         : undefined,
     };
   });
@@ -185,6 +187,7 @@ export const CategorySection = ({ category }: { category: Category }) => {
         fetchAll={fetchAll}
         fetchByText={fetchByText}
         multiSelect={category === 'amenity'}
+        selectable={selectable}
       />
       <ModalItem info={modal} close={() => setModal(null)} />
     </>

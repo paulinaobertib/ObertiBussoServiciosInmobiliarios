@@ -1,6 +1,19 @@
 import { User, UserCreate, Role } from "../types/user";
 import { api } from "../../../api";
 
+/** `/users/user/registerRole` */
+export const addPrincipalRole = async () => {
+  try {
+    const data = await api.post(`/users/user/registerRole`, {
+      withCredentials: true,
+    });
+    return data;
+  } catch (error) {
+    console.error("Error assigning principal role:", error);
+    throw error;
+  }
+};
+
 /** `/users/user/me` */
 export const getMe = async () => {
   try {
@@ -115,7 +128,6 @@ export const putUser = async (body: User) => {
     const { data } = await api.put(`/users/user/update`, body, {
       withCredentials: true,
     });
-    console.log(data);
     return data;
   } catch (error) {
     console.error("Error updating user:", error);
@@ -126,14 +138,14 @@ export const putUser = async (body: User) => {
 /** `/users/user/update/role/{id}?role=` */
 export const addRoleToUser = async (id: string, role: string) => {
   try {
-    const { data } = await api.put<Role[]>(
-      `/users/user/update/role/${id}`,
-      null,
-      { params: { role }, withCredentials: true }
-    );
+    const { data } = await api.put<Role[]>(`/users/user/update/role/${id}`, null, {
+      params: { role },
+      withCredentials: true,
+    });
     return data;
-  } catch (error) {
-    console.error("Error adding role:", error);
+  } catch (error: any) {
+    const backendMessage = error.response?.data?.message || error.response?.data || error.message;
+    console.error("Error adding role:", backendMessage);
     throw error;
   }
 };

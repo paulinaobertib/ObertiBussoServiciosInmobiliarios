@@ -1,335 +1,394 @@
-// src/app/user/context/__tests__/AuthContext.test.tsx
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { AuthProvider, useAuthContext } from '../../context/AuthContext';
-import { api } from '../../../../api';
+import React from 'react';
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { retry, sleep } from '../../../shared/utils/retry';
 
-// Mock del módulo api
-vi.mock('../../../../api', () => ({
-  api: {
-    get: vi.fn(),
-    post: vi.fn(),
-  },
+vi.stubEnv('VITE_GATEWAY_URL', 'http://gw.example');
+
+vi.mock('../../services/user.service', () => ({
+  getMe: vi.fn(),
+  getRoles: vi.fn(),
+  addPrincipalRole: vi.fn(),
 }));
 
-// Componente consumidor para interactuar con el context
-function TestConsumer() {
-  const { info, isLogged, isAdmin, isTenant, loading, login, logout, refreshUser, setInfo } =
-    useAuthContext();
-  return (
-    <div>
-      <div data-testid="isLogged">{String(isLogged)}</div>
-      <div data-testid="isAdmin">{String(isAdmin)}</div>
-      <div data-testid="isTenant">{String(isTenant)}</div>
-      <div data-testid="loading">{String(loading)}</div>
-      <div data-testid="username">{info?.userName ?? ''}</div>
+vi.mock('../../services/notification.service', () => ({
+  getUserNotificationPreferencesByUser: vi.fn(),
+  createUserNotificationPreference: vi.fn(),
+}));
 
-      <button onClick={login}>login</button>
-      <button onClick={logout}>logout</button>
-      <button onClick={refreshUser}>refresh</button>
-      <button onClick={() => setInfo(null)}>setInfoNull</button>
-    </div>
-  );
-}
+vi.mock('../../../shared/utils/retry', () => ({
+  retry: vi.fn((fn: any) => fn()),
+  sleep: vi.fn(() => Promise.resolve()),
+}));
 
-function renderWithProvider() {
-  return render(
-    <AuthProvider>
-      <TestConsumer />
-    </AuthProvider>
-  );
-}
+import { AuthProvider, useAuthContext } from '../../context/AuthContext';
+import { getMe, getRoles, addPrincipalRole } from '../../services/user.service';
+import {
+  getUserNotificationPreferencesByUser,
+  createUserNotificationPreference,
+} from '../../services/notification.service';
 
-// Utilidad: hacer location.href writable en JSDOM
-function stubLocationHref(start: string) {
-  const loc: any = { href: start };
-  Object.defineProperty(window, 'location', { value: loc, writable: true });
-  return loc;
-}
+describe('AuthProvider / useAuthContext', () => {
+  let setItemSpy: ReturnType<typeof vi.spyOn>;
+  let removeItemSpy: ReturnType<typeof vi.spyOn>;
+  let clearSpy: ReturnType<typeof vi.spyOn>;
+  const originalLocation = window.location;
 
-const GATEWAY = 'http://gw.local';
-
-describe('AuthContext', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+    removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
+    clearSpy = vi.spyOn(Storage.prototype, 'clear');
+
+    // stub de location
+    delete (window as any).location;
+    (window as any).location = { href: 'http://start' };
+
     sessionStorage.clear();
-    vi.restoreAllMocks();
-
-    // Stub de env var que usa el provider (no confiamos en que afecte al build,
-    // por eso los tests de URL matchean por path en vez de host)
-    (import.meta as any).env = {
-      ...(import.meta as any).env,
-      VITE_GATEWAY_URL: GATEWAY,
-    };
-
-    stubLocationHref('http://app.local/');
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    setItemSpy.mockRestore();
+    removeItemSpy.mockRestore();
+    clearSpy.mockRestore();
+    // @ts-expect-error restauramos
+    window.location = originalLocation;
   });
 
-  it('usar useAuthContext fuera del AuthProvider NO lanza error (valor por defecto del contexto)', () => {
-    const Broken = () => {
-      useAuthContext();
-      return <div>ok</div>;
-    };
-    expect(() => render(<Broken />)).not.toThrow();
+  afterAll(() => {
+    vi.unstubAllEnvs();
   });
 
-  it('login redirige a la URL de OAuth (validando path y query)', () => {
-    renderWithProvider();
-    fireEvent.click(screen.getByText('login'));
-    expect(window.location.href).toMatch(
-      /\/oauth2\/authorization\/keycloak-client\?next=\//
-    );
-  });
+  const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <AuthProvider>{children}</AuthProvider>
+  );
 
-  it('logout limpia sessionStorage, flags y redirige a /logout (validando path)', async () => {
-    sessionStorage.setItem(
+  it('TENANT: crea preferencias por defecto y setea flags', async () => {
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'U1', name: 'User 1' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: [] });           // primera (vacía)
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });   // retry
+
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
+
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.ready).toBe(true);
+    });
+
+    expect(result.current.isLogged).toBe(true);
+    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.isTenant).toBe(true);
+    expect(result.current.info?.roles).toEqual(['TENANT']);
+    expect(result.current.info?.preferences).toHaveLength(2);
+    expect(setItemSpy).toHaveBeenCalledWith(
       'authInfo',
-      JSON.stringify({
-        id: 'u1',
-        username: 'v',
-        email: 'v@x.com',
-        roles: ['TENANT'],
-        preferences: [],
-      })
+      expect.stringContaining('"roles":["TENANT"]')
     );
-
-    renderWithProvider();
-
-    fireEvent.click(screen.getByText('logout'));
-
-    expect(sessionStorage.getItem('authInfo')).toBeNull();
-    expect(window.location.href).toMatch(/\/logout$/);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('isLogged').textContent).toBe('false');
-      expect(screen.getByTestId('isAdmin').textContent).toBe('false');
-      expect(screen.getByTestId('isTenant').textContent).toBe('false');
-    });
   });
 
-  it('sincroniza sessionStorage: setInfo(null) elimina authInfo', async () => {
-    sessionStorage.setItem(
-      'authInfo',
-      JSON.stringify({
-        id: 'u1',
-        username: 'v',
-        email: 'v@x.com',
-        roles: ['TENANT'],
-        preferences: [],
-      })
+  it('ADMIN: no crea preferencias y marca isAdmin', async () => {
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'A1', name: 'Admin' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: ['admin'] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['admin'] });
+
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.isLogged).toBe(true);
+    expect(result.current.isAdmin).toBe(true);
+    expect(result.current.isTenant).toBe(false);
+    expect(result.current.info?.roles).toEqual(['ADMIN']);
+    expect(getUserNotificationPreferencesByUser).not.toHaveBeenCalled();
+    expect(createUserNotificationPreference).not.toHaveBeenCalled();
+  });
+
+  it('login redirige a /oauth2/authorization/keycloak-client', async () => {
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'U2' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
+
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.login());
+    expect((window as any).location.href).toBe(
+      'http://gw.example/oauth2/authorization/keycloak-client?next=/'
     );
-
-    renderWithProvider();
-
-    fireEvent.click(screen.getByText('setInfoNull'));
-
-    await waitFor(() => {
-      expect(sessionStorage.getItem('authInfo')).toBeNull();
-    });
   });
 
-  it('si es ADMIN no solicita ni crea preferencias', async () => {
-    (api.get as any).mockImplementation(async (url: string) => {
-      if (url === '/users/user/me')
-        return { data: { id: 'u2', username: 'admin', email: 'a@x.com' } };
-      if (url === '/users/user/role/u2') return { data: ['ADMIN'] };
-      if (url.startsWith('/users/preference'))
-        throw new Error('no debería pedir preferencias para ADMIN');
-      throw new Error('unexpected GET ' + url);
+  it('logout limpia storage y navega a /logout', async () => {
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'U3' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
+
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(setItemSpy).toHaveBeenCalled();
+
+    await act(async () => {
+      result.current.logout();
     });
 
-    renderWithProvider();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-      expect(screen.getByTestId('isLogged').textContent).toBe('true');
-      expect(screen.getByTestId('isAdmin').textContent).toBe('true');
-      expect(screen.getByTestId('isTenant').textContent).toBe('false');
-    });
-
-    expect(api.post).not.toHaveBeenCalled();
+    expect(clearSpy).toHaveBeenCalled();
+    expect((window as any).location.href).toBe('http://gw.example/logout');
+    expect(result.current.info).toBeNull();
   });
 
-  it('en error durante la carga deja info=null y loading=false', async () => {
-    (api.get as any).mockRejectedValue(new Error('boom'));
+  it('refreshUser vuelve a cargar info', async () => {
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'U4', name: 'Primera' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: [] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
 
-    renderWithProvider();
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.info?.id).toBe('U4');
 
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-      expect(screen.getByTestId('isLogged').textContent).toBe('false');
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'U5', name: 'Segunda' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
+
+    await act(async () => {
+      await result.current.refreshUser();
     });
+
+    expect(result.current.info?.id).toBe('U5');
   });
 
-  it('refreshUser vuelve a invocar la carga desde API', async () => {
-    (api.get as any)
-      .mockResolvedValueOnce({
-        data: { id: 'u1', username: 'v', email: 'v@x.com' },
-      }) // me
-      .mockResolvedValueOnce({ data: ['TENANT'] }) // roles
-      .mockResolvedValueOnce({ data: [] }); // prefs
-    (api.post as any).mockResolvedValue({
-      data: {
-        id: 'p1',
-        userId: 'u1',
-        type: 'PROPIEDADNUEVA',
-        enabled: true,
-      },
-    });
-
-    renderWithProvider();
+  it('si getMe falla: info=null, ready=false, loading=false', async () => {
+    (getMe as any).mockRejectedValueOnce(new Error('boom'));
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
+      expect(result.current.loading).toBe(false);
     });
-
-    fireEvent.click(screen.getByText('refresh'));
-
-    await waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith('/users/user/me');
-    });
+    expect(result.current.info).toBeNull();
+    expect(result.current.ready).toBe(false);
   });
 
-  it('si ya hay preferencias, no crea nuevas (TENANT)', async () => {
-    (api.get as any).mockImplementation(async (url: string) => {
-      if (url === '/users/user/me')
-        return { data: { id: 'u1', username: 'v', email: 'v@x.com' } };
-      if (url === '/users/user/role/u1') return { data: ['tenant'] };
-      if (url === '/users/preference/user/u1') {
-        return {
-          data: [
-            {
-              id: 'p1',
-              userId: 'u1',
-              type: 'PROPIEDADNUEVA',
-              enabled: true,
-            },
-          ],
-        };
+  it('useAuthContext fuera del provider devuelve defaults', () => {
+    const { result } = renderHook(() => useAuthContext());
+    expect(result.current.isLogged).toBe(false);
+    expect(result.current.isAdmin).toBe(false);
+    expect(result.current.isTenant).toBe(false);
+    expect(result.current.ready).toBe(false);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.info).toBeNull();
+    expect(typeof result.current.login).toBe('function');
+    expect(typeof result.current.logout).toBe('function');
+    expect(typeof result.current.refreshUser).toBe('function');
+  });
+
+  it('TENANT con preferencias existentes (sin .data): NO crea defaults y usa las existentes; hace sleep(100000) y addPrincipalRole()', async () => {
+    // 1) getMe ok
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'U-EXIST', name: 'Existente' } });
+    // 2) addPrincipalRole siempre se llama
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    // 3) primera getRoles vacía, retry devuelve 'tenant'
+    (getRoles as any).mockResolvedValueOnce({ data: [] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+
+    // 4) preferencias YA existen y el servicio devuelve el array directamente (sin .data)
+    const existingPrefs = [
+      { type: 'PROPIEDADNUEVA', enabled: true },
+      { type: 'PROPIEDADINTERES', enabled: false },
+    ];
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce(existingPrefs);
+
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.ready).toBe(true);
+    });
+
+    // No se crean prefs nuevas
+    expect(createUserNotificationPreference).not.toHaveBeenCalled();
+    // Usa las existentes
+    expect(result.current.info?.preferences).toEqual(existingPrefs);
+    // Roles y flags
+    expect(result.current.info?.roles).toEqual(['TENANT']);
+    expect(result.current.isTenant).toBe(true);
+    // addPrincipalRole fue invocado
+    expect(addPrincipalRole).toHaveBeenCalled();
+    // sleep(100000) se invocó
+    expect((sleep as any).mock.calls.some((c: any[]) => c[0] === 100000)).toBe(true);
+  });
+
+  it('refreshUser alterna loading durante la recarga', async () => {
+    (getMe as any).mockResolvedValueOnce({ data: { id: 'R1' } });
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
+
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let resolveRefresh!: (v: any) => void;
+    (getMe as any).mockImplementationOnce(
+      () => new Promise((res) => { resolveRefresh = res; })
+    );
+    (addPrincipalRole as any).mockResolvedValueOnce({});
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });
+    (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+    (createUserNotificationPreference as any)
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+      .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
+
+    // Lanzamos el refresh (sin await) y verificamos el flip a true
+    act(() => {
+      result.current.refreshUser();
+    });
+    await waitFor(() => expect(result.current.loading).toBe(true));
+
+    // 3) Ahora resolvemos el getMe del refresh y esperamos que termine
+    await act(async () => {
+      resolveRefresh({ data: { id: 'R2' } });
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.info?.id).toBe('R2');
+  });
+
+  it('TENANT: crea defaults pero el service devuelve objetos sin .data (cubre r.data ?? r)', async () => {
+  (getMe as any).mockResolvedValueOnce({ data: { id: 'U6' } });
+  (addPrincipalRole as any).mockResolvedValueOnce({});
+  (getRoles as any).mockResolvedValueOnce({ data: [] });          // primer getRoles
+  (getRoles as any).mockResolvedValueOnce({ data: ['tenant'] });  // retry devuelve algo
+
+  // Fuerza creación de defaults: prefs existentes vacías
+  (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+
+  (createUserNotificationPreference as any)
+    .mockResolvedValueOnce({ type: 'PROPIEDADNUEVA', enabled: true })
+    .mockResolvedValueOnce({ type: 'PROPIEDADINTERES', enabled: true });
+
+  const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+  await waitFor(() => {
+    expect(result.current.loading).toBe(false);
+    expect(result.current.ready).toBe(true);
+  });
+
+  expect(result.current.info?.preferences).toEqual([
+    { type: 'PROPIEDADNUEVA', enabled: true },
+    { type: 'PROPIEDADINTERES', enabled: true },
+  ]);
+});
+
+it('Roles nunca llegan (retry sigue fallando): cae al catch y limpia estado', async () => {
+  (getMe as any).mockResolvedValueOnce({ data: { id: 'U7' } });
+  (addPrincipalRole as any).mockResolvedValueOnce({});
+
+  // primer getRoles vacío
+  (getRoles as any).mockResolvedValueOnce({ data: [] });
+
+  // El callback que usa retry lanza siempre (porque data vacío) -> simulamos que retry SOLO ejecuta fn() y deja propagar
+  (retry as any).mockImplementationOnce(async (fn: any) => {
+    // ejecuta una vez y deja que la excepción salga
+    return fn();
+  });
+
+  const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+  // Termina en catch: info=null, ready=false, loading=false
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.info).toBeNull();
+  expect(result.current.ready).toBe(false);
+});
+
+it('retry reintenta: 2 intentos con error (roles vacíos) y luego éxito (TENANT)', async () => {
+  (getMe as any).mockResolvedValueOnce({ data: { id: 'U8' } });
+  (addPrincipalRole as any).mockResolvedValueOnce({});
+
+  // primer getRoles (previo a retry): vacío
+  (getRoles as any).mockResolvedValueOnce({ data: [] });
+
+  (retry as any).mockImplementationOnce(async (fn: any) => {
+    let attempts = 0;
+    // llamamos fn() y si falla dos veces, devolvemos data "a mano"
+    while (true) {
+      try {
+        attempts++;
+        await fn(); // va a lanzar porque getRoles.data estará vacío en el callback
+      } catch {
+        if (attempts >= 2) {
+          // simulamos que a la 3ª "anda": devolvemos data de roles
+          return ['tenant'];
+        }
+        continue;
       }
-      throw new Error('unexpected GET ' + url);
-    });
-
-    renderWithProvider();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-      expect(screen.getByTestId('isLogged').textContent).toBe('true');
-    });
-
-    expect(api.post).not.toHaveBeenCalled();
-
-    const saved = JSON.parse(sessionStorage.getItem('authInfo')!);
-    expect(saved.preferences).toHaveLength(1);
-    expect(saved.preferences[0].type).toBe('PROPIEDADNUEVA');
+    }
   });
 
-  it('normaliza roles a mayúsculas al persistir', async () => {
-    (api.get as any)
-      .mockResolvedValueOnce({
-        data: { id: 'u1', username: 'v', email: 'v@x.com' },
-      }) // me
-      .mockResolvedValueOnce({ data: ['tenant'] }) // roles en minúsculas
-      .mockResolvedValueOnce({ data: [] }); // prefs vacías -> creará 2
-    (api.post as any).mockResolvedValue({
-      data: {
-        id: 'p1',
-        userId: 'u1',
-        type: 'PROPIEDADNUEVA',
-        enabled: true,
-      },
-    });
+  (getUserNotificationPreferencesByUser as any).mockResolvedValueOnce({ data: [] });
+  (createUserNotificationPreference as any)
+    .mockResolvedValueOnce({ data: { type: 'PROPIEDADNUEVA', enabled: true } })
+    .mockResolvedValueOnce({ data: { type: 'PROPIEDADINTERES', enabled: true } });
 
-    renderWithProvider();
+  const { result } = renderHook(() => useAuthContext(), { wrapper });
 
-    await waitFor(() => {
-      expect(screen.getByTestId('loading').textContent).toBe('false');
-    });
-
-    const saved = JSON.parse(sessionStorage.getItem('authInfo')!);
-    expect(saved.roles).toEqual(['TENANT']);
+  await waitFor(() => {
+    expect(result.current.loading).toBe(false);
+    expect(result.current.ready).toBe(true);
   });
 
-  it('refreshUser alterna loading=true mientras recarga', async () => {
-    // Primera carga
-    (api.get as any)
-      .mockResolvedValueOnce({
-        data: { id: 'u1', username: 'v', email: 'v@x.com' },
-      })
-      .mockResolvedValueOnce({ data: ['TENANT'] })
-      .mockResolvedValueOnce({ data: [] });
-    (api.post as any).mockResolvedValue({
-      data: {
-        id: 'p1',
-        userId: 'u1',
-        type: 'PROPIEDADNUEVA',
-        enabled: true,
-      },
-    });
+  expect(result.current.info?.roles).toEqual(['TENANT']);
+  expect(result.current.isTenant).toBe(true);
+  expect(createUserNotificationPreference).toHaveBeenCalledTimes(2);
+});
 
-    renderWithProvider();
-    await waitFor(() =>
-      expect(screen.getByTestId('loading').textContent).toBe('false')
-    );
+it('useAuthContext fuera del provider: ejecuta funciones default (setInfo, login, logout, refreshUser) sin errores', async () => {
+  // NO usamos wrapper para obtener el contexto por defecto
+  const { result } = renderHook(() => useAuthContext());
 
-    // Segunda carga (refresh)
-    (api.get as any)
-      .mockResolvedValueOnce({
-        data: { id: 'u1', username: 'v2', email: 'v2@x.com' },
-      })
-      .mockResolvedValueOnce({ data: ['tenant'] })
-      .mockResolvedValueOnce({
-        data: [
-          {
-            id: 'p1',
-            userId: 'u1',
-            type: 'PROPIEDADNUEVA',
-            enabled: true,
-          },
-        ],
-      });
+  // setInfo default (no-op)
+  expect(() => result.current.setInfo(null)).not.toThrow();
 
-    fireEvent.click(screen.getByText('refresh'));
+  // login/logout defaults (no-op)
+  expect(() => result.current.login()).not.toThrow();
+  expect(() => result.current.logout()).not.toThrow();
 
-    // loading pasa a true y luego a false
-    await waitFor(() =>
-      expect(screen.getByTestId('loading').textContent).toBe('true')
-    );
-    await waitFor(() =>
-      expect(screen.getByTestId('loading').textContent).toBe('false')
-    );
-  });
+  // refreshUser default (Promise<void> resuelta)
+  await expect(result.current.refreshUser()).resolves.toBeUndefined();
 
-  it('crea ambas preferencias con enabled=true cuando no existen (payload correcto)', async () => {
-    (api.get as any).mockImplementation(async (url: string) => {
-      if (url === '/users/user/me')
-        return { data: { id: 'u1', username: 'v', email: 'v@x.com' } };
-      if (url === '/users/user/role/u1') return { data: ['TENANT'] };
-      if (url === '/users/preference/user/u1') return { data: [] };
-      throw new Error('unexpected GET ' + url);
-    });
-    (api.post as any).mockResolvedValue({
-      data: { id: 'pX', userId: 'u1', type: 'X', enabled: true },
-    });
-
-    renderWithProvider();
-
-    await waitFor(() =>
-      expect(screen.getByTestId('loading').textContent).toBe('false')
-    );
-
-    expect(api.post).toHaveBeenCalledTimes(2);
-    const types = (api.post as any).mock.calls
-      .map(([, body]: any[]) => body.type)
-      .sort();
-    expect(types).toEqual(['PROPIEDADINTERES', 'PROPIEDADNUEVA'].sort());
-
-    (api.post as any).mock.calls.forEach(([, body]: any[]) => {
-      expect(body).toMatchObject({ userId: 'u1', enabled: true });
-    });
-  });
+  // sanity: siguen siendo los valores por defecto
+  expect(result.current.isLogged).toBe(false);
+  expect(result.current.info).toBeNull();
+});
 
 });

@@ -1,202 +1,199 @@
-import { describe, it, vi, beforeEach, expect, Mock } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import React from 'react';
-import { Chat } from '../../components/Chat';
-import { ChatProvider, useChatContext } from '../../context/ChatContext';
-import userEvent from '@testing-library/user-event';
-import * as PropertiesModule from '../../../property/context/PropertiesContext';
-import * as ChatSessionHook from '../../hooks/useChatSession';
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { vi, type Mock } from "vitest";
+import { Chat } from "../../../chat/components/Chat";
+import { useChatContext } from "../../context/ChatContext";
+import { useChatSession } from "../../hooks/useChatSession";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { usePropertiesContext } from "../../../property/context/PropertiesContext";
+import * as propertyService from "../../../property/services/property.service";
 
-vi.mock('../../context/ChatContext', async () => {
-  const actual = await vi.importActual('../../context/ChatContext');
-  return {
-    ...actual,
-    useChatContext: vi.fn(),
-    ChatProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  };
-});
+vi.mock("../../context/ChatContext");
+vi.mock("../../hooks/useChatSession");
+vi.mock("../../../user/context/AuthContext");
+vi.mock("../../../property/context/PropertiesContext");
+vi.mock("../../../property/services/property.service");
 
-vi.mock('../../../property/context/PropertiesContext', async () => {
-  const actual = await vi.importActual('../../../property/context/PropertiesContext');
-  return {
-    ...actual,
-    usePropertiesContext: vi.fn(),
-  };
-});
-
-const AllProviders = ({ children }: { children: React.ReactNode }) => (
-  <ChatProvider>
-    {children}
-  </ChatProvider>
-);
-
-describe('Chat component', () => {
+describe("Componente Chat", () => {
   const mockSendMessage = vi.fn();
-  const mockStartSessionUser = vi.fn();
-  const mockStartSessionGuest = vi.fn();
-  const mockOnClose = vi.fn();
+  const mockAddUserMessage = vi.fn();
+  const mockAddSystemMessage = vi.fn();
   const mockClearMessages = vi.fn();
+  const mockStartSessionGuest = vi.fn();
+  const mockStartSessionUser = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-
+    localStorage.clear();
     (useChatContext as Mock).mockReturnValue({
-      sendMessage: mockSendMessage,
-      startSessionUser: mockStartSessionUser,
-      onClose: mockOnClose,
-      clearMessages: mockClearMessages,
       messages: [],
-      currentStep: 'form',
-      user: null,
-      selectedProperty: null,
-      error: null,
-      minimized: false,
-      addSystemMessage: vi.fn(),
-      addUserMessage: vi.fn(),
+      sendMessage: mockSendMessage,
       loading: false,
-      sessionId: null,
+      addSystemMessage: mockAddSystemMessage,
+      addUserMessage: mockAddUserMessage,
+      clearMessages: mockClearMessages,
     });
-
-    (PropertiesModule.usePropertiesContext as Mock).mockReturnValue({
-      propertiesList: [{ id: 123, title: 'Propiedad test' }],
-    });
-
-    vi.spyOn(ChatSessionHook, 'useChatSession').mockReturnValue({
-      startSessionUser: mockStartSessionUser,
+    (useChatSession as Mock).mockReturnValue({
       startSessionGuest: mockStartSessionGuest,
-      loading: false
-    } as any);
+      startSessionUser: mockStartSessionUser,
+      loading: false,
+    });
+    (useAuthContext as Mock).mockReturnValue({
+      info: { id: 1, name: "Usuario Test" },
+      isLogged: true,
+    });
+    (usePropertiesContext as Mock).mockReturnValue({
+      propertiesList: [{ id: 1, title: "Propiedad 1" }],
+    });
+    (propertyService.getPropertiesByText as Mock).mockResolvedValue([
+      { id: 2, title: "Propiedad 2", status: "disponible" },
+    ]);
   });
 
-  it('renderiza saludo inicial y formulario si no está logueado', () => {
-    render(<Chat />, { wrapper: AllProviders });
-    expect(screen.getByText(/Hola, soy tu asistente virtual/i)).toBeInTheDocument();
-    expect(screen.getByText(/Por favor, ingresá tus datos de contacto/i)).toBeInTheDocument();
-  });
-
-  it('botón buscar propiedad está deshabilitado si datos incompletos', () => {
-    render(<Chat />, { wrapper: AllProviders });
-    const button = screen.getByRole('button', { name: /buscar propiedad/i });
-    expect(button).toBeDisabled();
-  });
-
-  it('muestra pregunta si se pasa initialPropertyId y está en propertiesList', () => {
-    render(<Chat initialPropertyId={123} />, { wrapper: AllProviders });
+  it("muestra el saludo inicial", () => {
+    render(<Chat />);
     expect(
-      screen.getByText(/¿Querés consultar sobre esta propiedad\?/i)
+      screen.getByText(/Hola, soy tu asistente virtual/i)
     ).toBeInTheDocument();
   });
 
-  it('permite colapsar y cerrar el chat', async () => {
-    render(<Chat onClose={mockOnClose} />, { wrapper: AllProviders });
-
-    const minimizarBtn = screen.getByLabelText(/minimizar chat/i);
-    await userEvent.click(minimizarBtn);
-    expect(screen.getByLabelText(/restaurar chat/i)).toBeInTheDocument();
-
-    const cerrarBtn = screen.getByLabelText(/cerrar chat/i);
-    await userEvent.click(cerrarBtn);
-    expect(mockOnClose).toHaveBeenCalled();
+  it("inicia sesión para usuario logueado", async () => {
+    mockStartSessionUser.mockResolvedValue(100);
+    render(<Chat initialPropertyId={1} />);
+    const btn = await screen.findByText("Sí");
+    await act(async () => fireEvent.click(btn));
+    await waitFor(() =>
+      expect(mockStartSessionUser).toHaveBeenCalledWith(1, 1)
+    );
+    expect(localStorage.getItem("chatSessionId")).toBe("100");
   });
 
-  it('habilita el botón buscar propiedad cuando los datos del formulario son válidos', async () => {
-    render(<Chat />, { wrapper: AllProviders });
+  it("minimiza y restaura el chat", async () => {
+    render(<Chat />);
+    const btnMinimizar = await screen.findByLabelText(/Minimizar chat/i);
+    await act(async () => fireEvent.click(btnMinimizar));
+    expect(screen.getByLabelText(/Restaurar chat/i)).toBeInTheDocument();
+  });
 
-    const nombreInput = screen.getByLabelText(/Nombre/i);
-    const apellidoInput = screen.getByLabelText(/Apellido/i);
+  it("busca propiedades usando la barra de búsqueda", async () => {
+    render(<Chat initialPropertyId={1} />);
+    const btnNo = await screen.findByText(/No, buscar otra/i);
+    await act(async () => fireEvent.click(btnNo));
+
+    const input = await screen.findByLabelText(/Buscar propiedad/i);
+    await act(async () =>
+      fireEvent.change(input, { target: { value: "Propiedad" } })
+    );
+
+    await waitFor(() =>
+      expect(propertyService.getPropertiesByText).toHaveBeenCalledWith(
+        "Propiedad"
+      )
+    );
+  });
+
+  it("cierra chat correctamente", async () => {
+    (useChatContext as Mock).mockReturnValue({
+      messages: [{ from: "system", content: "Hola" }],
+      sendMessage: mockSendMessage,
+      loading: false,
+      addSystemMessage: mockAddSystemMessage,
+      addUserMessage: mockAddUserMessage,
+      clearMessages: mockClearMessages,
+    });
+
+    render(<Chat initialPropertyId={1} onClose={vi.fn()} />);
+    const btnClose = screen.getByLabelText(/Cerrar chat/i);
+    await act(async () => fireEvent.click(btnClose));
+    expect(mockClearMessages).toHaveBeenCalled();
+  });
+
+  it("valida campos de invitado y habilita botón", () => {
+    (useAuthContext as Mock).mockReturnValue({ info: null, isLogged: false });
+    render(<Chat />);
+    expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
+  });
+
+  it("muestra error de email inválido", () => {
+    (useAuthContext as Mock).mockReturnValue({ info: null, isLogged: false });
+    render(<Chat />);
     const emailInput = screen.getByLabelText(/Email/i);
-    const telefonoInput = screen.getByLabelText(/Teléfono/i);
-    const button = screen.getByRole('button', { name: /buscar propiedad/i });
-
-    await userEvent.type(nombreInput, 'Juan');
-    await userEvent.type(apellidoInput, 'Pérez');
-    await userEvent.type(emailInput, 'juan@example.com');
-    await userEvent.type(telefonoInput, '1234567890');
-
-    expect(button).not.toBeDisabled();
+    act(() => {
+      fireEvent.change(emailInput, { target: { value: "invalido@" } });
+    });
+    expect(
+      screen.getByText(/Ingresá un email válido/i)
+    ).toBeInTheDocument();
   });
 
-  it('muestra error de email inválido en el formulario', async () => {
-    render(<Chat />, { wrapper: AllProviders });
+  it("en chat: enviar número fuera de rango agrega mensaje de 'Opción inválida'", async () => {
+    mockStartSessionUser.mockResolvedValue(200);
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
 
-    const emailInput = screen.getByLabelText(/Email/i);
-    await userEvent.type(emailInput, 'invalid-email');
-    await userEvent.tab(); // Simula perder el foco
+    const input = await screen.findByPlaceholderText(/Escribí el número/i);
+    fireEvent.change(input, { target: { value: "999" } });
+    const btnSend = screen.getByRole("button", { name: "" });
+    await act(async () => fireEvent.click(btnSend));
 
-    expect(screen.getByText(/Ingresá un email válido/i)).toBeInTheDocument();
+    expect(mockAddUserMessage).toHaveBeenCalledWith("999");
+    expect(mockAddSystemMessage).toHaveBeenCalledWith(
+      "Opción inválida. Por favor seleccioná un número de la lista."
+    );
   });
 
-  it('cambia a searchProperty al hacer clic en "No, buscar otra"', async () => {
-    render(<Chat initialPropertyId={123} />, { wrapper: AllProviders });
+  it("en chat: enviar texto no numérico agrega 'Entrada inválida'", async () => {
+    mockStartSessionUser.mockResolvedValue(201);
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
 
-    const noButton = screen.getByRole('button', { name: /No, buscar otra/i });
-    await userEvent.click(noButton);
+    const input = await screen.findByPlaceholderText(/Escribí el número/i);
+    fireEvent.change(input, { target: { value: "hola" } });
+    const btnSend = screen.getByRole("button", { name: "" });
+    await act(async () => fireEvent.click(btnSend));
 
-    expect(screen.getByLabelText(/Buscar propiedad/i)).toBeInTheDocument();
+    expect(mockAddUserMessage).toHaveBeenCalledWith("hola");
+    expect(mockAddSystemMessage).toHaveBeenCalledWith(
+      "Entrada inválida. Por favor escribí solo el número de una opción."
+    );
   });
 
-  it('muestra CircularProgress cuando loading es true', () => {
-    (useChatContext as Mock).mockReturnValue({
-      ...useChatContext(),
-      loading: true,
+  it("cambia de propiedad y envía CERRAR", async () => {
+    mockStartSessionUser.mockResolvedValue(300);
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+
+    const btnOtra = await screen.findByRole("button", {
+      name: /Consultar por otra propiedad/i,
+    });
+    await act(async () => fireEvent.click(btnOtra));
+
+    expect(mockSendMessage).toHaveBeenCalledWith("CERRAR", 1, 300);
+    expect(await screen.findByLabelText(/Buscar propiedad/i)).toBeInTheDocument();
+  });
+
+  it("flujo invitado: completa formulario y llama startSessionGuest", async () => {
+    (useAuthContext as Mock).mockReturnValue({ info: null, isLogged: false });
+    mockStartSessionGuest.mockResolvedValue(400);
+
+    render(<Chat initialPropertyId={1} />);
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: "Ana" },
+    });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), {
+      target: { value: "Perez" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Email/i), {
+      target: { value: "ana@test.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Teléfono/i), {
+      target: { value: "3511231234" },
     });
 
-    render(<Chat />, { wrapper: AllProviders });
-
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
-  });
-
-  it('maneja initialPropertyId no encontrado en propertiesList', () => {
-    (PropertiesModule.usePropertiesContext as Mock).mockReturnValue({
-      propertiesList: [],
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+    await waitFor(() => {
+      expect(mockStartSessionGuest).toHaveBeenCalled();
     });
-
-    render(<Chat initialPropertyId={999} />, { wrapper: AllProviders });
-
-    expect(screen.getByText(/¿Querés consultar sobre esta propiedad\?/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Propiedad test/i)).not.toBeInTheDocument();
+    expect(localStorage.getItem("chatSessionId")).toBe("400");
   });
-
-  it('no envía mensaje CERRAR si la sesión ya está finalizada', async () => {
-    (useChatContext as Mock).mockReturnValue({
-      ...useChatContext(),
-      messages: [
-        { from: 'system', content: 'La conversación ha finalizado. Gracias por contactarnos.' },
-      ],
-      currentStep: 'chat',
-      selectedProperty: { id: 123, title: 'Propiedad test' },
-      sessionId: 1,
-    });
-
-    render(<Chat initialPropertyId={123} onClose={mockOnClose} />, { wrapper: AllProviders });
-
-    const cerrarBtn = screen.getByLabelText(/cerrar chat/i);
-    await userEvent.click(cerrarBtn);
-
-    expect(mockSendMessage).not.toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it('handleStart funciona para invitado con datos completos', async () => {
-    mockStartSessionGuest.mockResolvedValue({ id: 77 });
-    render(<Chat initialPropertyId={123} />, { wrapper: AllProviders });
-    await userEvent.type(screen.getByLabelText(/Nombre/i), 'Juan');
-    await userEvent.type(screen.getByLabelText(/Apellido/i), 'Perez');
-    await userEvent.type(screen.getByLabelText(/Email/i), 'juan@test.com');
-    await userEvent.type(screen.getByLabelText(/Teléfono/i), '123456');
-    await userEvent.click(screen.getByRole('button', { name: /^Sí$/i }));
-    expect(mockStartSessionGuest).toHaveBeenCalled();
-  });
-
-  it('oculta opciones cuando chat está inactivo', () => {
-    (useChatContext as Mock).mockReturnValue({
-      ...useChatContext(),
-      messages: [{ from: 'system', content: 'Pregunta del sistema' }],
-      sessionId: 1,
-    });
-
-    render(<Chat initialPropertyId={123} />, { wrapper: AllProviders });
-    expect(screen.queryByText(/Por favor, seleccioná una de las siguientes opciones/i)).not.toBeInTheDocument();
-  });
-
 });
