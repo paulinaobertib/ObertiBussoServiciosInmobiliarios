@@ -68,7 +68,7 @@ export const CatalogList = ({
     return (
         <Box
             sx={{
-                p: 2,
+                p: { xs: 0, sm: 2 },
                 display: 'grid',
                 gridTemplateColumns: {
                     xs: '1fr',

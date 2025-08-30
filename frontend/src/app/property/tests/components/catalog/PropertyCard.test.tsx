@@ -119,6 +119,7 @@ describe("<PropertyCard />", () => {
     expect(cb).toBeChecked();
     fireEvent.click(cb);
     expect(toggleSelection).toHaveBeenCalledWith(baseProp.id);
+    expect(onClick).not.toHaveBeenCalled(); // no se propaga
   });
 
   it("usa URL.createObjectURL cuando mainImage es File", () => {
@@ -130,12 +131,50 @@ describe("<PropertyCard />", () => {
     expect(img.src).toContain("blob:mock-url");
   });
 
-  it("muestra badge DESTACADA si outstanding=true", () => {
-    renderWithTheme(
-      <PropertyCard property={{ ...baseProp, outstanding: true } as any} />
-    );
-    expect(screen.getByText(/DESTACADA/i)).toBeInTheDocument();
+  it("NO usa createObjectURL cuando mainImage es string y respeta el src", () => {
+    renderWithTheme(<PropertyCard property={baseProp as any} />);
+    const img = screen.getByRole("img", { name: /casa con patio/i }) as HTMLImageElement;
+    expect((URL as any).createObjectURL).not.toHaveBeenCalled();
+    expect(img.src).toBe(baseProp.mainImage);
   });
+
+  it("click en la IMAGEN dispara onClick si selectionMode=false", () => {
+    const onClick = vi.fn();
+    renderWithTheme(<PropertyCard property={baseProp as any} onClick={onClick} />);
+    const img = screen.getByRole("img", { name: /casa con patio/i });
+    fireEvent.click(img);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("selectionMode=true: ni el card ni la imagen disparan onClick", () => {
+    const onClick = vi.fn();
+    renderWithTheme(
+      <PropertyCard property={baseProp as any} selectionMode onClick={onClick} />
+    );
+    fireEvent.click(screen.getByText(/casa con patio/i));
+    const img = screen.getByRole("img", { name: /casa con patio/i });
+    fireEvent.click(img);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+it("muestra badge DESTACADA si outstanding=true (estructura + animación presente)", () => {
+  renderWithTheme(
+    <PropertyCard property={{ ...baseProp, outstanding: true } as any} />
+  );
+
+  // El texto "DESTACADA" está dentro de un Box, cuyo padre es el contenedor con el gradiente
+  const label = screen.getByText(/DESTACADA/i);
+  expect(label).toBeInTheDocument();
+
+  // El contenedor del gradiente es el abuelo del texto (ver JSX del componente)
+  const badge = label.parentElement?.parentElement as HTMLElement;
+  expect(badge).toBeTruthy();
+
+  // El badge incluye un <style> con la animación shineSlide → confirma el render del bloque extendido
+  const styleTag = badge.querySelector("style");
+  expect(styleTag).toBeTruthy();
+  expect(styleTag!.textContent).toMatch(/@keyframes\s+shineSlide/);
+});
 
   it("chip NUEVA aparece si la fecha es reciente y NO si es vieja", () => {
     const { unmount } = renderWithTheme(
@@ -162,6 +201,14 @@ describe("<PropertyCard />", () => {
       <PropertyCard property={{ ...baseProp, status: "", operation: "" } as any} />
     );
     expect(screen.getByText(/Sin Estado/i)).toBeInTheDocument();
+  });
+
+  it("cuando status NO es 'DISPONIBLE', el chip muestra solo el status (sin operación)", () => {
+    renderWithTheme(
+      <PropertyCard property={{ ...baseProp, status: "RESERVADA", operation: "ALQUILER" } as any} />
+    );
+    expect(screen.getByText(/^RESERVADA$/i)).toBeInTheDocument();
+    expect(screen.queryByText(/ALQUILER/i)).toBeNull();
   });
 
   it("showPrice=true: muestra Precio y Expensas; con expensas 0 muestra 'No'", () => {
@@ -197,5 +244,18 @@ describe("<PropertyCard />", () => {
     (useAuthContext as any).mockReturnValueOnce({ isAdmin: true });
     renderWithTheme(<PropertyCard property={baseProp as any} />);
     expect(screen.queryByTestId("fav-btn")).toBeNull();
+  });
+
+  it("checkbox aparece desmarcado si isSelected devuelve false", () => {
+    const isSelected = vi.fn(() => false);
+    renderWithTheme(
+      <PropertyCard
+        property={baseProp as any}
+        selectionMode
+        isSelected={isSelected}
+      />
+    );
+    const cb = screen.getByRole("checkbox");
+    expect(cb).not.toBeChecked();
   });
 });
