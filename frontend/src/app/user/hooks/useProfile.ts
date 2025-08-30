@@ -2,19 +2,22 @@ import { useState, useEffect } from "react";
 import { getMe, putUser } from "../services/user.service";
 import { useAuthContext } from "../context/AuthContext";
 import type { User } from "../types/user";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export function useProfile() {
   const { info, setInfo } = useAuthContext();
+  const { handleError } = useApiErrors();
 
   const [profile, setProfile] = useState<User | null>(info ?? null);
   const [loading, setLoading] = useState(!info);
-  const [error, setError] = useState<string | null>(null);
 
   /* ── carga inicial si aún no teníamos info ────────────────────── */
   useEffect(() => {
     if (info) return; // ya estaba en sesión
-    getMe()
-      .then((r) => {
+    (async () => {
+      setLoading(true);
+      try {
+        const r = await getMe();
         setProfile(r.data);
         setInfo(
           (prev) =>
@@ -22,29 +25,29 @@ export function useProfile() {
               ? { ...prev, ...r.data } // preserva roles y preferences
               : { ...r.data, roles: [], preferences: [] } // inicializa vacíos
         );
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      } catch (e) {
+        handleError(e);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   /* ── guardar cambios ──────────────────────────────────────────── */
   const updateProfile = async (data: User) => {
-    const { data: updated } = await putUser(data); // puede venir vacío
-    const merged: User = { ...data, ...updated }; // priorizamos backend
+    try {
+      const { data: updated } = await putUser(data); // puede venir vacío
+      const merged: User = { ...data, ...updated }; // priorizamos backend
 
-    setProfile(merged);
+      setProfile(merged);
+      setInfo((prev) => (prev ? { ...prev, ...merged } : { ...merged, roles: [], preferences: [] }));
 
-    // ← aseguramos roles y preferences siempre presentes
-    setInfo(
-      (prev) =>
-        prev
-          ? { ...prev, ...merged } // roles y preferences ya están en prev
-          : { ...merged, roles: [], preferences: [] } // si era null, inicializamos
-    );
-
-    return merged;
+      return merged;
+    } catch (e) {
+      handleError(e);
+      return null;
+    }
   };
 
-  return { profile, loading, error, updateProfile };
+  return { profile, loading, updateProfile };
 }

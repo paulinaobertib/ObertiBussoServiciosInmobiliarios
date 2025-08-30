@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+
 import { SearchParams } from "../types/searchParams";
 import { Property } from "../types/property";
 import { usePropertiesContext } from "../context/PropertiesContext";
 import { getPropertiesByFilters } from "../services/property.service";
 import { LIMITS } from "../utils/filterLimits";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
   const {
@@ -19,19 +21,23 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     refreshNeighborhoods,
   } = usePropertiesContext();
 
+  const { handleError } = useApiErrors();
+
   /* ───────── cargar catálogos ───────── */
   useEffect(() => {
-    refreshAmenities();
-    refreshTypes();
-    refreshNeighborhoods();
+    (async () => {
+      try {
+        await Promise.all([refreshAmenities(), refreshTypes(), refreshNeighborhoods()]);
+      } catch (e) {
+        handleError(e);
+      }
+    })();
   }, [refreshAmenities, refreshTypes, refreshNeighborhoods]);
 
-  /* ───────── límites dinámicos (10 pasos) ───────── */
   /* ───────── límites dinámicos (10 pasos, números redondos) ───────── */
   const dynLimits = useMemo(() => {
     const list = propertiesList ?? [];
 
-    /* helper → nice step: 1·, 2· o 5·10ⁿ  */
     const niceStep = (rough: number) => {
       const exp = Math.pow(10, Math.floor(Math.log10(rough)));
       const f = rough / exp;
@@ -39,16 +45,14 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
       return nice * exp;
     };
 
-    /* helper → alinear rango con 10 pasos “lindos” */
     const buildRange = (rawMin: number, rawMax: number) => {
-      if (rawMin === rawMax) rawMax = rawMin + 1; // evita span 0
+      if (rawMin === rawMax) rawMax = rawMin + 1;
       const step = niceStep((rawMax - rawMin) / 10);
-      const min = Math.floor(rawMin / step) * step; // múltiplo inferior
-      const max = min + step * 10; // exactamente 10 pasos
+      const min = Math.floor(rawMin / step) * step;
+      const max = min + step * 10;
       return { min, max: Math.max(max, rawMax), step };
     };
 
-    /* precios USD / ARS */
     const usd = list.filter((p) => p.currency === "USD").map((p) => p.price);
     const ars = list.filter((p) => p.currency === "ARS").map((p) => p.price);
 
@@ -61,10 +65,9 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
       ars.length ? Math.max(...ars) : LIMITS.price.ARS.max
     );
 
-    /* superficies (total y cubierta comparten rango) */
     const areas = list.map((p) => Math.max(p.area ?? 0, p.coveredArea ?? 0));
     const supMax = areas.length ? Math.max(...areas) : LIMITS.surface.max;
-    const supRange = buildRange(0, supMax); // min fijo en 0
+    const supRange = buildRange(0, supMax);
 
     return {
       price: { USD: usdRange, ARS: arsRange },
@@ -83,15 +86,11 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     currency: "",
     credit: false,
     financing: false,
-    priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max] as [
-      number,
-      number
-    ],
+    priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max] as [number, number],
     areaRange: [0, dynLimits.surface.max] as [number, number],
     coveredRange: [0, dynLimits.surface.max] as [number, number],
   });
 
-  /* superficies siempre se ajustan al nuevo máx */
   useEffect(() => {
     setParams((p) => ({
       ...p,
@@ -100,7 +99,6 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     }));
   }, [dynLimits.surface.max]);
 
-  /* reinicia priceRange al elegir moneda */
   useEffect(() => {
     if (params.currency === "USD" || params.currency === "ARS") {
       const cfg = dynLimits.price[params.currency];
@@ -113,44 +111,45 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
 
   /* ───────── llamada al backend ───────── */
   async function apply(local = params) {
-    const base: Partial<SearchParams> = {
-      ...local,
-      priceFrom: local.priceRange[0],
-      priceTo: local.priceRange[1],
-      areaFrom: local.areaRange[0],
-      areaTo: local.areaRange[1],
-      coveredAreaFrom: local.coveredRange[0],
-      coveredAreaTo: local.coveredRange[1],
-      amenities: selected.amenities.map(String),
-      credit:
-        local.operation === "VENTA" ? local.credit || undefined : undefined,
-      financing:
-        local.operation === "VENTA" ? local.financing || undefined : undefined,
-    };
-    delete base.rooms;
+    try {
+      const base: Partial<SearchParams> = {
+        ...local,
+        priceFrom: local.priceRange[0],
+        priceTo: local.priceRange[1],
+        areaFrom: local.areaRange[0],
+        areaTo: local.areaRange[1],
+        coveredAreaFrom: local.coveredRange[0],
+        coveredAreaTo: local.coveredRange[1],
+        amenities: selected.amenities.map(String),
+        credit: local.operation === "VENTA" ? local.credit || undefined : undefined,
+        financing: local.operation === "VENTA" ? local.financing || undefined : undefined,
+      };
+      delete base.rooms;
 
-    const res = await getPropertiesByFilters(
-      buildSearchParams(base) as SearchParams
-    );
+      const res = await getPropertiesByFilters(buildSearchParams(base) as SearchParams);
 
-    const filtered = local.rooms.length
-      ? res.filter((p) => {
-          const r = Number(p.rooms);
-          return local.rooms.some((n) => (n === 3 ? r >= 3 : r === n));
-        })
-      : res;
+      const filtered = local.rooms.length
+        ? res.filter((p) => {
+            const r = Number(p.rooms);
+            return local.rooms.some((n) => (n === 3 ? r >= 3 : r === n));
+          })
+        : res;
 
-    onSearch(filtered);
+      onSearch(filtered);
+      return filtered;
+    } catch (e) {
+      handleError(e);
+      onSearch([]);
+      return [];
+    }
   }
 
   /* ───────── disparar búsqueda ante cambios ───────── */
   const prev = useRef({ params, amenities: selected.amenities });
   useEffect(() => {
-    if (
-      prev.current.params !== params ||
-      prev.current.amenities !== selected.amenities
-    )
+    if (prev.current.params !== params || prev.current.amenities !== selected.amenities) {
       apply();
+    }
     prev.current = { params, amenities: selected.amenities };
   }, [params, selected.amenities]);
 
@@ -164,9 +163,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
       if (Array.isArray(cur))
         return {
           ...p,
-          [key]: cur.includes(value)
-            ? cur.filter((x: any) => x !== value)
-            : [...cur, value],
+          [key]: cur.includes(value) ? cur.filter((x: any) => x !== value) : [...cur, value],
         };
       return { ...p, [key]: cur === value ? "" : value };
     });
@@ -191,10 +188,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
       currency: "",
       credit: false,
       financing: false,
-      priceRange: [dynLimits.price.ARS.min, dynLimits.price.ARS.max] as [
-        number,
-        number
-      ],
+      priceRange: [dynLimits.price.ARS.min, dynLimits.price.ARS.max] as [number, number],
       areaRange: [0, dynLimits.surface.max] as [number, number],
       coveredRange: [0, dynLimits.surface.max] as [number, number],
     };
@@ -207,10 +201,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
   const chips = useMemo(() => {
     const out: { label: string; onClear(): void }[] = [];
     const push = (lbl: string, k: keyof typeof params, val?: any) =>
-      out.push({
-        label: lbl,
-        onClear: () => toggleParam(k as any, val ?? lbl),
-      });
+      out.push({ label: lbl, onClear: () => toggleParam(k as any, val ?? lbl) });
 
     if (params.operation) push(params.operation, "operation");
     if (params.currency) push(params.currency, "currency");
@@ -224,28 +215,15 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
 
     if (
       params.currency &&
-      (params.priceRange[0] > dynLimits.price.ARS.min ||
-        params.priceRange[1] < dynLimits.price.ARS.max)
+      (params.priceRange[0] > dynLimits.price.ARS.min || params.priceRange[1] < dynLimits.price.ARS.max)
     ) {
-      out.push({
-        label: `Precio ${params.priceRange[0]}-${params.priceRange[1]}`,
-        onClear: reset,
-      });
+      out.push({ label: `Precio ${params.priceRange[0]}-${params.priceRange[1]}`, onClear: reset });
     }
     if (params.areaRange[0] > 0 || params.areaRange[1] < dynLimits.surface.max)
-      out.push({
-        label: `Sup ${params.areaRange[0]}-${params.areaRange[1]}`,
-        onClear: reset,
-      });
+      out.push({ label: `Sup ${params.areaRange[0]}-${params.areaRange[1]}`, onClear: reset });
 
-    if (
-      params.coveredRange[0] > 0 ||
-      params.coveredRange[1] < dynLimits.surface.max
-    )
-      out.push({
-        label: `Cub ${params.coveredRange[0]}-${params.coveredRange[1]}`,
-        onClear: reset,
-      });
+    if (params.coveredRange[0] > 0 || params.coveredRange[1] < dynLimits.surface.max)
+      out.push({ label: `Cub ${params.coveredRange[0]}-${params.coveredRange[1]}`, onClear: reset });
 
     if (selected.amenities.length)
       out.push({
@@ -256,7 +234,6 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     return out;
   }, [params, selected.amenities, dynLimits]);
 
-  /* ───────── exposición ───────── */
   return {
     params,
     dynLimits,

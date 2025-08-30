@@ -1,139 +1,130 @@
 /// <reference types="vitest" />
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import type React from "react";
+import React from "react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
-import { AppointmentSection } from "../../../../../user/components/appointments/admin/AppointmentSection";
 
-type MockedListProps = {
-  slots: Array<{ id: number }>;
-  apptsBySlot: Record<number, any>;
-  onSelect: (id: number) => void;
-};
+vi.mock("../../../../services/user.service", () => ({
+  getUserById: vi.fn(),
+}));
 
-let lastListProps: MockedListProps | null = null;
+import { AppointmentItem } from "../../../../components/appointments/admin/AppointmentItem";
+import { getUserById } from "../../../../services/user.service";
 
-vi.mock("../../../../../user/components/appointments/admin/AppointmentsList", () => {
-  return {
-    AppointmentsList: (props: MockedListProps) => {
-      lastListProps = props;
-      return (
-        <div data-testid="appointments-list">
-          {props.slots.map((s) => (
-            <button
-              key={s.id}
-              data-testid={`slot-${s.id}`}
-              onClick={() => props.onSelect(s.id)}
-            >
-              {s.id}
-            </button>
-          ))}
-        </div>
-      );
-    },
-  };
-});
+const getUserByIdMock = getUserById as unknown as Mock;
 
-// helper para renderizar con theme
 const theme = createTheme();
-const renderWithTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+function renderWithTheme(ui: React.ReactElement) {
+  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+}
 
-describe("AppointmentSection", () => {
-  const baseDate = dayjs("2025-06-12T14:30:00");
-  const dateKey = baseDate.format("YYYY-MM-DD");
+function makeSlot(id: number, date: string, availability: boolean) {
+  return { id, date, availability };
+}
 
-  // slots del día (simulan AvailableAppointment)
-  const slots = [
-    { id: 1, date: "2025-06-12T13:00:00", availability: true },
-    { id: 2, date: "2025-06-12T14:00:00", availability: false },
-    { id: 3, date: "2025-06-12T15:00:00", availability: false },
-    { id: 4, date: "2025-06-12T16:00:00", availability: false },
-  ];
+function makeAppt(
+  slotId: number,
+  status: "ESPERA" | "ACEPTADO" | "RECHAZADO",
+  userId?: number
+) {
+  return { id: slotId * 100, slotId, status, userId };
+}
 
-  // Factory para cumplir con el tipo Appointment de tu proyecto
-  const mkAppt = (slotId: number, status: "ESPERA" | "ACEPTADO" | "RECHAZADO") => {
-    const slot = slots.find((s) => s.id === slotId)!;
-    return {
-      id: 100 + slotId,
-      slotId,
-      status,
-      userId: 999,
-      availableAppointment: slot,
-      appointmentDate: slot.date,
-    };
-  };
-
-  const apptsBySlotFull: Record<number, any> = {
-    2: mkAppt(2, "ESPERA"),
-    3: mkAppt(3, "ACEPTADO"),
-    4: mkAppt(4, "RECHAZADO"),
-  };
-
-  const commonProps = (
-    over?: Partial<React.ComponentProps<typeof AppointmentSection>>
-  ): React.ComponentProps<typeof AppointmentSection> => ({
-    loading: false,
-    selectedDate: baseDate as any,
-    filter: "TODOS",
-    setFilter: vi.fn(),
-    slotsByDate: { [dateKey]: slots as any },
-    apptsBySlot: { ...apptsBySlotFull } as any,
-    onSelectSlot: vi.fn(),
-    ...(over as any),
-  });
-
+describe("<AppointmentItem />", () => {
   beforeEach(() => {
-    lastListProps = null;
+    vi.clearAllMocks();
   });
 
-  it("cuando loading=true, muestra CircularProgress y NO renderiza encabezado/lista", () => {
-    renderWithTheme(<AppointmentSection {...commonProps({ loading: true })} />);
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-    expect(screen.queryByTestId("appointments-list")).toBeNull();
+  it("muestra hora y fecha formateadas y estado 'Disponible' + 'Libre' cuando no hay appt", () => {
+    const date = "2025-01-02T15:45:00.000Z"; // usamos dayjs en prueba para comparar igual que el componente
+    const slot = makeSlot(1, date, true);
+    const onClick = vi.fn();
+
+    const { container } = renderWithTheme(
+      <AppointmentItem slot={slot as any} onClick={onClick} />
+    );
+
+    // hora y fecha
+    expect(
+      screen.getByText(dayjs(date).format("HH:mm"))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(dayjs(date).format("DD/MM"))
+    ).toBeInTheDocument();
+
+    // estado + libre
+    expect(screen.getByText("Disponible")).toBeInTheDocument();
+    expect(screen.getByText("Libre")).toBeInTheDocument();
+
+    // click sobre el paper (primer nodo)
+    fireEvent.click(container.firstChild as HTMLElement);
+    expect(onClick).toHaveBeenCalledWith(slot.id);
   });
 
-  it("renderiza el encabezado con la fecha del día seleccionado", () => {
-    renderWithTheme(<AppointmentSection {...commonProps()} />);
-    // Verificamos por partes estables (evitamos locale):
-    expect(screen.getByText((t) => /12/.test(t) && /2025/.test(t))).toBeInTheDocument();
+  it("estado 'Pendiente' y carga de usuario: muestra 'Cargando…' y luego el nombre al resolver getUserById", async () => {
+    const date = "2025-03-10T10:00:00.000Z";
+    const slot = makeSlot(2, date, false);
+    const appt = makeAppt(2, "ESPERA", 99);
+
+    getUserByIdMock.mockResolvedValueOnce({
+      data: { firstName: "Ana", lastName: "García", email: "ana@correo.com" },
+    });
+
+    renderWithTheme(
+      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
+    );
+
+    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    // Mientras carga
+    expect(screen.getByText(/Cargando/i)).toBeInTheDocument();
+    // Luego el nombre
+    await screen.findByText("Ana García");
   });
 
-  it("filtro = TODOS → pasa todos los slots del día a AppointmentsList", () => {
-    renderWithTheme(<AppointmentSection {...commonProps({ filter: "TODOS" })} />);
-    expect(lastListProps).not.toBeNull();
-    expect(lastListProps!.slots.map((s) => s.id)).toEqual([1, 2, 3, 4]);
+  it("estado 'Confirmado' pero getUserById falla: muestra 'Cliente'", async () => {
+    const date = "2025-04-20T08:30:00.000Z";
+    const slot = makeSlot(3, date, false);
+    const appt = makeAppt(3, "ACEPTADO", 77);
+
+    getUserByIdMock.mockRejectedValueOnce(new Error("boom"));
+
+    renderWithTheme(
+      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
+    );
+
+    expect(screen.getByText("Confirmado")).toBeInTheDocument();
+
+    // Tras el rechazo del fetch, debe mostrar "Cliente"
+    await waitFor(() => {
+      expect(screen.getByText("Cliente")).toBeInTheDocument();
+    });
   });
 
-  it("filtro = DISPONIBLE → solo slots availability=true", () => {
-    renderWithTheme(<AppointmentSection {...commonProps({ filter: "DISPONIBLE" })} />);
-    expect(lastListProps).not.toBeNull();
-    expect(lastListProps!.slots.map((s) => s.id)).toEqual([1]);
+  it("estado 'Rechazado' y appt sin userId: muestra 'Cliente'", () => {
+    const date = "2025-05-01T12:00:00.000Z";
+    const slot = makeSlot(4, date, false);
+    const appt = makeAppt(4, "RECHAZADO"); // sin userId
+
+    renderWithTheme(
+      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
+    );
+
+    expect(screen.getByText("Rechazado")).toBeInTheDocument();
+    expect(screen.getByText("Cliente")).toBeInTheDocument();
   });
 
-  it("filtro = ESPERA → solo slots cuyo appt.status === 'ESPERA'", () => {
-    renderWithTheme(<AppointmentSection {...commonProps({ filter: "ESPERA" })} />);
-    expect(lastListProps).not.toBeNull();
-    expect(lastListProps!.slots.map((s) => s.id)).toEqual([2]);
-  });
+  it("cuando hay appt sin userId (cualquier estado), muestra 'Cliente' sin intentar fetch", () => {
+    const date = "2025-06-15T09:00:00.000Z";
+    const slot = makeSlot(5, date, false);
+    const appt = makeAppt(5, "ESPERA"); // sin userId
 
-  it("filtro = ACEPTADO → solo slots con status 'ACEPTADO'", () => {
-    renderWithTheme(<AppointmentSection {...commonProps({ filter: "ACEPTADO" })} />);
-    expect(lastListProps).not.toBeNull();
-    expect(lastListProps!.slots.map((s) => s.id)).toEqual([3]);
-  });
+    renderWithTheme(
+      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
+    );
 
-  it("filtro = RECHAZADO → solo slots con status 'RECHAZADO'", () => {
-    renderWithTheme(<AppointmentSection {...commonProps({ filter: "RECHAZADO" })} />);
-    expect(lastListProps).not.toBeNull();
-    expect(lastListProps!.slots.map((s) => s.id)).toEqual([4]);
-  });
-
-  it("click en un item de la lista propaga onSelectSlot(id)", () => {
-    const onSelectSlot = vi.fn();
-    renderWithTheme(<AppointmentSection {...commonProps({ onSelectSlot })} />);
-    fireEvent.click(screen.getByTestId("slot-3"));
-    expect(onSelectSlot).toHaveBeenCalledWith(3);
+    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    expect(screen.getByText("Cliente")).toBeInTheDocument();
+    expect(getUserByIdMock).not.toHaveBeenCalled();
   });
 });

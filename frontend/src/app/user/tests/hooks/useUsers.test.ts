@@ -1,13 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { MockedFunction } from "vitest";
-import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { AxiosHeaders } from "axios";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useUsers, type Filter } from "../../hooks/useUsers";
-import type { User, Role } from "../../types/user";
 
-// ---- Mocks de servicios ----
-// MUY IMPORTANTE: el path debe coincidir con el que usa el hook
+const mockHandleError = vi.fn();
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({ handleError: mockHandleError }),
+}));
+
 vi.mock("../../services/user.service", () => ({
   getAllUsers: vi.fn(),
   getTenants: vi.fn(),
@@ -15,221 +13,256 @@ vi.mock("../../services/user.service", () => ({
   getRoles: vi.fn(),
 }));
 
-import * as userService from "../../services/user.service";
+import {
+  getAllUsers,
+  getTenants,
+  searchUsersByText,
+  getRoles,
+} from "../../services/user.service";
 
-const getAllUsers = userService.getAllUsers as MockedFunction<
-  typeof userService.getAllUsers
->;
-const getTenants = userService.getTenants as MockedFunction<
-  typeof userService.getTenants
->;
-const searchUsersByText = userService.searchUsersByText as MockedFunction<
-  typeof userService.searchUsersByText
->;
-const getRoles = userService.getRoles as MockedFunction<
-  typeof userService.getRoles
->;
+type AnyUser = { id: string; name?: string };
 
-// ---- Helper AxiosResponse mínimo válido (Axios v1 exige config.headers) ----
-function axiosResponse<T>(
-  data: T,
-  init?: Partial<AxiosResponse<T>>
-): AxiosResponse<T> {
-  const config = {
-    url: "/",
-    method: "get",
-    headers: new AxiosHeaders(),
-  } as unknown as InternalAxiosRequestConfig<any>;
+const U1: AnyUser = { id: "1", name: "Ana" };
+const U2: AnyUser = { id: "2", name: "Beto" };
+const U3: AnyUser = { id: "3", name: "Teo" };
 
-  return {
-    data,
-    status: 200,
-    statusText: "OK",
-    headers: new AxiosHeaders(),
-    config,
-    ...init,
-  };
-}
+const ok = <T,>(v: T) => Promise.resolve(v);
 
-// ---- Datos de ejemplo ----
-const u1: User = { id: "1", name: "Ana" } as any;
-const u2: User = { id: "2", name: "Bob" } as any;
-const u3: User = { id: "3", name: "Cris" } as any;
+beforeEach(() => {
+  vi.clearAllMocks();
+  // valores por defecto (se pueden sobrescribir por test con mockResolvedValueOnce/mockRejectedValueOnce)
+  (getAllUsers as any).mockResolvedValue({ data: [U1, U2] });
+  (getTenants as any).mockResolvedValue({ data: [U3] });
+  (searchUsersByText as any).mockImplementation((txt: string) =>
+    ok<AnyUser[]>([{ id: "4", name: `res-${txt}` }])
+  );
+  (getRoles as any).mockImplementation((userId: string) =>
+    userId === "1"
+      ? ok({ data: ["user"] })
+      : userId === "2"
+      ? ok({ data: ["admin"] })
+      : ok({ data: [] })
+  );
+});
 
-describe("useUsers", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+describe("useUsers (alta cobertura)", () => {
+  test("carga inicial (TODOS): usa getAllUsers, enriquece roles y deja loading=false", async () => {
+    const { result } = renderHook(() => useUsers());
 
-  it("carga inicial con filtro TODOS: usa getAllUsers, enriquece roles y setea users", async () => {
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([u1, u2]));
-    // u1 -> ["admin"], u2 -> ["user"]
-    getRoles.mockImplementation(async (id: string) =>
-      id === "1" ? axiosResponse<Role[]>(["admin"]) : axiosResponse<Role[]>(["user"])
-    );
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.users.length).toBe(2);
+    });
 
-    const { result } = renderHook(() => useUsers("TODOS"));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    // users enriquecidos
+    const [a, b] = result.current.users;
+    expect(a.roles).toEqual(["user"]);
+    expect(b.roles).toEqual(["admin"]);
 
     expect(getAllUsers).toHaveBeenCalledTimes(1);
+    expect(getTenants).not.toHaveBeenCalled();
     expect(getRoles).toHaveBeenCalledTimes(2);
 
-    const rolesById = Object.fromEntries(result.current.users.map((u) => [u.id, u.roles]));
-    expect(rolesById["1"]).toEqual(["admin"]);
-    expect(rolesById["2"]).toEqual(["user"]);
-  });
-
-  it("carga con filtro TENANT: usa getTenants (no getAllUsers) y enriquece", async () => {
-    getTenants.mockResolvedValue(axiosResponse<User[]>([u2, u3]));
-    getRoles.mockResolvedValue(axiosResponse<Role[]>(["user"]));
-
-    const { result } = renderHook(() => useUsers("TENANT"));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(getTenants).toHaveBeenCalledTimes(1);
-    expect(getAllUsers).not.toHaveBeenCalled();
-    expect(result.current.users).toHaveLength(2);
-    expect(result.current.users.every((u) => u.roles.includes("user"))).toBe(true);
-  });
-
-  it("filtro ADMIN: mantiene sólo usuarios con rol 'admin'", async () => {
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([u1, u2, u3]));
-    getRoles.mockImplementation(async (id: string) => {
-      if (id === "1") return axiosResponse<Role[]>(["admin"]);
-      if (id === "2") return axiosResponse<Role[]>(["user"]);
-      return axiosResponse<Role[]>([]); // u3 sin roles
-    });
-
-    const { result } = renderHook(() => useUsers("ADMIN"));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.users.map((u) => u.id)).toEqual(["1"]);
-  });
-
-  it("filtro USER: mantiene sólo usuarios con rol 'user'", async () => {
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([u1, u2, u3]));
-    getRoles.mockImplementation(async (id: string) => {
-      if (id === "1") return axiosResponse<Role[]>(["admin"]);
-      if (id === "2") return axiosResponse<Role[]>(["user"]);
-      return axiosResponse<Role[]>([]);
-    });
-
-    const { result } = renderHook(() => useUsers("USER"));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.users.map((u) => u.id)).toEqual(["2"]);
-  });
-
-  it("enrich maneja error en getRoles devolviendo roles=[]", async () => {
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([u1]));
-    getRoles.mockRejectedValue(new Error("boom"));
-
-    const { result } = renderHook(() => useUsers("TODOS"));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    expect(result.current.users[0].roles).toEqual([]);
-  });
-
-  it("fetchAll: pide getAllUsers, enriquece y actualiza state", async () => {
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([u1, u2]));
-    getRoles.mockResolvedValue(axiosResponse<Role[]>(["user"]));
-
-    const { result } = renderHook(() => useUsers("TODOS"));
-    // Esperá el load inicial
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    // Cambiamos el state con fetchAll
-    await act(async () => {
-      await result.current.fetchAll();
-    });
-
-    expect(getAllUsers).toHaveBeenCalledTimes(2); // inicial + fetchAll
-    expect(result.current.users).toHaveLength(2);
-  });
-
-  it("fetchByText: usa searchUsersByText (devuelve User[]), enriquece y actualiza state", async () => {
-    // Para el mount inicial
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([]));
-    getRoles.mockResolvedValue(axiosResponse<Role[]>([]));
-
-    // Para la búsqueda (nota: el hook espera que searchUsersByText devuelva Array<User>)
-    searchUsersByText.mockResolvedValue([u3]);
-    getRoles.mockResolvedValueOnce(axiosResponse<Role[]>(["admin"]));
-
-    const { result } = renderHook(() => useUsers("TODOS"));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    const enriched = await act(async () => {
-      return await result.current.fetchByText("cris");
-    });
-
-    expect(searchUsersByText).toHaveBeenCalledWith("cris");
-    expect(enriched).toHaveLength(1);
-    expect(enriched?.[0]?.roles).toEqual(["admin"]);
-    expect(result.current.users.map((u) => u.id)).toEqual(["3"]);
-  });
-
-  it("toggleSelect: funciona con string, array y null, e isSelected refleja el estado", async () => {
-    // Mount básico
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([]));
-    const { result } = renderHook(() => useUsers("TODOS"));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    // arranca en null
+    // API selección
     expect(result.current.selected).toBeNull();
     expect(result.current.isSelected("1")).toBe(false);
+  });
 
-    // seleccionar con string
-    await act(async () => {
-      result.current.toggleSelect("1");
-    });
+  test("toggleSelect: string → toggle on/off; array toma el último; null y array [] limpian", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // string
+    act(() => result.current.toggleSelect("1"));
     expect(result.current.selected).toBe("1");
     expect(result.current.isSelected("1")).toBe(true);
 
-    // toggle con el mismo id -> vuelve a null
-    await act(async () => {
-      result.current.toggleSelect("1");
-    });
+    // mismo id → des-selecciona
+    act(() => result.current.toggleSelect("1"));
     expect(result.current.selected).toBeNull();
 
-    // seleccionar con array -> toma el último
-    await act(async () => {
-      result.current.toggleSelect(["2", "3"]);
-    });
-    expect(result.current.selected).toBe("3");
-    expect(result.current.isSelected("3")).toBe(true);
+    // array => último
+    act(() => result.current.toggleSelect(["x", "2"]));
+    expect(result.current.selected).toBe("2");
 
-    // array vacío -> null (y hace toggle si ya era null)
-    await act(async () => {
-      result.current.toggleSelect([]);
-    });
+    // null
+    act(() => result.current.toggleSelect(null));
     expect(result.current.selected).toBeNull();
 
-    // null explícito -> null
-    await act(async () => {
-      result.current.toggleSelect(null);
-    });
+    // array vacío
+    act(() => result.current.toggleSelect([]));
     expect(result.current.selected).toBeNull();
   });
 
-  it("setFilter cambia el filtro y load vuelve a ejecutarse", async () => {
-    getAllUsers.mockResolvedValue(axiosResponse<User[]>([u1]));
-    getRoles.mockResolvedValue(axiosResponse<Role[]>(["user"]));
+  test("setFilter('ADMIN') filtra por rol 'admin'", async () => {
+    const { result } = renderHook(() => useUsers());
 
-    const { result } = renderHook(() => useUsers("TODOS"));
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(getAllUsers).toHaveBeenCalledTimes(1);
+    expect(result.current.users.length).toBe(2);
 
-    // Cambiar filtro dispara useEffect(load)
-    getAllUsers.mockResolvedValueOnce(axiosResponse<User[]>([u2]));
-    await act(async () => {
-      result.current.setFilter("USER" as Filter);
+    act(() => result.current.setFilter("ADMIN"));
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.users.length).toBe(1);
     });
+
+    expect(result.current.users[0].id).toBe("2"); // tenía rol admin
+    // Debe haber re-enriquecido
+    expect(getRoles).toHaveBeenCalled();
+  });
+
+  test("setFilter('USER') filtra por rol 'user'", async () => {
+    const { result } = renderHook(() => useUsers());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(getAllUsers).toHaveBeenCalledTimes(2);
-    expect(result.current.users.map((u) => u.id)).toEqual(["2"]);
+    act(() => result.current.setFilter("USER"));
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.users.length).toBe(1);
+    });
+
+    expect(result.current.users[0].id).toBe("1"); // tenía rol user
+  });
+
+  test("initialFilter 'TENANT' usa getTenants y enriquece", async () => {
+    const { result } = renderHook(() => useUsers("TENANT" as Filter));
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.users.length).toBe(1);
+    });
+
+    expect(getTenants).toHaveBeenCalledTimes(1);
+    // Igual enriquece (aunque devuelva vacío)
+    expect(getRoles).toHaveBeenCalledTimes(1);
+    expect(result.current.users[0].id).toBe("3");
+    expect(result.current.users[0].roles).toEqual([]);
+  });
+
+  test("fetchAll: retorna y setea lista enriquecida (y sobreescribe state)", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // Cambiamos lo que devolverá fetchAll
+    (getAllUsers as any).mockResolvedValueOnce({ data: [U1] });
+    (getRoles as any).mockResolvedValueOnce({ data: ["user"] });
+
+    let out: any[] = [];
+    await act(async () => {
+      out = await result.current.fetchAll();
+    });
+
+    expect(out.length).toBe(1);
+    expect(out[0].roles).toEqual(["user"]);
+    expect(result.current.users.length).toBe(1);
+    expect(result.current.users[0].id).toBe("1");
+  });
+
+  test("fetchByText: usa searchUsersByText (Array<User>), enriquece y setea", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    (searchUsersByText as any).mockResolvedValueOnce([U2, U1]);
+    (getRoles as any)
+      .mockResolvedValueOnce({ data: ["admin"] }) // para U2
+      .mockResolvedValueOnce({ data: ["user"] }); // para U1
+
+    let out: any[] = [];
+    await act(async () => {
+      out = await result.current.fetchByText("abc");
+    });
+
+    expect(searchUsersByText).toHaveBeenCalledWith("abc");
+    expect(out.map((u) => u.roles)).toEqual([["admin"], ["user"]]);
+    expect(result.current.users.length).toBe(2);
+  });
+
+  test("enrich: si getRoles falla para un user, deja roles=[] (cubre catch interno)", async () => {
+    (getRoles as any)
+      .mockResolvedValueOnce({ data: ["user"] }) // U1 ok
+      .mockRejectedValueOnce(new Error("roles-fail")); // U2 falla
+
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const [a, b] = result.current.users;
+    expect(a.roles).toEqual(["user"]);
+    expect(b.roles).toEqual([]); // por catch en enrich
+  });
+
+  test("load: si getAllUsers falla, handleError es llamado y users=[]; loading vuelve a false", async () => {
+    (getAllUsers as any).mockRejectedValueOnce(new Error("fetch-fail"));
+
+    const { result } = renderHook(() => useUsers());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.users).toEqual([]); // setUsers([]) en catch
+    });
+
+    expect(mockHandleError).toHaveBeenCalledTimes(1);
+  });
+
+  test("fetchAll: si falla, retorna [] y NO cambia el state", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    // estado actual: 2 users (del load inicial)
+    const prevIds = result.current.users.map((u) => u.id);
+
+    (getAllUsers as any).mockRejectedValueOnce(new Error("fail-ff"));
+
+    let out: any[] = [{}] as any;
+    await act(async () => {
+      out = await result.current.fetchAll();
+    });
+
+    expect(out).toEqual([]);
+    expect(result.current.users.map((u) => u.id)).toEqual(prevIds);
+    expect(mockHandleError).toHaveBeenCalledTimes(1);
+  });
+
+  test("fetchByText: si falla, retorna [] y NO cambia el state", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const prevIds = result.current.users.map((u) => u.id);
+
+    (searchUsersByText as any).mockRejectedValueOnce(new Error("fail-s"));
+
+    let out: any[] = [{}] as any;
+    await act(async () => {
+      out = await result.current.fetchByText("zzz");
+    });
+
+    expect(out).toEqual([]);
+    expect(result.current.users.map((u) => u.id)).toEqual(prevIds);
+    expect(mockHandleError).toHaveBeenCalledTimes(1);
+  });
+
+  test("exponer setUsers permite sobreescribir manualmente el estado (rama de retorno)", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => {
+      result.current.setUsers([{ id: "999", roles: ["x"] } as any]);
+    });
+
+    expect(result.current.users).toEqual([{ id: "999", roles: ["x"] }]);
+  });
+
+  test("cambiar varios filtros encadena cargas (cubre dependencias de load/enrich)", async () => {
+    const { result } = renderHook(() => useUsers());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    act(() => result.current.setFilter("USER"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.users.every((u) => u.roles.includes("user"))).toBe(true);
+
+    act(() => result.current.setFilter("ADMIN"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.users.every((u) => u.roles.includes("admin"))).toBe(true);
+
+    act(() => result.current.setFilter("TODOS"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.users.length).toBeGreaterThan(0);
   });
 });

@@ -1,96 +1,98 @@
-import { useMemo } from 'react';
-import { Dayjs } from 'dayjs';
-import {
-    Box,
-    Typography,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    CircularProgress,
-} from '@mui/material';
-import { AppointmentsList } from './AppointmentsList';
+import { useEffect, useState } from 'react';
+import { Paper, Stack, Typography, Chip, useTheme, Box } from '@mui/material';
+import dayjs from 'dayjs';
+import { getUserById } from '../../../services/user.service';
 import type { Appointment, AvailableAppointment } from '../../../types/appointment';
+import type { User } from '../../../types/user';
 
 type Status = 'DISPONIBLE' | 'ESPERA' | 'ACEPTADO' | 'RECHAZADO';
 
+const statusChip = (s: Status) => {
+    switch (s) {
+        case 'DISPONIBLE': return { label: 'Disponible' };
+        case 'ESPERA': return { label: 'Pendiente' };
+        case 'ACEPTADO': return { label: 'Confirmado' };
+        case 'RECHAZADO': return { label: 'Rechazado' };
+    }
+};
+
 interface Props {
-    loading: boolean;
-    selectedDate: Dayjs;
-    filter: Status | 'TODOS';
-    setFilter: (f: Status | 'TODOS') => void;
-    slotsByDate: Record<string, AvailableAppointment[]>;
-    apptsBySlot: Record<number, Appointment>;
-    onSelectSlot: (slotId: number) => void;
+    slot: AvailableAppointment;
+    appt?: Appointment;
+    onClick: (slotId: number) => void;
 }
 
-export const AppointmentSection = ({ loading, selectedDate, filter, setFilter, slotsByDate, apptsBySlot, onSelectSlot }: Props) => {
-    const dateKey = selectedDate.format('YYYY-MM-DD');
-    const daySlots = slotsByDate[dateKey] ?? [];
+export const AppointmentItem = ({ slot, appt, onClick }: Props) => {
+    const theme = useTheme();
+    const status: Status = slot.availability ? 'DISPONIBLE' : (appt?.status as Status);
+    const chip = statusChip(status);
 
-    const filtered = useMemo(
-        () =>
-            daySlots.filter((s) => {
-                if (filter === 'TODOS') return true;
-                if (filter === 'DISPONIBLE') return s.availability;
-                const appt = apptsBySlot[s.id];
-                return appt ? appt.status === filter : false;
-            }),
-        [daySlots, filter, apptsBySlot],
-    );
+    const [user, setUser] = useState<User | null>(null);
+    const [loadingUser, setLoadingUser] = useState(false);
 
-    if (loading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                <CircularProgress size={36} />
-            </Box>
-        );
-    }
+    useEffect(() => {
+        if (appt?.userId) {
+            setLoadingUser(true);
+            getUserById(appt.userId)
+                .then(res => setUser(res.data))
+                .catch(() => { })
+                .finally(() => setLoadingUser(false));
+        }
+    }, [appt]);
 
     return (
-        <>
-            {/* Encabezado con filtro */}
-            <Box
-                sx={{
-                    px: 3,
-                    py: 2,
-                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                }}
+        <Paper
+            variant="outlined"
+            sx={{
+                mb: 1.25,
+                p: { xs: 1.25, sm: 1.5 },
+                borderRadius: 2,
+                cursor: 'pointer',
+                '&:hover': { bgcolor: theme.palette.action.hover },
+            }}
+            onClick={() => onClick(slot.id)}
+        >
+            <Stack
+                direction="row"
+                alignItems="center"
+                spacing={{ xs: 1, sm: 2 }}
+                useFlexGap
+                flexWrap="wrap"
             >
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                    {selectedDate.locale('es').format('dddd DD MMMM YYYY')}
-                </Typography>
+                {/* Hora/fecha — ancho estable */}
+                <Stack
+                    spacing={0.5}
+                    alignItems="center"
+                    sx={{ width: 64, flexShrink: 0 }}
+                >
+                    <Typography variant="h6" lineHeight={1.1}>
+                        {dayjs(slot.date).format('HH:mm')}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        {dayjs(slot.date).format('DD/MM')}
+                    </Typography>
+                </Stack>
 
-                <FormControl size="small">
-                    <InputLabel id="filter-label">Estado</InputLabel>
-                    <Select
-                        labelId="filter-label"
-                        value={filter}
-                        label="Estado"
-                        onChange={(e) => setFilter(e.target.value as Status | 'TODOS')}
-                        sx={{ width: 180 }}
-                    >
-                        {['TODOS', 'DISPONIBLE', 'ESPERA', 'ACEPTADO', 'RECHAZADO'].map((v) => (
-                            <MenuItem key={v} value={v}>
-                                {v === 'TODOS' ? 'Todos' : v.charAt(0) + v.slice(1).toLowerCase()}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-            </Box>
-
-            {/* Lista */}
-            <Box sx={{ p: 3, overflowY: 'auto', flexGrow: 1, maxHeight: 600 }}>
-                <AppointmentsList
-                    slots={filtered}
-                    apptsBySlot={apptsBySlot}
-                    onSelect={onSelectSlot}
+                {/* Estado */}
+                <Chip
+                    label={chip.label}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    sx={{ flexShrink: 0 }}
                 />
-            </Box>
 
-        </>
+                {/* Nombre / Libre — ocupa el resto, con elipsis */}
+                <Box sx={{ ml: 'auto', minWidth: 120, flex: 1, overflow: 'hidden' }}>
+                    {appt ? (
+                        <Typography noWrap>
+                            {loadingUser ? 'Cargando…' : user ? `${user.firstName} ${user.lastName}` : 'Cliente'}
+                        </Typography>
+                    ) : (
+                        <Typography color="text.disabled" noWrap>Libre</Typography>
+                    )}
+                </Box>
+            </Stack>
+        </Paper>
     );
 };
