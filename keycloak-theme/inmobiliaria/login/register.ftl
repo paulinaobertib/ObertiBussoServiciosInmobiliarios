@@ -50,7 +50,6 @@
                 id="firstName"
                 name="firstName"
                 placeholder="Nombre"
-                value=tomi
                 required
               />
             </div>
@@ -60,8 +59,6 @@
                 id="lastName"
                 name="lastName"
                 placeholder="Apellido"
-                                value=tomi
-
                 required
               />
             </div>
@@ -74,8 +71,6 @@
             placeholder="Correo electrónico"
             pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
             title="Debe ser un email válido (incluye @ y dominio)"
-                            value=tomi@gmail.com
-
             required
           />
 
@@ -86,7 +81,6 @@
             placeholder="Teléfono"
             pattern="\d{10}"
             title="10 dígitos numéricos"
-                            value=3510000000
             required
           />
 
@@ -109,7 +103,6 @@
               placeholder="Contraseña"
               minlength="8"
               title="Mínimo 8 caracteres"
-              value=T0000000
               required
             />
             <button type="button" class="toggle-password" onclick="togglePassword(this)">
@@ -123,7 +116,6 @@
               id="password-confirm"
               name="password-confirm"
               placeholder="Confirmar contraseña"
-              value=T0000000
               required
             />
             <button type="button" class="toggle-password" onclick="togglePassword(this)">

@@ -11,6 +11,7 @@ import { ChatProvider } from "./app/chat/context/ChatContext";
 import { ChatAlways } from "./pages/ChatAlways";
 import "./index.css";
 import AuthLoaderOverlay from "./app/user/context/AuthLoader";
+import AuthExpired from "./app/user/context/AuthExpired";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -30,6 +31,7 @@ function App() {
                   <Routes />
                   <ChatAlways />
                   <AuthLoaderOverlay />
+                  <AuthExpired />
                 </BrowserRouter>
               </ChatProvider>
             </PropertyCrudProvider>

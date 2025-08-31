@@ -1,11 +1,9 @@
-import { Loading } from '../../shared/components/Loader';
-import { useAuthContext } from './AuthContext';
+import { Loading } from "../../shared/components/Loader";
+import { useAuthContext } from "./AuthContext";
 
 export const AuthLoaderOverlay = () => {
-  const { loading } = useAuthContext();
-  return loading ? (
-    <Loading message="Espere, estamos actualizando su experiencia..." />
-  ) : null;
+  const { loading, refreshing } = useAuthContext();
+  return loading || refreshing ? <Loading /> : null;
 };
 
 export default AuthLoaderOverlay;

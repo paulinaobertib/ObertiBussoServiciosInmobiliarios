@@ -29,6 +29,10 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeExchange(ex -> ex.anyExchange().permitAll())
                 .oauth2Login(o -> o.authenticationSuccessHandler(loginSuccessHandler))
+                // Ensure OAuth2 Client support is enabled so authorized client state
+                // (access/refresh tokens) is managed and available for TokenRelay
+                .oauth2Client()
+                .and()
                 .logout(l -> l.logoutSuccessHandler(logoutSuccessHandler));
 
         return http.build();
