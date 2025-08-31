@@ -23,6 +23,7 @@ export const PropertyNotesPage = () => {
         loadingMaintenances,
         refreshComments,
         refreshMaintenances,
+        getUserName,
     } = usePropertyNotes(propertyId);
 
     const [activeTab, setActiveTab] = useState<'comments' | 'maintenances'>('comments');
@@ -98,6 +99,7 @@ export const PropertyNotesPage = () => {
                         loading={loadingComments}
                         items={comments}
                         refresh={refreshComments}
+                        getUserName={getUserName}
                     />
                 ) : (
                     <MaintenanceSection
