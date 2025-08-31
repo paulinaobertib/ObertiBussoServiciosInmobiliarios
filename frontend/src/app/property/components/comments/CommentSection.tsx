@@ -11,9 +11,10 @@ export interface Props {
   loading: boolean;
   items: Comment[];
   refresh: () => Promise<void>;
+  getUserName: (id: string) => string;
 }
 
-export const CommentSection = ({ propertyId, loading, items, refresh, }: Props) => {
+export const CommentSection = ({ propertyId, loading, items, refresh, getUserName, }: Props) => {
   const [action, setAction] = useState<'add' | 'edit'>('add');
   const [selected, setSelected] = useState<Comment>();
 
@@ -66,6 +67,7 @@ export const CommentSection = ({ propertyId, loading, items, refresh, }: Props) 
             items={items}
             onEditItem={startEdit}
             onDeleteItem={handleDelete}
+            getUserName={getUserName}
           />
         )}
       </Box>

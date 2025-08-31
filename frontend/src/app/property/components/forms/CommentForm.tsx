@@ -4,6 +4,7 @@ import { Grid, TextField, Box } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 
 import { useCategories } from '../../hooks/useCategories';
+import { useAuthContext } from '../../../user/context/AuthContext';
 import {
     postComment,
     putComment,
@@ -20,18 +21,23 @@ interface Props {
 }
 
 export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Props) => {
+    const { info } = useAuthContext();
     const initialPayload = {
         id: item?.id ?? 0,
         propertyId: propertyId,
         description: item?.description ?? '',
-        date: item?.date ?? ''
+        date: item?.date ?? '',
+        userId: item?.userId ?? info?.id ?? ''
     };
 
     const { form, setForm, run, loading } = useCategories<Comment>({
         initial: initialPayload,
         action,
         save: async (payload) => {
-            if (action === 'add') return postComment(payload as CommentCreate);
+            if (action === 'add') {
+                const toSend = { ...(payload as any), userId: info?.id ?? '' } as CommentCreate;
+                return postComment(toSend);
+            }
             if (action === 'edit') return putComment(payload as Comment);
             if (action === 'delete') return deleteComment(payload as Comment);
         },
@@ -46,11 +52,13 @@ export const CommentForm = ({ propertyId, action, item, refresh, onDone, }: Prop
                 propertyId,
                 description: item.description,
                 date: item.date,
+                userId: item.userId,
             });
         } else {
+            // Para 'add', reforzamos el userId del usuario autenticado
             setForm(initialPayload);
         }
-    }, [action, item?.id, propertyId]);
+    }, [action, item?.id, propertyId, info?.id]);
 
     const handleSubmit = async () => {
         await run();
