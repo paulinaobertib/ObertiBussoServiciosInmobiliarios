@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { Box, useTheme, useMediaQuery, Button } from '@mui/material';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { useNavigate } from 'react-router-dom';
-import { Box, useTheme, useMediaQuery } from '@mui/material';
 import { ImageCarousel } from '../app/shared/components/images/ImageCarousel';
 import { SearchBar } from '../app/shared/components/SearchBar';
 import { SearchFilters } from '../app/property/components/catalog/SearchFilters';
@@ -11,12 +11,15 @@ import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { getAllProperties, getPropertiesByText } from '../app/property/services/property.service';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
   localStorage.setItem('selectedPropertyId', '');
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
 
   const { showAlert } = useGlobalAlert();
   const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, refreshProperties, resetSelected } = usePropertiesContext();
@@ -26,8 +29,8 @@ export default function Home() {
   const [results, setResults] = useState<Property[] | null>(null);
 
   useEffect(() => {
-    resetSelected(); 
-    refreshProperties();    // snapshot más nuevo
+    resetSelected();
+    refreshProperties();
   }, [resetSelected, refreshProperties]);
 
 
@@ -80,7 +83,7 @@ export default function Home() {
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
 
-        {/* ---------------- SearchBar junto al botón (el botón ya lo gestiona SearchFilters) ---------------- */}
+        {/* ── SearchBar con botón FILTROS a la izquierda (solo mobile) ── */}
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
           <Box
             sx={{
@@ -92,6 +95,17 @@ export default function Home() {
               justifyContent: 'center',
             }}
           >
+            {isMobile && (
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                onClick={() => setFiltersOpen(true)}
+                sx={{ flexShrink: 0 }}
+              >
+                Filtros
+              </Button>
+            )}
+
             <Box sx={{ flexGrow: 1 }}>
               <SearchBar
                 fetchAll={getAllProperties}
@@ -104,7 +118,7 @@ export default function Home() {
           </Box>
         </Box>
 
-        {/* ---------------- Área de filtros + catálogo ---------------- */}
+        {/* ── Filtros + catálogo ── */}
         <Box
           sx={{
             display: 'flex',
@@ -113,10 +127,13 @@ export default function Home() {
             mt: 2,
           }}
         >
-          {/* UNA sola instancia de filtros.
-              SearchFilters decide si es Drawer (mobile) o panel fijo (desktop) */}
           <Box sx={{ width: { md: 300 } }}>
-            <SearchFilters onSearch={setResults} />
+            <SearchFilters
+              onSearch={setResults}
+              mobileOpen={filtersOpen}                // control externo del Drawer
+              onMobileOpenChange={setFiltersOpen}
+              hideMobileTrigger                        // ocultamos el botón interno
+            />
           </Box>
 
           <Box sx={{ flexGrow: 1, ml: { md: 3 } }}>
@@ -125,7 +142,7 @@ export default function Home() {
               mode={mode}
               onFinishAction={() => {
                 setMode('normal');
-                setResults(null);              // <— limpiamos los resultados de búsqueda
+                setResults(null);
               }}
               selectionMode={selectionMode}
               toggleSelection={toggleCompare}

@@ -246,37 +246,33 @@ export const NavBar = () => {
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
             >
               {/* Logueado usuario: Contacto, Noticias, Mis favoritos, Notificaciones */}
-              {isLogged && !isAdmin && (
-                <>
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
-                    CONTACTO
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
-                    NOTICIAS
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
-                    MIS FAVORITOS
-                  </MenuItem>
-                  <MenuItem>
-                    <SettingsDrawer />
-                  </MenuItem>
-                </>
-              )}
+              {isLogged && !isAdmin && ([
+                <MenuItem key="contact" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
+                  CONTACTO
+                </MenuItem>,
+                <MenuItem key="news" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
+                  NOTICIAS
+                </MenuItem>,
+                <MenuItem key="favorites" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
+                  MIS FAVORITOS
+                </MenuItem>,
+                <MenuItem key="settings">
+                  <SettingsDrawer />
+                </MenuItem>
+              ])}
 
               {/* Admin: Turnero + Noticias */}
-              {isAdmin && (
-                <>
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
-                    TURNERO
-                  </MenuItem>
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
-                    NOTICIAS
-                  </MenuItem>
-                  <MenuItem>
-                    <SettingsDrawer />
-                  </MenuItem>
-                </>
-              )}
+              {isAdmin && ([
+                <MenuItem key="appointments" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
+                  TURNERO
+                </MenuItem>,
+                <MenuItem key="news-admin" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
+                  NOTICIAS
+                </MenuItem>,
+                <MenuItem key="settings-admin">
+                  <SettingsDrawer />
+                </MenuItem>
+              ])}
               {/* No logueado: sin menú (no renderizamos items) */}
             </Menu>
           </Box>

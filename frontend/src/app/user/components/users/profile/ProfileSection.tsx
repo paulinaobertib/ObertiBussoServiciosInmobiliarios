@@ -20,12 +20,20 @@ export function ProfileSection() {
   const { ask, DialogUI } = useConfirmDialog();
   const { logout, setInfo, info } = useAuthContext();
 
+  // Sincroniza el formulario con el perfil cargado.
+  // - Al inicio, carga el perfil en el form.
+  // - Si el perfil cambia y NO estamos editando, refleja el cambio en el form.
   useEffect(() => {
-    if (profile && !initialized.current) {
+    if (!profile) return;
+    if (!initialized.current) {
       setForm(profile);
       initialized.current = true;
+      return;
     }
-  }, [profile]);
+    if (!editMode) {
+      setForm(profile);
+    }
+  }, [profile, editMode]);
 
   const handleToggleEdit = async () => {
     if (editMode && form) {

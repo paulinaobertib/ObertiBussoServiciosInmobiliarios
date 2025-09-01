@@ -6,9 +6,10 @@ export interface Props {
     items: Comment[];
     onEditItem: (item: Comment) => void;
     onDeleteItem: (item: Comment) => void;
+    getUserName: (id: string) => string;
 }
 
-export const CommentList = ({ items, onEditItem, onDeleteItem, }: Props) => {
+export const CommentList = ({ items, onEditItem, onDeleteItem, getUserName, }: Props) => {
     const sorted = items
         .slice()
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -19,6 +20,7 @@ export const CommentList = ({ items, onEditItem, onDeleteItem, }: Props) => {
                 <CommentItem
                     key={c.id}
                     comment={c}
+                    authorName={getUserName(c.userId)}
                     onEdit={() => onEditItem(c)}
                     onDelete={() => onDeleteItem(c)}
                 />

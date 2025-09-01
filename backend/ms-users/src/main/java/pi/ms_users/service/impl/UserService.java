@@ -29,6 +29,18 @@ public class UserService implements IUserService {
 
     private final IAgentChatService agentChatService;
 
+    @Override
+    public void addPrincipalRole(Jwt jwt) {
+        String id = jwt.getClaimAsString("sub");
+        List<String> roles = userRepository.addRoleToUser(id, "user");
+        if (roles == null || roles.isEmpty() || !roles.contains("user")) {
+            throw new EntityNotFoundException("No se agregaron roles al usuario");
+        }
+        if (!id.equals(SecurityUtils.getCurrentUserId())) {
+            throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
+        }
+    }
+
     public ResponseEntity<String> createUser(String firstName, String lastName, String email, String phone) {
         Response response = userRepository.createUser(firstName, lastName, email, phone);
         int status = response.getStatus();

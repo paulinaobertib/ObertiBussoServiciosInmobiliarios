@@ -1,14 +1,7 @@
-import {
-  InquiryCreateAuth,
-  InquiryCreateAnon,
-  InquiryStatus,
-} from "../types/inquiry";
+import { InquiryCreateAuth, InquiryCreateAnon, InquiryStatus } from "../types/inquiry";
 import { api } from "../../../api";
 
-export const postInquiry = async (
-  data: InquiryCreateAuth | InquiryCreateAnon
-) => {
-  console.log(data);
+export const postInquiry = async (data: InquiryCreateAuth | InquiryCreateAnon) => {
   try {
     const response = await api.post(`/properties/inquiries/create`, data, {
       withCredentials: true,
@@ -70,10 +63,7 @@ export const getInquiriesByUser = async (userId: string) => {
 
 export const getInquiriesByProperty = async (propertyId: number) => {
   try {
-    const response = await api.get(
-      `/properties/inquiries/property/${propertyId}`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/inquiries/property/${propertyId}`, { withCredentials: true });
     return response;
   } catch (error) {
     console.error("Error fetching inquiries by Property:", error);
@@ -96,10 +86,7 @@ export const getInquiriesByStatus = async (status: InquiryStatus) => {
 
 export const getAverageInquiryResponseTime = async () => {
   try {
-    const response = await api.get(
-      `/properties/inquiries/statistics/duration`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/inquiries/statistics/duration`, { withCredentials: true });
     return response;
   } catch (error) {
     console.error("Error fetching average inquiry response time:", error);
@@ -157,10 +144,7 @@ export const getInquiriesPerMonth = async () => {
 
 export const getMostConsultedProperties = async () => {
   try {
-    const response = await api.get(
-      `/properties/inquiries/statistics/properties`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/inquiries/statistics/properties`, { withCredentials: true });
     return response;
   } catch (error) {
     console.error("Error fetching most consulted properties:", error);
