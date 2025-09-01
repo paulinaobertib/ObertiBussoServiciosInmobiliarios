@@ -70,8 +70,7 @@ public class AppointmentService implements IAppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el turno"));
 
-        if (SecurityUtils.isUser() &&
-                !appointment.getUserId().equals(SecurityUtils.getCurrentUserId())) {
+        if (SecurityUtils.isUser() && !appointment.getUserId().equals(SecurityUtils.getCurrentUserId())) {
             throw new AccessDeniedException("No tiene el permiso para realizar esta accion.");
         }
 

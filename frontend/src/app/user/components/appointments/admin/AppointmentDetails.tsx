@@ -287,5 +287,7 @@ export const AppointmentDetailsDialog = ({
             </Box>
             {DialogUI}
         </Modal>
+
+
     );
 };

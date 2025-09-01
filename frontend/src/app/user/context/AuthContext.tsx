@@ -1,3 +1,4 @@
+// src/app/user/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Role, User } from "../types/user";
 import { NotificationType, UserNotificationPreference } from "../types/notification";
@@ -7,6 +8,7 @@ import {
 } from "../services/notification.service";
 import { getMe, getRoles, addPrincipalRole } from "../services/user.service";
 import { retry, sleep } from "../../shared/utils/retry";
+import { api } from "../../../api";
 
 export type AuthInfo = User & {
   roles: Role[];
@@ -21,6 +23,8 @@ interface AuthContextValue {
   isTenant: boolean;
   ready: boolean;
   loading: boolean;
+  refreshing: boolean;
+  sessionExpired: boolean;
   login: () => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -34,6 +38,8 @@ const AuthContext = createContext<AuthContextValue>({
   isTenant: false,
   ready: false,
   loading: false,
+  refreshing: false,
+  sessionExpired: false,
   login: () => {},
   logout: () => {},
   refreshUser: async () => {},
@@ -63,7 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const stored = sessionStorage.getItem("authInfo");
   const [info, setInfo] = useState<AuthInfo | null>(stored ? JSON.parse(stored) : null);
   const [loading, setLoading] = useState(!stored);
+  const [refreshing, setRefreshing] = useState(false);
   const [ready, setReady] = useState(Boolean(stored)); // listo para renderizar
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
   const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
@@ -89,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 3) si no hay roles, asignar principal y reintentar obtenerlos
       await addPrincipalRole();
       // pequeña espera para que Keycloak/DB refleje el cambio
-      await sleep(100000);
+      await sleep(1000);
 
       // 2) roles (pueden venir vacíos en primer login)
       let { data: rawRoles } = await getRoles(user.id);
@@ -117,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       // ...
       setInfo({ ...user, roles, preferences });
+      setSessionExpired(false);
       setReady(true);
     } catch (e) {
       // si algo falla, limpiamos y marcamos no listo
@@ -130,15 +139,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Al montar, siempre refrescar desde la API (aunque haya stored) para evitar estados viejos
   useEffect(() => {
     loadUserInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = () => {
+    try {
+      const next = window.location.pathname + window.location.search;
+      sessionStorage.setItem("postLoginNext", next);
+    } catch {}
+    setSessionExpired(false);
     window.location.href = loginUrl;
   };
 
   const logout = () => {
     setInfo(null);
+    setSessionExpired(false);
     sessionStorage.clear();
     window.location.href = `${GW_URL}/logout`;
   };
@@ -147,9 +161,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadUserInfo();
   };
 
+  // Interceptor mínimo: si detectamos caducidad, mostramos diálogo
+  useEffect(() => {
+    const resId = api.interceptors.response.use(
+      (resp) => resp,
+      async (error: any) => {
+        // 1) NetworkError (sin response) y estamos online -> tratar como sesión expirada
+        if (!error?.response) {
+          const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+          if (isOnline) {
+            try {
+              const next = window.location.pathname + window.location.search;
+              sessionStorage.setItem("postLoginNext", next);
+            } catch {}
+            setRefreshing(false);
+            setSessionExpired(true);
+          }
+          return Promise.reject(error);
+        }
+      }
+    );
+    return () => {
+      api.interceptors.response.eject(resId);
+    };
+  }, []);
+
+  // Post-login redirect limpio si guardamos "postLoginNext"
+  useEffect(() => {
+    if (!ready || !isLogged) return;
+    try {
+      const next = sessionStorage.getItem("postLoginNext");
+      if (next && next !== window.location.pathname + window.location.search) {
+        sessionStorage.removeItem("postLoginNext");
+        window.location.replace(next);
+      } else if (next) {
+        sessionStorage.removeItem("postLoginNext");
+      }
+    } catch {}
+  }, [ready, isLogged]);
+
+  // Sin keep-alive ni pings periódicos.
+
   return (
     <AuthContext.Provider
-      value={{ info, setInfo, isLogged, isAdmin, isTenant, loading, ready, login, logout, refreshUser }}
+      value={{ info, setInfo, isLogged, isAdmin, isTenant, loading, refreshing, sessionExpired, ready, login, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

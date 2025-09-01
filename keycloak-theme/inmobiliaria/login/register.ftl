@@ -91,6 +91,7 @@
             placeholder="Usuario"
             title="El nombre de usuario debe tener 3 dígitos como mínimo"
             minlength="3"
+            value=tomi
             required
           />
 
@@ -174,43 +175,6 @@
       // Validación y envío de formulario sin refrescar
       const form = document.getElementById('registerForm');
       const banner = document.getElementById('errorBanner');
-
-      form.addEventListener('submit', async e => {
-        e.preventDefault();
-
-        // Validación HTML5
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        const resp = await fetch(form.action, {
-          method: 'POST',
-          body: new FormData(form),
-          redirect: 'manual'
-        });
-
-        // Éxito: Keycloak responde con redirect (status 302) al login.
-        if (resp.status >= 300 && resp.status < 400) {
-          const location = resp.headers.get('Location');
-          if (location) {
-            window.location.href = location;
-            return;
-          }
-        }
-
-        // Error: parseamos el HTML y mostramos sólo el mensaje de Keycloak
-        const text = await resp.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        const err = doc.querySelector('.error-message');
-        if (err) {
-          banner.innerHTML = err.innerHTML;
-        } else {
-          banner.innerText = 'Hubo un error inesperado, intentá de nuevo más tarde';
-        }
-        banner.style.display = 'block';
-      });
     });
   </script>
 
