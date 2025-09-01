@@ -3,12 +3,14 @@ import { getPropertyById } from "../services/property.service";
 import { getCommentsByPropertyId } from "../services/comment.service";
 import { getMaintenancesByPropertyId } from "../services/maintenance.service";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { getUserById } from "../../user/services/user.service";
 
 export const usePropertyNotes = (propertyId: number) => {
   const { handleError } = useApiErrors();
   const [property, setProperty] = useState<any>();
   const [comments, setComments] = useState<any[]>([]);
   const [maintenances, setMaintenances] = useState<any[]>([]);
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
 
   // Loading global para primer carga
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,38 @@ export const usePropertyNotes = (propertyId: number) => {
       mounted = false;
     };
   }, [propertyId]);
+
+  // Prefetch author names when comments change
+  useEffect(() => {
+    const uniqueIds = Array.from(new Set((comments ?? []).map((c: any) => c.userId).filter(Boolean)));
+    const missing = uniqueIds.filter((id) => !userNames[id]);
+    if (!missing.length) return;
+    (async () => {
+      try {
+        const results = await Promise.all(
+          missing.map(async (id) => {
+            try {
+              const resp = await getUserById(id);
+              const user = (resp as any).data ?? resp;
+              const name = user?.firstName && user?.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user?.userName || id;
+              return { id, name } as const;
+            } catch {
+              return { id, name: id } as const;
+            }
+          })
+        );
+        setUserNames((prev) => {
+          const next = { ...prev } as Record<string, string>;
+          for (const { id, name } of results) next[id] = name;
+          return next;
+        });
+      } catch {
+        // ignore; names will fallback to id
+      }
+    })();
+  }, [comments, userNames]);
 
   const refreshComments = useCallback(async () => {
     setLoadingComments(true);
@@ -75,5 +109,6 @@ export const usePropertyNotes = (propertyId: number) => {
     loadingMaintenances,
     refreshComments,
     refreshMaintenances,
+    getUserName: (id: string) => userNames[id] || id,
   };
 };

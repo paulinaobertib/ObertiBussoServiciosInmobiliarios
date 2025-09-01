@@ -30,6 +30,9 @@ spring:
             client-secret: ${KEYCLOAK_CLIENT_SECRET}
             scope:
               - openid
+              - profile
+              - email
+              - offline_access
             authorization-grant-type: authorization_code
             redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
