@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización de contrato aplicada</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f7f7f7;">
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px #ddd;">
+    <div style="background-color: #EB7333; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px;">
+        <h1 style="color: white; margin-top: 10px;">Hola, <span th:text="${firstName}">Nombre</span></h1>
+    </div>
+    <div style="padding: 30px; background-color: #f5f5f5;">
+        <p>Queremos informarte que ya se encuentra aplicada la actualización en el valor de tu contrato de alquiler, en línea con el índice <strong th:text="${index}">Índice</strong> correspondiente.</p>
+
+        <p>A continuación, te compartimos los detalles principales de esta actualización:</p>
+        <ul>
+            <li><strong>Nuevo monto:</strong> <span th:text="${newAmount} + ' ' + ${currency}">Monto</span></li>
+            <li><strong>Incremento aplicado:</strong> <span th:text="${increase}">% aumento</span></li>
+            <li><strong>Índice utilizado:</strong> <span th:text="${index}">Índice</span></li>
+        </ul>
+
+        <p>Este ajuste se verá reflejado en tu próximo pago.</p>
+
+        <p>Si tenés alguna consulta sobre el cálculo o necesitás que te expliquemos el proceso con más detalle, no dudes en ponerte en contacto con nosotros. Estamos para acompañarte y asegurarnos de que todo sea transparente y sencillo.</p>
+
+        <p style="margin-top: 20px;">Muchas gracias por tu confianza, nos alegra seguir acompañándote,</p>
+
+        <p><strong>Equipo de Oberti Busso Servicios Inmobiliarios</strong></p>
+    </div>
+    <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
+        <small>Oberti Busso Servicios Inmobiliarios</small>
+    </div>
+</div>
+</body>
+</html>
