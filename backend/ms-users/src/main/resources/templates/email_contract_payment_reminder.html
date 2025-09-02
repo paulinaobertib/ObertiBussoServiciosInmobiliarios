@@ -19,6 +19,14 @@
             <li><strong>Fecha límite de pago:</strong> <span th:text="${dueDate}">Fecha</span></li>
         </ul>
 
+        <p>Para ver los detalles completos de tu contrato, visitá el siguiente enlace:</p>
+        <div style="text-align: center; margin: 20px 0;">
+            <a th:href="${contractUrl}" target="_blank"
+               style="background-color: #EB7333; color: white; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; display: inline-block;">
+                Ver mi contrato
+            </a>
+        </div>
+
         <p>Si ya realizaste el pago, podés desestimar este mensaje. De lo contrario, te recomendamos efectuarlo antes de la fecha indicada para evitar recargos o inconvenientes.</p>
 
         <p>Ante cualquier duda o si necesitás asistencia con el proceso, no dudes en ponerte en contacto con nosotros. Estamos para ayudarte,</p>
