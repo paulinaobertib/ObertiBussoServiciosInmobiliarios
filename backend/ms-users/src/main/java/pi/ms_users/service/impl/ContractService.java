@@ -452,3 +452,13 @@ public class ContractService implements IContractService {
         return ResponseEntity.ok(contractGetDTOS);
     }
 }
+
+// cuando se crea un contrato -> mail al usuario de bienvenida
+// contratos que vencen dentro de un mes -> mail al usuario y al administrador
+// cuando vencio el contrato -> mail al usuario de despedida
+// ver si cuando se vencio el contrato la property tiene que pasar a disponible
+// y que elimine la fk de contrato a la tabla property
+// contratos que aumentan dentro de 10 dias -> mail al usuario y al administrador
+// se carga incremento -> mail al usuario
+// mail avisando 10 dias antes que utility corresponden pagar -> mail al usuario y al administrador
+// se carga cuanto debe pagar de utility -> mail al usuario
