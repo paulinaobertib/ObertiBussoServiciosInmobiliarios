@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Contratos con aumento próximo</title></head>
+<body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px; color: #333;">
+<div style="max-width: 700px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px #ddd;">
+    <div style="background-color: #EB7333; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; display: block; margin: 0 auto;">
+        <h2 style="color: white; margin: 0;">Contratos con ajustes programados</h2>
+    </div>
+    <div style="padding: 30px; background-color: #f5f5f5;">
+        <p>Se detectaron los siguientes contratos con aumentos próximos:</p>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+            <tr style="background-color: #EB7333; color: white;">
+                <th style="padding: 8px; text-align: left;">Contrato</th>
+                <th style="padding: 8px; text-align: left;">Inquilino</th>
+                <th style="padding: 8px; text-align: left;">Fecha de aumento</th>
+                <th style="padding: 8px; text-align: left;">Índice</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${contracts}" style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 8px;" th:text="${c.contractId}">123</td>
+                <td style="padding: 8px;" th:text="${c.tenantFullName}">Juan Pérez</td>
+                <td style="padding: 8px;" th:text="${c.increaseDate}">2025-09-15</td>
+                <td style="padding: 8px;" th:text="${c.indexName}">ICL</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
