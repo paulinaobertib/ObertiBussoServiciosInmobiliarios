@@ -4,14 +4,15 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import java.time.format.DateTimeFormatter;
 
-import lombok.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import pi.ms_users.configuration.components.AppProperties;
-import pi.ms_users.dto.*;
+import pi.ms_users.dto.email.EmailDTO;
+import pi.ms_users.dto.email.EmailNewUserDTO;
+import pi.ms_users.dto.email.EmailPropertyDTO;
 import pi.ms_users.service.interf.IEmailService;
 
 import java.time.LocalDateTime;

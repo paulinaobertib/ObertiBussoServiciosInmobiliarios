@@ -1,7 +1,9 @@
 package pi.ms_users.service.interf;
 
 import jakarta.mail.MessagingException;
-import pi.ms_users.dto.*;
+import pi.ms_users.dto.email.EmailDTO;
+import pi.ms_users.dto.email.EmailNewUserDTO;
+import pi.ms_users.dto.email.EmailPropertyDTO;
 
 import java.time.LocalDateTime;
 
