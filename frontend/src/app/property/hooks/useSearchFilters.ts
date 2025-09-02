@@ -125,6 +125,11 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
         financing: local.operation === "VENTA" ? local.financing || undefined : undefined,
       };
       delete base.rooms;
+      if (!local.currency) {
+        delete (base as any).currency;
+        delete (base as any).priceFrom;
+        delete (base as any).priceTo;
+      }
 
       const res = await getPropertiesByFilters(buildSearchParams(base) as SearchParams);
 
