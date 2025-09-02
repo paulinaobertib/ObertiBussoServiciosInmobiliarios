@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Recordatorio de pago</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px; color: #333;">
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px #ddd;">
+    <div style="background-color: #EB7333; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px;">
+        <h1 style="color: white; margin-top: 10px;">Hola, <span th:text="${firstName}">Nombre</span></h1>
+    </div>
+    <div style="padding: 30px; background-color: #f5f5f5;">
+        <p>Queremos recordarte que se acerca la fecha de vencimiento del pago correspondiente a tu contrato de alquiler.</p>
+
+        <p>A continuación, te dejamos los detalles para tu tranquilidad:</p>
+        <ul>
+            <li><strong>Importe:</strong> <span th:text="${amount} + ' ' + ${currency}">Monto</span></li>
+            <li><strong>Fecha límite de pago:</strong> <span th:text="${dueDate}">Fecha</span></li>
+        </ul>
+
+        <p>Si ya realizaste el pago, podés desestimar este mensaje. De lo contrario, te recomendamos efectuarlo antes de la fecha indicada para evitar recargos o inconvenientes.</p>
+
+        <p>Ante cualquier duda o si necesitás asistencia con el proceso, no dudes en ponerte en contacto con nosotros. Estamos para ayudarte,</p>
+
+        <p><strong>Equipo de Oberti Busso Servicios Inmobiliarios</strong></p>
+    </div>
+    <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
+        <small>Oberti Busso Servicios Inmobiliarios</small>
+    </div>
+</div>
+</body>
+</html>
