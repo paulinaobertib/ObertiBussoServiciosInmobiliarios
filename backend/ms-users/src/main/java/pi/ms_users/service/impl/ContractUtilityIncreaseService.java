@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractUtility;
 import pi.ms_users.domain.ContractUtilityIncrease;
 import pi.ms_users.domain.User;
@@ -32,8 +31,6 @@ public class ContractUtilityIncreaseService implements IContractUtilityIncreaseS
     private final IContractUtilityIncreaseRepository contractUtilityIncreaseRepository;
 
     private final IContractUtilityRepository contractUtilityRepository;
-
-    private final IContractRepository contractRepository;
 
     private final IUserRepository userRepository;
 
