@@ -7,7 +7,9 @@ public enum Status {
     DISPONIBLE,
     VENDIDA,
     ALQUILADA,
-    RESERVADA;
+    RESERVADA,
+    ESPERA,
+    INACTIVA;
 
     public static Status fromString(String value) {
         try {

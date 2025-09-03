@@ -4,5 +4,7 @@ public enum Status {
     DISPONIBLE,
     VENDIDA,
     ALQUILADA,
-    RESERVADA;
+    RESERVADA,
+    ESPERA,
+    INACTIVA;
 }
