@@ -11,11 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractIncrease;
 import pi.ms_users.domain.IncreaseIndex;
+import pi.ms_users.domain.User;
 import pi.ms_users.dto.ContractIncreaseDTO;
+import pi.ms_users.dto.email.EmailContractIncreaseLoadedDTO;
 import pi.ms_users.repository.IContractIncreaseRepository;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
+import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.IContractIncreaseService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +33,10 @@ public class ContractIncreaseService implements IContractIncreaseService {
     public final IContractRepository contractRepository;
 
     public final IIncreaseIndexRepository increaseIndexRepository;
+
+    private final IUserRepository userRepository;
+
+    private final IEmailService emailService;
 
     @PersistenceContext
     private EntityManager em;
@@ -104,12 +112,24 @@ public class ContractIncreaseService implements IContractIncreaseService {
             throw new EntityNotFoundException("No se ha encontrado el indice de aumento.");
         }
 
-        if (!contractRepository.existsById(contractIncreaseDTO.getContractId())) {
+        Optional<Contract> contract = contractRepository.findById(contractIncreaseDTO.getContractId());
+        if (contract.isEmpty()) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");
         }
 
         ContractIncrease contractIncrease = toEntity(contractIncreaseDTO);
         contractIncreaseRepository.save(contractIncrease);
+
+        User user = userRepository.findById(contract.get().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
+        EmailContractIncreaseLoadedDTO emailContractIncreaseLoadedDTO = new EmailContractIncreaseLoadedDTO();
+        emailContractIncreaseLoadedDTO.setTo(user.getEmail());
+        emailContractIncreaseLoadedDTO.setFirstName(user.getFirstName());
+        emailContractIncreaseLoadedDTO.setLastName(user.getLastName());
+        emailContractIncreaseLoadedDTO.setNewAmount(contractIncrease.getAmount());
+        emailContractIncreaseLoadedDTO.setCurrency(contractIncrease.getCurrency().toString());
+        emailContractIncreaseLoadedDTO.setIncrease(contractIncrease.getAdjustment());
+        emailContractIncreaseLoadedDTO.setIndex(contractIncrease.getIndex().getName());
 
         return ResponseEntity.ok("Se ha guardado el incremento del contrato.");
     }
