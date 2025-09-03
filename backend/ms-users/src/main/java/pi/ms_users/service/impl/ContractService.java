@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
-import pi.ms_users.dto.email.EmailExpiredContractDTO;
-import pi.ms_users.dto.email.EmailNewContractDTO;
+import pi.ms_users.dto.email.*;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
@@ -22,7 +21,9 @@ import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -495,11 +496,168 @@ public class ContractService implements IContractService {
         List<ContractGetDTO> contractGetDTOS = contracts.stream().map(this::toGetDTO).toList();
         return ResponseEntity.ok(contractGetDTOS);
     }
+
+    public List<Contract> getContractsWithIncreaseInOneMonth() {
+        LocalDate today = LocalDate.now();
+        LocalDate targetDate = today.plusDays(30);
+
+        return contractRepository.findAll().stream()
+                .filter(c -> {
+                    ContractIncrease lastIncrease = c.getContractIncrease().stream()
+                            .max(Comparator.comparing(ContractIncrease::getDate))
+                            .orElse(null);
+
+                    if (lastIncrease == null) return false;
+
+                    LocalDate nextIncreaseDate = lastIncrease.getDate().toLocalDate()
+                            .plusMonths(c.getAdjustmentFrequencyMonths());
+
+                    return nextIncreaseDate.equals(targetDate);
+                })
+                .toList();
+    }
+
+    public void sendEmailsForContractsWithIncreaseInOneMonth() {
+        List<Contract> contracts = getContractsWithIncreaseInOneMonth();
+
+        contracts.forEach(contract -> {
+            Optional<User> user = userRepository.findById(contract.getUserId());
+
+            if (!user.isEmpty()) {
+                ContractIncrease lastIncrease = contract.getContractIncrease().stream()
+                        .max(Comparator.comparing(ContractIncrease::getDate))
+                        .orElse(null);
+
+                if (lastIncrease != null) {
+                    EmailContractUpcomingIncreaseOneMonthDTO dto = new EmailContractUpcomingIncreaseOneMonthDTO();
+                    dto.setTo(user.get().getEmail());
+                    dto.setFirstName(user.get().getFirstName());
+                    dto.setLastName(user.get().getLastName());
+                    dto.setIndex(contract.getAdjustmentIndex().getName());
+
+                    emailService.sendContractUpcomingIncreaseOneMonthEmail(dto, contract.getId());
+                }
+            }
+        });
+    }
+
+    public void sendAdminContractsWithIncreaseInOneMonth() {
+        List<Contract> contracts = getContractsWithIncreaseInOneMonth();
+
+        List<ContractToIncreaseForAdminEmailDTO> list = contracts.stream()
+                .map(c -> {
+                    Optional<User> user = userRepository.findById(c.getUserId());
+
+                    if (!user.isEmpty()) {
+                        ContractIncrease lastIncrease = c.getContractIncrease().stream()
+                                .max(Comparator.comparing(ContractIncrease::getDate))
+                                .orElse(null);
+
+                        ContractToIncreaseForAdminEmailDTO dto = new ContractToIncreaseForAdminEmailDTO();
+                        dto.setContractId(c.getId());
+                        dto.setTenantFullName(user.get().getFirstName() + " " + user.get().getLastName());
+                        dto.setIncreaseDate(lastIncrease != null ? lastIncrease.getDate().toLocalDate().plusMonths(c.getAdjustmentFrequencyMonths()) : null);
+                        dto.setIndexName(c.getAdjustmentIndex().getName());
+                        return dto;
+                    }
+
+                    return null;
+                })
+                .toList();
+
+        if (!list.isEmpty()) {
+            EmailContractIncreaseAdminDTO dto = new EmailContractIncreaseAdminDTO();
+            dto.setContracts(list);
+            emailService.sendAdminContractUpcomingIncreaseListEmail(dto);
+        }
+    }
+
+    public void sendEmailsForContractsExpiringInOneMonth() {
+        LocalDate targetDate = LocalDate.now().plusMonths(1);
+
+        List<Contract> contracts = contractRepository.findContractsExpiringInOneMonth(targetDate);
+
+        contracts.forEach(contract -> {
+            Optional<User> user = userRepository.findById(contract.getUserId());
+
+            if (!user.isEmpty()) {
+                EmailContractExpiringSoonDTO dto = new EmailContractExpiringSoonDTO();
+                dto.setTo(user.get().getEmail());
+                dto.setFirstName(user.get().getFirstName());
+                dto.setLastName(user.get().getLastName());
+                dto.setEndDate(contract.getEndDate());
+
+                emailService.sendContractExpiringSoonEmail(dto, contract.getId());
+            }
+        });
+
+        List<ContractExpiringForAdminDTO> list = contracts.stream()
+                .map(c -> {
+                    Optional<User> user = userRepository.findById(c.getUserId());
+                    if (!user.isEmpty()) {
+                        ContractExpiringForAdminDTO dto = new ContractExpiringForAdminDTO();
+                        dto.setContractId(c.getId());
+                        dto.setEndDate(c.getEndDate());
+                        dto.setTenantFullName(user.get().getFirstName() + " " + user.get().getLastName());
+                        return dto;
+                    }
+                    return null;
+                })
+                .toList();
+
+        if (!list.isEmpty()) {
+            EmailContractExpiringSoonListAdminDTO dto = new EmailContractExpiringSoonListAdminDTO();
+            dto.setContracts(list);
+
+            emailService.sendAdminContractsExpiringSoonListEmail(dto);
+        }
+    }
+
+    public void sendEmailsForContractsExpiringToday() {
+        LocalDate today = LocalDate.now();
+
+        List<Contract> contracts = contractRepository.findContractsExpiringToday(today);
+
+        contracts.forEach(contract -> {
+            Optional<User> user = userRepository.findById(contract.getUserId());
+
+            if (!user.isEmpty()) {
+                EmailExpiredContractDTO dto = new EmailExpiredContractDTO();
+                dto.setTo(user.get().getEmail());
+                dto.setFirstName(user.get().getFirstName());
+                dto.setLastName(user.get().getLastName());
+                dto.setEndDate(contract.getEndDate());
+
+                emailService.sendContractExpiredEmail(dto);
+            }
+        });
+    }
+
+    public void sendPaymentRemindersForActiveContracts() {
+        LocalDate oneMonthFromNow = LocalDate.now().plusMonths(1);
+
+        List<Contract> contracts = contractRepository.findActiveContractsNotExpiringNextMonth(oneMonthFromNow);
+
+        contracts.forEach(contract -> {
+            Optional<User> user = userRepository.findById(contract.getUserId());
+
+            if (!user.isEmpty()) {
+                EmailContractPaymentReminderDTO dto = new EmailContractPaymentReminderDTO();
+                dto.setTo(user.get().getEmail());
+                dto.setFirstName(user.get().getFirstName());
+                dto.setLastName(user.get().getLastName());
+
+                LocalDate dueDate = LocalDate.now().plusMonths(1).withDayOfMonth(contract.getStartDate().getDayOfMonth());
+                dto.setDueDate(dueDate);
+
+                dto.setAmount(contract.getLastPaidAmount() != null ? contract.getLastPaidAmount() : contract.getInitialAmount());
+                dto.setCurrency(contract.getCurrency().name());
+
+                emailService.sendContractPaymentReminderEmail(dto, contract.getId());
+            }
+        });
+    }
 }
 
-// contratos que vencen dentro de un mes -> mail al usuario y al administrador
-// cuando vencio el contrato -> mail al usuario de despedida --> hacer la parte automatica
 // ver si cuando se vencio el contrato la property tiene que pasar a disponible
 // y que elimine la fk de contrato a la tabla property
-// contratos que aumentan dentro de 10 dias -> mail al usuario y al administrador
-// mail avisando 10 dias antes que utility corresponden pagar -> mail al usuario y al administrador

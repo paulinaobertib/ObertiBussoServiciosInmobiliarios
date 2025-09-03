@@ -12,13 +12,17 @@ import pi.ms_users.domain.*;
 import pi.ms_users.dto.ContractUtilityDTO;
 import pi.ms_users.dto.ContractUtilityGetDTO;
 import pi.ms_users.dto.ContractUtilityIncreaseGetDTO;
-import pi.ms_users.dto.email.EmailUtilityAmountLoadedDTO;
+import pi.ms_users.dto.email.EmailExtraAdminDTO;
+import pi.ms_users.dto.email.EmailUtilityPaymentReminderDTO;
+import pi.ms_users.dto.email.ExtrasForAdminEmailDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IContractUtilityRepository;
 import pi.ms_users.repository.IUtilityRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.IContractUtilityService;
+import pi.ms_users.service.interf.IEmailService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +37,8 @@ public class ContractUtilityService implements IContractUtilityService {
     private final IUtilityRepository utilityRepository;
 
     private final IUserRepository userRepository;
+
+    private final IEmailService emailService;
 
     @PersistenceContext
     private EntityManager em;
@@ -116,16 +122,6 @@ public class ContractUtilityService implements IContractUtilityService {
 
         ContractUtility contractUtility = toEntity(contractUtilityDTO);
         contractUtilityRepository.save(contractUtility);
-
-        User user = userRepository.findById(contract.get().getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
-
-        EmailUtilityAmountLoadedDTO emailUtilityAmountLoadedDTO = new EmailUtilityAmountLoadedDTO();
-        emailUtilityAmountLoadedDTO.setTo(user.getEmail());
-        emailUtilityAmountLoadedDTO.setFirstName(user.getFirstName());
-        emailUtilityAmountLoadedDTO.setLastName(user.getLastName());
-        emailUtilityAmountLoadedDTO.setUtilityName(utility.get().getName());
-        emailUtilityAmountLoadedDTO.setAmount(contractUtility.getInitialAmount());
 
         return ResponseEntity.ok("Se ha guardado el servicio del contrato.");
     }
@@ -220,5 +216,75 @@ public class ContractUtilityService implements IContractUtilityService {
         List<ContractUtility> contractUtilities = contractUtilityRepository.findDetailedByPeriodicity(periodicity);
         List<ContractUtilityGetDTO> contractUtilityGetDTOs = contractUtilities.stream().map(this::toGetDTO).toList();
         return ResponseEntity.ok(contractUtilityGetDTOs);
+    }
+
+    public List<ContractUtility> getUtilitiesDueInTenDays() {
+        LocalDate targetDate = LocalDate.now().plusDays(10);
+
+        return contractUtilityRepository.findAll().stream()
+                .filter(cu -> {
+                    if (cu.getLastPaidDate() == null) return false;
+
+                    LocalDate lastPaid = cu.getLastPaidDate().toLocalDate();
+                    LocalDate nextDueDate;
+
+                    switch (cu.getPeriodicity()) {
+                        case MENSUAL -> nextDueDate = lastPaid.plusMonths(1);
+                        case BIMENSUAL -> nextDueDate = lastPaid.plusMonths(2);
+                        case TRIMESTRAL -> nextDueDate = lastPaid.plusMonths(3);
+                        case SEMESTRAL -> nextDueDate = lastPaid.plusMonths(6);
+                        case ANUAL -> nextDueDate = lastPaid.plusYears(1);
+                        default -> nextDueDate = lastPaid;
+                    }
+
+                    return nextDueDate.equals(targetDate);
+                })
+                .toList();
+    }
+
+    public void sendAdminUtilitiesDueInTenDays() {
+        List<ContractUtility> utilities = getUtilitiesDueInTenDays();
+
+        List<ExtrasForAdminEmailDTO> list = utilities.stream()
+                .map(u -> {
+                    Optional<User> user = userRepository.findById(u.getContract().getUserId());
+
+                    if (!user.isEmpty()) {
+                        ExtrasForAdminEmailDTO dto = new ExtrasForAdminEmailDTO();
+                        dto.setContractId(u.getContract().getId());
+                        dto.setTenantFullName(user.get().getFirstName() + " " + user.get().getLastName());
+                        dto.setUtilityName(u.getUtility().getName());
+                        dto.setPeriodicity(u.getPeriodicity().name());
+                        return dto;
+                    }
+
+                    return null;
+                })
+                .toList();
+
+        if (!list.isEmpty()) {
+            EmailExtraAdminDTO dto = new EmailExtraAdminDTO();
+            dto.setUtilities(list);
+            emailService.sendAdminUtilityUpcomingChargeListEmail(dto);
+        }
+    }
+
+    public void sendEmailsForUtilitiesDueInTenDays() {
+        List<ContractUtility> utilities = getUtilitiesDueInTenDays();
+
+        utilities.forEach(u -> {
+            Optional<User> user = userRepository.findById(u.getContract().getUserId());
+
+            if (!user.isEmpty()) {
+                EmailUtilityPaymentReminderDTO dto = new EmailUtilityPaymentReminderDTO();
+                dto.setTo(user.get().getEmail());
+                dto.setFirstName(user.get().getFirstName());
+                dto.setLastName(user.get().getLastName());
+                dto.setUtilityName(u.getUtility().getName());
+                dto.setPeriodicity(u.getPeriodicity().name());
+
+                emailService.sendUtilityPaymentReminderEmail(dto, u.getContract().getId());
+            }
+        });
     }
 }
