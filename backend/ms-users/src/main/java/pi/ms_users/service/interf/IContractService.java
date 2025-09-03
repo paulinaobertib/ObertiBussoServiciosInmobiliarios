@@ -6,6 +6,7 @@ import pi.ms_users.domain.ContractType;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractGetDTO;
 import pi.ms_users.dto.ContractSimpleDTO;
+import pi.ms_users.dto.feign.Status;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -48,4 +49,6 @@ public interface IContractService {
     ResponseEntity<List<ContractGetDTO>> getContractsEndingDate(LocalDate date);
 
     ResponseEntity<List<ContractGetDTO>> getContractsEndingBetween(LocalDate from, LocalDate to);
+
+    ResponseEntity<String> updatePropertyStatusAndContract(Long propertyId, Long contractId, Status status);
 }

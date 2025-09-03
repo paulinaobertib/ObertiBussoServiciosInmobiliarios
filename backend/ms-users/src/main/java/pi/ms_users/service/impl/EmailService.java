@@ -507,4 +507,29 @@ public class EmailService implements IEmailService {
             throw new RuntimeException("Error al enviar lista de contratos por vencer (admin): " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public void sendAdminContractExpiredEmail(EmailContractExpiredAdminDTO dto) {
+        try {
+            String propertyUrl = appProperties.getFrontendBaseUrl() + "/properties/" + dto.getPropertyId();
+
+            Context context = new Context();
+            context.setVariable("propertyId", dto.getPropertyId());
+            context.setVariable("tenant", dto.getTenant());
+            context.setVariable("contractId", dto.getContractId());
+            context.setVariable("propertyUrl", propertyUrl);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(appProperties.getEmailInmobiliaria());
+            helper.setSubject("Contrato vencido - Acción requerida");
+
+            String content = templateEngine.process("email_contract_expired_admin", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar notificación de contrato vencido (admin): " + e.getMessage(), e);
+        }
+    }
+
 }

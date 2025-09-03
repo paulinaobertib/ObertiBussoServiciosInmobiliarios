@@ -12,9 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
 import pi.ms_users.dto.email.*;
+import pi.ms_users.dto.feign.PropertyDTO;
+import pi.ms_users.dto.feign.Status;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
+import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractService;
 import pi.ms_users.service.interf.IEmailService;
@@ -38,6 +41,8 @@ public class ContractService implements IContractService {
     private final IUserRepository userRepository;
 
     private final IEmailService emailService;
+
+    private final PropertyRepository propertyRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -271,11 +276,22 @@ public class ContractService implements IContractService {
         User user = userRepository.findById(contractDTO.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
 
+        if (contractDTO.getPropertyId() == null) {
+            throw new BadRequestException("No se ha cargado el id de la propiedad.");
+        }
+
+        PropertyDTO propertyDTO = propertyRepository.getById(contractDTO.getPropertyId());
+        if (propertyDTO == null) {
+            throw new EntityNotFoundException("No se ha encontrado la propiedad.");
+        }
+
         if (contractDTO.getHasDeposit()) {
             validateDeposit(true, contractDTO.getDepositAmount(), contractDTO.getDepositNote());
         }
 
         Contract entity = toEntity(contractDTO);
+
+        propertyRepository.updateStatus(entity.getPropertyId(), Status.ALQUILADA);
 
         Contract contract = contractRepository.save(entity);
 
@@ -364,12 +380,27 @@ public class ContractService implements IContractService {
     @Override
     @Transactional
     public ResponseEntity<String> delete(Long id) {
-        if (!contractRepository.existsById(id)) {
+        Optional<Contract> contract = contractRepository.findById(id);
+        if (contract.isEmpty()) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");
         }
 
         contractRepository.deleteById(id);
-        return ResponseEntity.ok("Se ha eliminado el contrato.");
+
+        propertyRepository.updateStatus(contract.get().getPropertyId(), Status.ESPERA);
+
+        Optional<User> user = userRepository.findById(contract.get().getUserId());
+
+        if (!user.isEmpty()) {
+            EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
+            emailContractExpiredAdminDTO.setContractId(contract.get().getId());
+            emailContractExpiredAdminDTO.setPropertyId(contract.get().getPropertyId());
+            emailContractExpiredAdminDTO.setTenant(user.get().getFirstName() + user.get().getLastName());
+
+            emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
+        }
+
+            return ResponseEntity.ok("Se ha eliminado el contrato.");
     }
 
     @Override
@@ -621,7 +652,16 @@ public class ContractService implements IContractService {
         contracts.forEach(contract -> {
             Optional<User> user = userRepository.findById(contract.getUserId());
 
+            propertyRepository.updateStatus(contract.getPropertyId(), Status.ESPERA);
+
             if (!user.isEmpty()) {
+                EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
+                emailContractExpiredAdminDTO.setContractId(contract.getId());
+                emailContractExpiredAdminDTO.setPropertyId(contract.getPropertyId());
+                emailContractExpiredAdminDTO.setTenant(user.get().getFirstName() + user.get().getLastName());
+
+                emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
+
                 EmailExpiredContractDTO dto = new EmailExpiredContractDTO();
                 dto.setTo(user.get().getEmail());
                 dto.setFirstName(user.get().getFirstName());
@@ -657,7 +697,25 @@ public class ContractService implements IContractService {
             }
         });
     }
-}
 
-// ver si cuando se vencio el contrato la property tiene que pasar a disponible
-// y que elimine la fk de contrato a la tabla property
+    @Override
+    @Transactional
+    public ResponseEntity<String> updatePropertyStatusAndContract(Long propertyId, Long contractId, Status status) {
+        PropertyDTO propertyDTO = propertyRepository.getById(propertyId);
+        if (propertyDTO == null) {
+            throw new EntityNotFoundException("No se ha encontrado la propiedad.");
+        }
+
+        Contract entity = contractRepository.findById(contractId)
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato con ID: " + contractId));
+
+        if (status == Status.DISPONIBLE) {
+            entity.setPropertyId(null);
+            entity.setContractStatus(ContractStatus.INACTIVO);
+            contractRepository.save(entity);
+            propertyRepository.updateStatus(propertyId, status);
+        }
+        propertyRepository.updateStatus(propertyId, status);
+        return ResponseEntity.ok("Se ha actualizado el estado de la propiedad y del contrato.");
+    }
+}
