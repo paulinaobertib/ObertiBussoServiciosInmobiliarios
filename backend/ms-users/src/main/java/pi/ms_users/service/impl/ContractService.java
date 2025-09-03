@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
+import pi.ms_users.dto.email.EmailExpiredContractDTO;
+import pi.ms_users.dto.email.EmailNewContractDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
 import pi.ms_users.security.SecurityUtils;
@@ -19,6 +21,7 @@ import pi.ms_users.service.interf.IContractService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,8 @@ public class ContractService implements IContractService {
     private final IContractRepository contractRepository;
 
     private final IIncreaseIndexRepository increaseIndexRepository;
+    private final UserService userService;
+    private final EmailService emailService;
 
     @PersistenceContext
     private EntityManager em;
@@ -248,13 +253,25 @@ public class ContractService implements IContractService {
             throw new EntityNotFoundException("No se ha encontrado el índice de aumento con ID: " + contractDTO.getAdjustmentIndexId());
         }
 
+        User user = Optional.ofNullable(userService.findById(contractDTO.getUserId()).getBody())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
+
         if (contractDTO.getHasDeposit()) {
             validateDeposit(true, contractDTO.getDepositAmount(), contractDTO.getDepositNote());
         }
 
         Contract entity = toEntity(contractDTO);
 
-        contractRepository.save(entity);
+        Contract contract = contractRepository.save(entity);
+
+        EmailNewContractDTO emailNewContractDTO = new EmailNewContractDTO();
+        emailNewContractDTO.setTo(user.getEmail());
+        emailNewContractDTO.setFirstName(user.getFirstName());
+        emailNewContractDTO.setLastName(user.getLastName());
+        emailNewContractDTO.setStartDate(contract.getStartDate());
+        emailNewContractDTO.setEndDate(contract.getEndDate());
+
+        emailService.sendNewContractEmail(emailNewContractDTO, contract.getId());
 
         return ResponseEntity.ok("Se ha creado el contrato.");
     }
@@ -305,13 +322,26 @@ public class ContractService implements IContractService {
         Contract entity = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato."));
 
+        User user = Optional.of(userService.findById(entity.getUserId()).getBody())
+                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
+
         ContractStatus status = entity.getContractStatus();
 
         if (status == ContractStatus.ACTIVO) {
             entity.setContractStatus(ContractStatus.INACTIVO);
+
+            EmailExpiredContractDTO emailExpiredContractDTO = new EmailExpiredContractDTO();
+            emailExpiredContractDTO.setTo(user.getEmail());
+            emailExpiredContractDTO.setFirstName(user.getFirstName());
+            emailExpiredContractDTO.setLastName(user.getLastName());
+            emailExpiredContractDTO.setEndDate(entity.getEndDate());
+
+            emailService.sendContractExpiredEmail(emailExpiredContractDTO);
         } else {
             entity.setContractStatus(ContractStatus.ACTIVO);
         }
+
+        contractRepository.save(entity);
 
         return ResponseEntity.ok("Se ha actualizado el estado del contrato.");
     }
@@ -453,9 +483,8 @@ public class ContractService implements IContractService {
     }
 }
 
-// cuando se crea un contrato -> mail al usuario de bienvenida
 // contratos que vencen dentro de un mes -> mail al usuario y al administrador
-// cuando vencio el contrato -> mail al usuario de despedida
+// cuando vencio el contrato -> mail al usuario de despedida --> hacer la parte automatica
 // ver si cuando se vencio el contrato la property tiene que pasar a disponible
 // y que elimine la fk de contrato a la tabla property
 // contratos que aumentan dentro de 10 dias -> mail al usuario y al administrador
