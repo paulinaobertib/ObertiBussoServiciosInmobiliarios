@@ -5,6 +5,7 @@ import pi.ms_users.domain.UtilityPeriodicityPayment;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ContractUtilityDTO {
@@ -16,4 +17,5 @@ public class ContractUtilityDTO {
     private String notes;
     private Long contractId;
     private Long utilityId;
+    private List<ContractUtilityIncreaseGetDTO> increases;
 }

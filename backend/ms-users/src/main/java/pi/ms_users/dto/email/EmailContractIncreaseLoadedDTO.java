@@ -11,6 +11,6 @@ public class EmailContractIncreaseLoadedDTO {
     private String lastName;
     private BigDecimal newAmount;
     private String currency;
-    private BigDecimal increase;
+    private Integer increase;
     private String index;
 }

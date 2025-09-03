@@ -46,4 +46,7 @@ public class ContractUtility {
 
     @OneToMany(mappedBy = "contractUtility")
     private List<Payment> payments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "contractUtility", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ContractUtilityIncrease> increases = new ArrayList<>();
 }

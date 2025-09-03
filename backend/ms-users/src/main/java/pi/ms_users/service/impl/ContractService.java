@@ -111,6 +111,17 @@ public class ContractService implements IContractService {
         d.setLastPaidDate(cu.getLastPaidDate());
         d.setNotes(cu.getNotes());
         d.setUtilityId(cu.getUtility() != null ? cu.getUtility().getId() : null);
+        if (cu.getIncreases() != null) {
+            List<ContractUtilityIncreaseGetDTO> increases = cu.getIncreases().stream()
+                    .map(i -> {
+                        ContractUtilityIncreaseGetDTO incDto = new ContractUtilityIncreaseGetDTO();
+                        incDto.setId(i.getId());
+                        incDto.setAdjustmentDate(i.getAdjustmentDate());
+                        incDto.setAmount(i.getAmount());
+                        return incDto;
+                    }).toList();
+            d.setIncreases(increases);
+        }
         return d;
     }
 
@@ -492,4 +503,3 @@ public class ContractService implements IContractService {
 // y que elimine la fk de contrato a la tabla property
 // contratos que aumentan dentro de 10 dias -> mail al usuario y al administrador
 // mail avisando 10 dias antes que utility corresponden pagar -> mail al usuario y al administrador
-// se carga cuanto debe pagar de utility -> mail al usuario
