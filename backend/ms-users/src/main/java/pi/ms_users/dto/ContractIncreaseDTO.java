@@ -12,7 +12,7 @@ public class ContractIncreaseDTO {
     private LocalDateTime date;
     private PaymentCurrency currency;
     private BigDecimal amount;
-    private BigDecimal adjustment;
+    private Integer adjustment;
     private String note;
     private LocalDateTime periodFrom;
     private LocalDateTime periodTo;
