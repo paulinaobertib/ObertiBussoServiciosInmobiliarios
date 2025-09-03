@@ -15,13 +15,14 @@ import pi.ms_users.dto.email.EmailExpiredContractDTO;
 import pi.ms_users.dto.email.EmailNewContractDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
+import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
 import pi.ms_users.service.interf.IContractService;
+import pi.ms_users.service.interf.IEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,8 +33,10 @@ public class ContractService implements IContractService {
     private final IContractRepository contractRepository;
 
     private final IIncreaseIndexRepository increaseIndexRepository;
-    private final UserService userService;
-    private final EmailService emailService;
+
+    private final IUserRepository userRepository;
+
+    private final IEmailService emailService;
 
     @PersistenceContext
     private EntityManager em;
@@ -253,8 +256,8 @@ public class ContractService implements IContractService {
             throw new EntityNotFoundException("No se ha encontrado el índice de aumento con ID: " + contractDTO.getAdjustmentIndexId());
         }
 
-        User user = Optional.ofNullable(userService.findById(contractDTO.getUserId()).getBody())
-                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
+        User user = userRepository.findById(contractDTO.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
 
         if (contractDTO.getHasDeposit()) {
             validateDeposit(true, contractDTO.getDepositAmount(), contractDTO.getDepositNote());
@@ -322,8 +325,8 @@ public class ContractService implements IContractService {
         Contract entity = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato."));
 
-        User user = Optional.of(userService.findById(entity.getUserId()).getBody())
-                .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado al usuario"));
+        User user = userRepository.findById(entity.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
 
         ContractStatus status = entity.getContractStatus();
 
@@ -488,6 +491,5 @@ public class ContractService implements IContractService {
 // ver si cuando se vencio el contrato la property tiene que pasar a disponible
 // y que elimine la fk de contrato a la tabla property
 // contratos que aumentan dentro de 10 dias -> mail al usuario y al administrador
-// se carga incremento -> mail al usuario
 // mail avisando 10 dias antes que utility corresponden pagar -> mail al usuario y al administrador
 // se carga cuanto debe pagar de utility -> mail al usuario
