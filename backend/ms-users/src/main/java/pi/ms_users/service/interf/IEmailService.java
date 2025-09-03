@@ -40,4 +40,6 @@ public interface IEmailService {
     void sendAdminUtilityUpcomingChargeListEmail(EmailExtraAdminDTO dto);
 
     void sendAdminContractsExpiringSoonListEmail(EmailContractExpiringSoonListAdminDTO dto);
+
+    void sendAdminContractExpiredEmail(EmailContractExpiredAdminDTO dto);
 }

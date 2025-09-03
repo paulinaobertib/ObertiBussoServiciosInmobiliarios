@@ -37,7 +37,7 @@ CREATE TABLE Property (
     owner_id BIGINT NOT NULL,
     neighborhood_id BIGINT NOT NULL,
     type_id BIGINT NOT NULL,
-    status ENUM('DISPONIBLE', 'VENDIDA', 'ALQUILADA', 'RESERVADA') NOT NULL,
+    status ENUM('DISPONIBLE', 'VENDIDA', 'ALQUILADA', 'RESERVADA', 'ESPERA', 'INACTIVA') NOT NULL,
     operation ENUM('VENTA', 'ALQUILER') NOT NULL,
 	currency ENUM('USD', 'ARS') NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE Utility (
 CREATE TABLE Contract (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   user_id VARCHAR(100) NOT NULL,
-  property_id BIGINT NOT NULL,
+  property_id BIGINT NULL,
   type ENUM('TEMPORAL', 'VIVIENDA', 'COMERCIAL') NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,

@@ -11,6 +11,7 @@ import pi.ms_users.domain.ContractType;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractGetDTO;
 import pi.ms_users.dto.ContractSimpleDTO;
+import pi.ms_users.dto.feign.Status;
 import pi.ms_users.service.interf.IContractService;
 
 import java.time.LocalDate;
@@ -136,5 +137,11 @@ public class ContractController {
     @GetMapping("/endingBetween")
     public ResponseEntity<List<ContractGetDTO>> getContractsEndingBetween(@RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from, @RequestParam("to")   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return contractService.getContractsEndingBetween(from, to);
+    }
+
+    @PreAuthorize("hasAnyRole('admin')")
+    @PutMapping("/propertyContractStatus/{propertyId}/{contractId}")
+    public ResponseEntity<String> updatePropertyStatusAndContract(@PathVariable Long propertyId, @PathVariable Long contractId, @RequestParam Status status) {
+        return contractService.updatePropertyStatusAndContract(propertyId, contractId, status);
     }
 }
