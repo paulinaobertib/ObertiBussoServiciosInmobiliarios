@@ -348,7 +348,6 @@ public class EmailService implements IEmailService {
             context.setVariable("contractUrl", contractUrl);
             context.setVariable("firstName", dto.getFirstName());
             context.setVariable("lastName", dto.getLastName());
-            context.setVariable("effectiveDate", formatDate(dto.getEffectiveDate()));
             context.setVariable("newAmount", formatAmount(dto.getNewAmount(), dto.getCurrency()));
             context.setVariable("currency", dto.getCurrency());
             context.setVariable("increase", dto.getIncrease());
