@@ -160,6 +160,14 @@ CREATE TABLE Contract_Utility (
   FOREIGN KEY (utility_id) REFERENCES Utility(id) ON DELETE RESTRICT
 );
 
+CREATE TABLE Contract_Utility_Increase (
+	id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    contract_utility_id BIGINT NOT NULL,
+    adjustment_date DATE NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    FOREIGN KEY (contract_utility_id) REFERENCES Contract_Utility(id) ON DELETE CASCADE
+);
+
 CREATE TABLE Contract_Increase (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   contract_id BIGINT NOT NULL,
@@ -167,7 +175,7 @@ CREATE TABLE Contract_Increase (
   currency ENUM('USD', 'ARS') NOT NULL,
   amount DECIMAL(15,2) NOT NULL,                 
   index_id BIGINT NOT NULL,   
-  adjustment BIGINT NOT NULL,
+  adjustment INT NOT NULL,
   note VARCHAR(1000) NULL,
   period_from DATE NULL,                 
   period_to DATE NULL,

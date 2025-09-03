@@ -90,7 +90,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
         if (dto.getAmount() != null && dto.getAmount().signum() < 0) {
             throw new BadRequestException("El monto no puede ser negativo.");
         }
-        if (dto.getAdjustment() != null && dto.getAdjustment().signum() < 0) {
+        if (dto.getAdjustment() != null && dto.getAdjustment() < 0) {
             throw new BadRequestException("El ajuste no puede ser negativo.");
         }
         if (dto.getPeriodFrom() != null && dto.getPeriodTo() != null &&
@@ -122,6 +122,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
 
         User user = userRepository.findById(contract.get().getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
+
         EmailContractIncreaseLoadedDTO emailContractIncreaseLoadedDTO = new EmailContractIncreaseLoadedDTO();
         emailContractIncreaseLoadedDTO.setTo(user.getEmail());
         emailContractIncreaseLoadedDTO.setFirstName(user.getFirstName());
@@ -130,6 +131,7 @@ public class ContractIncreaseService implements IContractIncreaseService {
         emailContractIncreaseLoadedDTO.setCurrency(contractIncrease.getCurrency().toString());
         emailContractIncreaseLoadedDTO.setIncrease(contractIncrease.getAdjustment());
         emailContractIncreaseLoadedDTO.setIndex(contractIncrease.getIndex().getName());
+        emailService.sendContractIncreaseLoadedEmail(emailContractIncreaseLoadedDTO, contract.get().getId());
 
         return ResponseEntity.ok("Se ha guardado el incremento del contrato.");
     }
