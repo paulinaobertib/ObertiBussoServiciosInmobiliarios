@@ -35,6 +35,7 @@ export const ROUTES = {
   EDIT_CONTRACT: `/contract/:id/edit`,
   APPOINTMENTS: "/appointments",
   STATS: "/stats",
+  CONTRACT_DETAIL: "/contracts/:id",
 };
 
 export const PAGES = [
