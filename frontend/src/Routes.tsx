@@ -26,6 +26,7 @@ import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
+import ContractDetailPage from './pages/ContractDetailPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -198,6 +199,7 @@ export default function Routes() {
             <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
             <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
             <Route path={ROUTES.SURVEY} element={<SurveyPage />} />
+            <Route path={ROUTES.CONTRACT_DETAIL} element={<ContractDetailPage />} />
 
             {/* ---- Catch-all ---- */}
             <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />
