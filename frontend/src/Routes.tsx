@@ -26,7 +26,7 @@ import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
-import ContractDetailPage from './pages/ContractDetailPage';
+import ContractDetailPage from './pages/ContractDetailAdminPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
