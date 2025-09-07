@@ -1,4 +1,4 @@
-/*package pi.ms_users.dto;
+package pi.ms_users.dto.email;
 
 import lombok.Data;
 
@@ -6,12 +6,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-public class EmailPaymentReminderDTO {
+public class EmailContractPaymentReminderDTO {
     private String to;
     private String firstName;
-    private BigDecimal amount;
+    private String lastName;
     private LocalDate dueDate;
-    private ContractIncreaseCurrency currency;
+    private BigDecimal amount;
+    private String currency;
 }
-
- */

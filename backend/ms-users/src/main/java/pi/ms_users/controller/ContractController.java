@@ -11,6 +11,7 @@ import pi.ms_users.domain.ContractType;
 import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractGetDTO;
 import pi.ms_users.dto.ContractSimpleDTO;
+import pi.ms_users.dto.feign.Status;
 import pi.ms_users.service.interf.IContractService;
 
 import java.time.LocalDate;
@@ -48,19 +49,7 @@ public class ContractController {
         return contractService.delete(id);
     }
 
-    @PreAuthorize("hasRole('admin')")
-    @DeleteMapping("/deleteByProperty/{propertyId}")
-    public ResponseEntity<String> deleteByProperty(@PathVariable Long propertyId) {
-        return contractService.deleteByPropertyId(propertyId);
-    }
-
-    @PreAuthorize("hasRole('admin')")
-    @DeleteMapping("/deleteByUser/{userId}")
-    public ResponseEntity<String> deleteByUser(@PathVariable String userId) {
-        return contractService.deleteByUserId(userId);
-    }
-
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractGetDTO> getById(@PathVariable Long id) {
         return contractService.getById(id);
@@ -72,19 +61,19 @@ public class ContractController {
         return contractService.getAll();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByUser/{userId}")
     public ResponseEntity<List<ContractGetDTO>> getByUser(@PathVariable String userId) {
         return contractService.getByUserId(userId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByStatus")
     public ResponseEntity<List<ContractGetDTO>> getByStatus(@RequestParam ContractStatus status) {
         return contractService.getByStatus(status);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByType")
     public ResponseEntity<List<ContractGetDTO>> getByType(@RequestParam ContractType type) {
         return contractService.getByType(type);
@@ -108,33 +97,39 @@ public class ContractController {
         return contractService.getByPropertyForMS(propertyId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByDate")
     public ResponseEntity<List<ContractGetDTO>> getByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return contractService.getByDate(date);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getByDateRange")
     public ResponseEntity<List<ContractGetDTO>> getByDateRange(@RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from, @RequestParam("to")   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return contractService.getByDateRange(from, to);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/expiringWithinDays")
     public ResponseEntity<List<ContractGetDTO>> getContractsExpiringWithin(@RequestParam int days) {
         return contractService.getContractsExpiringWithin(days);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/endingOn")
     public ResponseEntity<List<ContractGetDTO>> getContractsEndingDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return contractService.getContractsEndingDate(date);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
+    @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/endingBetween")
     public ResponseEntity<List<ContractGetDTO>> getContractsEndingBetween(@RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from, @RequestParam("to")   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return contractService.getContractsEndingBetween(from, to);
+    }
+
+    @PreAuthorize("hasAnyRole('admin')")
+    @PutMapping("/propertyContractStatus/{propertyId}/{contractId}")
+    public ResponseEntity<String> updatePropertyStatusAndContract(@PathVariable Long propertyId, @PathVariable Long contractId, @RequestParam Status status) {
+        return contractService.updatePropertyStatusAndContract(propertyId, contractId, status);
     }
 }

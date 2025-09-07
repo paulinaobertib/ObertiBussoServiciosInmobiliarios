@@ -1,4 +1,4 @@
-/*package pi.ms_users.scheduler;
+package pi.ms_users.scheduler;
 
 
 import lombok.RequiredArgsConstructor;
@@ -11,23 +11,28 @@ import pi.ms_users.service.impl.ContractService;
 public class ContractScheduler {
     private final ContractService contractService;
 
-    // todos los dias a las 2 am
-    @Scheduled(cron = "0 0 2 * * *")
-    public void scheduledInactive() {
-        contractService.applyScheduledInactive();
+    // Contratos con aumento en un mes
+    @Scheduled(cron = "0 0 8 * * *", zone = "America/Argentina/Buenos_Aires")
+    public void scheduledContractIncreaseInOneMonth() {
+        contractService.sendEmailsForContractsWithIncreaseInOneMonth();
+        contractService.sendAdminContractsWithIncreaseInOneMonth();
     }
 
-    // todos los dias a las 8 am
-    @Scheduled(cron = "0 0 8 * * *")
-    public void scheduledEndDate() {
-        contractService.applyScheduledSoonInactive();
+    // Contratos próximos a vencer en un mes
+    @Scheduled(cron = "0 30 8 * * *", zone = "America/Argentina/Buenos_Aires")
+    public void scheduledContractsExpiringInOneMonth() {
+        contractService.sendEmailsForContractsExpiringInOneMonth();
     }
 
-    // el primero de cada mes a las 8 am
-    @Scheduled(cron = "0 0 8 1 * ?", zone = "America/Argentina/Buenos_Aires")
-    public void applyMonthlyRentReminder() {
-        contractService.applyScheduledPayment();
+    // Contratos que vencen hoy
+    @Scheduled(cron = "0 0 10 * * *", zone = "America/Argentina/Buenos_Aires")
+    public void scheduledContractsExpiringToday() {
+        contractService.sendEmailsForContractsExpiringToday();
+    }
+
+    // Recordatorio de pago de contratos activos
+    @Scheduled(cron = "0 0 9 1 * *", zone = "America/Argentina/Buenos_Aires")
+    public void scheduledPaymentRemindersForActiveContracts() {
+        contractService.sendPaymentRemindersForActiveContracts();
     }
 }
-
- */

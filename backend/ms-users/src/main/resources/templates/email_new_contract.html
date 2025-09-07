@@ -1,25 +1,43 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Nuevo Contrato Disponible - Oberti Busso</title>
+  <meta charset="UTF-8">
+  <title>¡Tu nuevo hogar te espera!</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
-<div style="max-width: 600px; margin: auto; background-color: #FFF; border-radius: 8px; box-shadow: 0 0 10px #eee;">
-    <div style="background-color: #EE671E; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; width: auto; display: block; margin: 0 auto;">
-        <h1 style="color: white; margin-top: 10px;">¡Te damos la bienvenida a tu nuevo hogar!</h1>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px #ddd;">
+  <div style="background-color: #EB7333; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; display: block; margin: 0 auto;">
+    <h1 style="color: white; margin-top: 10px;">¡Nos alegra acompañarte, <span th:text="${firstName}">Nombre</span>!</h1>
+  </div>
+  <div style="padding: 30px; background-color: #f5f5f5;">
+    <p>Es un placer darte la bienvenida y agradecerte por confiar en <strong>Oberti Busso Servicios Inmobiliarios</strong> para esta nueva etapa de tu vida.</p>
+
+    <p>Tu contrato de alquiler ha comenzado oficialmente, y queremos asegurarnos de que tengas toda la información necesaria desde el primer día. Aquí te dejamos los datos principales:</p>
+
+    <ul>
+      <li><strong>Fecha de inicio:</strong> <span th:text="${startDate}">01/01/2025</span></li>
+      <li><strong>Fecha de finalización:</strong> <span th:text="${endDate}">01/01/2026</span></li>
+    </ul>
+
+    <p>Para ver los detalles completos de tu contrato, visitá el siguiente enlace:</p>
+    <div style="text-align: center; margin: 20px 0;">
+      <a th:href="${contractUrl}" target="_blank"
+         style="background-color: #EB7333; color: white; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; display: inline-block;">
+        Ver mi contrato
+      </a>
     </div>
-    <div style="padding: 30px; background-color: #FFF;">
-        <p>Estimado/a, <span th:text="${name}">Usuario</span></p>
-        <p>En Oberti Busso Servicios Inmobiliarios estamos encantados de darte la bienvenida como inquilino/a de una de las propiedades que administramos. Nos complace informarte que el contrato de alquiler ya está disponible para que lo consultes en nuestro portal.</p>
-        <p>Accede al contrato en el siguiente enlace: <a th:href="${contractUrl}" href="https://www.obertibusso.com/contratos">Ver contrato</a></p>
-        <p>Si necesitas asistencia o tienes alguna consulta sobre la propiedad o el contrato, no dudes en contactarnos. Estamos aquí para acompañarte en esta nueva etapa.</p>
-        <p>¡Gracias por elegirnos, <span th:text="${name}">Usuario</span>!</p>
-    </div>
-    <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
-        <small>Oberti Busso Servicios Inmobiliarios</small>
-    </div>
+
+    <p>Sabemos lo importante que es un hogar, y por eso queremos que sepas que estamos a tu lado para acompañarte en cada paso. Ante cualquier consulta, gestión o necesidad, nuestro equipo estará disponible para ayudarte de manera rápida y personalizada.</p>
+
+    <p>Te deseamos que disfrutes de esta etapa con tranquilidad y comodidad, y esperamos que este nuevo espacio se convierta en un lugar lleno de buenos momentos.</p>
+
+    <p style="margin-top: 20px;">Gracias nuevamente por elegirnos,</p>
+    <p><strong>Equipo de Oberti Busso Servicios Inmobiliarios</strong></p>
+  </div>
+  <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
+    <small>Oberti Busso Servicios Inmobiliarios</small>
+  </div>
 </div>
 </body>
 </html>
