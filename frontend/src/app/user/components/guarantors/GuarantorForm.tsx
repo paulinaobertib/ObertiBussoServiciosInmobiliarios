@@ -107,7 +107,7 @@ export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
             label="Nombre"
             value={form.name}
             fullWidth
-            disabled={!isAdd}
+            disabled={isDelete}
             size="small"
             onChange={handleChange("name")}
           />
@@ -120,7 +120,7 @@ export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
             onChange={handleChange("email")}
             fullWidth
             size="small"
-            disabled={!(isAdd || isEdit)}
+            disabled={isDelete}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -130,7 +130,7 @@ export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
             onChange={handleChange("phone")}
             fullWidth
             size="small"
-            disabled={!(isAdd || isEdit)}
+            disabled={isDelete}
           />
         </Grid>
         {/* Botones */}
