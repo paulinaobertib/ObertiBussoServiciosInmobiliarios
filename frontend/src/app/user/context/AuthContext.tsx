@@ -1,8 +1,14 @@
 // src/app/user/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Role, User } from "../types/user";
-import { api } from '../../../api';
 import { NotificationType, UserNotificationPreference } from "../types/notification";
+import {
+  getUserNotificationPreferencesByUser,
+  createUserNotificationPreference,
+} from "../services/notification.service";
+import { getMe, getRoles, addPrincipalRole } from "../services/user.service";
+import { retry, sleep } from "../../shared/utils/retry";
+import { api } from "../../../api";
 
 export type AuthInfo = User & {
   roles: Role[];
@@ -15,7 +21,10 @@ interface AuthContextValue {
   isLogged: boolean;
   isAdmin: boolean;
   isTenant: boolean;
+  ready: boolean;
   loading: boolean;
+  refreshing: boolean;
+  sessionExpired: boolean;
   login: () => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -23,22 +32,46 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue>({
   info: null,
-  setInfo: () => { },
+  setInfo: () => {},
   isLogged: false,
   isAdmin: false,
   isTenant: false,
+  ready: false,
   loading: false,
-  login: () => { },
-  logout: () => { },
-  refreshUser: async () => { },
+  refreshing: false,
+  sessionExpired: false,
+  login: () => {},
+  logout: () => {},
+  refreshUser: async () => {},
 });
+
+const ensureDefaultPreferences = async (userId: string): Promise<UserNotificationPreference[]> => {
+  // 1) leer existentes
+  const resp = await getUserNotificationPreferencesByUser(userId);
+  let prefs: UserNotificationPreference[] = resp.data ?? resp; // según tu helper, puede ser .data o el objeto directo
+
+  // 2) crear si no hay ninguna
+  if (!prefs || !prefs.length) {
+    const defaults: NotificationType[] = ["PROPIEDADNUEVA", "PROPIEDADINTERES"];
+    const created: UserNotificationPreference[] = [];
+    for (const type of defaults) {
+      const body = { userId, type, enabled: true }; // coincide con tu UserNotificationPreferenceCreate
+      const r = await createUserNotificationPreference(body);
+      created.push(r.data ?? r);
+    }
+    prefs = created;
+  }
+
+  return prefs;
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const stored = sessionStorage.getItem("authInfo");
-  const [info, setInfo] = useState<AuthInfo | null>(
-    stored ? JSON.parse(stored) : null
-  );
+  const [info, setInfo] = useState<AuthInfo | null>(stored ? JSON.parse(stored) : null);
   const [loading, setLoading] = useState(!stored);
+  const [refreshing, setRefreshing] = useState(false);
+  const [ready, setReady] = useState(Boolean(stored)); // listo para renderizar
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
   const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
@@ -53,81 +86,125 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else sessionStorage.removeItem("authInfo");
   }, [info]);
 
-  // Cargar preferencias para el usuario actual
-  const loadPreferences = async (userId: string) => {
-    const resp = await api.get<UserNotificationPreference[]>(
-      `/users/preference/user/${userId}`
-    );
-    return resp.data;
-  };
-  const createPreference = async (
-    userId: string,
-    type: NotificationType
-  ) => {
-    const resp = await api.post<UserNotificationPreference>(
-      `/users/preference/create`,
-      { userId, type, enabled: true }
-    );
-    return resp.data;
-  };
-
   // Carga completa de info de sesión
   const loadUserInfo = async () => {
     setLoading(true);
+    setReady(false);
     try {
       // 1) datos básicos
-      const { data: user } = await api.get<User>("/users/user/me");
-      // 2) roles
-      const { data: rawRoles } = await api.get<Role[]>(
-        `/users/user/role/${user.id}`
+      const { data: user } = await getMe();
+
+      // 3) si no hay roles, asignar principal y reintentar obtenerlos
+      await addPrincipalRole();
+      // pequeña espera para que Keycloak/DB refleje el cambio
+      await sleep(1000);
+
+      // 2) roles (pueden venir vacíos en primer login)
+      let { data: rawRoles } = await getRoles(user.id);
+      let roles = rawRoles.map((r: string) => r.toUpperCase() as Role);
+
+      // Reintenta 5 veces con 700ms entre intentos
+      rawRoles = await retry(
+        async () => {
+          const resp = await getRoles(user.id);
+          if (!resp.data || !resp.data.length) throw new Error("Roles aún no asignados");
+          return resp.data;
+        },
+        { attempts: 5, delayMs: 700 }
       );
-      const roles = rawRoles.map((r) => r.toUpperCase() as Role);
-      // 3) preferencias
+
+      roles = rawRoles.map((r: string) => r.toUpperCase() as Role);
+
+      // 4) preferencias (solo si no es admin)
+
       let preferences: UserNotificationPreference[] = [];
       if (roles.includes("ADMIN" as Role)) {
         preferences = [];
       } else {
-        let prefs = await loadPreferences(user.id);
-        if (!prefs.length) {
-          const allTypes: NotificationType[] = [
-            "PROPIEDADNUEVA",
-            "PROPIEDADINTERES",
-          ];
-          prefs = [];
-          for (const type of allTypes) {
-            prefs.push(await createPreference(user.id, type));
-          }
-        }
-        preferences = prefs;
+        preferences = await ensureDefaultPreferences(user.id);
       }
+      // ...
       setInfo({ ...user, roles, preferences });
-    } catch {
+      setSessionExpired(false);
+      setReady(true);
+    } catch (e) {
+      // si algo falla, limpiamos y marcamos no listo
       setInfo(null);
+      setReady(false);
     } finally {
       setLoading(false);
     }
   };
 
-  // Al montar, si no había nada guardado, cargar desde la API
+  // Al montar, siempre refrescar desde la API (aunque haya stored) para evitar estados viejos
   useEffect(() => {
-    if (!stored) loadUserInfo();
+    loadUserInfo();
   }, []);
 
   const login = () => {
+    try {
+      const next = window.location.pathname + window.location.search;
+      sessionStorage.setItem("postLoginNext", next);
+    } catch {}
+    setSessionExpired(false);
     window.location.href = loginUrl;
   };
+
   const logout = () => {
     setInfo(null);
+    setSessionExpired(false);
     sessionStorage.clear();
     window.location.href = `${GW_URL}/logout`;
   };
+
   const refreshUser = async () => {
     await loadUserInfo();
   };
 
+  // Interceptor mínimo: si detectamos caducidad, mostramos diálogo
+  useEffect(() => {
+    const resId = api.interceptors.response.use(
+      (resp) => resp,
+      async (error: any) => {
+        // 1) NetworkError (sin response) y estamos online -> tratar como sesión expirada
+        if (!error?.response) {
+          const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+          if (isOnline) {
+            try {
+              const next = window.location.pathname + window.location.search;
+              sessionStorage.setItem("postLoginNext", next);
+            } catch {}
+            setRefreshing(false);
+            setSessionExpired(true);
+          }
+          return Promise.reject(error);
+        }
+      }
+    );
+    return () => {
+      api.interceptors.response.eject(resId);
+    };
+  }, []);
+
+  // Post-login redirect limpio si guardamos "postLoginNext"
+  useEffect(() => {
+    if (!ready || !isLogged) return;
+    try {
+      const next = sessionStorage.getItem("postLoginNext");
+      if (next && next !== window.location.pathname + window.location.search) {
+        sessionStorage.removeItem("postLoginNext");
+        window.location.replace(next);
+      } else if (next) {
+        sessionStorage.removeItem("postLoginNext");
+      }
+    } catch {}
+  }, [ready, isLogged]);
+
+  // Sin keep-alive ni pings periódicos.
+
   return (
     <AuthContext.Provider
-      value={{ info, setInfo, isLogged, isAdmin, isTenant, loading, login, logout, refreshUser }}
+      value={{ info, setInfo, isLogged, isAdmin, isTenant, loading, refreshing, sessionExpired, ready, login, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

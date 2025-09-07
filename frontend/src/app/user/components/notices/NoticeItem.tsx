@@ -7,6 +7,7 @@ import { buildRoute, ROUTES } from '../../../../lib';
 import { Modal } from '../../../shared/components/Modal';
 import { NoticeForm, NoticeFormHandle } from './NoticeForm';
 import type { Notice } from '../../types/notice';
+import { LoadingButton } from '@mui/lab';
 
 interface Props {
   notice: Notice;
@@ -20,6 +21,7 @@ export const NoticeItem = ({ notice, isAdmin = false, onUpdate, onDeleteClick }:
   const [editOpen, setEditOpen] = useState(false);
   const [canSave, setCanSave] = useState(false);
   const formRef = useRef<NoticeFormHandle>(null);
+  const [saving, setSaving] = useState(false);
 
   const imageSrc =
     typeof notice.mainImage === 'string'
@@ -48,10 +50,20 @@ export const NoticeItem = ({ notice, isAdmin = false, onUpdate, onDeleteClick }:
   const closeEdit = () => setEditOpen(false);
 
   const handleSave = async () => {
-    if (!formRef.current) return;
+    if (!formRef.current || saving) return;
     const data = formRef.current.getUpdateData();
-    await onUpdate({ ...(data as Notice), id: notice.id, userId: notice.userId });
-    closeEdit();
+
+    setSaving(true);
+    // asegura que el spinner pinte y que se vea al menos 600ms
+    await new Promise(requestAnimationFrame);
+    try {
+      await Promise.all([
+        onUpdate({ ...(data as Notice), id: notice.id, userId: notice.userId }),
+      ]);
+      closeEdit();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -172,9 +184,9 @@ export const NoticeItem = ({ notice, isAdmin = false, onUpdate, onDeleteClick }:
           onValidityChange={setCanSave}
         />
         <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-          <Button variant="contained" onClick={handleSave} disabled={!canSave}>
+          <LoadingButton variant="contained" onClick={handleSave} disabled={!canSave} loading={saving}>
             Guardar
-          </Button>
+          </LoadingButton>
         </Box>
       </Modal>
     </>

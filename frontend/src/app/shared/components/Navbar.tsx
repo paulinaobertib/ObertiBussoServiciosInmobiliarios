@@ -16,6 +16,9 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LogoutIcon from '@mui/icons-material/Logout';
 import RealEstateAgentIcon from '@mui/icons-material/RealEstateAgent';
+import LoginIcon from '@mui/icons-material/Login';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
+import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
@@ -48,6 +51,8 @@ export const NavBar = () => {
     navigate(isAdmin ? ROUTES.ADMIN_PAGE : ROUTES.USER_PROFILE);
   };
 
+  const openMenu = Boolean(anchorElNav);
+
   return (
     <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT } }}>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -74,7 +79,7 @@ export const NavBar = () => {
             onClick={goHome}
           />
 
-          {/* Mobile: Menu + Logo + Settings */}
+          {/* Mobile (xs): layout por estado */}
           <Box
             sx={{
               display: { xs: 'flex', sm: 'none' },
@@ -84,34 +89,86 @@ export const NavBar = () => {
               justifyContent: 'center',
             }}
           >
+            {/* IZQUIERDA (xs) */}
             <Box
               sx={{
                 position: 'absolute',
                 left: 0,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1
+                gap: 1,
               }}
             >
-              <IconButton
-                size="small"
-                onClick={handleOpenNavMenu}
-                color="inherit"
-                aria-label="menu"
-              >
-                <MenuIcon />
-              </IconButton>
+              {/* NO LOGUEADO: Contacto + Noticias */}
+              {!isLogged && (
+                <>
+                  <Tooltip title="Contacto">
+                    <IconButton size="small" color="inherit" onClick={() => navigate(ROUTES.CONTACT)}>
+                      <ContactMailIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Noticias">
+                    <IconButton size="small" color="inherit" onClick={() => navigate(ROUTES.NEWS)}>
+                      <NewspaperIcon />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
 
-              <IconButton
-                size="small"
-                onClick={() => navigate(ROUTES.CONTRACT)}
-                color="inherit"
-                aria-label="real-estate-agent"
-              >
-                <RealEstateAgentIcon />
-              </IconButton>
+              {/* LOGUEADO USUARIO: Perfil + Menú + (si inquilino) Soy inquilino */}
+              {isLogged && !isAdmin && (
+                <>
+                  <IconButton
+                    size="small"
+                    onClick={handleOpenNavMenu}
+                    color="inherit"
+                    aria-label="menu"
+                  >
+                    <MenuIcon />
+                  </IconButton>
+
+                  {isTenant && (
+                    <Tooltip title="Soy inquilino">
+                      <IconButton
+                        size="small"
+                        onClick={() => navigate(ROUTES.CONTRACT)}
+                        color="inherit"
+                        aria-label="tenant"
+                      >
+                        <RealEstateAgentIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </>
+              )}
+
+              {/* ADMIN: Menú + Contratos */}
+              {isAdmin && (
+                <>
+                  <IconButton
+                    size="small"
+                    onClick={handleOpenNavMenu}
+                    color="inherit"
+                    aria-label="menu"
+                  >
+                    <MenuIcon />
+                  </IconButton>
+
+                  <Tooltip title="Contratos">
+                    <IconButton
+                      size="small"
+                      onClick={() => navigate(ROUTES.CONTRACT)}
+                      color="inherit"
+                      aria-label="contracts"
+                    >
+                      <RealEstateAgentIcon />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
             </Box>
 
+            {/* Logo centrado (xs) */}
             <Box
               component="img"
               src={logo}
@@ -128,6 +185,7 @@ export const NavBar = () => {
               onClick={goHome}
             />
 
+            {/* DERECHA (xs) */}
             <Box
               sx={{
                 position: 'absolute',
@@ -137,64 +195,89 @@ export const NavBar = () => {
                 gap: 1,
               }}
             >
-              <SettingsDrawer />
-              {isLogged && (
-                <Tooltip title="Salir">
-                  <IconButton
-                    color="inherit"
-                    aria-label="logout"
-                    onClick={logout}
-                    sx={{ p: 0.5 }}
-                  >
-                    <LogoutIcon />
+              {/* NO LOGUEADO: Iniciar sesión */}
+              {!isLogged && (
+                <Tooltip title="Iniciar sesión">
+                  <IconButton color="inherit" aria-label="login" onClick={login} sx={{ p: 0.5 }}>
+                    <LoginIcon />
                   </IconButton>
                 </Tooltip>
               )}
+
+              {/* LOGUEADO USUARIO: Salir */}
+              {isLogged && !isAdmin && (
+                <>
+                  <Tooltip title="Panel / Perfil">
+                    <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
+                      <AccountCircleIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Salir">
+                    <IconButton color="inherit" aria-label="logout" onClick={logout}>
+                      <LogoutIcon />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+
+              {/* ADMIN: Perfil/Panel + Salir */}
+              {isAdmin && (
+                <>
+                  <Tooltip title="Panel / Perfil">
+                    <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
+                      <AccountCircleIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Salir">
+                    <IconButton color="inherit" aria-label="logout" onClick={logout}>
+                      <LogoutIcon />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
             </Box>
 
+            {/* MENÚ (xs) — según estado */}
             <Menu
               anchorEl={anchorElNav}
-              open={Boolean(anchorElNav)}
+              open={openMenu}
               onClose={handleCloseNavMenu}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
             >
-              {/* ADMIN => TURNERO / Others => CONTACTO */}
-              {isAdmin ? (
-                <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
-                  TURNERO
-                </MenuItem>
-              ) : (
-                <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
+              {/* Logueado usuario: Contacto, Noticias, Mis favoritos, Notificaciones */}
+              {isLogged && !isAdmin && ([
+                <MenuItem key="contact" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
                   CONTACTO
-                </MenuItem>
-              )}
-
-              <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
-                NOTICIAS
-              </MenuItem>
-
-              {isLogged && (
-                <MenuItem onClick={() => { handleCloseNavMenu(); goToProfile(); }}>
-                  {isAdmin ? 'PANEL' : 'PERFIL'}
-                </MenuItem>
-              )}
-
-              {isLogged && !isAdmin && (
-                <MenuItem onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
+                </MenuItem>,
+                <MenuItem key="news" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
+                  NOTICIAS
+                </MenuItem>,
+                <MenuItem key="favorites" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
                   MIS FAVORITOS
+                </MenuItem>,
+                <MenuItem key="settings">
+                  <SettingsDrawer />
                 </MenuItem>
-              )}
+              ])}
 
-              {!isLogged && !isAdmin && (
-                <MenuItem onClick={() => { handleCloseNavMenu(); login(); }}>
-                  INICIAR SESIÓN
+              {/* Admin: Turnero + Noticias */}
+              {isAdmin && ([
+                <MenuItem key="appointments" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
+                  TURNERO
+                </MenuItem>,
+                <MenuItem key="news-admin" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
+                  NOTICIAS
+                </MenuItem>,
+                <MenuItem key="settings-admin">
+                  <SettingsDrawer />
                 </MenuItem>
-              )}
+              ])}
+              {/* No logueado: sin menú (no renderizamos items) */}
             </Menu>
           </Box>
 
-          {/* Desktop Links */}
+          {/* Desktop Links (sm+) — sin cambios */}
           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
             <Button
               onClick={() => navigate(isAdmin ? ROUTES.APPOINTMENTS : ROUTES.CONTACT)}
@@ -245,7 +328,7 @@ export const NavBar = () => {
             )}
           </Box>
 
-          {/* Desktop Actions */}
+          {/* Desktop Actions (sm+) — sin cambios */}
           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, ml: 'auto' }}>
             {!isLogged && (
               <Button color="inherit" onClick={login} sx={{ textTransform: 'none' }}>

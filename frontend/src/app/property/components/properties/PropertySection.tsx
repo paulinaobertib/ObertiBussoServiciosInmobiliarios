@@ -6,7 +6,7 @@ import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useGlobalAlert } from '../../../shared/context/AlertContext';
 import { usePropertyPanel } from '../../hooks/usePropertySection';
 import { getAllProperties, getPropertiesByText, deleteProperty } from '../../services/property.service';
-import { getRowActions } from '../ActionsRowItems';
+import { getRowActions } from './ActionsRowItems';
 import type { Property } from '../../types/property';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
   isSelected?: (id: number) => boolean;
   showActions?: boolean;
   filterAvailable?: boolean;
+  selectable?: boolean,
 }
 
 export const PropertySection = ({
@@ -21,6 +22,7 @@ export const PropertySection = ({
   isSelected: externalIsSelected,
   showActions = true,
   filterAvailable = false,
+  selectable = true,
 }: Props) => {
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
@@ -121,7 +123,6 @@ export const PropertySection = ({
             const actions = getRowActions(
               'property',
               params.row as Property,
-              () => { },
               ask,
               deleteProperty,
               showAlert
@@ -135,7 +136,7 @@ export const PropertySection = ({
                 justifyContent="center"
                 width="100%"
               >
-                {actions.map((a) => (
+                {(actions ?? []).map((a) => (
                   <IconButton
                     key={a.label}
                     size="small"
@@ -174,6 +175,8 @@ export const PropertySection = ({
         fetchAll={fetchAll}
         fetchByText={fetchByText}
         multiSelect={false}
+        selectable={selectable}
+
       />
       {DialogUI}
     </>

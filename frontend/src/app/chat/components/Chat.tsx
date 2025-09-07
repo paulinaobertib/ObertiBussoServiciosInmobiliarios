@@ -91,7 +91,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   const optionLabels: Record<string, string> = {
     VER_PRECIO: "¿Cuál es el precio?",
-    VER_HABITACIONES: "¿Cuántas habitaciones tiene?",
+    VER_HABITACIONES: "¿Cuántos ambientes tiene?",
     VER_AREA: "¿Qué superficie tiene?",
     VER_UBICACION: "¿Dónde está ubicado?",
     VER_CARACTERISTICAS: "¿Qué características ofrece?",
@@ -194,7 +194,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const handlePropertySearch = async (value: string) => {
     setSearchText(value);
     const result = await getPropertiesByText(searchText);
-    setPropertyOptions(result);
+    const filtered = result.filter((p) => p.status?.toLowerCase() === 'disponible' || !p.status);
+    setPropertyOptions(filtered);
   };
 
   const handleChangeProperty = async () => {
@@ -421,7 +422,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        zIndex: 1500,
+        zIndex: 10,
         backgroundColor: "#fff",
         transition: "max-height 0.2s ease"
       }}
@@ -447,30 +448,30 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         </IconButton>
       </Box>
 
-        {!collapsed && (
-          <>
-            <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto", '&::-webkit-scrollbar': {width: '8px', }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1'}, '&::-webkit-scrollbar-thumb': { backgroundColor: '#FED7AA' }}}>
-              {step === "greeting" && (
-                <Box>
-                  <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
+      {!collapsed && (
+        <>
+          <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto", '&::-webkit-scrollbar': { width: '8px', }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#FED7AA' } }}>
+            {step === "greeting" && (
+              <Box>
+                <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
 
-                  {showForm && (
-                    <Box mt={2}>
-                      <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
-                      <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
-                      <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        value={guestData.email}
-                        onChange={e => setGuestData({ ...guestData, email: e.target.value })}
-                        margin="dense"
-                        error={showForm && !emailOK}
-                        helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
-                      />
-                      <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
-                    </Box>
-                  )}
+                {showForm && (
+                  <Box mt={2}>
+                    <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
+                    <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
+                    <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      value={guestData.email}
+                      onChange={e => setGuestData({ ...guestData, email: e.target.value })}
+                      margin="dense"
+                      error={showForm && !emailOK}
+                      helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
+                    />
+                    <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
+                  </Box>
+                )}
 
                 <Box mt={2}>
                   {initialPropertyId ? (

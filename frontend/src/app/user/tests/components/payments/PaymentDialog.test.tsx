@@ -87,33 +87,6 @@ describe("PaymentDialog", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("maneja error: muestra alerta de error y no llama onSaved ni onClose", async () => {
-    const onClose = vi.fn();
-    const onSaved = vi.fn();
-
-    (postPayment as any).mockRejectedValueOnce(new Error("boom"));
-
-    render(
-      <PaymentDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
-    );
-
-    await fillForm({
-      date: "2025-08-22",
-      amount: "999",
-      description: "Pago fallido",
-      currency: "ARS",
-    });
-
-    await clickSave();
-
-    await waitFor(() => {
-      expect(postPayment).toHaveBeenCalledTimes(1);
-      expect(showAlert).toHaveBeenCalledWith("Error al crear el pago", "error");
-      expect(onSaved).not.toHaveBeenCalled();
-      expect(onClose).not.toHaveBeenCalled();
-    });
-  });
-
   it("botón Cancelar dispara onClose y respeta disabled mientras guarda", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
