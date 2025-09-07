@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
+
 import { usePropertiesContext } from "../context/PropertiesContext";
 import type { Property } from "../types/property";
+import { useApiErrors } from "../../shared/hooks/useErrors";
 
 export const usePropertyPanel = () => {
   const { propertiesList, refreshProperties } = usePropertiesContext();
+  const { handleError } = useApiErrors();
+
   // datos filtrados
   const [data, setData] = useState<Property[]>([]);
   const [localLoading, setLocalLoading] = useState(true);
@@ -13,12 +17,21 @@ export const usePropertyPanel = () => {
 
   // 1) carga inicial
   useEffect(() => {
-    refreshProperties();
+    (async () => {
+      setLocalLoading(true);
+      try {
+        await refreshProperties();
+      } catch (e) {
+        handleError(e);
+      } finally {
+        setLocalLoading(false);
+      }
+    })();
   }, [refreshProperties]);
 
   // 2) cuando cambian en el contexto
   useEffect(() => {
-    setData(propertiesList ?? []); // <-- Corrige el warning
+    setData(propertiesList ?? []);
     setLocalLoading(false);
   }, [propertiesList]);
 
@@ -30,13 +43,9 @@ export const usePropertyPanel = () => {
   // 4) selección
   const toggleSelect = useCallback((id: number) => {
     setSelectedId((prev) => (prev === id ? null : id));
-    // console.log("toggleSelect:", id);
   }, []);
 
-  const isSelected = useCallback(
-    (id: number) => selectedId === id,
-    [selectedId]
-  );
+  const isSelected = useCallback((id: number) => selectedId === id, [selectedId]);
 
   return {
     data,

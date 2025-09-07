@@ -294,7 +294,7 @@ CREATE TABLE Survey_Token (
     inquiry_id BIGINT NOT NULL,
     used BOOLEAN NOT NULL DEFAULT FALSE,
     expiration DATETIME NOT NULL,
-	FOREIGN KEY (inquiry_id) REFERENCES inquiry(id) ON DELETE CASCADE
+	FOREIGN KEY (inquiry_id) REFERENCES Inquiry(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Survey (

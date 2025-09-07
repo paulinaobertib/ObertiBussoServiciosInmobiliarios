@@ -240,4 +240,85 @@ describe('appointments service', () => {
       boom
     );
   });
+
+    it('updateAvailability: re-lanza error y loguea', async () => {
+    const boom = new Error('upd fail');
+    (api.patch as any).mockRejectedValueOnce(boom);
+    await expect(updateAvailability(999)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error updating availability:', boom);
+  });
+
+  it('deleteAvailability: re-lanza error y loguea', async () => {
+    const boom = new Error('del fail');
+    (api.delete as any).mockRejectedValueOnce(boom);
+    await expect(deleteAvailability(1)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error deleting availability:', boom);
+  });
+
+  it('getAllAvailabilities: re-lanza error y loguea', async () => {
+    const boom = new Error('all avails fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAllAvailabilities()).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching all availabilities:', boom);
+  });
+
+  it('getAvailableAppointments: re-lanza error y loguea', async () => {
+    const boom = new Error('avail fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAvailableAppointments()).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching available appointments:', boom);
+  });
+
+  it('getUnavailableAppointments: re-lanza error y loguea', async () => {
+    const boom = new Error('unavail fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getUnavailableAppointments()).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching unavailable appointments:', boom);
+  });
+
+  it('deleteAppointment: re-lanza error y loguea', async () => {
+    const boom = new Error('delete appt fail');
+    (api.delete as any).mockRejectedValueOnce(boom);
+    await expect(deleteAppointment(123)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error deleting appointment:', boom);
+  });
+
+  it('getAppointmentById: re-lanza error y loguea', async () => {
+    const boom = new Error('appt by id fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAppointmentById(42)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching appointment by id:', boom);
+  });
+
+  it('getAllAppointments: re-lanza error y loguea', async () => {
+    const boom = new Error('all appts fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAllAppointments()).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching all appointments:', boom);
+  });
+
+  it('getAppointmentsByUser: re-lanza error y loguea', async () => {
+    const boom = new Error('by user fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAppointmentsByUser('U-1')).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching appointments by user:', boom);
+  });
+
+  it('getAppointmentsByStatus: re-lanza error y loguea', async () => {
+    const boom = new Error('by status fail');
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAppointmentsByStatus('PENDING' as any)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith('Error fetching appointments by status:', boom);
+  });
+
+  it('updateAppointmentStatus: si address = "" NO se envía en params', async () => {
+    (api.put as any).mockResolvedValueOnce({ data: { ok: true } });
+    await updateAppointmentStatus(5, 'PENDING' as any, '');
+    expect(api.put).toHaveBeenCalledWith(
+      '/users/appointments/status/5',
+      null,
+      { params: { status: 'PENDING' }, withCredentials: true }
+    );
+  });
+
 });

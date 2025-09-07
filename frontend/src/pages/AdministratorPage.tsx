@@ -27,17 +27,17 @@ export default function AdministratorPage() {
         {
             key: 'property',
             label: 'PROPIEDADES',
-            content: <PropertySection />,
+            content: <PropertySection selectable={false} />,
         },
         {
             key: 'owner',
             label: 'PROPIETARIOS',
-            content: <CategorySection category="owner" />,
+            content: <CategorySection category="owner" selectable={false} />,
         },
         {
             key: 'users',
             label: 'USUARIOS',
-            content: <UsersSection />,
+            content: <UsersSection selectable={false} />,
         },
         {
             key: 'inquiries',

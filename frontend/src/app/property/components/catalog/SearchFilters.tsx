@@ -1,20 +1,7 @@
 import { useState, useMemo } from "react";
 import {
-  Box,
-  Button,
-  Drawer,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Checkbox,
-  FormControlLabel,
-  Chip,
-  Typography,
-  Divider,
-  Slider,
-  useTheme,
-  useMediaQuery,
-  IconButton,
+  Box, Button, Drawer, Accordion, AccordionSummary, AccordionDetails, Checkbox, FormControlLabel,
+  Chip, Typography, Divider, Slider, useTheme, useMediaQuery, IconButton,
 } from "@mui/material";
 import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
@@ -28,6 +15,9 @@ import type { Property } from "../../types/property";
 
 interface Props {
   onSearch(results: Property[]): void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+  hideMobileTrigger?: boolean;
 }
 
 /* ───── estilos reutilizables ───── */
@@ -43,10 +33,17 @@ const radioSx = {
   "& .MuiRadio-root": { p: 0.3, transform: "scale(.85)" },
 };
 
-export const SearchFilters = ({ onSearch }: Props) => {
+export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMobileTrigger }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [open, setOpen] = useState(false);
+
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = typeof mobileOpen === "boolean" ? mobileOpen : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onMobileOpenChange) onMobileOpenChange(v);
+    else setInternalOpen(v);
+  };
+
   const [expanded, setExpanded] = useState<string | false>(false);
   const toggleAcc =
     (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
@@ -88,9 +85,10 @@ export const SearchFilters = ({ onSearch }: Props) => {
           display="flex"
           justifyContent="space-between"
           alignItems="center"
-          mb={1}
+          p={2}
+          mb={2}
         >
-          <Typography variant="subtitle1">Filtros de Búsqueda</Typography>
+          <Typography variant="subtitle1" fontSize={'1.2rem'} fontWeight={600}>Filtros de Búsqueda</Typography>
           <IconButton size="small" onClick={() => setOpen(false)}>
             <CloseIcon />
           </IconButton>
@@ -479,24 +477,24 @@ export const SearchFilters = ({ onSearch }: Props) => {
   /* ═════════ Render con Drawer o fijo ═════════ */
   return isMobile ? (
     <>
-      <Button
-        variant="outlined"
-        startIcon={<FilterListIcon />}
-        onClick={() => setOpen(true)}
-        sx={{ fontSize: ".75rem", py: 0.5 }}
-      >
-        Filtros
-      </Button>
+      {/* Botón interno solo si NO lo ocultamos */}
+      {!hideMobileTrigger && (
+        <Button
+          variant="outlined"
+          startIcon={<FilterListIcon />}
+          onClick={() => setOpen(true)}
+          sx={{ fontSize: ".75rem", py: 0.5 }}
+        >
+          Filtros
+        </Button>
+      )}
+
       <Drawer
         anchor="bottom"
         open={open}
         onClose={() => setOpen(false)}
         PaperProps={{
-          sx: {
-            height: "75vh",
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-          },
+          sx: { height: "75vh", borderTopLeftRadius: 12, borderTopRightRadius: 12 },
         }}
       >
         {Panel}

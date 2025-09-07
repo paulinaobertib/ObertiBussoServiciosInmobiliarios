@@ -22,11 +22,15 @@ vi.mock("../../../../../shared/components/Modal", () => ({
     ) : null,
 }));
 
-// Mock liviano del Calendar: solo nos permite disparar onSelectDate
-vi.mock("../../../../../user/components/appointments/Calendar", () => ({
-  Calendar: ({ onSelectDate }: { initialDate: any; onSelectDate: (d: any) => void }) => (
+// Mock del Calendar con el MISMO specifier relativo que usa el componente:
+// NoticesSlotsGenerator.tsx hace import { Calendar } from '../../Calendar'
+vi.mock("../../../../../user/components/appointments/admin/../../Calendar", () => ({
+  Calendar: ({ onSelectDate }: { onSelectDate: (d: any) => void }) => (
     <div data-testid="calendar">
-      <button data-testid="pick-date" onClick={() => onSelectDate(dayjs("2025-06-15"))}>
+      <button
+        data-testid="pick-date"
+        onClick={() => onSelectDate(require("dayjs")("2025-06-15"))}
+      >
         pick
       </button>
     </div>
@@ -103,5 +107,104 @@ describe("GenerateSlotsDialog", () => {
     await waitFor(() => expect(generateSlots).toHaveBeenCalled());
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
+
+  it("Calendar: seleccionar fecha dispara setGenDate con el Dayjs recibido", async () => {
+    setGenDate = vi.fn();
+    mockHook({ setGenDate });
+
+    renderDlg();
+
+    // Esperar a que aparezca el Calendar mockeado
+    await screen.findByTestId("calendar");
+
+    fireEvent.click(screen.getByTestId("pick-date"));
+    expect(setGenDate).toHaveBeenCalledTimes(1);
+
+    const arg = setGenDate.mock.calls[0][0];
+    const dayjs = require("dayjs");
+    expect(dayjs.isDayjs(arg)).toBe(true);
+    expect(arg.toISOString()).toBe(dayjs("2025-06-15").toISOString());
+  });
+
+  it("cambiar 'Desde' y 'Hasta' actualiza el hook vía setGenStartTime / setGenEndTime", () => {
+    setGenStartTime = vi.fn();
+    setGenEndTime = vi.fn();
+    mockHook({ setGenStartTime, setGenEndTime });
+
+    renderDlg();
+
+    fireEvent.change(screen.getByLabelText("Desde"), { target: { value: "08:30" } });
+    fireEvent.change(screen.getByLabelText("Hasta"), { target: { value: "11:00" } });
+
+    expect(setGenStartTime).toHaveBeenCalledWith("08:30");
+    expect(setGenEndTime).toHaveBeenCalledWith("11:00");
+  });
+
+  it("recalcula la cantidad de turnos al re-render (09:00–12:00 → 6)", () => {
+    mockHook({ genStartTime: "09:00", genEndTime: "10:30" });
+    const { rerender } = renderWithTheme(
+      <GenerateSlotsDialog open={true} onClose={vi.fn()} />
+    );
+
+    // primero: 09:00..10:30 → 3
+    let alert = screen.getByRole("alert");
+    expect(within(alert).getByText("3")).toBeInTheDocument();
+
+    // cambiamos el retorno del hook y re-renderizamos
+    mockHook({ genStartTime: "09:00", genEndTime: "12:00" });
+    rerender(<GenerateSlotsDialog open={true} onClose={vi.fn()} />);
+
+    alert = screen.getByRole("alert");
+    // 09:00, 09:30, 10:00, 10:30, 11:00, 11:30 → 6
+    expect(within(alert).getByText("6")).toBeInTheDocument();
+  });
+
+  it("si el fin es anterior al inicio (12:00–11:00) muestra 0 y deshabilita 'Generar'", () => {
+    mockHook({ genStartTime: "12:00", genEndTime: "11:00" });
+    renderDlg();
+
+    const alert = screen.getByRole("alert");
+    expect(within(alert).getByText("0")).toBeInTheDocument();
+
+    const btn = screen.getByRole("button", { name: /generar/i });
+    expect(btn).toBeDisabled();
+  });
+
+  it("mientras generateSlots está pendiente, el botón 'Generar' queda deshabilitado", async () => {
+    let resolve!: () => void;
+    generateSlots = vi.fn(() => new Promise<void>(r => (resolve = r)));
+    mockHook({ generateSlots });
+
+    renderDlg();
+
+    const btn = screen.getByRole("button", { name: /generar/i });
+    expect(btn).not.toBeDisabled();
+
+    fireEvent.click(btn);
+    // Debe deshabilitarse por 'submitting'
+    expect(btn).toBeDisabled();
+
+    // resolvemos y verificamos que vuelve a habilitarse tras el cierre
+    resolve();
+    await waitFor(() => expect(generateSlots).toHaveBeenCalled());
+  });
+
+  it("el botón 'cerrar' del modal invoca onClose", () => {
+    const onClose = vi.fn();
+    mockHook();
+
+    renderWithTheme(<GenerateSlotsDialog open={true} onClose={onClose} />);
+
+    fireEvent.click(screen.getByText("cerrar"));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("cuando open=false no renderiza el modal", () => {
+    mockHook();
+
+    renderWithTheme(<GenerateSlotsDialog open={false} onClose={vi.fn()} />);
+    expect(screen.queryByTestId("modal")).toBeNull();
+  });
+
 
 });

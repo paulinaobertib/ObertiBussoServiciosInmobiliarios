@@ -142,4 +142,81 @@ describe("FavoritesPanel", () => {
     expect(screen.getByText("OK 1")).toBeInTheDocument();
     expect(screen.queryByText("INVALIDA")).not.toBeInTheDocument();
   });
+
+    it("llama getPropertyById por cada favorito y acepta respuestas con {data: ...}; oculta el spinner al terminar", async () => {
+    useFavoritesMock.mockReturnValue({
+      favorites: [{ propertyId: 99 }, { propertyId: 100 }],
+      loading: false,
+    });
+
+    // Respuestas con shape { data: ... }
+    getPropertyById
+      .mockResolvedValueOnce({ data: { id: 99, status: "disponible", title: "Casa 99" } })
+      .mockResolvedValueOnce({ data: { id: 100, status: "DISPONIBLE", title: "Casa 100" } });
+
+    render(
+      <BrowserRouter>
+        <FavoritesPanel />
+      </BrowserRouter>
+    );
+
+    // Se llamó para cada favorito
+    expect(getPropertyById).toHaveBeenCalledTimes(2);
+    expect(getPropertyById).toHaveBeenNthCalledWith(1, 99);
+    expect(getPropertyById).toHaveBeenNthCalledWith(2, 100);
+
+    // Cuando termina la carga, no hay spinner y aparece el listado
+    await screen.findByTestId("catalog-list");
+    expect(screen.queryByRole("progressbar")).toBeNull();
+
+    // Ambas propiedades disponibles se renderizan
+    expect(screen.getByText("Casa 99")).toBeInTheDocument();
+    expect(screen.getByText("Casa 100")).toBeInTheDocument();
+  });
+
+  it("maneja rechazos individuales de getPropertyById sin romper y sigue mostrando las válidas", async () => {
+    useFavoritesMock.mockReturnValue({
+      favorites: [{ propertyId: 7 }, { propertyId: 8 }],
+      loading: false,
+    });
+
+    getPropertyById
+      .mockResolvedValueOnce({ id: 7, status: "disponible", title: "OK 7" })
+      .mockRejectedValueOnce(new Error("boom"));
+
+    render(
+      <BrowserRouter>
+        <FavoritesPanel />
+      </BrowserRouter>
+    );
+
+    await screen.findByTestId("catalog-list");
+    expect(screen.getByText("OK 7")).toBeInTheDocument();
+    // La segunda falló: no debería explotar ni aparecer
+    expect(screen.queryByTestId("property-8")).toBeNull();
+  });
+
+  it("navega correctamente al hacer click en otra tarjeta disponible", async () => {
+    useFavoritesMock.mockReturnValue({
+      favorites: [{ propertyId: 20 }],
+      loading: false,
+    });
+
+    getPropertyById.mockResolvedValueOnce({
+      id: 20,
+      status: "  disponible ",
+      title: "Solo 20",
+    });
+
+    render(
+      <BrowserRouter>
+        <FavoritesPanel />
+      </BrowserRouter>
+    );
+
+    await screen.findByTestId("catalog-list");
+    await userEvent.click(screen.getByTestId("property-20"));
+    expect(mockNavigate).toHaveBeenCalledWith("/properties/20");
+  });
+
 });

@@ -28,6 +28,10 @@ export const AppointmentSection = ({ loading, selectedDate, filter, setFilter, s
     const dateKey = selectedDate.format('YYYY-MM-DD');
     const daySlots = slotsByDate[dateKey] ?? [];
 
+    const fechaEs = selectedDate.locale('es').format('dddd D [de] MMMM [de] YYYY');
+    const fechaCap = fechaEs.charAt(0).toUpperCase() + fechaEs.slice(1);
+
+
     const filtered = useMemo(
         () =>
             daySlots.filter((s) => {
@@ -52,38 +56,39 @@ export const AppointmentSection = ({ loading, selectedDate, filter, setFilter, s
             {/* Encabezado con filtro */}
             <Box
                 sx={{
-                    px: 3,
-                    py: 2,
-                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr auto' }, // en xs apila, en sm+ quedan lado a lado
                     alignItems: 'center',
-                    gap: 2,
+                    gap: 1.5,
+                    mb: 2,
                 }}
             >
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                    {selectedDate.locale('es').format('dddd DD MMMM YYYY')}
+                <Typography
+                    variant="subtitle1"
+                    sx={{ textTransform: 'none', wordBreak: 'break-word' }}
+                >
+                    {fechaCap}
                 </Typography>
 
-                <FormControl size="small">
-                    <InputLabel id="filter-label">Estado</InputLabel>
+                <FormControl size="small" sx={{ minWidth: 160, width: { xs: '100%', sm: 'auto' } }}>
+                    <InputLabel id="estado-label">Estado</InputLabel>
                     <Select
-                        labelId="filter-label"
-                        value={filter}
+                        labelId="estado-label"
                         label="Estado"
-                        onChange={(e) => setFilter(e.target.value as Status | 'TODOS')}
-                        sx={{ width: 180 }}
+                        value={filter}                 // o el state que uses
+                        onChange={(e) => setFilter(e.target.value)}
                     >
-                        {['TODOS', 'DISPONIBLE', 'ESPERA', 'ACEPTADO', 'RECHAZADO'].map((v) => (
-                            <MenuItem key={v} value={v}>
-                                {v === 'TODOS' ? 'Todos' : v.charAt(0) + v.slice(1).toLowerCase()}
-                            </MenuItem>
-                        ))}
+                        <MenuItem value="TODOS">Todos</MenuItem>
+                        <MenuItem value="DISPONIBLE">Disponibles</MenuItem>
+                        <MenuItem value="ESPERA">Pendientes</MenuItem>
+                        <MenuItem value="ACEPTADO">Confirmados</MenuItem>
+                        <MenuItem value="RECHAZADO">Rechazados</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
 
             {/* Lista */}
-            <Box sx={{ p: 3, overflowY: 'auto', flexGrow: 1, maxHeight: 600 }}>
+            <Box sx={{ overflowY: 'auto', flexGrow: 1, maxHeight: 600 }}>
                 <AppointmentsList
                     slots={filtered}
                     apptsBySlot={apptsBySlot}
