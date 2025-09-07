@@ -29,7 +29,7 @@ public class ContractIncrease {
     private BigDecimal amount;
 
     @Column(name = "adjustment", nullable = false)
-    private BigDecimal adjustment;
+    private Integer adjustment;
 
     @Column(name = "note", nullable = true)
     private String note;

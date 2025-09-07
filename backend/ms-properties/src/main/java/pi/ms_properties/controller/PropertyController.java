@@ -50,6 +50,11 @@ public class PropertyController {
         return propertyService.updateStatus(id, status);
     }
 
+    @PutMapping("/statusEspera/{id}")
+    public ResponseEntity<String> updatePropertyStatusEspera(@PathVariable Long id) {
+        return propertyService.updateStatus(id, Status.ESPERA);
+    }
+
     @PreAuthorize("hasRole('admin')")
     @PutMapping("/outstanding/{id}")
     public ResponseEntity<String> updatePropertyOutstanding(@PathVariable Long id, @RequestParam Boolean outstanding) {

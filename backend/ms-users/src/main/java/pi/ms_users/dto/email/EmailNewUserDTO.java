@@ -1,12 +1,13 @@
-package pi.ms_users.dto;
+package pi.ms_users.dto.email;
 
 import lombok.Data;
 
 @Data
-public class EmailContractDTO {
+public class EmailNewUserDTO {
     private String from;
     private String to;
     private String title;
     private String firstName;
-    private Long contractId;
+    private String userName;
+    private String password;
 }
