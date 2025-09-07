@@ -1,6 +1,7 @@
 package pi.ms_users.service.interf;
 
 import org.springframework.http.ResponseEntity;
+import pi.ms_users.domain.ContractUtility;
 import pi.ms_users.domain.UtilityPeriodicityPayment;
 import pi.ms_users.dto.ContractUtilityDTO;
 import pi.ms_users.dto.ContractUtilityGetDTO;
@@ -23,4 +24,10 @@ public interface IContractUtilityService {
     ResponseEntity<List<ContractUtilityGetDTO>> getByUtility(Long utilityId);
 
     ResponseEntity<List<ContractUtilityGetDTO>> getByPeriodicity(UtilityPeriodicityPayment periodicity);
+
+    List<ContractUtility> getUtilitiesDueInTenDays();
+
+    void sendAdminUtilitiesDueInTenDays();
+
+    void sendEmailsForUtilitiesDueInTenDays();
 }

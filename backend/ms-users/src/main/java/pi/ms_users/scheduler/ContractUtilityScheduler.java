@@ -12,7 +12,7 @@ public class ContractUtilityScheduler {
     private final ContractUtilityService contractUtilityService;
 
     // Utilities a pagar en 10 días
-    @Scheduled(cron = "0 30 9 * * *")
+    @Scheduled(cron = "0 30 9 * * *", zone = "America/Argentina/Buenos_Aires")
     public void scheduledUtilitiesDueInTenDays() {
         contractUtilityService.sendAdminUtilitiesDueInTenDays();
         contractUtilityService.sendEmailsForUtilitiesDueInTenDays();

@@ -658,7 +658,7 @@ public class ContractService implements IContractService {
 
             userRepository.deleteRoleToUser(user.get().getId(), "tenant");
 
-            propertyRepository.updateStatus(contract.getPropertyId(), Status.ESPERA);
+            propertyRepository.updateStatusEspera(contract.getPropertyId());
 
             if (!user.isEmpty()) {
                 updateStatus(contract.getId());
@@ -668,6 +668,7 @@ public class ContractService implements IContractService {
 
     @Override
     public void sendPaymentRemindersForActiveContracts() {
+        LocalDate today = LocalDate.now();
         LocalDate oneMonthFromNow = LocalDate.now().plusMonths(1);
 
         List<Contract> contracts = contractRepository.findActiveContractsNotExpiringNextMonth(oneMonthFromNow);
@@ -681,7 +682,7 @@ public class ContractService implements IContractService {
                 dto.setFirstName(user.get().getFirstName());
                 dto.setLastName(user.get().getLastName());
 
-                LocalDate dueDate = LocalDate.now().plusMonths(1).withDayOfMonth(contract.getStartDate().getDayOfMonth());
+                LocalDate dueDate = today.plusMonths(1).withDayOfMonth(10);
                 dto.setDueDate(dueDate);
 
                 dto.setAmount(contract.getLastPaidAmount() != null ? contract.getLastPaidAmount() : contract.getInitialAmount());
