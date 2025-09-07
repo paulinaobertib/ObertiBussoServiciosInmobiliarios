@@ -107,7 +107,6 @@ export default function AppointmentPage() {
                                 flexShrink: 0,
                                 flexBasis: { md: '350px' },
                                 width: { xs: '100%', md: '350px' },
-                                m: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
                             }}

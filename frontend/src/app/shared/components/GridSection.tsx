@@ -22,6 +22,7 @@ interface GridSectionProps {
     fetchByText: (searchTerm: string) => Promise<any[]>;
     multiSelect?: boolean;
     selectedIds?: string[];
+    selectable?: boolean;
 }
 
 export const GridSection = ({
@@ -36,6 +37,7 @@ export const GridSection = ({
     fetchByText,
     multiSelect = false,
     selectedIds,
+    selectable = true,
 }: GridSectionProps) => {
     // Si se controla desde afuera, usar el prop. Si no, manejar interno.
     const [internalSelection, setInternalSelection] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
@@ -83,32 +85,43 @@ export const GridSection = ({
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalContent] = useState<React.ReactNode>(null);
-
-
+    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
 
     return (
         <>
             <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} my={2}>
                 <SearchBar
                     onSearch={onSearch}
-                    placeholder={`Search ${entityName}…`}
+                    placeholder={`Buscar ${entityName}...`}
                     fetchAll={fetchAll}
                     fetchByText={fetchByText}
                 />
-                <Button variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
+                <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
                     {entityName}
                 </Button>
             </Box>
 
-            <Box height={500} width="100%">
+            <Box width="100%">
                 <DataGrid
                     rows={data}
+                    initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={(m) => setPaginationModel({ ...m, pageSize: 10 })}
+                    pageSizeOptions={[10]}
                     columns={columns}
                     loading={loading}
-                    checkboxSelection
-                    rowSelectionModel={internalSelection}
-                    onRowSelectionModelChange={handleRowSelection}
+                    checkboxSelection={selectable}
+                    disableRowSelectionOnClick
+                    hideFooterSelectedRowCount
+                    {...(selectable
+                        ? {
+                            rowSelectionModel: internalSelection,
+                            onRowSelectionModelChange: (newModel: GridRowSelectionModel) =>
+                                handleRowSelection(newModel),
+                        }
+                        : {})}
                     localeText={{ noRowsLabel: `No hay resultados.` }}
+
                     sx={{
                         // Centra verticalmente todas las celdas de datos...
                         '& .MuiDataGrid-cell': {

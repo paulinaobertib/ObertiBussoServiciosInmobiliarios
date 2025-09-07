@@ -18,7 +18,6 @@ export const AppointmentForm: React.FC = () => {
         bookingNotes,
         setBookingNotes,
         bookingLoading,
-        bookingError,
         bookingSubmitted,
         submitBooking,
     } = useAppointments();
@@ -154,16 +153,6 @@ export const AppointmentForm: React.FC = () => {
                 >
                     {bookingLoading ? 'Enviando…' : 'Solicitar turno'}
                 </Button>
-                {bookingError && (
-                    <Typography
-                        color="error"
-                        variant="body2"
-                        align="center"
-                        sx={{ mt: 1 }}
-                    >
-                        {bookingError}
-                    </Typography>
-                )}
             </Box>
         </Box>
     );

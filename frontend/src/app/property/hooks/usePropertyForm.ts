@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { usePropertiesContext } from "../context/PropertiesContext";
-import { useImages } from "../../shared/hooks/useImages";
+// ❌ Se elimina el uso interno de useImages para evitar doble fuente de verdad
+// import { useImages } from "../../shared/hooks/useImages";
 
 import type {
   Property,
@@ -11,6 +12,11 @@ import type {
 import { Owner } from "../types/owner";
 import { Neighborhood } from "../types/neighborhood";
 import { Type } from "../types/type";
+
+/* Helpers */
+type Img = string | File;
+const keyOf = (img: Img) =>
+  img instanceof File ? `${img.name}#${img.size}#${img.lastModified}` : img;
 
 function makeSafeProperty(raw?: Partial<Property>): Property {
   const now = new Date().toISOString();
@@ -67,22 +73,20 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     amenities: raw?.amenities ?? [],
 
     /* ---------- imágenes ---------- */
-    mainImage: raw?.mainImage ?? "",
-    images: raw?.images ?? [],
+    // Permitimos string | File | null en runtime, pero almacenamos como any para no romper tipos existentes
+    mainImage: (raw?.mainImage as any) ?? "",
+    images: (raw?.images as any) ?? [],
 
     date: raw?.date ?? now,
   };
 }
 
 /* ------------------------------------------------------------------ */
-/* HOOK UNIFICADO */
+/* HOOK UNIFICADO (sin doble estado de imágenes) */
 /* ------------------------------------------------------------------ */
 export const usePropertyForm = (
   initialData?: Property,
-  onImageSelect?: (
-    main: string | File | null,
-    gallery: (string | File)[]
-  ) => void,
+  onImageSelect?: (main: Img | null, gallery: Img[]) => void,
   onValidityChange?: (valid: boolean) => void
 ) => {
   /* ---------- estado base ---------- */
@@ -105,23 +109,58 @@ export const usePropertyForm = (
     setFieldErrors({});
   };
 
-  /* ---------- imágenes ---------- */
-  const {
-    mainImage,
-    gallery,
-    // error: imgError,
-    // clearError,
-    setMain,
-    addToGallery,
-    remove,
-  } = useImages(initialData?.mainImage ?? null, initialData?.images ?? []);
+  /* ---------- imágenes (sobre el propio form, sin useImages) ---------- */
+  const setMain = useCallback((img: Img | null) => {
+    setForm((prev) => {
+      const galleryArr = (prev.images as any as Img[]) ?? [];
+      const newMain = img ?? ("" as any);
+      // si la imagen que se setea como main estaba en la galería, la removemos de allí
+      const k = img ? keyOf(img) : null;
+      const filtered =
+        k == null ? galleryArr : galleryArr.filter((g) => keyOf(g) !== k);
+      return { ...prev, mainImage: newMain as any, images: filtered as any };
+    });
+  }, []);
 
-  /* propaga imágenes al form + callback padre */
+  const addToGallery = useCallback((items: Img[] | Img) => {
+    const list = Array.isArray(items) ? items : [items];
+    setForm((prev) => {
+      const galleryArr = (prev.images as any as Img[]) ?? [];
+      const out = new Map(galleryArr.map((g) => [keyOf(g), g]));
+      const main = prev.mainImage as any as Img | null;
+      const mainK = main ? keyOf(main) : null;
+
+      for (const it of list) {
+        const k = keyOf(it);
+        if (k === mainK) continue; // no duplicar main en galería
+        if (!out.has(k)) out.set(k, it);
+      }
+      return { ...prev, images: Array.from(out.values()) as any };
+    });
+  }, []);
+
+  const remove = useCallback((img: Img) => {
+    setForm((prev) => {
+      const k = keyOf(img);
+      const currMain = prev.mainImage as any as Img | null;
+      const isMain = currMain && keyOf(currMain) === k;
+      const galleryArr = (prev.images as any as Img[]) ?? [];
+      const nextGallery = galleryArr.filter((g) => keyOf(g) !== k);
+      return {
+        ...prev,
+        mainImage: (isMain ? ("" as any) : prev.mainImage) as any,
+        images: nextGallery as any,
+      };
+    });
+  }, []);
+
+  // Propagar imágenes a quien lo necesite (compat con tu firma actual)
   useEffect(() => {
-    setField("mainImage", mainImage as any);
-    setField("images", gallery as any);
-    onImageSelect?.(mainImage, gallery);
-  }, [mainImage, gallery]);
+    onImageSelect?.(
+      (form.mainImage as any) ?? null,
+      ((form.images as any) ?? []) as Img[]
+    );
+  }, [form.mainImage, form.images]);
 
   /* ---------- catálogos / selección ---------- */
   const { selected, ownersList, neighborhoodsList, typesList, amenitiesList } =
@@ -172,6 +211,7 @@ export const usePropertyForm = (
     if (!showBathrooms && form.bathrooms !== 0) setField("bathrooms", 0 as any);
     if (!showCoveredArea && form.coveredArea !== 0)
       setField("coveredArea", 0 as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     showRooms,
     showBedrooms,
@@ -189,6 +229,7 @@ export const usePropertyForm = (
       setField("credit", false);
       setField("financing", false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.operation]);
 
   /* ---------- helper num() ---------- */
@@ -234,7 +275,7 @@ export const usePropertyForm = (
   }, [form, showRooms, showBedrooms, showBathrooms, showCoveredArea]);
 
   /* notificar validez al padre */
-  useEffect(() => onValidityChange?.(check), [check]);
+  useEffect(() => onValidityChange?.(check), [check, onValidityChange]);
 
   /* ---------- validación exhaustiva + submit ---------- */
   const validate = () => {
@@ -289,8 +330,8 @@ export const usePropertyForm = (
       neighborhoodId: neighborhood.id,
       typeId: type.id,
       amenitiesIds: amenities.map((a) => a.id),
-      mainImage: form.mainImage,
-      images: form.images,
+      mainImage: form.mainImage as any,
+      images: (form.images as any) ?? [],
     };
   };
 
@@ -303,7 +344,7 @@ export const usePropertyForm = (
       neighborhoodId: neighborhood.id,
       typeId: type.id,
       amenitiesIds: amenities.map((a) => a.id),
-      mainImage: form.mainImage,
+      mainImage: form.mainImage as any,
     };
   };
 
@@ -323,11 +364,9 @@ export const usePropertyForm = (
     /* helpers */
     num,
 
-    /* imágenes */
-    mainImage,
-    gallery,
-    // imgError,
-    // clearError,
+    /* imágenes (sobre el mismo form; compat API) */
+    mainImage: (form.mainImage as any) ?? null,
+    gallery: ((form.images as any) ?? []) as Img[],
     setMain,
     addToGallery,
     remove,

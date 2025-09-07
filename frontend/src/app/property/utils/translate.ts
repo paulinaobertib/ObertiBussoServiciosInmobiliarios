@@ -1,11 +1,10 @@
 const dict: Record<string, string> = {
   /* ─── catálogos ─── */
-  amenity: "Servicio",
+  amenity: "Caracteristica",
   owner: "Propietario",
   type: "Tipo",
   neighborhood: "Barrio",
 
-  /* ─── VISTAS nuevas ─── */
   property: "Propiedad",
   maintenance: "Mantenimiento",
   comment: "Comentario",

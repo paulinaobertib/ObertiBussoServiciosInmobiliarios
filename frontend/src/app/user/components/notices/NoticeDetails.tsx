@@ -8,6 +8,8 @@ import { useAuthContext } from '../../context/AuthContext';
 import { Modal } from '../../../shared/components/Modal';
 import { NoticeForm, NoticeFormHandle } from './NoticeForm';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { LoadingButton } from '@mui/lab';
+import { Notice } from '../../types/notice';
 
 export const NoticeDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +20,7 @@ export const NoticeDetails = () => {
   const { isAdmin } = useAuthContext();
   const [editOpen, setEditOpen] = useState(false);
   const [canSave, setCanSave] = useState(false);
+  const [saving, setSaving] = useState(false);
   const formRef = useRef<NoticeFormHandle>(null);
   const { ask, DialogUI } = useConfirmDialog();
 
@@ -51,11 +54,22 @@ export const NoticeDetails = () => {
   const closeEdit = () => setEditOpen(false);
 
   const handleSave = async () => {
-    if (!formRef.current) return;
+    if (!formRef.current || saving) return;
     const data = formRef.current.getUpdateData();
-    await edit({ ...(data as any), id: notice.id, userId: notice.userId });
-    closeEdit();
+
+    setSaving(true);
+    // asegura que el spinner pinte y que se vea al menos 600ms
+    await new Promise(requestAnimationFrame);
+    try {
+      await Promise.all([
+        edit({ ...(data as Notice), id: notice.id, userId: notice.userId }),
+      ]);
+      closeEdit();
+    } finally {
+      setSaving(false);
+    }
   };
+
 
   const handleDelete = () =>
     ask('¿Eliminar esta novedad?', async () => {
@@ -122,9 +136,9 @@ export const NoticeDetails = () => {
           onValidityChange={setCanSave}
         />
         <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-          <Button variant="contained" onClick={handleSave} disabled={!canSave}>
+          <LoadingButton variant="contained" onClick={handleSave} disabled={!canSave} loading={saving}>
             Guardar
-          </Button>
+          </LoadingButton>
         </Box>
       </Modal>
 

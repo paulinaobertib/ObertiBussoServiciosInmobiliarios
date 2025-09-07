@@ -24,7 +24,6 @@ public class UserController {
         userService.addPrincipalRole(jwt);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'user')")
     @GetMapping("/me")
     public Map<String, String> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
         return userService.getUserInfo(jwt);

@@ -66,8 +66,10 @@ export const RoleForm = ({
             showAlert('Roles actualizados con éxito', 'success');
             onSuccess();
             onClose();
-        } catch (err) {
-            showAlert('Error al actualizar roles', 'error');
+        } catch (err: any) {
+            const backendMessage = err.response?.data?.message || err.response?.data || err.message || 'Error al actualizar roles';
+            showAlert(backendMessage, 'error');
+            console.error("Error en handleSave:", backendMessage);
         } finally {
             setLoading(false);
         }
