@@ -218,6 +218,8 @@ public class ContractUtilityService implements IContractUtilityService {
         return ResponseEntity.ok(contractUtilityGetDTOs);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<ContractUtility> getUtilitiesDueInTenDays() {
         LocalDate targetDate = LocalDate.now().plusDays(10);
 
@@ -242,6 +244,8 @@ public class ContractUtilityService implements IContractUtilityService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public void sendAdminUtilitiesDueInTenDays() {
         List<ContractUtility> utilities = getUtilitiesDueInTenDays();
 
@@ -269,6 +273,8 @@ public class ContractUtilityService implements IContractUtilityService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public void sendEmailsForUtilitiesDueInTenDays() {
         List<ContractUtility> utilities = getUtilitiesDueInTenDays();
 
