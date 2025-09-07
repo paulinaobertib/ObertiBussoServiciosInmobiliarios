@@ -349,7 +349,6 @@ public class EmailService implements IEmailService {
             context.setVariable("firstName", dto.getFirstName());
             context.setVariable("lastName", dto.getLastName());
             context.setVariable("newAmount", formatAmount(dto.getNewAmount(), dto.getCurrency()));
-            context.setVariable("currency", dto.getCurrency());
             context.setVariable("increase", dto.getIncrease());
             context.setVariable("index", dto.getIndex());
 
@@ -359,6 +358,32 @@ public class EmailService implements IEmailService {
             helper.setSubject("Actualización de contrato aplicada");
 
             String content = templateEngine.process("email_contract_increased_user", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar correo de aumento aplicado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendContractIncreaseLoadedEmailUpdate(EmailContractIncreaseLoadedDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("newAmount", formatAmount(dto.getNewAmount(), dto.getCurrency()));
+            context.setVariable("increase", dto.getIncrease());
+            context.setVariable("index", dto.getIndex());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Actualización de contrato aplicada");
+
+            String content = templateEngine.process("email_contract_increased_user_update", context);
             helper.setText(content, true);
             javaMailSender.send(message);
         } catch (Exception e) {
@@ -377,7 +402,6 @@ public class EmailService implements IEmailService {
             context.setVariable("lastName", dto.getLastName());
             context.setVariable("dueDate", formatDate(dto.getDueDate()));
             context.setVariable("amount", formatAmount(dto.getAmount(), dto.getCurrency()));
-            context.setVariable("currency", dto.getCurrency());
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -435,6 +459,31 @@ public class EmailService implements IEmailService {
             helper.setSubject("Importe de servicio actualizado");
 
             String content = templateEngine.process("email_extra_amount_loaded_user", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar monto cargado de utility: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendUtilityAmountLoadedEmailUpdate(EmailUtilityAmountLoadedDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("utilityName", dto.getUtilityName());
+            context.setVariable("amount", formatAmount(dto.getAmount(), null));
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Importe de servicio actualizado");
+
+            String content = templateEngine.process("email_extra_amount_loaded_user_update", context);
             helper.setText(content, true);
             javaMailSender.send(message);
         } catch (Exception e) {

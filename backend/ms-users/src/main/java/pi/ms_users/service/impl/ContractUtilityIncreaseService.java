@@ -103,6 +103,9 @@ public class ContractUtilityIncreaseService implements IContractUtilityIncreaseS
     public ResponseEntity<String> update(ContractUtilityIncreaseDTO dto) {
         if (dto.getId() == null) throw new BadRequestException("Falta id para actualizar.");
 
+        ContractUtility contractUtility = contractUtilityRepository.findById(dto.getContractUtilityId())
+                .orElseThrow(() -> new BadRequestException("No se encontró el servicio del contrato."));
+
         ContractUtilityIncrease entity = contractUtilityIncreaseRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el incremento del servicio."));
 
@@ -110,6 +113,18 @@ public class ContractUtilityIncreaseService implements IContractUtilityIncreaseS
         if (dto.getAmount() != null) entity.setAmount(dto.getAmount());
 
         contractUtilityIncreaseRepository.save(entity);
+
+        User user = userRepository.findById(contractUtility.getContract().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
+
+        EmailUtilityAmountLoadedDTO emailUtilityAmountLoadedDTO = new EmailUtilityAmountLoadedDTO();
+        emailUtilityAmountLoadedDTO.setTo(user.getEmail());
+        emailUtilityAmountLoadedDTO.setFirstName(user.getFirstName());
+        emailUtilityAmountLoadedDTO.setLastName(user.getLastName());
+        emailUtilityAmountLoadedDTO.setUtilityName(contractUtility.getUtility().getName());
+        emailUtilityAmountLoadedDTO.setAmount(entity.getAmount());
+        emailService.sendUtilityAmountLoadedEmailUpdate(emailUtilityAmountLoadedDTO, contractUtility.getContract().getId());
+
         return ResponseEntity.ok("Incremento actualizado correctamente.");
     }
 

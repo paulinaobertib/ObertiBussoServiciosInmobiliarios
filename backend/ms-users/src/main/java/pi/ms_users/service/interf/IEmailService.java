@@ -29,11 +29,15 @@ public interface IEmailService {
 
     void sendContractIncreaseLoadedEmail(EmailContractIncreaseLoadedDTO dto, Long contractId);
 
+    void sendContractIncreaseLoadedEmailUpdate(EmailContractIncreaseLoadedDTO dto, Long contractId);
+
     void sendContractPaymentReminderEmail(EmailContractPaymentReminderDTO dto, Long contractId);
 
     void sendUtilityPaymentReminderEmail(EmailUtilityPaymentReminderDTO dto, Long contractId);
 
     void sendUtilityAmountLoadedEmail(EmailUtilityAmountLoadedDTO dto, Long contractId);
+
+    void sendUtilityAmountLoadedEmailUpdate(EmailUtilityAmountLoadedDTO dto, Long contractId);
 
     void sendAdminContractUpcomingIncreaseListEmail(EmailContractIncreaseAdminDTO dto);
 

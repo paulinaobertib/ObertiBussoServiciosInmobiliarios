@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Contrato vencido - Acción requerida</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333; padding: 20px; background-color: #f7f7f7;">
+<body style="font-family: Arial, sans-serif; padding: 20px;">
 <div style="max-width: 600px; margin: auto; background-color: #FFF; border-radius: 8px; box-shadow: 0 0 10px #eee;">
     <div style="background-color: #EE671E; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
         <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; display: block; margin: 0 auto;">
@@ -14,9 +14,9 @@
         <p>El contrato de la siguiente propiedad ha vencido y requiere de tu intervención:</p>
 
         <ul>
-            <li><strong>ID Propiedad:</strong> <span th:text="${propertyId}">123</span></li>
+            <li><strong>Propiedad:</strong> <span th:text="${propertyId}">123</span></li>
             <li><strong>Inquilino:</strong> <span th:text="${tenant}">Juan Pérez</span></li>
-            <li><strong>ID Contrato:</strong> <span th:text="${contractId}">456</span></li>
+            <li><strong>Contrato:</strong> <span th:text="${contractId}">456</span></li>
         </ul>
 
         <p>Actualmente, la propiedad se encuentra en <strong>estado de espera</strong> hasta que actualices el mismo.</p>

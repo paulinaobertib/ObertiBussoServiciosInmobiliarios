@@ -276,6 +276,8 @@ public class ContractService implements IContractService {
         User user = userRepository.findById(contractDTO.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
 
+        userRepository.addRoleToUser(user.getId(), "tenant");
+
         if (contractDTO.getPropertyId() == null) {
             throw new BadRequestException("No se ha cargado el id de la propiedad.");
         }
@@ -348,7 +350,6 @@ public class ContractService implements IContractService {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<String> updateStatus(Long contractId) {
         Contract entity = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato."));
@@ -361,6 +362,8 @@ public class ContractService implements IContractService {
         if (status == ContractStatus.ACTIVO) {
             entity.setContractStatus(ContractStatus.INACTIVO);
 
+            userRepository.deleteRoleToUser(user.getId(), "tenant");
+
             EmailExpiredContractDTO emailExpiredContractDTO = new EmailExpiredContractDTO();
             emailExpiredContractDTO.setTo(user.getEmail());
             emailExpiredContractDTO.setFirstName(user.getFirstName());
@@ -368,8 +371,16 @@ public class ContractService implements IContractService {
             emailExpiredContractDTO.setEndDate(entity.getEndDate());
 
             emailService.sendContractExpiredEmail(emailExpiredContractDTO);
+
+            EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
+            emailContractExpiredAdminDTO.setContractId(entity.getId());
+            emailContractExpiredAdminDTO.setPropertyId(entity.getPropertyId());
+            emailContractExpiredAdminDTO.setTenant(user.getFirstName()  + " " + user.getLastName());
+
+            emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
         } else {
             entity.setContractStatus(ContractStatus.ACTIVO);
+            userRepository.addRoleToUser(user.getId(), "tenant");
         }
 
         contractRepository.save(entity);
@@ -391,30 +402,18 @@ public class ContractService implements IContractService {
 
         Optional<User> user = userRepository.findById(contract.get().getUserId());
 
-        if (!user.isEmpty()) {
+        userRepository.deleteRoleToUser(user.get().getId(), "tenant");
+
+        if (!user.isEmpty() && contract.get().getContractStatus() != ContractStatus.INACTIVO) {
             EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
             emailContractExpiredAdminDTO.setContractId(contract.get().getId());
             emailContractExpiredAdminDTO.setPropertyId(contract.get().getPropertyId());
-            emailContractExpiredAdminDTO.setTenant(user.get().getFirstName() + user.get().getLastName());
+            emailContractExpiredAdminDTO.setTenant(user.get().getFirstName() + " " + user.get().getLastName());
 
             emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
         }
 
             return ResponseEntity.ok("Se ha eliminado el contrato.");
-    }
-
-    @Override
-    @Transactional
-    public ResponseEntity<String> deleteByPropertyId(Long propertyId) {
-        contractRepository.deleteByPropertyId(propertyId);
-        return ResponseEntity.ok("Se ha eliminado el contrato.");
-    }
-
-    @Override
-    @Transactional
-    public ResponseEntity<String> deleteByUserId(String userId) {
-        contractRepository.deleteByUserId(userId);
-        return ResponseEntity.ok("Se ha eliminado el contrato.");
     }
 
     @Override
@@ -528,6 +527,7 @@ public class ContractService implements IContractService {
         return ResponseEntity.ok(contractGetDTOS);
     }
 
+    @Override
     public List<Contract> getContractsWithIncreaseInOneMonth() {
         LocalDate today = LocalDate.now();
         LocalDate targetDate = today.plusDays(30);
@@ -548,6 +548,7 @@ public class ContractService implements IContractService {
                 .toList();
     }
 
+    @Override
     public void sendEmailsForContractsWithIncreaseInOneMonth() {
         List<Contract> contracts = getContractsWithIncreaseInOneMonth();
 
@@ -572,6 +573,7 @@ public class ContractService implements IContractService {
         });
     }
 
+    @Override
     public void sendAdminContractsWithIncreaseInOneMonth() {
         List<Contract> contracts = getContractsWithIncreaseInOneMonth();
 
@@ -603,6 +605,7 @@ public class ContractService implements IContractService {
         }
     }
 
+    @Override
     public void sendEmailsForContractsExpiringInOneMonth() {
         LocalDate targetDate = LocalDate.now().plusMonths(1);
 
@@ -644,6 +647,7 @@ public class ContractService implements IContractService {
         }
     }
 
+    @Override
     public void sendEmailsForContractsExpiringToday() {
         LocalDate today = LocalDate.now();
 
@@ -652,27 +656,17 @@ public class ContractService implements IContractService {
         contracts.forEach(contract -> {
             Optional<User> user = userRepository.findById(contract.getUserId());
 
+            userRepository.deleteRoleToUser(user.get().getId(), "tenant");
+
             propertyRepository.updateStatus(contract.getPropertyId(), Status.ESPERA);
 
             if (!user.isEmpty()) {
-                EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
-                emailContractExpiredAdminDTO.setContractId(contract.getId());
-                emailContractExpiredAdminDTO.setPropertyId(contract.getPropertyId());
-                emailContractExpiredAdminDTO.setTenant(user.get().getFirstName() + user.get().getLastName());
-
-                emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
-
-                EmailExpiredContractDTO dto = new EmailExpiredContractDTO();
-                dto.setTo(user.get().getEmail());
-                dto.setFirstName(user.get().getFirstName());
-                dto.setLastName(user.get().getLastName());
-                dto.setEndDate(contract.getEndDate());
-
-                emailService.sendContractExpiredEmail(dto);
+                updateStatus(contract.getId());
             }
         });
     }
 
+    @Override
     public void sendPaymentRemindersForActiveContracts() {
         LocalDate oneMonthFromNow = LocalDate.now().plusMonths(1);
 

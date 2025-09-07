@@ -148,6 +148,14 @@ public class ContractIncreaseService implements IContractIncreaseService {
         ContractIncrease entity = contractIncreaseRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el incremento que se quiere actualizar."));
 
+        Optional<Contract> contract = contractRepository.findById(entity.getContract().getId());
+        if (contract.isEmpty()) {
+            throw new EntityNotFoundException("No se ha encontrado el contrato.");
+        }
+
+        User user = userRepository.findById(contract.get().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
+
         if (dto.getDate() != null)        entity.setDate(dto.getDate());
         if (dto.getCurrency() != null)    entity.setCurrency(dto.getCurrency());
         if (dto.getAmount() != null)      entity.setAmount(dto.getAmount());
@@ -166,6 +174,16 @@ public class ContractIncreaseService implements IContractIncreaseService {
         }
 
         contractIncreaseRepository.save(entity);
+
+        EmailContractIncreaseLoadedDTO emailContractIncreaseLoadedDTO = new EmailContractIncreaseLoadedDTO();
+        emailContractIncreaseLoadedDTO.setTo(user.getEmail());
+        emailContractIncreaseLoadedDTO.setFirstName(user.getFirstName());
+        emailContractIncreaseLoadedDTO.setLastName(user.getLastName());
+        emailContractIncreaseLoadedDTO.setNewAmount(entity.getAmount());
+        emailContractIncreaseLoadedDTO.setCurrency(entity.getCurrency().toString());
+        emailContractIncreaseLoadedDTO.setIncrease(entity.getAdjustment());
+        emailContractIncreaseLoadedDTO.setIndex(entity.getIndex().getName());
+        emailService.sendContractIncreaseLoadedEmailUpdate(emailContractIncreaseLoadedDTO, contract.get().getId());
 
         return ResponseEntity.ok("Se ha actualizado el incremento.");
     }
