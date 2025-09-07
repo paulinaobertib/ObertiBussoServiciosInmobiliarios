@@ -8,17 +8,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pi.ms_users.domain.Contract;
-import pi.ms_users.domain.ContractUtility;
-import pi.ms_users.domain.Utility;
-import pi.ms_users.domain.UtilityPeriodicityPayment;
+import pi.ms_users.domain.*;
 import pi.ms_users.dto.ContractUtilityDTO;
 import pi.ms_users.dto.ContractUtilityGetDTO;
+import pi.ms_users.dto.ContractUtilityIncreaseGetDTO;
+import pi.ms_users.dto.email.EmailExtraAdminDTO;
+import pi.ms_users.dto.email.EmailUtilityPaymentReminderDTO;
+import pi.ms_users.dto.email.ExtrasForAdminEmailDTO;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IContractUtilityRepository;
 import pi.ms_users.repository.IUtilityRepository;
+import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.service.interf.IContractUtilityService;
+import pi.ms_users.service.interf.IEmailService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +35,10 @@ public class ContractUtilityService implements IContractUtilityService {
     private final IContractRepository contractRepository;
 
     private final IUtilityRepository utilityRepository;
+
+    private final IUserRepository userRepository;
+
+    private final IEmailService emailService;
 
     @PersistenceContext
     private EntityManager em;
@@ -48,6 +56,18 @@ public class ContractUtilityService implements IContractUtilityService {
         dto.setContractId(entity.getContract() != null ? entity.getContract().getId() : null);
         dto.setUtilityId(entity.getUtility() != null ? entity.getUtility().getId() : null);
         dto.setPaymentList(entity.getPayments());
+
+        if (entity.getIncreases() != null) {
+            List<ContractUtilityIncreaseGetDTO> increases = entity.getIncreases().stream()
+                    .map(i -> {
+                        ContractUtilityIncreaseGetDTO incDto = new ContractUtilityIncreaseGetDTO();
+                        incDto.setId(i.getId());
+                        incDto.setAdjustmentDate(i.getAdjustmentDate());
+                        incDto.setAmount(i.getAmount());
+                        return incDto;
+                    }).toList();
+            dto.setIncreases(increases);
+        }
 
         return dto;
     }
@@ -88,11 +108,13 @@ public class ContractUtilityService implements IContractUtilityService {
 
         if (contractUtilityDTO.getId() != null) throw new BadRequestException("El id debe ser null al crear.");
 
-        if (!contractRepository.existsById(contractUtilityDTO.getContractId())) {
+        Optional<Contract> contract = contractRepository.findById(contractUtilityDTO.getContractId());
+        if (contract.isEmpty()) {
             throw new EntityNotFoundException("No se ha encontrado el contrato.");
         }
 
-        if (!utilityRepository.existsById(contractUtilityDTO.getUtilityId())) {
+        Optional<Utility> utility = utilityRepository.findById(contractUtilityDTO.getUtilityId());
+        if (utility.isEmpty()) {
             throw new EntityNotFoundException("No se ha encontrado el servicio.");
         }
 
@@ -194,5 +216,81 @@ public class ContractUtilityService implements IContractUtilityService {
         List<ContractUtility> contractUtilities = contractUtilityRepository.findDetailedByPeriodicity(periodicity);
         List<ContractUtilityGetDTO> contractUtilityGetDTOs = contractUtilities.stream().map(this::toGetDTO).toList();
         return ResponseEntity.ok(contractUtilityGetDTOs);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContractUtility> getUtilitiesDueInTenDays() {
+        LocalDate targetDate = LocalDate.now().plusDays(10);
+
+        return contractUtilityRepository.findAll().stream()
+                .filter(cu -> {
+                    if (cu.getLastPaidDate() == null) return false;
+
+                    LocalDate lastPaid = cu.getLastPaidDate().toLocalDate();
+                    LocalDate nextDueDate;
+
+                    switch (cu.getPeriodicity()) {
+                        case MENSUAL -> nextDueDate = lastPaid.plusMonths(1);
+                        case BIMENSUAL -> nextDueDate = lastPaid.plusMonths(2);
+                        case TRIMESTRAL -> nextDueDate = lastPaid.plusMonths(3);
+                        case SEMESTRAL -> nextDueDate = lastPaid.plusMonths(6);
+                        case ANUAL -> nextDueDate = lastPaid.plusYears(1);
+                        default -> nextDueDate = lastPaid;
+                    }
+
+                    return nextDueDate.equals(targetDate);
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void sendAdminUtilitiesDueInTenDays() {
+        List<ContractUtility> utilities = getUtilitiesDueInTenDays();
+
+        List<ExtrasForAdminEmailDTO> list = utilities.stream()
+                .map(u -> {
+                    Optional<User> user = userRepository.findById(u.getContract().getUserId());
+
+                    if (!user.isEmpty()) {
+                        ExtrasForAdminEmailDTO dto = new ExtrasForAdminEmailDTO();
+                        dto.setContractId(u.getContract().getId());
+                        dto.setTenantFullName(user.get().getFirstName() + " " + user.get().getLastName());
+                        dto.setUtilityName(u.getUtility().getName());
+                        dto.setPeriodicity(u.getPeriodicity().name());
+                        return dto;
+                    }
+
+                    return null;
+                })
+                .toList();
+
+        if (!list.isEmpty()) {
+            EmailExtraAdminDTO dto = new EmailExtraAdminDTO();
+            dto.setUtilities(list);
+            emailService.sendAdminUtilityUpcomingChargeListEmail(dto);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void sendEmailsForUtilitiesDueInTenDays() {
+        List<ContractUtility> utilities = getUtilitiesDueInTenDays();
+
+        utilities.forEach(u -> {
+            Optional<User> user = userRepository.findById(u.getContract().getUserId());
+
+            if (!user.isEmpty()) {
+                EmailUtilityPaymentReminderDTO dto = new EmailUtilityPaymentReminderDTO();
+                dto.setTo(user.get().getEmail());
+                dto.setFirstName(user.get().getFirstName());
+                dto.setLastName(user.get().getLastName());
+                dto.setUtilityName(u.getUtility().getName());
+                dto.setPeriodicity(u.getPeriodicity().name());
+
+                emailService.sendUtilityPaymentReminderEmail(dto, u.getContract().getId());
+            }
+        });
     }
 }

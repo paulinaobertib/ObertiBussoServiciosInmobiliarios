@@ -90,16 +90,6 @@ public class GuarantorService implements IGuarantorService {
         return d;
     }
 
-    public GuarantorDTO toDTO(Guarantor entity) {
-        if (entity == null) return null;
-        GuarantorDTO dto = new GuarantorDTO();
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-        dto.setPhone(entity.getPhone());
-        dto.setEmail(entity.getEmail());
-        return dto;
-    }
-
     public GuarantorGetDTO toGetDTO(Guarantor entity) {
         if (entity == null) return null;
         GuarantorGetDTO dto = new GuarantorGetDTO();
