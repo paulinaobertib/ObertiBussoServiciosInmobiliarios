@@ -18,6 +18,9 @@ public interface FeignPropertyRepository {
     @RequestMapping(method = RequestMethod.PUT, value = "/property/status/{id}")
     ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestParam Status status);
 
+    @RequestMapping(method = RequestMethod.PUT, value = "/property/statusEspera/{id}")
+    ResponseEntity<String> updateStatusEspera(@PathVariable Long id);
+
     @RequestMapping(method = RequestMethod.POST, value = "/image/notice", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<String> uploadNoticeImage(@RequestPart("file") MultipartFile file);
 

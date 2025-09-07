@@ -1,62 +1,70 @@
+server:
+  port: ${SERVICE_PORT}
+
+property:
+  service:
+    url: "https://${PROPERTY_HOSTNAME}"
+
+eureka:
+  instance:
+    hostname: ${WEBSITE_HOSTNAME}
+    nonSecurePortEnabled: true
+    nonSecurePort: 80
+    securePortEnabled: false
+
+  client:
+    service-url:
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
 spring:
   application:
     name: ms-users
-  # configuracion de la base de datos
+
   datasource:
-    url: jdbc:mysql://localhost:3306/obertibussoserviciosinmobiliarios
-    username: root
-    password: lmcpauli1
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: none
-    jpa:
-      hibernate:
-        ddl-auto: create-drop
-      show-sql: true
+      ddl-auto: update
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/obertibussoserviciosinmobiliarios
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
 
-server:
-  port: 8081
+email:
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
 
-eureka:
-  instance:
-    hostname: localhost
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
+frontend:
+  base-url: ${SWA_FRONTEND}
 
 pi:
   keycloak:
-    serverUrl: http://localhost:8080/
+    serverUrl: https://${KEYCLOAK_HOSTNAME}
     realm: obertibussoserviciosinmobiliarios
-    clientId: springboot-keycloak-client
-    clientSecret: ZCPO91FLkzqGVkDKBz3cAgihJjyb19Ub
+    clientId: ${KEYCLOAK_SB_CLIENT_ID}
+    clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
 
-email:
-  username: desarrolloinmobertibusso@gmail.com
-  password: gian ovac cerv btzf
 
-frontend:
-  base-url: http://localhost:5173
+# client: # Ver esto que es nuevo
+#   secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
 
-client:
-  secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
-
-property:
-  service:
-    url: http://localhost:8083
+logging:
+  level:
+    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.springframework.orm.jpa: DEBUG
 
 ---
 
-# Configuración para perfil "test"
+# Configuración para perfil "test" - Ver si esto sirve aca
 spring:
   config:
     activate:
