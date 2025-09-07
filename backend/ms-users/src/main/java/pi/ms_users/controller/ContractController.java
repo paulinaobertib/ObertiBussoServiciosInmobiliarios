@@ -49,18 +49,6 @@ public class ContractController {
         return contractService.delete(id);
     }
 
-    @PreAuthorize("hasRole('admin')")
-    @DeleteMapping("/deleteByProperty/{propertyId}")
-    public ResponseEntity<String> deleteByProperty(@PathVariable Long propertyId) {
-        return contractService.deleteByPropertyId(propertyId);
-    }
-
-    @PreAuthorize("hasRole('admin')")
-    @DeleteMapping("/deleteByUser/{userId}")
-    public ResponseEntity<String> deleteByUser(@PathVariable String userId) {
-        return contractService.deleteByUserId(userId);
-    }
-
     @PreAuthorize("hasAnyRole('admin', 'tenant')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractGetDTO> getById(@PathVariable Long id) {
