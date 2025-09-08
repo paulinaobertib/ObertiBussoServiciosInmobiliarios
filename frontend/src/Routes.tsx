@@ -27,6 +27,7 @@ import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
 import ContractDetailPage from './pages/ContractDetailAdminPage';
+import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -105,7 +106,7 @@ export default function Routes() {
             />
 
             <Route
-                path={ROUTES.NEW_CONTRACT}          // '/properties/new'
+                path={ROUTES.NEW_CONTRACT}
                 element={
                     <RequireAdmin>
                         <ManageContractPage />
@@ -113,7 +114,7 @@ export default function Routes() {
                 }
             />
             <Route
-                path={ROUTES.EDIT_CONTRACT}         // '/properties/:id/edit'
+                path={ROUTES.EDIT_CONTRACT}
                 element={
                     <RequireAdmin>
                         <ManageContractPage />
@@ -138,6 +139,25 @@ export default function Routes() {
                     </RequireAdminOrTenant>
                 }
             />
+
+            {/* 📄 Detalles de contrato */}
+            <Route
+                path={ROUTES.CONTRACT_DETAIL} // Admin detail
+                element={
+                    <RequireAdmin>
+                        <ContractDetailPage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.CONTRACT_DETAIL_TENANT}
+                element={
+                    <RequireAdminOrTenant>
+                        <ContractDetailUserPage />
+                    </RequireAdminOrTenant>
+                }
+            />
+
             <Route
                 path={ROUTES.PROPERTY_NOTES}
                 element={
@@ -181,16 +201,6 @@ export default function Routes() {
                 }
             />
 
-            {/* ---- Panel inquilino ---- */}
-            {/* <Route
-                path={ROUTES.TENANT}
-                element={
-                    <RequireTenant>
-                        <TenantPage />
-                    </RequireTenant>
-                }
-            /> */}
-
             {/* ---- Públicas ---- */}
             <Route path={ROUTES.COMPARE} element={<Compare />} />
             <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
@@ -199,7 +209,6 @@ export default function Routes() {
             <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
             <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
             <Route path={ROUTES.SURVEY} element={<SurveyPage />} />
-            <Route path={ROUTES.CONTRACT_DETAIL} element={<ContractDetailPage />} />
 
             {/* ---- Catch-all ---- */}
             <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />

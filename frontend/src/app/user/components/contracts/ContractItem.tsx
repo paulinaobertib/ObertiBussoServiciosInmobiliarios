@@ -8,6 +8,8 @@ import AttachMoneyOutlined from "@mui/icons-material/AttachMoneyOutlined";
 import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import { useNavigate } from "react-router-dom";
 import { useContractNames } from "../../hooks/contracts/useContractNames";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { buildRoute, ROUTES } from "../../../../lib";
 import type { Contract } from "../../types/contract";
 
 const typeLabel = (t?: Contract["contractType"]) => {
@@ -25,12 +27,18 @@ interface Props {
   contract: Contract;
   onDelete: (c: Contract) => void;
   onToggleStatus: (c: Contract) => void;
-  isAdmin?: boolean;
+  isAdmin?: boolean; // opcional: si lo pasás por props, tiene prioridad
 }
 
-export const ContractItem = ({ contract }: Props) => {
+export const ContractItem = ({ contract, isAdmin: isAdminProp }: Props) => {
   const navigate = useNavigate();
-  const { userName, propertyName } = useContractNames(contract.userId, contract.propertyId);
+  const { isAdmin: isAdminCtx } = useAuthContext();
+  const isAdmin = isAdminProp ?? isAdminCtx;
+
+  const { userName, propertyName } = useContractNames(
+    contract.userId,
+    contract.propertyId
+  );
 
   const fmtLongDate = (iso: string) => {
     const d = new Date(iso);
@@ -42,7 +50,13 @@ export const ContractItem = ({ contract }: Props) => {
   const lastAmount = contract.lastPaidAmount ?? null;
   const lastDate = contract.lastPaidDate ? fmtShortDate(contract.lastPaidDate) : null;
 
-  const goDetail = () => navigate(`/contracts/${contract.id}`);
+  const goDetail = () => {
+    if (isAdmin) {
+      navigate(buildRoute(ROUTES.CONTRACT_DETAIL, contract.id));
+    } else {
+      navigate(buildRoute(ROUTES.CONTRACT_DETAIL_TENANT, contract.id));
+    }
+  };
 
   return (
     <Card
@@ -77,7 +91,7 @@ export const ContractItem = ({ contract }: Props) => {
                     borderRadius: 2,
                     border: "1px solid",
                     borderColor: "grey.300",
-                    fontSize: "0.75rem", // 12px
+                    fontSize: "0.75rem",
                   }}
                 />
               )}
@@ -89,7 +103,7 @@ export const ContractItem = ({ contract }: Props) => {
                   bgcolor: contract.contractStatus === "ACTIVO" ? "#82eba8ff" : "#f8a5a5ff",
                   color: "white",
                   borderRadius: 2,
-                  fontSize: "0.75rem", // 12px
+                  fontSize: "0.75rem",
                   fontWeight: 500,
                 }}
               />
@@ -110,7 +124,7 @@ export const ContractItem = ({ contract }: Props) => {
       />
 
       <CardContent sx={{ pt: 1, flexGrow: 1 }}>
-        <Box sx={{ display: "grid", gap: 1.25, fontSize: "0.8125rem" /* 13px */ }}>
+        <Box sx={{ display: "grid", gap: 1.25, fontSize: "0.8125rem" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
             <HomeOutlined fontSize="small" />
             <Typography component="span" fontWeight={500} color="text.secondary" fontSize="0.9375rem">
@@ -154,7 +168,7 @@ export const ContractItem = ({ contract }: Props) => {
                     component="span"
                     variant="caption"
                     color="text.secondary"
-                    sx={{ ml: 0.5, fontSize: "0.8125rem" }} // 13px
+                    sx={{ ml: 0.5, fontSize: "0.8125rem" }}
                   >
                     ({lastDate})
                   </Typography>
@@ -179,7 +193,7 @@ export const ContractItem = ({ contract }: Props) => {
           borderTop: "1px solid",
           borderColor: "grey.100",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
         }}
       >
@@ -190,10 +204,9 @@ export const ContractItem = ({ contract }: Props) => {
           startIcon={<VisibilityOutlined />}
           onClick={goDetail}
           sx={{
-            ml: "auto",
             textTransform: "none",
             fontWeight: 600,
-            fontSize: "0.75rem", // 12px
+            fontSize: "0.75rem",
             minHeight: 28,
             px: 1,
             borderRadius: 3,
