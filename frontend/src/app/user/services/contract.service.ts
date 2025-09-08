@@ -92,15 +92,27 @@ export const getAllContracts = async () => {
 
 export const getContractsByUserId = async (userId: string) => {
   try {
-    const response = await api.get(`/users/contracts/user/${userId}`, {
-      withCredentials: true,
+    const res = await api.get(
+      `/users/contracts/getByUser/${encodeURIComponent(userId)}`,
+      { withCredentials: true }
+    );
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (e: any) {
+    const status = e?.response?.status;
+    const detail =
+      e?.response?.data?.message ??
+      e?.response?.data?.error ??
+      e?.message ??
+      "Unknown error";
+    console.error("[contracts] getContractsByUserId failed", {
+      status,
+      detail,
+      body: e?.response?.data,
     });
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching contracts for user ${userId}:`, error);
-    throw error;
+    throw new Error(`getByUser failed [${status ?? "?"}]: ${detail}`);
   }
 };
+
 
 export const getContractsByPropertyId = async (propertyId: number) => {
   try {
