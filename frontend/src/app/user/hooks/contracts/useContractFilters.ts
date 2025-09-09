@@ -20,9 +20,10 @@ export function useContractFilters(
 
   const baseFetch = useCallback(async (): Promise<Contract[]> => {
     if (dateFrom && dateTo) {
-      const start = `${dateFrom}T00:00:00`;
-      const end = `${dateTo}T23:59:59`;
-      return getContractsByDateRange(start, end);
+      // El backend espera LocalDate (YYYY-MM-DD)
+      const from = dateFrom;
+      const to = dateTo;
+      return getContractsByDateRange(from, to);
     }
     if (typeFilter !== "ALL") {
       return getContractsByType(typeFilter);
