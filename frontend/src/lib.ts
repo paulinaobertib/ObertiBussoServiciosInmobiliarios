@@ -36,7 +36,7 @@ export const ROUTES = {
   APPOINTMENTS: "/appointments",
   STATS: "/stats",
   CONTRACT_DETAIL: "/contracts/:id",
-  CONTRACT_DETAIL_TENANT: "/users/contracts/:id"
+  //CONTRACT_DETAIL_TENANT: "/users/contracts/:id"
 };
 
 export const PAGES = [

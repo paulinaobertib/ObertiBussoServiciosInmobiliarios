@@ -8,7 +8,6 @@ import AttachMoneyOutlined from "@mui/icons-material/AttachMoneyOutlined";
 import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
 import { useNavigate } from "react-router-dom";
 import { useContractNames } from "../../hooks/contracts/useContractNames";
-import { useAuthContext } from "../../../user/context/AuthContext";
 import { buildRoute, ROUTES } from "../../../../lib";
 import type { Contract } from "../../types/contract";
 
@@ -27,14 +26,12 @@ interface Props {
   contract: Contract;
   onDelete: (c: Contract) => void;
   onToggleStatus: (c: Contract) => void;
-  isAdmin?: boolean; // opcional: si lo pasás por props, tiene prioridad
+  isAdmin?: boolean;
 }
 
-export const ContractItem = ({ contract, isAdmin: isAdminProp }: Props) => {
+export const ContractItem = ({ contract }: Props) => {
   const navigate = useNavigate();
-  const { isAdmin: isAdminCtx } = useAuthContext();
-  const isAdmin = isAdminProp ?? isAdminCtx;
-
+  
   const { userName, propertyName } = useContractNames(
     contract.userId,
     contract.propertyId
@@ -51,11 +48,8 @@ export const ContractItem = ({ contract, isAdmin: isAdminProp }: Props) => {
   const lastDate = contract.lastPaidDate ? fmtShortDate(contract.lastPaidDate) : null;
 
   const goDetail = () => {
-    if (isAdmin) {
-      navigate(buildRoute(ROUTES.CONTRACT_DETAIL, contract.id));
-    } else {
-      navigate(buildRoute(ROUTES.CONTRACT_DETAIL_TENANT, contract.id));
-    }
+    // ahora todos van a la misma ruta de detalle
+    navigate(buildRoute(ROUTES.CONTRACT_DETAIL, contract.id));
   };
 
   return (
