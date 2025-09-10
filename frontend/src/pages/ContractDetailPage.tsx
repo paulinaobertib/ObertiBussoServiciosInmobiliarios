@@ -32,9 +32,8 @@ import PersonOutline from "@mui/icons-material/PersonOutline";
 import { alpha } from "@mui/material/styles";
 
 import BasePage from "./BasePage.tsx";
-import { getContractById } from "../app/user/services/contract.service.ts";
+import { getContractById, patchContractStatus } from "../app/user/services/contract.service.ts";
 import type { Contract, ContractDetail } from "../app/user/types/contract.ts";
-import { ContractStatus } from "../app/user/types/contract.ts";
 import { useContractNames } from "../app/user/hooks/contracts/useContractNames.ts";
 import { useUtilityNames } from "../app/user/hooks/contracts/useUtilityNames.ts";
 import { useAuthContext } from "../app/user/context/AuthContext.tsx";
@@ -46,6 +45,7 @@ export default function ContractDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState<ContractDetail | null>(null);
+  const [savingStatus, setSavingStatus] = useState(false);
 
   const { userName, propertyName } = useContractNames(
     contract?.userId ?? "",
@@ -117,19 +117,24 @@ export default function ContractDetailPage() {
     navigate(`/contracts/${contract.id}/edit`);
   };
 
-  const onToggleStatus = () => {
-    if (!contract) return;
-    setContract((prev) =>
-      prev
-        ? {
-            ...prev,
-            contractStatus:
-              prev.contractStatus === ContractStatus.ACTIVO
-                ? ContractStatus.INACTIVO
-                : ContractStatus.ACTIVO,
-          }
-        : prev
-    );
+  const onToggleStatus = async () => {
+    if (!contract || savingStatus) return;
+
+    try {
+      setSavingStatus(true);
+
+      // 1) Persistir en backend (toggle server-side)
+      await patchContractStatus(contract.id);
+
+      // 2) Refetch para quedar 100% sincronizados
+      const fresh = await getContractById(contract.id);
+      setContract(fresh as ContractDetail);
+    } catch (e) {
+      console.error(e);
+      alert("No se pudo actualizar el estado del contrato.");
+    } finally {
+      setSavingStatus(false);
+    }
   };
 
   const onDelete = () => {
@@ -268,6 +273,7 @@ export default function ContractDetailPage() {
                       <IconButton
                         size="small"
                         onClick={onToggleStatus}
+                        disabled={savingStatus}
                         sx={{ "&:hover": { bgcolor: "warning.50", color: "warning.main" } }}
                       >
                         <BlockIcon fontSize="small" />
