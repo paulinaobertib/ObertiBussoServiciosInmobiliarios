@@ -25,6 +25,7 @@ import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
 import AttachMoneyOutlined from "@mui/icons-material/AttachMoneyOutlined";
 import SecurityOutlined from "@mui/icons-material/SecurityOutlined";
+import PaidIcon from '@mui/icons-material/Paid';
 import ElectricalServicesOutlined from "@mui/icons-material/ElectricalServicesOutlined";
 import ReceiptOutlined from "@mui/icons-material/ReceiptOutlined";
 import PersonOutline from "@mui/icons-material/PersonOutline";
@@ -35,13 +36,13 @@ import { getContractById } from "../app/user/services/contract.service.ts";
 import type { Contract, ContractDetail } from "../app/user/types/contract.ts";
 import { ContractStatus } from "../app/user/types/contract.ts";
 import { useContractNames } from "../app/user/hooks/contracts/useContractNames.ts";
-import { useUtilityNames } from "../app/user/hooks/contracts/useUtilityNames.ts"; // <- ojo el nombre del archivo
+import { useUtilityNames } from "../app/user/hooks/contracts/useUtilityNames.ts";
 import { useAuthContext } from "../app/user/context/AuthContext.tsx";
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAdmin: showAdmin } = useAuthContext();
+  const { isAdmin } = useAuthContext();
 
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState<ContractDetail | null>(null);
@@ -248,7 +249,7 @@ export default function ContractDetailPage() {
 
               {/* Acciones admin */}
               <Stack direction="column" spacing={1} alignItems="flex-end">
-                {showAdmin && (
+                {isAdmin && (
                   <Box sx={{ display: "flex", gap: 0.5 }}>
                     <Tooltip title="Editar" placement="top">
                       <IconButton
@@ -285,7 +286,7 @@ export default function ContractDetailPage() {
                   </Box>
                 )}
 
-                {showAdmin && (
+                {isAdmin && (
                   <Stack direction="row" spacing={1}>
                     <Button
                       variant="outlined"
@@ -330,55 +331,46 @@ export default function ContractDetailPage() {
           </Box>
 
           {/* GRID */}
-          <Grid container spacing={3}>
-            {/* Información Principal */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Paper
-                elevation={1}
-                sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200" }}
-              >
-                <Typography
-                  sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}
-                >
-                  <AccountCircleOutlined />
-                  Información Principal
-                </Typography>
+          <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
+            {/* Información Principal (solo admin) */}
+            {isAdmin && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Paper elevation={1} sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200" }}>
+                  <Typography sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}>
+                    <AccountCircleOutlined />
+                    Información Principal
+                  </Typography>
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <PersonOutline fontSize="small" color="action" />
-                    <Typography sx={{ fontSize: "0.875rem", color: "text.secondary", fontWeight: 500 }}>
-                      Usuario:
-                    </Typography>
-                    <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
-                      {userName || contract.userId}
-                    </Typography>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <PersonOutline fontSize="small" color="action" />
+                      <Typography sx={{ fontSize: "0.875rem", color: "text.secondary", fontWeight: 500 }}>
+                        Usuario:
+                      </Typography>
+                      <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
+                        {userName || contract.userId}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <HomeOutlined fontSize="small" color="action" />
+                      <Typography sx={{ fontSize: "0.875rem", color: "text.secondary", fontWeight: 500 }}>
+                        Propiedad:
+                      </Typography>
+                      <Typography
+                        component={Link}
+                        to={propertyHref}
+                        sx={{ fontSize: "1rem", fontWeight: 700, textDecoration: "none", "&:hover": { textDecoration: "underline" }, color: "primary.main" }}
+                      >
+                        {propertyName || `Propiedad ${contract.propertyId}`}
+                      </Typography>
+                    </Box>
                   </Box>
+                </Paper>
+              </Grid>
+            )}
 
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <HomeOutlined fontSize="small" color="action" />
-                    <Typography sx={{ fontSize: "0.875rem", color: "text.secondary", fontWeight: 500 }}>
-                      Propiedad:
-                    </Typography>
-                    <Typography
-                      component={Link}
-                      to={propertyHref}
-                      sx={{
-                        fontSize: "1rem",
-                        fontWeight: 700,
-                        textDecoration: "none",
-                        "&:hover": { textDecoration: "underline" },
-                        color: "primary.main",
-                      }}
-                    >
-                      {propertyName || `Propiedad ${contract.propertyId}`}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Paper>
-            </Grid>
-
-            {/* Período del Contrato */}
+            {/* Período del Contrato (todos) */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <Paper
                 elevation={1}
@@ -413,7 +405,70 @@ export default function ContractDetailPage() {
               </Paper>
             </Grid>
 
-            {/* Información Financiera */}
+            {/* TENANT: Deposito al lado de periodo de contrato */}
+            {!isAdmin && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+              <Paper
+                elevation={1}
+                sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200" }}
+              >
+                <Typography
+                  sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}
+                >
+                    <PaidIcon />
+                    Depósito
+                  </Typography>
+
+                  {contract.hasDeposit ? (
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      {/* Monto del Depósito */}
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          sx={{
+                            mb: 0.5,
+                            fontSize: "0.875rem",
+                            color: "text.secondary",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Monto del Depósito
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "1rem",
+                            fontWeight: 700,
+                            color: "warning.main",
+                          }}
+                        >
+                          {fmtMoney(contract.depositAmount ?? 0)}
+                        </Typography>
+                      </Box>
+
+                      {/* Nota del Depósito */}
+                      {contract.depositNote && (
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            sx={{
+                              mb: 0.5,
+                              fontSize: "0.875rem",
+                              color: "text.secondary",
+                              fontWeight: 500,
+                            }}
+                          >
+                            Nota del Depósito
+                          </Typography>
+                          <Typography sx={{ fontSize: "1rem" }}>{contract.depositNote}</Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  ) : (
+                    <Typography color="text.secondary">No hay depósitos registrados.</Typography>
+                  )}
+                </Paper>
+              </Grid>
+            )}
+
+            {/* Información Financiera (todos) */}
             <Grid size={{ xs: 12 }}>
               <Paper
                 elevation={1}
@@ -493,7 +548,7 @@ export default function ContractDetailPage() {
               </Paper>
             </Grid>
 
-            {/* Garantes */}
+            {/* Garantes (todos) */}
             <Grid size={{ xs: 12 }}>
               <Paper
                 elevation={1}
@@ -538,53 +593,37 @@ export default function ContractDetailPage() {
               </Paper>
             </Grid>
 
-            {/* Depósito */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Paper
-                elevation={1}
-                sx={{
-                  p: 3,
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "grey.200",
-                  height: "80%",
-                  flex: 1,
-                }}
-              >
-                <Typography
+            {/* Depósito (todos) */}
+            {isAdmin && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Paper
+                  elevation={1}
                   sx={{
-                    mb: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    fontSize: "1.25rem",
-                    fontWeight: 600,
-                    color: "primary.main",
+                    p: 3,
+                    borderRadius: 3,
+                    border: "1px solid",
+                    borderColor: "grey.200",
+                    height: "80%",
+                    flex: 1,
                   }}
                 >
-                  <SecurityOutlined />
-                  Depósito
-                </Typography>
+                  <Typography
+                    sx={{
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      fontSize: "1.25rem",
+                      fontWeight: 600,
+                      color: "primary.main",
+                    }}
+                  >
+                    <PaidIcon />
+                    Depósito
+                  </Typography>
 
-                {contract.hasDeposit ? (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <Box>
-                      <Typography
-                        sx={{
-                          mb: 0.5,
-                          fontSize: "0.875rem",
-                          color: "text.secondary",
-                          fontWeight: 500,
-                        }}
-                      >
-                        Monto del Depósito
-                      </Typography>
-                      <Typography sx={{ fontSize: "1rem", fontWeight: 700, color: "warning.main" }}>
-                        {fmtMoney(contract.depositAmount ?? 0)}
-                      </Typography>
-                    </Box>
-
-                    {contract.depositNote && (
+                  {contract.hasDeposit ? (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       <Box>
                         <Typography
                           sx={{
@@ -594,104 +633,124 @@ export default function ContractDetailPage() {
                             fontWeight: 500,
                           }}
                         >
-                          Nota del Depósito
+                          Monto del Depósito
                         </Typography>
-                        <Typography sx={{ fontSize: "1rem" }}>{contract.depositNote}</Typography>
+                        <Typography sx={{ fontSize: "1rem", fontWeight: 700, color: "warning.main" }}>
+                          {fmtMoney(contract.depositAmount ?? 0)}
+                        </Typography>
                       </Box>
-                    )}
-                  </Box>
-                ) : (
-                  <Typography color="text.secondary">No hay depósitos registrados.</Typography>
-                )}
-              </Paper>
-            </Grid>
 
-            {/* Comisión */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Paper
-                elevation={1}
-                sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200", height: "80%", flex: 1 }}
-              >
-                <Typography
-                  sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}
-                >
-                  <ReceiptOutlined />
-                  Comisión
-                </Typography>
-
-                {!commission ? (
-                  <Typography color="text.secondary">Sin comisión registrada.</Typography>
-                ) : (
-                  <>
-                    <Grid container spacing={3}>
-                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                      {contract.depositNote && (
                         <Box>
-                          <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
-                            Moneda
+                          <Typography
+                            sx={{
+                              mb: 0.5,
+                              fontSize: "0.875rem",
+                              color: "text.secondary",
+                              fontWeight: 500,
+                            }}
+                          >
+                            Nota del Depósito
                           </Typography>
-                          <Typography sx={{ fontWeight: 700 }}>
-                            {currencyLabel(commission.currency)}
-                          </Typography>
+                          <Typography sx={{ fontSize: "1rem" }}>{contract.depositNote}</Typography>
                         </Box>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <Box>
-                          <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
-                            Monto total
-                          </Typography>
-                          <Typography sx={{ fontWeight: 700 }}>
-                            {(commission.totalAmount)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <Box>
-                          <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
-                            Fecha
-                          </Typography>
-                          <Typography sx={{ fontWeight: 700 }}>
-                            {fmtDate(commission.date)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                        <Box>
-                          <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
-                            Tipo / Cuotas
-                          </Typography>
-                          <Typography sx={{ fontWeight: 700 }}>
-                            {commission.paymentType ?? "-"}{" "}
-                            {commission.installments ? `(${commission.installments})` : ""}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-
-                    <Divider sx={{ my: 2 }} />
-
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
-                        size="small"
-                        label={commission.status ?? "PENDIENTE"}
-                        color={
-                          commission.status === "PAGADA"
-                            ? "success"
-                            : commission.status === "PARCIAL"
-                            ? "warning"
-                            : "default"
-                        }
-                        sx={{ fontWeight: 600 }}
-                      />
-                      {commission.note && (
-                        <Typography color="text.secondary">| {commission.note}</Typography>
                       )}
-                    </Stack>
-                  </>
-                )}
-              </Paper>
-            </Grid>
+                    </Box>
+                  ) : (
+                    <Typography color="text.secondary">No hay depósitos registrados.</Typography>
+                  )}
+                </Paper>
+              </Grid>
+            )}
 
-            {/* Servicios / Expensas - detalle (STACK VERTICAL) */}
+            {/* Comisión (solo admin) */}
+            {isAdmin && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Paper
+                  elevation={1}
+                  sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200", height: "80%", flex: 1 }}
+                >
+                  <Typography
+                    sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}
+                  >
+                    <ReceiptOutlined />
+                    Comisión
+                  </Typography>
+
+                  {!commission ? (
+                    <Typography color="text.secondary">Sin comisión registrada.</Typography>
+                  ) : (
+                    <>
+                      <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                          <Box>
+                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                              Moneda
+                            </Typography>
+                            <Typography sx={{ fontWeight: 700 }}>
+                              {currencyLabel(commission.currency)}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                          <Box>
+                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                              Monto total
+                            </Typography>
+                            <Typography sx={{ fontWeight: 700 }}>
+                              {commission.totalAmount}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                          <Box>
+                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                              Fecha
+                            </Typography>
+                            <Typography sx={{ fontWeight: 700 }}>
+                              {fmtDate(commission.date)}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                          <Box>
+                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                              Tipo / Cuotas
+                            </Typography>
+                            <Typography sx={{ fontWeight: 700 }}>
+                              {commission.paymentType ?? "-"}{" "}
+                              {commission.installments ? `(${commission.installments})` : ""}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      </Grid>
+
+                      <Divider sx={{ my: 2 }} />
+
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip
+                          size="small"
+                          label={commission.status ?? "PENDIENTE"}
+                          color={
+                            commission.status === "PAGADA"
+                              ? "success"
+                              : commission.status === "PARCIAL"
+                              ? "warning"
+                              : "default"
+                          }
+                          sx={{ fontWeight: 600 }}
+                        />
+                        {commission.note && (
+                          <Typography color="text.secondary">| {commission.note}</Typography>
+                        )}
+                      </Stack>
+                    </>
+                  )}
+                </Paper>
+              </Grid>
+            )}
+
+            {/* Servicios / Expensas - detalle (todos) */}
             <Grid size={{ xs: 12 }}>
               <Paper
                 elevation={1}
@@ -723,7 +782,7 @@ export default function ContractDetailPage() {
                             borderColor: "grey.200",
                           }}
                         >
-                          {/* Primera línea: periodicidad + nombre */}
+                          {/* Primera línea: nombre + periodicidad */}
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                             {(resolvedName || u.utilityId != null) && (
                               <Chip
@@ -765,8 +824,8 @@ export default function ContractDetailPage() {
               </Paper>
             </Grid>
 
-            {/* Notas */}
-            {contract.note && (
+            {/* Notas (solo admin) */}
+            {isAdmin && contract.note && (
               <Grid size={{ xs: 12 }}>
                 <Paper
                   elevation={1}

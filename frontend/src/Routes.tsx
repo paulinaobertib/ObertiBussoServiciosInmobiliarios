@@ -26,8 +26,8 @@ import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
-import ContractDetailPage from './pages/ContractDetailAdminPage';
-import ContractDetailUserPage from './pages/ContractDetailTenantPage';
+import ContractDetailPage from './pages/ContractDetailPage';
+//import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -140,23 +140,23 @@ export default function Routes() {
                 }
             />
 
-            {/* 📄 Detalles de contrato */}
+            {/* admin y tenant comparten la misma ruta */}
             <Route
-                path={ROUTES.CONTRACT_DETAIL} // Admin detail
+                path={ROUTES.CONTRACT_DETAIL}
                 element={
-                    <RequireAdmin>
+                    <RequireAdminOrTenant>
                         <ContractDetailPage />
-                    </RequireAdmin>
+                    </RequireAdminOrTenant>
                 }
             />
-            <Route
+            {/* <Route
                 path={ROUTES.CONTRACT_DETAIL_TENANT}
                 element={
                     <RequireAdminOrTenant>
                         <ContractDetailUserPage />
                     </RequireAdminOrTenant>
                 }
-            />
+            /> */}
 
             <Route
                 path={ROUTES.PROPERTY_NOTES}
