@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
-import { getContractById, postContract, putContract } from "../../services/contract.service";
+import { getContractById, postContract, putContract, getContractsByPropertyId } from "../../services/contract.service";
 import type { ContractCreate, ContractGet } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
 import { ROUTES } from "../../../../lib";
@@ -34,6 +34,20 @@ export function useManageContractPage() {
   const [addGuarantors, setAddGuarantors] = useState<boolean>(false);
   const [selectedGuarantorIds, setSelectedGuarantorIds] = useState<number[]>([]);
   const [selectedUtilityIds, setSelectedUtilityIds] = useState<number[]>([]);
+
+  // Comisión inmediata post-creación
+  const [commissionOpen, setCommissionOpen] = useState<boolean>(false);
+  const [commissionContractId, setCommissionContractId] = useState<number | null>(null);
+  const closeCommissionModal = () => {
+    setCommissionOpen(false);
+    setCommissionContractId(null);
+    navigate(ROUTES.CONTRACT);
+  };
+  const afterCommissionSaved = () => {
+    setCommissionOpen(false);
+    setCommissionContractId(null);
+    navigate(ROUTES.CONTRACT);
+  };
 
   // ── Preload en edición ──
   useEffect(() => {
@@ -100,9 +114,43 @@ export function useManageContractPage() {
         // creación
         const payload: ContractCreate = formRef.current!.getCreateData();
         await postContract(payload as any);
-        showAlert("Contrato creado", "success");
+        showAlert("Contrato creado con éxito", "success");
+
+        // Preguntar si desea agregar comisión ahora
+        ask(
+          "¿Quieres agregar ahora la comisión inmobiliaria?",
+          async () => {
+            try {
+              // Intentamos obtener el ID del contrato recién creado mediante coincidencia por property+user+fecha+tipo
+              const list = await getContractsByPropertyId(payload.propertyId);
+              const matches = (list || []).filter(
+                (c: any) =>
+                  String(c.userId) === String(payload.userId) &&
+                  String(c.contractType) === String(payload.contractType) &&
+                  String((c.startDate || "").split("T")[0]) === String(payload.startDate)
+              );
+              const chosen = (matches.length ? matches : list).sort((a: any, b: any) => b.id - a.id)[0];
+              if (chosen?.id) {
+                setCommissionContractId(chosen.id);
+                setCommissionOpen(true);
+              } else {
+                showAlert("No se pudo identificar el contrato creado para asociar la comisión.", "warning");
+                navigate(ROUTES.CONTRACT);
+              }
+            } catch (e) {
+              console.error("[ManageContractPage] error identifying created contract", e);
+              showAlert("No se pudo obtener el contrato creado.", "error");
+              navigate(ROUTES.CONTRACT);
+            }
+          },
+          () => {
+            showAlert("Podrás crear la comisión desde los detalles del contrato.", "info");
+            navigate(ROUTES.CONTRACT);
+          }
+        );
+        // Si el usuario cancela, no se ejecuta la callback del ask; navegamos en el onClose del dialog (abajo) o aquí no podemos interceptar.
       }
-      navigate(ROUTES.CONTRACT);
+      if (isEdit) navigate(ROUTES.CONTRACT);
     } catch (e) {
       showAlert("Error al guardar contrato", "error");
     } finally {
@@ -155,5 +203,13 @@ export function useManageContractPage() {
     // Meta
     title,
     DialogUI,
+
+    // Comisión inmediata
+    commissionOpen,
+    setCommissionOpen,
+    commissionContractId,
+    setCommissionContractId,
+    closeCommissionModal,
+    afterCommissionSaved,
   };
 }

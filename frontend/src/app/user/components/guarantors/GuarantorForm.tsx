@@ -79,7 +79,7 @@ export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
         showAlert("Garante eliminado con éxito", "success");
       } else {
         await putGuarantor(form.id, form as Guarantor);
-        showAlert("Usuario actualizado con éxito", "success");
+        showAlert("Garante actualizado con éxito", "success");
       }
       onSuccess?.();
       onClose?.();

@@ -6,18 +6,16 @@ import type { Property } from "../../../property/types/property";
 import { getUserById } from "../../services/user.service";
 import type { User } from "../../types/user";
 
-// Mantenemos la forma usada por el componente ContractForm para no romper UI.
-// Luego, en useManageContractPage se mapea a ContractCreate (initialAmount, currency, adjustmentFrequencyMonths, ...)
 export type ContractFormValues = {
   propertyId: number;
   userId: string;
   contractType: ContractType | "";
   contractStatus: ContractStatus | "";
-  startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
-  amount: number | ""; // se mapea a initialAmount
-  increaseFrequency: number | ""; // se mapea a adjustmentFrequencyMonths
-  currency: string | ""; // PaymentCurrency
+  startDate: string;
+  endDate: string;
+  amount: number | "";
+  increaseFrequency: number | "";
+  currency: string | "";
   adjustmentIndexId: number | "";
   note: string;
   hasDeposit: boolean;
@@ -39,18 +37,15 @@ export function useContractForm(
     userId: initialData?.userId ?? initialUserId,
     contractType: initialData?.contractType ?? "",
     contractStatus: initialData?.contractStatus ?? "",
-    startDate: (initialData?.startDate || "").split("T")[0],
-    endDate: (initialData?.endDate || "").split("T")[0],
-    increaseFrequency: (initialData as any)?.adjustmentFrequencyMonths ?? 12,
-    amount: (initialData as any)?.initialAmount ?? 1,
-    currency: (initialData as any)?.currency ?? (initialData as any)?.paymentCurrency ?? "ARS",
+    startDate: (initialData?.startDate || "").split("T")[0] ?? "",
+    endDate: (initialData?.endDate || "").split("T")[0] ?? "",
+    increaseFrequency: (initialData as any)?.adjustmentFrequencyMonths ?? "",
+    amount: (initialData as any)?.initialAmount ?? "",
+    currency: (initialData as any)?.currency ?? (initialData as any)?.paymentCurrency ?? "",
     adjustmentIndexId: (initialData as any)?.adjustmentIndexId ?? (initialData as any)?.adjustmentIndex?.id ?? "",
     note: (initialData as any)?.note ?? "",
     hasDeposit: Boolean((initialData as any)?.hasDeposit) ?? false,
-    depositAmount:
-      Boolean((initialData as any)?.hasDeposit)
-        ? (initialData as any)?.depositAmount ?? 1
-        : "",
+    depositAmount: Boolean((initialData as any)?.hasDeposit) ? (initialData as any)?.depositAmount ?? "" : "",
     depositNote: (initialData as any)?.depositNote ?? "",
     guarantorsIds: Array.isArray((initialData as any)?.guarantors)
       ? ((initialData as any).guarantors as Array<{ id: number }>).map((g) => g.id)
@@ -79,10 +74,7 @@ export function useContractForm(
       adjustmentIndexId: (initialData as any)?.adjustmentIndexId ?? (initialData as any)?.adjustmentIndex?.id ?? "",
       note: (initialData as any)?.note ?? "",
       hasDeposit: Boolean((initialData as any)?.hasDeposit) ?? false,
-      depositAmount:
-        Boolean((initialData as any)?.hasDeposit)
-          ? (initialData as any)?.depositAmount ?? 1
-          : "",
+      depositAmount: Boolean((initialData as any)?.hasDeposit) ? (initialData as any)?.depositAmount ?? 1 : "",
       depositNote: (initialData as any)?.depositNote ?? "",
       guarantorsIds: Array.isArray((initialData as any)?.guarantors)
         ? ((initialData as any).guarantors as Array<{ id: number }>).map((g) => g.id)
@@ -149,17 +141,17 @@ export function useContractForm(
   }, [values, validate]);
 
   /* ---------- handlers ---------- */
-  const handleChange = (field: keyof ContractFormValues) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const raw = (e.target as HTMLInputElement).value;
-    setValues((prev) => ({
-      ...prev,
-      [field]: ["amount", "increaseFrequency"].includes(field)
-        ? raw // numéricos: se guarda string vacío o string con número, se convierte al enviar
-        : raw,
-    }));
-  };
+  const handleChange =
+    (field: keyof ContractFormValues) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const raw = (e.target as HTMLInputElement).value;
+      setValues((prev) => ({
+        ...prev,
+        [field]: ["amount", "increaseFrequency"].includes(field)
+          ? raw // numéricos: se guarda string vacío o string con número, se convierte al enviar
+          : raw,
+      }));
+    };
 
   const reset = useCallback(() => {
     setValues({
@@ -183,7 +175,6 @@ export function useContractForm(
   }, [initialPropertyId, initialUserId]);
 
   const submit = useCallback(async (): Promise<ContractFormValues | null> => {
-    console.log("[useContractForm.submit] start");
     if (!validate()) return null;
     return {
       ...values,
