@@ -3,17 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
-import {
-  getContractById,
-  postContract,
-  putContract,
-} from "../../services/contract.service";
-import type {
-  Contract,
-  ContractCreate,
-  ContractStatus,
-  ContractType,
-} from "../../types/contract";
+import { getContractById, postContract, putContract } from "../../services/contract.service";
+import type { ContractCreate, ContractGet } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
 import { ROUTES } from "../../../../lib";
 
@@ -31,17 +22,18 @@ export function useManageContractPage() {
   const [formReady, setFormReady] = useState(false);
 
   // Datos de contrato (solo en edición) y carga
-  const [contract, setContract] = useState<Contract | null>(null);
+  const [contract, setContract] = useState<ContractGet | null>(null);
   const [loading, setLoading] = useState<boolean>(isEdit);
 
   // Stepper
   const [activeStep, setActiveStep] = useState<number>(0);
 
   // Paso 1 & 2: IDs seleccionados
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(
-    null
-  );
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [addGuarantors, setAddGuarantors] = useState<boolean>(false);
+  const [selectedGuarantorIds, setSelectedGuarantorIds] = useState<number[]>([]);
+  const [selectedUtilityIds, setSelectedUtilityIds] = useState<number[]>([]);
 
   // ── Preload en edición ──
   useEffect(() => {
@@ -58,6 +50,11 @@ export function useManageContractPage() {
         setContract(data);
         setSelectedPropertyId(data.propertyId);
         setSelectedUserId(data.userId);
+        // Precargar garantes desde el contrato (GetDTO)
+        const guarIds = Array.isArray((data as any)?.guarantors)
+          ? ((data as any).guarantors as Array<{ id: number }>).map((g) => g.id)
+          : [];
+        setSelectedGuarantorIds(guarIds);
       } catch {
         // Si falla, enviamos al listado y mostramos alerta
         navigate(ROUTES.CONTRACT);
@@ -74,46 +71,39 @@ export function useManageContractPage() {
   // Siguiente/Guardar depende del paso actual
   const canProceed = () => {
     if (activeStep === 0) return selectedPropertyId != null;
-    if (activeStep === 1) return selectedUserId != null;
-    if (activeStep === 2) return formReady;
+    if (activeStep === 1) return selectedUserId != null; // garantes opcional
+    if (activeStep === 2) return formReady; // Datos
+    if (activeStep === 3) return true; // Utilities (opcional)
     return false;
   };
 
   // ── Guardar / crear ──
   const save = async () => {
-    // envía el formulario y valida
-    const values = await formRef.current?.submit();
-    if (!values) return;
+    console.log('[ManageContractPage.save] start', {
+      activeStep,
+      selectedPropertyId,
+      selectedUserId,
+      selectedGuarantorIds,
+      selectedUtilityIds,
+    });
+
+    await formRef.current?.submit();
 
     setLoading(true);
     try {
       if (isEdit) {
-        // actualización: incluye id en el payload
-        await putContract({ id: Number(id!), ...values } as Contract);
+        // actualización: mapeo a ContractUpdate (sin id) y envío id por path
+        const payload: ContractCreate = formRef.current!.getCreateData();
+        await putContract(Number(id!), payload as any);
         showAlert("Contrato actualizado", "success");
       } else {
-        // creación: postContract recibe payload + amount, currency
-        const payload: ContractCreate = {
-          propertyId: selectedPropertyId!,
-          userId: selectedUserId!,
-          contractType: values.contractType as ContractType, // CAST
-          contractStatus: values.contractStatus as ContractStatus,
-          startDate: values.startDate,
-          endDate: values.endDate,
-          increase: Number(values.increase) || 0,
-          increaseFrequency: Number(values.increaseFrequency) || 0,
-        };
-
-        await postContract(
-          payload,
-          Number(values.amount) || 0,
-          values.currency || ""
-        );
-
+        // creación
+        const payload: ContractCreate = formRef.current!.getCreateData();
+        await postContract(payload as any);
         showAlert("Contrato creado", "success");
       }
       navigate(ROUTES.CONTRACT);
-    } catch {
+    } catch (e) {
       showAlert("Error al guardar contrato", "error");
     } finally {
       setLoading(false);
@@ -144,11 +134,18 @@ export function useManageContractPage() {
     setSelectedPropertyId,
     selectedUserId,
     setSelectedUserId,
+    addGuarantors,
+    setAddGuarantors,
+    selectedGuarantorIds,
+    setSelectedGuarantorIds,
+    selectedUtilityIds,
+    setSelectedUtilityIds,
 
     // Form
     formRef,
     formReady,
     setFormReady,
+    // extras integrados
 
     // Controls
     canProceed,
