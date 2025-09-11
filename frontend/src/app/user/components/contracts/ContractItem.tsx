@@ -133,10 +133,10 @@ export const ContractItem = ({
                     <strong>Hasta:</strong> {fmtDate(contract.endDate)}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>Monto Inicial:</strong> $ {contract.increase.toLocaleString()}
+                    <strong>Monto Inicial:</strong> $ {contract.initialAmount.toLocaleString()}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>Frecuencia:</strong> {contract.increaseFrequency} meses
+                    <strong>Frecuencia:</strong> {contract.adjustmentFrequencyMonths} meses
                 </Typography>
             </CardContent>
 
