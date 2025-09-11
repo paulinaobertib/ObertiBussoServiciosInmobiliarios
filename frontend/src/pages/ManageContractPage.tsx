@@ -20,6 +20,7 @@ import { UsersSection } from "../app/user/components/users/panel/UsersSection";
 import { GuarantorsSection } from "../app/user/components/guarantors/GuarantorsSection";
 import { UtilitiesSection } from "../app/user/components/utilities/UtilitiesSection";
 import { ContractForm } from "../app/user/components/contracts/ContractForm";
+import { CommissionDialog } from "../app/user/components/commission/CommissionDialog";
 // Extras integrados en ContractForm
 
 export default function ManageContractPage() {
@@ -189,6 +190,13 @@ export default function ManageContractPage() {
         {/* Extras paso eliminado: integrados dentro del ContractForm */}
 
         {ctrl.DialogUI}
+
+        <CommissionDialog
+          open={ctrl.commissionOpen}
+          contractId={ctrl.commissionContractId}
+          onClose={ctrl.closeCommissionModal}
+          onSaved={ctrl.afterCommissionSaved}
+        />
       </Box>
     </BasePage>
   );
