@@ -1,26 +1,9 @@
-// contract.service.ts
-import {
-  Contract,
-  ContractCreate,
-  ContractStatus,
-  ContractType,
-} from "../types/contract";
+import type { ContractCreate, ContractStatus, ContractType } from "../types/contract";
 import { api } from "../../../api";
 
-export const postContract = async (
-  contractData: ContractCreate,
-  amount: number,
-  currency: string
-) => {
+export const postContract = async (contractData: ContractCreate) => {
   try {
-    const response = await api.post(
-      `users/contracts/create`, // ← ruta corregida
-      contractData,
-      {
-        params: { amount, currency }, // arma ?amount=…&currency=…
-        withCredentials: true,
-      }
-    );
+    const response = await api.post(`/users/contracts/create`, contractData, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error creating contract:", error);
@@ -28,25 +11,32 @@ export const postContract = async (
   }
 };
 
-export const putContract = async (contractData: Contract) => {
+export const putContract = async (id: number, contractData: ContractCreate) => {
   try {
-    const response = await api.put(`/users/contracts/update`, contractData, {
+    // Log básico para verificar que SÍ se llama al PUT y con qué datos
+    // (se mostrará una versión acotada para evitar logs gigantes)
+    console.debug("[contract.service] PUT /users/contracts/update/%s payload:", id, {
+      ...contractData,
+    });
+
+    const response = await api.put(`/users/contracts/update/${id}`, contractData, {
       withCredentials: true,
     });
+
+    console.debug("[contract.service] PUT done. Status:", response.status);
     return response.data;
-  } catch (error) {
-    console.error("Error updating contract:", error);
+  } catch (error: any) {
+    // Log más expresivo: status y data del backend si existen
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+    console.error("[contract.service] Error updating contract:", { status, data, error });
     throw error;
   }
 };
 
 export const patchContractStatus = async (id: number) => {
   try {
-    const response = await api.patch(
-      `/users/contracts/updateStatus/${id}`,
-      null,
-      { withCredentials: true }
-    );
+    const response = await api.patch(`/users/contracts/updateStatus/${id}`, null, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error updating contract status:", error);
@@ -62,6 +52,26 @@ export const deleteContract = async (id: number) => {
     return response.data;
   } catch (error) {
     console.error("Error deleting contract:", error);
+    throw error;
+  }
+};
+
+export const deleteContractsByProperty = async (propertyId: number) => {
+  try {
+    const response = await api.delete(`/users/contracts/deleteByProperty/${propertyId}`, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting contracts for property ${propertyId}:`, error);
+    throw error;
+  }
+};
+
+export const deleteContractsByUser = async (userId: string) => {
+  try {
+    const response = await api.delete(`/users/contracts/deleteByUser/${userId}`, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting contracts for user ${userId}:`, error);
     throw error;
   }
 };
@@ -92,7 +102,7 @@ export const getAllContracts = async () => {
 
 export const getContractsByUserId = async (userId: string) => {
   try {
-    const response = await api.get(`/users/contracts/user/${userId}`, {
+    const response = await api.get(`/users/contracts/getByUser/${userId}`, {
       withCredentials: true,
     });
     return response.data;
@@ -104,22 +114,19 @@ export const getContractsByUserId = async (userId: string) => {
 
 export const getContractsByPropertyId = async (propertyId: number) => {
   try {
-    const response = await api.get(`/users/contracts/property/${propertyId}`, {
+    const response = await api.get(`/users/contracts/getByProperty/${propertyId}`, {
       withCredentials: true,
     });
     return response.data;
   } catch (error) {
-    console.error(
-      `Error fetching contracts for property ${propertyId}:`,
-      error
-    );
+    console.error(`Error fetching contracts for property ${propertyId}:`, error);
     throw error;
   }
 };
 
 export const getContractsByType = async (type: ContractType) => {
   try {
-    const response = await api.get(`/users/contracts/type`, {
+    const response = await api.get(`/users/contracts/getByType`, {
       params: { type },
       withCredentials: true,
     });
@@ -132,7 +139,7 @@ export const getContractsByType = async (type: ContractType) => {
 
 export const getContractsByStatus = async (status: ContractStatus) => {
   try {
-    const response = await api.get(`/users/contracts/status`, {
+    const response = await api.get(`/users/contracts/getByStatus`, {
       params: { status },
       withCredentials: true,
     });
@@ -143,15 +150,79 @@ export const getContractsByStatus = async (status: ContractStatus) => {
   }
 };
 
-export const getContractsByDateRange = async (start: string, end: string) => {
+export const getContractsByDate = async (date: string) => {
   try {
-    const response = await api.get(`/users/contracts/dateRange`, {
-      params: { start, end },
+    const response = await api.get(`/users/contracts/getByDate`, {
+      params: { date },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching contracts by date:", error);
+    throw error;
+  }
+};
+
+export const getContractsByDateRange = async (from: string, to: string) => {
+  try {
+    const response = await api.get(`/users/contracts/getByDateRange`, {
+      params: { from, to },
       withCredentials: true,
     });
     return response.data;
   } catch (error) {
     console.error("Error fetching contracts by date range:", error);
+    throw error;
+  }
+};
+
+export const getActiveContracts = async () => {
+  try {
+    const response = await api.get(`/users/contracts/active`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching active contracts:", error);
+    throw error;
+  }
+};
+
+export const getContractsExpiringWithin = async (days: number) => {
+  try {
+    const response = await api.get(`/users/contracts/expiringWithinDays`, {
+      params: { days },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching expiring contracts:", error);
+    throw error;
+  }
+};
+
+export const getContractsEndingOn = async (date: string) => {
+  try {
+    const response = await api.get(`/users/contracts/endingOn`, {
+      params: { date },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching ending-on contracts:", error);
+    throw error;
+  }
+};
+
+export const getContractsEndingBetween = async (from: string, to: string) => {
+  try {
+    const response = await api.get(`/users/contracts/endingBetween`, {
+      params: { from, to },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching contracts ending between dates:", error);
     throw error;
   }
 };

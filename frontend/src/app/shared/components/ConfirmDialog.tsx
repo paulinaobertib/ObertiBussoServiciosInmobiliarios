@@ -1,44 +1,42 @@
-import { useState, ReactNode, useCallback } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  useTheme
-} from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-import { useLoading } from '../../property/utils/useLoading';
+import { useState, ReactNode, useCallback } from "react";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, useTheme } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
+import { useLoading } from "../../property/utils/useLoading";
 
 export function useConfirmDialog() {
   const [open, setOpen] = useState(false);
-  const [message, setMsg] = useState<ReactNode>('');
-  const [onYes, setYes] = useState<() => Promise<void>>(() => async () => { });
-  const theme = useTheme()
+  const [message, setMsg] = useState<ReactNode>("");
+  const [onYes, setYes] = useState<() => Promise<void>>(() => async () => {});
+  const [onCancel, setOnCancel] = useState<(() => void) | null>(null);
+  const theme = useTheme();
 
-  const { loading, run: runConfirm } = useLoading(useCallback(async () => {
-    await onYes();
-    setOpen(false);
-  }, [onYes]));
+  const { loading, run: runConfirm } = useLoading(
+    useCallback(async () => {
+      await onYes();
+      setOpen(false);
+    }, [onYes])
+  );
 
-  const ask = (msg: ReactNode, yes: () => Promise<void>) => {
+  const ask = (msg: ReactNode, yes: () => Promise<void>, cancel?: () => void) => {
     setMsg(msg);
     setYes(() => yes);
+    setOnCancel(() => cancel ?? null);
     setOpen(true);
   };
 
   const DialogUI = (
     <Dialog
       open={open}
-      onClose={() => { if (!loading) setOpen(false); }}
+      onClose={() => {
+        if (!loading) setOpen(false);
+      }}
       PaperProps={{
         sx: {
           borderRadius: 3,
           p: 2,
-          width: '100%',
+          width: "100%",
           maxWidth: 420,
-          bgcolor: 'white',
+          bgcolor: "white",
           boxShadow: 6,
         },
       }}
@@ -48,7 +46,7 @@ export function useConfirmDialog() {
           fontWeight: 700,
           fontSize: 20,
           color: theme.palette.primary.main,
-          textAlign: 'center',
+          textAlign: "center",
           pb: 0,
         }}
       >
@@ -56,26 +54,24 @@ export function useConfirmDialog() {
       </DialogTitle>
 
       <DialogContent sx={{ mt: 2 }}>
-        <Typography sx={{ textAlign: 'center', fontSize: 16 }}>
+        <Typography sx={{ textAlign: "center", fontSize: 16 }}>
           Ten en cuenta que no podrás deshacer el cambio.
         </Typography>
       </DialogContent>
 
-      <DialogActions sx={{ justifyContent: 'center', gap: 2, mt: 1 }}>
+      <DialogActions sx={{ justifyContent: "center", gap: 2, mt: 1 }}>
         <Button
           variant="outlined"
           color="inherit"
-          onClick={() => setOpen(false)}
+          onClick={() => {
+            if (onCancel) onCancel();
+            setOpen(false);
+          }}
           disabled={loading}
         >
           Cancelar
         </Button>
-        <LoadingButton
-          variant="contained"
-          color="warning"
-          loading={loading}
-          onClick={() => runConfirm()}
-        >
+        <LoadingButton variant="contained" color="warning" loading={loading} onClick={() => runConfirm()}>
           Confirmar
         </LoadingButton>
       </DialogActions>

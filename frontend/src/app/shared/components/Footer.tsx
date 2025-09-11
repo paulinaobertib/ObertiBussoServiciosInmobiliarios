@@ -177,7 +177,7 @@ const Footer = () => {
                             Ubicación de Oficinas
                         </Typography>
                         <Typography variant="body2" textAlign={'center'}>
-                            Av. Rafael Nuñez 4620 - Local 18, Córdoba, Argentina
+                            Luis Galeano 1910 - Local 2, Villa Cabrera, Córdoba, Argentina
                         </Typography>
                         <Box
                             component="ul"
