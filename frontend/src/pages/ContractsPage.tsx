@@ -1,5 +1,3 @@
-// src/pages/ContractsPage.tsx
-
 import {
     Container,
     Box,
@@ -14,13 +12,9 @@ import { ROUTES } from "../lib";
 
 import { useContractsPage } from "../app/user/hooks/contracts/useContractsPage";
 import { ContractStatus } from "../app/user/types/contract";
-
 import { ContractsStats } from "../app/user/components/contracts/ContractsStats";
 import { ContractsFilters } from "../app/user/components/contracts/ContractsFilters";
 import { ContractList } from "../app/user/components/contracts/ContractList";
-import { PaymentDialog } from "../app/user/components/payments/PaymentDialog";
-import { IncreaseDialog } from "../app/user/components/increases/IncreaseDialog";
-import { HistoryDialog } from "../app/user/components/contracts/HistoryDialog";
 import BasePage from "./BasePage";
 
 export default function ContractsPage() {
@@ -31,15 +25,8 @@ export default function ContractsPage() {
         statusFilter: filter,
         setStatusFilter: setFilter,
         handleSearch,
-        paying,
-        setPaying,
-        increasing,
-        setIncreasing,
-        history,
-        setHistory,
         handleDelete,
         handleToggleStatus,
-        refresh,
         isAdmin,
         navigate,
         DialogUI,
@@ -102,35 +89,8 @@ export default function ContractsPage() {
 
                         <ContractList
                             contracts={disp}
-                            onRegisterPayment={setPaying}
-                            onIncrease={setIncreasing}
-                            onHistory={setHistory}
                             onDelete={handleDelete}
                             onToggleStatus={handleToggleStatus}
-                        />
-
-                        <PaymentDialog
-                            open={!!paying}
-                            contract={paying}
-                            onClose={() => setPaying(null)}
-                            onSaved={async () => {
-                                setPaying(null);
-                                await refresh();
-                            }}
-                        />
-                        <IncreaseDialog
-                            open={!!increasing}
-                            contract={increasing}
-                            onClose={() => setIncreasing(null)}
-                            onSaved={async () => {
-                                setIncreasing(null);
-                                await refresh();
-                            }}
-                        />
-                        <HistoryDialog
-                            open={!!history}
-                            contract={history}
-                            onClose={() => setHistory(null)}
                         />
 
                         {DialogUI}
