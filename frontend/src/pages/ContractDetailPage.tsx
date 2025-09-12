@@ -30,6 +30,7 @@ import ElectricalServicesOutlined from "@mui/icons-material/ElectricalServicesOu
 import ReceiptOutlined from "@mui/icons-material/ReceiptOutlined";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import { alpha } from "@mui/material/styles";
+import AddIcon from "@mui/icons-material/Add";
 
 import BasePage from "./BasePage.tsx";
 import { getContractById, patchContractStatus } from "../app/user/services/contract.service.ts";
@@ -60,6 +61,15 @@ export default function ContractDetailPage() {
         if (!id) return;
         const resp = await getContractById(Number(id));
         const data = (resp as any)?.data ?? resp;
+        console.log("DETALLE CONTRATO:", data);
+        console.log("CLAVES:", Object.keys(data));
+        console.log(
+          "ARREGLOS EN RESPUESTA:",
+          Object.entries(data)
+            .filter(([, v]) => Array.isArray(v))  // omitís el 1º elemento
+            .map(([key]) => key)                  // acá sí usás el nombre
+        );
+
         if (alive) setContract(data as ContractDetail);
       } finally {
         if (alive) setLoading(false);
@@ -179,6 +189,13 @@ export default function ContractDetailPage() {
   // pre-cálculos seguros
   const guarantors = contract.guarantors ?? [];
   const commission = (contract as any).commission ?? null;
+  const payments  = (contract as any).payments  ?? [];
+  const increasesRaw = (contract as any).contractIncrease ?? [];
+  const getTime = (x: any) =>
+    new Date(x?.date ?? x?.increaseDate ?? x?.createdAt ?? 0).getTime();
+
+  const paymentsSorted  = [...payments].sort((a, b) => getTime(b) - getTime(a));
+  const increasesSorted = [...increasesRaw].sort((a, b) => getTime(b) - getTime(a));
 
   return (
     <>
@@ -337,7 +354,7 @@ export default function ContractDetailPage() {
           </Box>
 
           {/* GRID */}
-          <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
+          <Grid container rowSpacing={3} columnSpacing={3} sx={{ alignItems: 'stretch' }}>
             {/* Información Principal (solo admin) */}
             {isAdmin && (
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -481,7 +498,10 @@ export default function ContractDetailPage() {
                 sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200" }}
               >
                 <Typography
-                  sx={{ mb: 3, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}
+                  sx={{
+                    mb: 3, display: "flex", alignItems: "center", gap: 1,
+                    fontSize: "1.25rem", fontWeight: 600, color: "primary.main"
+                  }}
                 >
                   <AttachMoneyOutlined />
                   Información Financiera
@@ -506,14 +526,11 @@ export default function ContractDetailPage() {
                       </Typography>
                       <Typography
                         sx={{
-                          fontSize: "1rem",
-                          fontWeight: 700,
+                          fontSize: "1rem", fontWeight: 700,
                           color: contract.lastPaidAmount != null ? "success.main" : "text.secondary",
                         }}
                       >
-                        {contract.lastPaidAmount != null
-                          ? fmtMoney(contract.lastPaidAmount)
-                          : "Sin registros"}
+                        {contract.lastPaidAmount != null ? fmtMoney(contract.lastPaidAmount) : "Sin registros"}
                       </Typography>
                     </Box>
                   </Grid>
@@ -523,7 +540,7 @@ export default function ContractDetailPage() {
                       <Typography sx={{ mb: 0.5, fontSize: "0.875rem", color: "text.secondary", fontWeight: 500 }}>
                         Último Pago (Fecha)
                       </Typography>
-                      <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
                         {fmtDate(contract.lastPaidDate)}
                       </Typography>
                     </Box>
@@ -551,6 +568,160 @@ export default function ContractDetailPage() {
                     </Typography>
                   </Box>
                 )}
+
+                {/* --- Historiales --- */}
+                <Grid container spacing={2} sx={{ mt: 2 }}>
+                  {/* Historial de Pagos */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 2, borderRadius: 2, height: 170,
+                        display: "flex", flexDirection: "column",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          mb: 1, fontSize: "1.25rem", fontWeight: 600,
+                          color: "warning.main"
+                        }}
+                      >
+                        Historial de Pagos
+                      </Typography>
+
+                      <Box sx={{ flex: 1, overflowY: "auto", pr: 1 }}>
+                        {paymentsSorted.length === 0 ? (
+                          <Typography color="text.secondary">Sin pagos registrados.</Typography>
+                        ) : (
+                          <Stack spacing={0.5}>
+                            {paymentsSorted.map((p: any, idx: number) => {
+                              const payDate = p.date ?? p.paymentDate;
+                              const payAmount = p.amount ?? 0;
+                              const payType: string =
+                                p.concept ??
+                                p.type ??
+                                p.paymentType ??
+                                (p.contractUtilityId ? "SERVICIO / EXPENSA" : "ALQUILER");
+
+                              return (
+                                <Box
+                                  key={p.id ?? idx}
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    py: 0.5,
+                                    borderBottom: "1px solid",
+                                    borderColor: "grey.100",
+                                  }}
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ width: 110, flexShrink: 0 }}
+                                  >
+                                    {fmtDate(payDate)}
+                                  </Typography>
+
+                                  <Typography
+                                    variant="caption"
+                                    color="text.disabled"
+                                    sx={{
+                                      flex: 1,
+                                      textAlign: "center",
+                                      textTransform: "uppercase",
+                                      letterSpacing: 0.25,
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                    }}
+                                  >
+                                    {String(payType).replace(/_/g, " ")}
+                                  </Typography>
+
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={700}
+                                    sx={{ width: 120, flexShrink: 0, textAlign: "right" }}
+                                  >
+                                    {fmtMoney(payAmount)}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                          </Stack>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
+
+                  {/* Historial de Aumentos */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 2, borderRadius: 2, height: 170,
+                        display: "flex", flexDirection: "column",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          mb: 1, fontSize: "1.25rem", fontWeight: 600,
+                          color: "warning.main"
+                        }}
+                      >
+                        Historial de Aumentos
+                      </Typography>
+                      <Box sx={{ flex: 1, overflowY: "auto", pr: 1 }}>
+                        {increasesSorted.length === 0 ? (
+                          <Typography color="text.secondary">Sin aumentos registrados.</Typography>
+                        ) : (
+                          <Stack spacing={0.5}>
+                            {increasesSorted.map((a: any, idx: number) => {
+                              const currencyPrefix = (c?: string | null) => (c === "USD" ? "USD $ " : "ARS $ ");
+                              const adjStr =
+                                typeof a.adjustment === "number"
+                                  ? a.adjustment < 1
+                                    ? `+${Math.round(a.adjustment * 100)}%`
+                                    : `+ ${currencyPrefix(a.currency)}${a.adjustment.toLocaleString("es-AR")}`
+                                  : "";
+
+                              return (
+                                <Box
+                                  key={a.id ?? idx}
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    py: 0.5,
+                                    borderBottom: "1px solid",
+                                    borderColor: "grey.100",
+                                  }}
+                                >
+                                  <Box>
+                                    <Typography variant="body2" color="text.secondary">
+                                      {fmtDate(a.date)}
+                                    </Typography>
+                                    {adjStr && (
+                                      <Typography variant="caption" color="text.disabled">
+                                        {adjStr}{a.note ? ` · ${a.note}` : ""}
+                                      </Typography>
+                                    )}
+                                  </Box>
+
+                                  <Typography variant="body2" fontWeight={700}>
+                                    {a.amount != null
+                                      ? `${currencyPrefix(a.currency)}${Number(a.amount).toLocaleString("es-AR")}`
+                                      : "-"}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                          </Stack>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                </Grid>
               </Paper>
             </Grid>
 
@@ -677,20 +848,62 @@ export default function ContractDetailPage() {
                   sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200", height: "80%", flex: 1 }}
                 >
                   <Typography
-                    sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}
+                    sx={{
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      fontSize: "1.25rem",
+                      fontWeight: 600,
+                      color: "primary.main",
+                    }}
                   >
                     <ReceiptOutlined />
                     Comisión
                   </Typography>
 
                   {!commission ? (
-                    <Typography color="text.secondary">Sin comisión registrada.</Typography>
+                    // Si no hay comision, aparecee el boton de agregar
+                    <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                      <Typography color="text.secondary">Sin comisión registrada.</Typography>
+
+                      <Box sx={{ mt: "auto", display: "flex", justifyContent: "flex-end" }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<AddIcon />}
+                          //onClick={onAddCommission}
+                          sx={{
+                            textTransform: "none",
+                            fontWeight: 700,
+                            borderRadius: 2,
+                            bgcolor: "white",
+                            borderColor: "warning.main",
+                            color: "warning.main",
+                            "&:hover": (theme) => ({
+                              bgcolor: alpha(theme.palette.warning.main, 0.08),
+                              borderColor: theme.palette.warning.dark,
+                            }),
+                          }}
+                        >
+                          Agregar
+                        </Button>
+                      </Box>
+                    </Box>
                   ) : (
-                    <>
+                    // Cuando si hay comision
+                    <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
                       <Grid container spacing={3}>
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box>
-                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                            <Typography
+                              sx={{
+                                mb: 0.5,
+                                fontSize: ".875rem",
+                                color: "text.secondary",
+                                fontWeight: 500,
+                              }}
+                            >
                               Moneda
                             </Typography>
                             <Typography sx={{ fontWeight: 700 }}>
@@ -700,7 +913,14 @@ export default function ContractDetailPage() {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box>
-                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                            <Typography
+                              sx={{
+                                mb: 0.5,
+                                fontSize: ".875rem",
+                                color: "text.secondary",
+                                fontWeight: 500,
+                              }}
+                            >
                               Monto total
                             </Typography>
                             <Typography sx={{ fontWeight: 700 }}>
@@ -710,7 +930,14 @@ export default function ContractDetailPage() {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box>
-                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                            <Typography
+                              sx={{
+                                mb: 0.5,
+                                fontSize: ".875rem",
+                                color: "text.secondary",
+                                fontWeight: 500,
+                              }}
+                            >
                               Fecha
                             </Typography>
                             <Typography sx={{ fontWeight: 700 }}>
@@ -720,7 +947,14 @@ export default function ContractDetailPage() {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                           <Box>
-                            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                            <Typography
+                              sx={{
+                                mb: 0.5,
+                                fontSize: ".875rem",
+                                color: "text.secondary",
+                                fontWeight: 500,
+                              }}
+                            >
                               Tipo / Cuotas
                             </Typography>
                             <Typography sx={{ fontWeight: 700 }}>
@@ -750,7 +984,7 @@ export default function ContractDetailPage() {
                           <Typography color="text.secondary">| {commission.note}</Typography>
                         )}
                       </Stack>
-                    </>
+                    </Box>
                   )}
                 </Paper>
               </Grid>
