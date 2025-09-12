@@ -35,6 +35,8 @@ export const ROUTES = {
   EDIT_CONTRACT: `/contract/:id/edit`,
   APPOINTMENTS: "/appointments",
   STATS: "/stats",
+  CONTRACT_DETAIL: "/contracts/:id",
+  //CONTRACT_DETAIL_TENANT: "/users/contracts/:id"
 };
 
 export const PAGES = [
