@@ -10,7 +10,7 @@ import pi.ms_users.domain.Appointment;
 import pi.ms_users.domain.AppointmentStatus;
 import pi.ms_users.domain.AvailableAppointment;
 import pi.ms_users.domain.User;
-import pi.ms_users.dto.EmailDTO;
+import pi.ms_users.dto.email.EmailDTO;
 import pi.ms_users.repository.IAppointmentRepository;
 import pi.ms_users.repository.IAvailableAppointmentRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;

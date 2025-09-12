@@ -48,6 +48,9 @@ public class WebSecurityConfig {
                                 "/chat/message",
                                 "/chatSession/create")
                         .permitAll()
+                        .requestMatchers(HttpMethod.PUT,
+                                "property/statusEspera/**")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

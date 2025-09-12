@@ -2,16 +2,19 @@ package pi.ms_users.service.impl;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import lombok.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import pi.ms_users.configuration.components.AppProperties;
-import pi.ms_users.dto.*;
+import pi.ms_users.dto.email.*;
 import pi.ms_users.service.interf.IEmailService;
 
 import java.time.LocalDateTime;
@@ -27,13 +30,29 @@ public class EmailService implements IEmailService {
 
     private final TemplateEngine templateEngine;
 
-    private String formatDate(LocalDateTime date) {
+    private String formatDateTime(LocalDateTime date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", Locale.forLanguageTag("es-AR"));
         return date.format(formatter);
     }
 
+    private String formatDate(LocalDate date) {
+        if (date == null) return "";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es-AR"));
+        return date.format(formatter);
+    }
+
+    private String formatAmount(BigDecimal amount, String currency) {
+        if (amount == null) return "";
+        String prefix = (currency == null) ? "" : (currency.equalsIgnoreCase("USD") ? "USD " : "ARS ");
+        Locale locale = Locale.forLanguageTag("es-AR");
+        NumberFormat nf = NumberFormat.getNumberInstance(locale);
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        return prefix + nf.format(amount);
+    }
+
     private void setEmailContextVariables(Context context, EmailPropertyDTO dto) {
-        context.setVariable("date", formatDate(dto.getDate()));
+        context.setVariable("date", formatDateTime(dto.getDate()));
         String propertyUrl = appProperties.getFrontendBaseUrl() + "/properties/" + dto.getPropertyId();
         context.setVariable("propertyUrl", propertyUrl);
         context.setVariable("propertyDescription", dto.getPropertyDescription());
@@ -51,7 +70,7 @@ public class EmailService implements IEmailService {
         try {
             Context context = new Context();
             context.setVariable("message", emailDTO.getDescription());
-            context.setVariable("date", formatDate(emailDTO.getDate()));
+            context.setVariable("date", formatDateTime(emailDTO.getDate()));
             context.setVariable("firstName", emailDTO.getFirstName());
             context.setVariable("lastName", emailDTO.getLastName());
             context.setVariable("phone", emailDTO.getPhone());
@@ -60,7 +79,7 @@ public class EmailService implements IEmailService {
             // Email para inmobiliaria
             MimeMessage messageInmo = javaMailSender.createMimeMessage();
             MimeMessageHelper helperInmo = new MimeMessageHelper(messageInmo, true, "UTF-8");
-            helperInmo.setTo("desarrolloinmobertibusso@gmail.com");
+            helperInmo.setTo(appProperties.getEmailInmobiliaria());
             helperInmo.setSubject("Nuevo turno solicitado");
             String contentInmo = templateEngine.process("email_inmobiliaria", context);
             helperInmo.setText(contentInmo, true);
@@ -87,7 +106,7 @@ public class EmailService implements IEmailService {
             Context context = new Context();
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
             context.setVariable("firstName", firstName);
-            context.setVariable("date", formatDate(date));
+            context.setVariable("date", formatDateTime(date));
             if (!(address == null) && !address.isEmpty()) {
                 context.setVariable("address", address);
             }
@@ -118,7 +137,7 @@ public class EmailService implements IEmailService {
         try {
             Context context = new Context();
             context.setVariable("firstName", firstName);
-            context.setVariable("date", formatDate(date));
+            context.setVariable("date", formatDateTime(date));
             String rescheduleUrl = appProperties.getFrontendBaseUrl() + "/contact";
             context.setVariable("rescheduleUrl", rescheduleUrl);
 
@@ -145,11 +164,11 @@ public class EmailService implements IEmailService {
             context.setVariable("lastName", emailDTO.getLastName());
             context.setVariable("phone", emailDTO.getPhone());
             context.setVariable("mail", emailDTO.getTo());
-            context.setVariable("date", formatDate(emailDTO.getDate()));
+            context.setVariable("date", formatDateTime(emailDTO.getDate()));
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo("desarrolloinmobertibusso@gmail.com");
+            helper.setTo(appProperties.getEmailInmobiliaria());
             helper.setSubject("Cancelación de turno");
 
             String content = templateEngine.process("email_canceled", context);
@@ -226,102 +245,340 @@ public class EmailService implements IEmailService {
         }
     }
 
-    /*
-    // cuando el administrador crea un contrato
     @Override
-    public void sendNewContractEmail(EmailContractDTO emailData) {
+    public void sendNewContractEmail(EmailNewContractDTO dto, Long contractId) {
         try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
             Context context = new Context();
-            context.setVariable("name", emailData.getFirstName());
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract";
             context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("startDate", formatDate(dto.getStartDate()));
+            context.setVariable("endDate", formatDate(dto.getEndDate()));
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(emailData.getTo());
-            helper.setSubject(emailData.getTitle());
+            helper.setTo(dto.getTo());
+            helper.setSubject("Inicio de contrato");
 
             String content = templateEngine.process("email_new_contract", context);
             helper.setText(content, true);
-
             javaMailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Error al enviar el correo de nuevo contrato: " + e.getMessage(), e);
+            throw new RuntimeException("Error al enviar correo de nuevo contrato: " + e.getMessage(), e);
         }
     }
 
-    // cuando aumenta el contrato segun el indice de aumento
     @Override
-    public void sendContractIncreaseEmail(EmailContractIncreaseDTO emailData) {
+    public void sendContractExpiredEmail(EmailExpiredContractDTO dto) {
         try {
             Context context = new Context();
-            context.setVariable("name", emailData.getFirstName());
-            context.setVariable("amount", emailData.getAmount());
-            context.setVariable("frequency", emailData.getFrequency());
-            context.setVariable("increase", emailData.getIncrease());
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract";
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("endDate", formatDate(dto.getEndDate()));
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Finalización de contrato");
+
+            String content = templateEngine.process("email_expired_contract_user", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar correo de contrato vencido: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendContractExpiringSoonEmail(EmailContractExpiringSoonDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("endDate", formatDate(dto.getEndDate()));
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(emailData.getTo());
-            helper.setSubject(emailData.getTitle());
+            helper.setTo(dto.getTo());
+            helper.setSubject("Tu contrato finaliza pronto");
 
-            String content = templateEngine.process("email_contract_increase", context);
+            String content = templateEngine.process("email_contract_expiring_soon_user", context);
             helper.setText(content, true);
-
             javaMailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Error al enviar el correo de aumento de contrato: " + e.getMessage(), e);
+            throw new RuntimeException("Error al enviar correo de contrato por vencer: " + e.getMessage(), e);
         }
     }
 
-    // cuando el contrato esta cerca a vencer
     @Override
-    public void sendContractExpirationReminder(EmailExpirationContract emailData) {
+    public void sendContractUpcomingIncreaseOneMonthEmail(EmailContractUpcomingIncreaseOneMonthDTO dto, Long contractId) {
         try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
             Context context = new Context();
-            context.setVariable("name", emailData.getFirstName());
-            context.setVariable("endDate", emailData.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract";
             context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("index", dto.getIndex());
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(emailData.getTo());
-            helper.setSubject(emailData.getTitle());
+            helper.setTo(dto.getTo());
+            helper.setSubject("Aviso de actualización contractual");
 
-            String content = templateEngine.process("email_contract_expiration", context);
+            String content = templateEngine.process("email_contract_soon_month_increase", context);
             helper.setText(content, true);
-
             javaMailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Error al enviar recordatorio de vencimiento: " + e.getMessage(), e);
+            throw new RuntimeException("Error al enviar aviso de aumento próximo: " + e.getMessage(), e);
         }
     }
 
-    // aviso de pago de alquiler
     @Override
-    public void sendRentPaymentReminder(EmailPaymentReminderDTO emailData) {
+    public void sendContractIncreaseLoadedEmail(EmailContractIncreaseLoadedDTO dto, Long contractId) {
         try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
             Context context = new Context();
-            context.setVariable("name", emailData.getFirstName());
-            context.setVariable("amount", emailData.getAmount());
-            context.setVariable("currency", emailData.getCurrency());
-            context.setVariable("dueDate", emailData.getDueDate());
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("newAmount", formatAmount(dto.getNewAmount(), dto.getCurrency()));
+            context.setVariable("increase", dto.getIncrease());
+            context.setVariable("index", dto.getIndex());
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(emailData.getTo());
-            helper.setSubject("Recordatorio de pago de alquiler");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Actualización de contrato aplicada");
 
-            String content = templateEngine.process("email_rent_payment_reminder", context);
+            String content = templateEngine.process("email_contract_increased_user", context);
             helper.setText(content, true);
-
             javaMailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Error al enviar el recordatorio de alquiler: " + e.getMessage(), e);
+            throw new RuntimeException("Error al enviar correo de aumento aplicado: " + e.getMessage(), e);
         }
     }
-     */
+
+    @Override
+    public void sendContractIncreaseLoadedEmailUpdate(EmailContractIncreaseLoadedDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("newAmount", formatAmount(dto.getNewAmount(), dto.getCurrency()));
+            context.setVariable("increase", dto.getIncrease());
+            context.setVariable("index", dto.getIndex());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Actualización de contrato aplicada");
+
+            String content = templateEngine.process("email_contract_increased_user_update", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar correo de aumento aplicado: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendContractPaymentReminderEmail(EmailContractPaymentReminderDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("dueDate", formatDate(dto.getDueDate()));
+            context.setVariable("amount", formatAmount(dto.getAmount(), dto.getCurrency()));
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Recordatorio de pago");
+
+            String content = templateEngine.process("email_contract_payment_reminder", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar recordatorio de pago de alquiler: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendUtilityPaymentReminderEmail(EmailUtilityPaymentReminderDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("utilityName", dto.getUtilityName());
+            context.setVariable("periodicity", dto.getPeriodicity());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Recordatorio de pago de servicio");
+
+            String content = templateEngine.process("email_extra_payment_reminder", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar recordatorio de utility: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendUtilityAmountLoadedEmail(EmailUtilityAmountLoadedDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("utilityName", dto.getUtilityName());
+            context.setVariable("amount", formatAmount(dto.getAmount(), null));
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Importe de servicio actualizado");
+
+            String content = templateEngine.process("email_extra_amount_loaded_user", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar monto cargado de utility: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendUtilityAmountLoadedEmailUpdate(EmailUtilityAmountLoadedDTO dto, Long contractId) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("firstName", dto.getFirstName());
+            context.setVariable("lastName", dto.getLastName());
+            context.setVariable("utilityName", dto.getUtilityName());
+            context.setVariable("amount", formatAmount(dto.getAmount(), null));
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(dto.getTo());
+            helper.setSubject("Importe de servicio actualizado");
+
+            String content = templateEngine.process("email_extra_amount_loaded_user_update", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar monto cargado de utility: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendAdminContractUpcomingIncreaseListEmail(EmailContractIncreaseAdminDTO dto) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts";
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("contracts", dto.getContracts());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(appProperties.getEmailInmobiliaria());
+            helper.setSubject("Contratos con ajustes programados");
+
+            String content = templateEngine.process("email_contract_increase_admin", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar lista de aumentos (admin): " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendAdminUtilityUpcomingChargeListEmail(EmailExtraAdminDTO dto) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts";
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("utilities", dto.getUtilities());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(appProperties.getEmailInmobiliaria());
+            helper.setSubject("Servicios con vencimiento próximo");
+
+            String content = templateEngine.process("email_extra_payment_admin", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar lista de utilities (admin): " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendAdminContractsExpiringSoonListEmail(EmailContractExpiringSoonListAdminDTO dto) {
+        try {
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts";
+
+            Context context = new Context();
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("contracts", dto.getContracts());
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(appProperties.getEmailInmobiliaria());
+            helper.setSubject("Contratos próximos a vencer");
+
+            String content = templateEngine.process("email_contracts_soon_expiring_admin", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar lista de contratos por vencer (admin): " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendAdminContractExpiredEmail(EmailContractExpiredAdminDTO dto) {
+        try {
+            String propertyUrl = appProperties.getFrontendBaseUrl() + "/properties/" + dto.getPropertyId();
+
+            Context context = new Context();
+            context.setVariable("propertyId", dto.getPropertyId());
+            context.setVariable("tenant", dto.getTenant());
+            context.setVariable("contractId", dto.getContractId());
+            context.setVariable("propertyUrl", propertyUrl);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(appProperties.getEmailInmobiliaria());
+            helper.setSubject("Contrato vencido - Acción requerida");
+
+            String content = templateEngine.process("email_contract_expired_admin", context);
+            helper.setText(content, true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar notificación de contrato vencido (admin): " + e.getMessage(), e);
+        }
+    }
+
 }

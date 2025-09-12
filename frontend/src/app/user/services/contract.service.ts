@@ -112,6 +112,7 @@ export const getContractsByUserId = async (userId: string) => {
   }
 };
 
+
 export const getContractsByPropertyId = async (propertyId: number) => {
   try {
     const response = await api.get(`/users/contracts/getByProperty/${propertyId}`, {

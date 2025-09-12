@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
-import pi.ms_users.dto.EmailNewUserDTO;
+import pi.ms_users.dto.email.EmailNewUserDTO;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
 import pi.ms_users.service.impl.EmailService;
 

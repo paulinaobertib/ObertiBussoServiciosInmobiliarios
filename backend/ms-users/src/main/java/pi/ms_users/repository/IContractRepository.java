@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.Contract;
 import pi.ms_users.domain.ContractStatus;
@@ -57,7 +56,7 @@ public interface IContractRepository extends JpaRepository<Contract, Long> {
 
     @EntityGraph(attributePaths = {"adjustmentIndex", "contractUtilities", "contractIncrease", "payments", "guarantors"})
     @Query("SELECT c FROM Contract c WHERE c.startDate = ?1 OR c.endDate = ?1")
-    List<Contract> findByDate(@Param("date") LocalDate date);
+    List<Contract> findByDate(LocalDate date);
 
     @EntityGraph(attributePaths = {"adjustmentIndex", "contractUtilities", "contractIncrease", "payments", "guarantors"})
     @Query("SELECT c FROM Contract c WHERE c.startDate >= ?1 AND c.endDate <= ?2")
@@ -69,9 +68,18 @@ public interface IContractRepository extends JpaRepository<Contract, Long> {
 
     @EntityGraph(attributePaths = {"adjustmentIndex", "contractUtilities", "contractIncrease", "payments", "guarantors"})
     @Query("SELECT c FROM Contract c WHERE c.endDate = ?1")
-    List<Contract> findByExactEndDate(@Param("date") LocalDate date);
+    List<Contract> findByExactEndDate(LocalDate date);
 
     @EntityGraph(attributePaths = {"adjustmentIndex", "contractUtilities", "contractIncrease", "payments", "guarantors"})
     @Query("select c from Contract c where c.endDate between CURRENT_DATE and ?1")
-    List<Contract> findExpiringUntil(@Param("to") LocalDate to);
+    List<Contract> findExpiringUntil(LocalDate to);
+
+    @Query("SELECT c FROM Contract c WHERE c.endDate = ?1")
+    List<Contract> findContractsExpiringInOneMonth(LocalDate oneMonthFromNow);
+
+    @Query("SELECT c FROM Contract c WHERE c.endDate = ?1")
+    List<Contract> findContractsExpiringToday(LocalDate today);
+
+    @Query("SELECT c FROM Contract c WHERE c.contractStatus = 'ACTIVO' AND c.endDate > ?1")
+    List<Contract> findActiveContractsNotExpiringNextMonth(LocalDate nextMonth);
 }

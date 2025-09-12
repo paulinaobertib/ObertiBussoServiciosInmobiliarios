@@ -24,7 +24,7 @@ public class Contract {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "property_id", nullable = false)
+    @Column(name = "property_id", nullable = true)
     private Long propertyId;
 
     @Enumerated(EnumType.STRING)
