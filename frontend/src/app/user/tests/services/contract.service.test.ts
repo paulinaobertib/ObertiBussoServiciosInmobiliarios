@@ -39,16 +39,16 @@ describe('contract.service', () => {
     errorSpy.mockRestore();
   });
 
-  it('postContract: POST a users/contracts/create con body, params y withCredentials; retorna response.data', async () => {
-    const body = { propertyId: 1, userId: 'u1', type: 'RENT' };
+  it('postContract: POST /users/contracts/create con body y withCredentials; retorna response.data', async () => {
+    const body = { propertyId: 1, userId: 'u1', contractType: 'VIVIENDA' };
     (api.post as any).mockResolvedValueOnce(resp({ id: 99 }));
 
-    const r = await postContract(body as any, 1234, 'USD');
+    const r = await postContract(body as any);
 
     expect(api.post).toHaveBeenCalledWith(
-      'users/contracts/create',
+      '/users/contracts/create',
       body,
-      { params: { amount: 1234, currency: 'USD' }, withCredentials: true }
+      { withCredentials: true }
     );
     expect(r).toEqual({ id: 99 });
   });
@@ -57,18 +57,18 @@ describe('contract.service', () => {
     const err = new Error('create fail');
     (api.post as any).mockRejectedValueOnce(err);
 
-    await expect(postContract({} as any, 1, 'ARS')).rejects.toThrow('create fail');
+    await expect(postContract({} as any)).rejects.toThrow('create fail');
     expect(errorSpy).toHaveBeenCalledWith('Error creating contract:', err);
   });
 
-  it('putContract: PUT /users/contracts/update con body y withCredentials; retorna response.data', async () => {
-    const body = { id: 10, propertyId: 1, userId: 'u1', status: 'ACTIVE' };
+  it('putContract: PUT /users/contracts/update/{id} con body y withCredentials; retorna response.data', async () => {
+    const body = { propertyId: 1, userId: 'u1', contractStatus: 'ACTIVO' };
     (api.put as any).mockResolvedValueOnce(resp({ ok: true }));
 
-    const r = await putContract(body as any);
+    const r = await putContract(10, body as any);
 
     expect(api.put).toHaveBeenCalledWith(
-      '/users/contracts/update',
+      '/users/contracts/update/10',
       body,
       { withCredentials: true }
     );
@@ -79,7 +79,7 @@ describe('contract.service', () => {
     const boom = new Error('update fail');
     (api.put as any).mockRejectedValueOnce(boom);
 
-    await expect(putContract({} as any)).rejects.toThrow('update fail');
+    await expect(putContract(1 as any, {} as any)).rejects.toThrow('update fail');
     expect(errorSpy).toHaveBeenCalledWith('Error updating contract:', boom);
   });
 
@@ -159,13 +159,13 @@ describe('contract.service', () => {
     expect(r).toEqual([{ id: 1 }, { id: 2 }]);
   });
 
-  it('getContractsByUserId: GET /users/contracts/user/{userId}; retorna response.data', async () => {
+  it('getContractsByUserId: GET /users/contracts/getByUser/{userId}; retorna response.data', async () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 'a' }]));
 
     const r = await getContractsByUserId('u1');
 
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/user/u1',
+      '/users/contracts/getByUser/u1',
       { withCredentials: true }
     );
     expect(r).toEqual([{ id: 'a' }]);
@@ -182,13 +182,13 @@ describe('contract.service', () => {
     );
   });
 
-  it('getContractsByPropertyId: GET /users/contracts/property/{propertyId}', async () => {
+  it('getContractsByPropertyId: GET /users/contracts/getByProperty/{propertyId}', async () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 'p' }]));
 
     const r = await getContractsByPropertyId(777);
 
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/property/777',
+      '/users/contracts/getByProperty/777',
       { withCredentials: true }
     );
     expect(r).toEqual([{ id: 'p' }]);
@@ -205,38 +205,38 @@ describe('contract.service', () => {
     );
   });
 
-  it('getContractsByType: GET /users/contracts/type con params {type}', async () => {
+  it('getContractsByType: GET /users/contracts/getByType con params {type}', async () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 't' }]));
 
     const r = await getContractsByType('RENT' as any);
 
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/type',
+      '/users/contracts/getByType',
       { params: { type: 'RENT' }, withCredentials: true }
     );
     expect(r).toEqual([{ id: 't' }]);
   });
 
-  it('getContractsByStatus: GET /users/contracts/status con params {status}', async () => {
+  it('getContractsByStatus: GET /users/contracts/getByStatus con params {status}', async () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 's' }]));
 
     const r = await getContractsByStatus('ACTIVE' as any);
 
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/status',
+      '/users/contracts/getByStatus',
       { params: { status: 'ACTIVE' }, withCredentials: true }
     );
     expect(r).toEqual([{ id: 's' }]);
   });
 
-  it('getContractsByDateRange: GET /users/contracts/dateRange con params {start,end}', async () => {
+  it('getContractsByDateRange: GET /users/contracts/getByDateRange con params {from,to}', async () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 'd' }]));
 
     const r = await getContractsByDateRange('2025-01-01', '2025-01-31');
 
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/dateRange',
-      { params: { start: '2025-01-01', end: '2025-01-31' }, withCredentials: true }
+      '/users/contracts/getByDateRange',
+      { params: { from: '2025-01-01', to: '2025-01-31' }, withCredentials: true }
     );
     expect(r).toEqual([{ id: 'd' }]);
   });

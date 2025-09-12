@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, MenuItem, Grid } from '@mui/material';
-import dayjs from 'dayjs';
-
 import { ContractIncreaseCurrency } from '../../types/contractIncrease';
 
 export interface IncreaseFormValues {
   date: string;
-  amount: number;
-  currency: ContractIncreaseCurrency;
-  frequency: number;
+  amount: number | '';
+  currency: ContractIncreaseCurrency | '';
+  frequency: number | '';
 }
 
 interface Props {
@@ -18,13 +16,13 @@ interface Props {
 
 export const IncreaseForm = ({ initialValues, onChange }: Props) => {
   const currencies = Object.values(ContractIncreaseCurrency) as ContractIncreaseCurrency[];
-  const defaultCurrency = currencies[0];
+  const labelize = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : '');
 
   const [vals, setVals] = useState<IncreaseFormValues>({
-    date: initialValues?.date ?? dayjs().format('YYYY-MM-DD'),
-    amount: initialValues?.amount ?? 0,
-    currency: initialValues?.currency ?? defaultCurrency,
-    frequency: initialValues?.frequency ?? 12,
+    date: initialValues?.date ?? '',
+    amount: initialValues?.amount ?? '',
+    currency: initialValues?.currency ?? '',
+    frequency: initialValues?.frequency ?? '',
   });
 
   useEffect(() => {
@@ -34,9 +32,9 @@ export const IncreaseForm = ({ initialValues, onChange }: Props) => {
   const handle = (field: keyof IncreaseFormValues) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    let value: string | number = e.target.value;
+    let value: any = e.target.value;
     if (field === 'amount' || field === 'frequency') {
-      value = Number(value);
+      value = value === '' ? '' : Number(value);
     } else if (field === 'currency') {
       value = value as ContractIncreaseCurrency;
     }
@@ -75,7 +73,7 @@ export const IncreaseForm = ({ initialValues, onChange }: Props) => {
           >
             {currencies.map((c) => (
               <MenuItem key={c} value={c}>
-                {c}
+                {labelize(c)}
               </MenuItem>
             ))}
           </TextField>

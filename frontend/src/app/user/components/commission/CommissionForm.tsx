@@ -77,7 +77,6 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const currencies = Object.values(PaymentCurrency) as PaymentCurrency[];
   const paymentTypes = Object.values(CommissionPaymentType) as CommissionPaymentType[];
   const statuses = Object.values(CommissionStatus) as CommissionStatus[];
   const labelize = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");

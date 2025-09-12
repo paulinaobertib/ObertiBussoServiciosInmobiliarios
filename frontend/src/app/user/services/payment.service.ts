@@ -52,7 +52,7 @@ export const getPaymentById = async (id: number) => {
 
 export const getPaymentsByContractId = async (contractId: number) => {
   try {
-    const response = await api.get(`/users/payments/contract/${contractId}`, {
+    const response = await api.get(`/users/payments/getByContract/${contractId}`, {
       withCredentials: true,
     });
     return response.data;
@@ -62,32 +62,15 @@ export const getPaymentsByContractId = async (contractId: number) => {
   }
 };
 
-export const getPaymentsByDate = async (contractId: number, date: string) => {
+export const getPaymentsByCommissionId = async (commissionId: number) => {
   try {
-    const response = await api.get(`/users/payments/getByDate`, {
-      params: { contractId, date },
+    const response = await api.get(`/users/payments/getByCommission/${commissionId}`, {
       withCredentials: true,
     });
     return response.data;
   } catch (error) {
-    console.error("Error fetching payments by date:", error);
+    console.error(`Error fetching payments for commission ${commissionId}:`, error);
     throw error;
   }
 };
-
-export const getPaymentsByDateBetween = async (
-  contractId: number,
-  start: string,
-  end: string
-) => {
-  try {
-    const response = await api.get(`/users/payments/getByDateBetween`, {
-      params: { contractId, start, end },
-      withCredentials: true,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching payments by date range:", error);
-    throw error;
-  }
-};
+// Additional endpoints exist for ranges and utilities/commissions if needed
