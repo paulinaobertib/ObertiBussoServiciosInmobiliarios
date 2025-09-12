@@ -3,28 +3,43 @@ export enum PaymentCurrency {
   ARS = "ARS",
 }
 
+export enum PaymentConcept {
+  ALQUILER = "ALQUILER",
+  EXTRA = "EXTRA",
+  COMISION = "COMISION",
+}
+
 export interface Payment {
   id: number;
-  contractId: number;
-  amount: number;
-  date: string;
-  description: string;
   paymentCurrency: PaymentCurrency;
+  amount: number;
+  date: string; // ISO date-time
+  description: string;
+  concept: PaymentConcept;
+  contractId: number;
+  contractUtilityId?: number | null;
+  commissionId?: number | null;
 }
 
 export interface PaymentCreate {
-  contract: { id: number };
-  amount: number;
-  date: string;
-  description: string;
   paymentCurrency: PaymentCurrency;
+  amount: number;
+  date: string; // ISO date-time
+  description: string;
+  concept: PaymentConcept;
+  contractId: number;
+  contractUtilityId?: number;
+  commissionId?: number;
 }
 
 export interface PaymentUpdate {
   id: number;
-  contract: { id: number };
+  paymentCurrency: PaymentCurrency;
   amount: number;
   date: string;
   description: string;
-  paymentCurrency: PaymentCurrency;
+  concept: PaymentConcept;
+  contractId: number;
+  contractUtilityId?: number;
+  commissionId?: number;
 }

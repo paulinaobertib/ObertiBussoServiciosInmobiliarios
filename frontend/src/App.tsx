@@ -23,20 +23,21 @@ function App() {
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
-        <AlertProvider>
-          <AuthProvider>
-            <PropertyCrudProvider>
-              <ChatProvider>
-                <BrowserRouter>
+        <BrowserRouter>
+          <AlertProvider>
+            <AuthProvider>
+              <PropertyCrudProvider>
+                <ChatProvider>
                   <Routes />
                   <ChatAlways />
+                  {/* Overlays globales, al final para “tapar” todo */}
                   <AuthLoaderOverlay />
                   <AuthExpired />
-                </BrowserRouter>
-              </ChatProvider>
-            </PropertyCrudProvider>
-          </AuthProvider>
-        </AlertProvider>
+                </ChatProvider>
+              </PropertyCrudProvider>
+            </AuthProvider>
+          </AlertProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </React.StrictMode>
   );

@@ -19,8 +19,9 @@ import { ContractsStats } from "../app/user/components/contracts/ContractsStats"
 import { ContractsFilters } from "../app/user/components/contracts/ContractsFilters";
 import { ContractList } from "../app/user/components/contracts/ContractList";
 import { PaymentDialog } from "../app/user/components/payments/PaymentDialog";
-import { IncreaseDialog } from "../app/user/components/increases/IncreaseDialog";
+// import { IncreaseDialog } from "../app/user/components/increases/IncreaseDialog";
 import { HistoryDialog } from "../app/user/components/contracts/HistoryDialog";
+// removed utilities dialog per UX preference
 import BasePage from "./BasePage";
 
 export default function ContractsPage() {
@@ -33,7 +34,7 @@ export default function ContractsPage() {
         handleSearch,
         paying,
         setPaying,
-        increasing,
+        // increasing,
         setIncreasing,
         history,
         setHistory,
@@ -44,6 +45,7 @@ export default function ContractsPage() {
         navigate,
         DialogUI,
     } = useContractsPage();
+
 
     const activeCount = all.filter(
         (c) => c.contractStatus === ContractStatus.ACTIVO
@@ -118,7 +120,7 @@ export default function ContractsPage() {
                                 await refresh();
                             }}
                         />
-                        <IncreaseDialog
+                        {/* <IncreaseDialog
                             open={!!increasing}
                             contract={increasing}
                             onClose={() => setIncreasing(null)}
@@ -126,12 +128,14 @@ export default function ContractsPage() {
                                 setIncreasing(null);
                                 await refresh();
                             }}
-                        />
+                        /> */}
                         <HistoryDialog
                             open={!!history}
                             contract={history}
                             onClose={() => setHistory(null)}
                         />
+
+                        {null}
 
                         {DialogUI}
                     </Container>

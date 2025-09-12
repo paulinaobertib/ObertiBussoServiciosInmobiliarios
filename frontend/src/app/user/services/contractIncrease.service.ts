@@ -1,7 +1,4 @@
-import {
-  ContractIncrease,
-  ContractIncreaseCreate,
-} from "../types/contractIncrease";
+import { ContractIncrease, ContractIncreaseCreate } from "../types/contractIncrease";
 import { api } from "../../../api";
 
 export const postContractIncrease = async (data: ContractIncreaseCreate) => {
@@ -18,11 +15,7 @@ export const postContractIncrease = async (data: ContractIncreaseCreate) => {
 
 export const updateContractIncrease = async (data: ContractIncrease) => {
   try {
-    const response = await api.put(
-      `/users/contractIncreases/update/${data.id}`,
-      data,
-      { withCredentials: true }
-    );
+    const response = await api.put(`/users/contractIncreases/update`, data, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error updating contract increase:", error);
@@ -32,10 +25,7 @@ export const updateContractIncrease = async (data: ContractIncrease) => {
 
 export const deleteContractIncrease = async (data: ContractIncrease) => {
   try {
-    const response = await api.delete(
-      `/users/contractIncreases/delete/${data.id}`,
-      { withCredentials: true }
-    );
+    const response = await api.delete(`/users/contractIncreases/delete/${data.id}`, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error deleting contract increase:", error);
@@ -57,16 +47,20 @@ export const getContractIncreaseById = async (id: number) => {
 
 export const getContractIncreasesByContract = async (contractId: number) => {
   try {
-    const response = await api.get(
-      `/users/contractIncreases/contract/${contractId}`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/users/contractIncreases/getByContract/${contractId}`, { withCredentials: true });
     return response.data;
   } catch (error) {
-    console.error(
-      `Error fetching increases for contract ${contractId}:`,
-      error
-    );
+    console.error(`Error fetching increases for contract ${contractId}:`, error);
+    throw error;
+  }
+};
+
+export const getLastContractIncreaseByContract = async (contractId: number) => {
+  try {
+    const response = await api.get(`/users/contractIncreases/getLast/${contractId}`, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching last increase for contract ${contractId}:`, error);
     throw error;
   }
 };

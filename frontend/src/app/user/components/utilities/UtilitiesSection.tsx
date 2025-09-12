@@ -23,23 +23,27 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true 
 
   const columns = [
     { field: "name", headerName: "Nombre", flex: 1 },
-    {
-      field: "actions",
-      headerName: "Acciones",
-      width: 120,
-      sortable: false,
-      filterable: false,
-      renderCell: (params: any) => (
-        <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%">
-          <IconButton size="small" title="Editar" onClick={() => openEdit(params.row)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" title="Eliminar" onClick={() => openDelete(params.row)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      ),
-    },
+    ...(showActions
+      ? [
+          {
+            field: "actions",
+            headerName: "Acciones",
+            width: 120,
+            sortable: false,
+            filterable: false,
+            renderCell: (params: any) => (
+              <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%">
+                <IconButton size="small" title="Editar" onClick={() => openEdit(params.row)}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton size="small" title="Eliminar" onClick={() => openDelete(params.row)}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            ),
+          },
+        ]
+      : []),
   ];
 
   const gridToggleSelect = useCallback(
@@ -123,7 +127,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true 
         loading={loading}
         columns={columns}
         onSearch={(results) => setRows(results as Utility[])}
-        onCreate={openCreate}
+        onCreate={showActions ? openCreate : undefined}
         onEdit={openEdit}
         onDelete={openDelete}
         onRoles={undefined}

@@ -54,14 +54,14 @@ describe('contractIncrease.service', () => {
     expect(errorSpy).toHaveBeenCalledWith('Error creating contract increase:', err);
   });
 
-  it('updateContractIncrease: PUT /users/contractIncreases/update/{id} con body y withCredentials; retorna response.data', async () => {
+  it('updateContractIncrease: PUT /users/contractIncreases/update con body y withCredentials; retorna response.data', async () => {
     const body = { id: 7, contractId: 10, percentage: 15, effectiveDate: '2025-10-01' };
     (api.put as any).mockResolvedValueOnce(resp({ ok: true }));
 
     const r = await updateContractIncrease(body as any);
 
     expect(api.put).toHaveBeenCalledWith(
-      '/users/contractIncreases/update/7',
+      '/users/contractIncreases/update',
       body,
       { withCredentials: true }
     );
@@ -120,13 +120,13 @@ describe('contractIncrease.service', () => {
     );
   });
 
-  it('getContractIncreasesByContract: GET /users/contractIncreases/contract/{contractId}; retorna response.data', async () => {
+  it('getContractIncreasesByContract: GET /users/contractIncreases/getByContract/{contractId}; retorna response.data', async () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }, { id: 2 }]));
 
     const r = await getContractIncreasesByContract(777);
 
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contractIncreases/contract/777',
+      '/users/contractIncreases/getByContract/777',
       { withCredentials: true }
     );
     expect(r).toEqual([{ id: 1 }, { id: 2 }]);
