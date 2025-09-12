@@ -48,7 +48,6 @@ export const ContractItem = ({ contract }: Props) => {
   const lastDate = contract.lastPaidDate ? fmtShortDate(contract.lastPaidDate) : null;
 
   const goDetail = () => {
-    // ahora todos van a la misma ruta de detalle
     navigate(buildRoute(ROUTES.CONTRACT_DETAIL, contract.id));
   };
 
