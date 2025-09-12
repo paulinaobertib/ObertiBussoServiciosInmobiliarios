@@ -15,7 +15,6 @@ const typeLabel = (t?: Contract["contractType"]) => {
   if (!t) return "";
   const map: Record<string, string> = {
     VIVIENDA: "Vivienda",
-    RESIDENCIAL: "Vivienda",
     COMERCIAL: "Comercial",
     TEMPORAL: "Temporal",
   };
