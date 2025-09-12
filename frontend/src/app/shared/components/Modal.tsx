@@ -13,16 +13,17 @@ export interface Props {
     title: string;
     onClose: () => void;
     children: React.ReactNode;
+    maxWidth?: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
-export const Modal = ({ open, title, onClose, children }: Props) => {
+export const Modal = ({ open, title, onClose, children, maxWidth = "sm" }: Props) => {
     const theme = useTheme();
 
     return (
         <Dialog
             open={open}
             fullWidth
-            maxWidth="sm"
+            maxWidth={maxWidth}
             onClose={(_, reason) => {
                 if (reason !== "backdropClick") onClose();
             }}

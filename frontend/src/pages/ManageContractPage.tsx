@@ -18,9 +18,8 @@ import { useManageContractPage } from "../app/user/hooks/contracts/useManageCont
 import { PropertySection } from "../app/property/components/properties/PropertySection";
 import { UsersSection } from "../app/user/components/users/panel/UsersSection";
 import { GuarantorsSection } from "../app/user/components/guarantors/GuarantorsSection";
-import { UtilitiesSection } from "../app/user/components/utilities/UtilitiesSection";
 import { ContractForm } from "../app/user/components/contracts/ContractForm";
-import { CommissionDialog } from "../app/user/components/commission/CommissionDialog";
+// Post-creación se maneja con rutas dedicadas
 // Extras integrados en ContractForm
 
 export default function ManageContractPage() {
@@ -28,7 +27,7 @@ export default function ManageContractPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const ctrl = useManageContractPage();
 
-  const steps = ["Propiedad", "Usuario", "Datos", "Utilities"];
+  const steps = ["Propiedad", "Usuario", "Datos"];
 
   // Sincroniza garantes seleccionados con el formulario (sin depender del toggle visual)
   useEffect(() => {
@@ -76,54 +75,41 @@ export default function ManageContractPage() {
             </Box>
           )}
 
-          <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
-            {ctrl.activeStep === 0 && (
-              <Button variant="contained" onClick={() => ctrl.setActiveStep(1)} disabled={!ctrl.canProceed()}>
-                Siguiente
-              </Button>
-            )}
-
-            {ctrl.activeStep === 1 && (
-              <>
-                <Button variant="outlined" onClick={() => ctrl.setActiveStep(0)}>
-                  Volver
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => ctrl.setActiveStep(2)}
-                  disabled={ctrl.selectedUserId === null}
-                >
+          {
+            <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+              {ctrl.activeStep === 0 && (
+                <Button variant="contained" onClick={() => ctrl.setActiveStep(1)} disabled={!ctrl.canProceed()}>
                   Siguiente
                 </Button>
-              </>
-            )}
+              )}
 
-            {ctrl.activeStep === 2 && (
-              <>
-                <Button variant="outlined" onClick={() => ctrl.setActiveStep(1)}>
-                  Volver
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => ctrl.setActiveStep(3)}
-                  disabled={ctrl.loading || !ctrl.formReady}
-                >
-                  Siguiente
-                </Button>
-              </>
-            )}
+              {ctrl.activeStep === 1 && (
+                <>
+                  <Button variant="outlined" onClick={() => ctrl.setActiveStep(0)}>
+                    Volver
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => ctrl.setActiveStep(2)}
+                    disabled={ctrl.selectedUserId === null}
+                  >
+                    Siguiente
+                  </Button>
+                </>
+              )}
 
-            {ctrl.activeStep === 3 && (
-              <>
-                <Button variant="outlined" onClick={() => ctrl.setActiveStep(2)}>
-                  Volver
-                </Button>
-                <Button variant="contained" onClick={ctrl.save} disabled={ctrl.loading}>
-                  {ctrl.contract ? "Actualizar" : "Crear"}
-                </Button>
-              </>
-            )}
-          </Box>
+              {ctrl.activeStep === 2 && (
+                <>
+                  <Button variant="outlined" onClick={() => ctrl.setActiveStep(1)}>
+                    Volver
+                  </Button>
+                  <Button variant="contained" onClick={ctrl.save} disabled={ctrl.loading || !ctrl.formReady}>
+                    {ctrl.contract ? "Actualizar" : "Crear"}
+                  </Button>
+                </>
+              )}
+            </Box>
+          }
         </Box>
 
         {ctrl.activeStep === 0 && (
@@ -165,7 +151,7 @@ export default function ManageContractPage() {
         )}
 
         {ctrl.selectedPropertyId != null && ctrl.selectedUserId != null && (
-          <Box sx={{ display: ctrl.activeStep === 2 ? 'block' : 'none' }}>
+          <Box sx={{ display: ctrl.activeStep === 2 ? "block" : "none" }}>
             <ContractForm
               ref={ctrl.formRef}
               initialPropertyId={ctrl.selectedPropertyId}
@@ -176,27 +162,9 @@ export default function ManageContractPage() {
           </Box>
         )}
 
-        {ctrl.activeStep === 3 && (
-          <UtilitiesSection
-            toggleSelect={(ids) => {
-              console.log('[ManageContractPage] utilities selected', ids);
-              ctrl.setSelectedUtilityIds(ids);
-            }}
-            isSelected={(id) => ctrl.selectedUtilityIds.includes(id)}
-            showActions={true}
-          />
-        )}
-
         {/* Extras paso eliminado: integrados dentro del ContractForm */}
 
         {ctrl.DialogUI}
-
-        <CommissionDialog
-          open={ctrl.commissionOpen}
-          contractId={ctrl.commissionContractId}
-          onClose={ctrl.closeCommissionModal}
-          onSaved={ctrl.afterCommissionSaved}
-        />
       </Box>
     </BasePage>
   );

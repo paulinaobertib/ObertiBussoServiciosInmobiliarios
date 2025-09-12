@@ -26,6 +26,8 @@ import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
+import ContractUtilitiesPage from './pages/ContractUtilitiesPage';
+import ContractCommissionPage from './pages/ContractCommissionPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -116,6 +118,22 @@ export default function Routes() {
                 element={
                     <RequireAdmin>
                         <ManageContractPage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.CONTRACT_UTILITIES}
+                element={
+                    <RequireAdmin>
+                        <ContractUtilitiesPage />
+                    </RequireAdmin>
+                }
+            />
+            <Route
+                path={ROUTES.CONTRACT_COMMISSION}
+                element={
+                    <RequireAdmin>
+                        <ContractCommissionPage />
                     </RequireAdmin>
                 }
             />
