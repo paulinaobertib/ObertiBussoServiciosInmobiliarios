@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tu contrato finaliza pronto</title>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px #ddd;">
+    <div style="background-color: #EB7333; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://storageimages.blob.core.windows.net/images/logo.png" alt="Logo Inmobiliaria" style="max-height: 60px; display: block; margin: 0 auto;">
+        <h1 style="color: white; margin-top: 10px;">Hola, <span th:text="${firstName}">Nombre</span></h1>
+    </div>
+    <div style="padding: 30px; background-color: #f5f5f5;">
+        <p>Queremos recordarte que tu contrato de alquiler está próximo a finalizar.</p>
+
+        <ul>
+            <li><strong>Fecha de finalización:</strong> <span th:text="${endDate}">01/01/2025</span></li>
+        </ul>
+
+        <p>Para ver los detalles completos de tu contrato, visitá el siguiente enlace:</p>
+        <div style="text-align: center; margin: 20px 0;">
+            <a th:href="${contractUrl}" target="_blank"
+               style="background-color: #EB7333; color: white; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; display: inline-block;">
+                Ver mi contrato
+            </a>
+        </div>
+
+        <p>Sabemos que organizar los próximos pasos puede generar dudas, por eso queremos acompañarte en este proceso.
+            Si estás pensando en renovar, mudarte o explorar nuevas opciones, nuestro equipo está preparado para asesorarte y ayudarte a tomar la mejor decisión.</p>
+
+        <p>Te invitamos a ponerte en contacto con nosotros cuanto antes para conversar sobre las alternativas disponibles.
+            De esta forma podremos asegurarnos de que todo continúe de la manera más cómoda y sencilla para vos.</p>
+
+        <p>Gracias por habernos elegido hasta ahora. Para nosotros es un verdadero placer poder acompañarte en una etapa tan importante como la de tu hogar.</p>
+
+        <p style="margin-top: 20px;">Con calidez,</p>
+        <p><strong>Equipo de Oberti Busso Servicios Inmobiliarios</strong></p>
+    </div>
+    <div style="background-color: #FAB360; padding: 15px; text-align: center; border-radius: 0 0 8px 8px;">
+        <small>Oberti Busso Servicios Inmobiliarios</small>
+    </div>
+</div>
+</body>
+</html>

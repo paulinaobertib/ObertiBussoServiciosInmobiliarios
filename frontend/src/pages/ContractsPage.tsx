@@ -1,5 +1,3 @@
-// src/pages/ContractsPage.tsx
-
 import {
     Container,
     Box,
@@ -14,7 +12,6 @@ import { ROUTES } from "../lib";
 
 import { useContractsPage } from "../app/user/hooks/contracts/useContractsPage";
 import { ContractStatus } from "../app/user/types/contract";
-
 import { ContractsStats } from "../app/user/components/contracts/ContractsStats";
 import { ContractsFilters } from "../app/user/components/contracts/ContractsFilters";
 import { ContractList } from "../app/user/components/contracts/ContractList";
@@ -35,7 +32,7 @@ export default function ContractsPage() {
         paying,
         setPaying,
         // increasing,
-        setIncreasing,
+        // setIncreasing,
         history,
         setHistory,
         handleDelete,
@@ -104,9 +101,6 @@ export default function ContractsPage() {
 
                         <ContractList
                             contracts={disp}
-                            onRegisterPayment={setPaying}
-                            onIncrease={setIncreasing}
-                            onHistory={setHistory}
                             onDelete={handleDelete}
                             onToggleStatus={handleToggleStatus}
                         />

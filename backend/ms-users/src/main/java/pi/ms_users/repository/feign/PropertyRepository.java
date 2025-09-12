@@ -20,4 +20,8 @@ public class PropertyRepository {
     public ResponseEntity<String> updateStatus(Long id, Status status) {
         return feignPropertyRepository.updateStatus(id, status);
     }
+
+    public ResponseEntity<String> updateStatusEspera(Long id) {
+        return feignPropertyRepository.updateStatusEspera(id);
+    }
 }

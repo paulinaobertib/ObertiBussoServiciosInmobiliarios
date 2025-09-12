@@ -28,6 +28,8 @@ import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
 import ContractUtilitiesPage from './pages/ContractUtilitiesPage';
 import ContractCommissionPage from './pages/ContractCommissionPage';
+import ContractDetailPage from './pages/ContractDetailPage';
+//import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
 /* ---------- Guards ---------- */
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -106,7 +108,7 @@ export default function Routes() {
             />
 
             <Route
-                path={ROUTES.NEW_CONTRACT}          // '/properties/new'
+                path={ROUTES.NEW_CONTRACT}
                 element={
                     <RequireAdmin>
                         <ManageContractPage />
@@ -114,7 +116,7 @@ export default function Routes() {
                 }
             />
             <Route
-                path={ROUTES.EDIT_CONTRACT}         // '/properties/:id/edit'
+                path={ROUTES.EDIT_CONTRACT}
                 element={
                     <RequireAdmin>
                         <ManageContractPage />
@@ -155,6 +157,25 @@ export default function Routes() {
                     </RequireAdminOrTenant>
                 }
             />
+
+            {/* admin y tenant comparten la misma ruta */}
+            <Route
+                path={ROUTES.CONTRACT_DETAIL}
+                element={
+                    <RequireAdminOrTenant>
+                        <ContractDetailPage />
+                    </RequireAdminOrTenant>
+                }
+            />
+            {/* <Route
+                path={ROUTES.CONTRACT_DETAIL_TENANT}
+                element={
+                    <RequireAdminOrTenant>
+                        <ContractDetailUserPage />
+                    </RequireAdminOrTenant>
+                }
+            /> */}
+
             <Route
                 path={ROUTES.PROPERTY_NOTES}
                 element={
@@ -197,16 +218,6 @@ export default function Routes() {
                     </RequireLogin>
                 }
             />
-
-            {/* ---- Panel inquilino ---- */}
-            {/* <Route
-                path={ROUTES.TENANT}
-                element={
-                    <RequireTenant>
-                        <TenantPage />
-                    </RequireTenant>
-                }
-            /> */}
 
             {/* ---- Públicas ---- */}
             <Route path={ROUTES.COMPARE} element={<Compare />} />

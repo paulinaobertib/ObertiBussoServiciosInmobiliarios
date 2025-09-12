@@ -12,7 +12,7 @@ import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.dto.feign.PropertyDTO;
-import pi.ms_users.dto.EmailPropertyDTO;
+import pi.ms_users.dto.email.EmailPropertyDTO;
 import pi.ms_users.dto.NotificationDTO;
 import pi.ms_users.repository.INotificationRepository;
 import pi.ms_users.repository.IUserNotificationPreferenceRepository;
