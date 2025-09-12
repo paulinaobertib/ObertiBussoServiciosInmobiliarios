@@ -10,7 +10,10 @@ public class AppProperties {
 
     private final String frontendBaseUrl;
 
-    public AppProperties(@Value("${frontend.base-url}") String frontendBaseUrl) {
+    private final String emailInmobiliaria;
+
+    public AppProperties(@Value("${frontend.base-url}") String frontendBaseUrl, @Value("${email.username}") String emailInmobiliaria) {
         this.frontendBaseUrl = frontendBaseUrl;
+        this.emailInmobiliaria = emailInmobiliaria;
     }
 }

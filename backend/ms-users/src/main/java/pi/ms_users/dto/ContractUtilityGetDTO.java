@@ -19,4 +19,5 @@ public class ContractUtilityGetDTO {
     private Long contractId;
     private Long utilityId;
     private List<Payment> paymentList;
+    private List<ContractUtilityIncreaseGetDTO> increases;
 }
