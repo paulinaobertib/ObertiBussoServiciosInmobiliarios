@@ -1,148 +1,143 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Button } from '@mui/material';
-import { DataGrid, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridColDef,
+  GridRowId,
+  GridRowSelectionModel,
+} from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import { Modal } from './Modal';
 import { SearchBar } from './SearchBar';
 
 interface GridSectionProps {
-    data: any[];
-    loading: boolean;
-    columns: GridColDef[];
-    onSearch: (results: any[]) => void;
-    onCreate?: () => void;
-    onEdit: (item: any) => void;
-    onDelete: (item: any) => void;
-    onRoles?: (item: any) => void;
-    toggleSelect?: (selected: string | string[] | null) => void;
-    isSelected?: (id: string) => boolean;
-    entityName: string;
-    showActions?: boolean;
-    fetchAll: () => Promise<any[]>;
-    fetchByText: (searchTerm: string) => Promise<any[]>;
-    multiSelect?: boolean;
-    selectedIds?: string[];
-    selectable?: boolean;
+  data: any[];
+  loading: boolean;
+  columns: GridColDef[];
+  onSearch: (results: any[]) => void;
+  onCreate?: () => void;
+  onEdit: (item: any) => void;
+  onDelete: (item: any) => void;
+  onRoles?: (item: any) => void;
+  toggleSelect?: (selected: string | string[] | null) => void;
+  isSelected?: (id: string) => boolean;
+  entityName: string;
+  showActions?: boolean;
+  fetchAll: () => Promise<any[]>;
+  fetchByText: (searchTerm: string) => Promise<any[]>;
+  multiSelect?: boolean;
+  selectedIds?: string[];
+  selectable?: boolean;
 }
 
 export const GridSection = ({
-    data,
-    loading,
-    columns,
-    onSearch,
-    onCreate,
-    toggleSelect,
-    entityName,
-    fetchAll,
-    fetchByText,
-    multiSelect = false,
-    selectedIds,
-    selectable = true,
+  data,
+  loading,
+  columns,
+  onSearch,
+  onCreate,
+  toggleSelect,
+  entityName,
+  fetchAll,
+  fetchByText,
+  multiSelect = false,
+  selectedIds,
+  selectable = true,
 }: GridSectionProps) => {
-    // Si se controla desde afuera, usar el prop. Si no, manejar interno.
-    const [internalSelection, setInternalSelection] = useState<GridRowSelectionModel>({ type: 'include', ids: new Set() });
+  // Normaliza ids a GridRowId (number si es numérico, sino string)
+  const normalizeId = (id: string | number): GridRowId => {
+    const n = Number(id);
+    return Number.isFinite(n) ? n : String(id);
+  };
 
-    // Sincronizar selección externa si viene por props
-    useEffect(() => {
-        if (selectedIds) {
-            setInternalSelection({
-                type: 'include',
-                ids: new Set(selectedIds.map(id => id)),
-            });
-        }
-    }, [selectedIds]);
+  // Modelo de selección que espera tu DataGrid (objeto con Set)
+  const emptySelection = (): GridRowSelectionModel => ({
+    type: 'include',
+    ids: new Set<GridRowId>(),
+  });
 
-    const handleRowSelection = useCallback(
-        (newModel: GridRowSelectionModel) => {
-            // extraemos los IDs (pueden ser string o number)
-            const ids = Array.from(newModel.ids);
+  const [internalSelection, setInternalSelection] = useState<GridRowSelectionModel>(emptySelection());
 
-            if (multiSelect) {
-                // convertimos todo a string[]
-                const stringIds = ids.map((id) => String(id));
-                // notificamos al padre con el array
-                toggleSelect?.(stringIds);
-                // actualizamos nuestro estado interno (manteniendo los GridRowId originales)
-                setInternalSelection({
-                    type: 'include',
-                    ids: new Set(ids),
-                });
-            } else {
-                // tomamos el último o ninguno
-                const last = ids.length > 0 ? ids[ids.length - 1] : null;
-                const lastStr = last !== null ? String(last) : null;
-                // notificamos al padre con string o null
-                toggleSelect?.(lastStr);
-                // actualizamos internamente
-                setInternalSelection({
-                    type: 'include',
-                    ids: last !== null ? new Set([last]) : new Set(),
-                });
-            }
-        },
-        [toggleSelect, multiSelect]
-    );
+  // Si viene selección externa (selectedIds), sincronizala -> pinta el “naranjita”
+  useEffect(() => {
+    if (!selectedIds) return;
+    const next = emptySelection();
+    for (const sid of selectedIds) next.ids.add(normalizeId(sid));
+    setInternalSelection(next);
+  }, [selectedIds]);
 
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalContent] = useState<React.ReactNode>(null);
-    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  // Handler de selección del grid (recibe el mismo objeto {type, ids})
+  const handleRowSelection = useCallback(
+    (newModel: GridRowSelectionModel) => {
+      // Aseguro estructura válida
+      const next: GridRowSelectionModel = {
+        type: newModel?.type ?? 'include',
+        ids: newModel?.ids instanceof Set ? newModel.ids : new Set<GridRowId>(),
+      };
+      setInternalSelection(next);
 
-    return (
-        <>
-            <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} my={2}>
-                <SearchBar
-                    onSearch={onSearch}
-                    placeholder={`Buscar ${entityName}...`}
-                    fetchAll={fetchAll}
-                    fetchByText={fetchByText}
-                />
-                <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
-                    {entityName}
-                </Button>
-            </Box>
+      if (!toggleSelect) return;
 
-            <Box width="100%">
-                <DataGrid
-                    rows={data}
-                    initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={(m) => setPaginationModel({ ...m, pageSize: 10 })}
-                    pageSizeOptions={[10]}
-                    columns={columns}
-                    loading={loading}
-                    checkboxSelection={selectable}
-                    disableRowSelectionOnClick
-                    hideFooterSelectedRowCount
-                    {...(selectable
-                        ? {
-                            rowSelectionModel: internalSelection,
-                            onRowSelectionModelChange: (newModel: GridRowSelectionModel) =>
-                                handleRowSelection(newModel),
-                        }
-                        : {})}
-                    localeText={{ noRowsLabel: `No hay resultados.` }}
+      // Convierto Set -> array para notificar al padre
+      const idsArr = Array.from(next.ids);
+      if (multiSelect) {
+        toggleSelect(idsArr.map(String)); // string[]
+      } else {
+        const last = idsArr.length ? idsArr[idsArr.length - 1] : null;
+        toggleSelect(last != null ? String(last) : null); // string | null
+      }
+    },
+    [toggleSelect, multiSelect]
+  );
 
-                    sx={{
-                        // Centra verticalmente todas las celdas de datos...
-                        '& .MuiDataGrid-cell': {
-                            display: 'flex',
-                            alignItems: 'center',
-                        },
-                        // ...y también las cabeceras de columna si quieres
-                        '& .MuiDataGrid-columnHeader': {
-                            display: 'flex',
-                            alignItems: 'center',
-                        },
-                        '& .MuiDataGrid-columnHeaderTitle': {
-                            fontWeight: 'bold',
-                        },
-                    }}
-                />
-            </Box>
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent] = useState<React.ReactNode>(null);
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
 
-            <Modal open={modalOpen} title={`${entityName} Details`} onClose={() => setModalOpen(false)}>
-                {modalContent}
-            </Modal>
-        </>
-    );
+  return (
+    <>
+      <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} my={2}>
+        <SearchBar
+          onSearch={onSearch}
+          placeholder={`Buscar ${entityName}...`}
+          fetchAll={fetchAll}
+          fetchByText={fetchByText}
+        />
+        <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
+          {entityName}
+        </Button>
+      </Box>
+
+      <Box width="100%">
+        <DataGrid
+          // Asegurate que cada fila tenga un ID; si no, definimos un fallback común
+          getRowId={(row) => row.id ?? row.ID ?? row.Id ?? row._id}
+          rows={data}
+          columns={columns}
+          loading={loading}
+          checkboxSelection={!!selectable}
+          hideFooterSelectedRowCount
+          // Paginación
+          initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
+          paginationModel={paginationModel}
+          onPaginationModelChange={(m) => setPaginationModel({ ...m, pageSize: 10 })}
+          pageSizeOptions={[10]}
+          // Selección controlada (objeto con Set) — tal como tipa tu versión
+          rowSelectionModel={selectable ? internalSelection : emptySelection()}
+          onRowSelectionModelChange={handleRowSelection}
+          // Miscelánea
+          localeText={{ noRowsLabel: `No hay resultados.` }}
+          sx={{
+            '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center' },
+            '& .MuiDataGrid-columnHeader': { display: 'flex', alignItems: 'center' },
+            '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 'bold' },
+          }}
+        />
+      </Box>
+
+      <Modal open={modalOpen} title={`${entityName} Details`} onClose={() => setModalOpen(false)}>
+        {modalContent}
+      </Modal>
+    </>
+  );
 };
