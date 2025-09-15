@@ -48,6 +48,7 @@ interface Ctx {
   toggleCompare: (id: number) => void;
   clearComparison: () => void;
   disabledCompare: boolean;
+  seedSelectionsFromProperty: (p: Property | null) => void; //Items seleccionados
 }
 
 const Context = createContext<Ctx | null>(null);
@@ -121,6 +122,21 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       }));
     }
   };
+
+  //Items seleccionados
+  const seedSelectionsFromProperty = useCallback((p: Property | null) => {
+    if (!p) {
+      // limpia selección
+      setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
+      return;
+    }
+    setSelected({
+      owner: p.owner?.id ?? null,
+      neighborhood: p.neighborhood?.id ?? null,
+      type: p.type?.id ?? null,
+      amenities: Array.isArray(p.amenities) ? p.amenities.map(a => a.id) : [],
+    });
+  }, []);
 
   const buildSearchParams = useCallback((numeric: Partial<SearchParams>) => {
     const amNames = selected.amenities
@@ -206,6 +222,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         toggleCompare,
         clearComparison,
         disabledCompare,
+        seedSelectionsFromProperty, //Items seleccionados
       }}
     >
       {children}
