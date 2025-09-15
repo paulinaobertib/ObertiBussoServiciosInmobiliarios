@@ -1,6 +1,4 @@
-import {
-  Card, CardHeader, CardContent, CardActions, Typography, Chip, Box, Button, Divider
-} from "@mui/material";
+import { Card, CardHeader, CardContent, CardActions, Typography, Chip, Box, Button, Divider } from "@mui/material";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
@@ -30,11 +28,8 @@ interface Props {
 
 export const ContractItem = ({ contract }: Props) => {
   const navigate = useNavigate();
-  
-  const { userName, propertyName } = useContractNames(
-    contract.userId,
-    contract.propertyId
-  );
+
+  const { userName, propertyName } = useContractNames(contract.userId, contract.propertyId);
 
   const fmtLongDate = (iso: string) => {
     const d = new Date(iso);
@@ -52,13 +47,14 @@ export const ContractItem = ({ contract }: Props) => {
 
   return (
     <Card
+      variant="elevation"
+      elevation={2}
       sx={{
         border: "1px solid",
         borderColor: "grey.200",
         borderRadius: 3,
-        boxShadow: 5,
-        transition: "box-shadow .25s ease",
-        "&:hover": { boxShadow: 15 },
+        transition: "transform 0.1s",
+        "&:hover": { transform: "scale(1.01)" },
         maxWidth: 600,
         minHeight: 300,
         display: "flex",

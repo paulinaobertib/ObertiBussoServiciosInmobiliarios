@@ -1,4 +1,4 @@
-import { Paper, Typography, Box, Stack } from "@mui/material";
+import { Card, Typography, Box, Stack, Button } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import AttachMoneyOutlined from "@mui/icons-material/AttachMoneyOutlined";
 import { fmtDate, fmtMoney } from "./utils";
@@ -12,6 +12,8 @@ type Props = {
   adjustmentIndex?: { code: string; name: string } | null | undefined;
   paymentsSorted: any[];
   increasesSorted: any[];
+  onRegisterRentPayment?: () => void;
+  onRegisterIncrease?: () => void;
 };
 
 export default function FinancialCard({
@@ -23,21 +25,57 @@ export default function FinancialCard({
   adjustmentIndex,
   paymentsSorted,
   increasesSorted,
+  onRegisterRentPayment,
+  onRegisterIncrease,
 }: Props) {
   const money = (n?: number | null) => fmtMoney(n, currency);
 
   return (
     <Grid size={{ xs: 12 }}>
-      <Paper elevation={1} sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200" }}>
-        <Typography sx={{ mb: 3, display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}>
-          <AttachMoneyOutlined />
-          Información Financiera
-        </Typography>
+      <Card elevation={2} sx={{ p: "1.5rem", borderRadius: "0.75rem" }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+          <Typography
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              color: "primary.main",
+            }}
+          >
+            <AttachMoneyOutlined />
+            Información Financiera
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {onRegisterIncrease && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={onRegisterIncrease}
+                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
+              >
+                Registrar aumento
+              </Button>
+            )}
+            {onRegisterRentPayment && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={onRegisterRentPayment}
+                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
+              >
+                Registrar alquiler
+              </Button>
+            )}
+          </Box>
+        </Box>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box>
-              <Typography sx={{ mb: .5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+              <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
                 Monto Inicial
               </Typography>
               <Typography sx={{ fontSize: "1rem", fontWeight: 700, color: "success.main" }}>
@@ -48,7 +86,7 @@ export default function FinancialCard({
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box>
-              <Typography sx={{ mb: .5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+              <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
                 Último Pago (Monto)
               </Typography>
               <Typography
@@ -65,18 +103,16 @@ export default function FinancialCard({
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box>
-              <Typography sx={{ mb: .5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+              <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
                 Último Pago (Fecha)
               </Typography>
-              <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
-                {fmtDate(lastPaidDate ?? undefined)}
-              </Typography>
+              <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>{fmtDate(lastPaidDate ?? undefined)}</Typography>
             </Box>
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box>
-              <Typography sx={{ mb: .5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+              <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
                 Frecuencia de Ajuste
               </Typography>
               <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
@@ -88,7 +124,7 @@ export default function FinancialCard({
 
         {adjustmentIndex && (
           <Box sx={{ mt: 2, p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
-            <Typography sx={{ mb: .5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+            <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
               Índice de Ajuste
             </Typography>
             <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>
@@ -101,7 +137,10 @@ export default function FinancialCard({
         <Grid container spacing={2} sx={{ mt: 2 }}>
           {/* Pagos */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: 170, display: "flex", flexDirection: "column" }}>
+            <Card
+              variant="outlined"
+              sx={{ p: "1rem", borderRadius: "0.5rem", height: "10.625rem", display: "flex", flexDirection: "column" }}
+            >
               <Typography sx={{ mb: 1, fontSize: "1.25rem", fontWeight: 600, color: "warning.main" }}>
                 Historial de Pagos
               </Typography>
@@ -114,7 +153,10 @@ export default function FinancialCard({
                       const payDate = p.date ?? p.paymentDate;
                       const payAmount = p.amount ?? 0;
                       const payType: string =
-                        p.concept ?? p.type ?? p.paymentType ?? (p.contractUtilityId ? "SERVICIO / EXPENSA" : "ALQUILER");
+                        p.concept ??
+                        p.type ??
+                        p.paymentType ??
+                        (p.contractUtilityId ? "SERVICIO / EXPENSA" : "ALQUILER");
 
                       return (
                         <Box
@@ -145,7 +187,11 @@ export default function FinancialCard({
                           >
                             {String(payType).replace(/_/g, " ")}
                           </Typography>
-                          <Typography variant="body2" fontWeight={700} sx={{ width: 120, flexShrink: 0, textAlign: "right" }}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={700}
+                            sx={{ width: 120, flexShrink: 0, textAlign: "right" }}
+                          >
                             {money(payAmount)}
                           </Typography>
                         </Box>
@@ -154,12 +200,15 @@ export default function FinancialCard({
                   </Stack>
                 )}
               </Box>
-            </Paper>
+            </Card>
           </Grid>
 
           {/* Aumentos */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: 170, display: "flex", flexDirection: "column" }}>
+            <Card
+              variant="outlined"
+              sx={{ p: "1rem", borderRadius: "0.5rem", height: "10.625rem", display: "flex", flexDirection: "column" }}
+            >
               <Typography sx={{ mb: 1, fontSize: "1.25rem", fontWeight: 600, color: "warning.main" }}>
                 Historial de Aumentos
               </Typography>
@@ -201,7 +250,9 @@ export default function FinancialCard({
                             )}
                           </Box>
                           <Typography variant="body2" fontWeight={700}>
-                            {a.amount != null ? `${prefix(a.currency)}${Number(a.amount).toLocaleString("es-AR")}` : "-"}
+                            {a.amount != null
+                              ? `${prefix(a.currency)}${Number(a.amount).toLocaleString("es-AR")}`
+                              : "-"}
                           </Typography>
                         </Box>
                       );
@@ -209,10 +260,10 @@ export default function FinancialCard({
                   </Stack>
                 )}
               </Box>
-            </Paper>
+            </Card>
           </Grid>
         </Grid>
-      </Paper>
+      </Card>
     </Grid>
   );
 }

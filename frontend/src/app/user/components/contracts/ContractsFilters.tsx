@@ -10,14 +10,7 @@ interface Props {
 }
 
 export const ContractsFilters = ({ filter, onFilterChange, onSearch }: Props) => {
-  const {
-    typeFilter,
-    setTypeFilter,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-  } = useContractFilters(filter, onSearch);
+  const { typeFilter, setTypeFilter, dateFrom, setDateFrom, dateTo, setDateTo } = useContractFilters(filter, onSearch);
 
   const handleStatusChange = (e: SelectChangeEvent<"ALL" | ContractStatus>) => {
     onFilterChange(e.target.value as "ALL" | ContractStatus);
@@ -28,14 +21,7 @@ export const ContractsFilters = ({ filter, onFilterChange, onSearch }: Props) =>
   };
 
   return (
-    <Box
-      display="flex"
-      flexWrap="wrap"
-      justifyContent="center"
-      alignItems="center"
-      gap={2}
-      mb={3}
-    >
+    <Box display="flex" flexWrap="wrap" justifyContent="center" alignItems="center" gap={2} mb={3}>
       {/* Estado */}
       <FormControl size="small" sx={{ minWidth: 160 }}>
         <InputLabel id="status-label">Estado</InputLabel>
@@ -54,12 +40,7 @@ export const ContractsFilters = ({ filter, onFilterChange, onSearch }: Props) =>
       {/* Tipo */}
       <FormControl size="small" sx={{ minWidth: 180 }}>
         <InputLabel id="type-label">Tipo</InputLabel>
-        <Select<"ALL" | ContractType>
-          labelId="type-label"
-          value={typeFilter}
-          label="Tipo"
-          onChange={handleTypeChange}
-        >
+        <Select<"ALL" | ContractType> labelId="type-label" value={typeFilter} label="Tipo" onChange={handleTypeChange}>
           <MenuItem value="ALL">Todos</MenuItem>
           <MenuItem value={ContractType.VIVIENDA}>Vivienda</MenuItem>
           <MenuItem value={ContractType.COMERCIAL}>Comercial</MenuItem>
@@ -87,7 +68,7 @@ export const ContractsFilters = ({ filter, onFilterChange, onSearch }: Props) =>
         value={dateTo}
         onChange={(e) => setDateTo(e.target.value)}
         InputLabelProps={{ shrink: true }}
-        inputProps={{ min: dateFrom || undefined }} 
+        inputProps={{ min: dateFrom || undefined }}
         sx={{ minWidth: 160 }}
       />
     </Box>
