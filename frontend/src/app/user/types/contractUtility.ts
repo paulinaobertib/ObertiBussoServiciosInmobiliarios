@@ -22,5 +22,10 @@ export type ContractUtilityCreate = Omit<ContractUtility, "id">;
 
 // Para GET enriquecido (incluye lista de pagos en backend)
 export interface ContractUtilityGet extends ContractUtility {
-  // opcional: podríamos tipar payments si hace falta
+  // Aumentos asociados al servicio dentro del contrato
+  increases?: Array<{
+    id: number;
+    adjustmentDate: string; // ISO date
+    amount: number;
+  }>;
 }
