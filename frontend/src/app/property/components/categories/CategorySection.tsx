@@ -12,6 +12,7 @@ import { OwnerForm } from '../forms/OwnerForm';
 import { TypeForm } from '../forms/TypeForm';
 import { NeighborhoodForm } from '../forms/NeighborhoodForm';
 import type { Category } from '../../context/PropertiesContext';
+import { usePropertiesContext } from '../../context/PropertiesContext';
 
 const formRegistry = {
   amenity: AmenityForm,
@@ -20,8 +21,10 @@ const formRegistry = {
   neighborhood: NeighborhoodForm,
 } as const;
 
-export const CategorySection = ({ category, selectable = true,
-}: { category: Category, selectable?: boolean }) => {
+export const CategorySection = ({
+  category,
+  selectable = true,
+}: { category: Category; selectable?: boolean }) => {
   const {
     data,
     loading,
@@ -31,16 +34,45 @@ export const CategorySection = ({ category, selectable = true,
     isSelected: internalIsSelected,
   } = useCategorySection(category);
 
+  // Selección global (sembrada desde la Property)
+  const { selected: globalSelected } = usePropertiesContext();
+
   // Adaptadores para GridSection
   const gridToggleSelect = useCallback(
-    (selected: string | string[] | null) => {
-      const raw = Array.isArray(selected)
-        ? selected[selected.length - 1]
-        : selected;
-      const id = raw != null ? Number(raw) : null;
-      if (id !== null) internalToggle(id);
+    (sel: string | string[] | null) => {
+      if (!selectable) return;
+
+      if (category === 'amenity') {
+        // multi: GridSection nos manda el conjunto completo de seleccionados (string[])
+        const next = new Set((Array.isArray(sel) ? sel : []).map(s => Number(s)));
+        const prev = new Set(globalSelected.amenities);
+
+        // Agregados
+        for (const id of next) if (!prev.has(id)) internalToggle(id);
+        // Quitados
+        for (const id of prev) if (!next.has(id)) internalToggle(id);
+        return;
+      }
+
+      // single: GridSection manda el último seleccionado como string o null
+      const prevId =
+        category === 'type'
+          ? globalSelected.type
+          : category === 'neighborhood'
+          ? globalSelected.neighborhood
+          : globalSelected.owner;
+
+      const nextId = typeof sel === 'string' ? Number(sel) : null;
+
+      if (nextId == null && prevId != null) {
+        // deseleccionó todo -> toggle en el anterior para apagarlo
+        internalToggle(prevId);
+      } else if (nextId != null && nextId !== prevId) {
+        // seleccionó un id distinto
+        internalToggle(nextId);
+      }
     },
-    [internalToggle]
+    [category, selectable, internalToggle, globalSelected]
   );
 
   const gridIsSelected = useCallback(
@@ -55,29 +87,31 @@ export const CategorySection = ({ category, selectable = true,
     return data;
   }, [refresh, onSearch, data]);
 
-  const fetchByText = useCallback(async (term: string) => {
-    const lower = term.trim().toLowerCase();
-    if (!lower) {
-      onSearch(data);
-      return data;
-    }
-    // Definimos campos a buscar según categoría
-    const columnsMap: Record<Category, string[]> = {
-      owner: ['firstName', 'lastName', 'email', 'phone'],
-      amenity: ['name'],
-      type: ['name'],
-      neighborhood: ['name', 'city', 'type'],
-    };
-    const keys = columnsMap[category] || [];
-    const filtered = data.filter(item =>
-      keys.some(key => {
-        const value = String((item as any)[key] ?? '').toLowerCase();
-        return value.includes(lower);
-      })
-    );
-    onSearch(filtered);
-    return filtered;
-  }, [category, data, onSearch]);
+  const fetchByText = useCallback(
+    async (term: string) => {
+      const lower = term.trim().toLowerCase();
+      if (!lower) {
+        onSearch(data);
+        return data;
+      }
+      const columnsMap: Record<Category, string[]> = {
+        owner: ['firstName', 'lastName', 'email', 'phone'],
+        amenity: ['name'],
+        type: ['name'],
+        neighborhood: ['name', 'city', 'type'],
+      };
+      const keys = columnsMap[category] || [];
+      const filtered = data.filter(item =>
+        keys.some(key => {
+          const value = String((item as any)[key] ?? '').toLowerCase();
+          return value.includes(lower);
+        })
+      );
+      onSearch(filtered);
+      return filtered;
+    },
+    [category, data, onSearch]
+  );
 
   // Columnas dinámicas
   const headersMap: Record<Category, { field: string; headerName: string }[]> = {
@@ -113,9 +147,9 @@ export const CategorySection = ({ category, selectable = true,
       flex: 1,
       renderCell: isBooleanField
         ? (params: any) => {
-          const value = params.row?.[col.field];
-          return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
-        }
+            const value = params.row?.[col.field];
+            return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
+          }
         : undefined,
     };
   });
@@ -131,18 +165,10 @@ export const CategorySection = ({ category, selectable = true,
       const item = params.row;
       return (
         <Box>
-          <IconButton
-            size="small"
-            title="Editar"
-            onClick={() => handleOpen('edit', item)}
-          >
+          <IconButton size="small" title="Editar" onClick={() => handleOpen('edit', item)}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton
-            size="small"
-            title="Eliminar"
-            onClick={() => handleOpen('delete', item)}
-          >
+          <IconButton size="small" title="Eliminar" onClick={() => handleOpen('delete', item)}>
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -162,13 +188,25 @@ export const CategorySection = ({ category, selectable = true,
 
   if (loading) {
     return (
-      <Box
-        sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
         <CircularProgress size={36} />
       </Box>
     );
   }
+
+  // IDs seleccionados (controlados) para que el DataGrid pinte
+  const selectedIds =
+    category === 'amenity'
+      ? globalSelected.amenities.map(String)
+      : (() => {
+          const id =
+            category === 'type'
+              ? globalSelected.type
+              : category === 'neighborhood'
+              ? globalSelected.neighborhood
+              : globalSelected.owner;
+          return id != null ? [String(id)] : [];
+        })();
 
   return (
     <>
@@ -188,6 +226,7 @@ export const CategorySection = ({ category, selectable = true,
         fetchByText={fetchByText}
         multiSelect={category === 'amenity'}
         selectable={selectable}
+        selectedIds={selectedIds}  // para pintar con naranjita
       />
       <ModalItem info={modal} close={() => setModal(null)} />
     </>
