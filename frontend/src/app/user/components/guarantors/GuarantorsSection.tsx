@@ -11,9 +11,10 @@ interface Props {
   toggleSelect?: (ids: number[]) => void;
   isSelected?: (id: number) => boolean;
   showActions?: boolean;
+  selectedIds?: string[]; //mantener seleccionado
 }
 
-export function GuarantorsSection({ toggleSelect, isSelected, showActions = true }: Props) {
+export function GuarantorsSection({ toggleSelect, isSelected, showActions = true, selectedIds }: Props) {
   const { guarantors, loading, loadAll, fetchByText } = useGuarantors();
 
   // Adaptadores para GridSection (multi‑select: number[])
@@ -96,6 +97,7 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
         fetchByText={fetchByText}
         multiSelect={true}
         selectable={true}
+        selectedIds={selectedIds} //mantener seleccionado
       />
 
       <GuarantorDialog
