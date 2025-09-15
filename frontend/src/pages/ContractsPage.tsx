@@ -15,10 +15,7 @@ import { ContractStatus } from "../app/user/types/contract";
 import { ContractsStats } from "../app/user/components/contracts/ContractsStats";
 import { ContractsFilters } from "../app/user/components/contracts/ContractsFilters";
 import { ContractList } from "../app/user/components/contracts/ContractList";
-import { PaymentDialog } from "../app/user/components/payments/PaymentDialog";
-// import { IncreaseDialog } from "../app/user/components/increases/IncreaseDialog";
-import { HistoryDialog } from "../app/user/components/contracts/HistoryDialog";
-// removed utilities dialog per UX preference
+import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase";
 import BasePage from "./BasePage";
 
 export default function ContractsPage() {
@@ -31,10 +28,6 @@ export default function ContractsPage() {
         handleSearch,
         paying,
         setPaying,
-        // increasing,
-        // setIncreasing,
-        history,
-        setHistory,
         handleDelete,
         handleToggleStatus,
         refresh,
@@ -113,20 +106,6 @@ export default function ContractsPage() {
                                 setPaying(null);
                                 await refresh();
                             }}
-                        />
-                        {/* <IncreaseDialog
-                            open={!!increasing}
-                            contract={increasing}
-                            onClose={() => setIncreasing(null)}
-                            onSaved={async () => {
-                                setIncreasing(null);
-                                await refresh();
-                            }}
-                        /> */}
-                        <HistoryDialog
-                            open={!!history}
-                            contract={history}
-                            onClose={() => setHistory(null)}
                         />
 
                         {null}

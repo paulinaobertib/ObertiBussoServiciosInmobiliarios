@@ -13,8 +13,8 @@ export type ContractFormValues = {
   contractStatus: ContractStatus | "";
   startDate: string;
   endDate: string;
-  amount: number | "";
-  increaseFrequency: number | "";
+  initialAmount: number | "";
+  adjustmentFrequencyMonths: number | "";
   currency: string | "";
   adjustmentIndexId: number | "";
   note: string;
@@ -39,8 +39,8 @@ export function useContractForm(
     contractStatus: initialData?.contractStatus ?? "",
     startDate: (initialData?.startDate || "").split("T")[0] ?? "",
     endDate: (initialData?.endDate || "").split("T")[0] ?? "",
-    increaseFrequency: (initialData as any)?.adjustmentFrequencyMonths ?? "",
-    amount: (initialData as any)?.initialAmount ?? "",
+    adjustmentFrequencyMonths: (initialData as any)?.adjustmentFrequencyMonths ?? "",
+    initialAmount: (initialData as any)?.initialAmount ?? "",
     currency: (initialData as any)?.currency ?? (initialData as any)?.paymentCurrency ?? "",
     adjustmentIndexId: (initialData as any)?.adjustmentIndexId ?? (initialData as any)?.adjustmentIndex?.id ?? "",
     note: (initialData as any)?.note ?? "",
@@ -68,8 +68,8 @@ export function useContractForm(
       contractStatus: initialData.contractStatus ?? "",
       startDate: (initialData.startDate || "").split("T")[0] ?? "",
       endDate: (initialData.endDate || "").split("T")[0] ?? "",
-      increaseFrequency: (initialData as any)?.adjustmentFrequencyMonths ?? 12,
-      amount: (initialData as any)?.initialAmount ?? 1,
+      adjustmentFrequencyMonths: (initialData as any)?.adjustmentFrequencyMonths ?? 12,
+      initialAmount: (initialData as any)?.initialAmount ?? 1,
       currency: (initialData as any)?.currency ?? (initialData as any)?.paymentCurrency ?? "ARS",
       adjustmentIndexId: (initialData as any)?.adjustmentIndexId ?? (initialData as any)?.adjustmentIndex?.id ?? "",
       note: (initialData as any)?.note ?? "",
@@ -123,8 +123,8 @@ export function useContractForm(
       e.endDate = "Fin anterior al inicio";
 
     // increase ya no es requerido por el DTO
-    if (values.increaseFrequency === "" || Number(values.increaseFrequency) <= 0) e.increaseFrequency = "Debe ser > 0";
-    if (values.amount === "" || Number(values.amount) <= 0) e.amount = "Debe > 0";
+    if (values.adjustmentFrequencyMonths === "" || Number(values.adjustmentFrequencyMonths) <= 0) e.increaseFrequency = "Debe ser > 0";
+    if (values.initialAmount === "" || Number(values.initialAmount) <= 0) e.amount = "Debe > 0";
     if (!values.currency) e.currency = "Requerido";
     if (values.hasDeposit) {
       const amt = Number(values.depositAmount);
@@ -161,8 +161,8 @@ export function useContractForm(
       contractStatus: "",
       startDate: "",
       endDate: "",
-      increaseFrequency: "",
-      amount: "",
+      adjustmentFrequencyMonths: "",
+      initialAmount: "",
       currency: "",
       adjustmentIndexId: "",
       note: "",
@@ -180,8 +180,8 @@ export function useContractForm(
       ...values,
       contractType: values.contractType as ContractType,
       contractStatus: values.contractStatus as ContractStatus,
-      amount: Number(values.amount),
-      increaseFrequency: Number(values.increaseFrequency),
+      initialAmount: Number(values.initialAmount),
+      adjustmentFrequencyMonths: Number(values.adjustmentFrequencyMonths),
       // Enviamos LocalDate (YYYY-MM-DD), el backend usa LocalDate para el DTO
       startDate: values.startDate,
       endDate: values.endDate,
@@ -218,8 +218,8 @@ export function useContractForm(
       startDate: values.startDate,
       endDate: values.endDate,
       currency: values.currency as any,
-      initialAmount: Number(values.amount) || 0,
-      adjustmentFrequencyMonths: Number(values.increaseFrequency) || 0,
+      initialAmount: Number(values.initialAmount) || 0,
+      adjustmentFrequencyMonths: Number(values.adjustmentFrequencyMonths) || 0,
       lastPaidAmount: null,
       lastPaidDate: null,
       note: values.note || null,

@@ -1,6 +1,6 @@
 // src/app/user/hooks/contracts/useContractsPage.ts
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useAuthContext } from "../../context/AuthContext";
 import {
@@ -16,6 +16,7 @@ export function useContractsPage() {
   const userId = info?.id!;
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
+  const location = useLocation();
 
   const [all, setAll] = useState<Contract[]>([]);
   const [filtered, setFiltered] = useState<Contract[]>([]);
@@ -46,6 +47,21 @@ export function useContractsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Mostrar ask cuando venimos de crear contrato
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.justCreated) {
+      const id = state.createdId as number | null | undefined;
+      const msg = "Contrato creado con éxito.\nPara agregar servicios y la comisión, dirigirse al detalle.";
+      ask(msg, async () => {
+        if (id) navigate(`/contracts/${id}`);
+      });
+      // limpiar el state para que no se repita en refresh
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   // Filtrado por estado
   useEffect(() => {
