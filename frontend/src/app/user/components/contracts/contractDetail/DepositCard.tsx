@@ -1,5 +1,4 @@
-import { Paper, Typography, Box } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { Card, Typography, Box } from "@mui/material";
 import PaidIcon from "@mui/icons-material/Paid";
 import { fmtMoney } from "./utils";
 
@@ -8,41 +7,32 @@ type Props = {
   hasDeposit?: boolean | null;
   depositAmount?: number | null;
   depositNote?: string | null;
-  /** si lo pasás (p.ej. "80%") usamos layout en columna (admin);
-   * si no lo pasás, layout en fila (tenant) */
   sxHeight?: string | number;
 };
 
-export default function DepositCard({
-  currency,
-  hasDeposit,
-  depositAmount,
-  depositNote,
-  sxHeight,
-}: Props) {
+export default function DepositCard({ currency, hasDeposit, depositAmount, depositNote, sxHeight }: Props) {
   // Tenant (sin sxHeight) => mostramos nota al lado del monto si existe
   const inline = !sxHeight && !!depositNote;
 
   return (
-    <Grid size={{ xs: 12, sm: 6 }}>
-      <Paper
-        elevation={1}
+    <Box sx={{ flex: "1 1 0", minWidth: 0, display: "flex" }}>
+      <Card
+        elevation={2}
         sx={{
-          p: 3,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "grey.200",
-          height: sxHeight ?? "71%",
+          p: "1.5rem",
+          borderRadius: "0.75rem",
           display: "flex",
           flexDirection: "column",
+          width: 1, 
+          flex: 1,
         }}
       >
         <Typography
           sx={{
-            mb: 2,
+            mb: "1.25rem",
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: "0.5rem",
             fontSize: "1.25rem",
             fontWeight: 600,
             color: "primary.main",
@@ -57,16 +47,14 @@ export default function DepositCard({
             sx={{
               display: "flex",
               flexDirection: inline ? "row" : "column",
-              gap: inline ? 6 : 2,
+              gap: "1rem",
               alignItems: inline ? "flex-start" : "stretch",
               flexWrap: "wrap",
             }}
           >
             {/* Bloque Monto */}
-            <Box sx={{ minWidth: 220 }}>
-              <Typography
-                sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}
-              >
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ mb: ".5rem", fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
                 Monto del Depósito
               </Typography>
               <Typography sx={{ fontSize: "1rem", fontWeight: 700, color: "warning.main" }}>
@@ -76,10 +64,8 @@ export default function DepositCard({
 
             {/* Bloque Nota (en línea al lado del monto en tenant) */}
             {depositNote && (
-              <Box sx={{ minWidth: 220 }}>
-                <Typography
-                  sx={{ mb: 0.5, fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}
-                >
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ mb: ".5rem", fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
                   Nota del Depósito
                 </Typography>
                 <Typography
@@ -91,7 +77,6 @@ export default function DepositCard({
                     textOverflow: "ellipsis",
                     maxWidth: "100%",
                   }}
-                  title={depositNote}
                 >
                   {depositNote}
                 </Typography>
@@ -101,7 +86,7 @@ export default function DepositCard({
         ) : (
           <Typography color="text.secondary">No hay depósitos registrados.</Typography>
         )}
-      </Paper>
-    </Grid>
+      </Card>
+    </Box>
   );
 }

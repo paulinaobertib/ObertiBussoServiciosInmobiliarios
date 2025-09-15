@@ -3,10 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Container, Typography, CircularProgress, IconButton } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import ReplyIcon from "@mui/icons-material/Reply";
-
 import BasePage from "./BasePage.tsx";
-import { getContractById, patchContractStatus } from "../app/user/services/contract.service.ts";
-import type { ContractDetail } from "../app/user/types/contract.ts";
+import { getContractById, patchContractStatus, deleteContract } from "../app/user/services/contract.service.ts";
+import type { ContractGet } from "../app/user/types/contract.ts";
 import { useContractNames } from "../app/user/hooks/contracts/useContractNames.ts";
 import { useUtilityNames } from "../app/user/hooks/contracts/useUtilityNames.ts";
 import { useAuthContext } from "../app/user/context/AuthContext.tsx";
@@ -19,23 +18,33 @@ import FinancialCard from "../app/user/components/contracts/contractDetail/Finan
 import GuarantorsCard from "../app/user/components/contracts/contractDetail/GuarantorsCard.tsx";
 import CommissionCard from "../app/user/components/contracts/contractDetail/ComissionCard.tsx";
 import ServicesExpensesCard from "../app/user/components/contracts/contractDetail/ServicesExpensesCard.tsx";
+import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase.tsx";
+import { PaymentRentDialog } from "../app/user/components/payments/PaymentRentDialog";
+import { PaymentCommissionDialog } from "../app/user/components/payments/PaymentCommission.tsx";
+import { IncreaseDialog } from "../app/user/components/increases/IncreaseDialog";
+import { buildRoute, ROUTES } from "../lib";
+import { UtilitiesPickerDialog } from "../app/user/components/contract-utilities/SelectUtilitiesDialog";
+import { GuarantorPickerDialog } from "../app/user/components/guarantors/SelectGuarantorDialog.tsx";
 import NotesCard from "../app/user/components/contracts/contractDetail/NotesCard.tsx";
+import { PaymentExtrasDialog } from "../app/user/components/payments/PaymentExtrasDialog";
+import { ContractUtilityDialog } from "../app/user/components/contract-utilities/ManageContractUtility.tsx";
+import { ContractUtilityIncreaseDialog } from "../app/user/components/contract-utilities/ContractUtilityIncreaseDialog.tsx";
+import { CommissionDialog } from "../app/user/components/commission/CommissionDialog";
 
 import { getTime } from "../app/user/components/contracts/contractDetail/utils.ts";
+import { useConfirmDialog } from "../app/shared/components/ConfirmDialog";
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
+  const { ask, DialogUI } = useConfirmDialog();
 
   const [loading, setLoading] = useState(true);
-  const [contract, setContract] = useState<ContractDetail | null>(null);
+  const [contract, setContract] = useState<ContractGet | null>(null);
   const [savingStatus, setSavingStatus] = useState(false);
 
-  const { userName, propertyName } = useContractNames(
-    contract?.userId ?? "",
-    contract?.propertyId ?? 0
-  );
+  const { userName, propertyName } = useContractNames(contract?.userId ?? "", contract?.propertyId ?? 0);
 
   useEffect(() => {
     let alive = true;
@@ -44,7 +53,7 @@ export default function ContractDetailPage() {
         if (!id) return;
         const resp = await getContractById(Number(id));
         const data = (resp as any)?.data ?? resp;
-        if (alive) setContract(data as ContractDetail);
+        if (alive) setContract(data as ContractGet);
       } finally {
         if (alive) setLoading(false);
       }
@@ -65,26 +74,60 @@ export default function ContractDetailPage() {
 
   const paymentsSorted = [...payments].sort((a, b) => getTime(b) - getTime(a));
   const increasesSorted = [...increasesRaw].sort((a, b) => getTime(b) - getTime(a));
+  const commissionPaidCount = (() => {
+    if (!commission || !commission.id) return 0;
+    return payments.filter(
+      (p: any) => p?.concept === 'COMISION' && Number(p?.commissionId) === Number(commission.id)
+    ).length;
+  })();
 
   // acciones admin
-  const onEdit = () => contract && navigate(`/contracts/${contract.id}/edit`);
-  const onPayments = () => contract && navigate(`/contracts/${contract.id}/payments`);
-  const onIncrease = () => contract && navigate(`/contracts/${contract.id}/increase`);
-  const onDelete = () =>
-    contract &&
-    window.confirm("¿Eliminar el contrato? Esta acción no se puede deshacer.") &&
-    navigate("/contracts");
+  const onEdit = () => contract && navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id));
+  const [openPayments, setOpenPayments] = useState(false);
+  const [openRent, setOpenRent] = useState(false);
+  const [openCommissionPay, setOpenCommissionPay] = useState<{ open: boolean; installment: number | null }>({
+    open: false,
+    installment: null,
+  });
+  const onPayments = () => {
+    if (!contract) return;
+    setOpenPayments(true);
+  };
+  const onIncrease = () => setOpenIncrease(true);
+  const [openIncrease, setOpenIncrease] = useState(false);
+  const [openUtilities, setOpenUtilities] = useState(false);
+  const [openGuarantors, setOpenGuarantors] = useState(false);
+  const [openCommissionEdit, setOpenCommissionEdit] = useState<{ open: boolean; action: "add" | "edit" }>({
+    open: false,
+    action: "add",
+  });
+  const [openServicePay, setOpenServicePay] = useState<number | null>(null);
+  const [openServiceEdit, setOpenServiceEdit] = useState<number | null>(null);
+  const [openServiceIncrease, setOpenServiceIncrease] = useState<number | null>(null);
+  const onDelete = () => {
+    if (!contract) return;
+    ask("¿Eliminar el contrato?", async () => {
+      await deleteContract(contract.id);
+      navigate(ROUTES.CONTRACT);
+    });
+  };
 
   const onToggleStatus = async () => {
     if (!contract || savingStatus) return;
-    try {
+    const msg =
+      contract.contractStatus === "ACTIVO"
+        ? "Este contrato se inactivará y se avisará por email que está terminado. ¿Confirmar?"
+        : "¿Reactivar contrato?";
+    ask(msg, async () => {
       setSavingStatus(true);
-      await patchContractStatus(contract.id);
-      const fresh = await getContractById(contract.id);
-      setContract(fresh as ContractDetail);
-    } finally {
-      setSavingStatus(false);
-    }
+      try {
+        await patchContractStatus(contract.id);
+        const fresh = await getContractById(contract.id);
+        setContract((fresh as any)?.data ?? (fresh as ContractGet));
+      } finally {
+        setSavingStatus(false);
+      }
+    });
   };
 
   if (loading) {
@@ -106,6 +149,12 @@ export default function ContractDetailPage() {
       </BasePage>
     );
   }
+
+  const refreshContract = async () => {
+    const fresh = await getContractById(Number(id));
+    const data = (fresh as any)?.data ?? fresh;
+    setContract(data as ContractGet);
+  };
 
   return (
     <>
@@ -167,40 +216,187 @@ export default function ContractDetailPage() {
               adjustmentIndex={contract.adjustmentIndex}
               paymentsSorted={paymentsSorted}
               increasesSorted={increasesSorted}
+              onRegisterIncrease={() => setOpenIncrease(true)}
+              onRegisterRentPayment={() => setOpenRent(true)}
             />
-
-            {/* Garantes */}
-            <GuarantorsCard guarantors={guarantors} />
-
-            {/* Depósito (admin) */}
-            {isAdmin && (
-              <DepositCard
-                //isAdmin
-                sxHeight="80%"
-                currency={contract.currency}
-                hasDeposit={contract.hasDeposit}
-                depositAmount={contract.depositAmount}
-                depositNote={contract.depositNote}
-              />
-            )}
-
-            {/* Comisión (admin) */}
-            {isAdmin && (
-              <CommissionCard commission={commission} />
-            )}
 
             {/* Servicios y Expensas */}
             <ServicesExpensesCard
               currency={contract.currency}
               utilities={utilities}
               utilityNameMap={utilityNameMap}
+              onManage={() => setOpenUtilities(true)}
+              onPay={(id) => setOpenServicePay(id)}
+              onIncrease={(id) => setOpenServiceIncrease(id)}
+              onEdit={(id) => setOpenServiceEdit(id)}
+              onUnlink={(cuid) => {
+                ask("¿Desvincular este servicio?", async () => {
+                  const { deleteContractUtility } = await import("../app/user/services/contractUtility.service");
+                  await deleteContractUtility(cuid);
+                  await refreshContract();
+                });
+              }}
             />
 
-            {/* Notas (admin) */}
-            {isAdmin && contract.note && <NotesCard note={contract.note} />}
+            {/* Garantes */}
+            <GuarantorsCard
+              guarantors={guarantors}
+              onManage={() => setOpenGuarantors(true)}
+              onUnlink={(gid) => {
+                ask("¿Quitar garante del contrato?", async () => {
+                  const { removeGuarantorFromContract } = await import("../app/user/services/guarantor.service");
+                  await removeGuarantorFromContract(gid, Number(id));
+                  await refreshContract();
+                });
+              }}
+            />
+
+            {/* Comisión (admin) a ancho completo */}
+            {isAdmin && (
+              <CommissionCard
+                gridFull
+                commission={commission}
+                paidCount={commissionPaidCount}
+                onAdd={() => setOpenCommissionEdit({ open: true, action: "add" })}
+                onEdit={() => setOpenCommissionEdit({ open: true, action: "edit" })}
+                onRegisterPayment={() => setOpenCommissionPay({ open: true, installment: null })}
+                onRegisterInstallment={(n) => setOpenCommissionPay({ open: true, installment: n })}
+              />
+            )}
+
+            {/* Depósito (admin) + Notas (admin) en la misma fila */}
+            {isAdmin && (
+              <>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', minWidth: 0 }}>
+                  <DepositCard
+                    sxHeight="80%"
+                    currency={contract.currency}
+                    hasDeposit={contract.hasDeposit}
+                    depositAmount={contract.depositAmount}
+                    depositNote={contract.depositNote}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', minWidth: 0 }}>
+                  <NotesCard note={contract.note} />
+                </Grid>
+              </>
+            )}
+
+            {/* Notas ya incluidas junto a Depósito cuando es admin */}
           </Grid>
         </Container>
       </BasePage>
+      <PaymentDialog
+        open={openPayments}
+        contract={contract as any}
+        onClose={() => setOpenPayments(false)}
+        onSaved={async () => {
+          setOpenPayments(false);
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <PaymentRentDialog
+        open={openRent}
+        contract={contract as any}
+        onClose={() => setOpenRent(false)}
+        onSaved={async () => {
+          setOpenRent(false);
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <PaymentCommissionDialog
+        open={openCommissionPay.open}
+        installment={openCommissionPay.installment}
+        contract={contract as any}
+        onClose={() => setOpenCommissionPay({ open: false, installment: null })}
+        onSaved={async () => {
+          setOpenCommissionPay({ open: false, installment: null });
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <UtilitiesPickerDialog
+        open={openUtilities}
+        contractId={Number(id)}
+        onClose={() => setOpenUtilities(false)}
+        onUpdated={async () => {
+          await refreshContract();
+        }}
+      />
+      <PaymentExtrasDialog
+        open={openServicePay != null}
+        contract={contract as any}
+        contractUtilityId={openServicePay ?? undefined}
+        onClose={() => setOpenServicePay(null)}
+        onSaved={async () => {
+          setOpenServicePay(null);
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <ContractUtilityDialog
+        open={openServiceEdit != null}
+        mode="edit"
+        contractId={Number(id)}
+        contractUtilityId={openServiceEdit}
+        onClose={() => setOpenServiceEdit(null)}
+        onSaved={async () => {
+          setOpenServiceEdit(null);
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <ContractUtilityIncreaseDialog
+        open={openServiceIncrease != null}
+        contractUtilityId={openServiceIncrease}
+        onClose={() => setOpenServiceIncrease(null)}
+        onSaved={async () => {
+          setOpenServiceIncrease(null);
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <GuarantorPickerDialog
+        open={openGuarantors}
+        contractId={Number(id)}
+        onClose={() => setOpenGuarantors(false)}
+        onUpdated={async () => {
+          await refreshContract();
+        }}
+      />
+      <IncreaseDialog
+        open={openIncrease}
+        contract={contract as any}
+        onClose={() => setOpenIncrease(false)}
+        onSaved={async () => {
+          setOpenIncrease(false);
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      <CommissionDialog
+        open={openCommissionEdit.open}
+        action={openCommissionEdit.action}
+        item={commission as any}
+        contractId={contract?.id}
+        onClose={() => setOpenCommissionEdit({ open: false, action: "add" })}
+        onSaved={async () => {
+          setOpenCommissionEdit({ open: false, action: "add" });
+          const fresh = await getContractById(Number(id));
+          const data = (fresh as any)?.data ?? fresh;
+          setContract(data as ContractGet);
+        }}
+      />
+      {DialogUI}
     </>
   );
 }

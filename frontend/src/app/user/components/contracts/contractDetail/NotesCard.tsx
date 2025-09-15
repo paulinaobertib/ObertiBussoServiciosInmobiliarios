@@ -1,18 +1,43 @@
-import { Paper, Typography } from "@mui/material";
+import { Card, Typography } from "@mui/material";
+import StickyNote2Outlined from "@mui/icons-material/StickyNote2Outlined";
 import Grid from "@mui/material/Grid";
 
-export default function NotesCard({ note }: { note: string }) {
+export default function NotesCard({ note, half = false }: { note?: string | null; half?: boolean }) {
+  const hasNote = Boolean(String(note ?? "").trim());
   return (
-    <Grid size={{ xs: 12 }}>
-      <Paper
-        elevation={1}
-        sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "grey.200", bgcolor: "grey.50" }}
+    <Grid size={{ xs: 12, sm: half ? 6 : 12 }} sx={{ height: "100%", display: "flex" }}>
+      <Card
+        elevation={2}
+        sx={{
+          p: "1.5rem",
+          borderRadius: "0.75rem",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        }}
       >
-        <Typography sx={{ mb: 2, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}>
+        <Typography
+          sx={{
+            mb: "1.25rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            fontSize: "1.25rem",
+            fontWeight: 600,
+            color: "primary.main",
+          }}
+        >
+          <StickyNote2Outlined />
           Notas del Contrato
         </Typography>
-        <Typography sx={{ fontSize: "1rem", lineHeight: 1.6 }}>{note}</Typography>
-      </Paper>
+        {hasNote ? (
+          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6 }}>{note}</Typography>
+        ) : (
+          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "text.secondary" }}>
+            No hay notas registradas. 
+          </Typography>
+        )}
+      </Card>
     </Grid>
   );
 }

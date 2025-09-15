@@ -18,7 +18,9 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
 
   const Item = ({ label, value }: { label: string; value: any }) => (
     <Box mb={1}>
-      <Typography variant="body2" color="text.secondary">{label}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
       <Typography variant="body1">{String(value ?? "—")}</Typography>
     </Box>
   );
@@ -40,11 +42,16 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
           <Item label="Frecuencia ajuste (meses)" value={data.adjustmentFrequencyMonths} />
           <Item label="Índice de ajuste" value={data.adjustmentIndexId ?? "Ninguno"} />
           <Item label="Notas" value={data.note ?? "—"} />
-          <Item label="Depósito" value={data.hasDeposit ? `${data.depositAmount} (${data.depositNote ?? "sin notas"})` : "No"} />
+          <Item
+            label="Depósito"
+            value={data.hasDeposit ? `${data.depositAmount} (${data.depositNote ?? "sin notas"})` : "No"}
+          />
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <Typography variant="body2" color="text.secondary">Garantes</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Garantes
+          </Typography>
           <Box mt={0.5}>
             {guarantorIds.length === 0 ? (
               <Typography variant="body1">Ninguno</Typography>
@@ -54,7 +61,9 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
           </Box>
         </Grid>
         <Grid size={{ xs: 12 }}>
-          <Typography variant="body2" color="text.secondary">Utilities seleccionadas</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Utilities seleccionadas
+          </Typography>
           <Box mt={0.5}>
             {utilityIds.length === 0 ? (
               <Typography variant="body1">Ninguna</Typography>
@@ -67,4 +76,3 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
     </Box>
   );
 };
-
