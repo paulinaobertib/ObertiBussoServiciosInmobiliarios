@@ -1,13 +1,10 @@
-export enum ContractIncreaseCurrency {
-  USD = "USD",
-  ARS = "ARS",
-}
+import type { PaymentCurrency } from "./payment";
 
 export interface ContractIncrease {
   id: number;
   contractId: number;
   date: string; // ISO date-time
-  currency: ContractIncreaseCurrency;
+  currency: PaymentCurrency;
   amount: number;
   adjustment?: number;
   note?: string;
