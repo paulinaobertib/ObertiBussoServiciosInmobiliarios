@@ -10,18 +10,12 @@ interface Props {
   onToggleStatus: (c: Contract) => void;
 }
 
-export const ContractList = ({
-  contracts = [],
-  onDelete,
-  onToggleStatus,
-}: Props) => {
+export const ContractList = ({ contracts = [], onDelete, onToggleStatus }: Props) => {
   const { isAdmin } = useAuthContext();
   const safeContracts = Array.isArray(contracts) ? contracts : [];
 
   const sorted = useMemo(() => {
-    return [...safeContracts].sort(
-      (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    );
+    return [...safeContracts].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   }, [safeContracts]);
 
   if (sorted.length === 0) {
@@ -65,12 +59,7 @@ export const ContractList = ({
             display: "flex",
           }}
         >
-          <ContractItem
-            contract={c}
-            onDelete={onDelete}
-            onToggleStatus={onToggleStatus}
-            isAdmin={isAdmin}
-          />
+          <ContractItem contract={c} onDelete={onDelete} onToggleStatus={onToggleStatus} isAdmin={isAdmin} />
         </Box>
       ))}
     </Box>

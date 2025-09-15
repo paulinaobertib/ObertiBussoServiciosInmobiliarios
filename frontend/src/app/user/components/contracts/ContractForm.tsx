@@ -42,18 +42,8 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
   { initialPropertyId, initialUserId, initialData, onValidityChange },
   ref
 ) {
-  const {
-    values,
-    errors,
-    property,
-    user,
-    loadingData,
-    handleChange,
-    reset,
-    submit,
-    getCreateData,
-    setGuarantorsIds,
-  } = useContractForm(initialPropertyId, initialUserId, initialData, onValidityChange);
+  const { values, errors, property, user, loadingData, handleChange, reset, submit, getCreateData, setGuarantorsIds } =
+    useContractForm(initialPropertyId, initialUserId, initialData, onValidityChange);
 
   const idx = useIncreaseIndexes();
   const [idxModalOpen, setIdxModalOpen] = useState(false);
@@ -175,8 +165,8 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               label="Monto inicial"
               size="small"
               inputProps={{ min: 0 }}
-              value={values.amount === "" ? "" : values.amount}
-              onChange={handleChange("amount")}
+              value={values.initialAmount === "" ? "" : values.initialAmount}
+              onChange={handleChange("initialAmount")}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -272,8 +262,8 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               label="Frecuencia de Aumento (meses)"
               size="small"
               inputProps={{ min: 1 }}
-              value={values.increaseFrequency === "" ? "" : values.increaseFrequency}
-              onChange={handleChange("increaseFrequency")}
+              value={values.adjustmentFrequencyMonths === "" ? "" : values.adjustmentFrequencyMonths}
+              onChange={handleChange("adjustmentFrequencyMonths")}
             />
           </Grid>
         </Grid>
