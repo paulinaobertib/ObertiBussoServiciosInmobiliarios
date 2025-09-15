@@ -55,7 +55,9 @@ public class ContractUtilityService implements IContractUtilityService {
         dto.setNotes(entity.getNotes());
         dto.setContractId(entity.getContract() != null ? entity.getContract().getId() : null);
         dto.setUtilityId(entity.getUtility() != null ? entity.getUtility().getId() : null);
-        dto.setPaymentList(entity.getPayments());
+
+        // Este lo comentó Tomi, fijarse, no se porque al comentar este funciona
+        // dto.setPaymentList(entity.getPayments());
 
         if (entity.getIncreases() != null) {
             List<ContractUtilityIncreaseGetDTO> increases = entity.getIncreases().stream()

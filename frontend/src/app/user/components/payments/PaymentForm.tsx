@@ -26,10 +26,13 @@ interface Props {
   hideConceptSelect?: boolean;
   hideUtilitySelect?: boolean;
   hideCommissionInfo?: boolean;
+  disableAmount?: boolean;
+  disableCurrency?: boolean;
 }
 
-export const PaymentForm = ({ contractId, initialValues, onChange, externalConcept, externalContractUtilityId, hideConceptSelect, hideUtilitySelect, hideCommissionInfo }: Props) => {
+export const PaymentForm = ({ contractId, initialValues, onChange, externalConcept, externalContractUtilityId, hideConceptSelect, hideUtilitySelect, hideCommissionInfo, disableAmount, disableCurrency }: Props) => {
   const currencies = Object.values(PaymentCurrency) as PaymentCurrency[];
+  const currencyLabel = (c: PaymentCurrency) => (c === PaymentCurrency.ARS ? "Peso argentino" : c === PaymentCurrency.USD ? "Dólar" : c);
   const concepts = Object.values(PaymentConcept) as PaymentConcept[];
   const labelize = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");
 
@@ -147,6 +150,7 @@ export const PaymentForm = ({ contractId, initialValues, onChange, externalConce
             label="Monto"
             value={vals.amount}
             onChange={handle("amount")}
+            disabled={!!disableAmount}
           />
         </Grid>
 
@@ -184,10 +188,11 @@ export const PaymentForm = ({ contractId, initialValues, onChange, externalConce
             label="Moneda"
             value={vals.paymentCurrency}
             onChange={handle("paymentCurrency")}
+            disabled={!!disableCurrency}
           >
             {currencies.map((c) => (
               <MenuItem key={c} value={c}>
-                {labelize(c)}
+                {currencyLabel(c)}
               </MenuItem>
             ))}
           </TextField>

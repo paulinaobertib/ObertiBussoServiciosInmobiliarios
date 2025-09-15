@@ -33,8 +33,6 @@ export const ROUTES = {
   CONTRACT: "/contract",
   NEW_CONTRACT: `/contract/new`,
   EDIT_CONTRACT: `/contract/:id/edit`,
-  CONTRACT_UTILITIES: `/contract/:id/utilities`,
-  CONTRACT_COMMISSION: `/contract/:id/commission`,
   APPOINTMENTS: "/appointments",
   STATS: "/stats",
   CONTRACT_DETAIL: "/contracts/:id",
@@ -62,8 +60,6 @@ export const PAGES = [
   { name: "Panel de Gestión de Inquilinos", url: ROUTES.CONTRACT },
   { name: "Nuevo Contrato", url: ROUTES.NEW_CONTRACT },
   { name: "Editar Contrato", url: ROUTES.EDIT_CONTRACT },
-  { name: "Utilidades del Contrato", url: ROUTES.CONTRACT_UTILITIES },
-  { name: "Comision del Contrato", url: ROUTES.CONTRACT_COMMISSION },
   { name: "Turnero", url: ROUTES.APPOINTMENTS },
   { name: "Estadisticas", url: ROUTES.STATS },
 ];

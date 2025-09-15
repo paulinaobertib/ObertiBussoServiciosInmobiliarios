@@ -123,8 +123,8 @@ export const PaymentItem = ({ payment, onEdit, onDelete }: Props) => {
                                     value={paymentCurrency}
                                     onChange={e => setPaymentCurrency(e.target.value)}
                                 >
-                                    <MenuItem value="ARS">ARS</MenuItem>
-                                    <MenuItem value="USD">USD</MenuItem>
+                                    <MenuItem value="ARS">Peso argentino</MenuItem>
+                                    <MenuItem value="USD">Dólar</MenuItem>
                                 </Select>
                             </FormControl>
                             <TextField

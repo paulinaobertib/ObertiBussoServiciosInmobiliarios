@@ -339,6 +339,10 @@ public class ContractService implements IContractService {
         if (contractDTO.getLastPaidAmount() != null) entity.setLastPaidAmount(contractDTO.getLastPaidAmount());
         if (contractDTO.getLastPaidDate() != null) entity.setLastPaidDate(contractDTO.getLastPaidDate());
         if (contractDTO.getNote() != null) entity.setNote(contractDTO.getNote());
+        
+        // Esto agregó Tomi, era lo que falta creo pero no funciona, no se
+        // if (contractDTO.getDepositAmount() != null) entity.setDepositAmount(contractDTO.getDepositAmount());
+        // if (contractDTO.getDepositNote() != null) entity.setDepositNote(contractDTO.getDepositNote());
 
         if (contractDTO.getAdjustmentIndexId() != null) {
             entity.setAdjustmentIndex(em.getReference(IncreaseIndex.class, contractDTO.getAdjustmentIndexId()));

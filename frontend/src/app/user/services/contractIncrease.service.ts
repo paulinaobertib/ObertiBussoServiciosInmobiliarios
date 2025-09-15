@@ -6,9 +6,10 @@ export const postContractIncrease = async (data: ContractIncreaseCreate) => {
     const response = await api.post(`/users/contractIncreases/create`, data, {
       withCredentials: true,
     });
-    return response.data;
+    return response?.data;
   } catch (error) {
-    console.error("Error creating contract increase:", error);
+    const msg = (error as any)?.response?.data ?? (error as any)?.message ?? error;
+    console.error("Error creating contract increase:", msg);
     throw error;
   }
 };
