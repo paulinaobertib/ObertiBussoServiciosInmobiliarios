@@ -12,9 +12,10 @@ interface Props {
   toggleSelect?: (ids: number[]) => void;
   isSelected?: (id: number) => boolean;
   showActions?: boolean;
+  multiSelect?: boolean; // permite elegir si es selección múltiple o única
 }
 
-export function UtilitiesSection({ toggleSelect, isSelected, showActions = true }: Props) {
+export function UtilitiesSection({ toggleSelect, isSelected, showActions = true, multiSelect = true }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
@@ -137,7 +138,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true 
         showActions={showActions}
         fetchAll={fetchAllAdapter}
         fetchByText={fetchByTextAdapter}
-        multiSelect={true}
+        multiSelect={multiSelect}
         selectable={true}
       />
 
