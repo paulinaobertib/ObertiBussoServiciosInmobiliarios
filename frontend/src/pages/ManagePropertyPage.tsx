@@ -16,10 +16,50 @@ import { CategorySection } from "../app/property/components/categories/CategoryS
 import { PropertyForm } from "../app/property/components/forms/PropertyForm";
 import { ImagePreview } from "../app/shared/components/images/ImagePreview";
 import { useManagePropertyPage } from "../app/property/hooks/useManagePropertyPage";
+import { useEffect } from "react";
+import { usePropertiesContext } from "../app/property/context/PropertiesContext"; //items seleccionados
 
 export default function ManagePropertyPage() {
   const theme = useTheme();
   const ctrl = useManagePropertyPage();
+  const {
+    seedSelectionsFromProperty, // metodo nuevo del contexto
+    selected,                   // ids seleccionados en categorías
+    amenitiesList,
+    ownersList,
+    neighborhoodsList,
+    typesList,
+  } = usePropertiesContext();
+
+  // Si estoy editando, preselecciono en la grilla lo que la propiedad ya tiene
+  useEffect(() => {
+    seedSelectionsFromProperty(ctrl.property ?? null);
+  }, [ctrl.property?.id, seedSelectionsFromProperty]);
+
+  const goToFormStep = () => {
+    const ref = ctrl.formRef.current;
+    if (!ref) {
+      ctrl.setActiveStep(1);
+      return;
+    }
+
+    if (selected.type != null) {
+      const t = typesList.find(x => x.id === selected.type);
+      if (t) ref.setField("type", t as any);
+    }
+    if (selected.neighborhood != null) {
+      const n = neighborhoodsList.find(x => x.id === selected.neighborhood);
+      if (n) ref.setField("neighborhood", n as any);
+    }
+    if (selected.owner != null) {
+      const o = ownersList.find(x => x.id === selected.owner);
+      if (o) ref.setField("owner", o as any);
+    }
+    const ams = amenitiesList.filter(a => selected.amenities.includes(a.id));
+    ref.setField("amenities", ams as any);
+
+    ctrl.setActiveStep(1);
+  };
 
   /* ---------- loader ---------- */
   if (ctrl.loading) {
@@ -73,7 +113,11 @@ export default function ManagePropertyPage() {
           {/* Grupo de acciones a la derecha */}
           <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
             {ctrl.activeStep === 0 && (
-              <Button variant="contained" onClick={() => ctrl.setActiveStep(1)} disabled={!ctrl.canProceed}>
+              <Button
+                variant="contained"
+                onClick={goToFormStep}        // items seleccionados
+                disabled={!ctrl.canProceed}
+              >
                 Siguiente
               </Button>
             )}
