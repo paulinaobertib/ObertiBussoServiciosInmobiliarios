@@ -36,11 +36,13 @@ export function UsersSection({
     isSelected,
     showActions = true,
     selectable = true,
+    selectedIds, //mantener seleccionado
 }: {
     toggleSelect?: (id: string | null) => void;
     isSelected?: (id: string) => boolean;
     showActions?: boolean;
     selectable?: boolean;
+    selectedIds?: string[]; //mantener seleccionado
 }) {
     const { users, loading, load, fetchAll, fetchByText } = useUsers();
 
@@ -235,6 +237,7 @@ export function UsersSection({
                 fetchByText={fetchByText}
                 multiSelect={false}
                 selectable={selectable}
+                selectedIds={selectedIds} //mantener seleccionado
             />
             <Modal
                 open={modalOpen}

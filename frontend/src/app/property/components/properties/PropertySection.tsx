@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Box, CircularProgress, IconButton, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { GridSection } from '../../../shared/components/GridSection';
@@ -10,11 +10,12 @@ import { getRowActions } from './ActionsRowItems';
 import type { Property } from '../../types/property';
 
 interface Props {
-  toggleSelect?: (id: number) => void;
+  toggleSelect?: (id: number | null) => void;
   isSelected?: (id: number) => boolean;
   showActions?: boolean;
   filterAvailable?: boolean;
-  selectable?: boolean,
+  selectable?: boolean;
+  selectedIds?: string[]; //mantener seleccionado
 }
 
 export const PropertySection = ({
@@ -23,6 +24,7 @@ export const PropertySection = ({
   showActions = true,
   filterAvailable = false,
   selectable = true,
+  selectedIds, //mantener seleccionado
 }: Props) => {
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
@@ -36,15 +38,16 @@ export const PropertySection = ({
     isSelected: internalIsSelected,
   } = usePropertyPanel();
 
-  // ——— Hooks y callbacks siempre al inicio —————————————————
-
   const gridToggleSelect = useCallback(
     (selected: string | string[] | null) => {
-      const raw = Array.isArray(selected)
-        ? selected[selected.length - 1]
-        : selected;
+      const raw = Array.isArray(selected) ? selected[selected.length - 1] : selected;
       const num = raw != null ? Number(raw) : null;
-      if (num !== null) (externalToggle ?? internalToggle)(num);
+
+      if (externalToggle) {
+        externalToggle(num !== null && !Number.isNaN(num) ? num : null);
+      } else if (num !== null && !Number.isNaN(num)) {
+        internalToggle(num);
+      }
     },
     [externalToggle, internalToggle]
   );
@@ -69,32 +72,30 @@ export const PropertySection = ({
     return list;
   }, [onSearch]);
 
-  // —————————————————————————————————————————————————————————————
+  // id seleccionado para forzar inclusión aunque no esté “disponible”
+  const selectedIdNum = useMemo(
+    () => (Array.isArray(selectedIds) && selectedIds.length ? Number(selectedIds[0]) : null),
+    [selectedIds]
+  );
+
+  // Filtrado opcional (incluye siempre la fila seleccionada)
+  const rows = useMemo(() => {
+    if (!filterAvailable) return properties;
+    return properties.filter(p => {
+      const isAvailable = !p.status || p.status.toLowerCase() === 'disponible';
+      const isSelectedRow = selectedIdNum != null && p.id === selectedIdNum;
+      return isAvailable || isSelectedRow;
+    });
+  }, [properties, filterAvailable, selectedIdNum]);
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: 3,
-        }}
-      >
+      <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
         <CircularProgress size={36} />
       </Box>
     );
   }
 
-  // Filtrado opcional de “disponibles”
-  const rows = filterAvailable
-    ? properties.filter(
-      (p) => !p.status || p.status.toLowerCase() === 'disponible'
-    )
-    : properties;
-
-  // Columnas del grid
   const columns = [
     { field: 'title', headerName: 'Título', flex: 1 },
     { field: 'operation', headerName: 'Operación', flex: 1 },
@@ -113,44 +114,26 @@ export const PropertySection = ({
     },
     ...(showActions
       ? [
-        {
-          field: 'actions',
-          headerName: 'Acciones',
-          width: 160,
-          sortable: false,
-          filterable: false,
-          renderCell: (params: any) => {
-            const actions = getRowActions(
-              'property',
-              params.row as Property,
-              ask,
-              deleteProperty,
-              showAlert
-            );
-            return (
-              <Box
-                display="flex"
-                gap={1}
-                height="100%"
-                alignItems="center"
-                justifyContent="center"
-                width="100%"
-              >
-                {(actions ?? []).map((a) => (
-                  <IconButton
-                    key={a.label}
-                    size="small"
-                    title={a.label}
-                    onClick={a.onClick}
-                  >
-                    {a.icon}
-                  </IconButton>
-                ))}
-              </Box>
-            );
+          {
+            field: 'actions',
+            headerName: 'Acciones',
+            width: 160,
+            sortable: false,
+            filterable: false,
+            renderCell: (params: any) => {
+              const actions = getRowActions('property', params.row as Property, ask, deleteProperty, showAlert);
+              return (
+                <Box display="flex" gap={1} height="100%" alignItems="center" justifyContent="center" width="100%">
+                  {(actions ?? []).map(a => (
+                    <IconButton key={a.label} size="small" title={a.label} onClick={a.onClick}>
+                      {a.icon}
+                    </IconButton>
+                  ))}
+                </Box>
+              );
+            },
           },
-        },
-      ]
+        ]
       : []),
   ];
 
@@ -166,7 +149,7 @@ export const PropertySection = ({
         onSearch={onSearch}
         onCreate={openCreate}
         onEdit={openEdit}
-        onDelete={() => { }}
+        onDelete={() => {}}
         onRoles={undefined}
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
@@ -176,7 +159,7 @@ export const PropertySection = ({
         fetchByText={fetchByText}
         multiSelect={false}
         selectable={selectable}
-
+        selectedIds={selectedIds} //mantener seleccionado
       />
       {DialogUI}
     </>

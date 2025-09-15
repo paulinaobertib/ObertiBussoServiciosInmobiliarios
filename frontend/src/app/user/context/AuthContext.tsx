@@ -1,4 +1,3 @@
-// src/app/user/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Role, User } from "../types/user";
 import { NotificationType, UserNotificationPreference } from "../types/notification";
@@ -48,7 +47,7 @@ const AuthContext = createContext<AuthContextValue>({
 const ensureDefaultPreferences = async (userId: string): Promise<UserNotificationPreference[]> => {
   // 1) leer existentes
   const resp = await getUserNotificationPreferencesByUser(userId);
-  let prefs: UserNotificationPreference[] = resp.data ?? resp; // según tu helper, puede ser .data o el objeto directo
+  let prefs: UserNotificationPreference[] = resp.data ?? resp;
 
   // 2) crear si no hay ninguna
   if (!prefs || !prefs.length) {
@@ -79,6 +78,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isLogged = Boolean(info);
   const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
   const isTenant = info?.roles.includes("TENANT" as Role) ?? false;
+
+  //para que aparezcan seleccionadas las caracteristicas al editar un contrato
+  const clearPropertyUiState = () => {
+    try {
+      localStorage.removeItem('selectedPropertyId');
+      localStorage.removeItem('propertyCategorySelection');
+    } catch {}
+  };
+
+  const broadcastAuthEvent = (type: 'login' | 'logout' | 'user-loaded' | 'session-expired') => {
+    try {
+      window.dispatchEvent(new CustomEvent('auth:event', { detail: { type } }));
+    } catch {}
+  };
 
   // Sincronizar con sessionStorage
   useEffect(() => {
@@ -123,10 +136,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         preferences = await ensureDefaultPreferences(user.id);
       }
-      // ...
+      // modificado para la logica de que aparezcan seleccionadas las caracteristicas al editar contrato
       setInfo({ ...user, roles, preferences });
       setSessionExpired(false);
+      clearPropertyUiState();
+      broadcastAuthEvent('user-loaded');
       setReady(true);
+
     } catch (e) {
       // si algo falla, limpiamos y marcamos no listo
       setInfo(null);
@@ -147,6 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem("postLoginNext", next);
     } catch {}
     setSessionExpired(false);
+
+    clearPropertyUiState();         // limpia selección/estado previo
+    broadcastAuthEvent('login');    // por si otro contexto quiere reaccionar
+
     window.location.href = loginUrl;
   };
 
@@ -154,6 +174,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setInfo(null);
     setSessionExpired(false);
     sessionStorage.clear();
+
+    clearPropertyUiState();         // idem
+    broadcastAuthEvent('logout');   // por si querés resetear selección en otros contextos
+
     window.location.href = `${GW_URL}/logout`;
   };
 
@@ -176,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } catch {}
             setRefreshing(false);
             setSessionExpired(true);
+            broadcastAuthEvent('session-expired'); // notifica evento global
           }
           return Promise.reject(error);
         }
@@ -186,7 +211,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Post-login redirect limpio si guardamos "postLoginNext"
   useEffect(() => {
     if (!ready || !isLogged) return;
     try {
@@ -199,8 +223,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
   }, [ready, isLogged]);
-
-  // Sin keep-alive ni pings periódicos.
 
   return (
     <AuthContext.Provider
