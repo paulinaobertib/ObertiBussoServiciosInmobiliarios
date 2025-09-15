@@ -1,6 +1,6 @@
 import type { Payment, PaymentCurrency } from "./payment";
 import type { IncreaseIndex } from "./increaseIndex";
-import { ContractUtility } from "./contractUtility";
+import { ContractUtilityGet } from "./contractUtility";
 import { ContractIncrease } from "./contractIncrease";
 import { Commission } from "./commission";
 
@@ -61,7 +61,7 @@ export interface ContractGet {
   depositAmount: number | null;
   depositNote: string | null;
   adjustmentIndex: IncreaseIndex;
-  contractUtilities: ContractUtility[];
+  contractUtilities: ContractUtilityGet[];
   contractIncrease: ContractIncrease[];
   commission: Commission | null;
   payments: Payment[];

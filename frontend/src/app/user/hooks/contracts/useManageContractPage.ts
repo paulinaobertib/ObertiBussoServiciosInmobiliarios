@@ -6,7 +6,7 @@ import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { getContractById, postContract, putContract, getContractsByPropertyId } from "../../services/contract.service";
 import type { ContractCreate, ContractGet } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
-import { ROUTES, buildRoute } from "../../../../lib";
+import { ROUTES } from "../../../../lib";
 
 export function useManageContractPage() {
   const navigate = useNavigate();
@@ -106,9 +106,8 @@ export function useManageContractPage() {
         // creación
         const payload: ContractCreate = formRef.current!.getCreateData();
         await postContract(payload as any);
-        showAlert("Contrato creado con éxito", "success");
 
-        // Identificar el contrato creado para vincular utilities y comisión
+        // Intentar identificar el contrato recién creado para posible navegación al detalle
         let createdId: number | null = null;
         try {
           const list = await getContractsByPropertyId(payload.propertyId);
@@ -124,17 +123,19 @@ export function useManageContractPage() {
           console.error("[ManageContractPage] error identifying created contract", e);
         }
 
-        if (createdId) {
-          // Ir a la ruta de servicios del contrato
-          navigate(buildRoute(ROUTES.CONTRACT_UTILITIES, createdId));
-        } else {
-          showAlert("No se pudo identificar el contrato creado.", "warning");
-          navigate(ROUTES.CONTRACT);
-        }
+        // Redirigir al listado y disparar un ask desde allí (via location.state)
+        navigate(ROUTES.CONTRACT, {
+          state: {
+            justCreated: true,
+            createdId,
+          },
+        });
       }
       if (isEdit) navigate(ROUTES.CONTRACT);
-    } catch (e) {
-      showAlert("Error al guardar contrato", "error");
+    } catch (e: any) {
+      const msg = e?.response?.data ?? "Error al guardar contrato";
+      console.error("[ManageContractPage.save] error", e?.response || e);
+      showAlert(String(msg), "error");
     } finally {
       setLoading(false);
     }
