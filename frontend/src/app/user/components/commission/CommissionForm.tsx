@@ -1,5 +1,6 @@
-import { useState, useEffect, ChangeEvent, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { Box, TextField, Grid, MenuItem } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { postCommission, putCommission, deleteCommission } from "../../services/commission.service";
 import type { Commission, CommissionCreate } from "../../types/commission";
@@ -9,10 +10,10 @@ import { PaymentCurrency } from "../../types/payment";
 type Action = "add" | "edit" | "delete";
 
 export interface Props {
-  action?: Action;
+  action?: Action; // puede o no venir, derivamos si falta
   item?: Commission;
   contractId?: number;
-  onSuccess?: () => void;
+  onSuccess?: () => void; // cerrar/refresh en el padre
 }
 
 type FormState = {
@@ -27,17 +28,16 @@ type FormState = {
   contractId: number | "";
 };
 
-export type CommissionFormHandle = { submit: () => Promise<boolean> };
-
-export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function CommissionForm(
-  { action = "add", item, contractId, onSuccess },
-  ref
-) {
+export const CommissionForm = ({ action, item, contractId, onSuccess }: Props) => {
   const { showAlert } = useGlobalAlert();
 
-  const isAdd = action === "add";
-  const isEdit = action === "edit";
-  const isDelete = action === "delete";
+  // Derivación de modo segura
+  const mode: Action = action ?? (item && item.id ? "edit" : "add");
+  const isAdd = mode === "add";
+  const isEdit = mode === "edit";
+  const isDelete = mode === "delete";
+
+  const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     id: item?.id,
@@ -51,10 +51,9 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
     contractId: "",
   });
 
-  const [, setSaving] = useState(false);
-
+  // Precarga en edición (solo si hay item con id) y setea contractId si viene por props
   useEffect(() => {
-    if (isEdit && item) {
+    if (isEdit && item && item.id != null) {
       setForm({
         id: item.id,
         currency: item.currency,
@@ -66,8 +65,17 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
         note: item.note ?? "",
         contractId: item.contractId,
       });
+    } else if (isAdd && contractId && contractId > 0) {
+      setForm((prev) => ({ ...prev, contractId }));
     }
-  }, [isEdit, item]);
+  }, [isAdd, isEdit, item, contractId]);
+
+  // Si cambia a COMPLETO, forzar cuotas=1
+  useEffect(() => {
+    if (form.paymentType === CommissionPaymentType.COMPLETO) {
+      setForm((prev) => ({ ...prev, installments: 1 }));
+    }
+  }, [form.paymentType]);
 
   const handleChange = (field: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     let value: any = e.target.value;
@@ -79,85 +87,77 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
 
   const paymentTypes = Object.values(CommissionPaymentType) as CommissionPaymentType[];
   const statuses = Object.values(CommissionStatus) as CommissionStatus[];
-  const labelize = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");
 
+  const labelize = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");
   const isCuotas = form.paymentType === CommissionPaymentType.CUOTAS;
 
-  const formValid = (() => {
-    if (isDelete) return true;
-    const hasContract =
-      (contractId != null && Number(contractId) > 0) || (form.contractId !== "" && Number(form.contractId) > 0);
-    const amtOk = form.totalAmount !== "" && Number(form.totalAmount) > 0;
-    const dateOk = Boolean(form.date);
-    const instOk = !isCuotas || (form.installments !== "" && Number(form.installments) > 0);
-    return (
-      hasContract &&
-      amtOk &&
-      dateOk &&
-      instOk &&
-      Boolean(form.currency) &&
-      Boolean(form.paymentType) &&
-      Boolean(form.status)
-    );
-  })();
+  // === ✅ VALIDACIÓN SIMPLE (reemplaza tu formValid) ===
+  const hasContract =
+    (contractId != null && Number(contractId) > 0) || (form.contractId !== "" && Number(form.contractId) > 0);
 
-  const handleSubmit = async (): Promise<boolean> => {
-    if (!formValid) {
+  const isValid = isDelete
+    ? true
+    : hasContract &&
+      Number(form.totalAmount) > 0 &&
+      !!form.currency &&
+      !!form.date &&
+      !!form.status &&
+      !!form.paymentType &&
+      (!isCuotas || Number(form.installments) > 0);
+
+  const handleSubmit = async (): Promise<void> => {
+    if (!isValid) {
       showAlert("Completa los campos obligatorios", "warning");
-      return false;
+      return;
     }
-    setSaving(true);
+
     try {
-      if (isAdd) {
-        const body: CommissionCreate = {
-          currency: form.currency as PaymentCurrency,
-          totalAmount: Number(form.totalAmount),
-          date: form.date,
-          paymentType: form.paymentType as CommissionPaymentType,
-          installments: isCuotas ? Number(form.installments) : 1,
-          status: form.status as CommissionStatus,
-          note: form.note,
-          contractId: Number(contractId ?? form.contractId),
-        };
-        await postCommission(body);
-        showAlert("Comisión creada con éxito", "success");
-      } else if (isDelete && form.id) {
+      setSaving(true);
+
+      if (isDelete) {
+        if (!form.id) throw new Error("Falta el ID para eliminar.");
         await deleteCommission(form.id);
-        showAlert("Comisión eliminada con éxito", "success");
-      } else {
-        const payload: Commission = {
-          id: form.id!,
-          currency: form.currency as PaymentCurrency,
-          totalAmount: Number(form.totalAmount),
-          date: form.date,
-          paymentType: form.paymentType as CommissionPaymentType,
-          installments: isCuotas ? Number(form.installments) : 1,
-          status: form.status as CommissionStatus,
-          note: form.note,
-          contractId: Number(form.contractId),
-        };
-        await putCommission(payload);
-        showAlert("Comisión actualizada con éxito", "success");
+        showAlert("Comisión eliminada con éxito.", "success");
+        onSuccess?.();
+        return;
       }
+
+      const payload: CommissionCreate = {
+        currency: form.currency as PaymentCurrency,
+        totalAmount: Number(form.totalAmount),
+        date: form.date,
+        paymentType: form.paymentType as CommissionPaymentType,
+        installments: isCuotas ? Number(form.installments) : 1, // si es COMPLETO, 1
+        status: form.status as CommissionStatus,
+        note: form.note,
+        contractId: (contractId as number) || Number(form.contractId),
+      };
+
+      if (isAdd) {
+        await postCommission(payload);
+        showAlert("Comisión creada correctamente.", "success");
+      } else if (isEdit) {
+        if (!form.id) throw new Error("Falta el ID para editar.");
+        await putCommission({ ...payload, id: form.id } as Commission);
+        showAlert("Comisión actualizada correctamente.", "success");
+      } else {
+        throw new Error("Acción desconocida.");
+      }
+
       onSuccess?.();
-      return true;
     } catch (err: any) {
-      console.error("[CommissionForm] submit error", err);
-      const msg = err?.response?.data ?? "Error desconocido";
-      showAlert(msg, "error");
-      return false;
+      showAlert(err?.message || "Ocurrió un error al guardar.", "error");
     } finally {
       setSaving(false);
     }
   };
-
-  useImperativeHandle(ref, () => ({ submit: handleSubmit }));
 
   return (
     <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2 }}>
       <Grid container spacing={2} flexGrow={1}>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
+            required
             type="number"
             fullWidth
             size="small"
@@ -171,6 +171,7 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
 
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
+            required
             select
             fullWidth
             size="small"
@@ -186,10 +187,11 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
 
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
+            required
             type="date"
             fullWidth
             size="small"
-            label="Fecha"
+            label="Fecha de Pago"
             InputLabelProps={{ shrink: true }}
             value={form.date}
             onChange={handleChange("date")}
@@ -199,6 +201,7 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
 
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
+            required
             select
             fullWidth
             size="small"
@@ -217,6 +220,7 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
 
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
+            required
             select
             fullWidth
             size="small"
@@ -235,6 +239,7 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
 
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
+            required
             type="number"
             fullWidth
             size="small"
@@ -258,7 +263,22 @@ export const CommissionForm = forwardRef<CommissionFormHandle, Props>(function C
             disabled={isDelete}
           />
         </Grid>
+
+        {/* Botón interno, como en AmenityForm */}
+        <Grid size={{ xs: 12 }}>
+          <Box textAlign="right">
+            <LoadingButton
+              onClick={handleSubmit}
+              loading={saving}
+              disabled={!isValid || saving}
+              variant="contained"
+              color={isDelete ? "error" : "primary"}
+            >
+              {isDelete ? "Eliminar" : isEdit ? "Guardar" : "Confirmar"}
+            </LoadingButton>
+          </Box>
+        </Grid>
       </Grid>
     </Box>
   );
-});
+};
