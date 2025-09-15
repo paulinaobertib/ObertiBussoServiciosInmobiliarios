@@ -26,8 +26,6 @@ import ContractsPage from './pages/ContractsPage';
 import ManageContractPage from './pages/ManageContractPage';
 import AppointmentPage from './pages/AppointmentPage';
 import ViewStatsPage from './pages/ViewStatsPage';
-import ContractUtilitiesPage from './pages/ContractUtilitiesPage';
-import ContractCommissionPage from './pages/ContractCommissionPage';
 import ContractDetailPage from './pages/ContractDetailPage';
 //import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
@@ -120,22 +118,6 @@ export default function Routes() {
                 element={
                     <RequireAdmin>
                         <ManageContractPage />
-                    </RequireAdmin>
-                }
-            />
-            <Route
-                path={ROUTES.CONTRACT_UTILITIES}
-                element={
-                    <RequireAdmin>
-                        <ContractUtilitiesPage />
-                    </RequireAdmin>
-                }
-            />
-            <Route
-                path={ROUTES.CONTRACT_COMMISSION}
-                element={
-                    <RequireAdmin>
-                        <ContractCommissionPage />
                     </RequireAdmin>
                 }
             />
