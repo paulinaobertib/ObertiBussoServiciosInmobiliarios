@@ -1,5 +1,5 @@
 import { useState, useEffect, ChangeEvent } from "react";
-import { Box, TextField, Grid } from "@mui/material";
+import { Box, TextField, Grid, Button } from "@mui/material";
 import { postGuarantor, putGuarantor, deleteGuarantor } from "../../services/guarantor.service";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import type { Guarantor, GuarantorCreate } from "../../types/guarantor";
@@ -136,6 +136,9 @@ export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
         {/* Botones */}
         <Grid size={{ xs: 12 }}>
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+            <Button onClick={onClose} disabled={saving}>
+              Cancelar
+            </Button>
             <LoadingButton
               variant="contained"
               onClick={handleSubmit}
@@ -143,7 +146,7 @@ export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
               disabled={saving || !formValid}
               color={isDelete ? "error" : "primary"}
             >
-              {isAdd ? "Crear garante" : isEdit ? "Guardar cambios" : "Eliminar garante"}
+              {isAdd ? "Guardar" : isEdit ? "Guardar" : "Eliminar"}
             </LoadingButton>
           </Box>
         </Grid>

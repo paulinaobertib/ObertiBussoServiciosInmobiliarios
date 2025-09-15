@@ -1,11 +1,10 @@
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { Box, CircularProgress, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { GridSection } from "../../../shared/components/GridSection";
 import type { Guarantor } from "../../types/guarantor";
-import { GuarantorForm } from "./GuarantorForm";
-import { Modal } from "../../../shared/components/Modal";
+import { GuarantorDialog } from "./GuarantorDialog";
 import { useGuarantors } from "../../hooks/useGuarantors";
 
 interface Props {
@@ -28,37 +27,20 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
 
   const gridIsSelected = useCallback((id: string) => isSelected?.(Number(id)) ?? false, [isSelected]);
 
-  // ── Modal ──
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  // ── Dialog unificado ──
+  const [dlg, setDlg] = useState<{ open: boolean; mode: "add" | "edit" | "delete"; item?: Guarantor | null }>({
+    open: false,
+    mode: "add",
+    item: null,
+  });
 
   const refreshAndClose = async () => {
-    await loadAll(); // recarga tras crear/editar/borrar
-    setModalOpen(false);
+    await loadAll();
   };
 
-  const openCreate = () => {
-    setModalTitle("Crear garante");
-    setModalContent(<GuarantorForm action="add" onSuccess={refreshAndClose} onClose={() => setModalOpen(false)} />);
-    setModalOpen(true);
-  };
-
-  const openEdit = (g: Guarantor) => {
-    setModalTitle("Editar garante");
-    setModalContent(
-      <GuarantorForm action="edit" item={g} onSuccess={refreshAndClose} onClose={() => setModalOpen(false)} />
-    );
-    setModalOpen(true);
-  };
-
-  const openDelete = (g: Guarantor) => {
-    setModalTitle("Eliminar garante");
-    setModalContent(
-      <GuarantorForm action="delete" item={g} onSuccess={refreshAndClose} onClose={() => setModalOpen(false)} />
-    );
-    setModalOpen(true);
-  };
+  const openCreate = () => setDlg({ open: true, mode: "add", item: null });
+  const openEdit = (g: Guarantor) => setDlg({ open: true, mode: "edit", item: g });
+  const openDelete = (g: Guarantor) => setDlg({ open: true, mode: "delete", item: g });
 
   // Columnas: datos + acciones (si showActions)
   const columns: any[] = [
@@ -101,7 +83,7 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
         data={guarantors}
         loading={loading}
         columns={columns}
-        onSearch={() => { }} 
+        onSearch={() => {}}
         onCreate={openCreate}
         onEdit={openEdit}
         onDelete={openDelete}
@@ -116,9 +98,13 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
         selectable={true}
       />
 
-      <Modal open={modalOpen} title={modalTitle} onClose={() => setModalOpen(false)}>
-        {modalContent}
-      </Modal>
+      <GuarantorDialog
+        open={dlg.open}
+        mode={dlg.mode}
+        item={dlg.item ?? undefined}
+        onClose={() => setDlg((s) => ({ ...s, open: false }))}
+        onSaved={refreshAndClose}
+      />
     </>
   );
 }
