@@ -164,11 +164,27 @@ export const CategorySection = ({
     renderCell: params => {
       const item = params.row;
       return (
-        <Box>
-          <IconButton size="small" title="Editar" onClick={() => handleOpen('edit', item)}>
+        <Box display="flex" alignItems="center" justifyContent="flex-start" gap={1} width="100%">
+          <IconButton
+            size="small"
+            title="Editar"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleOpen('edit', item);
+            }}
+          >
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" title="Eliminar" onClick={() => handleOpen('delete', item)}>
+          <IconButton
+            size="small"
+            title="Eliminar"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleOpen('delete', item);
+            }}
+          >
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>

@@ -167,7 +167,7 @@ export function UsersSection({
                         <Box
                             display="flex"
                             alignItems="center"
-                            justifyContent="center"
+                            justifyContent="flex-start"
                             gap={1}
                             width="100%"
                             height="100%"
@@ -175,21 +175,33 @@ export function UsersSection({
                             <IconButton
                                 size="small"
                                 title="Editar"
-                                onClick={() => openEdit(params.row)}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    openEdit(params.row);
+                                }}
                             >
                                 <EditIcon fontSize="small" />
                             </IconButton>
                             <IconButton
                                 size="small"
                                 title="Eliminar"
-                                onClick={() => openDelete(params.row)}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    openDelete(params.row);
+                                }}
                             >
                                 <DeleteIcon fontSize="small" />
                             </IconButton>
                             <IconButton
                                 size="small"
                                 title="Roles"
-                                onClick={() => openRoles(params.row)}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    openRoles(params.row);
+                                }}
                             >
                                 <PeopleIcon fontSize="small" />
                             </IconButton>

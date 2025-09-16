@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Button } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
+  GridCellParams,
   GridRowId,
   GridRowSelectionModel,
+  MuiEvent,
 } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import { Modal } from './Modal';
@@ -94,6 +96,33 @@ export const GridSection = ({
   const [modalContent] = useState<React.ReactNode>(null);
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
 
+  const actionFields = useMemo(() => {
+    const fields = new Set<string>();
+    for (const column of columns) {
+      if (!column) continue;
+      const field = column.field ?? '';
+      if (field === 'actions' || column.type === 'actions') {
+        fields.add(field);
+      }
+    }
+    return fields;
+  }, [columns]);
+
+  const isActionCell = useCallback(
+    (field: string) => actionFields.has(field),
+    [actionFields]
+  );
+
+  const handleCellClick = useCallback(
+    (params: GridCellParams, event: MuiEvent<React.MouseEvent>) => {
+      if (isActionCell(params.field)) {
+        event.defaultMuiPrevented = true;
+        event.stopPropagation();
+      }
+    },
+    [isActionCell]
+  );
+
   return (
     <>
       <Box display="flex" justifyContent="flex-end" alignItems="center" gap={2} my={2}>
@@ -125,6 +154,8 @@ export const GridSection = ({
           // Selección controlada (objeto con Set) — tal como tipa tu versión
           rowSelectionModel={selectable ? internalSelection : emptySelection()}
           onRowSelectionModelChange={handleRowSelection}
+          onCellClick={handleCellClick}
+          onCellDoubleClick={handleCellClick}
           // Miscelánea
           localeText={{ noRowsLabel: `No hay resultados.` }}
           sx={{
