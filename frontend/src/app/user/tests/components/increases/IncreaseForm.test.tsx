@@ -2,44 +2,32 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import dayjs from "dayjs";
+import "@testing-library/jest-dom/vitest"; // 👈 importa los matchers
+
 import { IncreaseForm } from "../../../components/increases/IncreaseForm";
-import { ContractIncreaseCurrency } from "../../../types/contractIncrease";
+import type { PaymentCurrency } from "../../../types/payment";
 
 describe("IncreaseForm", () => {
-  it("emite onChange con valores por defecto al montar", () => {
+  it("emite onChange con valores iniciales vacíos al montar", () => {
     const onChange = vi.fn();
     render(<IncreaseForm onChange={onChange} />);
-
-    const today = dayjs().format("YYYY-MM-DD");
-    const defaultCurrency =
-      (Object.values(ContractIncreaseCurrency)[0] as ContractIncreaseCurrency) ??
-      "ARS";
 
     expect(onChange).toHaveBeenCalled();
     const first = onChange.mock.calls[0][0];
 
     expect(first).toMatchObject({
-      date: today,
-      amount: 0,
-      currency: defaultCurrency,
-      frequency: 12,
+      date: "",
+      amount: "",
+      currency: "",
+      adjustment: "",
+      note: "",
     });
 
-    // Inputs muestran esos valores
-    expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe(
-      today
-    );
-    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe(
-      "0"
-    );
-    // TextField select renderiza el valor visible como texto
-    expect(screen.getByLabelText("Moneda")).toHaveTextContent(
-      String(defaultCurrency)
-    );
-    expect(
-      (screen.getByLabelText("Frecuencia (meses)") as HTMLInputElement).value
-    ).toBe("12");
+    // Inputs deberían estar vacíos
+    expect(screen.getByLabelText("Fecha desde que regirá")).toHaveValue("");
+    expect(screen.getByLabelText("Nuevo monto")).toHaveValue(null);
+    expect(screen.getByLabelText("Porcentaje de ajuste")).toHaveValue(null);
+    expect(screen.getByLabelText("Nota (opcional)")).toHaveValue("");
   });
 
   it("respeta initialValues si se proveen", () => {
@@ -47,65 +35,54 @@ describe("IncreaseForm", () => {
     const init = {
       date: "2025-01-15",
       amount: 750,
-      currency: "USD" as ContractIncreaseCurrency,
-      frequency: 6,
+      currency: "USD" as PaymentCurrency,
+      adjustment: 10,
+      note: "Prueba",
     };
 
     render(<IncreaseForm initialValues={init} onChange={onChange} />);
 
-    // onChange llamado con initialValues
     expect(onChange).toHaveBeenCalled();
-    const first = onChange.mock.calls[0][0];
-    expect(first).toMatchObject(init);
+    expect(onChange.mock.calls[0][0]).toMatchObject(init);
 
-    // Inputs con esos valores
-    expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe(
-      "2025-01-15"
-    );
-    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe(
-      "750"
-    );
-    expect(screen.getByLabelText("Moneda")).toHaveTextContent("USD");
-    expect(
-      (screen.getByLabelText("Frecuencia (meses)") as HTMLInputElement).value
-    ).toBe("6");
+    expect(screen.getByLabelText("Fecha desde que regirá")).toHaveValue("2025-01-15");
+    expect(screen.getByLabelText("Nuevo monto")).toHaveValue(750);
+    expect(screen.getByLabelText("Porcentaje de ajuste")).toHaveValue(10);
+    expect(screen.getByLabelText("Nota (opcional)")).toHaveValue("Prueba");
+
+    expect(screen.getByRole("combobox", { name: /Moneda/i })).toHaveTextContent(/Dólar/i);
   });
 
-  it("emite onChange al modificar fecha, monto, moneda y frecuencia", async () => {
+  it("emite onChange al modificar todos los campos", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<IncreaseForm onChange={onChange} />);
 
-    const date = screen.getByLabelText("Fecha") as HTMLInputElement;
-    const amount = screen.getByLabelText("Monto") as HTMLInputElement;
-    const currency = screen.getByLabelText("Moneda"); // combobox
-    const freq = screen.getByLabelText(
-      "Frecuencia (meses)"
-    ) as HTMLInputElement;
+    const date = screen.getByLabelText("Fecha desde que regirá");
+    const amount = screen.getByLabelText("Nuevo monto");
+    const adjustment = screen.getByLabelText("Porcentaje de ajuste");
+    const note = screen.getByLabelText("Nota (opcional)");
+    const currency = screen.getByRole("combobox", { name: /Moneda/i });
 
-    // Cambiar fecha
     fireEvent.change(date, { target: { value: "2025-09-01" } });
-
-    // Cambiar monto
     await user.clear(amount);
     await user.type(amount, "1234");
-
-    // Cambiar frecuencia
-    await user.clear(freq);
-    await user.type(freq, "3");
-
-    // Cambiar moneda (abre el menú y elige USD)
+    await user.clear(adjustment);
+    await user.type(adjustment, "15");
+    await user.clear(note);
+    await user.type(note, "Observación de prueba");
     await user.click(currency);
-    const usd = await screen.findByRole("option", { name: "USD" });
+    const usd = await screen.findByRole("option", { name: "Dólar" });
     await user.click(usd);
 
-    // Tomar la última emisión
     const last = onChange.mock.calls.at(-1)![0];
     expect(last).toMatchObject({
       date: "2025-09-01",
       amount: 1234,
+      adjustment: 15,
+      note: "Observación de prueba",
       currency: "USD",
-      frequency: 3,
     });
   });
+
 });
