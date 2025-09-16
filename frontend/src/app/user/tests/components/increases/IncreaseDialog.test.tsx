@@ -2,9 +2,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom/vitest";
 import { IncreaseDialog } from "../../../components/increases/IncreaseDialog";
 
-// ===== Mocks =====
+/* ================= Mocks ================ */
 vi.mock("../../../../shared/components/Modal", () => ({
   Modal: ({ open, title, children }: any) =>
     open ? (
@@ -15,24 +16,32 @@ vi.mock("../../../../shared/components/Modal", () => ({
     ) : null,
 }));
 
+vi.mock("../../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => ({ showAlert: vi.fn() }),
+}));
+
 vi.mock("../../../components/increases/IncreaseForm", () => {
   const IncreaseForm = ({ initialValues, onChange }: any) => {
-    const [local, setLocal] = require("react").useState(initialValues ?? {});
-    require("react").useEffect(() => {
+    const React = require("react");
+    const [local, setLocal] = React.useState(initialValues ?? {});
+    React.useEffect(() => {
       setLocal(initialValues ?? {});
     }, [initialValues]);
 
     const setField =
       (f: string) =>
-      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const val =
-          f === "amount" || f === "frequency"
-            ? Number(e.target.value)
-            : e.target.value;
-        const next = { ...local, [f]: val };
+      (e: any) => {
+        const raw = e?.target?.value ?? "";
+        const next = { ...local, [f]: raw };
         setLocal(next);
         onChange(next);
       };
+
+    const toggleCurrency = () => {
+      const next = { ...local, currency: local.currency === "USD" ? "ARS" : "USD" };
+      setLocal(next);
+      onChange(next);
+    };
 
     return (
       <div>
@@ -45,36 +54,40 @@ vi.mock("../../../components/increases/IncreaseForm", () => {
             onChange={setField("date")}
           />
         </label>
+
         <label>
           Monto
           <input
             aria-label="Monto"
             type="number"
-            value={String(local.amount ?? 0)}
+            value={local.amount ?? ""}
             onChange={setField("amount")}
           />
         </label>
+
         <label>
           Moneda
-          <button
-            aria-label="Moneda"
-            onClick={() => {
-              // alterna entre ARS y USD para simplificar
-              const next = { ...local, currency: local.currency === "USD" ? "ARS" : "USD" };
-              setLocal(next);
-              onChange(next);
-            }}
-          >
-            {local.currency ?? "ARS"}
+          <button aria-label="Moneda" onClick={toggleCurrency}>
+            {(local.currency as string) || "—"}
           </button>
         </label>
+
         <label>
-          Frecuencia
+          Ajuste
           <input
-            aria-label="Frecuencia"
+            aria-label="Ajuste"
             type="number"
-            value={String(local.frequency ?? 12)}
-            onChange={setField("frequency")}
+            value={local.adjustment ?? ""}
+            onChange={setField("adjustment")}
+          />
+        </label>
+
+        <label>
+          Nota
+          <textarea
+            aria-label="Nota"
+            value={local.note ?? ""}
+            onChange={setField("note")}
           />
         </label>
       </div>
@@ -88,35 +101,40 @@ vi.mock("../../../services/contractIncrease.service", () => ({
 }));
 import { postContractIncrease } from "../../../services/contractIncrease.service";
 
-// ===== Helpers =====
+/* ============== Helpers ============== */
 const fillForm = async (overrides?: {
-  date?: string;
-  amount?: string;
+  date?: string; 
+  amount?: string; 
   currency?: "ARS" | "USD";
-  frequency?: string;
+  adjustment?: string;
+  note?: string; 
 }) => {
   const user = userEvent.setup();
   const date = screen.getByLabelText("Fecha") as HTMLInputElement;
   const amount = screen.getByLabelText("Monto") as HTMLInputElement;
   const currencyBtn = screen.getByLabelText("Moneda");
-  const frequency = screen.getByLabelText("Frecuencia") as HTMLInputElement;
+  const adjustment = screen.getByLabelText("Ajuste") as HTMLInputElement;
+  const note = screen.getByLabelText("Nota") as HTMLTextAreaElement;
 
-  if (overrides?.date) {
+  if (overrides?.date !== undefined) {
     await user.clear(date);
-    await user.type(date, overrides.date);
+    if (overrides.date !== "") await user.type(date, overrides.date);
   }
-  if (overrides?.amount) {
+  if (overrides?.amount !== undefined) {
     await user.clear(amount);
-    await user.type(amount, overrides.amount);
+    if (overrides.amount !== "") await user.type(amount, overrides.amount);
+  }
+  if (overrides?.adjustment !== undefined) {
+    await user.clear(adjustment);
+    if (overrides.adjustment !== "") await user.type(adjustment, overrides.adjustment);
+  }
+  if (overrides?.note !== undefined) {
+    await user.clear(note);
+    if (overrides.note !== "") await user.type(note, overrides.note);
   }
   if (overrides?.currency) {
-    // nuestro mock alterna ARS/USD con un click; repetimos si hace falta
     const current = currencyBtn.textContent?.trim();
     if (current !== overrides.currency) await user.click(currencyBtn);
-  }
-  if (overrides?.frequency) {
-    await user.clear(frequency);
-    await user.type(frequency, overrides.frequency);
   }
 };
 
@@ -125,10 +143,11 @@ const clickSave = async () => {
   await user.click(screen.getByRole("button", { name: /guardar/i }));
 };
 
-// ===== Fixtures =====
-const contractA = { id: 10 } as any;
-const contractB = { id: 99 } as any;
+/* ============== Fixtures ============== */
+const contractA = { id: 10, adjustmentIndex: { id: 7 } } as any;
+const contractB = { id: 99, adjustmentIndex: { id: 5 } } as any;
 
+/* ============== Tests ============== */
 describe("IncreaseDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -140,7 +159,8 @@ describe("IncreaseDialog", () => {
 
     render(<IncreaseDialog open={true} contract={null} onClose={onClose} onSaved={onSaved} />);
 
-    await clickSave();
+    // Guardar está deshabilitado (sin contrato/índice) no lo clickeamos
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeDisabled();
 
     expect(postContractIncrease).not.toHaveBeenCalled();
     expect(onSaved).not.toHaveBeenCalled();
@@ -162,8 +182,11 @@ describe("IncreaseDialog", () => {
       date: "2025-08-30",
       amount: "1234",
       currency: "USD",
-      frequency: "6",
+      adjustment: "15",
+      note: "Observación de prueba",
     });
+
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeEnabled();
 
     await clickSave();
 
@@ -182,15 +205,16 @@ describe("IncreaseDialog", () => {
       date: "2025-08-30T00:00:00",
       amount: 1234,
       currency: "USD",
-      frequency: 6,
+      indexId: 7,
       contractId: 10,
+      note: "Observación de prueba",
+      adjustment: 15,
     });
 
-    // onClose NO se llama en guardado (tu componente no lo hace)
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("maneja error: no llama onSaved", async () => {
+  it("maneja error: no llama onSaved y re-habilita botones", async () => {
     const onClose = vi.fn();
     const onSaved = vi.fn();
 
@@ -202,7 +226,8 @@ describe("IncreaseDialog", () => {
       date: "2025-08-31",
       amount: "500",
       currency: "ARS",
-      frequency: "12",
+      adjustment: "",
+      note: "", 
     });
 
     await clickSave();
@@ -212,9 +237,9 @@ describe("IncreaseDialog", () => {
       expect(onSaved).not.toHaveBeenCalled();
     });
 
-    // debería haber re-habilitado botones
-    expect(screen.getByRole("button", { name: /guardar/i })).not.toBeDisabled();
-    expect(screen.getByRole("button", { name: /cancelar/i })).not.toBeDisabled();
+    // re-habilitados
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeEnabled();
   });
 
   it("resetea valores cuando cambia el contract", async () => {
@@ -225,18 +250,23 @@ describe("IncreaseDialog", () => {
       <IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
     );
 
-    // completamos algo
-    await fillForm({ date: "2025-09-01", amount: "42", currency: "USD", frequency: "3" });
+    await fillForm({
+      date: "2025-09-01",
+      amount: "42",
+      currency: "USD",
+      adjustment: "10",
+      note: "Hola",
+    });
 
-    // cambia contrato -> efecto setea empty
     rerender(
       <IncreaseDialog open={true} contract={contractB} onClose={onClose} onSaved={onSaved} />
     );
 
     expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("");
-    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("0");
-    expect(screen.getByLabelText("Moneda").textContent).toBe("ARS");
-    expect((screen.getByLabelText("Frecuencia") as HTMLInputElement).value).toBe("12");
+    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("");
+    expect(screen.getByLabelText("Moneda").textContent).toBe("—");
+    expect((screen.getByLabelText("Ajuste") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("Nota") as HTMLTextAreaElement).value).toBe("");
   });
 
   it("Cancelar llama onClose y se deshabilita mientras guarda", async () => {
@@ -251,10 +281,11 @@ describe("IncreaseDialog", () => {
 
     render(<IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />);
 
+    // cancelar cuando no está guardando
     await user.click(screen.getByRole("button", { name: /cancelar/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    await fillForm({ date: "2025-08-30", amount: "1", currency: "ARS", frequency: "12" });
+    await fillForm({ date: "2025-08-30", amount: "1", currency: "ARS", adjustment: "", note: "" });
     await clickSave();
 
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
