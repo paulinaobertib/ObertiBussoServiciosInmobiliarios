@@ -23,6 +23,15 @@ let theme = createTheme({
     background: { default: "#FFFFFF" },
   },
   components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: 8,
+          fontWeight: 600,
+        },
+      },
+    },
     MuiListItemButton: {
       styleOverrides: {
         root: {
