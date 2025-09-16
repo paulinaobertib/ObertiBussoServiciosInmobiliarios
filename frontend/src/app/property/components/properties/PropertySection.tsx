@@ -133,7 +133,7 @@ export const PropertySection = ({
                 gap={1}
                 height="100%"
                 alignItems="center"
-                justifyContent="center"
+                justifyContent="flex-start"
                 width="100%"
               >
                 {(actions ?? []).map((a) => (
@@ -141,7 +141,11 @@ export const PropertySection = ({
                     key={a.label}
                     size="small"
                     title={a.label}
-                    onClick={a.onClick}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      a.onClick();
+                    }}
                   >
                     {a.icon}
                   </IconButton>

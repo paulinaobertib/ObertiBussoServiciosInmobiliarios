@@ -41,19 +41,27 @@ export default function ServicesExpensesCard({
   const money = (n?: number | null) => fmtMoney(n, currency);
   const today = new Date();
 
+  const parseDate = (d: string) => {
+    const t = new Date(d as any).getTime();
+    return isNaN(t) ? 0 : t;
+  };
+
+  // monto actual: último aumento efectivo (<= hoy) o el inicial
   const currentAmount = (u: Utility) => {
-    let base = u.initialAmount ?? 0;
+    const base = u.initialAmount ?? 0;
     const incs = (u.increases ?? []).filter(Boolean);
     if (!incs.length) return base;
-    const effective = incs
-      .filter((i) => {
-        const d = new Date(i.adjustmentDate as any);
-        return !isNaN(d.getTime()) && d.getTime() <= today.getTime();
-      })
-      .sort((a, b) => (a.adjustmentDate > b.adjustmentDate ? 1 : a.adjustmentDate < b.adjustmentDate ? -1 : 0));
-    if (!effective.length) return base;
-    return effective[effective.length - 1].amount ?? base;
+
+    const lastEffective = incs
+      .filter((i) => parseDate(i.adjustmentDate) <= today.getTime())
+      .sort((a, b) => parseDate(b.adjustmentDate) - parseDate(a.adjustmentDate))[0]; // desc
+
+    return lastEffective ? lastEffective.amount ?? base : base;
   };
+
+  // para mostrar: aumentos ordenados desc (recientes primero)
+  const sortedIncreases = (u: Utility) =>
+    (u.increases ?? []).filter(Boolean).sort((a, b) => parseDate(b.adjustmentDate) - parseDate(a.adjustmentDate)); // desc
 
   return (
     <Grid size={{ xs: 12 }}>
@@ -171,23 +179,74 @@ export default function ServicesExpensesCard({
                     {(u.increases?.length ?? 0) > 0 && (
                       <>
                         {open && (
-                          <Box sx={{ mt: 1, p: 1, borderRadius: 1, border: '1px solid', borderColor: 'grey.200', maxHeight: 70, overflowY: 'auto' }}>
-                            <Typography sx={{ color: "text.secondary", fontWeight: 600, mb: 0.5 }}>Aumentos</Typography>
-                            {(u.increases ?? []).map((inc) => (
-                              <Typography key={inc.id} sx={{ color: "text.secondary" }}>
-                                {fmtDate(inc.adjustmentDate)}: {money(inc.amount)}
-                              </Typography>
-                            ))}
+                          <Box
+                            sx={{
+                              mt: 1,
+                              p: 1,
+                              borderRadius: 1,
+                              border: "1px solid",
+                              borderColor: "grey.200",
+                              overflowX: "auto",
+                              whiteSpace: "nowrap",
+                              "&::-webkit-scrollbar": { height: 6 },
+                              "&::-webkit-scrollbar-thumb": { bgcolor: "grey.400", borderRadius: 3 },
+                            }}
+                            // auto-scroll al final para mostrar el más reciente
+                            ref={(el) => {
+                              if (!el) return;
+                            }}
+                          >
+                            <Typography sx={{ color: "text.secondary", fontWeight: 600, mb: 1 }}>
+                              Historial de aumentos
+                            </Typography>
+
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              sx={{ alignItems: "center", justifyContent: "flex-start" }} // chips de izq→der
+                            >
+                              {sortedIncreases(u).map((inc, i, arr) => {
+                                const isFirst = i === 0; // el último es el más reciente
+                                return (
+                                  <Box key={inc.id} sx={{ display: "inline-flex", alignItems: "center" }}>
+                                    <Chip
+                                      size="small"
+                                      variant="outlined"
+                                      label={`${fmtDate(inc.adjustmentDate)} • ${money(inc.amount)}`}
+                                      sx={(t) => ({
+                                        borderRadius: 999,
+                                        px: 0.5,
+                                        ...(isFirst && {
+                                          // sombreado sutil para destacar el más reciente
+                                          bgcolor: t.palette.action.selected,
+                                          borderColor: t.palette.primary.main,
+                                          boxShadow: `0 0 0 0 ${t.palette.primary.main} inset`,
+                                          fontWeight: 700,
+                                        }),
+                                      })}
+                                    />
+                                    {i < arr.length - 1 && (
+                                      <Divider
+                                        orientation="vertical"
+                                        flexItem
+                                        sx={{ mx: 1, borderColor: "grey.300", opacity: 0.6 }}
+                                      />
+                                    )}
+                                  </Box>
+                                );
+                              })}
+                            </Stack>
                           </Box>
                         )}
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+
+                        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
                           <Button
                             size="small"
                             variant="text"
                             onClick={() => setOpenMap((m) => ({ ...m, [uid]: !m[uid] }))}
                             sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                           >
-                            {open ? 'Ocultar aumentos' : 'Ver aumentos'}
+                            {open ? "Ocultar aumentos" : "Ver aumentos"}
                           </Button>
                         </Box>
                       </>

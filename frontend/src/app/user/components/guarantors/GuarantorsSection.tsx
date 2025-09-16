@@ -56,11 +56,34 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
       sortable: false,
       filterable: false,
       renderCell: (params: any) => (
-        <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%" height="100%">
-          <IconButton size="small" title="Editar" onClick={() => openEdit(params.row)}>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="flex-start"
+          gap={1}
+          width="100%"
+          height="100%"
+        >
+          <IconButton
+            size="small"
+            title="Editar"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              openEdit(params.row);
+            }}
+          >
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" title="Eliminar" onClick={() => openDelete(params.row)}>
+          <IconButton
+            size="small"
+            title="Eliminar"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              openDelete(params.row);
+            }}
+          >
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>

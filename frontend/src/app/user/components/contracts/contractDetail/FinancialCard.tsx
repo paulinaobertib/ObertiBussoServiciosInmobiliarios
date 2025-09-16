@@ -66,7 +66,7 @@ export default function FinancialCard({
                 onClick={onRegisterRentPayment}
                 sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
               >
-                Registrar alquiler
+                Registrar pago
               </Button>
             )}
           </Box>
