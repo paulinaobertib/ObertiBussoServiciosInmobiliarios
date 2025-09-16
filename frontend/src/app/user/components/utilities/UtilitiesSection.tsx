@@ -33,11 +33,27 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
             sortable: false,
             filterable: false,
             renderCell: (params: any) => (
-              <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%">
-                <IconButton size="small" title="Editar" onClick={() => openEdit(params.row)}>
+              <Box display="flex" alignItems="center" justifyContent="flex-start" gap={1} width="100%">
+                <IconButton
+                  size="small"
+                  title="Editar"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openEdit(params.row);
+                  }}
+                >
                   <EditIcon fontSize="small" />
                 </IconButton>
-                <IconButton size="small" title="Eliminar" onClick={() => openDelete(params.row)}>
+                <IconButton
+                  size="small"
+                  title="Eliminar"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openDelete(params.row);
+                  }}
+                >
                   <DeleteIcon fontSize="small" />
                 </IconButton>
               </Box>
@@ -63,7 +79,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   }, [loadAll]);
 
   const openEdit = (u: Utility) => {
-    setModalTitle("Editar utility");
+    setModalTitle("Editar servicio");
     setModalContent(
       <UtilitiesForm
         action="edit"
@@ -78,7 +94,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   };
 
   const openDelete = (u: Utility) => {
-    setModalTitle("Eliminar utility");
+    setModalTitle("Eliminar servicio");
     setModalContent(
       <UtilitiesForm
         action="delete"
@@ -93,7 +109,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   };
 
   const openCreate = () => {
-    setModalTitle("Crear utility");
+    setModalTitle("Crear servicio");
     setModalContent(
       <UtilitiesForm
         action="add"
@@ -134,7 +150,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
         onRoles={undefined}
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
-        entityName="Utility"
+        entityName="Servicio"
         showActions={showActions}
         fetchAll={fetchAllAdapter}
         fetchByText={fetchByTextAdapter}
