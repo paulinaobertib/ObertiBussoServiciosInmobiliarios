@@ -27,7 +27,6 @@ export default function ManageContractPage() {
 
   const steps = ["Propiedad", "Usuario", "Datos"];
 
-  // ✅ NUEVO: sembrar selección desde el contrato cargado (modo editar)
   useEffect(() => {
     const c = ctrl.contract;
     if (!c) return;
@@ -141,12 +140,12 @@ export default function ManageContractPage() {
 
         {ctrl.activeStep === 0 && (
           <PropertySection
-            toggleSelect={ctrl.setSelectedPropertyId}
-            isSelected={(id) => id === ctrl.selectedPropertyId}
-            filterAvailable={true}
+            toggleSelect={ctrl.setSelectedPropertyId}                 // (id: number | null) => void
+            isSelected={(id: number) => id === ctrl.selectedPropertyId}
+            filterAvailable
             showActions={false}
-            //mantener seleccionados
-            selectedIds={ctrl.selectedPropertyId != null ? [String(ctrl.selectedPropertyId)] : []}
+            // mantener seleccionado (number[])
+            selectedIds={ctrl.selectedPropertyId != null ? [ctrl.selectedPropertyId] : []}
           />
         )}
 
@@ -165,17 +164,17 @@ export default function ManageContractPage() {
                 control={<Checkbox checked={ctrl.addGuarantors} onChange={(_, c) => ctrl.setAddGuarantors(c)} />}
                 label="¿Agregar garantes?"
               />
+
               {ctrl.addGuarantors && (
                 <Box mt={2}>
                   <GuarantorsSection
+                    selectedIds={ctrl.selectedGuarantorIds}           // number[]
                     toggleSelect={(ids) => {
-                      ctrl.setSelectedGuarantorIds(ids);
-                      ctrl.formRef.current?.setGuarantorsIds(ids);
+                      ctrl.setSelectedGuarantorIds(ids);              // number[]
+                      ctrl.formRef.current?.setGuarantorsIds(ids);    // number[]
                     }}
-                    isSelected={(id) => ctrl.selectedGuarantorIds.includes(id)}
-                    showActions={true}
-                    //mantener seleccionados
-                    selectedIds={ctrl.selectedGuarantorIds.map(String)}
+                    isSelected={(id: number) => ctrl.selectedGuarantorIds.includes(id)}
+                    showActions
                   />
                 </Box>
               )}
