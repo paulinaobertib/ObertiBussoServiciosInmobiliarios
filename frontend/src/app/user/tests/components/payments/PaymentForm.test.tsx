@@ -1,12 +1,16 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
+import userEvent from "@testing-library/user-event";
+
+// SUT
 import { PaymentForm } from "../../../components/payments/PaymentForm";
+
+// Tipos/enums
 import { PaymentCurrency, PaymentConcept } from "../../../types/payment";
 
-/* =============== Mocks de servicios =============== */
+// ────────────────── Mocks de servicios usados por PaymentForm ──────────────────
 vi.mock("../../../services/contractUtility.service", () => ({
   getContractUtilitiesByContract: vi.fn(),
 }));
@@ -17,38 +21,49 @@ vi.mock("../../../services/commission.service", () => ({
   getCommissionByContractId: vi.fn(),
 }));
 
-import { getContractUtilitiesByContract } from "../../../services/contractUtility.service";
+import {
+  getContractUtilitiesByContract,
+} from "../../../services/contractUtility.service";
 import { getUtilityById } from "../../../services/utility.service";
 import { getCommissionByContractId } from "../../../services/commission.service";
 
-/* =============== Helpers =============== */
-const openSelect = async (label: string | RegExp) => {
-  const user = userEvent.setup();
-  const combo = screen.getByRole("combobox", { name: label });
-  await user.click(combo);
-  return combo;
+// ───────────────────────────── Helpers de test ─────────────────────────────
+const lastOnChange = (mock: any) => {
+  const c = mock.mock.calls;
+  return c[c.length - 1][0];
 };
 
-const chooseOption = async (text: string | RegExp) => {
-  const user = userEvent.setup();
-  const opt = await screen.findByRole("option", { name: text });
-  await user.click(opt);
+const typeInto = async (label: RegExp, value: string) => {
+  const input =
+    screen.queryByLabelText(label) ??
+    screen.getByRole("textbox", { name: label });
+  // limpiar y escribir (maneja inputs number/text)
+  await userEvent.clear(input as HTMLElement);
+  if (value) {
+    await userEvent.type(input as HTMLElement, value);
+  }
 };
 
-const typeInto = async (label: string | RegExp, value: string) => {
-  const user = userEvent.setup();
-  const input = screen.getByLabelText(label) as HTMLInputElement | HTMLTextAreaElement;
-  await user.clear(input);
-  if (value !== "") await user.type(input, value);
-  return input;
+const openSelect = async (label: RegExp) => {
+  // Muchos MUI Selects son "combobox"; a veces se exponen como "button"
+  let trigger: HTMLElement | null = null;
+  try {
+    trigger = await screen.findByRole("combobox", { name: label }, { timeout: 8000 });
+  } catch {
+    trigger = await screen.findByRole("button", { name: label }, { timeout: 8000 });
+  }
+  await userEvent.click(trigger!);
 };
 
-const lastOnChange = (mock: any) => mock.mock.calls[mock.mock.calls.length - 1]?.[0];
+const chooseOption = async (label: RegExp) => {
+  const opt = await screen.findByRole("option", { name: label }, { timeout: 8000 });
+  await userEvent.click(opt);
+};
 
-/* =============== Datos de utilidades y comisión =============== */
+// ───────────────────────────── Fixtures ─────────────────────────────
 const utilsList = [
-  { id: 1, contractId: 42, utilityId: 101 },
-  { id: 2, contractId: 42, utilityId: 202 },
+  { id: 1, utilityId: 101 }, // este lo nombraremos "Luz"
+  { id: 2, utilityId: 202 }, // este segundo forzaremos un error de nombre
 ];
 
 const utilityNames: Record<number, string> = {
@@ -56,87 +71,108 @@ const utilityNames: Record<number, string> = {
   202: "Agua",
 };
 
-/* =============== Tests =============== */
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 describe("PaymentForm", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  it(
+    "fetch OK: carga utilidades y comisión; maneja cambios de campos y reseteos por concepto",
+    async () => {
+      const onChange = vi.fn();
 
-  it("fetch OK: carga utilidades y comisión; maneja cambios de campos y reseteos por concepto", async () => {
-    const onChange = vi.fn();
+      // getContractUtilities: OK
+      (getContractUtilitiesByContract as any).mockResolvedValueOnce(utilsList);
+      // getUtilityById: mezcla OK / error para cubrir el catch interno
+      (getUtilityById as any)
+        .mockResolvedValueOnce({ id: 101, name: utilityNames[101] }) // "Luz"
+        .mockRejectedValueOnce(new Error("no-name")); // el segundo nombre falla
+      // comisión OK
+      (getCommissionByContractId as any).mockResolvedValueOnce({ id: 77 });
 
-    // getContractUtilities: OK
-    (getContractUtilitiesByContract as any).mockResolvedValueOnce(utilsList);
-    // getUtilityById: mezcla OK / error para cubrir el catch interno
-    (getUtilityById as any)
-      .mockResolvedValueOnce({ id: 101, name: utilityNames[101] })
-      .mockRejectedValueOnce(new Error("no-name")); // -> debería ignorarlo y usar id como string si hiciera falta
-    // comisión OK
-    (getCommissionByContractId as any).mockResolvedValueOnce({ id: 77 });
+      render(<PaymentForm contractId={42} onChange={onChange} />);
 
-    render(<PaymentForm contractId={42} onChange={onChange} />);
+      // onChange se dispara al mount con valores iniciales
+      await waitFor(() => expect(onChange).toHaveBeenCalled(), { timeout: 10000 });
 
-    // onChange se dispara al mount con valores iniciales
-    expect(onChange).toHaveBeenCalled();
+      // Esperamos a que termine el fetch de comisión/utilidades
+      await waitFor(
+        () => {
+          expect(getContractUtilitiesByContract).toHaveBeenCalledWith(42);
+          expect(getCommissionByContractId).toHaveBeenCalledWith(42);
+        },
+        { timeout: 10000 }
+      );
 
-    // Esperamos a que termine el fetch de comisión para que setee commissionId en vals
-    await waitFor(() => {
-      expect(getContractUtilitiesByContract).toHaveBeenCalledWith(42);
-      expect(getCommissionByContractId).toHaveBeenCalledWith(42);
-    });
+      // Cambiar fecha
+      await typeInto(/Fecha/i, "2025-09-01");
+      expect(lastOnChange(onChange).date).toBe("2025-09-01");
 
-    // Cambiar fecha
-    await typeInto(/Fecha/i, "2025-09-01");
-    expect(lastOnChange(onChange).date).toBe("2025-09-01");
+      // Cambiar descripción
+      await typeInto(/Descripción/i, "Pago parcial");
+      expect(lastOnChange(onChange).description).toBe("Pago parcial");
 
-    // Cambiar descripción
-    await typeInto(/Descripción/i, "Pago parcial");
-    expect(lastOnChange(onChange).description).toBe("Pago parcial");
+      // Monto -> número
+      await typeInto(/Monto/i, "1234");
+      expect(lastOnChange(onChange).amount).toBe(1234);
 
-    // Monto -> número
-    await typeInto(/Monto/i, "1234");
-    expect(lastOnChange(onChange).amount).toBe(1234);
+      // Limpiar monto -> ""
+      await typeInto(/Monto/i, "");
+      expect(lastOnChange(onChange).amount).toBe("");
 
-    // Limpiar monto -> ""
-    await typeInto(/Monto/i, "");
-    expect(lastOnChange(onChange).amount).toBe("");
+      // Moneda -> USD
+      await openSelect(/Moneda/i);
+      await chooseOption(/Dólar/i);
+      expect(lastOnChange(onChange).paymentCurrency).toBe(PaymentCurrency.USD);
 
-    // Moneda -> USD
-    await openSelect(/Moneda/i);
-    await chooseOption(/Dólar/i);
-    expect(lastOnChange(onChange).paymentCurrency).toBe(PaymentCurrency.USD);
+      // Concepto -> EXTRA (debe limpiar commissionId y mostrar selector de servicio)
+      await openSelect(/Concepto/i);
+      await chooseOption(/extra/i);
+      const afterExtra = lastOnChange(onChange);
+      expect(afterExtra.concept).toBe(PaymentConcept.EXTRA);
+      expect(afterExtra.commissionId).toBe(""); // limpiado
 
-    // Concepto -> EXTRA (debe limpiar commissionId y mostrar selector de servicio)
-    await openSelect(/Concepto/i);
-    await chooseOption(/extra/i);
-    const afterExtra = lastOnChange(onChange);
-    expect(afterExtra.concept).toBe(PaymentConcept.EXTRA);
-    expect(afterExtra.commissionId).toBe(""); // limpiado
-    // aparece el select de "Servicio del contrato"
-    const serviceCombo = await screen.findByRole("combobox", { name: /Servicio del contrato/i });
-    expect(serviceCombo).toBeInTheDocument();
+      // Buscar el control accesible del selector de "Servicio del contrato"
+      // (MUI Select suele ser 'combobox'; a veces 'button' según la variante)
+      let serviceTrigger: HTMLElement;
+      try {
+        serviceTrigger = await screen.findByRole(
+          "combobox",
+          { name: /Servicio del contrato/i },
+          { timeout: 8000 }
+        );
+      } catch {
+        serviceTrigger = await screen.findByRole(
+          "button",
+          { name: /Servicio del contrato/i },
+          { timeout: 8000 }
+        );
+      }
+      expect(serviceTrigger).toBeInTheDocument();
 
-    // Abrimos servicio y elegimos una opción (la 2 con nombre "Agua" podría no tener nombre por el reject; al menos 1 sí tiene "Luz")
-    await userEvent.click(serviceCombo);
-    // deberían aparecer al menos "Luz" y quizá otra sin nombre, pero elegimos "Luz" que sí resolvimos
-    const luzOpt = await screen.findByRole("option", { name: /luz/i });
-    await userEvent.click(luzOpt);
-    expect(lastOnChange(onChange).contractUtilityId).toBe(1); // id del item con utilityId=101 ("Luz") es 1
+      // Abrimos el selector y elegimos "Luz"
+      await userEvent.click(serviceTrigger);
+      const luzOpt = await screen.findByRole("option", { name: /luz/i }, { timeout: 8000 });
+      await userEvent.click(luzOpt);
+      expect(lastOnChange(onChange).contractUtilityId).toBe(1); // id con utilityId=101 ("Luz")
 
-    // Concepto -> COMISION (debe limpiar contractUtilityId y mantener commissionId=77)
-    await openSelect(/Concepto/i);
-    await chooseOption(/comision/i);
-    const afterComision = lastOnChange(onChange);
-    expect(afterComision.concept).toBe(PaymentConcept.COMISION);
-    expect(afterComision.contractUtilityId).toBe(""); // limpiado
-    // la comisión debería mostrarse
-    expect(await screen.findByDisplayValue(/Comisión #77/i)).toBeDisabled();
+      // Concepto -> COMISION (limpia contractUtilityId y mantiene commissionId=77)
+      await openSelect(/Concepto/i);
+      await chooseOption(/comision/i);
+      const afterComision = lastOnChange(onChange);
+      expect(afterComision.concept).toBe(PaymentConcept.COMISION);
+      expect(afterComision.contractUtilityId).toBe(""); // limpiado
 
-    // Cambiar a otra moneda para asegurar que el select sigue operativo
-    await openSelect(/Moneda/i);
-    await chooseOption(/Peso argentino/i);
-    expect(lastOnChange(onChange).paymentCurrency).toBe(PaymentCurrency.ARS);
-  });
+      // la comisión debería mostrarse (campo deshabilitado con el texto)
+      expect(await screen.findByDisplayValue(/Comisión #77/i, {}, { timeout: 8000 })).toBeDisabled();
+
+      // Cambiar a otra moneda para asegurar que el select sigue operativo
+      await openSelect(/Moneda/i);
+      await chooseOption(/Peso argentino/i);
+      expect(lastOnChange(onChange).paymentCurrency).toBe(PaymentCurrency.ARS);
+    },
+    { timeout: 20000 } // ← margen extra para ejecución con coverage
+  );
 
   it("aplica externalConcept y externalContractUtilityId al cambiar props", async () => {
     const onChange = vi.fn();
