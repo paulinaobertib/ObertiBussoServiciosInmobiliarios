@@ -4,6 +4,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { getContractById, postContract, putContract, getContractsByPropertyId } from "../../services/contract.service";
+import {
+  getGuarantorsByContract,
+  addGuarantorToContract,
+  removeGuarantorFromContract,
+} from "../../services/guarantor.service";
 import type { ContractCreate, ContractGet } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
 import { ROUTES } from "../../../../lib";
@@ -42,6 +47,27 @@ export function useManageContractPage() {
     navigate(ROUTES.CONTRACT);
   };
   const openCommissionStep = () => {};
+
+  // --- Sincroniza garantes: el backend NO los actualiza en el PUT de contrato
+  // Orden correcto de parámetros en backend: (guarantorId, contractId)
+  const syncContractGuarantors = async (contractId: number, newIds: number[]) => {
+    try {
+      // Soporta axios {data: []} o arreglo directo
+      const resp = await getGuarantorsByContract(contractId);
+      const list = Array.isArray(resp) ? resp : Array.isArray((resp as any)?.data) ? (resp as any).data : [];
+      const currentIds = list.map((g: any) => g.id);
+
+      const toAdd = newIds.filter((id) => !currentIds.includes(id));
+      const toRemove = currentIds.filter((id: number) => !newIds.includes(id));
+
+      await Promise.all([
+        ...toAdd.map((guarantorId) => addGuarantorToContract(guarantorId, contractId)),
+        ...toRemove.map((guarantorId: number) => removeGuarantorFromContract(guarantorId, contractId)),
+      ]);
+    } catch (e) {
+      console.error("[useManageContractPage] Error sincronizando garantes", e);
+    }
+  };
 
   // ── Preload en edición ──
   useEffect(() => {
@@ -94,20 +120,18 @@ export function useManageContractPage() {
     });
 
     await formRef.current?.submit();
+    const payload: ContractCreate = formRef.current!.getCreateData();
 
     setLoading(true);
     try {
       if (isEdit) {
         // actualización: mapeo a ContractUpdate (sin id) y envío id por path
-        const payload: ContractCreate = formRef.current!.getCreateData();
         await putContract(Number(id!), payload as any);
+        await syncContractGuarantors(Number(id!), payload.guarantorsIds || []);
         showAlert("Contrato actualizado", "success");
       } else {
         // creación
-        const payload: ContractCreate = formRef.current!.getCreateData();
         await postContract(payload as any);
-
-        // Intentar identificar el contrato recién creado para posible navegación al detalle
         let createdId: number | null = null;
         try {
           const list = await getContractsByPropertyId(payload.propertyId);
@@ -121,6 +145,10 @@ export function useManageContractPage() {
           createdId = chosen?.id ?? null;
         } catch (e) {
           console.error("[ManageContractPage] error identifying created contract", e);
+        }
+
+        if (createdId) {
+          await syncContractGuarantors(createdId, payload.guarantorsIds || []);
         }
 
         // Redirigir al listado y disparar un ask desde allí (via location.state)
