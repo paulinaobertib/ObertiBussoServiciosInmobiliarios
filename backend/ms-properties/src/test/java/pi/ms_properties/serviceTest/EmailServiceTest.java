@@ -3,6 +3,8 @@ package pi.ms_properties.serviceTest;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.common.Context;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -193,6 +195,45 @@ class EmailServiceTest {
             ), variables.get("chatOptions"));
             assertEquals(true, variables.get("derived"));
             assertEquals("Agente 1", variables.get("agentName"));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(ChatOption.class)
+    void mapOptionToText_shouldReturnExpectedMessage(ChatOption option) {
+        String result = invokeMapOptionToText(option);
+
+        switch (option) {
+            case VER_PRECIO ->
+                    assertEquals("Consultó por el precio de la propiedad", result);
+            case VER_HABITACIONES ->
+                    assertEquals("Consultó por la cantidad de habitaciones", result);
+            case VER_AREA ->
+                    assertEquals("Consultó por el área del inmueble", result);
+            case VER_UBICACION ->
+                    assertEquals("Consultó por la ubicación", result);
+            case VER_CARACTERISTICAS ->
+                    assertEquals("Consultó por las características", result);
+            case VER_OPERACION ->
+                    assertEquals("Consultó sobre el tipo de operación", result);
+            case VER_CREDITO ->
+                    assertEquals("Consultó sobre la posibilidad de crédito", result);
+            case VER_FINANCIACION ->
+                    assertEquals("Consultó sobre financiación", result);
+            case DERIVAR ->
+                    assertEquals("Solicitó hablar con un agente", result);
+            case CERRAR ->
+                    assertEquals("Cerró la consulta", result);
+        }
+    }
+
+    private String invokeMapOptionToText(ChatOption option) {
+        try {
+            var method = EmailService.class.getDeclaredMethod("mapOptionToText", ChatOption.class);
+            method.setAccessible(true);
+            return (String) method.invoke(emailService, option);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
