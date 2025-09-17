@@ -37,7 +37,6 @@ export default function GuarantorsCard({
               variant="outlined"
               size="small"
               onClick={onManage}
-              sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
             >
               Agregar garantes
             </Button>
@@ -60,7 +59,6 @@ export default function GuarantorsCard({
                       variant="outlined"
                       color="error"
                       onClick={() => onUnlink(g.id!)}
-                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                     >
                       Desvincular
                     </Button>

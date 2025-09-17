@@ -1,4 +1,4 @@
-import type { PaymentCurrency } from "./payment";
+import type { PaymentCurrency, Payment } from "./payment";
 
 export enum CommissionPaymentType {
   COMPLETO = "COMPLETO",
@@ -21,6 +21,7 @@ export interface Commission {
   status: CommissionStatus;
   note: string;
   contractId: number;
+  payments?: Payment[];
 }
 
 export type CommissionCreate = Omit<Commission, "id">;

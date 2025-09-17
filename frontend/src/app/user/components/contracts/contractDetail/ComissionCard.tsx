@@ -76,7 +76,6 @@ export default function CommissionCard({ commission, paidCount = 0, onAdd, onEdi
               variant="outlined"
               size="small"
               onClick={primaryHandler}
-              sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
             >
               {hasCommission ? "Editar comisión" : "Agregar comisión"}
             </Button>
@@ -171,7 +170,6 @@ export default function CommissionCard({ commission, paidCount = 0, onAdd, onEdi
                                 size="small"
                                 variant="outlined"
                                 onClick={() => onRegisterInstallment(n)}
-                                sx={{ textTransform: "none", borderRadius: 2 }}
                               >
                                 Registrar Pago #{n}
                               </Button>

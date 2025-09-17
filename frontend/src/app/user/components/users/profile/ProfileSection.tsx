@@ -97,7 +97,6 @@ export function ProfileSection() {
           size="small"
           onClick={() => setOpen(true)}
           startIcon={<ExpandMoreIcon />}
-          sx={{ textTransform: 'none' }}
         >
           Mostrar perfil
         </Button>
@@ -116,7 +115,6 @@ export function ProfileSection() {
           size="small"
           onClick={() => setOpen(false)}
           startIcon={<ExpandLessIcon />}
-          sx={{ textTransform: 'none' }}
         >
           Ocultar perfil
         </Button>

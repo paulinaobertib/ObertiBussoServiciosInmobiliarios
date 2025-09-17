@@ -81,7 +81,7 @@ export default function ManageContractPage() {
           }}
         >
           <Button variant="outlined" onClick={ctrl.cancel}>
-            CANCELAR
+            Cancelar
           </Button>
 
           {!isMobile && (

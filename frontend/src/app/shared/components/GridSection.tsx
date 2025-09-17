@@ -1,4 +1,3 @@
-// GridSection.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button } from "@mui/material";
 import { DataGrid, GridColDef, GridRowId, GridRowSelectionModel, GridCallbackDetails } from "@mui/x-data-grid";
