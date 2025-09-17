@@ -1,18 +1,18 @@
-import { useState, useCallback } from 'react';
-import { Box, CircularProgress, IconButton } from '@mui/material';
-import { GridColDef } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { GridSection } from '../../../shared/components/GridSection';
-import { useCategorySection } from '../../hooks/useCategorySection';
-import { translate } from '../../utils/translate';
-import { ModalItem, Info } from './CategoryModal';
-import { AmenityForm } from '../forms/AmenityForm';
-import { OwnerForm } from '../forms/OwnerForm';
-import { TypeForm } from '../forms/TypeForm';
-import { NeighborhoodForm } from '../forms/NeighborhoodForm';
-import type { Category } from '../../context/PropertiesContext';
-import { usePropertiesContext } from '../../context/PropertiesContext';
+import { useState, useCallback } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
+import { GridColDef, GridRowId } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { GridSection } from "../../../shared/components/GridSection";
+import { useCategorySection } from "../../hooks/useCategorySection";
+import { translate } from "../../utils/translate";
+import { ModalItem, Info } from "./CategoryModal";
+import { AmenityForm } from "../forms/AmenityForm";
+import { OwnerForm } from "../forms/OwnerForm";
+import { TypeForm } from "../forms/TypeForm";
+import { NeighborhoodForm } from "../forms/NeighborhoodForm";
+import type { Category } from "../../context/PropertiesContext";
+import { usePropertiesContext } from "../../context/PropertiesContext";
 
 const formRegistry = {
   amenity: AmenityForm,
@@ -21,10 +21,11 @@ const formRegistry = {
   neighborhood: NeighborhoodForm,
 } as const;
 
-export const CategorySection = ({
-  category,
-  selectable = true,
-}: { category: Category; selectable?: boolean }) => {
+// Helpers para parsear IDs del DataGrid (string | number)
+const toNum = (v: GridRowId): number | null =>
+  typeof v === "number" ? v : Number.isFinite(Number(v)) ? Number(v) : null;
+
+export const CategorySection = ({ category, selectable = true }: { category: Category; selectable?: boolean }) => {
   const {
     data,
     loading,
@@ -39,12 +40,13 @@ export const CategorySection = ({
 
   // Adaptadores para GridSection
   const gridToggleSelect = useCallback(
-    (sel: string | string[] | null) => {
+    (sel: GridRowId | GridRowId[] | null) => {
       if (!selectable) return;
 
-      if (category === 'amenity') {
-        // multi: GridSection nos manda el conjunto completo de seleccionados (string[])
-        const next = new Set((Array.isArray(sel) ? sel : []).map(s => Number(s)));
+      if (category === "amenity") {
+        // multi: recibimos el conjunto completo de seleccionados (GridRowId[])
+        const incoming = Array.isArray(sel) ? sel : [];
+        const next = new Set(incoming.map(toNum).filter((n): n is number => n != null));
         const prev = new Set(globalSelected.amenities);
 
         // Agregados
@@ -54,15 +56,15 @@ export const CategorySection = ({
         return;
       }
 
-      // single: GridSection manda el último seleccionado como string o null
+      // single: recibimos el último seleccionado como GridRowId o null
       const prevId =
-        category === 'type'
+        category === "type"
           ? globalSelected.type
-          : category === 'neighborhood'
+          : category === "neighborhood"
           ? globalSelected.neighborhood
           : globalSelected.owner;
 
-      const nextId = typeof sel === 'string' ? Number(sel) : null;
+      const nextId = sel != null && !Array.isArray(sel) ? toNum(sel) : null;
 
       if (nextId == null && prevId != null) {
         // deseleccionó todo -> toggle en el anterior para apagarlo
@@ -76,7 +78,10 @@ export const CategorySection = ({
   );
 
   const gridIsSelected = useCallback(
-    (id: string) => internalIsSelected(Number(id)),
+    (id: GridRowId) => {
+      const n = toNum(id);
+      return n != null ? internalIsSelected(n) : false;
+    },
     [internalIsSelected]
   );
 
@@ -95,15 +100,15 @@ export const CategorySection = ({
         return data;
       }
       const columnsMap: Record<Category, string[]> = {
-        owner: ['firstName', 'lastName', 'email', 'phone'],
-        amenity: ['name'],
-        type: ['name'],
-        neighborhood: ['name', 'city', 'type'],
+        owner: ["firstName", "lastName", "email", "phone"],
+        amenity: ["name"],
+        type: ["name"],
+        neighborhood: ["name", "city", "type"],
       };
       const keys = columnsMap[category] || [];
-      const filtered = data.filter(item =>
-        keys.some(key => {
-          const value = String((item as any)[key] ?? '').toLowerCase();
+      const filtered = data.filter((item) =>
+        keys.some((key) => {
+          const value = String((item as any)[key] ?? "").toLowerCase();
           return value.includes(lower);
         })
       );
@@ -116,30 +121,29 @@ export const CategorySection = ({
   // Columnas dinámicas
   const headersMap: Record<Category, { field: string; headerName: string }[]> = {
     owner: [
-      { field: 'firstName', headerName: 'Nombre' },
-      { field: 'lastName', headerName: 'Apellido' },
-      { field: 'email', headerName: 'Email' },
-      { field: 'phone', headerName: 'Teléfono' },
+      { field: "firstName", headerName: "Nombre" },
+      { field: "lastName", headerName: "Apellido" },
+      { field: "email", headerName: "Email" },
+      { field: "phone", headerName: "Teléfono" },
     ],
-    amenity: [{ field: 'name', headerName: 'Nombre' }],
+    amenity: [{ field: "name", headerName: "Nombre" }],
     type: [
-      { field: 'name', headerName: 'Nombre' },
-      { field: 'hasRooms', headerName: 'Ambientes' },
-      { field: 'hasBedrooms', headerName: 'Dormitorios' },
-      { field: 'hasBathrooms', headerName: 'Baños' },
-      { field: 'hasCoveredArea', headerName: 'Área Cubierta' },
+      { field: "name", headerName: "Nombre" },
+      { field: "hasRooms", headerName: "Ambientes" },
+      { field: "hasBedrooms", headerName: "Dormitorios" },
+      { field: "hasBathrooms", headerName: "Baños" },
+      { field: "hasCoveredArea", headerName: "Área Cubierta" },
     ],
     neighborhood: [
-      { field: 'name', headerName: 'Nombre' },
-      { field: 'city', headerName: 'Ciudad' },
-      { field: 'type', headerName: 'Tipo' },
+      { field: "name", headerName: "Nombre" },
+      { field: "city", headerName: "Ciudad" },
+      { field: "type", headerName: "Tipo" },
     ],
   };
 
-  const columns: GridColDef[] = headersMap[category].map(col => {
+  const columns: GridColDef[] = headersMap[category].map((col) => {
     const isBooleanField =
-      category === 'type' &&
-      ['hasRooms', 'hasBedrooms', 'hasBathrooms', 'hasCoveredArea'].includes(col.field);
+      category === "type" && ["hasRooms", "hasBedrooms", "hasBathrooms", "hasCoveredArea"].includes(col.field);
 
     return {
       field: col.field,
@@ -148,7 +152,7 @@ export const CategorySection = ({
       renderCell: isBooleanField
         ? (params: any) => {
             const value = params.row?.[col.field];
-            return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
+            return typeof value === "boolean" ? (value ? "Sí" : "No") : "-";
           }
         : undefined,
     };
@@ -156,35 +160,19 @@ export const CategorySection = ({
 
   // Columna de acciones
   columns.push({
-    field: 'actions',
-    headerName: 'Acciones',
+    field: "actions",
+    headerName: "Acciones",
     width: 120,
     sortable: false,
     filterable: false,
-    renderCell: params => {
+    renderCell: (params) => {
       const item = params.row;
       return (
-        <Box display="flex" alignItems="center" justifyContent="flex-start" gap={1} width="100%">
-          <IconButton
-            size="small"
-            title="Editar"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              handleOpen('edit', item);
-            }}
-          >
+        <Box>
+          <IconButton size="small" title="Editar" onClick={() => handleOpen("edit", item)}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton
-            size="small"
-            title="Eliminar"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              handleOpen('delete', item);
-            }}
-          >
+          <IconButton size="small" title="Eliminar" onClick={() => handleOpen("delete", item)}>
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -194,9 +182,9 @@ export const CategorySection = ({
 
   // Modal handlers
   const [modal, setModal] = useState<Info | null>(null);
-  const handleOpen = (action: 'add' | 'edit' | 'delete', item?: any) => {
+  const handleOpen = (action: "add" | "edit" | "delete", item?: any) => {
     setModal({
-      title: `${action === 'add' ? 'Crear' : action === 'edit' ? 'Editar' : 'Eliminar'} ${translate(category)}`,
+      title: `${action === "add" ? "Crear" : action === "edit" ? "Editar" : "Eliminar"} ${translate(category)}`,
       Component: formRegistry[category],
       componentProps: { action, item },
     });
@@ -204,24 +192,24 @@ export const CategorySection = ({
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 3 }}>
         <CircularProgress size={36} />
       </Box>
     );
   }
 
   // IDs seleccionados (controlados) para que el DataGrid pinte
-  const selectedIds =
-    category === 'amenity'
-      ? globalSelected.amenities.map(String)
+  const selectedIds: GridRowId[] =
+    category === "amenity"
+      ? [...globalSelected.amenities] // números OK (GridRowId = number | string)
       : (() => {
           const id =
-            category === 'type'
+            category === "type"
               ? globalSelected.type
-              : category === 'neighborhood'
+              : category === "neighborhood"
               ? globalSelected.neighborhood
               : globalSelected.owner;
-          return id != null ? [String(id)] : [];
+          return id != null ? [id] : [];
         })();
 
   return (
@@ -231,18 +219,18 @@ export const CategorySection = ({
         loading={loading}
         columns={columns}
         onSearch={onSearch}
-        onCreate={() => handleOpen('add')}
-        onEdit={item => handleOpen('edit', item)}
-        onDelete={item => handleOpen('delete', item)}
+        onCreate={() => handleOpen("add")}
+        onEdit={(item) => handleOpen("edit", item)}
+        onDelete={(item) => handleOpen("delete", item)}
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
         entityName={translate(category)}
         showActions={true}
         fetchAll={fetchAll}
         fetchByText={fetchByText}
-        multiSelect={category === 'amenity'}
+        multiSelect={category === "amenity"}
         selectable={selectable}
-        selectedIds={selectedIds}  // para pintar con naranjita
+        selectedIds={selectedIds}
       />
       <ModalItem info={modal} close={() => setModal(null)} />
     </>
