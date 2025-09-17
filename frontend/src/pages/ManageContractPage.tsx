@@ -19,8 +19,6 @@ import { PropertySection } from "../app/property/components/properties/PropertyS
 import { UsersSection } from "../app/user/components/users/panel/UsersSection";
 import { GuarantorsSection } from "../app/user/components/guarantors/GuarantorsSection";
 import { ContractForm } from "../app/user/components/contracts/ContractForm";
-// Post-creación se maneja con rutas dedicadas
-// Extras integrados en ContractForm
 
 export default function ManageContractPage() {
   const theme = useTheme();
@@ -29,6 +27,30 @@ export default function ManageContractPage() {
 
   const steps = ["Propiedad", "Usuario", "Datos"];
 
+  useEffect(() => {
+    const c = ctrl.contract;
+    if (!c) return;
+
+    // property
+    const propId = (c as any).propertyId ?? (c as any).property?.id ?? null;
+    if (propId != null) ctrl.setSelectedPropertyId(propId);
+
+    // user (inquilino)
+    const userId = (c as any).userId ?? (c as any).user?.id ?? null;
+    if (userId != null) ctrl.setSelectedUserId(userId);
+
+    // guarantors
+    const guarantorIds: number[] = Array.isArray((c as any).guarantorIds)
+      ? (c as any).guarantorIds
+      : Array.isArray((c as any).guarantors)
+      ? (c as any).guarantors.map((g: any) => g?.id ?? g?.guarantorId ?? g).filter((x: any) => x != null)
+      : [];
+    if (guarantorIds.length) {
+      ctrl.setSelectedGuarantorIds(guarantorIds);
+      ctrl.setAddGuarantors(true);
+    }
+  }, [ctrl.contract?.id]); // reacciona cuando queda cargado el contrato
+
   // Sincroniza garantes seleccionados con el formulario (sin depender del toggle visual)
   useEffect(() => {
     const ref = ctrl.formRef.current;
@@ -36,7 +58,6 @@ export default function ManageContractPage() {
     ref.setGuarantorsIds(ctrl.selectedGuarantorIds);
   }, [ctrl.selectedGuarantorIds, ctrl.activeStep]);
 
-  // Loader DEBE estar después de registrar los hooks para no romper el orden
   if (ctrl.loading) {
     return (
       <BasePage>
@@ -75,49 +96,49 @@ export default function ManageContractPage() {
             </Box>
           )}
 
-          {
-            <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
-              {ctrl.activeStep === 0 && (
-                <Button variant="contained" onClick={() => ctrl.setActiveStep(1)} disabled={!ctrl.canProceed()}>
+          <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+            {ctrl.activeStep === 0 && (
+              <Button variant="contained" onClick={() => ctrl.setActiveStep(1)} disabled={!ctrl.canProceed()}>
+                Siguiente
+              </Button>
+            )}
+
+            {ctrl.activeStep === 1 && (
+              <>
+                <Button variant="outlined" onClick={() => ctrl.setActiveStep(0)}>
+                  Volver
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => ctrl.setActiveStep(2)}
+                  disabled={ctrl.selectedUserId === null}
+                >
                   Siguiente
                 </Button>
-              )}
+              </>
+            )}
 
-              {ctrl.activeStep === 1 && (
-                <>
-                  <Button variant="outlined" onClick={() => ctrl.setActiveStep(0)}>
-                    Volver
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => ctrl.setActiveStep(2)}
-                    disabled={ctrl.selectedUserId === null}
-                  >
-                    Siguiente
-                  </Button>
-                </>
-              )}
-
-              {ctrl.activeStep === 2 && (
-                <>
-                  <Button variant="outlined" onClick={() => ctrl.setActiveStep(1)}>
-                    Volver
-                  </Button>
-                  <Button variant="contained" onClick={ctrl.save} disabled={ctrl.loading || !ctrl.formReady}>
-                    {ctrl.contract ? "Actualizar" : "Crear"}
-                  </Button>
-                </>
-              )}
-            </Box>
-          }
+            {ctrl.activeStep === 2 && (
+              <>
+                <Button variant="outlined" onClick={() => ctrl.setActiveStep(1)}>
+                  Volver
+                </Button>
+                <Button variant="contained" onClick={ctrl.save} disabled={ctrl.loading || !ctrl.formReady}>
+                  {ctrl.contract ? "Actualizar" : "Crear"}
+                </Button>
+              </>
+            )}
+          </Box>
         </Box>
 
         {ctrl.activeStep === 0 && (
           <PropertySection
-            toggleSelect={ctrl.setSelectedPropertyId}
-            isSelected={(id) => id === ctrl.selectedPropertyId}
-            filterAvailable={true}
+            toggleSelect={ctrl.setSelectedPropertyId} // (id: number | null) => void
+            isSelected={(id: number) => id === ctrl.selectedPropertyId}
+            filterAvailable
             showActions={false}
+            // mantener seleccionado (number[])
+            selectedIds={ctrl.selectedPropertyId != null ? [ctrl.selectedPropertyId] : []}
           />
         )}
 
@@ -127,22 +148,26 @@ export default function ManageContractPage() {
               toggleSelect={ctrl.setSelectedUserId}
               isSelected={(id) => id === ctrl.selectedUserId}
               showActions={false}
+              //mantener seleccionados
+              selectedIds={ctrl.selectedUserId != null ? [String(ctrl.selectedUserId)] : []}
             />
+
             <Box mt={2}>
               <FormControlLabel
                 control={<Checkbox checked={ctrl.addGuarantors} onChange={(_, c) => ctrl.setAddGuarantors(c)} />}
                 label="¿Agregar garantes?"
               />
+
               {ctrl.addGuarantors && (
                 <Box mt={2}>
                   <GuarantorsSection
+                    selectedIds={ctrl.selectedGuarantorIds} // number[]
                     toggleSelect={(ids) => {
-                      ctrl.setSelectedGuarantorIds(ids);
-                      // Sincroniza con el form principal para el DTO
-                      ctrl.formRef.current?.setGuarantorsIds(ids);
+                      ctrl.setSelectedGuarantorIds(ids); // number[]
+                      ctrl.formRef.current?.setGuarantorsIds(ids); // number[]
                     }}
-                    isSelected={(id) => ctrl.selectedGuarantorIds.includes(id)}
-                    showActions={true}
+                    isSelected={(id: number) => ctrl.selectedGuarantorIds.includes(id)}
+                    showActions
                   />
                 </Box>
               )}
@@ -161,8 +186,6 @@ export default function ManageContractPage() {
             />
           </Box>
         )}
-
-        {/* Extras paso eliminado: integrados dentro del ContractForm */}
 
         {ctrl.DialogUI}
       </Box>
