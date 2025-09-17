@@ -42,6 +42,19 @@ class ContractRepositoryTest {
         verify(feignUserRepository, times(1)).getContractsByPropertyId(propertyId);
     }
 
+    @Test
+    void findByPropertyId_returnsNullWhenBodyIsNull() {
+        Long propertyId = 2L;
+
+        ResponseEntity<List<ContractDTO>> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        when(feignUserRepository.getContractsByPropertyId(propertyId)).thenReturn(responseEntity);
+
+        List<ContractDTO> result = contractRepository.findByPropertyId(propertyId);
+
+        assertEquals(null, result); // o assertNull(result)
+        verify(feignUserRepository, times(1)).getContractsByPropertyId(propertyId);
+    }
+
     // casos de error
 
     @Test

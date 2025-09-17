@@ -62,6 +62,21 @@ public class PropertyRepositoryTest {
         verify(feignPropertyRepository, times(1)).updateStatus(propertyId, newStatus);
     }
 
+    @Test
+    void updateStatusEspera_returnsOkResponse() {
+        Long propertyId = 5L;
+
+        when(feignPropertyRepository.updateStatusEspera(propertyId))
+                .thenReturn(ResponseEntity.ok("Estado en espera"));
+
+        ResponseEntity<String> response = propertyRepository.updateStatusEspera(propertyId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Estado en espera", response.getBody());
+        verify(feignPropertyRepository, times(1)).updateStatusEspera(propertyId);
+    }
+
     // casos de error
 
     @Test
@@ -87,5 +102,17 @@ public class PropertyRepositoryTest {
         assertThrows(RuntimeException.class, () -> propertyRepository.updateStatus(propertyId, newStatus));
 
         verify(feignPropertyRepository, times(1)).updateStatus(propertyId, newStatus);
+    }
+
+    @Test
+    void updateStatusEspera_whenFeignThrowsException_thenPropagatesException() {
+        Long propertyId = 10L;
+
+        when(feignPropertyRepository.updateStatusEspera(propertyId))
+                .thenThrow(new RuntimeException("Error al poner en espera"));
+
+        assertThrows(RuntimeException.class, () -> propertyRepository.updateStatusEspera(propertyId));
+
+        verify(feignPropertyRepository, times(1)).updateStatusEspera(propertyId);
     }
 }

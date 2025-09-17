@@ -1,0 +1,110 @@
+server:
+  port: ${WEBSITES_PORT}
+
+eureka:
+  instance:
+    hostname: ${WEBSITE_HOSTNAME}
+    nonSecurePort: 80 # Ver si se puede eliminar este
+  #  prefer-ip-address: true # Ver si este se puede agregar
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: https://${EUREKA_HOSTNAME}/eureka/
+
+frontend:
+  base-url: "https://${SWA_FRONTEND}"
+
+spring:
+  application:
+    name: ms-gateway
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak-client:
+            issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI}
+        registration:
+          keycloak-client:
+            client-id: ${KEYCLOAK_CLIENT_ID}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            scope:
+              - openid
+            authorization-grant-type: authorization_code
+            redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
+
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins:
+              - "https://${SWA_FRONTEND}"
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowCredentials: true # Ver si se puede sacar
+      default-filters: TokenRelay
+      routes:
+        - id: ms-properties-public
+          uri: lb://ms-properties
+          predicates:
+            - Path=/api/properties/property/get
+            - Path=/api/properties/property/getAll
+            - Path=/api/properties/property/getById/**
+            - Path=/api/properties/property/getByTitle
+            - Path=/api/properties/property/search
+            - Path=/api/properties/property/text
+            - Path=/api/properties/property/getSimple/**
+            - Path=/api/properties/amenity/getAll
+            - Path=/api/properties/amenity/getById/**
+            - Path=/api/properties/amenity/getByName
+            - Path=/api/properties/image/getByProperty/**
+            - Path=/api/properties/neighborhood/getAll
+            - Path=/api/properties/neighborhood/getById/**
+            - Path=/api/properties/type/getAll
+            - Path=/api/properties/type/getById/**
+            - Path=/api/properties/inquiries/createWithoutUser
+            - Path=/api/properties/survey/create
+            - Path=/api/properties/compare/**
+            - Path=/api/properties/chat/message
+            - Path=/api/properties/chatSession/create
+          filters:
+            - StripPrefix=2
+            - name: RemoveRequestHeader
+              args:
+                name: Authorization
+
+        - id: ms-properties-private
+          uri: lb://ms-properties
+          predicates:
+            - Path=/api/properties/**
+          filters:
+            - StripPrefix=2
+
+        - id: ms-users-public
+          uri: lb://ms-users
+          predicates:
+            - Path=/api/users/appointments/create
+            - Path=/api/users/user/login
+            - Path=/api/users/notices/getById/**
+            - Path=/api/users/notices/getAll
+            - Path=/api/users/notices/search
+            - Path=/api/users/agentChat/getEnabledTrue
+          filters:
+            - StripPrefix=2
+            - name: RemoveRequestHeader
+              args:
+                name: Authorization
+
+        - id: ms-users-private
+          uri: lb://ms-users
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=2

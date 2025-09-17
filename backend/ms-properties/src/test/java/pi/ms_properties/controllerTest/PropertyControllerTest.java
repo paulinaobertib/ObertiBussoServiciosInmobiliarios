@@ -179,6 +179,35 @@ class PropertyControllerTest {
         assertNotNull(response.getBody());
     }
 
+    @Test
+    void testUpdatePropertyStatusEspera() {
+        when(propertyService.updateStatus(1L, Status.ESPERA))
+                .thenReturn(ResponseEntity.ok("Status set to ESPERA"));
+
+        ResponseEntity<String> response = propertyController.updatePropertyStatusEspera(1L);
+
+        assertEquals("Status set to ESPERA", response.getBody());
+    }
+
+    @Test
+    void testGetAllUsers_endpoint() throws Exception {
+        when(propertyService.getAllUsers()).thenReturn(ResponseEntity.ok(List.of()));
+
+        mockMvc.perform(get("/property/get"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testSearchProperties_withDefaults() throws Exception {
+        when(propertyService.findBy(any(), any(), anyFloat(), anyFloat(), anyFloat(), anyFloat(),
+                anyList(), anyString(), anyList(), anyList(), anyList(), anyList(),
+                anyList(), any(), any(), any()))
+                .thenReturn(ResponseEntity.ok(List.of()));
+
+        mockMvc.perform(get("/property/search"))
+                .andExpect(status().isOk());
+    }
+
     // casos de error
 
     @Test

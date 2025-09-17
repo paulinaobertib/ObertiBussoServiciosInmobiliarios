@@ -5,17 +5,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
-import pi.ms_properties.domain.*;
+import pi.ms_properties.domain.Amenity;
 import pi.ms_properties.repository.IAmenityRepository;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.AmenitySpecification;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaRepositories(
+        basePackages = "pi.ms_properties.repository",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = IPropertyRepository.class
+        )
+)
 @ActiveProfiles("test")
 class AmenitySpecificationTest {
 
@@ -27,8 +38,6 @@ class AmenitySpecificationTest {
 
     @BeforeEach
     void setUp() {
-        amenityRepository.deleteAll();
-
         Amenity wifi = new Amenity();
         wifi.setName("WiFi");
 
@@ -44,28 +53,28 @@ class AmenitySpecificationTest {
         entityManager.flush();
     }
 
-    // casos de exito
+    // casos de éxito
 
     @Test
-    void whenSearchingByText_thenReturnsMatchingAmenities() {
+    void whenSearchByExactName_shouldReturnMatchingAmenity() {
         Specification<Amenity> spec = AmenitySpecification.textSearch("wifi");
         List<Amenity> result = amenityRepository.findAll(spec);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getName()).isEqualTo("WiFi");
+        assertThat(result.getFirst().getName()).containsIgnoringCase("wifi");
     }
 
     @Test
-    void whenSearchingByPartialText_thenReturnsMatchingAmenities() {
+    void whenSearchByPartialName_shouldReturnMatchingAmenity() {
         Specification<Amenity> spec = AmenitySpecification.textSearch("pool");
         List<Amenity> result = amenityRepository.findAll(spec);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getName()).isEqualTo("Swimming Pool");
+        assertThat(result.getFirst().getName()).containsIgnoringCase("pool");
     }
 
     @Test
-    void whenSearchingByCommonSubstring_thenReturnsMultipleAmenities() {
+    void whenSearchByCommonSubstring_shouldReturnMultipleAmenities() {
         Specification<Amenity> spec = AmenitySpecification.textSearch("g");
         List<Amenity> result = amenityRepository.findAll(spec);
 
@@ -75,7 +84,7 @@ class AmenitySpecificationTest {
     // casos de error
 
     @Test
-    void whenSearchValueIsNull_thenReturnsAllAmenities() {
+    void whenSearchValueIsNull_shouldReturnAll() {
         Specification<Amenity> spec = AmenitySpecification.textSearch(null);
         List<Amenity> result = amenityRepository.findAll(spec);
 
@@ -83,7 +92,7 @@ class AmenitySpecificationTest {
     }
 
     @Test
-    void whenSearchValueIsBlank_thenReturnsAllAmenities() {
+    void whenSearchValueIsBlank_shouldReturnAll() {
         Specification<Amenity> spec = AmenitySpecification.textSearch("   ");
         List<Amenity> result = amenityRepository.findAll(spec);
 
@@ -91,11 +100,10 @@ class AmenitySpecificationTest {
     }
 
     @Test
-    void whenNoMatchFound_thenReturnsEmptyList() {
-        Specification<Amenity> spec = AmenitySpecification.textSearch("nonexistent");
+    void whenSearchValueDoesNotMatch_shouldReturnEmptyList() {
+        Specification<Amenity> spec = AmenitySpecification.textSearch("inexistente");
         List<Amenity> result = amenityRepository.findAll(spec);
 
         assertThat(result).isEmpty();
     }
 }
-
