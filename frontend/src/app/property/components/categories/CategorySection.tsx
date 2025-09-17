@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Box, CircularProgress, IconButton } from '@mui/material';
-import { GridColDef } from '@mui/x-data-grid';
+import { GridColDef, GridRowId } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { GridSection } from '../../../shared/components/GridSection';
@@ -21,6 +21,10 @@ const formRegistry = {
   neighborhood: NeighborhoodForm,
 } as const;
 
+// Helpers para parsear IDs del DataGrid (string | number)
+const toNum = (v: GridRowId): number | null =>
+  typeof v === 'number' ? v : Number.isFinite(Number(v)) ? Number(v) : null;
+
 export const CategorySection = ({
   category,
   selectable = true,
@@ -39,12 +43,17 @@ export const CategorySection = ({
 
   // Adaptadores para GridSection
   const gridToggleSelect = useCallback(
-    (sel: string | string[] | null) => {
+    (sel: GridRowId | GridRowId[] | null) => {
       if (!selectable) return;
 
       if (category === 'amenity') {
-        // multi: GridSection nos manda el conjunto completo de seleccionados (string[])
-        const next = new Set((Array.isArray(sel) ? sel : []).map(s => Number(s)));
+        // multi: recibimos el conjunto completo de seleccionados (GridRowId[])
+        const incoming = Array.isArray(sel) ? sel : [];
+        const next = new Set(
+          incoming
+            .map(toNum)
+            .filter((n): n is number => n != null)
+        );
         const prev = new Set(globalSelected.amenities);
 
         // Agregados
@@ -54,7 +63,7 @@ export const CategorySection = ({
         return;
       }
 
-      // single: GridSection manda el último seleccionado como string o null
+      // single: recibimos el último seleccionado como GridRowId o null
       const prevId =
         category === 'type'
           ? globalSelected.type
@@ -62,7 +71,8 @@ export const CategorySection = ({
           ? globalSelected.neighborhood
           : globalSelected.owner;
 
-      const nextId = typeof sel === 'string' ? Number(sel) : null;
+      const nextId =
+        sel != null && !Array.isArray(sel) ? toNum(sel) : null;
 
       if (nextId == null && prevId != null) {
         // deseleccionó todo -> toggle en el anterior para apagarlo
@@ -76,7 +86,10 @@ export const CategorySection = ({
   );
 
   const gridIsSelected = useCallback(
-    (id: string) => internalIsSelected(Number(id)),
+    (id: GridRowId) => {
+      const n = toNum(id);
+      return n != null ? internalIsSelected(n) : false;
+    },
     [internalIsSelected]
   );
 
@@ -195,9 +208,9 @@ export const CategorySection = ({
   }
 
   // IDs seleccionados (controlados) para que el DataGrid pinte
-  const selectedIds =
+  const selectedIds: GridRowId[] =
     category === 'amenity'
-      ? globalSelected.amenities.map(String)
+      ? [...globalSelected.amenities] // números OK (GridRowId = number | string)
       : (() => {
           const id =
             category === 'type'
@@ -205,7 +218,7 @@ export const CategorySection = ({
               : category === 'neighborhood'
               ? globalSelected.neighborhood
               : globalSelected.owner;
-          return id != null ? [String(id)] : [];
+          return id != null ? [id] : [];
         })();
 
   return (
@@ -226,7 +239,7 @@ export const CategorySection = ({
         fetchByText={fetchByText}
         multiSelect={category === 'amenity'}
         selectable={selectable}
-        selectedIds={selectedIds}  // para pintar con naranjita
+        selectedIds={selectedIds}
       />
       <ModalItem info={modal} close={() => setModal(null)} />
     </>
