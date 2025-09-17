@@ -1,100 +1,63 @@
-import { useState, useCallback } from "react";
-import { Box, IconButton } from "@mui/material";
+// GuarantorsSection.tsx
+import { useCallback, useMemo, useState } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { GridSection } from "../../../shared/components/GridSection";
 import type { Guarantor } from "../../types/guarantor";
 import { GuarantorDialog } from "./GuarantorDialog";
 import { useGuarantors } from "../../hooks/useGuarantors";
+import type { GridRowId } from "@mui/x-data-grid";
 
 interface Props {
   toggleSelect?: (ids: number[]) => void;
   isSelected?: (id: number) => boolean;
   showActions?: boolean;
-  multiSelect?: boolean;
-  selectedIds?: string[]; //mantener seleccionado
+  selectedIds?: number[]; // numero
 }
 
-export const GuarantorsSection = ({ toggleSelect, isSelected, showActions = true, multiSelect = true, selectedIds }: Props) => {
-  const { loadAll, fetchByText } = useGuarantors();
+export function GuarantorsSection({ toggleSelect, isSelected, showActions = true, selectedIds }: Props) {
+  const { guarantors, loading, loadAll, fetchByText } = useGuarantors();
 
-  const [rows, setRows] = useState<Guarantor[]>([]);
-  const [busy, setBusy] = useState(false);
-
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-
-  const fetchAll = useCallback(async () => {
-    if (busy || hasLoadedOnce) return rows;
-    setBusy(true);
-    try {
-      const list = await loadAll();
-      setHasLoadedOnce(true);
-      return Array.isArray(list) ? list : [];
-    } finally {
-      setBusy(false);
-    }
-  }, [busy, hasLoadedOnce, loadAll, rows]);
-
-  // 2) fetchByText: se usa para búsquedas (acción explícita), no toca hasLoadedOnce
-  const loadByText = useCallback(
-    async (q: string) => {
-      setBusy(true);
-      try {
-        const list = await fetchByText(q);
-        return Array.isArray(list) ? list : [];
-      } finally {
-        setBusy(false);
-      }
-    },
-    [fetchByText]
+  // id numero
+  const rows = useMemo(
+    () => (guarantors ?? []).map(g => ({ ...g, id: Number((g as any).id ?? (g as any).guarantorId) })),
+    [guarantors]
   );
 
-  // 3) onSearch: el Grid nos entrega los resultados; actualizamos filas controladas
-  const onSearch = useCallback((results: any[]) => {
-    setRows((results as Guarantor[]) ?? []);
-  }, []);
-
+  // Adaptadores para GridSection
   const gridToggleSelect = useCallback(
-    (selected: string | string[] | null) => {
-      if (!toggleSelect) return;
-      const ids =
+    (selected: GridRowId | GridRowId[] | null) => {
+      const toNum = (v: GridRowId) => Number(v);
+      const arr =
         selected == null
           ? []
           : Array.isArray(selected)
-          ? selected.map((s) => Number(s)).filter((n) => !Number.isNaN(n))
-          : [Number(selected)].filter((n) => !Number.isNaN(n));
-      toggleSelect(ids);
+          ? selected.map(toNum).filter((n) => !Number.isNaN(n))
+          : [toNum(selected)].filter((n) => !Number.isNaN(n));
+      toggleSelect?.(arr); // numero
     },
     [toggleSelect]
   );
 
-  const gridIsSelected = useCallback((id: string) => (isSelected ? isSelected(Number(id)) : false), [isSelected]);
+  const gridIsSelected = useCallback(
+    (id: GridRowId) => isSelected?.(Number(id)) ?? false,
+    [isSelected]
+  );
 
+  // ── Diálogo ──
   const [dlg, setDlg] = useState<{ open: boolean; mode: "add" | "edit" | "delete"; item?: Guarantor | null }>({
-    open: false,
-    mode: "add",
-    item: null,
+    open: false, mode: "add", item: null,
   });
 
-  const openCreate = useCallback(() => setDlg({ open: true, mode: "add", item: null }), []);
-  const openEdit = useCallback((g: Guarantor) => setDlg({ open: true, mode: "edit", item: g }), []);
-  const openDelete = useCallback((g: Guarantor) => setDlg({ open: true, mode: "delete", item: g }), []);
-  const closeDlg = useCallback(() => setDlg((s) => ({ ...s, open: false })), []);
+  const refreshAndClose = async () => {
+    await loadAll();
+    setDlg((s) => ({ ...s, open: false }));
+  };
 
-  // Refresh explícito al guardar/borrar (UNA llamada) y cerrar modal
-  const refreshAndClose = useCallback(async () => {
-    setBusy(true);
-    try {
-      const list = await loadAll();
-      setRows(Array.isArray(list) ? (list as Guarantor[]) : []);
-      setHasLoadedOnce(true); // mantenemos cache cargado para que el grid no refetchee
-    } finally {
-      setBusy(false);
-    }
-    closeDlg();
-  }, [loadAll, closeDlg]);
-
-  /* ================= Columnas ================= */
+  const openCreate = () => setDlg({ open: true, mode: "add", item: null });
+  const openEdit = (g: Guarantor) => setDlg({ open: true, mode: "edit", item: g });
+  const openDelete = (g: Guarantor) => setDlg({ open: true, mode: "delete", item: g });
 
   const columns: any[] = [
     { field: "name", headerName: "Nombre", flex: 1 },
@@ -111,26 +74,10 @@ export const GuarantorsSection = ({ toggleSelect, isSelected, showActions = true
       filterable: false,
       renderCell: (params: any) => (
         <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%" height="100%">
-          <IconButton
-            size="small"
-            title="Editar"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              openEdit(params.row as Guarantor);
-            }}
-          >
+          <IconButton size="small" title="Editar" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(params.row as Guarantor); }}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton
-            size="small"
-            title="Eliminar"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              openDelete(params.row as Guarantor);
-            }}
-          >
+          <IconButton size="small" title="Eliminar" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openDelete(params.row as Guarantor); }}>
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -138,22 +85,31 @@ export const GuarantorsSection = ({ toggleSelect, isSelected, showActions = true
     });
   }
 
+  if (loading && rows.length === 0) {
+    return (
+      <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center", alignItems: "center", p: 3 }}>
+        <CircularProgress size={36} />
+      </Box>
+    );
+  }
+
   return (
     <>
       <GridSection
         data={rows}
-        loading={busy}
+        loading={loading}
         columns={columns}
-        onSearch={onSearch}
+        onSearch={() => {}}
         onCreate={openCreate}
         onEdit={openEdit}
         onDelete={openDelete}
-        entityName="Garante"
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
-        fetchAll={fetchAll}
-        fetchByText={loadByText}
-        multiSelect={multiSelect}
+        entityName="Garante"
+        showActions={showActions}
+        fetchAll={loadAll}
+        fetchByText={fetchByText}
+        multiSelect
         selectable
         selectedIds={selectedIds}
       />
@@ -162,9 +118,9 @@ export const GuarantorsSection = ({ toggleSelect, isSelected, showActions = true
         open={dlg.open}
         mode={dlg.mode}
         item={dlg.item ?? undefined}
-        onClose={closeDlg}
+        onClose={() => setDlg((s) => ({ ...s, open: false }))}
         onSaved={refreshAndClose}
       />
     </>
   );
-};
+}
