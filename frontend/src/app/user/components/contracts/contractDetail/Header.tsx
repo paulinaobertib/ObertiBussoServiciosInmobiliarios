@@ -67,7 +67,6 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
                 size="small"
                 variant="outlined"
                 onClick={onEdit}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
               >
                 Editar
               </Button>
@@ -77,7 +76,6 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
                 color={contract.contractStatus === "ACTIVO" ? "warning" : "success"}
                 onClick={onToggleStatus}
                 disabled={savingStatus}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
               >
                 {contract.contractStatus === "ACTIVO" ? "Inactivar" : "Reactivar"}
               </Button>
@@ -86,7 +84,6 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
                 variant="outlined"
                 color="error"
                 onClick={onDelete}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
               >
                 Eliminar
               </Button>

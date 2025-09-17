@@ -26,68 +26,65 @@ export default function AdministratorPage() {
     const panels = [
         {
             key: 'property',
-            label: 'PROPIEDADES',
+            label: 'Propiedades',
             content: <PropertySection selectable={false} />,
         },
         {
             key: 'owner',
-            label: 'PROPIETARIOS',
+            label: 'Propietarios',
             content: <CategorySection category="owner" selectable={false} />,
         },
         {
             key: 'users',
-            label: 'USUARIOS',
+            label: 'Usuarios',
             content: <UsersSection selectable={false} />,
         },
         {
             key: 'inquiries',
-            label: 'CONSULTAS',
+            label: 'Consultas',
             content: <InquiriesSection />,
         },
         {
             key: 'surveys',
-            label: 'VALORACIONES',
+            label: 'Valoraciones',
             content: <SurveysSection />,
         },
         {
             key: 'appointments',
-            label: 'TURNERO',
+            label: 'Turnero',
             content: null,
             ButtonComponent: () => (
                 <Button
                     variant='outlined'
                     onClick={() => navigate(ROUTES.APPOINTMENTS)}
-                    sx={{ textTransform: 'none', minWidth: 110 }}
                 >
-                    TURNERO
+                    Turnero
                 </Button>
             ),
         },
         {
             key: 'contracts',
-            label: 'CONTRATOS',
+            label: 'Contratos',
             content: null,
             ButtonComponent: () => (
                 <Button
                     variant='outlined'
                     onClick={() => navigate(ROUTES.CONTRACT)}
-                    sx={{ textTransform: 'none', minWidth: 110 }}
                 >
-                    CONTRATOS
+                    Contratos
                 </Button>
             ),
         },
         {
             key: 'statistics',
-            label: 'ESTADISTICAS',
+            label: 'Estadisticas',
             content: null,
             ButtonComponent: () => (
                 <Button
                     variant='outlined'
                     onClick={() => navigate(ROUTES.STATS)}
-                    sx={{ textTransform: 'none', minWidth: 110 }}
                 >
-                    ESTADISTICAS
+                    Estadisticas
                 </Button>
             ),
         }

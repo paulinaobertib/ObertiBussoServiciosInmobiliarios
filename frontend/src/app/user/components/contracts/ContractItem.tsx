@@ -187,21 +187,9 @@ export const ContractItem = ({ contract }: Props) => {
       >
         <Button
           variant="contained"
-          color="warning"
           size="small"
           startIcon={<VisibilityOutlined />}
           onClick={goDetail}
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            fontSize: "0.75rem",
-            minHeight: 28,
-            px: 1,
-            borderRadius: 3,
-            boxShadow: 1,
-            "& .MuiButton-startIcon": { mr: 0.5 },
-            "&:hover": { boxShadow: 3 },
-          }}
         >
           Ver detalles
         </Button>

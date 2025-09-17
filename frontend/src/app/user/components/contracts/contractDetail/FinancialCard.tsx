@@ -54,7 +54,6 @@ export default function FinancialCard({
                 variant="outlined"
                 size="small"
                 onClick={onRegisterIncrease}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
               >
                 Registrar aumento
               </Button>
@@ -64,7 +63,6 @@ export default function FinancialCard({
                 variant="contained"
                 size="small"
                 onClick={onRegisterRentPayment}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
               >
                 Registrar pago
               </Button>

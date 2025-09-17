@@ -1,4 +1,3 @@
-// GuarantorsSection.tsx
 import { useCallback, useMemo, useState } from "react";
 import { Box, CircularProgress, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";

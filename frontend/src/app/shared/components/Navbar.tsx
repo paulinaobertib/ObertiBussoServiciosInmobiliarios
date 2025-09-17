@@ -283,22 +283,20 @@ export const NavBar = () => {
               onClick={() => navigate(isAdmin ? ROUTES.APPOINTMENTS : ROUTES.CONTACT)}
               sx={{
                 color: palette.common.white,
-                textTransform: 'none',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
               }}
             >
-              {isAdmin ? 'TURNERO' : 'CONTACTO'}
+              {isAdmin ? 'Turnero' : 'Contacto'}
             </Button>
 
             <Button
               onClick={() => navigate(ROUTES.NEWS)}
               sx={{
                 color: palette.common.white,
-                textTransform: 'none',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
               }}
             >
-              NOTICIAS
+              Noticias
             </Button>
 
             {isTenant && (
@@ -310,7 +308,7 @@ export const NavBar = () => {
                   '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
                 }}
               >
-                SOY INQUILINO
+                Soy Inquilino
               </Button>
             )}
 
@@ -319,11 +317,10 @@ export const NavBar = () => {
                 onClick={() => navigate(ROUTES.CONTRACT)}
                 sx={{
                   color: palette.common.white,
-                  textTransform: 'none',
                   '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
                 }}
               >
-                CONTRATOS
+                Contratos
               </Button>
             )}
           </Box>
@@ -331,8 +328,8 @@ export const NavBar = () => {
           {/* Desktop Actions (sm+) — sin cambios */}
           <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, ml: 'auto' }}>
             {!isLogged && (
-              <Button color="inherit" onClick={login} sx={{ textTransform: 'none' }}>
-                INICIAR SESIÓN
+              <Button color="inherit" onClick={login}>
+                Iniciar Sesión
               </Button>
             )}
             {isLogged && (

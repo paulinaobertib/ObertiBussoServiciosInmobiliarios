@@ -1,4 +1,3 @@
-// src/app/news/components/NoticesList.tsx
 import { Box } from '@mui/material';
 import { NoticeItem } from './NoticeItem';
 import type { Notice } from '../../types/notice';

@@ -1,4 +1,3 @@
-// src/pages/AppointmentPage.tsx
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';

@@ -6,6 +6,7 @@ import { postContractIncrease } from "../../services/contractIncrease.service";
 import type { Contract } from "../../types/contract";
 import { getIncreaseIndexByContract } from "../../services/increaseIndex.service";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
     open: boolean;
@@ -93,9 +94,9 @@ export const IncreaseDialog = ({ open, contract, onClose, onSaved }: Props) => {
             <IncreaseForm initialValues={vals} onChange={setVals} />
             <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
                 <Button onClick={onClose} disabled={saving}>Cancelar</Button>
-                <Button variant="contained" disabled={saving || !isValid} onClick={handleSave}>
-                    {saving ? "Guardando…" : "Guardar"}
-                </Button>
+                <LoadingButton loading={saving} variant="contained" disabled={saving || !isValid} onClick={handleSave}>
+                    Guardar
+                </LoadingButton>
             </Box>
         </Modal>
     );
