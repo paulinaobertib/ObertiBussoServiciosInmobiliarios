@@ -4,6 +4,7 @@ import { useAppointments } from '../../../hooks/useAppointments';
 import { Calendar } from '../../Calendar';
 import { useAuthContext } from '../../../context/AuthContext';
 import { useGlobalAlert } from '../../../../shared/context/AlertContext';
+import { LoadingButton } from '@mui/lab';
 
 export const AppointmentForm: React.FC = () => {
     const { info } = useAuthContext();
@@ -114,7 +115,7 @@ export const AppointmentForm: React.FC = () => {
                                     variant={selected ? 'contained' : 'outlined'}
                                     size="small"
                                     fullWidth
-                                    sx={{ py: 0.5, minHeight: 24, fontSize: '0.75rem' }}
+                                    sx={{ py: 0.5 }}
                                     onClick={() =>
                                         slot.availability && setBookingSlotId(slot.id)
                                     }
@@ -145,14 +146,15 @@ export const AppointmentForm: React.FC = () => {
                     fullWidth
                     sx={{ mb: 2 }}
                 />
-                <Button
+                <LoadingButton
                     type="submit"
                     variant="contained"
                     disabled={bookingSlotId === null || bookingLoading}
                     fullWidth
+                    loading={bookingLoading}
                 >
-                    {bookingLoading ? 'Enviando…' : 'Solicitar turno'}
-                </Button>
+                 Solicitar Turno
+                </LoadingButton>
             </Box>
         </Box>
     );

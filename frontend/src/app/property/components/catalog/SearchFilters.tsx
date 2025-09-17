@@ -483,7 +483,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           variant="outlined"
           startIcon={<FilterListIcon />}
           onClick={() => setOpen(true)}
-          sx={{ fontSize: ".75rem", py: 0.5 }}
+          sx={{ py: 0.5 }}
         >
           Filtros
         </Button>

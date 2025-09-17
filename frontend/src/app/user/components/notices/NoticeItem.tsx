@@ -168,7 +168,7 @@ export const NoticeItem = ({ notice, isAdmin = false, onUpdate, onDeleteClick }:
             variant="text"
             size="small"
             onClick={goToDetails}
-            sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+            sx={{ alignSelf: 'flex-start' }}
           >
             Leer más
           </Button>

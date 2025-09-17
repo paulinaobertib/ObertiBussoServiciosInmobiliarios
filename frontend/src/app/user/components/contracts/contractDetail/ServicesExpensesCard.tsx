@@ -86,7 +86,6 @@ export default function ServicesExpensesCard({
               variant="outlined"
               size="small"
               onClick={onManage}
-              sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
             >
               Agregar servicios
             </Button>
@@ -114,7 +113,6 @@ export default function ServicesExpensesCard({
                         size="small"
                         variant="contained"
                         onClick={() => onPay(u.id!)}
-                        sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                       >
                         Pagar servicio
                       </Button>
@@ -124,7 +122,6 @@ export default function ServicesExpensesCard({
                         size="small"
                         variant="outlined"
                         onClick={() => onIncrease(u.id!)}
-                        sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                       >
                         Aumentar
                       </Button>
@@ -134,7 +131,6 @@ export default function ServicesExpensesCard({
                         size="small"
                         variant="outlined"
                         onClick={() => onEdit(u.id!)}
-                        sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                       >
                         Editar
                       </Button>
@@ -145,7 +141,6 @@ export default function ServicesExpensesCard({
                         variant="outlined"
                         color="error"
                         onClick={() => onUnlink(u.id!)}
-                        sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                       >
                         Desvincular
                       </Button>
@@ -244,7 +239,6 @@ export default function ServicesExpensesCard({
                             size="small"
                             variant="text"
                             onClick={() => setOpenMap((m) => ({ ...m, [uid]: !m[uid] }))}
-                            sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
                           >
                             {open ? "Ocultar aumentos" : "Ver aumentos"}
                           </Button>

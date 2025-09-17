@@ -95,7 +95,7 @@ export default function ManagePropertyPage() {
         >
           {/* Cancelar a la izquierda */}
           <Button variant="outlined" onClick={ctrl.cancel}>
-            CANCELAR
+            Cancelar
           </Button>
 
           {/* Stepper (desktop) */}
