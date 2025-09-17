@@ -3,6 +3,8 @@ package pi.ms_properties.errorTest;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -217,5 +219,20 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals("El turno seleccionado ya está reservado.", response.getBody());
+    }
+
+    @Test
+    void testHandleClientErrorException() {
+        Response jaxrsResponse = mock(Response.class);
+        when(jaxrsResponse.getStatus()).thenReturn(400);
+        when(jaxrsResponse.readEntity(String.class)).thenReturn("Solicitud inválida");
+
+        ClientErrorException ex = mock(ClientErrorException.class);
+        when(ex.getResponse()).thenReturn(jaxrsResponse);
+
+        ResponseEntity<String> response = handler.handleClientError(ex);
+
+        assertEquals(400, response.getStatusCodeValue());
+        assertTrue(response.getBody().contains("Error del cliente: Solicitud inválida"));
     }
 }
