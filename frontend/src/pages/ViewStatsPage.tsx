@@ -47,6 +47,28 @@ function InfoCard({ title, value, icon }: InfoCardProps) {
     );
 }
 
+const pickTopEntries = (data: Record<string | number, number> | undefined, limit = 8): Record<string, number> => {
+    if (!data) return {};
+    return Object.entries(data)
+        .sort((a, b) => Number(b[1]) - Number(a[1]))
+        .slice(0, limit)
+        .reduce<Record<string, number>>((acc, [key, value]) => {
+            acc[String(key)] = Number(value);
+            return acc;
+        }, {});
+};
+
+const flattenStatusAndType = (data: Record<string, Record<string, number>> | undefined): Record<string, number> => {
+    if (!data) return {};
+    const flattened: Record<string, number> = {};
+    Object.entries(data).forEach(([status, typeMap]) => {
+        Object.entries(typeMap || {}).forEach(([type, value]) => {
+            flattened[`${status} · ${type}`] = Number(value);
+        });
+    });
+    return flattened;
+};
+
 export default function ViewStatsPage() {
     const { stats, loading, error } = useViewStats();
     const [categories, setCategories] = useState<('views' | 'inquiry' | 'survey')[]>([
@@ -69,6 +91,56 @@ export default function ViewStatsPage() {
         [stats.day]
     );
     const avgViewsPerDay = Math.round(totalViews / daysCount);
+
+    const topViewsByProperty = useMemo(() => pickTopEntries(stats.property, 8), [stats.property]);
+    const topViewsByPropertyType = useMemo(() => pickTopEntries(stats.propertyType, 8), [stats.propertyType]);
+    const topViewsByNeighborhood = useMemo(() => pickTopEntries(stats.neighborhood, 8), [stats.neighborhood]);
+    const topViewsByNeighborhoodType = useMemo(
+        () => pickTopEntries(stats.neighborhoodType, 8),
+        [stats.neighborhoodType]
+    );
+    const topViewsByStatus = useMemo(() => pickTopEntries(stats.status, 8), [stats.status]);
+    const topViewsByOperation = useMemo(() => pickTopEntries(stats.operation, 6), [stats.operation]);
+    const topViewsByRooms = useMemo(() => pickTopEntries(stats.rooms, 6), [stats.rooms]);
+    const topViewsByAmenity = useMemo(() => pickTopEntries(stats.amenity, 8), [stats.amenity]);
+    const topViewsByStatusAndType = useMemo(
+        () => pickTopEntries(flattenStatusAndType(stats.statusAndType), 10),
+        [stats.statusAndType]
+    );
+
+    const inquiryStatusDistribution = useMemo(
+        () => pickTopEntries(stats.inquiryStatusDistribution, 10),
+        [stats.inquiryStatusDistribution]
+    );
+    const inquiriesByDayOfWeek = useMemo(
+        () => pickTopEntries(stats.inquiriesByDayOfWeek, 7),
+        [stats.inquiriesByDayOfWeek]
+    );
+    const inquiriesByTimeRange = useMemo(
+        () => pickTopEntries(stats.inquiriesByTimeRange, 6),
+        [stats.inquiriesByTimeRange]
+    );
+    const inquiriesPerMonth = useMemo(
+        () => pickTopEntries(stats.inquiriesPerMonth, 12),
+        [stats.inquiriesPerMonth]
+    );
+    const mostConsultedProperties = useMemo(
+        () => pickTopEntries(stats.mostConsultedProperties, 8),
+        [stats.mostConsultedProperties]
+    );
+
+    const surveyScoreDistribution = useMemo(
+        () => pickTopEntries(stats.surveyScoreDistribution, 10),
+        [stats.surveyScoreDistribution]
+    );
+    const surveyDailyAverage = useMemo(
+        () => pickTopEntries(stats.surveyDailyAverageScore, 10),
+        [stats.surveyDailyAverageScore]
+    );
+    const surveyMonthlyAverage = useMemo(
+        () => pickTopEntries(stats.surveyMonthlyAverageScore, 12),
+        [stats.surveyMonthlyAverageScore]
+    );
 
     return (
         <BasePage>
@@ -159,50 +231,74 @@ export default function ViewStatsPage() {
 
                 {/* Grilla de gráficos */}
                 {!loading && !error && (
-                    <Grid container spacing={3}>
-                        {categories.includes('views') &&
-                            [
-                                { title: 'Vistas por Día', data: stats.day },
-                                { title: 'Vistas por Mes', data: stats.month },
-                                { title: 'Vistas por Operación', data: stats.operation },
-                            ].map((cfg, i) => (
-                                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                                    <ChartCard title={cfg.title} data={cfg.data} />
+                    <Box display="flex" flexDirection="column" gap={4}>
+                        {categories.includes('views') && (
+                            <Box>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                                    Vistas de Propiedades
+                                </Typography>
+                                <Grid container spacing={3}>
+                                    {[
+                                        { title: 'Por Día', data: stats.day },
+                                        { title: 'Por Mes', data: stats.month },
+                                        { title: 'Top Propiedades', data: topViewsByProperty },
+                                        { title: 'Por Tipo', data: topViewsByPropertyType },
+                                        { title: 'Por Barrio', data: topViewsByNeighborhood },
+                                        { title: 'Tipo de Barrio', data: topViewsByNeighborhoodType },
+                                        { title: 'Por Estado', data: topViewsByStatus },
+                                        { title: 'Estado y Tipo', data: topViewsByStatusAndType },
+                                        { title: 'Por Operación', data: topViewsByOperation },
+                                        { title: 'Por Ambientes', data: topViewsByRooms },
+                                        { title: 'Por Amenidad', data: topViewsByAmenity },
+                                    ].map((cfg) => (
+                                        <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                                            <ChartCard title={cfg.title} data={cfg.data} />
+                                        </Grid>
+                                    ))}
                                 </Grid>
-                            ))}
+                            </Box>
+                        )}
 
-                        {categories.includes('inquiry') &&
-                            [
-                                {
-                                    title: 'Consultas por Mes',
-                                    data: stats.inquiriesPerMonth,
-                                },
-                                {
-                                    title: 'Prop. Más Consultadas',
-                                    data: stats.mostConsultedProperties,
-                                },
-                            ].map((cfg, i) => (
-                                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                                    <ChartCard title={cfg.title} data={cfg.data} />
+                        {categories.includes('inquiry') && (
+                            <Box>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                                    Consultas
+                                </Typography>
+                                <Grid container spacing={3}>
+                                    {[
+                                        { title: 'Consultas por Mes', data: inquiriesPerMonth },
+                                        { title: 'Propiedades Más Consultadas', data: mostConsultedProperties },
+                                        { title: 'Distribución por Estado', data: inquiryStatusDistribution },
+                                        { title: 'Por Día de la Semana', data: inquiriesByDayOfWeek },
+                                        { title: 'Por Franja Horaria', data: inquiriesByTimeRange },
+                                    ].map((cfg) => (
+                                        <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                                            <ChartCard title={cfg.title} data={cfg.data} />
+                                        </Grid>
+                                    ))}
                                 </Grid>
-                            ))}
+                            </Box>
+                        )}
 
-                        {categories.includes('survey') &&
-                            [
-                                {
-                                    title: 'Distribución Puntajes Encuestas',
-                                    data: stats.surveyScoreDistribution,
-                                },
-                                {
-                                    title: 'Puntaje Diario Prom.',
-                                    data: stats.surveyDailyAverageScore,
-                                },
-                            ].map((cfg, i) => (
-                                <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                                    <ChartCard title={cfg.title} data={cfg.data} />
+                        {categories.includes('survey') && (
+                            <Box>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                                    Encuestas
+                                </Typography>
+                                <Grid container spacing={3}>
+                                    {[
+                                        { title: 'Distribución de Puntajes', data: surveyScoreDistribution },
+                                        { title: 'Puntaje Promedio Diario', data: surveyDailyAverage },
+                                        { title: 'Puntaje Promedio Mensual', data: surveyMonthlyAverage },
+                                    ].map((cfg) => (
+                                        <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                                            <ChartCard title={cfg.title} data={cfg.data} />
+                                        </Grid>
+                                    ))}
                                 </Grid>
-                            ))}
-                    </Grid>
+                            </Box>
+                        )}
+                    </Box>
                 )}
             </Box>
         </BasePage>

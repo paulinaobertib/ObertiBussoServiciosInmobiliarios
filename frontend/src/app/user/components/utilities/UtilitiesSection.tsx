@@ -7,6 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Modal } from "../../../shared/components/Modal";
 import { UtilitiesForm } from "./UtilitiesForm";
 import { useUtilities } from "../../hooks/useUtilities";
+import type { GridRowId } from "@mui/x-data-grid";
 
 interface Props {
   toggleSelect?: (ids: number[]) => void;
@@ -33,27 +34,11 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
             sortable: false,
             filterable: false,
             renderCell: (params: any) => (
-              <Box display="flex" alignItems="center" justifyContent="flex-start" gap={1} width="100%">
-                <IconButton
-                  size="small"
-                  title="Editar"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    openEdit(params.row);
-                  }}
-                >
+              <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%">
+                <IconButton size="small" title="Editar" onClick={() => openEdit(params.row)}>
                   <EditIcon fontSize="small" />
                 </IconButton>
-                <IconButton
-                  size="small"
-                  title="Eliminar"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    openDelete(params.row);
-                  }}
-                >
+                <IconButton size="small" title="Eliminar" onClick={() => openDelete(params.row)}>
                   <DeleteIcon fontSize="small" />
                 </IconButton>
               </Box>
@@ -63,15 +48,32 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
       : []),
   ];
 
+  // Helper para convertir GridRowId a number seguro
+  const toNum = (v: GridRowId): number | null =>
+    typeof v === "number" ? v : Number.isFinite(Number(v)) ? Number(v) : null;
+
   const gridToggleSelect = useCallback(
-    (selected: string | string[] | null) => {
-      const arr = Array.isArray(selected) ? selected.map((s) => Number(s)) : selected != null ? [Number(selected)] : [];
+    (selected: GridRowId | GridRowId[] | null) => {
+      const arr: number[] = Array.isArray(selected)
+        ? selected.map(toNum).filter((n): n is number => n != null)
+        : selected != null
+        ? (() => {
+            const n = toNum(selected);
+            return n != null ? [n] : [];
+          })()
+        : [];
       toggleSelect?.(arr);
     },
     [toggleSelect]
   );
 
-  const gridIsSelected = useCallback((id: string) => isSelected?.(Number(id)) ?? false, [isSelected]);
+  const gridIsSelected = useCallback(
+    (id: GridRowId) => {
+      const n = toNum(id);
+      return n != null ? isSelected?.(n) ?? false : false;
+    },
+    [isSelected]
+  );
 
   const refresh = useCallback(async () => {
     const list = await loadAll();
@@ -79,7 +81,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   }, [loadAll]);
 
   const openEdit = (u: Utility) => {
-    setModalTitle("Editar servicio");
+    setModalTitle("Editar utility");
     setModalContent(
       <UtilitiesForm
         action="edit"
@@ -94,7 +96,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   };
 
   const openDelete = (u: Utility) => {
-    setModalTitle("Eliminar servicio");
+    setModalTitle("Eliminar utility");
     setModalContent(
       <UtilitiesForm
         action="delete"
@@ -109,7 +111,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   };
 
   const openCreate = () => {
-    setModalTitle("Crear servicio");
+    setModalTitle("Crear utility");
     setModalContent(
       <UtilitiesForm
         action="add"
@@ -150,7 +152,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
         onRoles={undefined}
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
-        entityName="Servicio"
+        entityName="Utility"
         showActions={showActions}
         fetchAll={fetchAllAdapter}
         fetchByText={fetchByTextAdapter}

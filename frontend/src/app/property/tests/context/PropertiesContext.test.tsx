@@ -19,6 +19,7 @@ vi.mock("../../services/type.service", () => ({
 }));
 vi.mock("../../services/property.service", () => ({
   getAllProperties: vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]),
+  getAvailableProperties: vi.fn().mockResolvedValue([{ id: 2, title: "Depto Disponible" }]),
   getPropertyById: vi.fn().mockResolvedValue({ id: 99, title: "Propiedad Test" }),
 }));
 
@@ -70,6 +71,14 @@ describe("PropertyCrudContext", () => {
       await result.current.refreshProperties();
     });
     expect(result.current.propertiesList).toEqual([{ id: 1, title: "Depto" }]);
+  });
+
+  it("puede refrescar properties disponibles", async () => {
+    const { result } = renderContext();
+    await act(async () => {
+      await result.current.refreshProperties('available');
+    });
+    expect(result.current.propertiesList).toEqual([{ id: 2, title: "Depto Disponible" }]);
   });
 
   it("puede hacer toggleSelect en amenity", () => {

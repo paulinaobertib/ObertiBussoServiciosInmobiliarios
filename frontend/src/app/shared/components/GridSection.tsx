@@ -25,6 +25,7 @@ interface GridSectionProps {
   /** los preseleccionados también aceptan number o string */
   selectedIds?: GridRowId[];
   selectable?: boolean;
+  showCreateButton?: boolean;
 }
 
 export const GridSection = ({
@@ -40,6 +41,7 @@ export const GridSection = ({
   multiSelect = false,
   selectedIds,
   selectable = true,
+  showCreateButton = true,
 }: GridSectionProps) => {
   const emptySelection = (): GridRowSelectionModel => ({
     type: "include",
@@ -89,9 +91,11 @@ export const GridSection = ({
           fetchAll={fetchAll}
           fetchByText={fetchByText}
         />
-        <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
-          {entityName}
-        </Button>
+        {showCreateButton && onCreate && (
+          <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
+            {entityName}
+          </Button>
+        )}
       </Box>
 
       <Box width="100%">

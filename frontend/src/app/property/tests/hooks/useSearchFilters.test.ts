@@ -18,6 +18,12 @@ vi.mock("../../../property/services/property.service", () => ({
   getPropertiesByFilters: (...args: any[]) => getByFiltersMock(...args),
 }));
 
+let isAdminMock = true;
+
+vi.mock("../../../user/context/AuthContext", () => ({
+  useAuthContext: () => ({ isAdmin: isAdminMock }),
+}));
+
 // Manejo de errores
 const handleErrorMock = vi.fn();
 vi.mock("../../../shared/hooks/useErrors", () => ({
@@ -32,6 +38,7 @@ type Property = {
   area?: number;
   coveredArea?: number;
   rooms?: number | string;
+  status?: string;
 };
 
 let currentPropsList: Property[] | null = null;
@@ -83,9 +90,9 @@ import { useSearchFilters } from "../../../property/hooks/useSearchFilters";
 
 // ---------- Helpers ----------
 const sampleProps: Property[] = [
-  { id: 1, price: 20000, currency: "USD", area: 80, coveredArea: 70, rooms: 2 },
-  { id: 2, price: 75000, currency: "USD", area: 120, coveredArea: 100, rooms: 3 },
-  { id: 3, price: 2000000, currency: "ARS", area: 60, coveredArea: 55, rooms: 1 },
+  { id: 1, price: 20000, currency: "USD", area: 80, coveredArea: 70, rooms: 2, status: 'DISPONIBLE' },
+  { id: 2, price: 75000, currency: "USD", area: 120, coveredArea: 100, rooms: 3, status: 'DISPONIBLE' },
+  { id: 3, price: 2000000, currency: "ARS", area: 60, coveredArea: 55, rooms: 1, status: 'DISPONIBLE' },
 ];
 
 beforeEach(() => {
@@ -93,6 +100,7 @@ beforeEach(() => {
   // estado inicial común:
   currentPropsList = sampleProps;
   selectedState = { owner: null, neighborhood: null, type: null, amenities: [] };
+  isAdminMock = true;
 });
 
 // ---------- Tests ----------
@@ -233,6 +241,24 @@ it("apply llama al servicio con buildSearchParams(payload) y filtra por rooms (i
   expect(filtered.map((p) => p.id)).toEqual([11, 12, 13]);
   expect(onSearch).toHaveBeenCalledWith(filtered);
 });
+
+  it("filtra propiedades no disponibles para usuarios no administradores", async () => {
+    const onSearch = vi.fn();
+    isAdminMock = false;
+
+    const serviceData: Property[] = [
+      { id: 21, price: 50000, currency: "USD", rooms: 2, status: 'DISPONIBLE' },
+      { id: 22, price: 60000, currency: "USD", rooms: 2, status: 'VENDIDO' },
+    ];
+    getByFiltersMock.mockResolvedValue(serviceData);
+
+    const { result } = renderHook(() => useSearchFilters(onSearch));
+
+    const filtered = (await result.current.apply(result.current.params)) as Property[];
+
+    expect(filtered.map((p) => p.id)).toEqual([21]);
+    expect(onSearch).toHaveBeenCalledWith(filtered);
+  });
 
   it("apply maneja errores → handleError y onSearch([])", async () => {
     const onSearch = vi.fn();
