@@ -10,14 +10,16 @@ import { useGlobalAlert } from '../app/shared/context/AlertContext';
 import { Property } from '../app/property/types/property';
 import { BasePage } from './BasePage';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
-import { getAllProperties, getPropertiesByText } from '../app/property/services/property.service';
+import { getAllProperties, getAvailableProperties, getPropertiesByText } from '../app/property/services/property.service';
 import { useEffect, useState } from 'react';
+import { useAuthContext } from '../app/user/context/AuthContext';
 
 export default function Home() {
   localStorage.setItem('selectedPropertyId', '');
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { isAdmin } = useAuthContext();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
 
@@ -30,8 +32,8 @@ export default function Home() {
 
   useEffect(() => {
     resetSelected();
-    refreshProperties();
-  }, [resetSelected, refreshProperties]);
+    refreshProperties(isAdmin ? 'all' : 'available');
+  }, [resetSelected, refreshProperties, isAdmin]);
 
 
   const handleAction = (action: 'create' | 'edit' | 'delete') => {
@@ -108,8 +110,13 @@ export default function Home() {
 
             <Box sx={{ flexGrow: 1 }}>
               <SearchBar
-                fetchAll={getAllProperties}
-                fetchByText={getPropertiesByText}
+                fetchAll={isAdmin ? getAllProperties : getAvailableProperties}
+                fetchByText={async (value) => {
+                  const results = await getPropertiesByText(value);
+                  return isAdmin
+                    ? results
+                    : (results ?? []).filter((p: any) => String(p?.status ?? '').toUpperCase() === 'DISPONIBLE');
+                }}
                 onSearch={items => setResults(items as Property[])}
                 placeholder="Buscar propiedad"
                 debounceMs={400}

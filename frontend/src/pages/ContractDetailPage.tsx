@@ -43,6 +43,7 @@ export default function ContractDetailPage() {
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState<ContractGet | null>(null);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const { userName, propertyName } = useContractNames(contract?.userId ?? "", contract?.propertyId ?? 0);
 
@@ -63,6 +64,10 @@ export default function ContractDetailPage() {
     };
   }, [id]);
 
+  useEffect(() => {
+    setRetryCount(0);
+  }, [id]);
+
   const utilities = contract?.contractUtilities ?? [];
   const utilityNameMap = useUtilityNames(utilities);
 
@@ -74,12 +79,47 @@ export default function ContractDetailPage() {
 
   const paymentsSorted = [...payments].sort((a, b) => getTime(b) - getTime(a));
   const increasesSorted = [...increasesRaw].sort((a, b) => getTime(b) - getTime(a));
-  const commissionPaidCount = (() => {
-    if (!commission || !commission.id) return 0;
-    return payments.filter(
-      (p: any) => p?.concept === 'COMISION' && Number(p?.commissionId) === Number(commission.id)
-    ).length;
+  const commissionPayments = (() => {
+    if (!commission || !commission.id) return [] as any[];
+    return payments
+      .filter(
+        (p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(commission.id)
+      )
+      .sort((a, b) => getTime(a) - getTime(b));
   })();
+  const commissionPaidCount = commissionPayments.length;
+
+  useEffect(() => {
+    if (!contract || !id) return;
+    if (retryCount >= 3) return;
+
+    const rawPayments = (contract as any)?.payments;
+    const commissionData = (contract as any)?.commission;
+
+    const paymentsReady = Array.isArray(rawPayments) && rawPayments.every((p: any) => p != null);
+    const commissionReady = (() => {
+      if (!commissionData) return true;
+      if (!commissionData.currency || commissionData.totalAmount == null) return false;
+      if (commissionData.paymentType === "CUOTAS") {
+        return Number(commissionData.installments) > 0;
+      }
+      return true;
+    })();
+
+    if (paymentsReady && commissionReady) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const fresh = await getContractById(Number(id));
+        const data = (fresh as any)?.data ?? fresh;
+        setContract(data as ContractGet);
+      } finally {
+        setRetryCount((prev) => prev + 1);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [contract, id, retryCount]);
 
   // acciones admin
   const onEdit = () => contract && navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id));
@@ -216,8 +256,8 @@ export default function ContractDetailPage() {
               adjustmentIndex={contract.adjustmentIndex}
               paymentsSorted={paymentsSorted}
               increasesSorted={increasesSorted}
-              onRegisterIncrease={() => setOpenIncrease(true)}
-              onRegisterRentPayment={() => setOpenRent(true)}
+              onRegisterIncrease={isAdmin ? () => setOpenIncrease(true) : undefined}
+              onRegisterRentPayment={isAdmin ? () => setOpenRent(true) : undefined}
             />
 
             {/* Servicios y Expensas */}
@@ -225,30 +265,38 @@ export default function ContractDetailPage() {
               currency={contract.currency}
               utilities={utilities}
               utilityNameMap={utilityNameMap}
-              onManage={() => setOpenUtilities(true)}
-              onPay={(id) => setOpenServicePay(id)}
-              onIncrease={(id) => setOpenServiceIncrease(id)}
-              onEdit={(id) => setOpenServiceEdit(id)}
-              onUnlink={(cuid) => {
-                ask("¿Desvincular este servicio?", async () => {
-                  const { deleteContractUtility } = await import("../app/user/services/contractUtility.service");
-                  await deleteContractUtility(cuid);
-                  await refreshContract();
-                });
-              }}
+              onManage={isAdmin ? () => setOpenUtilities(true) : undefined}
+              onPay={isAdmin ? (id) => setOpenServicePay(id) : undefined}
+              onIncrease={isAdmin ? (id) => setOpenServiceIncrease(id) : undefined}
+              onEdit={isAdmin ? (id) => setOpenServiceEdit(id) : undefined}
+              onUnlink={
+                isAdmin
+                  ? (cuid) => {
+                      ask("¿Desvincular este servicio?", async () => {
+                        const { deleteContractUtility } = await import("../app/user/services/contractUtility.service");
+                        await deleteContractUtility(cuid);
+                        await refreshContract();
+                      });
+                    }
+                  : undefined
+              }
             />
 
             {/* Garantes */}
             <GuarantorsCard
               guarantors={guarantors}
-              onManage={() => setOpenGuarantors(true)}
-              onUnlink={(gid) => {
-                ask("¿Quitar garante del contrato?", async () => {
-                  const { removeGuarantorFromContract } = await import("../app/user/services/guarantor.service");
-                  await removeGuarantorFromContract(gid, Number(id));
-                  await refreshContract();
-                });
-              }}
+              onManage={isAdmin ? () => setOpenGuarantors(true) : undefined}
+              onUnlink={
+                isAdmin
+                  ? (gid) => {
+                      ask("¿Quitar garante del contrato?", async () => {
+                        const { removeGuarantorFromContract } = await import("../app/user/services/guarantor.service");
+                        await removeGuarantorFromContract(gid, Number(id));
+                        await refreshContract();
+                      });
+                    }
+                  : undefined
+              }
             />
 
             {/* Comisión (admin) a ancho completo */}
@@ -257,6 +305,7 @@ export default function ContractDetailPage() {
                 gridFull
                 commission={commission}
                 paidCount={commissionPaidCount}
+                payments={commissionPayments}
                 onAdd={() => setOpenCommissionEdit({ open: true, action: "add" })}
                 onEdit={() => setOpenCommissionEdit({ open: true, action: "edit" })}
                 onRegisterPayment={() => setOpenCommissionPay({ open: true, installment: null })}

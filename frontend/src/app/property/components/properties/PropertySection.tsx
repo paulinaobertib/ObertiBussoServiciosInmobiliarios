@@ -5,7 +5,7 @@ import { GridSection } from "../../../shared/components/GridSection";
 import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { usePropertyPanel } from "../../hooks/usePropertySection";
-import { getAllProperties, getPropertiesByText, deleteProperty } from "../../services/property.service";
+import { getAllProperties, getAvailableProperties, getPropertiesByText, deleteProperty } from "../../services/property.service";
 import { getRowActions } from "./ActionsRowItems";
 import type { Property } from "../../types/property";
 import type { GridRowId } from "@mui/x-data-grid";
@@ -17,6 +17,8 @@ interface Props {
   filterAvailable?: boolean;
   selectable?: boolean;
   selectedIds?: number[]; // numero
+  showCreateButton?: boolean;
+  availableOnly?: boolean;
 }
 
 export const PropertySection = ({
@@ -26,6 +28,8 @@ export const PropertySection = ({
   filterAvailable = false,
   selectable = true,
   selectedIds,
+  showCreateButton = true,
+  availableOnly = false,
 }: Props) => {
   const navigate = useNavigate();
   const { ask, DialogUI } = useConfirmDialog();
@@ -37,7 +41,7 @@ export const PropertySection = ({
     onSearch,
     toggleSelect: internalToggle,
     isSelected: internalIsSelected,
-  } = usePropertyPanel();
+  } = usePropertyPanel(availableOnly ? 'available' : 'all');
 
   const rows = useMemo(
     () => properties.map((p) => ({ ...p, id: Number((p as any).id ?? (p as any).propertyId) })),
@@ -66,18 +70,21 @@ export const PropertySection = ({
   );
 
   const fetchAll = useCallback(async () => {
-    const res = await getAllProperties();
+    const res = await (availableOnly ? getAvailableProperties() : getAllProperties());
     onSearch(res);
     return res;
-  }, [onSearch]);
+  }, [availableOnly, onSearch]);
 
   const fetchByText = useCallback(
     async (term: string) => {
       const list = await getPropertiesByText(term);
-      onSearch(list);
-      return list;
+      const normalized = availableOnly
+        ? (list ?? []).filter((p: any) => String(p?.status ?? '').toLowerCase() === 'disponible')
+        : list;
+      onSearch(normalized);
+      return normalized;
     },
-    [onSearch]
+    [availableOnly, onSearch]
   );
 
   // id seleccionado para forzar inclusión aunque no esté “disponible”
@@ -167,6 +174,7 @@ export const PropertySection = ({
         multiSelect={false}
         selectable={selectable}
         selectedIds={selectedIds}
+        showCreateButton={showCreateButton}
       />
       {DialogUI}
     </>

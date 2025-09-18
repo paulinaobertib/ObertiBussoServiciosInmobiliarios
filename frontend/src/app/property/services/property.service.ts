@@ -16,12 +16,12 @@ export const postProperty = async (data: PropertyCreate) => {
   images.forEach((img) => form.append("images", img));
 
   try {
-    const { data: created } = await api.post(
+    const response = await api.post(
       `/properties/property/create`,
       form,
       { withCredentials: true }
     );
-    return created;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error creating property:", error);
     throw error;
@@ -42,7 +42,7 @@ export const putProperty = async (data: PropertyUpdate) => {
   }
 
   try {
-    const { data: updated } = await api.put(
+    const response = await api.put(
       `/properties/property/update/${id}`,
       form,
       {
@@ -50,7 +50,7 @@ export const putProperty = async (data: PropertyUpdate) => {
         withCredentials: true,
       }
     );
-    return updated;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error updating property:", error);
     throw error;
@@ -59,11 +59,11 @@ export const putProperty = async (data: PropertyUpdate) => {
 
 export const deleteProperty = async (data: Property) => {
   try {
-    const { data: deleted } = await api.delete(
+    const response = await api.delete(
       `/properties/property/delete/${data.id}`,
       { withCredentials: true }
     );
-    return deleted;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error deleting property:", error);
     throw error;
@@ -72,22 +72,34 @@ export const deleteProperty = async (data: Property) => {
 
 export const getAllProperties = async () => {
   try {
-    const { data } = await api.get(`/properties/property/getAll`, {
+    const response = await api.get(`/properties/property/getAll`, {
       withCredentials: true,
     });
-    return data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error fetching properties:", error);
     throw error;
   }
 };
 
-export const getPropertyById = async (id: number) => {
+export const getAvailableProperties = async () => {
   try {
-    const { data } = await api.get(`/properties/property/getById/${id}`, {
+    const response = await api.get(`/properties/property/get`, {
       withCredentials: true,
     });
-    return data;
+    return (response as any)?.data ?? response;
+  } catch (error) {
+    console.error("Error fetching available properties:", error);
+    throw error;
+  }
+};
+
+export const getPropertyById = async (id: number) => {
+  try {
+    const response = await api.get(`/properties/property/getById/${id}`, {
+      withCredentials: true,
+    });
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error(`Error fetching property with ID ${id}:`, error);
     throw error;
@@ -107,11 +119,11 @@ export const getPropertiesByFilters = async (
   });
 
   try {
-    const { data } = await api.get<Property[]>(
+    const response = await api.get<Property[]>(
       `/properties/property/search?${searchParams.toString()}`,
       { withCredentials: true }
     );
-    return data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error searching properties:", error);
     throw error;
@@ -120,11 +132,11 @@ export const getPropertiesByFilters = async (
 
 export const getPropertiesByText = async (value: string) => {
   try {
-    const { data } = await api.get<Property[]>(`/properties/property/text`, {
+    const response = await api.get<Property[]>(`/properties/property/text`, {
       params: { value },
       withCredentials: true,
     });
-    return data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error searching by text:", error);
     throw error;
@@ -133,11 +145,11 @@ export const getPropertiesByText = async (value: string) => {
 
 export const putPropertyStatus = async (id: number, status: string) => {
   try {
-    const { data } = await api.put(`/properties/property/status/${id}`, null, {
+    const response = await api.put(`/properties/property/status/${id}`, null, {
       params: { status },
       withCredentials: true,
     });
-    return data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error updating property status:", error);
     throw error;
@@ -146,11 +158,11 @@ export const putPropertyStatus = async (id: number, status: string) => {
 
 export const putPropertyOutstanding = async (id: number, outstanding: boolean) => {
   try {
-    const { data } = await api.put(`/properties/property/outstanding/${id}`, null, {
+    const response = await api.put(`/properties/property/outstanding/${id}`, null, {
       params: { outstanding },
       withCredentials: true,
     });
-    return data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error updating property outstanding:", error);
     throw error;

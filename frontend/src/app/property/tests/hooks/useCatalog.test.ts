@@ -84,7 +84,7 @@ describe("useCatalog", () => {
 
     expect(deleteProperty).toHaveBeenCalledWith(property);
     expect(mockShowAlert).toHaveBeenCalledWith("Propiedad eliminada con éxito!", "success");
-    expect(mockRefresh).toHaveBeenCalled();
+    expect(mockRefresh).toHaveBeenCalledWith('all');
     expect(mockOnFinish).toHaveBeenCalled();
   });
 
@@ -136,5 +136,15 @@ describe("useCatalog", () => {
     (useAuthContext as unknown as Mock).mockReturnValue({ isAdmin: false });
     const { result } = renderHook(() => useCatalog({ onFinish: mockOnFinish }));
     expect(result.current.isAdmin).toBe(false);
+  });
+
+  it("llama a refreshProperties con 'available' cuando no es admin", async () => {
+    (useAuthContext as unknown as Mock).mockReturnValue({ isAdmin: false });
+    (mockAsk as Mock).mockImplementation((_msg, cb) => cb());
+    const { result } = renderHook(() => useCatalog({ onFinish: mockOnFinish }));
+
+    await act(async () => result.current.handleClick('delete', property));
+
+    expect(mockRefresh).toHaveBeenCalledWith('available');
   });
 });

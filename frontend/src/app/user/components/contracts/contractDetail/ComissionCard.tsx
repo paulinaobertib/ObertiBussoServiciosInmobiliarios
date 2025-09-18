@@ -1,5 +1,8 @@
-import { Card, Typography, Box, Chip, Stack, Button, Divider, List, ListItem, ListItemText, Grid } from "@mui/material";
+import { useState } from "react";
+import { Card, Typography, Box, Chip, Stack, Button, Divider, List, ListItem, ListItemText, Grid, IconButton } from "@mui/material";
 import ReceiptOutlined from "@mui/icons-material/ReceiptOutlined";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
+import type { Payment } from "../../../types/payment";
 import { currencyLabel, fmtDate } from "./utils";
 
 type Commission = {
@@ -16,6 +19,7 @@ type Commission = {
 type Props = {
   commission: Commission;
   paidCount?: number; // cuotas ya pagadas
+  payments?: Payment[];
   onAdd?: () => void;
   onEdit?: () => void;
   onRegisterPayment?: () => void;
@@ -37,8 +41,17 @@ function prettyPaymentType(pt?: string | null) {
   return pt || "-";
 }
 
-export default function CommissionCard({ commission, paidCount = 0, onAdd, onEdit, onRegisterInstallment, gridFull = false }: Props) {
+export default function CommissionCard({
+  commission,
+  paidCount = 0,
+  payments,
+  onAdd,
+  onEdit,
+  onRegisterInstallment,
+  gridFull = false,
+}: Props) {
   const hasCommission = !!commission;
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
   // Derivar estado mostrado según pagos para evitar inconsistencias
   const derivedStatus = (() => {
     if (!commission) return "PENDIENTE" as const;
@@ -58,6 +71,10 @@ export default function CommissionCard({ commission, paidCount = 0, onAdd, onEdi
       ? commission.installments
       : 0;
   const nextToPay = Math.max(1, Math.min(installmentsCount || 1, paidCount + 1));
+  const orderedPayments = (() => {
+    const list = Array.isArray(payments) ? payments : [];
+    return [...list].sort((a, b) => new Date(a.date ?? (a as any)?.paymentDate ?? 0).getTime() - new Date(b.date ?? (b as any)?.paymentDate ?? 0).getTime());
+  })();
 
   return (
     <Grid size={{ xs: 12, sm: gridFull ? 12 : 6 }}>
@@ -158,6 +175,16 @@ export default function CommissionCard({ commission, paidCount = 0, onAdd, onEdi
                       const n = idx + 1;
                       const isAlreadyPaid = n <= paidCount || isPaid;
                       const isNext = n === nextToPay && !isAlreadyPaid;
+                      const payment = orderedPayments[idx];
+                      const paymentDateLabel = payment && (payment.date || (payment as any)?.paymentDate)
+                        ? fmtDate(payment.date ?? (payment as any)?.paymentDate)
+                        : null;
+                      const description = (payment?.description ?? "").trim();
+                      const hasDescription = description.length > 0;
+                      const openDescription = !!expandedDescriptions[n];
+                      const toggleDescription = () => {
+                        setExpandedDescriptions((prev) => ({ ...prev, [n]: !prev[n] }));
+                      };
                       return (
                         <ListItem
                           key={n}
@@ -177,9 +204,43 @@ export default function CommissionCard({ commission, paidCount = 0, onAdd, onEdi
                               <Chip size="small" color="default" label="Pendiente" sx={{ fontWeight: 700 }} />
                             )
                           }
-                          sx={{ borderRadius: 1, px: 1 }}
+                          sx={{ borderRadius: 1, px: 1, py: 0.25, alignItems: "flex-start" }}
                         >
-                          <ListItemText primary={`Cuota #${n}`} />
+                          <ListItemText
+                            primaryTypographyProps={{ fontSize: ".85rem", fontWeight: 600, color: "#000" }}
+                            secondaryTypographyProps={{ fontSize: ".75rem", color: "text.secondary" }}
+                            primary={
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                {hasDescription ? (
+                                  <IconButton
+                                    onClick={toggleDescription}
+                                    size="small"
+                                    sx={{
+                                      width: 28,
+                                      height: 28,
+                                      border: "1px solid",
+                                      borderColor: openDescription ? "primary.main" : "grey.300",
+                                    }}
+                                  >
+                                    <InfoOutlined fontSize="inherit" color={openDescription ? "primary" : "action"} />
+                                  </IconButton>
+                                ) : (
+                                  <Box sx={{ width: 28, height: 28 }} />
+                                )}
+                                <span>{`Cuota #${n}`}</span>
+                                {paymentDateLabel && (
+                                  <Typography component="span" sx={{ fontSize: ".75rem", color: "text.secondary" }}>
+                                    Pagada el {paymentDateLabel}
+                                  </Typography>
+                                )}
+                              </Box>
+                            }
+                          />
+                          {hasDescription && openDescription && (
+                            <Typography sx={{ fontSize: ".75rem", color: "text.secondary", mt: 0.5, ml: 5 }}>
+                              {description}
+                            </Typography>
+                          )}
                         </ListItem>
                       );
                     })}

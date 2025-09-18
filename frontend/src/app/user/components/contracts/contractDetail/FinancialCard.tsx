@@ -1,6 +1,8 @@
-import { Card, Typography, Box, Stack, Button } from "@mui/material";
+import { useState } from "react";
+import { Card, Typography, Box, Stack, Button, IconButton } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import AttachMoneyOutlined from "@mui/icons-material/AttachMoneyOutlined";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import { fmtDate, fmtMoney } from "./utils";
 
 type Props = {
@@ -29,6 +31,11 @@ export default function FinancialCard({
   onRegisterIncrease,
 }: Props) {
   const money = (n?: number | null) => fmtMoney(n, currency);
+  const [expandedPayments, setExpandedPayments] = useState<Record<string, boolean>>({});
+
+  const toggleDescription = (id: string) => {
+    setExpandedPayments((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <Grid size={{ xs: 12 }}>
@@ -155,43 +162,74 @@ export default function FinancialCard({
                         p.type ??
                         p.paymentType ??
                         (p.contractUtilityId ? "SERVICIO / EXPENSA" : "ALQUILER");
+                      const description = (p.description ?? "").trim();
+                      const identifier = String(p.id ?? `idx-${idx}`);
+                      const isExpanded = Boolean(expandedPayments[identifier]);
+                      const hasDescription = description.length > 0;
 
                       return (
                         <Box
                           key={p.id ?? idx}
                           sx={{
                             display: "flex",
-                            alignItems: "center",
-                            py: 0.5,
+                            flexDirection: "column",
                             borderBottom: "1px solid",
                             borderColor: "grey.100",
+                            py: 0.5,
                           }}
                         >
-                          <Typography variant="body2" color="text.secondary" sx={{ width: 110, flexShrink: 0 }}>
-                            {fmtDate(payDate)}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.disabled"
-                            sx={{
-                              flex: 1,
-                              textAlign: "center",
-                              textTransform: "uppercase",
-                              letterSpacing: 0.25,
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {String(payType).replace(/_/g, " ")}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            fontWeight={700}
-                            sx={{ width: 120, flexShrink: 0, textAlign: "right" }}
-                          >
-                            {money(payAmount)}
-                          </Typography>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            {hasDescription ? (
+                              <IconButton
+                                size="small"
+                                onClick={() => toggleDescription(identifier)}
+                                sx={{
+                                  width: 28,
+                                  height: 28,
+                                  border: "1px solid",
+                                  borderColor: isExpanded ? "primary.main" : "grey.300",
+                                }}
+                              >
+                                <InfoOutlined fontSize="inherit" color={isExpanded ? "primary" : "action"} />
+                              </IconButton>
+                            ) : (
+                              <Box sx={{ width: 28, height: 28 }} />
+                            )}
+                            <Typography variant="body2" color="text.secondary" sx={{ width: 110, flexShrink: 0 }}>
+                              {fmtDate(payDate)}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.disabled"
+                              sx={{
+                                flex: 1,
+                                textAlign: "center",
+                                textTransform: "uppercase",
+                                letterSpacing: 0.25,
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {String(payType).replace(/_/g, " ")}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              fontWeight={700}
+                              sx={{ width: 120, flexShrink: 0, textAlign: "right" }}
+                            >
+                              {money(payAmount)}
+                            </Typography>
+                          </Box>
+                          {hasDescription && isExpanded && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ mt: 0.5, pl: 5.5 }}
+                            >
+                              {description}
+                            </Typography>
+                          )}
                         </Box>
                       );
                     })}
@@ -215,14 +253,19 @@ export default function FinancialCard({
                   <Typography color="text.secondary">Sin aumentos registrados.</Typography>
                 ) : (
                   <Stack spacing={0.5}>
-                    {increasesSorted.map((a: any, idx: number) => {
+                    {increasesSorted.map((a: any) => {
                       const prefix = (c?: string | null) => (c === "USD" ? "USD $ " : "ARS $ ");
-                      const adjStr =
-                        typeof a.adjustment === "number"
-                          ? a.adjustment < 1
-                            ? `+${Math.round(a.adjustment * 100)}%`
-                            : `+ ${prefix(a.currency)}${a.adjustment.toLocaleString("es-AR")}`
-                          : "";
+                      const percentStr = (() => {
+                        if (a.adjustment == null) return "";
+                        const raw = Number(a.adjustment);
+                        if (Number.isNaN(raw)) return "";
+                        const rounded = Math.round(raw * 10) / 10;
+                        const display = Math.abs(rounded % 1) < 0.05 ? rounded.toFixed(0) : rounded.toFixed(1);
+                        const sign = raw >= 0 ? "+" : "";
+                        return `${sign}${display}%`;
+                      })();
+
+                      const metadata = [percentStr, a.note?.trim()].filter(Boolean).join(" · ");
 
                       return (
                         <Box
@@ -240,10 +283,9 @@ export default function FinancialCard({
                             <Typography variant="body2" color="text.secondary">
                               {fmtDate(a.date)}
                             </Typography>
-                            {adjStr && (
+                            {metadata && (
                               <Typography variant="caption" color="text.disabled">
-                                {adjStr}
-                                {a.note ? ` · ${a.note}` : ""}
+                                {metadata}
                               </Typography>
                             )}
                           </Box>
