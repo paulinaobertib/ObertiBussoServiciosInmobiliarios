@@ -137,6 +137,8 @@ export default function ManageContractPage() {
             isSelected={(id: number) => id === ctrl.selectedPropertyId}
             filterAvailable
             showActions={false}
+            showCreateButton={false}
+            availableOnly
             // mantener seleccionado (number[])
             selectedIds={ctrl.selectedPropertyId != null ? [ctrl.selectedPropertyId] : []}
           />

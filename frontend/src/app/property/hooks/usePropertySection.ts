@@ -4,7 +4,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import type { Property } from "../types/property";
 import { useApiErrors } from "../../shared/hooks/useErrors";
 
-export const usePropertyPanel = () => {
+export const usePropertyPanel = (mode: 'all' | 'available' = 'all') => {
   const { propertiesList, refreshProperties } = usePropertiesContext();
   const { handleError } = useApiErrors();
 
@@ -20,14 +20,14 @@ export const usePropertyPanel = () => {
     (async () => {
       setLocalLoading(true);
       try {
-        await refreshProperties();
+        await refreshProperties(mode);
       } catch (e) {
         handleError(e);
       } finally {
         setLocalLoading(false);
       }
     })();
-  }, [refreshProperties]);
+  }, [refreshProperties, mode]);
 
   // 2) cuando cambian en el contexto
   useEffect(() => {

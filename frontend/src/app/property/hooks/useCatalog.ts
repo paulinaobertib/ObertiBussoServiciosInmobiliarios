@@ -23,6 +23,8 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
 
   const { isAdmin } = useAuthContext();
 
+  const refreshMode = isAdmin ? 'all' : 'available';
+
   const list = externalProperties ?? propertiesList ?? [];
 
   /* --------------------------------------------------------------------- */
@@ -41,7 +43,7 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
           await deleteProperty(prop);
           showAlert("Propiedad eliminada con éxito!", "success");
           try {
-            await refreshProperties();
+            await refreshProperties(refreshMode);
           } catch (e) {
             // si falla el refresh, también mostramos el error
             handleError(e);
@@ -61,7 +63,7 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
 
   return {
     propertiesList: list,
-    refresh: refreshProperties,
+    refresh: (mode?: 'all' | 'available') => refreshProperties(mode ?? refreshMode),
     selectedPropertyIds,
     toggleCompare,
     handleClick,

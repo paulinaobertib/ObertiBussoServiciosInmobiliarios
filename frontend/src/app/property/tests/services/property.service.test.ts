@@ -163,6 +163,14 @@ const mockSearchParams: SearchParams = {
     expect(result).toEqual([mockProperty]);
   });
 
+  it("getAvailableProperties devuelve solo disponibles", async () => {
+    (api.get as any).mockResolvedValue({ data: [mockProperty] });
+
+    const result = await propertyService.getAvailableProperties();
+    expect(api.get).toHaveBeenCalledWith("/properties/property/get", { withCredentials: true });
+    expect(result).toEqual([mockProperty]);
+  });
+
   it("getPropertyById devuelve propiedad por id", async () => {
     (api.get as any).mockResolvedValue({ data: mockProperty });
 
@@ -231,6 +239,11 @@ const mockSearchParams: SearchParams = {
   it("lanza error si api.get falla en getAllProperties", async () => {
     (api.get as any).mockRejectedValue(new Error("Fetch all failed"));
     await expect(propertyService.getAllProperties()).rejects.toThrow("Fetch all failed");
+  });
+
+  it("lanza error si api.get falla en getAvailableProperties", async () => {
+    (api.get as any).mockRejectedValue(new Error("Fetch available failed"));
+    await expect(propertyService.getAvailableProperties()).rejects.toThrow("Fetch available failed");
   });
 
   it("lanza error si api.get falla en getPropertyById", async () => {

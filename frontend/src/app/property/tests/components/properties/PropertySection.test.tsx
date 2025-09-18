@@ -16,6 +16,7 @@ const h = vi.hoisted(() => {
 
     // servicios
     getAllMock: vi.fn(async () => [{ id: 10, title: "A", operation: "VENTA" }]),
+    getAvailableMock: vi.fn(async () => [{ id: 30, title: "Disponible" }]),
     getByTextMock: vi.fn(async (_: string) => [
       { id: 20, title: "B", operation: "ALQUILER" },
     ]),
@@ -24,16 +25,17 @@ const h = vi.hoisted(() => {
     // row actions
     actionClick1: vi.fn(),
     actionClick2: vi.fn(),
-    getRowActionsMock: vi.fn(() => [
+  getRowActionsMock: vi.fn(() => [
       { label: "Editar", icon: <span>E</span>, onClick: h.actionClick1 },
       { label: "Eliminar", icon: <span>D</span>, onClick: h.actionClick2 },
     ]),
 
-    askMock: vi.fn(),
-    showAlertMock: vi.fn(),
+  askMock: vi.fn(),
+  showAlertMock: vi.fn(),
 
-    // para capturar props que le llegan al Grid mockeado
-    lastGridProps: null as any,
+  // para capturar props que le llegan al Grid mockeado
+  lastGridProps: null as any,
+  lastMode: 'all' as 'all' | 'available',
   };
 });
 
@@ -88,12 +90,14 @@ vi.mock("react-router-dom", () => ({
 }));
 
 vi.mock("../../../hooks/usePropertySection", () => ({
-  usePropertyPanel: vi.fn(() => ({
-    data: [
-      {
-        id: 1,
-        title: "P1",
-        operation: "VENTA",
+  usePropertyPanel: vi.fn((mode: 'all' | 'available' = 'all') => {
+    h.lastMode = mode;
+    return {
+      data: [
+        {
+          id: 1,
+          title: "P1",
+          operation: "VENTA",
         currency: "USD",
         price: 100,
         status: "DISPONIBLE",
@@ -108,14 +112,16 @@ vi.mock("../../../hooks/usePropertySection", () => ({
       },
     ],
     loading: false,
-    onSearch: h.onSearchMock,
-    toggleSelect: h.internalToggleMock,
-    isSelected: h.internalIsSelectedMock,
-  })),
+      onSearch: h.onSearchMock,
+      toggleSelect: h.internalToggleMock,
+      isSelected: h.internalIsSelectedMock,
+    };
+  }),
 }));
 
 vi.mock("../../../services/property.service", () => ({
   getAllProperties: h.getAllMock,
+  getAvailableProperties: h.getAvailableMock,
   getPropertiesByText: h.getByTextMock,
   deleteProperty: h.delPropMock,
 }));
@@ -135,6 +141,7 @@ describe("<PropertySection />", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     h.lastGridProps = null;
+    h.lastMode = 'all';
   });
 
   it("muestra spinner cuando loading=true", async () => {
@@ -157,6 +164,33 @@ describe("<PropertySection />", () => {
     expect(h.lastGridProps.data).toEqual([
       expect.objectContaining({ id: 1, status: "DISPONIBLE" }),
     ]);
+  });
+
+  it("usa el modo 'available' cuando availableOnly es true", () => {
+    renderSUT({ availableOnly: true });
+    expect(h.lastMode).toBe('available');
+  });
+
+  it("fetchAll usa el endpoint de disponibles cuando availableOnly=true", async () => {
+    renderSUT({ availableOnly: true });
+    const rows = await h.lastGridProps.fetchAll();
+    expect(h.getAvailableMock).toHaveBeenCalled();
+    expect(h.onSearchMock).toHaveBeenCalledWith(rows);
+    expect(rows).toEqual([{ id: 30, title: "Disponible" }]);
+  });
+
+  it("fetchByText filtra no disponibles cuando availableOnly=true", async () => {
+    const data = [
+      { id: 40, title: 'X', status: 'DISPONIBLE' },
+      { id: 41, title: 'Y', status: 'VENDIDO' },
+    ];
+    h.getByTextMock.mockResolvedValueOnce(data);
+    renderSUT({ availableOnly: true });
+
+    const rows = await h.lastGridProps.fetchByText('X');
+    expect(h.getByTextMock).toHaveBeenCalledWith('X');
+    expect(rows).toEqual([{ id: 40, title: 'X', status: 'DISPONIBLE' }]);
+    expect(h.onSearchMock).toHaveBeenCalledWith(rows);
   });
 
   it("columnas incluyen Precio con renderCell correcto", () => {
