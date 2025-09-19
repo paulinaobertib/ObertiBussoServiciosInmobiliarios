@@ -5,17 +5,29 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
-import pi.ms_properties.domain.*;
+import pi.ms_properties.domain.Neighborhood;
+import pi.ms_properties.domain.NeighborhoodType;
 import pi.ms_properties.repository.INeighborhoodRepository;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.NeighborhoodSpecification;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaRepositories(
+        basePackages = "pi.ms_properties.repository",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = IPropertyRepository.class
+        )
+)
 @ActiveProfiles("test")
 class NeighborhoodSpecificationTest {
 
@@ -46,10 +58,10 @@ class NeighborhoodSpecificationTest {
         entityManager.flush();
     }
 
-    // casos de exito
+    // casos de éxito
 
     @Test
-    void whenSearchingByExactName_thenReturnsMatchingNeighborhood() {
+    void whenSearchByExactName_shouldReturnMatchingNeighborhood() {
         Specification<Neighborhood> spec = NeighborhoodSpecification.textSearch("centro");
         List<Neighborhood> result = neighborhoodRepository.findAll(spec);
 
@@ -58,7 +70,7 @@ class NeighborhoodSpecificationTest {
     }
 
     @Test
-    void whenSearchingByPartialName_thenReturnsMatchingNeighborhoods() {
+    void whenSearchByPartialName_shouldReturnMultipleNeighborhoods() {
         Specification<Neighborhood> spec = NeighborhoodSpecification.textSearch("o");
         List<Neighborhood> result = neighborhoodRepository.findAll(spec);
 
@@ -68,7 +80,7 @@ class NeighborhoodSpecificationTest {
     // casos de error
 
     @Test
-    void whenSearchValueIsNull_thenReturnsAllNeighborhoods() {
+    void whenSearchValueIsNull_shouldReturnAll() {
         Specification<Neighborhood> spec = NeighborhoodSpecification.textSearch(null);
         List<Neighborhood> result = neighborhoodRepository.findAll(spec);
 
@@ -76,7 +88,7 @@ class NeighborhoodSpecificationTest {
     }
 
     @Test
-    void whenSearchValueIsBlank_thenReturnsAllNeighborhoods() {
+    void whenSearchValueIsBlank_shouldReturnAll() {
         Specification<Neighborhood> spec = NeighborhoodSpecification.textSearch("   ");
         List<Neighborhood> result = neighborhoodRepository.findAll(spec);
 
@@ -84,7 +96,7 @@ class NeighborhoodSpecificationTest {
     }
 
     @Test
-    void whenNoMatchFound_thenReturnsEmptyList() {
+    void whenSearchValueDoesNotMatch_shouldReturnEmptyList() {
         Specification<Neighborhood> spec = NeighborhoodSpecification.textSearch("nonexistent");
         List<Neighborhood> result = neighborhoodRepository.findAll(spec);
 

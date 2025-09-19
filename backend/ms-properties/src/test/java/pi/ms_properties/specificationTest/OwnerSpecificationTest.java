@@ -5,17 +5,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
-import pi.ms_properties.domain.*;
+import pi.ms_properties.domain.Owner;
 import pi.ms_properties.repository.IOwnerRepository;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.specification.OwnerSpecification;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaRepositories(
+        basePackages = "pi.ms_properties.repository",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = IPropertyRepository.class
+        )
+)
 @ActiveProfiles("test")
 class OwnerSpecificationTest {
 
@@ -44,29 +55,47 @@ class OwnerSpecificationTest {
         entityManager.flush();
     }
 
-    // casos de exito
+    // casos de éxito
 
     @Test
-    void whenSearchingByText_thenReturnsMatchingOwners() {
+    void whenSearchByFirstName_shouldReturnMatchingOwner() {
         Specification<Owner> spec = OwnerSpecification.textSearch("juan");
         List<Owner> result = ownerRepository.findAll(spec);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getFirstName()).isEqualTo("Juan");
+        assertThat(result.getFirst().getFirstName()).containsIgnoringCase("Juan");
     }
 
     @Test
-    void whenSearchingByPartialMail_thenReturnsMatchingOwners() {
+    void whenSearchByLastName_shouldReturnMatchingOwner() {
+        Specification<Owner> spec = OwnerSpecification.textSearch("garcía");
+        List<Owner> result = ownerRepository.findAll(spec);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getLastName()).containsIgnoringCase("García");
+    }
+
+    @Test
+    void whenSearchByEmail_shouldReturnMatchingOwners() {
         Specification<Owner> spec = OwnerSpecification.textSearch("example");
         List<Owner> result = ownerRepository.findAll(spec);
 
         assertThat(result).hasSize(2);
     }
 
+    @Test
+    void whenSearchByPhone_shouldReturnMatchingOwner() {
+        Specification<Owner> spec = OwnerSpecification.textSearch("123456");
+        List<Owner> result = ownerRepository.findAll(spec);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getPhone()).contains("123456");
+    }
+
     // casos de error
 
     @Test
-    void whenSearchValueIsNull_thenReturnsAllOwners() {
+    void whenSearchValueIsNull_shouldReturnAll() {
         Specification<Owner> spec = OwnerSpecification.textSearch(null);
         List<Owner> result = ownerRepository.findAll(spec);
 
@@ -74,7 +103,7 @@ class OwnerSpecificationTest {
     }
 
     @Test
-    void whenSearchValueIsBlank_thenReturnsAllOwners() {
+    void whenSearchValueIsBlank_shouldReturnAll() {
         Specification<Owner> spec = OwnerSpecification.textSearch("   ");
         List<Owner> result = ownerRepository.findAll(spec);
 
@@ -82,8 +111,8 @@ class OwnerSpecificationTest {
     }
 
     @Test
-    void whenNoMatchFound_thenReturnsEmptyList() {
-        Specification<Owner> spec = OwnerSpecification.textSearch("nonexistent");
+    void whenSearchValueDoesNotMatch_shouldReturnEmptyList() {
+        Specification<Owner> spec = OwnerSpecification.textSearch("inexistente");
         List<Owner> result = ownerRepository.findAll(spec);
 
         assertThat(result).isEmpty();

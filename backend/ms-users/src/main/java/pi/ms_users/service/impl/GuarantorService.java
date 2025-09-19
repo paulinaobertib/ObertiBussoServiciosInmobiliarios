@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pi.ms_users.domain.*;
 import pi.ms_users.dto.*;
-import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IGuarantorRepository;
 import pi.ms_users.service.interf.IGuarantorService;
 import pi.ms_users.specification.GuarantorSpecification;
@@ -23,8 +22,6 @@ import java.util.stream.Collectors;
 public class GuarantorService implements IGuarantorService {
 
     private final IGuarantorRepository guarantorRepository;
-
-    private final IContractRepository contractRepository;
 
     private final EntityManager em;
 
