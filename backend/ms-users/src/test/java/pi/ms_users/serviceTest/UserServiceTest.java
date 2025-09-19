@@ -241,6 +241,34 @@ class UserServiceTest {
         assertEquals("Se ha creado el usuario con éxito", resp.getBody());
     }
 
+    @Test
+    void addPrincipalRole_shouldSucceed_whenRolesContainUserAndSameId() {
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getClaimAsString("sub")).thenReturn("user123");
+        when(userRepository.addRoleToUser("user123", "user")).thenReturn(List.of("user"));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("user123");
+
+            assertDoesNotThrow(() -> userService.addPrincipalRole(jwt));
+        }
+    }
+
+    @Test
+    void findById_shouldReturnUser_whenAdminBypassesCheck() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(true);
+            utilities.when(SecurityUtils::isUser).thenReturn(false);
+
+            ResponseEntity<User> response = userService.findById("user123");
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(user, response.getBody());
+        }
+    }
+
     // casos de error
 
     @Test
@@ -564,6 +592,39 @@ class UserServiceTest {
             utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
 
             assertThrows(AccessDeniedException.class, () -> userService.exist("user123"));
+        }
+    }
+
+    @Test
+    void addPrincipalRole_shouldThrowEntityNotFound_whenRolesEmpty() {
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getClaimAsString("sub")).thenReturn("user123");
+        when(userRepository.addRoleToUser("user123", "user")).thenReturn(Collections.emptyList());
+
+        assertThrows(EntityNotFoundException.class, () -> userService.addPrincipalRole(jwt));
+    }
+
+    @Test
+    void addPrincipalRole_shouldThrowAccessDenied_whenDifferentUser() {
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getClaimAsString("sub")).thenReturn("user123");
+        when(userRepository.addRoleToUser("user123", "user")).thenReturn(List.of("user"));
+
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.addPrincipalRole(jwt));
+        }
+    }
+
+    @Test
+    void findById_shouldThrowAccessDenied_whenNotAdminAndNotOwner() {
+        try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
+            utilities.when(SecurityUtils::isAdmin).thenReturn(false);
+            utilities.when(SecurityUtils::isUser).thenReturn(true);
+            utilities.when(SecurityUtils::getCurrentUserId).thenReturn("otherUser");
+
+            assertThrows(AccessDeniedException.class, () -> userService.findById("user123"));
         }
     }
 }

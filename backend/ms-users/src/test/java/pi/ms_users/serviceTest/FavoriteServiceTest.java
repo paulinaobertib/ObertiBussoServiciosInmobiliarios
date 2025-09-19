@@ -139,6 +139,51 @@ class FavoriteServiceTest {
         verify(favoriteRepository).findAllUsers();
     }
 
+    @Test
+    void create_asAdmin_success() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(favoriteRepository.save(favorite)).thenReturn(favorite);
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(false);
+
+            ResponseEntity<Favorite> response = favoriteService.create(favorite);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(favorite, response.getBody());
+        }
+    }
+
+    @Test
+    void delete_asAdmin_success() {
+        when(favoriteRepository.findById(1L)).thenReturn(Optional.of(favorite));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isUser).thenReturn(false);
+
+            ResponseEntity<String> response = favoriteService.delete(1L);
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Se ha eliminado la propiedad de favoritos", response.getBody());
+        }
+    }
+
+    @Test
+    void findByUserId_asAdmin_success() {
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(favoriteRepository.findByUserId("user123")).thenReturn(List.of(favorite));
+
+        try (MockedStatic<SecurityUtils> securityMock = Mockito.mockStatic(SecurityUtils.class)) {
+            securityMock.when(SecurityUtils::isAdmin).thenReturn(true);
+            securityMock.when(SecurityUtils::isUser).thenReturn(false);
+
+            ResponseEntity<List<Favorite>> response = favoriteService.findByUserId("user123");
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals(1, response.getBody().size());
+        }
+    }
+
     // casos de error
 
     @Test
@@ -245,6 +290,24 @@ class FavoriteServiceTest {
 
         assertEquals("Error al acceder a la base de datos", exception.getMessage());
         verify(favoriteRepository).findAllUsers();
+    }
+
+    @Test
+    void create_userNotFound_shouldThrowNoSuchElementException() {
+        when(userRepository.findById("user123")).thenReturn(Optional.empty());
+        assertThrows(NoSuchElementException.class, () -> favoriteService.create(favorite));
+    }
+
+    @Test
+    void delete_favoriteNotFound_shouldThrowNoSuchElementException() {
+        when(favoriteRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(NoSuchElementException.class, () -> favoriteService.delete(1L));
+    }
+
+    @Test
+    void findByUserId_userNotFound_shouldThrowNoSuchElementException() {
+        when(userRepository.findById("user123")).thenReturn(Optional.empty());
+        assertThrows(NoSuchElementException.class, () -> favoriteService.findByUserId("user123"));
     }
 }
 

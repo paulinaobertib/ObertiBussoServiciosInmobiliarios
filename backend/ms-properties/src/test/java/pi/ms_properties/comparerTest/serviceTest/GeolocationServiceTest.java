@@ -80,6 +80,84 @@ class GeolocationServiceTest {
         assertEquals(-64.1833, result.getLongitude());
     }
 
+    @Test
+    void testUriBuilder_shouldIncludeCorrectParams() {
+        PropertyDTOAI property = new PropertyDTOAI();
+        property.setAddress("Córdoba, Argentina");
+
+        JsonNode emptyArray = new ObjectMapper().createArrayNode();
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            Function<org.springframework.web.util.UriComponentsBuilder, ?> uriFunction =
+                    (Function<org.springframework.web.util.UriComponentsBuilder, ?>) invocation.getArgument(0);
+
+            String uri = uriFunction.apply(org.springframework.web.util.UriComponentsBuilder.fromPath("")).toString();
+
+            assertEquals("/search?q=C%C3%B3rdoba,%20Argentina&format=json&limit=1", uri);
+            return requestHeadersSpec;
+        });
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(emptyArray));
+
+        geolocationService.geolocation(property);
+    }
+
+    @Test
+    void testResultIsEmptyArray_shouldNotSetCoordinates() {
+        PropertyDTOAI property = new PropertyDTOAI();
+        property.setAddress("Córdoba, Argentina");
+
+        JsonNode emptyArray = new ObjectMapper().createArrayNode();
+
+        lenient().when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        lenient().when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
+        lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(emptyArray));
+
+        PropertyDTOAI result = geolocationService.geolocation(property);
+
+        assertNull(result.getLatitude());
+        assertNull(result.getLongitude());
+    }
+
+    @Test
+    void testResultIsNotArray_shouldNotSetCoordinates() throws Exception {
+        PropertyDTOAI property = new PropertyDTOAI();
+        property.setAddress("Córdoba, Argentina");
+
+        String json = "{\"lat\":\"-31.4\",\"lon\":\"-64.18\"}";
+        JsonNode node = new ObjectMapper().readTree(json);
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(node));
+
+        PropertyDTOAI result = geolocationService.geolocation(property);
+
+        assertNull(result.getLatitude());
+        assertNull(result.getLongitude());
+    }
+
+    @Test
+    void testResultIsNull_shouldNotSetCoordinates() {
+        PropertyDTOAI property = new PropertyDTOAI();
+        property.setAddress("Córdoba, Argentina");
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.justOrEmpty(null));
+
+        PropertyDTOAI result = geolocationService.geolocation(property);
+
+        assertNull(result.getLatitude());
+        assertNull(result.getLongitude());
+    }
+
     // casos de error
 
     @Test
