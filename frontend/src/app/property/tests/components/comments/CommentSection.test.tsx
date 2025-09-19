@@ -5,6 +5,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // IMPORT BAJO TEST
 import { CommentSection } from "../../../components/comments/CommentSection";
 
+const useAuthContextMock = vi.fn(() => ({ isAdmin: false }));
+vi.mock("../../../../user/context/AuthContext", () => ({
+  useAuthContext: () => useAuthContextMock(),
+}));
+
 // Mock del formulario: muestra un botón que dispara onDone y guarda props
 vi.mock("../../../components/forms/CommentForm", () => ({
   CommentForm: (props: any) => {
@@ -55,6 +60,7 @@ describe("<CommentSection />", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthContextMock.mockReturnValue({ isAdmin: false });
   });
 
   afterEach(() => {
@@ -85,8 +91,8 @@ describe("<CommentSection />", () => {
       propertyId,
     });
 
-    // Contador de lista
-    expect(screen.getByText(/Lista de Comentarios \(2\)/i)).toBeInTheDocument();
+    // Título lista
+    expect(screen.getByText(/Lista de Comentarios/i)).toBeInTheDocument();
 
     // Se muestra la lista
     expect(screen.getByTestId("comment-list")).toBeInTheDocument();
@@ -139,6 +145,34 @@ describe("<CommentSection />", () => {
     );
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
     expect(screen.queryByTestId("comment-list")).toBeNull();
+  });
+
+  it("sin comentarios muestra EmptyState genérico", () => {
+    render(
+      <CommentSection
+        propertyId={propertyId}
+        loading={false}
+        items={[]}
+        refresh={refresh}
+      />
+    );
+
+    expect(screen.getByText(/No hay comentarios disponibles/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("comment-list")).toBeNull();
+  });
+
+  it("para admin muestra mensaje personalizado en estado vacío", () => {
+    useAuthContextMock.mockReturnValue({ isAdmin: true });
+    render(
+      <CommentSection
+        propertyId={propertyId}
+        loading={false}
+        items={[]}
+        refresh={refresh}
+      />
+    );
+
+    expect(screen.getByText(/No hay comentarios registrados/i)).toBeInTheDocument();
   });
 
   it("al eliminar un ítem llama deleteComment y luego refresh", async () => {

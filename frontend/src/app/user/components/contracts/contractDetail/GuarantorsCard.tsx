@@ -33,18 +33,14 @@ export default function GuarantorsCard({
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           {onManage && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={onManage}
-            >
+            <Button variant="outlined" size="small" onClick={onManage}>
               Agregar garantes
             </Button>
           )}
         </Box>
 
         {guarantors.length === 0 ? (
-          <Typography color="text.secondary">Sin garantes.</Typography>
+          <Typography sx={{ color: "#000" }}>Sin garantes.</Typography>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {guarantors.map((g, idx) => (
@@ -54,20 +50,15 @@ export default function GuarantorsCard({
                   <Typography sx={{ fontWeight: 700 }}>{g.name}</Typography>
                   <Box sx={{ flexGrow: 1 }} />
                   {onUnlink && g.id != null && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      onClick={() => onUnlink(g.id!)}
-                    >
+                    <Button size="small" variant="outlined" color="error" onClick={() => onUnlink(g.id!)}>
                       Desvincular
                     </Button>
                   )}
                 </Box>
-                <Typography sx={{ color: "text.secondary" }}>
+                <Typography sx={{ color: "#000" }}>
                   <strong>Teléfono:</strong> {g.phone ?? "-"}
                 </Typography>
-                <Typography sx={{ color: "text.secondary" }}>
+                <Typography sx={{ color: "#000" }}>
                   <strong>Email:</strong> {g.email ?? "-"}
                 </Typography>
               </Box>

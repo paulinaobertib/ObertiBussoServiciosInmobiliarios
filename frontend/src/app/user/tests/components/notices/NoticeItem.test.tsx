@@ -93,7 +93,7 @@ describe("<NoticeItem />", () => {
     expect(screen.getByText(day)).toBeInTheDocument();
   });
 
-  it("si NO es reciente, no muestra chip NUEVO ni fecha", () => {
+  it("si NO es reciente, no muestra chip NUEVO pero mantiene la fecha", () => {
     const oldDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
     const notice = makeNotice({ date: oldDate });
     render(
@@ -106,16 +106,16 @@ describe("<NoticeItem />", () => {
       month: "2-digit",
       year: "numeric",
     });
-    expect(screen.queryByText(day)).toBeNull();
+    expect(screen.getByText(day)).toBeInTheDocument();
   });
 
-  it("navega al detalle al clickear la card y al clickear 'Leer más'", () => {
+  it("navega al detalle al clickear la card y al clickear 'Ver detalle'", () => {
     const notice = makeNotice({ id: 101 });
     render(
       <NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Leer más/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalle/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/news/101");
 
     fireEvent.click(screen.getByText("Título"));
@@ -213,11 +213,8 @@ describe("<NoticeItem />", () => {
     const notice = makeNotice({ mainImage: file });
     render(<NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />);
 
-    // o mejor: busca por estilo
-    const imageBox = screen.getByRole("button", { name: /Leer más/i }).parentElement!
-      .previousSibling as HTMLElement;
-
-    expect(imageBox).toHaveStyle(`background-image: url(blob:mock)`);
+    const image = screen.getByRole('img', { name: /Título/i }) as HTMLImageElement;
+    expect(image.src).toContain('blob:mock');
   });
 
 

@@ -61,7 +61,7 @@ describe('PendingAppointmentsList', () => {
       />
     );
 
-    expect(screen.getByText(/No hay turnos pendientes/i)).toBeInTheDocument();
+    expect(screen.getByText(/No hay turnos pendientes disponibles/i)).toBeInTheDocument();
   });
 
   it('renderiza AppointmentItem solo para turnos pendientes y llama onSelect al hacer click', () => {

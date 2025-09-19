@@ -6,7 +6,7 @@ import { SurveysList } from "../../../components/survey/SurveyList";
 describe("SurveysList", () => {
   it("muestra mensaje cuando no hay encuestas", () => {
     render(<SurveysList surveys={[]} />);
-    expect(screen.getByText("No hay encuestas.")).toBeInTheDocument();
+    expect(screen.getByText("No hay valoraciones disponibles.")).toBeInTheDocument();
   });
 
   it("renderiza la cantidad correcta de encuestas", () => {
@@ -16,7 +16,7 @@ describe("SurveysList", () => {
     ];
     render(<SurveysList surveys={surveys} />);
     // No debe aparecer el mensaje vacío
-    expect(screen.queryByText("No hay encuestas.")).not.toBeInTheDocument();
+    expect(screen.queryByText("No hay valoraciones disponibles.")).not.toBeInTheDocument();
     // Debe haber 2 comentarios visibles
     expect(screen.getByText("Muy bueno")).toBeInTheDocument();
     expect(screen.getByText("Podría mejorar")).toBeInTheDocument();

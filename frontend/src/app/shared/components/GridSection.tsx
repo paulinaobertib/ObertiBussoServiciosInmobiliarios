@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Card } from "@mui/material";
 import { DataGrid, GridColDef, GridRowId, GridRowSelectionModel, GridCallbackDetails } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import { Modal } from "./Modal";
 import { SearchBar } from "./SearchBar";
+import { EmptyState } from "./EmptyState";
 
 interface GridSectionProps {
   data: any[];
@@ -26,7 +27,14 @@ interface GridSectionProps {
   selectedIds?: GridRowId[];
   selectable?: boolean;
   showCreateButton?: boolean;
+  error?: string | null;
 }
+
+const GRID_PAGE_SIZE = 5;
+const ROW_HEIGHT = 52;
+const HEADER_HEIGHT = 56;
+const FOOTER_HEIGHT = 52;
+const GRID_MIN_HEIGHT = HEADER_HEIGHT + ROW_HEIGHT * GRID_PAGE_SIZE + FOOTER_HEIGHT;
 
 export const GridSection = ({
   data,
@@ -42,6 +50,7 @@ export const GridSection = ({
   selectedIds,
   selectable = true,
   showCreateButton = true,
+  error,
 }: GridSectionProps) => {
   const emptySelection = (): GridRowSelectionModel => ({
     type: "include",
@@ -63,16 +72,22 @@ export const GridSection = ({
         type: newModel?.type ?? "include",
         ids: newModel?.ids instanceof Set ? newModel.ids : new Set<GridRowId>(),
       };
+
+      if (!multiSelect) {
+        const lastSelected = Array.from(next.ids).pop();
+        next.ids = lastSelected != null ? new Set<GridRowId>([lastSelected]) : new Set<GridRowId>();
+      }
       setInternalSelection(next);
 
       if (!toggleSelect) return;
 
       const idsArr = Array.from(next.ids);
+      const strIds = idsArr.map((id) => String(id));
       if (multiSelect) {
-        toggleSelect(idsArr); // GridRowId[]
+        toggleSelect(strIds);
       } else {
-        const last = idsArr.length ? idsArr[idsArr.length - 1] : null;
-        toggleSelect(last ?? null); // GridRowId | null
+        const last = strIds.length ? strIds[strIds.length - 1] : null;
+        toggleSelect(last ?? null);
       }
     },
     [toggleSelect, multiSelect]
@@ -80,7 +95,9 @@ export const GridSection = ({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent] = useState<React.ReactNode>(null);
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: GRID_PAGE_SIZE });
+
+  const hasRows = Array.isArray(data) && data.length > 0;
 
   return (
     <>
@@ -98,28 +115,37 @@ export const GridSection = ({
         )}
       </Box>
 
-      <Box width="100%">
-        <DataGrid
-          getRowId={(row) => row.id ?? row.ID ?? row.Id ?? row._id}
-          rows={data}
-          columns={columns}
-          loading={loading}
-          checkboxSelection={!!selectable}
-          hideFooterSelectedRowCount
-          initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
-          paginationModel={paginationModel}
-          onPaginationModelChange={(m) => setPaginationModel({ ...m, pageSize: 10 })}
-          pageSizeOptions={[10]}
-          rowSelectionModel={selectable ? internalSelection : emptySelection()}
-          onRowSelectionModelChange={handleRowSelection}
-          localeText={{ noRowsLabel: `No hay resultados.` }}
-          sx={{
-            "& .MuiDataGrid-cell": { display: "flex", alignItems: "center" },
-            "& .MuiDataGrid-columnHeader": { display: "flex", alignItems: "center" },
-            "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
-          }}
-        />
-      </Box>
+      {error ? (
+        <EmptyState title="No pudimos cargar la información." tone="error" minHeight={GRID_MIN_HEIGHT} />
+      ) : !loading && !hasRows ? (
+        <EmptyState title="No hay registros disponibles." minHeight={GRID_MIN_HEIGHT} />
+      ) : (
+        <Card sx={{ width: "100%", overflow: "hidden", minHeight: GRID_MIN_HEIGHT }}>
+          <DataGrid
+            getRowId={(row) => row.id ?? row.ID ?? row.Id ?? row._id}
+            rows={data}
+            columns={columns}
+            loading={loading}
+            checkboxSelection={!!selectable}
+            hideFooterSelectedRowCount
+            paginationModel={paginationModel}
+            onPaginationModelChange={(m) => setPaginationModel({ ...m, pageSize: GRID_PAGE_SIZE })}
+            pageSizeOptions={[GRID_PAGE_SIZE]}
+            rowSelectionModel={selectable ? internalSelection : emptySelection()}
+            onRowSelectionModelChange={handleRowSelection}
+            sx={{
+              border: 0,
+              minHeight: GRID_MIN_HEIGHT,
+              "& .MuiDataGrid-cell": { display: "flex", alignItems: "center" },
+              "& .MuiDataGrid-columnHeader": { display: "flex", alignItems: "center", bgcolor: "rgba(0,0,0,0.02)" },
+              "& .MuiDataGrid-columnHeaderTitle": { fontWeight: "bold" },
+              "& .MuiDataGrid-virtualScroller": {
+                minHeight: ROW_HEIGHT * GRID_PAGE_SIZE,
+              },
+            }}
+          />
+        </Card>
+      )}
 
       <Modal open={modalOpen} title={`${entityName} Details`} onClose={() => setModalOpen(false)}>
         {modalContent}

@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Card, Typography, Box, Chip, Stack, Button, Divider, List, ListItem, ListItemText, Grid, IconButton } from "@mui/material";
+import { Card, Typography, Box, Chip, Stack, Button, Divider, List, ListItem, ListItemText, Grid } from "@mui/material";
 import ReceiptOutlined from "@mui/icons-material/ReceiptOutlined";
-import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import type { Payment } from "../../../types/payment";
 import { currencyLabel, fmtDate } from "./utils";
 
@@ -51,7 +50,7 @@ export default function CommissionCard({
   gridFull = false,
 }: Props) {
   const hasCommission = !!commission;
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
+  const [expandedDescriptions] = useState<Record<number, boolean>>({});
   // Derivar estado mostrado según pagos para evitar inconsistencias
   const derivedStatus = (() => {
     if (!commission) return "PENDIENTE" as const;
@@ -73,15 +72,31 @@ export default function CommissionCard({
   const nextToPay = Math.max(1, Math.min(installmentsCount || 1, paidCount + 1));
   const orderedPayments = (() => {
     const list = Array.isArray(payments) ? payments : [];
-    return [...list].sort((a, b) => new Date(a.date ?? (a as any)?.paymentDate ?? 0).getTime() - new Date(b.date ?? (b as any)?.paymentDate ?? 0).getTime());
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.date ?? (a as any)?.paymentDate ?? 0).getTime() -
+        new Date(b.date ?? (b as any)?.paymentDate ?? 0).getTime()
+    );
   })();
 
   return (
     <Grid size={{ xs: 12, sm: gridFull ? 12 : 6 }}>
-      <Card elevation={2} sx={{ p: "1.5rem", borderRadius: "0.75rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <Card
+        elevation={2}
+        sx={{ p: "1.5rem", borderRadius: "0.75rem", display: "flex", flexDirection: "column", gap: "1rem" }}
+      >
         {/* Header */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography sx={{ display: "flex", alignItems: "center", gap: 1, fontSize: "1.25rem", fontWeight: 600, color: "primary.main" }}>
+          <Typography
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              fontSize: "1.25rem",
+              fontWeight: 600,
+              color: "primary.main",
+            }}
+          >
             <ReceiptOutlined />
             Comisión
           </Typography>
@@ -89,11 +104,7 @@ export default function CommissionCard({
           <Box sx={{ flexGrow: 1 }} />
 
           {primaryHandler && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={primaryHandler}
-            >
+            <Button variant="outlined" size="small" onClick={primaryHandler}>
               {hasCommission ? "Editar comisión" : "Agregar comisión"}
             </Button>
           )}
@@ -109,9 +120,7 @@ export default function CommissionCard({
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Box>
-                  <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "#000", fontWeight: 500 }}>
-                    Moneda
-                  </Typography>
+                  <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "#000", fontWeight: 500 }}>Moneda</Typography>
                   <Typography sx={{ fontWeight: 700, color: "#000" }}>{currencyLabel(commission.currency)}</Typography>
                 </Box>
               </Grid>
@@ -127,10 +136,10 @@ export default function CommissionCard({
 
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Box>
-                  <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "#000", fontWeight: 500 }}>
-                    Fecha
+                  <Typography sx={{ mb: 0.5, fontSize: ".875rem", color: "#000", fontWeight: 500 }}>Fecha</Typography>
+                  <Typography sx={{ fontWeight: 700, color: "#000" }}>
+                    {fmtDate(commission.date ?? undefined)}
                   </Typography>
-                  <Typography sx={{ fontWeight: 700, color: "#000" }}>{fmtDate(commission.date ?? undefined)}</Typography>
                 </Box>
               </Grid>
 
@@ -176,15 +185,13 @@ export default function CommissionCard({
                       const isAlreadyPaid = n <= paidCount || isPaid;
                       const isNext = n === nextToPay && !isAlreadyPaid;
                       const payment = orderedPayments[idx];
-                      const paymentDateLabel = payment && (payment.date || (payment as any)?.paymentDate)
-                        ? fmtDate(payment.date ?? (payment as any)?.paymentDate)
-                        : null;
+                      const paymentDateLabel =
+                        payment && (payment.date || (payment as any)?.paymentDate)
+                          ? fmtDate(payment.date ?? (payment as any)?.paymentDate)
+                          : null;
                       const description = (payment?.description ?? "").trim();
                       const hasDescription = description.length > 0;
                       const openDescription = !!expandedDescriptions[n];
-                      const toggleDescription = () => {
-                        setExpandedDescriptions((prev) => ({ ...prev, [n]: !prev[n] }));
-                      };
                       return (
                         <ListItem
                           key={n}
@@ -193,11 +200,7 @@ export default function CommissionCard({
                             isAlreadyPaid ? (
                               <Chip size="small" color="success" label="Pagada" sx={{ fontWeight: 700 }} />
                             ) : isNext && onRegisterInstallment ? (
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => onRegisterInstallment(n)}
-                              >
+                              <Button size="small" variant="outlined" onClick={() => onRegisterInstallment(n)}>
                                 Registrar Pago #{n}
                               </Button>
                             ) : (
@@ -208,28 +211,12 @@ export default function CommissionCard({
                         >
                           <ListItemText
                             primaryTypographyProps={{ fontSize: ".85rem", fontWeight: 600, color: "#000" }}
-                            secondaryTypographyProps={{ fontSize: ".75rem", color: "text.secondary" }}
+                            secondaryTypographyProps={{ fontSize: ".75rem", color: "#000" }}
                             primary={
                               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                {hasDescription ? (
-                                  <IconButton
-                                    onClick={toggleDescription}
-                                    size="small"
-                                    sx={{
-                                      width: 28,
-                                      height: 28,
-                                      border: "1px solid",
-                                      borderColor: openDescription ? "primary.main" : "grey.300",
-                                    }}
-                                  >
-                                    <InfoOutlined fontSize="inherit" color={openDescription ? "primary" : "action"} />
-                                  </IconButton>
-                                ) : (
-                                  <Box sx={{ width: 28, height: 28 }} />
-                                )}
                                 <span>{`Cuota #${n}`}</span>
                                 {paymentDateLabel && (
-                                  <Typography component="span" sx={{ fontSize: ".75rem", color: "text.secondary" }}>
+                                  <Typography component="span" sx={{ fontSize: ".75rem", color: "#000" }}>
                                     Pagada el {paymentDateLabel}
                                   </Typography>
                                 )}
@@ -237,7 +224,7 @@ export default function CommissionCard({
                             }
                           />
                           {hasDescription && openDescription && (
-                            <Typography sx={{ fontSize: ".75rem", color: "text.secondary", mt: 0.5, ml: 5 }}>
+                            <Typography sx={{ fontSize: ".75rem", color: "#000", mt: 0.5, ml: 5 }}>
                               {description}
                             </Typography>
                           )}

@@ -15,7 +15,7 @@ type Props = {
 
 export default function Header({ contract, isAdmin, savingStatus, onEdit, onDelete, onToggleStatus }: Props) {
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ my: 3 }}>
       <Box
         sx={{
           display: "flex",
@@ -63,11 +63,7 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
         <Stack direction="column" spacing={0.5} alignItems="flex-end">
           {isAdmin && (
             <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={onEdit}
-              >
+              <Button size="small" variant="outlined" onClick={onEdit}>
                 Editar
               </Button>
               <Button
@@ -79,12 +75,7 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
               >
                 {contract.contractStatus === "ACTIVO" ? "Inactivar" : "Reactivar"}
               </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                color="error"
-                onClick={onDelete}
-              >
+              <Button size="small" variant="outlined" color="error" onClick={onDelete}>
                 Eliminar
               </Button>
             </Box>

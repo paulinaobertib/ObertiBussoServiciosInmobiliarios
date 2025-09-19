@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GridSection } from "../../../shared/components/GridSection";
 
@@ -111,6 +111,45 @@ describe("GridSection", () => {
     expect(props.loading).toBe(true);
   });
 
+  it("muestra EmptyState cuando no hay filas y loading=false", () => {
+    render(
+      <GridSection
+        data={[]}
+        loading={false}
+        columns={cols as any}
+        onSearch={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        entityName="Usuarios"
+        fetchAll={vi.fn()}
+        fetchByText={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/No hay registros disponibles\./i)).toBeInTheDocument();
+    expect(DataGrid).not.toHaveBeenCalled();
+  });
+
+  it("muestra EmptyState de error cuando llega error", () => {
+    render(
+      <GridSection
+        data={[]}
+        loading={false}
+        columns={cols as any}
+        onSearch={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        entityName="Usuarios"
+        fetchAll={vi.fn()}
+        fetchByText={vi.fn()}
+        error="boom"
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: /No pudimos cargar la información/i })).toBeInTheDocument();
+    expect(DataGrid).not.toHaveBeenCalled();
+  });
+
   it("selección SINGLE: llama toggleSelect con el último id (string) y actualiza rowSelectionModel", async () => {
     const toggleSelect = vi.fn();
 
@@ -130,9 +169,11 @@ describe("GridSection", () => {
     );
 
     const propsBefore = getLastDataGridProps();
-    await propsBefore.onRowSelectionModelChange?.({
-      type: "include",
-      ids: new Set([1, 2]),
+    await act(async () => {
+      await propsBefore.onRowSelectionModelChange?.({
+        type: "include",
+        ids: new Set([1, 2]),
+      });
     });
 
     expect(toggleSelect).toHaveBeenCalledWith("2");
@@ -162,9 +203,11 @@ describe("GridSection", () => {
     );
 
     const propsBefore = getLastDataGridProps();
-    await propsBefore.onRowSelectionModelChange?.({
-      type: "include",
-      ids: new Set(),
+    await act(async () => {
+      await propsBefore.onRowSelectionModelChange?.({
+        type: "include",
+        ids: new Set(),
+      });
     });
 
     expect(toggleSelect).toHaveBeenCalledWith(null);
@@ -195,9 +238,11 @@ describe("GridSection", () => {
     );
 
     const propsBefore = getLastDataGridProps();
-    await propsBefore.onRowSelectionModelChange?.({
-      type: "include",
-      ids: new Set(["a", "c"]),
+    await act(async () => {
+      await propsBefore.onRowSelectionModelChange?.({
+        type: "include",
+        ids: new Set(["a", "c"]),
+      });
     });
 
     expect(toggleSelect).toHaveBeenCalledWith(["a", "c"]);
@@ -230,9 +275,11 @@ describe("GridSection", () => {
     );
 
     const propsBefore = getLastDataGridProps();
-    await propsBefore.onRowSelectionModelChange?.({
-      type: "include",
-      ids: new Set([10, 20]),
+    await act(async () => {
+      await propsBefore.onRowSelectionModelChange?.({
+        type: "include",
+        ids: new Set([10, 20]),
+      });
     });
 
     expect(toggleSelect).toHaveBeenCalledWith(["10", "20"]);
@@ -255,9 +302,11 @@ describe("GridSection", () => {
     );
 
     const propsBefore = getLastDataGridProps();
-    await propsBefore.onRowSelectionModelChange?.({
-      type: "include",
-      ids: new Set(["x"]),
+    await act(async () => {
+      await propsBefore.onRowSelectionModelChange?.({
+        type: "include",
+        ids: new Set(["x"]),
+      });
     });
 
     await waitFor(() => {
@@ -346,7 +395,8 @@ describe("GridSection", () => {
     expect(props.rows).toEqual(data);
     expect(props.columns).toEqual(cols);
     expect(props.checkboxSelection).toBe(true);
-    expect(props.localeText?.noRowsLabel).toBe("No hay resultados.");
+    expect(props.pageSizeOptions).toEqual([5]);
+    expect(props.paginationModel.pageSize).toBe(5);
     expect(typeof props.onRowSelectionModelChange).toBe("function");
   });
 });

@@ -82,7 +82,7 @@ export default function ManagePropertyPage() {
 
   return (
     <BasePage showFooter={false}>
-      <Box sx={{ display: "flex", flexDirection: "column" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
         {/* ---------- barra superior ---------- */}
         <Box
           sx={{
@@ -159,17 +159,18 @@ export default function ManagePropertyPage() {
             sx={{
               display: "flex",
               flexDirection: { xs: "column", md: "row" },
-              gap: 2,
+              gap: 3,
+              alignItems: 'stretch',
             }}
           >
             {/* Formulario */}
             <Card
-              variant="elevation"
               sx={{
                 flex: 2,
                 display: "flex",
                 flexDirection: "column",
-                p: 2,
+                p: 3,
+                gap: 2,
               }}
             >
               <Typography
@@ -197,7 +198,8 @@ export default function ManagePropertyPage() {
                 display: "flex",
                 flex: 1,
                 flexDirection: "column",
-                p: 1,
+                p: 2,
+                gap: 2,
               }}
             >
               <Typography

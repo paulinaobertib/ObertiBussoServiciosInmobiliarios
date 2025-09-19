@@ -70,7 +70,7 @@ describe("AppointmentsList", () => {
       <AppointmentsList slots={[]} apptsBySlot={{}} onSelect={vi.fn()} />
     );
     expect(
-      screen.getByText(/No hay turnos para esta fecha\./i)
+      screen.getByText(/No hay turnos disponibles para esta fecha\./i)
     ).toBeInTheDocument();
   });
 
