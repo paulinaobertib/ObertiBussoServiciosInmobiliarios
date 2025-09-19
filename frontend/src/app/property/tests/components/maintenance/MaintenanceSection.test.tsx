@@ -4,6 +4,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MaintenanceSection } from "../../../components/maintenances/MaintenanceSection";
 import type { Maintenance } from "../../../types/maintenance";
 
+const useAuthContextMock = vi.fn(() => ({ isAdmin: false }));
+vi.mock("../../../../user/context/AuthContext", () => ({
+  useAuthContext: () => useAuthContextMock(),
+}));
+
 // Mock de componentes internos
 vi.mock("../../../components/forms/MaintenanceForm", () => ({
   MaintenanceForm: ({ action, onDone }: any) => (
@@ -45,6 +50,7 @@ describe("MaintenanceSection", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthContextMock.mockReturnValue({ isAdmin: false });
   });
 
   it("renderiza título 'Agregar Mantenimiento' por defecto", () => {
@@ -60,6 +66,17 @@ describe("MaintenanceSection", () => {
   it("muestra el loader cuando loading es true", () => {
     render(<MaintenanceSection propertyId={1} loading={true} items={[]} refresh={mockRefresh} />);
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
+  });
+
+  it("sin mantenimientos muestra EmptyState genérico", () => {
+    render(<MaintenanceSection propertyId={1} loading={false} items={[]} refresh={mockRefresh} />);
+    expect(screen.getByText(/No hay mantenimientos disponibles/i)).toBeInTheDocument();
+  });
+
+  it("para admin muestra mensaje personalizado en estado vacío", () => {
+    useAuthContextMock.mockReturnValue({ isAdmin: true });
+    render(<MaintenanceSection propertyId={1} loading={false} items={[]} refresh={mockRefresh} />);
+    expect(screen.getByText(/No hay mantenimientos registrados/i)).toBeInTheDocument();
   });
 
   it("llama startEdit al hacer click en editar de MaintenanceList", () => {

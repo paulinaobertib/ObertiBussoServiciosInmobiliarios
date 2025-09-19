@@ -69,7 +69,7 @@ export default function ContractsPage() {
                             </Typography>
                             {isAdmin && (
                                 <Button
-                                    variant="contained"
+                                    variant="outlined"
                                     startIcon={<AddIcon />}
                                     onClick={() => navigate(ROUTES.NEW_CONTRACT)}
                                 >

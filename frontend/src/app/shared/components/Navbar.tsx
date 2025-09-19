@@ -264,10 +264,10 @@ export const NavBar = () => {
               {/* Admin: Turnero + Noticias */}
               {isAdmin && ([
                 <MenuItem key="appointments" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
-                  TURNERO
+                  Turnero
                 </MenuItem>,
                 <MenuItem key="news-admin" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
-                  NOTICIAS
+                  Noticias
                 </MenuItem>,
                 <MenuItem key="settings-admin">
                   <SettingsDrawer />

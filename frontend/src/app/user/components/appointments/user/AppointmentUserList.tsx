@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { Box, Typography } from '@mui/material';
 import type { Appointment, AvailableAppointment } from '../../../types/appointment';
 import { AppointmentUserItem } from './AppointmentUserItem';
+import { EmptyState } from '../../../../shared/components/EmptyState';
 
 interface Props {
     appointments: Appointment[];
@@ -26,8 +27,8 @@ export const AppointmentUserList = ({ appointments, slotMap, onCancel, reload }:
 
     if (upcoming.length === 0) {
         return (
-            <Box sx={{ p: 3 }}>
-                <Typography color="text.secondary">Aún no tienes turnos.</Typography>
+            <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                <EmptyState title="No hay turnos disponibles." />
             </Box>
         );
     }

@@ -26,7 +26,7 @@ describe("SurveysSection", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("No se pudieron cargar las encuestas")
+        screen.getByText("No pudimos cargar las valoraciones.")
       ).toBeInTheDocument();
     });
   });
@@ -37,7 +37,7 @@ describe("SurveysSection", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/no hay encuestas/i)
+        screen.getByText(/No hay valoraciones disponibles\./i)
       ).toBeInTheDocument();
     });
   });

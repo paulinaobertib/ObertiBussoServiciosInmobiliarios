@@ -23,7 +23,7 @@ export default function DepositCard({ currency, hasDeposit, depositAmount, depos
           borderRadius: "0.75rem",
           display: "flex",
           flexDirection: "column",
-          width: 1, 
+          width: 1,
           flex: 1,
         }}
       >
@@ -54,7 +54,7 @@ export default function DepositCard({ currency, hasDeposit, depositAmount, depos
           >
             {/* Bloque Monto */}
             <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ mb: ".5rem", fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+              <Typography sx={{ mb: ".5rem", fontSize: ".875rem", color: "#000", fontWeight: 500 }}>
                 Monto del Depósito
               </Typography>
               <Typography sx={{ fontSize: "1rem", fontWeight: 700, color: "warning.main" }}>
@@ -65,13 +65,13 @@ export default function DepositCard({ currency, hasDeposit, depositAmount, depos
             {/* Bloque Nota (en línea al lado del monto en tenant) */}
             {depositNote && (
               <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ mb: ".5rem", fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>
+                <Typography sx={{ mb: ".5rem", fontSize: ".875rem", color: "#000", fontWeight: 500 }}>
                   Nota del Depósito
                 </Typography>
                 <Typography
                   sx={{
                     fontSize: "1rem",
-                    // por si el texto es muy largo:
+                    color: "#000",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -84,7 +84,7 @@ export default function DepositCard({ currency, hasDeposit, depositAmount, depos
             )}
           </Box>
         ) : (
-          <Typography color="text.secondary">No hay depósitos registrados.</Typography>
+          <Typography sx={{ color: "#000" }}>No hay depósitos registrados.</Typography>
         )}
       </Card>
     </Box>

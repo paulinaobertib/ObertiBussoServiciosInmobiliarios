@@ -4,6 +4,8 @@ import type { Maintenance } from '../../types/maintenance';
 import { MaintenanceForm } from '../forms/MaintenanceForm';
 import { MaintenanceList } from './MaintenanceList';
 import { deleteMaintenance } from '../../services/maintenance.service';
+import { EmptyState } from '../../../shared/components/EmptyState';
+import { useAuthContext } from '../../../user/context/AuthContext';
 
 export interface Props {
     propertyId: number;
@@ -15,6 +17,7 @@ export interface Props {
 export const MaintenanceSection = ({ propertyId, loading, items, refresh }: Props) => {
     const [action, setAction] = useState<'add' | 'edit'>('add');
     const [selected, setSelected] = useState<Maintenance>();
+    const { isAdmin } = useAuthContext();
 
     const startEdit = (m: Maintenance) => { setAction('edit'); setSelected(m); };
 
@@ -49,7 +52,7 @@ export const MaintenanceSection = ({ propertyId, loading, items, refresh }: Prop
             <Box sx={{ p: 3 }}>
                 <Box display="flex" alignItems="center" mb={2}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                        Mantenimientos ({items.length})
+                        Mantenimientos
                     </Typography>
                 </Box>
                 <Divider sx={{ mb: 2 }} />
@@ -58,6 +61,15 @@ export const MaintenanceSection = ({ propertyId, loading, items, refresh }: Prop
                     <Box display="flex" justifyContent="center" py={4}>
                         <CircularProgress />
                     </Box>
+                ) : items.length === 0 ? (
+                    <EmptyState
+                        title={isAdmin ? 'No hay mantenimientos registrados.' : 'No hay mantenimientos disponibles.'}
+                        description={
+                            isAdmin
+                                ? 'Cuando cargues tareas de mantenimiento aparecerán listadas aquí.'
+                                : 'Todavía no hay registros de mantenimiento para mostrar.'
+                        }
+                    />
                 ) : (
                     <MaintenanceList
                         items={items}

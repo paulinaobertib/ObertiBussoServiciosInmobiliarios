@@ -45,7 +45,7 @@ describe('AppointmentUserList', () => {
         reload={reload}
       />
     );
-    expect(screen.getByText(/Aún no tienes turnos/i)).toBeInTheDocument();
+    expect(screen.getByText(/No hay turnos disponibles/i)).toBeInTheDocument();
   });
 
   it('renderiza solo los turnos futuros', () => {

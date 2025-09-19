@@ -18,7 +18,7 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
 
   const Item = ({ label, value }: { label: string; value: any }) => (
     <Box mb={1}>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" sx={{ color: '#000', fontWeight: 600 }}>
         {label}
       </Typography>
       <Typography variant="body1">{String(value ?? "—")}</Typography>
@@ -49,7 +49,7 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: '#000', fontWeight: 600 }}>
             Garantes
           </Typography>
           <Box mt={0.5}>
@@ -61,7 +61,7 @@ export const ContractSummary = ({ data, guarantorIds, utilityIds }: Props) => {
           </Box>
         </Grid>
         <Grid size={{ xs: 12 }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: '#000', fontWeight: 600 }}>
             Utilities seleccionadas
           </Typography>
           <Box mt={0.5}>

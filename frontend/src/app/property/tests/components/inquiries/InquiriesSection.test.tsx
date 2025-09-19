@@ -56,6 +56,11 @@ vi.mock("../../../../../theme", () => ({
   default: { palette: { divider: "#ddd" } },
 }));
 
+const useAuthContextMock = vi.fn(() => ({ isAdmin: false }));
+vi.mock("../../../../user/context/AuthContext", () => ({
+  useAuthContext: () => useAuthContextMock(),
+}));
+
 const useInquiriesMock = vi.fn();
 vi.mock("../../../hooks/useInquiries", () => {
   return {
@@ -76,6 +81,8 @@ const renderSut = (props?: Partial<React.ComponentProps<typeof InquiriesSection>
 describe("<InquiriesSection />", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthContextMock.mockReset();
+    useAuthContextMock.mockReturnValue({ isAdmin: false });
 
     useInquiriesMock.mockReturnValue({
       inquiries: [
@@ -187,5 +194,51 @@ describe("<InquiriesSection />", () => {
     renderSut();
 
     expect(screen.getByTestId("ml-prop").textContent).toBe("");
+  });
+
+  it("cuando no hay consultas ni chats muestra el estado vacío", () => {
+    useInquiriesMock.mockReturnValueOnce({
+      inquiries: [],
+      chatSessions: [],
+      properties: [],
+      loading: false,
+      filterStatus: "",
+      setFilterStatus: h.setFilterStatus,
+      filterProp: "",
+      setFilterProp: h.setFilterProp,
+      markResolved: h.markResolved,
+      actionLoadingId: null,
+      closeChatSession: h.closeChatSession,
+    });
+
+    renderSut();
+
+    expect(screen.getByText("No hay consultas disponibles.")).toBeInTheDocument();
+    expect(screen.getByTestId("filter")).toBeInTheDocument();
+    expect(screen.queryByTestId("mixed")).toBeNull();
+  });
+
+  it("muestra mensaje personalizado para admin cuando no hay resultados", () => {
+    useAuthContextMock.mockReturnValue({ isAdmin: true });
+    useInquiriesMock.mockReturnValueOnce({
+      inquiries: [],
+      chatSessions: [],
+      properties: [],
+      loading: false,
+      filterStatus: "",
+      setFilterStatus: h.setFilterStatus,
+      filterProp: "",
+      setFilterProp: h.setFilterProp,
+      markResolved: h.markResolved,
+      actionLoadingId: null,
+      closeChatSession: h.closeChatSession,
+    });
+
+    renderSut();
+
+    expect(useAuthContextMock).toHaveBeenCalled();
+    expect(useAuthContextMock.mock.results[0].value.isAdmin).toBe(true);
+    expect(screen.getByText("No hay consultas registradas.")).toBeInTheDocument();
+    useAuthContextMock.mockReturnValue({ isAdmin: false });
   });
 });

@@ -93,7 +93,7 @@ export default function ServicesExpensesCard({
         </Box>
 
         {utilities.length === 0 ? (
-          <Typography color="text.secondary">Sin utilidades asociadas.</Typography>
+          <Typography sx={{ color: "#000" }}>Sin utilidades asociadas.</Typography>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {utilities.map((u, idx) => {
@@ -148,25 +148,25 @@ export default function ServicesExpensesCard({
                   </Box>
 
                   <Stack spacing={0.5} sx={{ mt: 1 }}>
-                    <Typography sx={{ color: "text.secondary" }}>
+                    <Typography sx={{ color: "#000" }}>
                       <strong>Monto inicial:</strong> {money(u.initialAmount ?? 0)}
                     </Typography>
 
-                    <Typography sx={{ color: "text.secondary" }}>
+                    <Typography sx={{ color: "#000" }}>
                       <strong>Monto actual:</strong> {money(currentAmount(u))}
                     </Typography>
 
-                    <Typography sx={{ color: "text.secondary" }}>
+                    <Typography sx={{ color: "#000" }}>
                       <strong>Último pago:</strong> {u.lastPaidAmount != null ? money(u.lastPaidAmount) : "-"}{" "}
                       {u.lastPaidDate && (
-                        <Typography component="span" color="text.disabled">
+                        <Typography component="span" sx={{ color: "#000" }}>
                           ({fmtDate(u.lastPaidDate)})
                         </Typography>
                       )}
                     </Typography>
 
                     {u.notes && (
-                      <Typography sx={{ color: "text.secondary" }}>
+                      <Typography sx={{ color: "#000" }}>
                         <strong>Notas:</strong> {u.notes}
                       </Typography>
                     )}
@@ -186,12 +186,8 @@ export default function ServicesExpensesCard({
                               "&::-webkit-scrollbar": { height: 6 },
                               "&::-webkit-scrollbar-thumb": { bgcolor: "grey.400", borderRadius: 3 },
                             }}
-                            // auto-scroll al final para mostrar el más reciente
-                            ref={(el) => {
-                              if (!el) return;
-                            }}
                           >
-                            <Typography sx={{ color: "text.secondary", fontWeight: 600, mb: 1 }}>
+                            <Typography sx={{ color: "#000", fontWeight: 600, mb: 1 }}>
                               Historial de aumentos
                             </Typography>
 
