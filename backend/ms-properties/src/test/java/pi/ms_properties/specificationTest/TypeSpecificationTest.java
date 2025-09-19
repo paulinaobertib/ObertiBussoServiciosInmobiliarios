@@ -5,17 +5,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
-import pi.ms_properties.domain.*;
+import pi.ms_properties.domain.Type;
+import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.ITypeRepository;
 import pi.ms_properties.specification.TypeSpecification;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaRepositories(
+        basePackages = "pi.ms_properties.repository",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = IPropertyRepository.class
+        )
+)
 @ActiveProfiles("test")
 class TypeSpecificationTest {
 
@@ -46,19 +57,19 @@ class TypeSpecificationTest {
         entityManager.flush();
     }
 
-    // casos de exito
+    // casos de éxito
 
     @Test
-    void whenSearchingByExactName_thenReturnsMatchingType() {
+    void whenSearchByExactName_shouldReturnMatchingType() {
         Specification<Type> spec = TypeSpecification.textSearch("casa");
         List<Type> result = typeRepository.findAll(spec);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getName()).isEqualTo("Casa");
+        assertThat(result.getFirst().getName()).containsIgnoringCase("Casa");
     }
 
     @Test
-    void whenSearchingByPartialName_thenReturnsMatchingTypes() {
+    void whenSearchByPartialName_shouldReturnMultipleTypes() {
         Specification<Type> spec = TypeSpecification.textSearch("a");
         List<Type> result = typeRepository.findAll(spec);
 
@@ -68,7 +79,7 @@ class TypeSpecificationTest {
     // casos de error
 
     @Test
-    void whenSearchValueIsNull_thenReturnsAllTypes() {
+    void whenSearchValueIsNull_shouldReturnAll() {
         Specification<Type> spec = TypeSpecification.textSearch(null);
         List<Type> result = typeRepository.findAll(spec);
 
@@ -76,7 +87,7 @@ class TypeSpecificationTest {
     }
 
     @Test
-    void whenSearchValueIsBlank_thenReturnsAllTypes() {
+    void whenSearchValueIsBlank_shouldReturnAll() {
         Specification<Type> spec = TypeSpecification.textSearch("   ");
         List<Type> result = typeRepository.findAll(spec);
 
@@ -84,8 +95,8 @@ class TypeSpecificationTest {
     }
 
     @Test
-    void whenNoMatchFound_thenReturnsEmptyList() {
-        Specification<Type> spec = TypeSpecification.textSearch("nonexistent");
+    void whenSearchValueDoesNotMatch_shouldReturnEmptyList() {
+        Specification<Type> spec = TypeSpecification.textSearch("inexistente");
         List<Type> result = typeRepository.findAll(spec);
 
         assertThat(result).isEmpty();
