@@ -379,4 +379,101 @@ class AppointmentServiceTest {
 
         verify(appointmentRepository).findByStatus(status);
     }
+
+    @Test
+    void create_usuarioNoEncontrado_shouldThrowEntityNotFound() {
+        Appointment appointment = new Appointment();
+        appointment.setUserId("user123");
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        appointment.setAvailableAppointment(available);
+
+        when(userRepository.findById("user123")).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.create(appointment));
+    }
+
+    @Test
+    void create_disponibilidadNoEncontrada_shouldThrowEntityNotFound() {
+        Appointment appointment = new Appointment();
+        appointment.setUserId("user123");
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        appointment.setAvailableAppointment(available);
+
+        when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.create(appointment));
+    }
+
+    @Test
+    void delete_turnoNoEncontrado_shouldThrowEntityNotFound() {
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.delete(1L));
+    }
+
+    @Test
+    void delete_usuarioNoEncontrado_shouldThrowEntityNotFound() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+        AvailableAppointment av = new AvailableAppointment();
+        av.setId(10L);
+        appointment.setAvailableAppointment(av);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById("user123")).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.delete(1L));
+    }
+
+    @Test
+    void delete_disponibilidadNoEncontrada_shouldThrowEntityNotFound() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+        AvailableAppointment av = new AvailableAppointment();
+        av.setId(10L);
+        appointment.setAvailableAppointment(av);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(new User()));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.delete(1L));
+    }
+
+    @Test
+    void updateStatus_turnoNoEncontrado_shouldThrowEntityNotFound() {
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address"));
+    }
+
+    @Test
+    void updateStatus_usuarioNoEncontrado_shouldThrowEntityNotFound() {
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setUserId("user123");
+        AvailableAppointment av = new AvailableAppointment();
+        av.setId(10L);
+        appointment.setAvailableAppointment(av);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById("user123")).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> appointmentService.updateStatus(1L, AppointmentStatus.ACEPTADO, "Address"));
+    }
+
+    @Test
+    void findById_turnoNoEncontrado_shouldThrowEntityNotFound() {
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> appointmentService.findById(1L));
+    }
+
 }
