@@ -68,7 +68,7 @@ describe("PropertyDetailsCompare", () => {
 
   it("muestra mensaje si hay menos de 2 propiedades", () => {
     render(<PropertyDetailsCompare comparisonItems={[mockProperty(1, "P1")]} />);
-    expect(screen.getByText(/Selecciona 2 o 3 propiedades para comparar/i)).toBeInTheDocument();
+    expect(screen.getByText(/No hay suficientes propiedades para comparar/i)).toBeInTheDocument();
   });
 
   it("renderiza correctamente 2 propiedades", () => {

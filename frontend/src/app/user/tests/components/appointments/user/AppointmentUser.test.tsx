@@ -42,7 +42,7 @@ describe('AppointmentUser', () => {
     });
 
     render(<AppointmentUser />);
-    expect(screen.getByText(/Aún no tienes turnos/i)).toBeInTheDocument();
+    expect(screen.getByText(/No hay turnos disponibles/i)).toBeInTheDocument();
   });
 
   it('renderiza AppointmentCard para cada turno pendiente', () => {

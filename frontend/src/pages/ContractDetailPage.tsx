@@ -82,10 +82,8 @@ export default function ContractDetailPage() {
   const commissionPayments = (() => {
     if (!commission || !commission.id) return [] as any[];
     return payments
-      .filter(
-        (p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(commission.id)
-      )
-      .sort((a, b) => getTime(a) - getTime(b));
+      .filter((p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(commission.id))
+      .sort((a: any, b: any) => getTime(a) - getTime(b));
   })();
   const commissionPaidCount = commissionPayments.length;
 
@@ -207,134 +205,132 @@ export default function ContractDetailPage() {
       </IconButton>
 
       <BasePage>
-        <Container maxWidth="lg" sx={{ py: 3 }}>
-          {/* Header */}
-          <Header
-            contract={contract}
-            isAdmin={isAdmin}
-            savingStatus={savingStatus}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onToggleStatus={onToggleStatus}
-            onPayments={onPayments}
-            onIncrease={onIncrease}
+        <Header
+          contract={contract}
+          isAdmin={isAdmin}
+          savingStatus={savingStatus}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onToggleStatus={onToggleStatus}
+          onPayments={onPayments}
+          onIncrease={onIncrease}
+        />
+
+        {/* Grid */}
+        <Grid container rowSpacing={3} columnSpacing={3} sx={{ alignItems: "stretch" }}>
+          {/* Información principal (solo admin) */}
+          {isAdmin && (
+            <InfoPrincipalCard
+              userName={userName}
+              propertyName={propertyName}
+              propertyHref={propertyHref}
+              userId={contract.userId}
+            />
+          )}
+
+          {/* Período */}
+          <PeriodCard startDate={contract.startDate} endDate={contract.endDate} />
+
+          {/* Depósito junto al período (solo tenant) */}
+          {!isAdmin && (
+            <DepositCard
+              //isAdmin={false}
+              currency={contract.currency}
+              hasDeposit={contract.hasDeposit}
+              depositAmount={contract.depositAmount}
+              depositNote={contract.depositNote}
+            />
+          )}
+
+          {/* Info financiera + historiales */}
+          <FinancialCard
+            currency={contract.currency}
+            initialAmount={contract.initialAmount}
+            lastPaidAmount={contract.lastPaidAmount}
+            lastPaidDate={contract.lastPaidDate}
+            adjustmentFrequencyMonths={contract.adjustmentFrequencyMonths}
+            adjustmentIndex={contract.adjustmentIndex}
+            paymentsSorted={paymentsSorted}
+            increasesSorted={increasesSorted}
+            onRegisterIncrease={isAdmin ? () => setOpenIncrease(true) : undefined}
+            onRegisterRentPayment={isAdmin ? () => setOpenRent(true) : undefined}
           />
 
-          {/* Grid */}
-          <Grid container rowSpacing={3} columnSpacing={3} sx={{ alignItems: "stretch" }}>
-            {/* Información principal (solo admin) */}
-            {isAdmin && (
-              <InfoPrincipalCard
-                userName={userName}
-                propertyName={propertyName}
-                propertyHref={propertyHref}
-                userId={contract.userId}
-              />
-            )}
+          {/* Servicios y Expensas */}
+          <ServicesExpensesCard
+            currency={contract.currency}
+            utilities={utilities}
+            utilityNameMap={utilityNameMap}
+            onManage={isAdmin ? () => setOpenUtilities(true) : undefined}
+            onPay={isAdmin ? (id) => setOpenServicePay(id) : undefined}
+            onIncrease={isAdmin ? (id) => setOpenServiceIncrease(id) : undefined}
+            onEdit={isAdmin ? (id) => setOpenServiceEdit(id) : undefined}
+            onUnlink={
+              isAdmin
+                ? (cuid) => {
+                    ask("¿Desvincular este servicio?", async () => {
+                      const { deleteContractUtility } = await import("../app/user/services/contractUtility.service");
+                      await deleteContractUtility(cuid);
+                      await refreshContract();
+                    });
+                  }
+                : undefined
+            }
+          />
 
-            {/* Período */}
-            <PeriodCard startDate={contract.startDate} endDate={contract.endDate} />
+          {/* Garantes */}
+          <GuarantorsCard
+            guarantors={guarantors}
+            onManage={isAdmin ? () => setOpenGuarantors(true) : undefined}
+            onUnlink={
+              isAdmin
+                ? (gid) => {
+                    ask("¿Quitar garante del contrato?", async () => {
+                      const { removeGuarantorFromContract } = await import("../app/user/services/guarantor.service");
+                      await removeGuarantorFromContract(gid, Number(id));
+                      await refreshContract();
+                    });
+                  }
+                : undefined
+            }
+          />
 
-            {/* Depósito junto al período (solo tenant) */}
-            {!isAdmin && (
-              <DepositCard
-                //isAdmin={false}
-                currency={contract.currency}
-                hasDeposit={contract.hasDeposit}
-                depositAmount={contract.depositAmount}
-                depositNote={contract.depositNote}
-              />
-            )}
-
-            {/* Info financiera + historiales */}
-            <FinancialCard
-              currency={contract.currency}
-              initialAmount={contract.initialAmount}
-              lastPaidAmount={contract.lastPaidAmount}
-              lastPaidDate={contract.lastPaidDate}
-              adjustmentFrequencyMonths={contract.adjustmentFrequencyMonths}
-              adjustmentIndex={contract.adjustmentIndex}
-              paymentsSorted={paymentsSorted}
-              increasesSorted={increasesSorted}
-              onRegisterIncrease={isAdmin ? () => setOpenIncrease(true) : undefined}
-              onRegisterRentPayment={isAdmin ? () => setOpenRent(true) : undefined}
+          {/* Comisión (admin) a ancho completo */}
+          {isAdmin && (
+            <CommissionCard
+              gridFull
+              commission={commission}
+              paidCount={commissionPaidCount}
+              payments={commissionPayments}
+              onAdd={() => setOpenCommissionEdit({ open: true, action: "add" })}
+              onEdit={() => setOpenCommissionEdit({ open: true, action: "edit" })}
+              onRegisterPayment={() => setOpenCommissionPay({ open: true, installment: null })}
+              onRegisterInstallment={(n) => setOpenCommissionPay({ open: true, installment: n })}
             />
+          )}
 
-            {/* Servicios y Expensas */}
-            <ServicesExpensesCard
-              currency={contract.currency}
-              utilities={utilities}
-              utilityNameMap={utilityNameMap}
-              onManage={isAdmin ? () => setOpenUtilities(true) : undefined}
-              onPay={isAdmin ? (id) => setOpenServicePay(id) : undefined}
-              onIncrease={isAdmin ? (id) => setOpenServiceIncrease(id) : undefined}
-              onEdit={isAdmin ? (id) => setOpenServiceEdit(id) : undefined}
-              onUnlink={
-                isAdmin
-                  ? (cuid) => {
-                      ask("¿Desvincular este servicio?", async () => {
-                        const { deleteContractUtility } = await import("../app/user/services/contractUtility.service");
-                        await deleteContractUtility(cuid);
-                        await refreshContract();
-                      });
-                    }
-                  : undefined
-              }
-            />
+          {/* Depósito (admin) + Notas (admin) en la misma fila */}
+          {isAdmin && (
+            <>
+              <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex", minWidth: 0 }}>
+                <DepositCard
+                  sxHeight="80%"
+                  currency={contract.currency}
+                  hasDeposit={contract.hasDeposit}
+                  depositAmount={contract.depositAmount}
+                  depositNote={contract.depositNote}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex", minWidth: 0 }}>
+                <NotesCard note={contract.note} />
+              </Grid>
+            </>
+          )}
 
-            {/* Garantes */}
-            <GuarantorsCard
-              guarantors={guarantors}
-              onManage={isAdmin ? () => setOpenGuarantors(true) : undefined}
-              onUnlink={
-                isAdmin
-                  ? (gid) => {
-                      ask("¿Quitar garante del contrato?", async () => {
-                        const { removeGuarantorFromContract } = await import("../app/user/services/guarantor.service");
-                        await removeGuarantorFromContract(gid, Number(id));
-                        await refreshContract();
-                      });
-                    }
-                  : undefined
-              }
-            />
-
-            {/* Comisión (admin) a ancho completo */}
-            {isAdmin && (
-              <CommissionCard
-                gridFull
-                commission={commission}
-                paidCount={commissionPaidCount}
-                payments={commissionPayments}
-                onAdd={() => setOpenCommissionEdit({ open: true, action: "add" })}
-                onEdit={() => setOpenCommissionEdit({ open: true, action: "edit" })}
-                onRegisterPayment={() => setOpenCommissionPay({ open: true, installment: null })}
-                onRegisterInstallment={(n) => setOpenCommissionPay({ open: true, installment: n })}
-              />
-            )}
-
-            {/* Depósito (admin) + Notas (admin) en la misma fila */}
-            {isAdmin && (
-              <>
-                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', minWidth: 0 }}>
-                  <DepositCard
-                    sxHeight="80%"
-                    currency={contract.currency}
-                    hasDeposit={contract.hasDeposit}
-                    depositAmount={contract.depositAmount}
-                    depositNote={contract.depositNote}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', minWidth: 0 }}>
-                  <NotesCard note={contract.note} />
-                </Grid>
-              </>
-            )}
-
-            {/* Notas ya incluidas junto a Depósito cuando es admin */}
-          </Grid>
-        </Container>
+          {/* Notas ya incluidas junto a Depósito cuando es admin */}
+        </Grid>
       </BasePage>
+
       <PaymentDialog
         open={openPayments}
         contract={contract as any}

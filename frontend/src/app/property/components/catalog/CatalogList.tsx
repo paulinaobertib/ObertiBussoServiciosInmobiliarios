@@ -1,93 +1,84 @@
-import { useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
-import { useAuthContext } from '../../../user/context/AuthContext';
-import { PropertyCard } from './PropertyCard';
-import type { Property } from '../../types/property';
+import { useMemo } from "react";
+import { Box } from "@mui/material";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { PropertyCard } from "./PropertyCard";
+import type { Property } from "../../types/property";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 interface Props {
-    properties: Property[];
-    selectionMode?: boolean;
-    toggleSelection?: (id: number) => void;
-    isSelected?: (id: number) => boolean;
-    onCardClick?: (property: Property) => void;
+  properties: Property[];
+  selectionMode?: boolean;
+  toggleSelection?: (id: number) => void;
+  isSelected?: (id: number) => boolean;
+  onCardClick?: (property: Property) => void;
 }
 
 export const CatalogList = ({
-    properties = [],
-    selectionMode = false,
-    toggleSelection = () => { },
-    isSelected = () => false,
-    onCardClick = () => { },
+  properties = [],
+  selectionMode = false,
+  toggleSelection = () => {},
+  isSelected = () => false,
+  onCardClick = () => {},
 }: Props) => {
-    const { isAdmin } = useAuthContext();
+  const { isAdmin } = useAuthContext();
 
-    const safeProperties = Array.isArray(properties) ? properties : [];
+  const safeProperties = Array.isArray(properties) ? properties : [];
 
-    // 1) Filtrado según permisos
-    const filtered = useMemo(
-        () =>
-            isAdmin
-                ? safeProperties
-                : safeProperties.filter(
-                    (p) => p.status?.toLowerCase() === 'disponible' || !p.status
-                ),
-        [safeProperties, isAdmin]
-    );
+  // 1) Filtrado según permisos
+  const filtered = useMemo(
+    () =>
+      isAdmin ? safeProperties : safeProperties.filter((p) => p.status?.toLowerCase() === "disponible" || !p.status),
+    [safeProperties, isAdmin]
+  );
 
-    // 2) Ordenar: primero outstanding por fecha, luego el resto por fecha
-    const sorted = useMemo(() => {
-        // Función genérica para ordenar por fecha descendente
-        const byDateDesc = (a: Property, b: Property) =>
-            new Date(b.date).getTime() - new Date(a.date).getTime();
+  // 2) Ordenar: primero outstanding por fecha, luego el resto por fecha
+  const sorted = useMemo(() => {
+    // Función genérica para ordenar por fecha descendente
+    const byDateDesc = (a: Property, b: Property) => new Date(b.date).getTime() - new Date(a.date).getTime();
 
-        // Destacadas ordenadas por fecha
-        const outstandingProps = filtered
-            .filter((p) => p.outstanding)
-            .sort(byDateDesc);
+    // Destacadas ordenadas por fecha
+    const outstandingProps = filtered.filter((p) => p.outstanding).sort(byDateDesc);
 
-        // No destacadas ordenadas por fecha
-        const normalProps = filtered
-            .filter((p) => !p.outstanding)
-            .sort(byDateDesc);
+    // No destacadas ordenadas por fecha
+    const normalProps = filtered.filter((p) => !p.outstanding).sort(byDateDesc);
 
-        // Concateno primero las destacadas y luego las demás
-        return [...outstandingProps, ...normalProps];
-    }, [filtered]);
+    // Concateno primero las destacadas y luego las demás
+    return [...outstandingProps, ...normalProps];
+  }, [filtered]);
 
-    // 3) Mensaje si no hay nada
-    if (sorted.length === 0) {
-        return (
-            <Typography align="center" color="text.secondary" sx={{ mt: 4 }}>
-                {isAdmin
-                    ? 'No hay propiedades cargadas.'
-                    : 'No hay propiedades disponibles.'}
-            </Typography>
-        );
-    }
-
+  // 3) Mensaje si no hay nada
+  if (sorted.length === 0) {
     return (
-        <Box
-            sx={{
-                p: { xs: 0, sm: 2 },
-                display: 'grid',
-                gridTemplateColumns: {
-                    xs: '1fr',
-                    sm: 'repeat(2, 1fr)',
-                    lg: 'repeat(3, 1fr)',
-                },
-                gap: 4,
-            }}
-        >
-            {sorted.map((prop) => (
-                <PropertyCard
-                    key={prop.id}
-                    property={prop}
-                    selectionMode={selectionMode}
-                    toggleSelection={toggleSelection}
-                    isSelected={isSelected}
-                    onClick={() => onCardClick(prop)}
-                />
-            ))}
-        </Box>
+      <EmptyState
+        title={isAdmin ? "No hay propiedades cargadas." : "No hay propiedades disponibles."}
+        minHeight={220}
+      />
     );
+  }
+
+  return (
+    <Box
+      sx={{
+        p: { xs: 0, sm: 2 },
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "repeat(2, 1fr)",
+          lg: "repeat(3, 1fr)",
+        },
+        gap: 4,
+      }}
+    >
+      {sorted.map((prop) => (
+        <PropertyCard
+          key={prop.id}
+          property={prop}
+          selectionMode={selectionMode}
+          toggleSelection={toggleSelection}
+          isSelected={isSelected}
+          onClick={() => onCardClick(prop)}
+        />
+      ))}
+    </Box>
+  );
 };

@@ -58,7 +58,7 @@ export const Comparer = ({ data }: Props) => {
           sx={{
             bgcolor: "#EE671E",
             width: { xs: "3.5rem" },
-            height: { xs: "3.5rem" },
+        height: { xs: "3.5rem" },
             cursor: "pointer",
             userSelect: "none",
             '&:hover': { bgcolor: theme.palette.primary.dark },

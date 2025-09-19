@@ -20,8 +20,8 @@ export const ContractList = ({ contracts = [], onDelete, onToggleStatus }: Props
 
   if (sorted.length === 0) {
     return (
-      <Typography align="center" color="text.secondary" sx={{ mt: 4 }}>
-        No hay contratos.
+      <Typography align="center" sx={{ mt: 4, color: '#000', fontWeight: 500 }}>
+        No hay contratos disponibles.
       </Typography>
     );
   }

@@ -1,5 +1,14 @@
-import { useState, useRef } from 'react';
-import { Container, Box, Typography, IconButton, Button, useTheme, useMediaQuery } from '@mui/material';
+import { useState, useRef, useMemo } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  Chip,
+  CircularProgress,
+  Card,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -9,31 +18,42 @@ import { Modal } from '../../../shared/components/Modal';
 import { NoticeForm, NoticeFormHandle } from './NoticeForm';
 import { useConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { LoadingButton } from '@mui/lab';
-import { Notice } from '../../types/notice';
+import { EmptyState } from '../../../shared/components/EmptyState';
 
 export const NoticeDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isSm = useMediaQuery(theme.breakpoints.down('md'));
-  const { notices, edit, remove } = useNotices();
+  const { notices, edit, remove, loading, error } = useNotices();
   const { isAdmin } = useAuthContext();
+  const { ask, DialogUI } = useConfirmDialog();
   const [editOpen, setEditOpen] = useState(false);
   const [canSave, setCanSave] = useState(false);
   const [saving, setSaving] = useState(false);
   const formRef = useRef<NoticeFormHandle>(null);
-  const { ask, DialogUI } = useConfirmDialog();
 
-  const notice = notices.find(n => n.id === Number(id));
+  const notice = useMemo(
+    () => notices.find((n) => n.id === Number(id)),
+    [notices, id]
+  );
 
-  // Early return if not found
+  if (loading && !notice) {
+    return (
+      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6 } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress size={40} />
+        </Box>
+      </Container>
+    );
+  }
+
   if (!notice) {
     return (
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        <Typography variant="h6" align="center">
-          Noticia no encontrada.
-        </Typography>
-        <Box display="flex" justifyContent="center" mt={2}>
+      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6 } }}>
+        <EmptyState
+          title="No encontramos esta noticia."
+          tone={error ? 'error' : 'neutral'}
+        />
+        <Box display="flex" justifyContent="center" mt={3}>
           <Button variant="outlined" onClick={() => navigate(-1)}>
             Volver
           </Button>
@@ -42,14 +62,20 @@ export const NoticeDetails = () => {
     );
   }
 
-  // Image source
   const imageSrc = typeof notice.mainImage === 'string'
     ? notice.mainImage
     : notice.mainImage
       ? URL.createObjectURL(notice.mainImage)
       : '';
 
-  // Handlers
+  const formattedDate = new Date(notice.date).toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
+  const isRecent = Date.now() - new Date(notice.date).getTime() < 3 * 24 * 60 * 60 * 1000;
+
   const openEdit = () => setEditOpen(true);
   const closeEdit = () => setEditOpen(false);
 
@@ -58,18 +84,14 @@ export const NoticeDetails = () => {
     const data = formRef.current.getUpdateData();
 
     setSaving(true);
-    // asegura que el spinner pinte y que se vea al menos 600ms
     await new Promise(requestAnimationFrame);
     try {
-      await Promise.all([
-        edit({ ...(data as Notice), id: notice.id, userId: notice.userId }),
-      ]);
+      await edit({ ...(data as any), id: notice.id, userId: notice.userId });
       closeEdit();
     } finally {
       setSaving(false);
     }
   };
-
 
   const handleDelete = () =>
     ask('¿Eliminar esta novedad?', async () => {
@@ -81,53 +103,109 @@ export const NoticeDetails = () => {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        <Box display="flex" flexDirection={isSm ? 'column' : 'row'} gap={4} alignItems="flex-start">
-          {/* Left column: Image */}
-          <Box flex={1}>
+      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6 } }}>
+        <Card
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ position: 'relative', flexBasis: { md: '45%' }, flexShrink: 0 }}>
             <Box
               component="img"
-              src={imageSrc}
+              src={imageSrc || undefined}
               alt={notice.title}
-              sx={{ width: '100%', aspectRatio: '9/16', objectFit: 'cover', borderRadius: 2 }}
+              sx={{
+                width: '100%',
+                height: { xs: 320, sm: 400, md: '100%' },
+                objectFit: 'cover',
+                backgroundColor: 'action.hover',
+              }}
             />
+
+            {isRecent && (
+              <Chip
+                label="NUEVO"
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  left: 16,
+                  bgcolor: 'quaternary.main',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                }}
+              />
+            )}
+
+            {isAdmin && (
+              <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1 }}>
+                <IconButton
+                  onClick={openEdit}
+                  size="small"
+                  aria-label="Editar noticia"
+                  sx={{
+                    bgcolor: 'rgba(15, 23, 42, 0.6)',
+                    color: 'common.white',
+                    '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.8)' },
+                  }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  onClick={handleDelete}
+                  size="small"
+                  aria-label="Eliminar noticia"
+                  sx={{
+                    bgcolor: 'rgba(15, 23, 42, 0.6)',
+                    color: 'common.white',
+                    '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.8)' },
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Box>
-          {/* Right column: Content */}
-          <Box flex={1} display="flex" flexDirection="column">
-            <Box display="flex" justifyContent="flex-end" mb={2}>
-              {isAdmin && (
-                <>
-                  <IconButton size="small" onClick={openEdit} aria-label="Editar noticia">
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={handleDelete} aria-label="Eliminar noticia">
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </>
-              )}
-            </Box>
-            <Typography variant="h4" gutterBottom>
+
+          <Box
+            sx={{
+              flex: 1,
+              p: { xs: 3, sm: 4 },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              {formattedDate}
+            </Typography>
+
+            <Typography variant="h4" fontWeight={700}>
               {notice.title}
             </Typography>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              {new Date(notice.date).toLocaleDateString('es-AR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              })}
-            </Typography>
-            <Typography variant="body1" paragraph>
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'text.primary',
+                whiteSpace: 'pre-line',
+                lineHeight: 1.6,
+              }}
+            >
               {notice.description}
             </Typography>
-            <Box mt="auto">
+
+            <Box display="flex" justifyContent="flex-end" mt="auto">
               <Button variant="outlined" onClick={goBack}>
                 Volver
               </Button>
             </Box>
           </Box>
-        </Box>
+        </Card>
       </Container>
-      {/* Edit Modal */}
+
       <Modal open={editOpen} title="Editar noticia" onClose={closeEdit}>
         <NoticeForm
           key={notice.id}
@@ -145,4 +223,4 @@ export const NoticeDetails = () => {
       {DialogUI}
     </>
   );
-}
+};

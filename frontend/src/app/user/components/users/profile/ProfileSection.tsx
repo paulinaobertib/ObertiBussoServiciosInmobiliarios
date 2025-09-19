@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Collapse, Button } from '@mui/material';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useProfile } from '../../../hooks/useProfile';
-import { ProfileView } from './ProfileView';
-import { ProfileForm } from './ProfileForm';
-import type { User } from '../../../types/user';
-import { useConfirmDialog } from '../../../../shared/components/ConfirmDialog';
-import { deleteUser } from '../../../services/user.service';
-import { useAuthContext } from '../../../context/AuthContext';
+import { useEffect, useRef, useState } from "react";
+import { Box, CircularProgress, Collapse, Button, Card } from "@mui/material";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useProfile } from "../../../hooks/useProfile";
+import { ProfileView } from "./ProfileView";
+import { ProfileForm } from "./ProfileForm";
+import type { User } from "../../../types/user";
+import { useConfirmDialog } from "../../../../shared/components/ConfirmDialog";
+import { deleteUser } from "../../../services/user.service";
+import { useAuthContext } from "../../../context/AuthContext";
 
 export function ProfileSection() {
   const { profile, loading, updateProfile } = useProfile();
@@ -39,14 +39,14 @@ export function ProfileSection() {
     if (editMode && form) {
       setSaving(true);
       const merged = await updateProfile(form);
-      setForm(prev => (prev ? { ...prev, ...merged } : merged));
+      setForm((prev) => (prev ? { ...prev, ...merged } : merged));
       setSaving(false);
     }
-    setEditMode(prev => !prev);
+    setEditMode((prev) => !prev);
   };
 
   const handleChange = (field: keyof User, value: string) => {
-    setForm(prev => (prev ? { ...prev, [field]: value } : prev));
+    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   const userData = form ?? profile;
@@ -61,7 +61,7 @@ export function ProfileSection() {
       async () => {
         try {
           if (!info) {
-            alert('No hay información de usuario. No puedes eliminar el perfil.');
+            alert("No hay información de usuario. No puedes eliminar el perfil.");
             return;
           }
           await deleteUser(info.id); // Asegurate que deleteUser es una función
@@ -72,17 +72,11 @@ export function ProfileSection() {
           localStorage.clear();
           logout();
         } catch (err) {
-
           // Si usás Axios, esto es lo más seguro:
-          if (
-            typeof err === 'object' &&
-            err !== null &&
-            'response' in err &&
-            (err as any).response?.data
-          ) {
+          if (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) {
             alert(`Error: ${(err as any).response.data}`);
           } else {
-            alert('Error al eliminar la cuenta. Intenta de nuevo.');
+            alert("Error al eliminar la cuenta. Intenta de nuevo.");
           }
         }
       }
@@ -93,11 +87,7 @@ export function ProfileSection() {
   if (!open) {
     return (
       <Box display="flex" justifyContent="center" p={1}>
-        <Button
-          size="small"
-          onClick={() => setOpen(true)}
-          startIcon={<ExpandMoreIcon />}
-        >
+        <Button size="small" onClick={() => setOpen(true)} startIcon={<ExpandMoreIcon />}>
           Mostrar perfil
         </Button>
       </Box>
@@ -105,17 +95,10 @@ export function ProfileSection() {
   }
 
   return (
-    <Box
-      sx={{ bgcolor: 'background.paper', boxShadow: 2, borderRadius: 2 }}
-      width="100%"
-    >
+    <Card>
       {/* Collapse control */}
       <Box display="flex" justifyContent="center" mt={1}>
-        <Button
-          size="small"
-          onClick={() => setOpen(false)}
-          startIcon={<ExpandLessIcon />}
-        >
+        <Button size="small" onClick={() => setOpen(false)} startIcon={<ExpandLessIcon />}>
           Ocultar perfil
         </Button>
       </Box>
@@ -129,7 +112,7 @@ export function ProfileSection() {
         ) : (
           <Box
             display="flex"
-            flexDirection={{ xs: 'column', md: 'row' }}
+            flexDirection={{ xs: "column", md: "row" }}
             alignItems="center"
             justifyContent="center"
             width="100%"
@@ -142,15 +125,11 @@ export function ProfileSection() {
               onToggleEdit={handleToggleEdit}
               onDeleteProfile={handleDeleteProfile}
             />
-            <ProfileForm
-              user={userData as User}
-              editMode={editMode}
-              onChange={handleChange}
-            />
+            <ProfileForm user={userData as User} editMode={editMode} onChange={handleChange} />
           </Box>
         )}
       </Collapse>
       {DialogUI}
-    </Box>
+    </Card>
   );
 }

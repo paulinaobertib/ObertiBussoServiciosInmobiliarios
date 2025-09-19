@@ -34,13 +34,13 @@ export default function InfoPrincipalCard({ userName, propertyName, propertyHref
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <PersonOutline fontSize="small" color="action" />
-            <Typography sx={{ fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>Usuario:</Typography>
+            <Typography sx={{ fontSize: ".875rem", color: "#000", fontWeight: 500 }}>Usuario:</Typography>
             <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>{userName || userId}</Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <HomeOutlined fontSize="small" color="action" />
-            <Typography sx={{ fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>Propiedad:</Typography>
+            <Typography sx={{ fontSize: ".875rem", color: "#000", fontWeight: 500 }}>Propiedad:</Typography>
             <Typography
               component={Link}
               to={propertyHref}

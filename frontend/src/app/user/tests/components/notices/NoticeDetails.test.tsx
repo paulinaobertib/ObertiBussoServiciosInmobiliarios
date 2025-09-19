@@ -63,6 +63,8 @@ describe("NoticeDetails ", () => {
       notices: [
         { id: 1, title: "Notice 1", description: "Desc", date: new Date(), mainImage: "img.png", userId: 99 }
       ],
+      loading: false,
+      error: null,
       edit: editMock,
       remove: removeMock,
     });
@@ -72,7 +74,7 @@ describe("NoticeDetails ", () => {
   it("Muestra mensaje cuando la noticia no se encuentra", () => {
     (useParams as any).mockReturnValue({ id: "999" });
     render(<NoticeDetails />);
-    expect(screen.getByText(/Noticia no encontrada/i)).toBeInTheDocument();
+    expect(screen.getByText(/No encontramos esta noticia/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/Volver/i));
     expect(navigateMock).toHaveBeenCalledWith(-1);
   });
@@ -94,7 +96,7 @@ describe("NoticeDetails ", () => {
 
   it("El botón Volver navega correctamente hacia atrás", () => {
     render(<NoticeDetails />);
-    fireEvent.click(screen.getAllByText(/Volver/i)[0]);
+    fireEvent.click(screen.getByRole('button', { name: /Volver/i }));
     expect(navigateMock).toHaveBeenCalledWith(-1);
   });
 

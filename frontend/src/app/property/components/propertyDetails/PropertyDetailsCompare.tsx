@@ -3,6 +3,7 @@ import { Property } from '../../types/property';
 import { PropertyPanel } from './PropertyPanel';
 import PropertyInfoCompare from './PropertyInfoCompare';
 import { MapSection } from './maps/MapSection';
+import { EmptyState } from '../../../shared/components/EmptyState';
 
 interface Props { comparisonItems: Property[] }
 
@@ -12,10 +13,11 @@ export const PropertyDetailsCompare = ({ comparisonItems }: Props) => {
 
     if (comparisonItems.length < 2 || comparisonItems.length > 3) {
         return (
-            <Box maxWidth="lg" sx={{ py: 8 }}>
-                <Typography variant="h6" color="text.secondary">
-                    Selecciona 2 o 3 propiedades para comparar.
-                </Typography>
+            <Box maxWidth="lg" sx={{ py: 6 }}>
+                <EmptyState
+                    title="No hay suficientes propiedades para comparar."
+                    description="Selecciona entre dos y tres propiedades del catálogo para ver la comparación."
+                />
             </Box>
         );
     }

@@ -5,6 +5,8 @@ import type { Comment } from '../../types/comment';
 import { CommentForm } from '../forms/CommentForm';
 import { CommentList } from './CommentList';
 import { deleteComment } from '../../services/comment.service';
+import { EmptyState } from '../../../shared/components/EmptyState';
+import { useAuthContext } from '../../../user/context/AuthContext';
 
 export interface Props {
   propertyId: number;
@@ -17,6 +19,7 @@ export interface Props {
 export const CommentSection = ({ propertyId, loading, items, refresh, getUserName, }: Props) => {
   const [action, setAction] = useState<'add' | 'edit'>('add');
   const [selected, setSelected] = useState<Comment>();
+  const { isAdmin } = useAuthContext();
 
   const startEdit = (c: Comment) => {
     setAction('edit');
@@ -53,7 +56,7 @@ export const CommentSection = ({ propertyId, loading, items, refresh, getUserNam
       <Box sx={{ p: 3 }}>
         <Box display="flex" alignItems="center" mb={2}>
           <Typography variant="h6" fontWeight={700}>
-            Lista de Comentarios ({items.length})
+            Lista de Comentarios
           </Typography>
         </Box>
         <Divider sx={{ mb: 2 }} />
@@ -62,6 +65,15 @@ export const CommentSection = ({ propertyId, loading, items, refresh, getUserNam
           <Box display="flex" justifyContent="center" py={4}>
             <CircularProgress />
           </Box>
+        ) : items.length === 0 ? (
+          <EmptyState
+            title={isAdmin ? 'No hay comentarios registrados.' : 'No hay comentarios disponibles.'}
+            description={
+              isAdmin
+                ? 'Todavía no se cargaron comentarios para esta propiedad.'
+                : 'Sé el primero en dejar tu opinión sobre la propiedad.'
+            }
+          />
         ) : (
           <CommentList
             items={items}
