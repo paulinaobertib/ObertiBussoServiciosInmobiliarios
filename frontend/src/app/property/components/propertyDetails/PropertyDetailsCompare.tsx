@@ -1,4 +1,4 @@
-import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { Property } from '../../types/property';
 import { PropertyPanel } from './PropertyPanel';
 import PropertyInfoCompare from './PropertyInfoCompare';
