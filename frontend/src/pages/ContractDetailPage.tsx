@@ -16,7 +16,7 @@ import PeriodCard from "../app/user/components/contracts/contractDetail/PeriodCa
 import DepositCard from "../app/user/components/contracts/contractDetail/DepositCard";
 import FinancialCard from "../app/user/components/contracts/contractDetail/FinancialCard";
 import GuarantorsCard from "../app/user/components/contracts/contractDetail/GuarantorsCard";
-import CommissionCard from "../app/user/components/contracts/contractDetail/ComissionCard";
+import CommissionCard from "../app/user/components/contracts/contractDetail/CommissionCard.tsx";
 import ServicesExpensesCard from "../app/user/components/contracts/contractDetail/ServicesExpensesCard";
 import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase";
 import { PaymentRentDialog } from "../app/user/components/payments/PaymentRentDialog";
@@ -305,7 +305,7 @@ export default function ContractDetailPage() {
               onAdd={() => setOpenCommissionEdit({ open: true, action: "add" })}
               onEdit={() => setOpenCommissionEdit({ open: true, action: "edit" })}
               onRegisterPayment={() => setOpenCommissionPay({ open: true, installment: null })}
-              onRegisterInstallment={(n) => setOpenCommissionPay({ open: true, installment: n })}
+              onRegisterInstallment={(n: any) => setOpenCommissionPay({ open: true, installment: n })}
             />
           )}
 

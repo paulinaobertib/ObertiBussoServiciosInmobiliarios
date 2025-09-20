@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, beforeEach, expect } from "vitest";
 import { Survey } from "../../../components/survey/SurveyForm";
 import * as useSurveyHook from "../../../hooks/useSurvey";
-import Swal from "sweetalert2"; // <-- Import default aquí
+import Swal from "sweetalert2";
 
 // Mock de Swal con export default
 vi.mock("sweetalert2", async () => {
@@ -32,19 +32,23 @@ describe("Survey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock del hook useSurvey incluyendo la propiedad error
+    // 👇 usamos `as any` para meter `error` en el mock
     vi.spyOn(useSurveyHook, "useSurvey").mockReturnValue({
       postSurvey: postSurveyMock,
       loading: false,
       error: null,
-    });
+    } as any);
   });
 
   it("renderiza correctamente los elementos", () => {
     render(<Survey />);
-    expect(screen.getByText(/¿Cómo calificarías tu nivel de satisfacción/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/¿Cómo calificarías tu nivel de satisfacción/i)
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Comentario/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Enviar/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Enviar/i })
+    ).toBeInTheDocument();
   });
 
   it("actualiza el comentario al escribir en el textarea", () => {
@@ -67,13 +71,17 @@ describe("Survey", () => {
         { score: 5, comment: "", inquiryId: 123 },
         "abc"
       );
-      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
+      expect(Swal.fire).toHaveBeenCalledWith(
+        expect.objectContaining({ icon: "success" })
+      );
       expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
     });
   });
 
   it("muestra Swal de error si falla el envío", async () => {
-    postSurveyMock.mockRejectedValue({ response: { data: "Error al enviar" } });
+    postSurveyMock.mockRejectedValue({
+      response: { data: "Error al enviar" },
+    });
 
     render(<Survey />);
 
@@ -81,17 +89,19 @@ describe("Survey", () => {
     fireEvent.submit(button.closest("form")!);
 
     await waitFor(() => {
-      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({
-        icon: "error",
-        text: "Error al enviar"
-      }));
+      expect(Swal.fire).toHaveBeenCalledWith(
+        expect.objectContaining({
+          icon: "error",
+          text: "Error al enviar",
+        })
+      );
       expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
     });
   });
 
   it("permite cambiar la puntuación con las estrellas", () => {
     render(<Survey />);
-    const stars = screen.getAllByRole("radio"); // Rating genera radios
+    const stars = screen.getAllByRole("radio");
     fireEvent.click(stars[2]); // seleccionar 3 estrellas
     expect(screen.getByText("Satisfecho")).toBeInTheDocument();
   });

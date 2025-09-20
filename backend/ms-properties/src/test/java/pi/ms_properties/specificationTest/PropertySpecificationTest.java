@@ -5,7 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.repository.IPropertyRepository;
@@ -16,9 +19,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaRepositories(
+        basePackages = "pi.ms_properties.repository",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = {}
+        )
+)
 @ActiveProfiles("test")
 class PropertySpecificationTest {
 
@@ -85,190 +95,400 @@ class PropertySpecificationTest {
         property.setAmenities(Set.of(pileta));
 
         testProperty = entityManager.persist(property);
+        entityManager.flush();
     }
-
 
     // casos de exito
 
     @Test
-    void shouldReturnPropertyByPriceRange() {
+    void whenSearchByPriceRange_shouldReturnProperty() {
         Specification<Property> spec = Specification.where(PropertySpecification.hasPriceFrom(BigDecimal.valueOf(90000)))
                 .and(PropertySpecification.hasPriceTo(BigDecimal.valueOf(150000.0)));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertEquals(1, results.size());
+
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).hasSize(1);
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByAreaRange() {
+    void whenSearchByAreaRange_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasAreaFrom(100f)
                 .and(PropertySpecification.hasAreaTo(130f));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertFalse(results.isEmpty());
+
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByAmenity() {
+    void whenSearchByAmenity_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasAmenity(List.of("pileta"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByCity() {
+    void whenSearchByCity_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasCity(List.of("córdoba"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertEquals(1, results.size());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).hasSize(1);
     }
 
     @Test
-    void shouldReturnPropertyByNeighborhood() {
+    void whenSearchByNeighborhood_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasNeighborhood(List.of("centro"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertFalse(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isNotEmpty();
     }
 
     @Test
-    void shouldReturnPropertyByTextSearch() {
+    void whenSearchByText_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.textSearch("pileta");
-        List<Property> results = propertyRepository.findAll(spec);
-        assertFalse(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isNotEmpty();
     }
 
     @Test
-    void shouldReturnPropertyByCoveredAreaRange() {
+    void whenSearchByCoveredAreaRange_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasCoveredAreaFrom(90f)
                 .and(PropertySpecification.hasCoveredAreaTo(110f));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertFalse(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByRooms() {
+    void whenSearchByRooms_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasRooms(List.of(3f));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByOperation() {
+    void whenSearchByOperation_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasOperation("venta");
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByType() {
+    void whenSearchByType_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasType(List.of("casa"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByCreditTrue() {
+    void whenSearchByCreditTrue_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasCredit(true);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
-    }
+        List<Property> result = propertyRepository.findAll(spec);
 
-
-    @Test
-    void shouldReturnEmptyWhenFinancingTrue() {
-        Specification<Property> spec = PropertySpecification.hasFinancing(true);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        assertThat(result).contains(testProperty);
     }
 
     @Test
-    void shouldReturnPropertyByCurrency() {
+    void whenSearchByFinancingFalse_shouldReturnProperty() {
+        Specification<Property> spec = PropertySpecification.hasFinancing(false);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenSearchByCurrency_shouldReturnProperty() {
         Specification<Property> spec = PropertySpecification.hasCurrency(Currency.ARS);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenPriceFromIsZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasPriceFrom(BigDecimal.ZERO);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenPriceToIsZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasPriceTo(BigDecimal.ZERO);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenAreaFromIsZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasAreaFrom(0f);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenAreaToIsZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasAreaTo(0f);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenCoveredAreaFromIsZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasCoveredAreaFrom(0f);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenCoveredAreaToIsZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasCoveredAreaTo(0f);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenRoomsListIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasRooms(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenRoomsListIsEmpty_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasRooms(List.of());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenRoomsListOnlyHasZero_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasRooms(List.of(0f));
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenOperationIsBlank_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasOperation("   ");
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenTypeListIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasType(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenTypeListIsEmpty_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasType(List.of());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenAmenityListIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasAmenity(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenAmenityListIsEmpty_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasAmenity(List.of());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenCityListIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasCity(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenCityListIsEmpty_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasCity(List.of());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenNeighborhoodListIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasNeighborhood(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenNeighborhoodListIsEmpty_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasNeighborhood(List.of());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenNeighborhoodTypeListIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasNeighborhoodType(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenNeighborhoodTypeListIsEmpty_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasNeighborhoodType(List.of());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenCreditIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasCredit(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenFinancingIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasFinancing(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
+    }
+
+    @Test
+    void whenCurrencyIsNull_shouldReturnAll() {
+        Specification<Property> spec = PropertySpecification.hasCurrency(null);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).contains(testProperty);
     }
 
     // casos de error
 
     @Test
-    void shouldReturnEmptyWhenPriceTooLow() {
+    void whenSearchPriceTooLow_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasPriceFrom(BigDecimal.valueOf(200000));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenAreaTooHigh() {
+    void whenSearchAreaTooHigh_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasAreaTo(50f);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenAmenityNotPresent() {
+    void whenAmenityNotPresent_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasAmenity(List.of("jacuzzi"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenCityDoesNotMatch() {
+    void whenCityDoesNotMatch_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasCity(List.of("Buenos Aires"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenTextSearchFails() {
+    void whenTextSearchFails_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.textSearch("inexistente");
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenCoveredAreaOutOfRange() {
+    void whenCoveredAreaOutOfRange_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasCoveredAreaTo(50f);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenRoomsDoNotMatch() {
+    void whenRoomsDoNotMatch_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasRooms(List.of(5f));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenOperationDoesNotMatch() {
+    void whenOperationDoesNotMatch_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasOperation("alquiler");
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenTypeDoesNotMatch() {
+    void whenTypeDoesNotMatch_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasType(List.of("departamento"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenNeighborhoodTypeDoesNotMatch() {
+    void whenNeighborhoodTypeDoesNotMatch_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasNeighborhoodType(List.of("cerrado"));
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnEmptyWhenCreditFalse() {
+    void whenCreditFalse_shouldReturnEmpty() {
         Specification<Property> spec = PropertySpecification.hasCredit(false);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.isEmpty());
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void shouldReturnPropertyByFinancingFalse() {
-        Specification<Property> spec = PropertySpecification.hasFinancing(false);
-        List<Property> results = propertyRepository.findAll(spec);
-        assertTrue(results.contains(testProperty));
+    void whenFinancingTrue_shouldReturnEmpty() {
+        Specification<Property> spec = PropertySpecification.hasFinancing(true);
+        List<Property> result = propertyRepository.findAll(spec);
+
+        assertThat(result).isEmpty();
     }
 }
-
