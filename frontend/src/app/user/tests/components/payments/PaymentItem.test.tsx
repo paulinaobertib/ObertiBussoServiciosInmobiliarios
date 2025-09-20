@@ -1,133 +1,141 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Mock } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import type { PropsWithChildren, FC } from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import { PaymentItem } from "../../../components/payments/PaymentItem";
+import { useAuthContext } from "../../../context/AuthContext";
+import {
+  Payment,
+  PaymentCurrency,
+  PaymentConcept,
+} from "../../../types/payment";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
+// --- Mock AuthContext ---
 vi.mock("../../../context/AuthContext", () => ({
   useAuthContext: vi.fn(),
 }));
 
-import { useAuthContext as _useAuthContext } from "../../../context/AuthContext";
-const useAuthContext = _useAuthContext as unknown as Mock;
-
-const theme = createTheme({
-  palette: { quaternary: { main: "#eef4ff" } },
+// --- Custom theme con quaternary ---
+const customTheme = createTheme({
+  palette: {
+    quaternary: {
+      main: "#f0f0f0",
+    },
+  } as any, // forzamos porque quaternary no está tipado en MUI
 });
 
-const WithTheme: FC<PropsWithChildren> = ({ children }) => (
-  <ThemeProvider theme={theme}>{children}</ThemeProvider>
-);
-
-// ─────────────────── Helpers ───────────────────
-const basePayment = {
-  id: 1,
-  amount: 1234,
-  paymentCurrency: "ARS",
-  date: "2025-08-10T12:00:00.000Z",
-  description: "Expensas julio",
-} as any;
+const renderWithTheme = (ui: React.ReactNode) =>
+  render(<ThemeProvider theme={customTheme}>{ui}</ThemeProvider>);
 
 describe("PaymentItem", () => {
+  const basePayment: Payment = {
+    id: 1,
+    description: "Pago inicial",
+    amount: 1000,
+    paymentCurrency: PaymentCurrency.ARS,
+    date: "2025-09-01T00:00:00Z",
+    concept: PaymentConcept.ALQUILER,
+    contractId: 10,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
-    // Por defecto, admin = true para ver botones
-    useAuthContext.mockReturnValue({ isAdmin: true });
   });
 
-  it("oculta los botones si no es admin", () => {
-    useAuthContext.mockReturnValue({ isAdmin: false });
+  it("muestra datos y no muestra acciones si no es admin", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: false });
 
-    render(<PaymentItem payment={basePayment} onEdit={vi.fn()} onDelete={vi.fn()} />, {
-      wrapper: WithTheme,
-    });
+    renderWithTheme(<PaymentItem payment={basePayment} />);
 
-    // Los Iconos MUI exponen data-testid con el nombre del icono
-    expect(screen.queryByTestId("EditIcon")).toBeNull();
-    expect(screen.queryByTestId("DeleteIcon")).toBeNull();
-  });
-
-  it("muestra los botones si es admin y hay handlers", () => {
-    render(<PaymentItem payment={basePayment} onEdit={vi.fn()} onDelete={vi.fn()} />, {
-      wrapper: WithTheme,
-    });
-
-    expect(screen.getByTestId("EditIcon")).toBeInTheDocument();
-    expect(screen.getByTestId("DeleteIcon")).toBeInTheDocument();
-  });
-
-  it("sale de modo edición al guardar; no llama onEdit si no hubo cambios", async () => {
-    const user = userEvent.setup();
-    const onEdit = vi.fn();
-
-    render(<PaymentItem payment={basePayment} onEdit={onEdit} />, {
-      wrapper: WithTheme,
-    });
-
-    await user.click(screen.getByTestId("EditIcon").closest("button")!);
-
-    // Guardar sin cambiar nada
-    await user.click(screen.getByTestId("SaveIcon").closest("button")!);
-
-    // Volvemos al modo lectura (aparece el texto secundario)
+    expect(screen.getByText("2025-09-01 - $1000 ARS")).toBeInTheDocument();
     expect(
       screen.getByText(`Descripción: ${basePayment.description}`)
     ).toBeInTheDocument();
 
-    // No hubo cambios, no debe llamar onEdit
+    expect(
+      screen.queryByRole("button", { name: /Editar pago/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Eliminar pago/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("si es admin pero no hay handlers no muestra botones", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+
+    renderWithTheme(<PaymentItem payment={basePayment} />);
+
+    expect(
+      screen.queryByRole("button", { name: /Editar pago/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Eliminar pago/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("permite editar y guardar sin cambios (no llama a onEdit)", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const onEdit = vi.fn();
+
+    renderWithTheme(<PaymentItem payment={basePayment} onEdit={onEdit} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Editar pago/i }));
+
+    expect(screen.getByLabelText("Descripción")).toHaveValue(
+      basePayment.description
+    );
+    expect(screen.getByLabelText("Monto")).toHaveValue(basePayment.amount);
+
+    fireEvent.click(screen.getByRole("button", { name: /Guardar cambios/i }));
     expect(onEdit).not.toHaveBeenCalled();
   });
 
-  it("llama onEdit con los cambios cuando se guardan modificaciones", async () => {
-    const user = userEvent.setup();
+  it("permite editar y guardar con cambios (llama a onEdit)", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
     const onEdit = vi.fn();
 
-    render(<PaymentItem payment={basePayment} onEdit={onEdit} />, {
-      wrapper: WithTheme,
+    renderWithTheme(<PaymentItem payment={basePayment} onEdit={onEdit} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Editar pago/i }));
+
+    fireEvent.change(screen.getByLabelText("Descripción"), {
+      target: { value: "Nuevo desc" },
+    });
+    fireEvent.change(screen.getByLabelText("Monto"), {
+      target: { value: "2000" },
     });
 
-    // Entrar a edición
-    await user.click(screen.getByTestId("EditIcon").closest("button")!);
+    // Cambiamos el valor de la moneda usando el input nativo de MUI
+    const currencyInput = document.querySelector(
+      'input.MuiSelect-nativeInput'
+    ) as HTMLInputElement;
+    fireEvent.change(currencyInput, { target: { value: PaymentCurrency.USD } });
 
-    // Cambiar la descripción y el monto
-    const desc = screen.getByLabelText("Descripción") as HTMLInputElement;
-    const monto = screen.getByLabelText("Monto") as HTMLInputElement;
-
-    await user.clear(desc);
-    await user.type(desc, "Expensas agosto");
-    await user.clear(monto);
-    await user.type(monto, "1500");
-
-    // Guardar
-    await user.click(screen.getByTestId("SaveIcon").closest("button")!);
-
-    expect(onEdit).toHaveBeenCalledTimes(1);
-    const [edited] = onEdit.mock.calls[0];
-
-    expect(edited).toMatchObject({
-      id: basePayment.id,
-      description: "Expensas agosto",
-      amount: 1500,
-      paymentCurrency: basePayment.paymentCurrency,
-      // La fecha puede quedar como original si no la cambiamos
-      date: basePayment.date,
+    fireEvent.change(screen.getByLabelText("Fecha"), {
+      target: { value: "2025-12-31" },
     });
+
+    fireEvent.click(screen.getByRole("button", { name: /Guardar cambios/i }));
+
+    expect(onEdit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "Nuevo desc",
+        amount: 2000,
+        paymentCurrency: PaymentCurrency.USD,
+        date: "2025-12-31",
+      })
+    );
   });
 
-  it("llama onDelete con el pago original", async () => {
-    const user = userEvent.setup();
+  it("llama a onDelete al presionar el botón eliminar", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
     const onDelete = vi.fn();
 
-    render(<PaymentItem payment={basePayment} onDelete={onDelete} />, {
-      wrapper: WithTheme,
-    });
+    renderWithTheme(<PaymentItem payment={basePayment} onDelete={onDelete} />);
 
-    await user.click(screen.getByTestId("DeleteIcon").closest("button")!);
+    fireEvent.click(screen.getByRole("button", { name: /Eliminar pago/i }));
 
-    expect(onDelete).toHaveBeenCalledTimes(1);
     expect(onDelete).toHaveBeenCalledWith(basePayment);
   });
 });

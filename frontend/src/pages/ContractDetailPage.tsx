@@ -16,7 +16,7 @@ import PeriodCard from "../app/user/components/contracts/contractDetail/PeriodCa
 import DepositCard from "../app/user/components/contracts/contractDetail/DepositCard.tsx";
 import FinancialCard from "../app/user/components/contracts/contractDetail/FinancialCard.tsx";
 import GuarantorsCard from "../app/user/components/contracts/contractDetail/GuarantorsCard.tsx";
-import CommissionCard from "../app/user/components/contracts/contractDetail/ComissionCard.tsx";
+import CommissionCard from "../app/user/components/contracts/contractDetail/CommissionCard.tsx";
 import ServicesExpensesCard from "../app/user/components/contracts/contractDetail/ServicesExpensesCard.tsx";
 import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase.tsx";
 import { PaymentRentDialog } from "../app/user/components/payments/PaymentRentDialog";

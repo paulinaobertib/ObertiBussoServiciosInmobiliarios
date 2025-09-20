@@ -1,19 +1,28 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import {
   postContract,
   putContract,
   patchContractStatus,
   deleteContract,
+  deleteContractsByProperty,
+  deleteContractsByUser,
   getContractById,
   getAllContracts,
   getContractsByUserId,
   getContractsByPropertyId,
   getContractsByType,
   getContractsByStatus,
+  getContractsByDate,
   getContractsByDateRange,
-} from '../../services/contract.service';
+  getActiveContracts,
+  getContractsExpiringWithin,
+  getContractsEndingOn,
+  getContractsEndingBetween,
+} from "../../services/contract.service";
 
-vi.mock('../../../../api', () => ({
+vi.mock("../../../../api", () => ({
   api: {
     get: vi.fn(),
     post: vi.fn(),
@@ -23,229 +32,407 @@ vi.mock('../../../../api', () => ({
   },
 }));
 
-import { api } from '../../../../api';
+import { api } from "../../../../api";
 
-const resp = (data: any) => ({ data });
+describe("contract.service", () => {
+  const resp = (data: any, status = 200) => ({ data, status });
+  const cred = { withCredentials: true };
 
-describe('contract.service', () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
+  let debugSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
   });
 
   afterEach(() => {
     errorSpy.mockRestore();
+    debugSpy.mockRestore();
   });
 
-  it('postContract: POST /users/contracts/create con body y withCredentials; retorna response.data', async () => {
-    const body = { propertyId: 1, userId: 'u1', contractType: 'VIVIENDA' };
-    (api.post as any).mockResolvedValueOnce(resp({ id: 99 }));
-
-    const r = await postContract(body as any);
-
-    expect(api.post).toHaveBeenCalledWith(
-      '/users/contracts/create',
-      body,
-      { withCredentials: true }
-    );
-    expect(r).toEqual({ id: 99 });
+  /* ------------------------- POST ------------------------- */
+  it("postContract: POST /users/contracts/create con body y withCredentials", async () => {
+    const body = { foo: "bar" } as any;
+    (api.post as any).mockResolvedValueOnce(resp({ ok: true }));
+    const r = await postContract(body);
+    expect(api.post).toHaveBeenCalledWith("/users/contracts/create", body, cred);
+    expect(r).toEqual({ ok: true });
   });
 
-  it('postContract: re-lanza error y loguea', async () => {
-    const err = new Error('create fail');
-    (api.post as any).mockRejectedValueOnce(err);
-
-    await expect(postContract({} as any)).rejects.toThrow('create fail');
-    expect(errorSpy).toHaveBeenCalledWith('Error creating contract:', err);
+  it("postContract: re-lanza y loguea", async () => {
+    const boom = new Error("create fail");
+    (api.post as any).mockRejectedValueOnce(boom);
+    await expect(postContract({} as any)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith("Error creating contract:", boom);
   });
 
-  it('putContract: PUT /users/contracts/update/{id} con body y withCredentials; retorna response.data', async () => {
-    const body = { propertyId: 1, userId: 'u1', contractStatus: 'ACTIVO' };
-    (api.put as any).mockResolvedValueOnce(resp({ ok: true }));
-
-    const r = await putContract(10, body as any);
-
+  /* ------------------------- PUT ------------------------- */
+  it("putContract: PUT /users/contracts/update/{id} con body, withCredentials y logs de debug", async () => {
+    (api.put as any).mockResolvedValueOnce(resp({ ok: true }, 200));
+    const r = await putContract(7, { a: 1 } as any);
     expect(api.put).toHaveBeenCalledWith(
-      '/users/contracts/update/10',
-      body,
-      { withCredentials: true }
+      "/users/contracts/update/7",
+      { a: 1 },
+      cred
     );
     expect(r).toEqual({ ok: true });
+
+    // Debe haber logs de debug antes y después
+    const calls = debugSpy.mock.calls.map((c) => String(c[0]));
+    expect(calls.some((s) => s.includes("PUT /users/contracts/update"))).toBe(
+      true
+    );
+    expect(calls.some((s) => s.includes("PUT done"))).toBe(true);
   });
 
-  it('putContract: re-lanza error y loguea', async () => {
-    const boom = new Error('update fail');
+  it("putContract: re-lanza y loguea status/data", async () => {
+    const boom: any = { response: { status: 409, data: "conflict" } };
     (api.put as any).mockRejectedValueOnce(boom);
-
-    await expect(putContract(1 as any, {} as any)).rejects.toThrow('update fail');
-    expect(errorSpy).toHaveBeenCalledWith('Error updating contract:', boom);
+    await expect(putContract(1, {} as any)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[contract.service] Error updating contract:",
+      { status: 409, data: "conflict", error: boom }
+    );
   });
 
-  it('patchContractStatus: PATCH /users/contracts/updateStatus/{id} con null y withCredentials; retorna response.data', async () => {
+  /* ------------------------- PATCH ------------------------- */
+  it("patchContractStatus: PATCH /users/contracts/updateStatus/{id} con null y withCredentials", async () => {
     (api.patch as any).mockResolvedValueOnce(resp({ ok: true }));
-
-    const r = await patchContractStatus(7);
-
+    const r = await patchContractStatus(9);
     expect(api.patch).toHaveBeenCalledWith(
-      '/users/contracts/updateStatus/7',
+      "/users/contracts/updateStatus/9",
       null,
-      { withCredentials: true }
+      cred
     );
     expect(r).toEqual({ ok: true });
   });
 
-  it('patchContractStatus: re-lanza error y loguea', async () => {
-    const err = new Error('status fail');
-    (api.patch as any).mockRejectedValueOnce(err);
-
-    await expect(patchContractStatus(1)).rejects.toThrow('status fail');
-    expect(errorSpy).toHaveBeenCalledWith('Error updating contract status:', err);
+  it("patchContractStatus: re-lanza y loguea", async () => {
+    const boom = new Error("status fail");
+    (api.patch as any).mockRejectedValueOnce(boom);
+    await expect(patchContractStatus(9)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error updating contract status:",
+      boom
+    );
   });
 
-  it('deleteContract: DELETE /users/contracts/delete/{id}; retorna response.data', async () => {
+  /* ------------------------- DELETE (id) ------------------------- */
+  it("deleteContract: DELETE /users/contracts/delete/{id}", async () => {
     (api.delete as any).mockResolvedValueOnce(resp({ ok: true }));
-
-    const r = await deleteContract(33);
-
+    const r = await deleteContract(3);
     expect(api.delete).toHaveBeenCalledWith(
-      '/users/contracts/delete/33',
-      { withCredentials: true }
+      "/users/contracts/delete/3",
+      cred
     );
     expect(r).toEqual({ ok: true });
   });
 
-  it('deleteContract: re-lanza error y loguea', async () => {
-    const err = new Error('delete fail');
-    (api.delete as any).mockRejectedValueOnce(err);
-
-    await expect(deleteContract(9)).rejects.toThrow('delete fail');
-    expect(errorSpy).toHaveBeenCalledWith('Error deleting contract:', err);
-  });
-
-  it('getContractById: GET /users/contracts/getById/{id}; retorna response.data', async () => {
-    (api.get as any).mockResolvedValueOnce(resp({ id: 5 }));
-
-    const r = await getContractById(5);
-
-    expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getById/5',
-      { withCredentials: true }
-    );
-    expect(r).toEqual({ id: 5 });
-  });
-
-  it('getContractById: re-lanza error y loguea con ID en el mensaje', async () => {
-    const err = new Error('not found');
-    (api.get as any).mockRejectedValueOnce(err);
-
-    await expect(getContractById(404)).rejects.toThrow('not found');
+  it("deleteContract: re-lanza y loguea", async () => {
+    const boom = new Error("del one fail");
+    (api.delete as any).mockRejectedValueOnce(boom);
+    await expect(deleteContract(3)).rejects.toBe(boom);
     expect(errorSpy).toHaveBeenCalledWith(
-      'Error fetching contract with ID 404:',
-      err
+      "Error deleting contract:",
+      boom
     );
   });
 
-  it('getAllContracts: GET /users/contracts/getAll; retorna response.data', async () => {
-    (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }, { id: 2 }]));
+  /* ------------------------- DELETE by property ------------------------- */
+  it("deleteContractsByProperty: DELETE /users/contracts/deleteByProperty/{propertyId}", async () => {
+    (api.delete as any).mockResolvedValueOnce(resp({ ok: true }));
+    const r = await deleteContractsByProperty(15);
+    expect(api.delete).toHaveBeenCalledWith(
+      "/users/contracts/deleteByProperty/15",
+      cred
+    );
+    expect(r).toEqual({ ok: true });
+  });
 
+  it("deleteContractsByProperty: re-lanza y loguea", async () => {
+    const boom = new Error("del prop fail");
+    (api.delete as any).mockRejectedValueOnce(boom);
+    await expect(deleteContractsByProperty(15)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error deleting contracts for property 15:",
+      boom
+    );
+  });
+
+  /* ------------------------- DELETE by user ------------------------- */
+  it("deleteContractsByUser: DELETE /users/contracts/deleteByUser/{userId}", async () => {
+    (api.delete as any).mockResolvedValueOnce(resp({ ok: true }));
+    const r = await deleteContractsByUser("u-99");
+    expect(api.delete).toHaveBeenCalledWith(
+      "/users/contracts/deleteByUser/u-99",
+      cred
+    );
+    expect(r).toEqual({ ok: true });
+  });
+
+  it("deleteContractsByUser: re-lanza y loguea", async () => {
+    const boom = new Error("del user fail");
+    (api.delete as any).mockRejectedValueOnce(boom);
+    await expect(deleteContractsByUser("u-99")).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error deleting contracts for user u-99:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET by id ------------------------- */
+  it("getContractById: GET /users/contracts/getById/{id}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp({ id: 22 }));
+    const r = await getContractById(22);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/getById/22",
+      cred
+    );
+    expect(r).toEqual({ id: 22 });
+  });
+
+  it("getContractById: re-lanza y loguea", async () => {
+    const boom = new Error("by id fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractById(22)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contract with ID 22:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET all ------------------------- */
+  it("getAllContracts: GET /users/contracts/getAll", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }]));
     const r = await getAllContracts();
-
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getAll',
-      { withCredentials: true }
+      "/users/contracts/getAll",
+      cred
     );
-    expect(r).toEqual([{ id: 1 }, { id: 2 }]);
+    expect(r).toEqual([{ id: 1 }]);
   });
 
-  it('getContractsByUserId: GET /users/contracts/getByUser/{userId}; retorna response.data', async () => {
-    (api.get as any).mockResolvedValueOnce(resp([{ id: 'a' }]));
-
-    const r = await getContractsByUserId('u1');
-
-    expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getByUser/u1',
-      { withCredentials: true }
-    );
-    expect(r).toEqual([{ id: 'a' }]);
-  });
-
-  it('getContractsByUserId: re-lanza error y loguea con userId', async () => {
-    const err = new Error('user fail');
-    (api.get as any).mockRejectedValueOnce(err);
-
-    await expect(getContractsByUserId('uX')).rejects.toThrow('user fail');
+  it("getAllContracts: re-lanza y loguea", async () => {
+    const boom = new Error("all fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getAllContracts()).rejects.toBe(boom);
     expect(errorSpy).toHaveBeenCalledWith(
-      'Error fetching contracts for user uX:',
-      err
+      "Error fetching all contracts:",
+      boom
     );
   });
 
-  it('getContractsByPropertyId: GET /users/contracts/getByProperty/{propertyId}', async () => {
-    (api.get as any).mockResolvedValueOnce(resp([{ id: 'p' }]));
-
-    const r = await getContractsByPropertyId(777);
-
+  /* ------------------------- GET by user ------------------------- */
+  it("getContractsByUserId: GET /users/contracts/getByUser/{userId}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "a" }]));
+    const r = await getContractsByUserId("u1");
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getByProperty/777',
-      { withCredentials: true }
+      "/users/contracts/getByUser/u1",
+      cred
     );
-    expect(r).toEqual([{ id: 'p' }]);
+    expect(r).toEqual([{ id: "a" }]);
   });
 
-  it('getContractsByPropertyId: re-lanza error y loguea con propertyId', async () => {
-    const err = new Error('prop fail');
-    (api.get as any).mockRejectedValueOnce(err);
-
-    await expect(getContractsByPropertyId(2)).rejects.toThrow('prop fail');
+  it("getContractsByUserId: re-lanza y loguea", async () => {
+    const boom = new Error("by user fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsByUserId("u1")).rejects.toBe(boom);
     expect(errorSpy).toHaveBeenCalledWith(
-      'Error fetching contracts for property 2:',
-      err
+      "Error fetching contracts for user u1:",
+      boom
     );
   });
 
-  it('getContractsByType: GET /users/contracts/getByType con params {type}', async () => {
-    (api.get as any).mockResolvedValueOnce(resp([{ id: 't' }]));
-
-    const r = await getContractsByType('RENT' as any);
-
+  /* ------------------------- GET by property ------------------------- */
+  it("getContractsByPropertyId: GET /users/contracts/getByProperty/{propertyId}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "b" }]));
+    const r = await getContractsByPropertyId(88);
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getByType',
-      { params: { type: 'RENT' }, withCredentials: true }
+      "/users/contracts/getByProperty/88",
+      cred
     );
-    expect(r).toEqual([{ id: 't' }]);
+    expect(r).toEqual([{ id: "b" }]);
   });
 
-  it('getContractsByStatus: GET /users/contracts/getByStatus con params {status}', async () => {
-    (api.get as any).mockResolvedValueOnce(resp([{ id: 's' }]));
+  it("getContractsByPropertyId: re-lanza y loguea", async () => {
+    const boom = new Error("by prop fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsByPropertyId(88)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contracts for property 88:",
+      boom
+    );
+  });
 
-    const r = await getContractsByStatus('ACTIVE' as any);
-
+  /* ------------------------- GET by type ------------------------- */
+  it("getContractsByType: GET /users/contracts/getByType con params {type}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "t" }]));
+    const r = await getContractsByType("RENT" as any);
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getByStatus',
-      { params: { status: 'ACTIVE' }, withCredentials: true }
+      "/users/contracts/getByType",
+      { params: { type: "RENT" }, withCredentials: true }
     );
-    expect(r).toEqual([{ id: 's' }]);
+    expect(r).toEqual([{ id: "t" }]);
   });
 
-  it('getContractsByDateRange: GET /users/contracts/getByDateRange con params {from,to}', async () => {
-    (api.get as any).mockResolvedValueOnce(resp([{ id: 'd' }]));
+  it("getContractsByType: re-lanza y loguea", async () => {
+    const boom = new Error("by type fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsByType("RENT" as any)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contracts by type:",
+      boom
+    );
+  });
 
-    const r = await getContractsByDateRange('2025-01-01', '2025-01-31');
-
+  /* ------------------------- GET by status ------------------------- */
+  it("getContractsByStatus: GET /users/contracts/getByStatus con params {status}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "s" }]));
+    const r = await getContractsByStatus("ACTIVE" as any);
     expect(api.get).toHaveBeenCalledWith(
-      '/users/contracts/getByDateRange',
-      { params: { from: '2025-01-01', to: '2025-01-31' }, withCredentials: true }
+      "/users/contracts/getByStatus",
+      { params: { status: "ACTIVE" }, withCredentials: true }
     );
-    expect(r).toEqual([{ id: 'd' }]);
+    expect(r).toEqual([{ id: "s" }]);
   });
 
-  it('getContractsByDateRange: re-lanza error y loguea', async () => {
-    const err = new Error('range fail');
-    (api.get as any).mockRejectedValueOnce(err);
+  it("getContractsByStatus: re-lanza y loguea", async () => {
+    const boom = new Error("by status fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsByStatus("ACTIVE" as any)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contracts by status:",
+      boom
+    );
+  });
 
-    await expect(getContractsByDateRange('a', 'b')).rejects.toThrow('range fail');
-    expect(errorSpy).toHaveBeenCalledWith('Error fetching contracts by date range:', err);
+  /* ------------------------- GET by date ------------------------- */
+  it("getContractsByDate: GET /users/contracts/getByDate con params {date}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "d" }]));
+    const r = await getContractsByDate("2025-01-01");
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/getByDate",
+      { params: { date: "2025-01-01" }, withCredentials: true }
+    );
+    expect(r).toEqual([{ id: "d" }]);
+  });
+
+  it("getContractsByDate: re-lanza y loguea", async () => {
+    const boom = new Error("by date fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsByDate("2025-01-01")).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contracts by date:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET by date range ------------------------- */
+  it("getContractsByDateRange: GET /users/contracts/getByDateRange con params {from,to}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "dr" }]));
+    const r = await getContractsByDateRange("2025-01-01", "2025-12-31");
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/getByDateRange",
+      { params: { from: "2025-01-01", to: "2025-12-31" }, withCredentials: true }
+    );
+    expect(r).toEqual([{ id: "dr" }]);
+  });
+
+  it("getContractsByDateRange: re-lanza y loguea", async () => {
+    const boom = new Error("by range fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsByDateRange("a", "b")).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contracts by date range:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET active ------------------------- */
+  it("getActiveContracts: GET /users/contracts/active", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "act" }]));
+    const r = await getActiveContracts();
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/active",
+      cred
+    );
+    expect(r).toEqual([{ id: "act" }]);
+  });
+
+  it("getActiveContracts: re-lanza y loguea", async () => {
+    const boom = new Error("active fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getActiveContracts()).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching active contracts:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET expiringWithin ------------------------- */
+  it("getContractsExpiringWithin: GET /users/contracts/expiringWithinDays con params {days}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "ex" }]));
+    const r = await getContractsExpiringWithin(45);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/expiringWithinDays",
+      { params: { days: 45 }, withCredentials: true }
+    );
+    expect(r).toEqual([{ id: "ex" }]);
+  });
+
+  it("getContractsExpiringWithin: re-lanza y loguea", async () => {
+    const boom = new Error("exp fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsExpiringWithin(1)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching expiring contracts:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET endingOn ------------------------- */
+  it("getContractsEndingOn: GET /users/contracts/endingOn con params {date}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "eo" }]));
+    const r = await getContractsEndingOn("2026-03-31");
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/endingOn",
+      { params: { date: "2026-03-31" }, withCredentials: true }
+    );
+    expect(r).toEqual([{ id: "eo" }]);
+  });
+
+  it("getContractsEndingOn: re-lanza y loguea", async () => {
+    const boom = new Error("ending on fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(getContractsEndingOn("x")).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching ending-on contracts:",
+      boom
+    );
+  });
+
+  /* ------------------------- GET endingBetween ------------------------- */
+  it("getContractsEndingBetween: GET /users/contracts/endingBetween con params {from,to}", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: "eb" }]));
+    const r = await getContractsEndingBetween("2026-01-01", "2026-12-31");
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/contracts/endingBetween",
+      { params: { from: "2026-01-01", to: "2026-12-31" }, withCredentials: true }
+    );
+    expect(r).toEqual([{ id: "eb" }]);
+  });
+
+  it("getContractsEndingBetween: re-lanza y loguea", async () => {
+    const boom = new Error("ending between fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+    await expect(
+      getContractsEndingBetween("a", "b")
+    ).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching contracts ending between dates:",
+      boom
+    );
   });
 });
