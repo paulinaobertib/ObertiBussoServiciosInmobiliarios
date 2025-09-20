@@ -9,7 +9,7 @@ import { useContractNames } from "../../hooks/contracts/useContractNames";
 import { buildRoute, ROUTES } from "../../../../lib";
 import type { Contract } from "../../types/contract";
 
-const typeLabel = (t?: Contract["contractType"]) => {
+export const typeLabel = (t?: Contract["contractType"]) => {
   if (!t) return "";
   const map: Record<string, string> = {
     VIVIENDA: "Vivienda",

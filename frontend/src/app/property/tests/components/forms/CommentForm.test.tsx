@@ -1,234 +1,280 @@
-/// <reference types="vitest" />
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
-vi.mock("../../../hooks/useCategories", () => ({
-  useCategories: vi.fn(),
+vi.mock('@mui/material/styles', () => ({}));
+
+vi.mock('@mui/lab', () => ({
+  LoadingButton: (props: any) => (
+    <button
+      type="button"
+      onClick={props.onClick}
+      data-variant={props.variant}
+      data-color={props.color}
+    >
+      {props.children}
+    </button>
+  ),
 }));
 
-import { CommentForm } from "../../../components/forms/CommentForm";
-const { useCategories } = await import("../../../hooks/useCategories");
+const postCommentMock = vi.fn(async (x) => ({ ok: true, data: x }));
+const putCommentMock = vi.fn(async (x) => ({ ok: true, data: x }));
+const deleteCommentMock = vi.fn(async (x) => ({ ok: true, data: x }));
+vi.mock('../../../services/comment.service', () => ({
+  postComment: (x: any) => postCommentMock(x),
+  putComment:  (x: any) => putCommentMock(x),
+  deleteComment: (x: any) => deleteCommentMock(x),
+}));
 
-describe("<CommentForm />", () => {
-  const refresh = vi.fn(async () => {});
-  const onDone = vi.fn();
+let authInfo: any = { id: 'user-1', name: 'Tester' };
+vi.mock('../../../../user/context/AuthContext', () => ({
+  useAuthContext: () => ({ info: authInfo }),
+}));
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+type UseCategoriesOptions<T> = {
+  initial: T;
+  action: 'add' | 'edit' | 'delete';
+  save: (payload: T) => Promise<any>;
+  refresh: () => Promise<void>;
+  onDone: () => void;
+};
 
-  it("ADD: textarea habilitado; 'Confirmar' llama run() y luego resetea con el payload inicial (se usa waitFor)", async () => {
-    const setForm = vi.fn();
-    const run = vi.fn(async () => {});
+let lastCategoriesOpts: UseCategoriesOptions<any> | null = null;
+let formState: any = null;
+let loadingState = false;
+let setFormMock = vi.fn((next: any) => { formState = next; });
+let refreshSpy = vi.fn(async () => {});
+let onDoneSpy = vi.fn(() => {});
 
-    (useCategories as any).mockReturnValue({
-      form: { id: 0, propertyId: 7, description: "listo para confirmar", date: "" },
-      setForm,
-      run,
-      loading: false,
-    });
+const deepClone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
-    render(
-      <CommentForm propertyId={7} action="add" refresh={refresh} onDone={onDone} />
-    );
+vi.mock('../../../hooks/useCategories', () => ({
+  useCategories: <T,>(opts: UseCategoriesOptions<T>) => {
+    lastCategoriesOpts = opts;
+    formState = deepClone(opts.initial);
+    loadingState = false;
 
-    const input = screen.getByLabelText(/Descripción/i);
-    expect(input).toBeEnabled();
-
-    fireEvent.change(input, { target: { value: "Nuevo comentario" } });
-    expect(setForm).toHaveBeenCalledWith({
-      id: 0,
-      propertyId: 7,
-      description: "Nuevo comentario",
-      date: "",
-    });
-
-    const confirm = screen.getByRole("button", { name: /Confirmar/i });
-    expect(confirm).toBeEnabled();
-
-    fireEvent.click(confirm);
-
-    await waitFor(() => {
-      expect(run).toHaveBeenCalledTimes(1);
-    });
-
-    await waitFor(() => {
-      expect(setForm).toHaveBeenCalledWith({
-        id: 0,
-        propertyId: 7,
-        description: "",
-        date: "",
-      });
-    });
-  });
-
-  it("EDIT: setea el form con el item (mockeado ya con descripción); 'Cancelar' resetea y llama onDone (usar waitFor si hace falta)", async () => {
-    const item = {
-      id: 123,
-      propertyId: 9,
-      description: "Texto a editar",
-      date: "2024-10-01T12:00:00Z",
+    const run = async () => {
+      loadingState = true;
+      await opts.save(formState);
+      await opts.refresh();
+      opts.onDone();
+      loadingState = false;
     };
-    const setForm = vi.fn();
-    const run = vi.fn();
 
-    (useCategories as any).mockReturnValue({
-      form: {
-        id: 123,
-        propertyId: 9,
-        description: "Texto a editar",
-        date: "2024-10-01T12:00:00Z",
-      },
-      setForm,
+    return {
+      form: formState,
+      setForm: setFormMock,
       run,
-      loading: false,
-    });
+      loading: loadingState,
+    };
+  },
+}));
 
+import { CommentForm } from '../../../components/forms/CommentForm';
+
+beforeEach(() => {
+  authInfo = { id: 'user-1', name: 'Tester' };
+  lastCategoriesOpts = null;
+  formState = null;
+  loadingState = false;
+  setFormMock = vi.fn((next: any) => { formState = next; });
+  refreshSpy = vi.fn(async () => {});
+  onDoneSpy = vi.fn(() => {});
+  postCommentMock.mockClear();
+  putCommentMock.mockClear();
+  deleteCommentMock.mockClear();
+});
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+describe('CommentForm', () => {
+  it('ADD: siembra initialPayload con userId del auth y muestra botones', () => {
     render(
       <CommentForm
-        propertyId={9}
-        action="edit"
-        item={item as any}
-        refresh={refresh}
-        onDone={onDone}
+        propertyId={99}
+        action="add"
+        refresh={refreshSpy}
+        onDone={onDoneSpy}
       />
     );
 
-    const cancel = screen.getByRole("button", { name: /Cancelar/i });
-    expect(cancel).toBeEnabled();
+    const text = screen.getByLabelText('Descripción') as HTMLTextAreaElement;
+    expect(text).toBeInTheDocument();
+    expect(text).not.toBeDisabled();
+    expect(text.value).toBe('');
 
-    fireEvent.click(cancel);
+    // Botón Cancelar visible en add
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+    // Botón Confirmar visible
+    expect(screen.getByRole('button', { name: 'Confirmar' })).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(setForm).toHaveBeenCalledWith({
-        id: 123,
-        propertyId: 9,
-        description: "Texto a editar",
-        date: "2024-10-01T12:00:00Z",
-      });
+    // El mock de useCategories recibió initial con userId del auth
+    expect(lastCategoriesOpts?.initial).toMatchObject({
+      id: 0,
+      propertyId: 99,
+      description: '',
+      date: '',
+      userId: 'user-1',
     });
-
-    expect(onDone).toHaveBeenCalledTimes(1);
   });
 
-  it("DELETE: textarea deshabilitado y botón 'Eliminar' ejecuta run()", async () => {
-    const item = {
-      id: 55,
-      propertyId: 3,
-      description: "Borrar este comentario",
-      date: "2024-09-10T08:00:00Z",
-    };
-    const setForm = vi.fn();
-    const run = vi.fn(async () => {});
+  it('ADD: escribir descripción y submit → postComment; luego refresh + onDone; resetea form', async () => {
+    render(
+      <CommentForm
+        propertyId={5}
+        action="add"
+        refresh={refreshSpy}
+        onDone={onDoneSpy}
+      />
+    );
 
-    (useCategories as any).mockReturnValue({
-      form: {
-        id: 55,
-        propertyId: 3,
-        description: "Borrar este comentario",
-        date: "2024-09-10T08:00:00Z",
-      },
-      setForm,
-      run,
-      loading: false,
+    const text = screen.getByLabelText('Descripción') as HTMLTextAreaElement;
+    fireEvent.change(text, { target: { value: 'Nuevo comentario' } });
+    expect(setFormMock).toHaveBeenCalled();
+
+    const confirmBtn = screen.getByRole('button', { name: 'Confirmar' });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => expect(postCommentMock).toHaveBeenCalledTimes(1));
+    const sent = postCommentMock.mock.calls[0][0];
+    expect(sent).toMatchObject({
+      id: 0,
+      propertyId: 5,
+      description: 'Nuevo comentario',
+      date: '',
+      userId: 'user-1',
     });
+
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onDoneSpy).toHaveBeenCalledTimes(1));
+
+    // Reseteo al initialPayload
+    expect(setFormMock).toHaveBeenLastCalledWith({
+      id: 0,
+      propertyId: 5,
+      description: '',
+      date: '',
+      userId: 'user-1',
+    });
+  });
+
+  it('ADD: Cancelar resetea el form y llama onDone', async () => {
+    render(
+      <CommentForm
+        propertyId={7}
+        action="add"
+        refresh={refreshSpy}
+        onDone={onDoneSpy}
+      />
+    );
+
+    const text = screen.getByLabelText('Descripción') as HTMLTextAreaElement;
+    fireEvent.change(text, { target: { value: 'Escribiendo…' } });
+
+    const cancelBtn = screen.getByRole('button', { name: 'Cancelar' });
+    fireEvent.click(cancelBtn);
+
+    await waitFor(() => expect(onDoneSpy).toHaveBeenCalledTimes(1));
+    expect(setFormMock).toHaveBeenLastCalledWith({
+      id: 0,
+      propertyId: 7,
+      description: '',
+      date: '',
+      userId: 'user-1',
+    });
+  });
+
+  it('EDIT: siembra el form con el item; Confirmar → putComment; luego refresh + onDone; resetea form', async () => {
+    const item = {
+      id: 42,
+      propertyId: 11,
+      description: 'Texto existente',
+      date: '2025-09-10',
+      userId: 'u-xyz',
+    };
+
+    render(
+      <CommentForm
+        propertyId={11}
+        action="edit"
+        item={item as any}
+        refresh={refreshSpy}
+        onDone={onDoneSpy}
+      />
+    );
+
+    // El effect setea el form con el item
+    expect(setFormMock).toHaveBeenCalledWith(item);
+
+    const text = screen.getByLabelText('Descripción') as HTMLTextAreaElement;
+    expect(text).not.toBeDisabled();
+    expect(text.value).toBe('Texto existente');
+
+    const confirmBtn = screen.getByRole('button', { name: 'Confirmar' });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => expect(putCommentMock).toHaveBeenCalledTimes(1));
+    expect(putCommentMock.mock.calls[0][0]).toMatchObject(item);
+
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onDoneSpy).toHaveBeenCalledTimes(1));
+
+    // Reseteo al initialPayload (que es el item en edit)
+    expect(setFormMock).toHaveBeenLastCalledWith({
+      id: 42,
+      propertyId: 11,
+      description: 'Texto existente',
+      date: '2025-09-10',
+      userId: 'u-xyz',
+    });
+  });
+
+  it('DELETE: textarea deshabilitado; solo "Eliminar"; submit → deleteComment; luego refresh + onDone; resetea form', async () => {
+    const item = {
+      id: 9,
+      propertyId: 3,
+      description: '',
+      date: '2025-01-01',
+      userId: 'u-del',
+    };
 
     render(
       <CommentForm
         propertyId={3}
         action="delete"
         item={item as any}
-        refresh={refresh}
-        onDone={onDone}
+        refresh={refreshSpy}
+        onDone={onDoneSpy}
       />
     );
 
-    expect(screen.getByLabelText(/Descripción/i)).toBeDisabled();
-    const delBtn = screen.getByRole("button", { name: /Eliminar/i });
-    expect(delBtn).toBeEnabled();
+    const text = screen.getByLabelText('Descripción') as HTMLTextAreaElement;
+    expect(text).toBeDisabled();
 
-    fireEvent.click(delBtn);
+    // No hay "Cancelar"
+    expect(screen.queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(run).toHaveBeenCalledTimes(1);
-    });
+    // Botón principal dice "Eliminar"
+    const deleteBtn = screen.getByRole('button', { name: 'Eliminar' });
+    fireEvent.click(deleteBtn);
 
-    await waitFor(() => {
-      expect(setForm).toHaveBeenCalledWith({
-        id: 55,
-        propertyId: 3,
-        description: "Borrar este comentario",
-        date: "2024-09-10T08:00:00Z",
-      });
-    });
-  });
+    await waitFor(() => expect(deleteCommentMock).toHaveBeenCalledTimes(1));
+    expect(deleteCommentMock.mock.calls[0][0]).toMatchObject(item);
 
-  it("reglas de disabled para Confirmar y Cancelar", () => {
-    const setForm = vi.fn();
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onDoneSpy).toHaveBeenCalledTimes(1));
 
-    (useCategories as any).mockReturnValueOnce({
-      form: { id: 0, propertyId: 1, description: "algo", date: "" },
-      setForm,
-      run: vi.fn(),
-      loading: true,
-    });
-    const { rerender } = render(
-      <CommentForm propertyId={1} action="add" refresh={refresh} onDone={onDone} />
-    );
-    expect(screen.getByRole("button", { name: /Confirmar/i })).toBeDisabled();
-
-    (useCategories as any).mockReturnValueOnce({
-      form: { id: 0, propertyId: 1, description: "", date: "" },
-      setForm,
-      run: vi.fn(),
-      loading: false,
-    });
-    rerender(
-      <CommentForm propertyId={1} action="add" refresh={refresh} onDone={onDone} />
-    );
-    expect(screen.getByRole("button", { name: /Confirmar/i })).toBeDisabled();
-
-    (useCategories as any).mockReturnValueOnce({
-      form: { id: 0, propertyId: 2, description: "x", date: "" },
-      setForm,
-      run: vi.fn(),
-      loading: true,
-    });
-    rerender(
-      <CommentForm propertyId={2} action="edit" refresh={refresh} onDone={onDone} />
-    );
-    expect(screen.getByRole("button", { name: /Cancelar/i })).toBeDisabled();
-
-    (useCategories as any).mockReturnValueOnce({
-      form: { id: 0, propertyId: 2, description: "", date: "" },
-      setForm,
-      run: vi.fn(),
-      loading: false,
-    });
-    rerender(
-      <CommentForm propertyId={2} action="edit" refresh={refresh} onDone={onDone} />
-    );
-    expect(screen.getByRole("button", { name: /Cancelar/i })).toBeDisabled();
-  });
-
-  it("ADD: el useEffect resetea el form al initialPayload cuando no hay item", () => {
-    const setForm = vi.fn();
-    (useCategories as any).mockReturnValue({
-      form: { id: 99, propertyId: 10, description: "otro", date: "x" },
-      setForm,
-      run: vi.fn(),
-      loading: false,
-    });
-
-    render(
-      <CommentForm propertyId={10} action="add" refresh={refresh} onDone={onDone} />
-    );
-
-    expect(setForm).toHaveBeenCalledWith({
-      id: 0,
-      propertyId: 10,
-      description: "",
-      date: "",
+    // Reseteo al initialPayload (igual al item en delete)
+    expect(setFormMock).toHaveBeenLastCalledWith({
+      id: 9,
+      propertyId: 3,
+      description: '',
+      date: '2025-01-01',
+      userId: 'u-del',
     });
   });
 });

@@ -1,161 +1,212 @@
-/// <reference types="vitest" />
-import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
-// IMPORT BAJO TEST
-import { CommentSection } from "../../../components/comments/CommentSection";
+vi.mock('@mui/material/styles', () => ({}));
 
-// Mock del formulario: muestra un botón que dispara onDone y guarda props
-vi.mock("../../../components/forms/CommentForm", () => ({
+const lastFormProps: any[] = [];
+const lastListProps: any[] = [];
+
+vi.mock('../../../components/forms/CommentForm', () => ({
   CommentForm: (props: any) => {
+    lastFormProps.push(props);
+    // Exponemos botones utilitarios para disparar onDone desde el test
     return (
-      <div data-testid="comment-form">
-        <div data-testid="comment-form-props">{JSON.stringify({ action: props.action, item: props.item, propertyId: props.propertyId })}</div>
-        <button onClick={() => props.onDone?.()} data-testid="btn-form-done">done</button>
+      <div data-testid="comment-form" data-action={props.action} data-item-id={props.item?.id ?? ''}>
+        <button onClick={() => props.onDone?.()} data-testid="form-done">form-done</button>
       </div>
     );
   },
 }));
 
-// Mock de la lista: muestra dos botones para simular editar/eliminar el primer item
-vi.mock("../../../components/comments/CommentList", () => ({
+vi.mock('../../../components/comments/CommentList', () => ({
   CommentList: (props: any) => {
+    lastListProps.push(props);
+    // Renderizamos botones para simular editar/eliminar el primer item
+    const first = props.items?.[0];
     return (
       <div data-testid="comment-list">
         <button
-          data-testid="btn-edit-item"
-          onClick={() => props.onEditItem?.(props.items?.[0])}
+          onClick={() => props.onEditItem?.(first)}
+          data-testid="list-edit-first"
+          disabled={!first}
         >
-          edit-item
+          edit-first
         </button>
         <button
-          data-testid="btn-delete-item"
-          onClick={() => props.onDeleteItem?.(props.items?.[0])}
+          onClick={() => props.onDeleteItem?.(first)}
+          data-testid="list-delete-first"
+          disabled={!first}
         >
-          delete-item
+          delete-first
         </button>
       </div>
     );
   },
 }));
 
-// Mock del servicio deleteComment
-const deleteCommentMock = vi.fn().mockResolvedValue(undefined);
-vi.mock("../../../services/comment.service", () => ({
-  deleteComment: (...args: any[]) => deleteCommentMock(...args),
+/** Servicio deleteComment */
+const deleteCommentMock = vi.fn(async (x) => ({ ok: true, data: x }));
+vi.mock('../../../services/comment.service', () => ({
+  deleteComment: (x: any) => deleteCommentMock(x),
 }));
 
-describe("<CommentSection />", () => {
-  const refresh = vi.fn().mockResolvedValue(undefined);
-  const propertyId = 77;
-  const items = [
-    { id: 1, description: "primero", date: new Date().toISOString() },
-    { id: 2, description: "segundo", date: new Date().toISOString() },
-  ] as any[];
+/** SUT */
+import { CommentSection } from '../../../components/comments/CommentSection';
+import type { Comment } from '../../../types/comment';
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+beforeEach(() => {
+  lastFormProps.length = 0;
+  lastListProps.length = 0;
+  deleteCommentMock.mockClear();
+});
 
-  afterEach(() => {
-    cleanup();
-  });
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
-  it("render inicial: muestra 'Agregar Comentario', pasa props correctas al CommentForm y renderiza contador de lista", () => {
+const make = (over: Partial<Comment>): Comment => ({
+  id: 1,
+  propertyId: 10,
+  description: 'desc',
+  date: '2025-09-15T10:00:00Z',
+  userId: 'u1',
+  ...over,
+});
+
+describe('CommentSection', () => {
+  it('render inicial: muestra "Agregar Comentario", pasa props a CommentForm y contador de lista', () => {
+    const items = [make({ id: 1 }), make({ id: 2 })];
+    const refresh = vi.fn(async () => {});
+    const getUserName = vi.fn((id: string) => `Name(${id})`);
+
     render(
       <CommentSection
-        propertyId={propertyId}
+        propertyId={999}
         loading={false}
         items={items}
         refresh={refresh}
+        getUserName={getUserName}
       />
     );
 
-    // Título inicial (modo add)
-    expect(screen.getByText(/Agregar Comentario/i)).toBeInTheDocument();
+    // Título del formulario en modo add
+    expect(screen.getByText('Agregar Comentario')).toBeInTheDocument();
 
-    // Form recibe propertyId y action='add'
-    expect(screen.getByTestId("comment-form")).toBeInTheDocument();
-    const parsed = JSON.parse(
-      screen.getByTestId("comment-form-props").textContent || "{}"
-    );
-    expect(parsed).toEqual({
-      action: "add",
-      item: undefined,
-      propertyId,
-    });
+    // El CommentForm se renderiza con action=add, item undefined y propertyId correcto
+    expect(screen.getByTestId('comment-form')).toBeInTheDocument();
+    const lastForm = lastFormProps.at(-1);
+    expect(lastForm.action).toBe('add');
+    expect(lastForm.item).toBeUndefined();
+    expect(lastForm.propertyId).toBe(999);
+    expect(lastForm.refresh).toBe(refresh);
 
-    // Contador de lista
-    expect(screen.getByText(/Lista de Comentarios \(2\)/i)).toBeInTheDocument();
+    // Contador en la lista
+    expect(screen.getByText('Lista de Comentarios (2)')).toBeInTheDocument();
 
-    // Se muestra la lista
-    expect(screen.getByTestId("comment-list")).toBeInTheDocument();
+    // CommentList visible
+    expect(screen.getByTestId('comment-list')).toBeInTheDocument();
+    const lastList = lastListProps.at(-1);
+    expect(Array.isArray(lastList.items)).toBe(true);
+    expect(lastList.items).toHaveLength(2);
+    expect(lastList.getUserName).toBe(getUserName);
   });
 
-  it("al editar un ítem cambia a 'Editar Comentario' y el CommentForm recibe action='edit' + item; luego onDone vuelve a 'Agregar Comentario'", () => {
+  it('al editar desde la lista cambia a "Editar Comentario" y el CommentForm recibe action="edit" e item', () => {
+    const items = [make({ id: 10, description: 'A' }), make({ id: 20, description: 'B' })];
+    const refresh = vi.fn(async () => {});
+
     render(
       <CommentSection
-        propertyId={propertyId}
+        propertyId={5}
         loading={false}
         items={items}
         refresh={refresh}
+        getUserName={(id) => id}
       />
     );
 
-    // Simular click en editar desde la lista (edita el primer item)
-    fireEvent.click(screen.getByTestId("btn-edit-item"));
+    // Disparamos edición del primero desde la lista
+    fireEvent.click(screen.getByTestId('list-edit-first'));
 
-    // Título cambia a Editar Comentario
-    expect(screen.getByText(/Editar Comentario/i)).toBeInTheDocument();
+    // Cambia título
+    expect(screen.getByText('Editar Comentario')).toBeInTheDocument();
 
-    // Form recibe action='edit' e item
-    const parsedEdit = JSON.parse(
-      screen.getByTestId("comment-form-props").textContent || "{}"
-    );
-    expect(parsedEdit.action).toBe("edit");
-    expect(parsedEdit.item).toEqual(items[0]);
-    expect(parsedEdit.propertyId).toBe(propertyId);
-
-    // Disparar onDone del formulario -> vuelve a 'Agregar Comentario'
-    fireEvent.click(screen.getByTestId("btn-form-done"));
-    expect(screen.getByText(/Agregar Comentario/i)).toBeInTheDocument();
-
-    // El form queda con action=add y sin item
-    const parsedAfterDone = JSON.parse(
-      screen.getByTestId("comment-form-props").textContent || "{}"
-    );
-    expect(parsedAfterDone.action).toBe("add");
-    expect(parsedAfterDone.item).toBeUndefined();
+    // El último render del CommentForm debe tener action=edit y item=items[0]
+    const lastForm = lastFormProps.at(-1);
+    expect(lastForm.action).toBe('edit');
+    expect(lastForm.item.id).toBe(10);
   });
 
-  it("loading=true muestra CircularProgress y no renderiza CommentList", () => {
+  it('onDone del CommentForm vuelve a modo add y limpia selección', () => {
+    const items = [make({ id: 10 })];
+    const refresh = vi.fn(async () => {});
+
     render(
       <CommentSection
-        propertyId={propertyId}
+        propertyId={1}
+        loading={false}
+        items={items}
+        refresh={refresh}
+        getUserName={(id) => id}
+      />
+    );
+
+    // Pasamos a editar
+    fireEvent.click(screen.getByTestId('list-edit-first'));
+    expect(screen.getByText('Editar Comentario')).toBeInTheDocument();
+
+    // Disparamos onDone (desde el mock del form)
+    fireEvent.click(screen.getByTestId('form-done'));
+
+    // Debe volver a "Agregar Comentario"
+    expect(screen.getByText('Agregar Comentario')).toBeInTheDocument();
+
+    // Ultimas props del form: action=add, item undefined
+    const lastForm = lastFormProps.at(-1);
+    expect(lastForm.action).toBe('add');
+    expect(lastForm.item).toBeUndefined();
+  });
+
+  it('loading=true muestra spinner y no renderiza CommentList', () => {
+    const items = [make({ id: 1 })];
+
+    render(
+      <CommentSection
+        propertyId={1}
         loading={true}
         items={items}
-        refresh={refresh}
+        refresh={vi.fn(async () => {})}
+        getUserName={(id) => id}
       />
     );
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-    expect(screen.queryByTestId("comment-list")).toBeNull();
+
+    // Spinner
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    // No hay lista
+    expect(screen.queryByTestId('comment-list')).not.toBeInTheDocument();
   });
 
-  it("al eliminar un ítem llama deleteComment y luego refresh", async () => {
+  it('onDeleteItem llama deleteComment y luego refresh', async () => {
+    const items = [make({ id: 7 })];
+    const refresh = vi.fn(async () => {});
+
     render(
       <CommentSection
-        propertyId={propertyId}
+        propertyId={1}
         loading={false}
         items={items}
         refresh={refresh}
+        getUserName={(id) => id}
       />
     );
 
-    fireEvent.click(screen.getByTestId("btn-delete-item"));
+    fireEvent.click(screen.getByTestId('list-delete-first'));
 
-    await waitFor(() => {
-      expect(deleteCommentMock).toHaveBeenCalledWith(items[0]);
-      expect(refresh).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(deleteCommentMock).toHaveBeenCalledTimes(1));
+    expect(deleteCommentMock.mock.calls[0][0].id).toBe(7);
+
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
   });
 });

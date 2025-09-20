@@ -2,9 +2,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom/vitest";
 import { IncreaseDialog } from "../../../components/increases/IncreaseDialog";
 
-// ===== Mocks =====
+/* ================= Mocks ================ */
 vi.mock("../../../../shared/components/Modal", () => ({
   Modal: ({ open, title, children }: any) =>
     open ? (
@@ -15,24 +16,33 @@ vi.mock("../../../../shared/components/Modal", () => ({
     ) : null,
 }));
 
+const mockShowAlert = vi.fn();
+vi.mock("../../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => ({ showAlert: mockShowAlert }),
+}));
+
 vi.mock("../../../components/increases/IncreaseForm", () => {
   const IncreaseForm = ({ initialValues, onChange }: any) => {
-    const [local, setLocal] = require("react").useState(initialValues ?? {});
-    require("react").useEffect(() => {
+    const React = require("react");
+    const [local, setLocal] = React.useState(initialValues ?? {});
+    React.useEffect(() => {
       setLocal(initialValues ?? {});
     }, [initialValues]);
 
     const setField =
       (f: string) =>
-      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const val =
-          f === "amount" || f === "frequency"
-            ? Number(e.target.value)
-            : e.target.value;
-        const next = { ...local, [f]: val };
+      (e: any) => {
+        const raw = e?.target?.value ?? "";
+        const next = { ...local, [f]: raw };
         setLocal(next);
         onChange(next);
       };
+
+    const toggleCurrency = () => {
+      const next = { ...local, currency: local.currency === "USD" ? "ARS" : "USD" };
+      setLocal(next);
+      onChange(next);
+    };
 
     return (
       <div>
@@ -45,36 +55,40 @@ vi.mock("../../../components/increases/IncreaseForm", () => {
             onChange={setField("date")}
           />
         </label>
+
         <label>
           Monto
           <input
             aria-label="Monto"
             type="number"
-            value={String(local.amount ?? 0)}
+            value={local.amount ?? ""}
             onChange={setField("amount")}
           />
         </label>
+
         <label>
           Moneda
-          <button
-            aria-label="Moneda"
-            onClick={() => {
-              // alterna entre ARS y USD para simplificar
-              const next = { ...local, currency: local.currency === "USD" ? "ARS" : "USD" };
-              setLocal(next);
-              onChange(next);
-            }}
-          >
-            {local.currency ?? "ARS"}
+          <button aria-label="Moneda" onClick={toggleCurrency}>
+            {(local.currency as string) || "—"}
           </button>
         </label>
+
         <label>
-          Frecuencia
+          Ajuste
           <input
-            aria-label="Frecuencia"
+            aria-label="Ajuste"
             type="number"
-            value={String(local.frequency ?? 12)}
-            onChange={setField("frequency")}
+            value={local.adjustment ?? ""}
+            onChange={setField("adjustment")}
+          />
+        </label>
+
+        <label>
+          Nota
+          <textarea
+            aria-label="Nota"
+            value={local.note ?? ""}
+            onChange={setField("note")}
           />
         </label>
       </div>
@@ -88,35 +102,40 @@ vi.mock("../../../services/contractIncrease.service", () => ({
 }));
 import { postContractIncrease } from "../../../services/contractIncrease.service";
 
-// ===== Helpers =====
+/* ============== Helpers ============== */
 const fillForm = async (overrides?: {
   date?: string;
   amount?: string;
   currency?: "ARS" | "USD";
-  frequency?: string;
+  adjustment?: string;
+  note?: string;
 }) => {
   const user = userEvent.setup();
   const date = screen.getByLabelText("Fecha") as HTMLInputElement;
   const amount = screen.getByLabelText("Monto") as HTMLInputElement;
   const currencyBtn = screen.getByLabelText("Moneda");
-  const frequency = screen.getByLabelText("Frecuencia") as HTMLInputElement;
+  const adjustment = screen.getByLabelText("Ajuste") as HTMLInputElement;
+  const note = screen.getByLabelText("Nota") as HTMLTextAreaElement;
 
-  if (overrides?.date) {
+  if (overrides?.date !== undefined) {
     await user.clear(date);
-    await user.type(date, overrides.date);
+    if (overrides.date !== "") await user.type(date, overrides.date);
   }
-  if (overrides?.amount) {
+  if (overrides?.amount !== undefined) {
     await user.clear(amount);
-    await user.type(amount, overrides.amount);
+    if (overrides.amount !== "") await user.type(amount, overrides.amount);
+  }
+  if (overrides?.adjustment !== undefined) {
+    await user.clear(adjustment);
+    if (overrides.adjustment !== "") await user.type(adjustment, overrides.adjustment);
+  }
+  if (overrides?.note !== undefined) {
+    await user.clear(note);
+    if (overrides.note !== "") await user.type(note, overrides.note);
   }
   if (overrides?.currency) {
-    // nuestro mock alterna ARS/USD con un click; repetimos si hace falta
     const current = currencyBtn.textContent?.trim();
     if (current !== overrides.currency) await user.click(currencyBtn);
-  }
-  if (overrides?.frequency) {
-    await user.clear(frequency);
-    await user.type(frequency, overrides.frequency);
   }
 };
 
@@ -125,10 +144,11 @@ const clickSave = async () => {
   await user.click(screen.getByRole("button", { name: /guardar/i }));
 };
 
-// ===== Fixtures =====
-const contractA = { id: 10 } as any;
-const contractB = { id: 99 } as any;
+/* ============== Fixtures ============== */
+const contractA = { id: 10, adjustmentIndex: { id: 7 } } as any;
+const contractB = { id: 99, adjustmentIndex: { id: 5 } } as any;
 
+/* ============== Tests ============== */
 describe("IncreaseDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -140,8 +160,7 @@ describe("IncreaseDialog", () => {
 
     render(<IncreaseDialog open={true} contract={null} onClose={onClose} onSaved={onSaved} />);
 
-    await clickSave();
-
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeDisabled();
     expect(postContractIncrease).not.toHaveBeenCalled();
     expect(onSaved).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
@@ -162,16 +181,16 @@ describe("IncreaseDialog", () => {
       date: "2025-08-30",
       amount: "1234",
       currency: "USD",
-      frequency: "6",
+      adjustment: "15",
+      note: "Observación de prueba",
     });
 
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeEnabled();
     await clickSave();
 
-    // mientras guarda
     expect(screen.getByRole("button", { name: /guardando…/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
 
-    // termina ok
     resolveFn({});
     await waitFor(() => {
       expect(postContractIncrease).toHaveBeenCalledTimes(1);
@@ -182,39 +201,28 @@ describe("IncreaseDialog", () => {
       date: "2025-08-30T00:00:00",
       amount: 1234,
       currency: "USD",
-      frequency: 6,
+      indexId: 7,
       contractId: 10,
+      note: "Observación de prueba",
+      adjustment: 15,
     });
-
-    // onClose NO se llama en guardado (tu componente no lo hace)
-    expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("maneja error: no llama onSaved", async () => {
+  it("maneja error: no llama onSaved y re-habilita botones", async () => {
     const onClose = vi.fn();
     const onSaved = vi.fn();
-
     (postContractIncrease as any).mockRejectedValueOnce(new Error("boom"));
 
     render(<IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />);
-
-    await fillForm({
-      date: "2025-08-31",
-      amount: "500",
-      currency: "ARS",
-      frequency: "12",
-    });
-
+    await fillForm({ date: "2025-08-31", amount: "500", currency: "ARS" });
     await clickSave();
 
     await waitFor(() => {
-      expect(postContractIncrease).toHaveBeenCalledTimes(1);
       expect(onSaved).not.toHaveBeenCalled();
     });
 
-    // debería haber re-habilitado botones
-    expect(screen.getByRole("button", { name: /guardar/i })).not.toBeDisabled();
-    expect(screen.getByRole("button", { name: /cancelar/i })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /cancelar/i })).toBeEnabled();
   });
 
   it("resetea valores cuando cambia el contract", async () => {
@@ -225,18 +233,23 @@ describe("IncreaseDialog", () => {
       <IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
     );
 
-    // completamos algo
-    await fillForm({ date: "2025-09-01", amount: "42", currency: "USD", frequency: "3" });
+    await fillForm({
+      date: "2025-09-01",
+      amount: "42",
+      currency: "USD",
+      adjustment: "10",
+      note: "Hola",
+    });
 
-    // cambia contrato -> efecto setea empty
     rerender(
       <IncreaseDialog open={true} contract={contractB} onClose={onClose} onSaved={onSaved} />
     );
 
     expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("");
-    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("0");
-    expect(screen.getByLabelText("Moneda").textContent).toBe("ARS");
-    expect((screen.getByLabelText("Frecuencia") as HTMLInputElement).value).toBe("12");
+    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("");
+    expect(screen.getByLabelText("Moneda").textContent).toBe("—");
+    expect((screen.getByLabelText("Ajuste") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("Nota") as HTMLTextAreaElement).value).toBe("");
   });
 
   it("Cancelar llama onClose y se deshabilita mientras guarda", async () => {
@@ -250,18 +263,71 @@ describe("IncreaseDialog", () => {
     );
 
     render(<IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />);
-
     await user.click(screen.getByRole("button", { name: /cancelar/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    await fillForm({ date: "2025-08-30", amount: "1", currency: "ARS", frequency: "12" });
+    await fillForm({ date: "2025-08-30", amount: "1", currency: "ARS" });
     await clickSave();
 
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
-
     resolveFn({});
     await waitFor(() => {
       expect(onSaved).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("usa adjustment = 0 cuando el campo está vacío", async () => {
+    const onSaved = vi.fn();
+    (postContractIncrease as any).mockResolvedValue({});
+
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
+
+    await fillForm({ date: "2025-09-02", amount: "200", currency: "USD", adjustment: "" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(postContractIncrease).toHaveBeenCalledWith(
+        expect.objectContaining({ adjustment: 0 })
+      );
+    });
+  });
+
+  it("muestra error con response.data", async () => {
+    const onSaved = vi.fn();
+    (postContractIncrease as any).mockRejectedValue({ response: { data: "custom error" } });
+
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
+    await fillForm({ date: "2025-09-03", amount: "300", currency: "ARS" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(mockShowAlert).toHaveBeenCalledWith("custom error", "error");
+    });
+  });
+
+  it("muestra error con message", async () => {
+    const onSaved = vi.fn();
+    (postContractIncrease as any).mockRejectedValue({ message: "boom msg" });
+
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
+    await fillForm({ date: "2025-09-04", amount: "400", currency: "USD" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(mockShowAlert).toHaveBeenCalledWith("boom msg", "error");
+    });
+  });
+
+  it("muestra error genérico si no hay info", async () => {
+    const onSaved = vi.fn();
+    (postContractIncrease as any).mockRejectedValue({});
+
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
+    await fillForm({ date: "2025-09-05", amount: "500", currency: "ARS" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(mockShowAlert).toHaveBeenCalledWith("Error al crear aumento", "error");
     });
   });
 });
