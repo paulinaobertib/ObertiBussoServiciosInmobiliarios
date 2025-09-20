@@ -7,6 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Modal } from "../../../shared/components/Modal";
 import { UtilitiesForm } from "./UtilitiesForm";
 import { useUtilities } from "../../hooks/useUtilities";
+import type { GridRowId } from "@mui/x-data-grid";
 
 interface Props {
   toggleSelect?: (ids: number[]) => void;
@@ -47,15 +48,38 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
       : []),
   ];
 
+  // Helper para convertir GridRowId a number seguro
+  const toNum = (v: GridRowId): number | null =>
+    typeof v === "number"
+      ? v
+      : Number.isFinite(Number(v))
+      ? Number(v)
+      : null;
+
   const gridToggleSelect = useCallback(
-    (selected: string | string[] | null) => {
-      const arr = Array.isArray(selected) ? selected.map((s) => Number(s)) : selected != null ? [Number(selected)] : [];
+    (selected: GridRowId | GridRowId[] | null) => {
+      const arr: number[] = Array.isArray(selected)
+        ? selected
+            .map(toNum)
+            .filter((n): n is number => n != null)
+        : selected != null
+        ? (() => {
+            const n = toNum(selected);
+            return n != null ? [n] : [];
+          })()
+        : [];
       toggleSelect?.(arr);
     },
     [toggleSelect]
   );
 
-  const gridIsSelected = useCallback((id: string) => isSelected?.(Number(id)) ?? false, [isSelected]);
+  const gridIsSelected = useCallback(
+    (id: GridRowId) => {
+      const n = toNum(id);
+      return n != null ? isSelected?.(n) ?? false : false;
+    },
+    [isSelected]
+  );
 
   const refresh = useCallback(async () => {
     const list = await loadAll();
