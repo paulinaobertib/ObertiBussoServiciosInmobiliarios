@@ -25,8 +25,6 @@ export default function NoticesSection() {
   const muiTheme = useTheme();
   const xs = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const sm = useMediaQuery(muiTheme.breakpoints.between("sm", "md"));
-  const md = useMediaQuery(muiTheme.breakpoints.between("md", "lg"));
-  const lg = useMediaQuery(muiTheme.breakpoints.between("lg", "xl"));
   const visibleCount = xs ? 1 : sm ? 2 :  3;
 
   const [idx, setIdx] = useState(0);
