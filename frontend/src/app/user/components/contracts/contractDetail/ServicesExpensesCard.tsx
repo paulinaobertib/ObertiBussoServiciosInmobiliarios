@@ -1,4 +1,4 @@
-import { Card, Typography, Box, Chip, Stack, Button } from "@mui/material";
+import { Card, Typography, Box, Chip, Stack, Button, Divider } from "@mui/material";
 import { useState } from "react";
 import Grid from "@mui/material/Grid";
 import ElectricalServicesOutlined from "@mui/icons-material/ElectricalServicesOutlined";
@@ -82,11 +82,7 @@ export default function ServicesExpensesCard({
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           {onManage && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={onManage}
-            >
+            <Button variant="outlined" size="small" onClick={onManage}>
               Agregar servicios
             </Button>
           )}
@@ -109,39 +105,22 @@ export default function ServicesExpensesCard({
                     <Chip size="small" label={periodicityLabel(u.periodicity)} />
                     <Box sx={{ ml: "auto" }} />
                     {onPay && u.id != null && (
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={() => onPay(u.id!)}
-                      >
+                      <Button size="small" variant="contained" onClick={() => onPay(u.id!)}>
                         Pagar servicio
                       </Button>
                     )}
                     {onIncrease && u.id != null && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => onIncrease(u.id!)}
-                      >
+                      <Button size="small" variant="outlined" onClick={() => onIncrease(u.id!)}>
                         Aumentar
                       </Button>
                     )}
                     {onEdit && u.id != null && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => onEdit(u.id!)}
-                      >
+                      <Button size="small" variant="outlined" onClick={() => onEdit(u.id!)}>
                         Editar
                       </Button>
                     )}
                     {onUnlink && u.id != null && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={() => onUnlink(u.id!)}
-                      >
+                      <Button size="small" variant="outlined" color="error" onClick={() => onUnlink(u.id!)}>
                         Desvincular
                       </Button>
                     )}
