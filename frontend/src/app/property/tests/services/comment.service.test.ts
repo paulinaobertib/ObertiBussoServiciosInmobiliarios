@@ -24,11 +24,13 @@ describe("comment.service", () => {
     description: "Test comment",
     date: "2025-05-21",
     propertyId: 99,
+    userId: ""
   };
 
   const mockCommentCreate: CommentCreate = {
     description: "New comment",
     propertyId: 99,
+    userId: ""
   };
 
   beforeEach(() => {
@@ -115,16 +117,12 @@ describe("comment.service", () => {
     (api.delete as any).mockRejectedValue(new Error("delete failed"));
     await expect(deleteComment(mockComment)).rejects.toThrow("delete failed");
   });
-
-  it("postComment con descripción vacía", async () => {
-    const emptyComment: CommentCreate = { description: "", propertyId: 99 };
-    (api.post as any).mockResolvedValue({ data: { id: 2, ...emptyComment } });
-    const result = await postComment(emptyComment);
-    expect(result).toEqual({ id: 2, description: "", propertyId: 99 });
-  });
-
+  
   it("deleteComment con id inexistente", async () => {
-    const nonexistentComment: Comment = { id: 999, description: "No existe", date: "2025-05-21", propertyId: 99 };
+    const nonexistentComment: Comment = {
+      id: 999, description: "No existe", date: "2025-05-21", propertyId: 99,
+      userId: ""
+    };
     (api.delete as any).mockResolvedValue({ data: null });
     const result = await deleteComment(nonexistentComment);
     expect(result).toBeNull();

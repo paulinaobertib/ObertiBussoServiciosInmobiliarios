@@ -22,7 +22,6 @@ describe('ChatContext', () => {
     addSystemMessage: vi.fn(),
     addUserMessage: vi.fn(),
     clearMessages: vi.fn(),
-    error: null as Error | null,
     loading: false,
   };
 
@@ -65,7 +64,7 @@ describe('ChatContext', () => {
       return <div>Prueba</div>;
     };
 
-    // Suprimir el error en la consola para este test
+    // Suprimir el error en consola
     const consoleError = console.error;
     console.error = vi.fn();
 
@@ -109,9 +108,8 @@ describe('ChatContext', () => {
       </ChatProvider>
     );
 
-    expect(screen.getByText('2')).toBeInTheDocument(); // Verifica que hay 2 mensajes
+    expect(screen.getByText('2')).toBeInTheDocument();
 
-    // Usar un patrón más específico para evitar coincidencias múltiples
     const addSystemButton = screen.getByRole('button', { name: /^Agregar mensaje$/i });
     await userEvent.click(addSystemButton);
     expect(mockUseChat.addSystemMessage).toHaveBeenCalledWith('Test mensaje');
@@ -125,14 +123,14 @@ describe('ChatContext', () => {
     expect(mockUseChat.clearMessages).toHaveBeenCalled();
   });
 
-  it('maneja el estado de error en el contexto', () => {
+  it('maneja el estado de error en el contexto (simulado en el mock)', () => {
     (ChatHook.useChat as ReturnType<typeof vi.fn>).mockReturnValue({
       ...mockUseChat,
       error: new Error('Error de prueba'),
-    });
+    } as any);
 
     const TestComponent = () => {
-      const context = useChatContext();
+      const context = useChatContext() as typeof mockUseChat & { error?: Error | null };
       return <div>{context.error ? context.error.message : 'Sin error'}</div>;
     };
 
