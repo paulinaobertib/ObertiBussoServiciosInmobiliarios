@@ -3,6 +3,7 @@ import { Box, CircularProgress, IconButton } from "@mui/material";
 import { GridColDef, GridRowId } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { GridSection } from "../../../shared/components/GridSection";
 import { useCategorySection } from "../../hooks/useCategorySection";
 import { translate } from "../../utils/translate";
@@ -14,16 +15,22 @@ import { NeighborhoodForm } from "../forms/NeighborhoodForm";
 import type { Category } from "../../context/PropertiesContext";
 import { usePropertiesContext } from "../../context/PropertiesContext";
 
+// Tipos correctos
+import type { Owner as OwnerT } from "../../types/owner";
+
+// Modal ya existente en tu proyecto (mismo folder)
+import { OwnerPropertiesModal } from "./OwnerPropertiesModal";
+
+// Helpers para parsear IDs del DataGrid (string | number)
+const toNum = (v: GridRowId): number | null =>
+  typeof v === "number" ? v : Number.isFinite(Number(v)) ? Number(v) : null;
+
 const formRegistry = {
   amenity: AmenityForm,
   owner: OwnerForm,
   type: TypeForm,
   neighborhood: NeighborhoodForm,
 } as const;
-
-// Helpers para parsear IDs del DataGrid (string | number)
-const toNum = (v: GridRowId): number | null =>
-  typeof v === "number" ? v : Number.isFinite(Number(v)) ? Number(v) : null;
 
 export const CategorySection = ({ category, selectable = true }: { category: Category; selectable?: boolean }) => {
   const {
@@ -37,6 +44,27 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
 
   // Selección global (sembrada desde la Property)
   const { selected: globalSelected } = usePropertiesContext();
+
+  // Estado mínimo para el modal de propiedades del dueño
+  const [ownerModalOpen, setOwnerModalOpen] = useState(false);
+  const [ownerForModal, setOwnerForModal] = useState<OwnerT | null>(null);
+
+  const openOwnerModal = (raw: any) => {
+    // Normalizamos para cumplir con el tipo OwnerT (email/phone string, no undefined)
+    const normalized: OwnerT = {
+      id: Number(raw?.id ?? 0),
+      firstName: String(raw?.firstName ?? ""),
+      lastName: String(raw?.lastName ?? ""),
+      email: String(raw?.email ?? ""),
+      phone: String(raw?.phone ?? ""),
+    };
+    setOwnerForModal(normalized);
+    setOwnerModalOpen(true);
+  };
+  const closeOwnerModal = () => {
+    setOwnerModalOpen(false);
+    setOwnerForModal(null);
+  };
 
   // Adaptadores para GridSection
   const gridToggleSelect = useCallback(
@@ -158,11 +186,11 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
     };
   });
 
-  // Columna de acciones
+  // Columna de acciones + botón extra SOLO para dueños
   columns.push({
     field: "actions",
     headerName: "Acciones",
-    width: 120,
+    width: 140,
     sortable: false,
     filterable: false,
     renderCell: (params) => {
@@ -175,12 +203,17 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
           <IconButton size="small" title="Eliminar" onClick={() => handleOpen("delete", item)}>
             <DeleteIcon fontSize="small" />
           </IconButton>
+          {category === "owner" && (
+            <IconButton size="small" title="Ver propiedades" onClick={() => openOwnerModal(item)}>
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
       );
     },
   });
 
-  // Modal handlers
+  // Modal CRUD (crear/editar/eliminar)
   const [modal, setModal] = useState<Info | null>(null);
   const handleOpen = (action: "add" | "edit" | "delete", item?: any) => {
     setModal({
@@ -232,7 +265,12 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
         selectable={selectable}
         selectedIds={selectedIds}
       />
+
+      {/* Modal CRUD existente */}
       <ModalItem info={modal} close={() => setModal(null)} />
+
+      {/* Modal de propiedades del dueño */}
+      <OwnerPropertiesModal open={ownerModalOpen} onClose={closeOwnerModal} owner={ownerForModal} />
     </>
   );
 };
