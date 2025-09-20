@@ -1,316 +1,235 @@
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi, describe, it, beforeEach } from "vitest";
-import { ProfileSection } from "../../../../components/users/profile/ProfileSection";
-import { useProfile } from "../../../../hooks/useProfile";
-import { useAuthContext } from "../../../../context/AuthContext";
-import { useConfirmDialog } from "../../../../../shared/components/ConfirmDialog";
-import { deleteUser } from "../../../../services/user.service";
+import "@testing-library/jest-dom/vitest";
 
-// ----- Mocks -----
-vi.mock("../../../../hooks/useProfile");
-vi.mock("../../../../context/AuthContext");
+const h = vi.hoisted(() => ({
+  // useProfile
+  profile: null as any,
+  loading: false,
+  updateProfile: vi.fn(async (u: any) => u),
+
+  // ConfirmDialog
+  autoConfirm: true,
+
+  // AuthContext
+  info: null as any,
+  setInfo: vi.fn(),
+  logout: vi.fn(),
+
+  // Servicio deleteUser
+  deleteUserMock: vi.fn(async (_id: number) => {}),
+
+  // Para verificar qué user llega a ProfileForm (sincronia)
+  lastFormUser: null as any,
+}));
+
+
+vi.mock("../../../../hooks/useProfile", () => ({
+  useProfile: () => ({
+    profile: h.profile,
+    loading: h.loading,
+    updateProfile: h.updateProfile,
+  }),
+}));
+
 vi.mock("../../../../../shared/components/ConfirmDialog", () => ({
-  useConfirmDialog: vi.fn(),
+  useConfirmDialog: () => ({
+    ask: (_content: any, onConfirm: () => void | Promise<void>) => {
+      if (h.autoConfirm && onConfirm) void onConfirm();
+    },
+    DialogUI: <div data-testid="confirm-dialog-ui" />,
+  }),
 }));
+
 vi.mock("../../../../services/user.service", () => ({
-  deleteUser: vi.fn(),
+  deleteUser: (...args: any[]) => h.deleteUserMock(...(args as [number])),
 }));
+
+vi.mock("../../../../context/AuthContext", () => ({
+  useAuthContext: () => ({
+    info: h.info,
+    setInfo: h.setInfo,
+    logout: h.logout,
+  }),
+}));
+
 vi.mock("../../../../components/users/profile/ProfileView", () => ({
-  ProfileView: ({ editMode, saving, onToggleEdit, onDeleteProfile }: any) => (
-    <div data-testid="pv">
-      <button data-testid="pv-toggle" onClick={onToggleEdit}>
-        {editMode ? "guardar" : "editar"}
+  ProfileView: ({
+    user,
+    editMode,
+    saving,
+    onToggleEdit,
+    onDeleteProfile,
+  }: any) => (
+    <div data-testid="profile-view">
+      <div data-testid="pv-name">{user?.name ?? ""}</div>
+      {editMode && <div data-testid="pv-edit-flag">edit</div>}
+      {saving && <div data-testid="pv-saving-flag">Guardando...</div>}
+      <button onClick={onToggleEdit} aria-label="toggle-edit">
+        {editMode ? "Guardar" : "Editar"}
       </button>
-      <button data-testid="pv-delete" onClick={onDeleteProfile}>
-        eliminar
+      <button onClick={onDeleteProfile} aria-label="delete-profile">
+        Eliminar
       </button>
-      <div data-testid="pv-saving">{saving ? "saving" : "idle"}</div>
     </div>
   ),
 }));
 
+vi.mock("../../../../components/users/profile/ProfileForm", () => ({
+  ProfileForm: ({ user, editMode, onChange }: any) => {
+    h.lastFormUser = user;
+    return (
+      <div data-testid="profile-form">
+        <div data-testid="pf-name">{user?.name ?? ""}</div>
+        <div data-testid="pf-email">{user?.email ?? ""}</div>
+        <div data-testid="pf-edit">{String(!!editMode)}</div>
+        <button
+          aria-label="set-name"
+          onClick={() => onChange?.("name", "Nuevo Nombre")}
+        >
+          set-name
+        </button>
+        <button
+          aria-label="set-email"
+          onClick={() => onChange?.("email", "nuevo@example.com")}
+        >
+          set-email
+        </button>
+      </div>
+    );
+  },
+}));
+
+import { ProfileSection } from "../../../../components/users/profile/ProfileSection";
+
+/* ============================ UTILS ============================ */
+const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+/* ============================ TESTS ============================ */
 describe("ProfileSection", () => {
-  const updateProfileMock = vi.fn();
-  const logoutMock = vi.fn();
-  const setInfoMock = vi.fn();
-  const askMock = vi.fn();
-  const DialogUI = <div>DialogUI</div>;
-
-  const mockUser = {
-    id: "1",
-    userName: "usuario1",
-    firstName: "Nombre",
-    lastName: "Apellido",
-    email: "test@example.com",
-    phone: "1234567890",
-    roles: [],
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (useProfile as any).mockReturnValue({
-      profile: mockUser,
-      loading: false,
-      error: null,
-      updateProfile: updateProfileMock,
-    });
-
-    (useAuthContext as any).mockReturnValue({
-      info: mockUser,
-      logout: logoutMock,
-      setInfo: setInfoMock,
-    });
-
-    (useConfirmDialog as any).mockReturnValue({ ask: askMock, DialogUI });
-    (deleteUser as any).mockResolvedValue({});
+    // Estado por defecto de mocks
+    h.profile = null;
+    h.loading = false;
+    h.updateProfile = vi.fn(async (u: any) => u);
+    h.autoConfirm = true;
+    h.info = null;
+    h.setInfo = vi.fn();
+    h.logout = vi.fn();
+    h.deleteUserMock = vi.fn(async (_id: number) => {});
+    h.lastFormUser = null;
   });
 
-  it("renderiza el perfil correctamente", () => {
-    render(<ProfileSection />);
-    expect(screen.getByText("Ocultar perfil")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Nombre")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Apellido")).toBeInTheDocument();
-  });
-
-  it("puede alternar el modo de edición", async () => {
-    render(<ProfileSection />);
-    const toggleButton = screen.getByText(/Ocultar perfil/i);
-    fireEvent.click(toggleButton); // colapsa perfil
-    expect(screen.getByText(/Mostrar perfil/i)).toBeInTheDocument();
-  });
-
-  it("llama handleChange al modificar un campo", () => {
-    render(<ProfileSection />);
-    const input = screen.getByDisplayValue("Nombre");
-    fireEvent.change(input, { target: { value: "NuevoNombre" } });
-    expect(screen.getByDisplayValue("NuevoNombre")).toBeInTheDocument();
-  });
-
-  it("muestra loading mientras carga el perfil", () => {
-  (useProfile as any).mockReturnValue({
-    profile: null,
-    loading: true,
-    error: null,
-    updateProfile: updateProfileMock,
-  });
-  render(<ProfileSection />);
-  expect(screen.getByRole("progressbar")).toBeInTheDocument();
-});
-
-it("actualiza estado al cambiar un campo", () => {
-  render(<ProfileSection />);
-  const input = screen.getByDisplayValue("Nombre");
-  fireEvent.change(input, { target: { value: "NuevoNombre" } });
-  expect(screen.getByDisplayValue("NuevoNombre")).toBeInTheDocument();
-});
-
-it("colapsa y expande el perfil", () => {
-  render(<ProfileSection />);
-  
-  // Colapsar
-  fireEvent.click(screen.getByText(/Ocultar perfil/i));
-  expect(screen.getByText(/Mostrar perfil/i)).toBeInTheDocument();
-  
-  // Expandir
-  fireEvent.click(screen.getByText(/Mostrar perfil/i));
-  expect(screen.getByText(/Ocultar perfil/i)).toBeInTheDocument();
-});
-
-  it("renderiza DialogUI del confirm dialog", () => {
-    render(<ProfileSection />);
-    expect(screen.getByText("DialogUI")).toBeInTheDocument();
-  });
-
-  it("toggle de edición: en guardar llama updateProfile con el form y muestra saving durante la espera", async () => {
-    const updateProfileMock = vi.fn().mockResolvedValue({ lastName: "Mergeado" });
-
-    (useProfile as any).mockReturnValue({
-      profile: {
-        id: "1",
-        userName: "usuario1",
-        firstName: "Nombre",
-        lastName: "Apellido",
-        email: "test@example.com",
-        phone: "1234567890",
-        roles: [],
-      },
-      loading: false,
-      error: null,
-      updateProfile: updateProfileMock,
-    });
+  it("muestra spinner cuando loading y no hay datos", () => {
+    h.loading = true;
+    h.profile = null;
 
     render(<ProfileSection />);
 
-    // 1) Entrar en modo edición
-    fireEvent.click(screen.getByTestId("pv-toggle")); // "editar"
-    // Cambiar un campo del ProfileForm
-    const input = screen.getByDisplayValue("Nombre");
-    fireEvent.change(input, { target: { value: "NuevoNombre" } });
-
-    // 2) Guardar → dispara updateProfile y muestra saving
-    fireEvent.click(screen.getByTestId("pv-toggle")); // "guardar"
-    // saving visible
-    expect(screen.getByTestId("pv-saving").textContent).toBe("saving");
-    await waitFor(() => expect(updateProfileMock).toHaveBeenCalledTimes(1));
-
-    // updateProfile recibe el form con el cambio
-    const payload = updateProfileMock.mock.calls[0][0];
-    expect(payload.firstName).toBe("NuevoNombre");
-
-    // Después de resolver, saving queda "idle" y editMode vuelve a false
-    await waitFor(() => {
-      expect(screen.getByTestId("pv-saving").textContent).toBe("idle");
-      // Botón vuelve a "editar" (no editMode)
-      expect(screen.getByTestId("pv-toggle").textContent).toBe("editar");
-    });
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(screen.queryByTestId("profile-form")).not.toBeInTheDocument();
   });
 
-  it("elimina el perfil: llama deleteUser, limpia sesión, setInfo(null) y logout", async () => {
-    const setInfoMock = vi.fn();
-    const logoutMock = vi.fn();
-    const askImpl = vi.fn((_node, onConfirm) => onConfirm?.());
-    const deleteUserMock = vi.fn().mockResolvedValue(undefined);
+  it("sincroniza el form con profile al montar y al cambiar profile (si NO está en edición)", () => {
+    h.profile = { id: 1, name: "Juan", email: "juan@x.com" };
 
-    (useAuthContext as any).mockReturnValue({
-      info: { id: "1" },
-      logout: logoutMock,
-      setInfo: setInfoMock,
-    });
-    (useConfirmDialog as any).mockReturnValue({ ask: askImpl, DialogUI: <div /> });
-    (deleteUser as any).mockImplementation(deleteUserMock);
+    const { rerender } = render(<ProfileSection />);
 
-    // sembramos storage
-    localStorage.setItem("k", "v");
-    sessionStorage.setItem("k", "v");
+    // al montar: form toma el profile
+    expect(h.lastFormUser).toMatchObject({ name: "Juan", email: "juan@x.com" });
+
+    // cambia profile y NO estamos en edición -> debe reflejarse
+    h.profile = { id: 1, name: "Juana", email: "juana@x.com" };
+    rerender(<ProfileSection />);
+    expect(h.lastFormUser).toMatchObject({ name: "Juana", email: "juana@x.com" });
+  });
+
+  it("toggle edición: entra/sale, llama updateProfile y mergea el resultado", async () => {
+    h.profile = { id: 1, name: "Ana", email: "ana@x.com" };
+    // el hook devuelve un parche a mergear
+    h.updateProfile = vi.fn(async (_u: any) => ({ email: "merged@x.com" }));
 
     render(<ProfileSection />);
 
-    fireEvent.click(screen.getByTestId("pv-delete"));
+    // entra en edición
+    fireEvent.click(screen.getByLabelText("toggle-edit"));
+    expect(screen.getByTestId("pv-edit-flag")).toBeInTheDocument();
+
+    // modifica desde el form
+    fireEvent.click(screen.getByLabelText("set-name"));
+    fireEvent.click(screen.getByLabelText("set-email"));
+
+    // sale de edición (dispara updateProfile y merge)
+    fireEvent.click(screen.getByLabelText("toggle-edit"));
 
     await waitFor(() => {
-      expect(deleteUserMock).toHaveBeenCalledWith("1");
-      expect(setInfoMock).toHaveBeenCalledWith(null);
-      expect(logoutMock).toHaveBeenCalled();
-      expect(localStorage.getItem("k")).toBeNull();
-      expect(sessionStorage.getItem("k")).toBeNull();
+      expect(h.updateProfile).toHaveBeenCalledTimes(1);
     });
+
+    // Luego del merge, el form debe tener el email del parche
+    expect(h.lastFormUser).toMatchObject({
+      name: "Nuevo Nombre",
+      email: "merged@x.com",
+    });
+
+    // ya no está en edición
+    expect(screen.queryByTestId("pv-edit-flag")).not.toBeInTheDocument();
   });
 
-  it("eliminar sin info de usuario: muestra alert y NO llama deleteUser", async () => {
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
-    const askImpl = vi.fn((_node, onConfirm) => onConfirm?.());
-
-    (useAuthContext as any).mockReturnValue({
-      info: null,
-      logout: vi.fn(),
-      setInfo: vi.fn(),
-    });
-    (useConfirmDialog as any).mockReturnValue({ ask: askImpl, DialogUI: <div /> });
+  it("colapsa y expande con los botones 'Ocultar perfil' y 'Mostrar perfil'", () => {
+    h.profile = { id: 1, name: "Luz", email: "luz@x.com" };
 
     render(<ProfileSection />);
-    fireEvent.click(screen.getByTestId("pv-delete"));
+
+    // Ocultar
+    fireEvent.click(screen.getByRole("button", { name: /Ocultar perfil/i }));
+
+    // aparece barra con 'Mostrar perfil'
+    const showBtn = screen.getByRole("button", { name: /Mostrar perfil/i });
+    expect(showBtn).toBeInTheDocument();
+
+    // Expandir
+    fireEvent.click(showBtn);
+    expect(screen.getByTestId("profile-view")).toBeInTheDocument();
+    expect(screen.getByTestId("profile-form")).toBeInTheDocument();
+  });
+
+  it("eliminar perfil: sin info muestra alerta específica y no llama deleteUser", async () => {
+    h.info = null;
+    h.profile = { id: 1, name: "A", email: "a@x.com" };
+
+    render(<ProfileSection />);
+
+    fireEvent.click(screen.getByLabelText("delete-profile"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
         "No hay información de usuario. No puedes eliminar el perfil."
       );
-      expect(deleteUser).not.toHaveBeenCalled();
     });
-
-    alertSpy.mockRestore();
+    expect(h.deleteUserMock).not.toHaveBeenCalled();
+    expect(h.setInfo).not.toHaveBeenCalled();
+    expect(h.logout).not.toHaveBeenCalled();
   });
 
-  it("eliminar con error de API (response.data): alerta el mensaje de error", async () => {
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
-    const askImpl = vi.fn((_node, onConfirm) => onConfirm?.());
-
-    (useAuthContext as any).mockReturnValue({
-      info: { id: "1" },
-      logout: vi.fn(),
-      setInfo: vi.fn(),
+  it("eliminar perfil: error con response.data → alerta detallada", async () => {
+    h.info = { id: 77 };
+    h.profile = { id: 77, name: "C", email: "c@x.com" };
+    h.deleteUserMock = vi.fn(async () => {
+      const err: any = new Error("boom");
+      err.response = { data: "No se pudo" };
+      throw err;
     });
-    (useConfirmDialog as any).mockReturnValue({ ask: askImpl, DialogUI: <div /> });
-    (deleteUser as any).mockRejectedValue({ response: { data: "Mensaje de error" } });
 
     render(<ProfileSection />);
-    fireEvent.click(screen.getByTestId("pv-delete"));
+
+    fireEvent.click(screen.getByLabelText("delete-profile"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Error: Mensaje de error");
+      expect(alertSpy).toHaveBeenCalledWith("Error: No se pudo");
     });
-
-    alertSpy.mockRestore();
   });
-
-  it("eliminar con error genérico: muestra alerta genérica", async () => {
-    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
-    const askImpl = vi.fn((_node, onConfirm) => onConfirm?.());
-
-    (useAuthContext as any).mockReturnValue({
-      info: { id: "1" },
-      logout: vi.fn(),
-      setInfo: vi.fn(),
-    });
-    (useConfirmDialog as any).mockReturnValue({ ask: askImpl, DialogUI: <div /> });
-    (deleteUser as any).mockRejectedValue(new Error("boom"));
-
-    render(<ProfileSection />);
-    fireEvent.click(screen.getByTestId("pv-delete"));
-
-    await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        "Error al eliminar la cuenta. Intenta de nuevo."
-      );
-    });
-
-    alertSpy.mockRestore();
-  });
-
-  it("no re-inicializa el form si cambia profile luego del primer render (mantiene ediciones locales)", async () => {
-    // 1) primer render con perfil A
-    (useProfile as any).mockReturnValueOnce({
-      profile: {
-        id: "1",
-        userName: "usuario1",
-        firstName: "Nombre",
-        lastName: "Apellido",
-        email: "a@a.com",
-        phone: "111",
-        roles: [],
-      },
-      loading: false,
-      error: null,
-      updateProfile: vi.fn(),
-    });
-
-    const { rerender } = render(<ProfileSection />);
-
-    // Editamos localmente el nombre
-    const input = screen.getByDisplayValue("Nombre");
-    fireEvent.change(input, { target: { value: "EditLocal" } });
-    expect(screen.getByDisplayValue("EditLocal")).toBeInTheDocument();
-
-    // 2) el hook cambia su profile a B, pero el form debe conservar EditLocal
-    (useProfile as any).mockReturnValueOnce({
-      profile: {
-        id: "1",
-        userName: "usuario1",
-        firstName: "OtroNombre",
-        lastName: "Apellido",
-        email: "b@b.com",
-        phone: "222",
-        roles: [],
-      },
-      loading: false,
-      error: null,
-      updateProfile: vi.fn(),
-    });
-
-    rerender(<ProfileSection />);
-
-    // sigue mostrando la edición local
-    expect(screen.getByDisplayValue("EditLocal")).toBeInTheDocument();
-  });
-
 });

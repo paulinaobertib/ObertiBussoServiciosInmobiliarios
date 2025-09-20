@@ -43,9 +43,7 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
 
   // ── Diálogo ──
   const [dlg, setDlg] = useState<{ open: boolean; mode: "add" | "edit" | "delete"; item?: Guarantor | null }>({
-    open: false,
-    mode: "add",
-    item: null,
+    open: false, mode: "add", item: null,
   });
 
   const refreshAndClose = async () => {
