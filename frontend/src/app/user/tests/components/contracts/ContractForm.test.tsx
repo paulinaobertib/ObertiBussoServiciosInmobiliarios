@@ -12,19 +12,21 @@ vi.mock("../../../shared/components/Modal", () => ({
   Modal: (props: any) => (
     <div data-testid="modal" data-open={String(props.open)}>
       <div data-testid="modal-title">{props.title}</div>
-      <button data-testid="modal-close" onClick={props.onClose}>close</button>
+      <button data-testid="modal-close" onClick={props.onClose}>
+        close
+      </button>
       {props.children}
     </div>
   ),
 }));
 
-vi.mock("../increases/IncreaseIndexForm", () => ({
+vi.mock("../../../components/increases/IncreaseIndexForm", () => ({
   IncreaseIndexForm: (props: any) => (
     <div data-testid="increase-form" data-action={props.action}>
       <button
         data-testid="increase-done"
         onClick={() =>
-          props.onDone({
+          props.onDone?.({
             action: props.action,
             form: { code: "IDX", name: "IndiceX" },
           })
@@ -72,7 +74,10 @@ vi.mock("../../../hooks/useIncreaseIndexes", () => ({
   }),
 }));
 
-import { ContractForm, ContractFormHandle } from "../../../components/contracts/ContractForm";
+import {
+  ContractForm,
+  ContractFormHandle,
+} from "../../../components/contracts/ContractForm";
 
 beforeEach(() => {
   values = {
@@ -128,4 +133,19 @@ describe("ContractForm", () => {
     expect(getCreateDataMock).toHaveBeenCalled();
     expect(setGuarantorsIdsMock).toHaveBeenCalledWith([1, 2]);
   });
+
+  it("renderiza propiedad y usuario desde el hook", () => {
+    render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
+    expect(screen.getByText("Prop A")).toBeInTheDocument();
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
+  });
+
+  it("muestra campos de depósito y renderiza error cuando existe", () => {
+    errors = { depositAmount: "Requerido" };
+    values.hasDeposit = true;
+    render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
+    expect(screen.getByLabelText("Monto del depósito")).toBeInTheDocument();
+    expect(screen.getByText("Requerido")).toBeInTheDocument();
+  });
+
 });
