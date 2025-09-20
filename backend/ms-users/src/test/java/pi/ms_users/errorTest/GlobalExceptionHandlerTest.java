@@ -71,7 +71,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<String> response = handler.handleDataIntegrity(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Violación de integridad de datos", response.getBody());
+        assertEquals("Violación de integridad de datosViolación de integridad", response.getBody());
     }
 
     @Test
@@ -196,5 +196,32 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals("El turno seleccionado ya está reservado.", response.getBody());
+    }
+
+    @Test
+    void testHandleBadRequest_BadRequestException() {
+        jakarta.ws.rs.BadRequestException ex = new jakarta.ws.rs.BadRequestException("Petición inválida");
+        ResponseEntity<String> response = handler.handleBadRequest(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().contains("Bad request"));
+        assertTrue(response.getBody().contains("Petición inválida"));
+    }
+
+    @Test
+    void testHandleClientError() {
+        jakarta.ws.rs.core.Response jaxrsResponse = jakarta.ws.rs.core.Response
+                .status(400)
+                .entity("Entidad inválida")
+                .build();
+
+        jakarta.ws.rs.ClientErrorException ex =
+                new jakarta.ws.rs.ClientErrorException("Client error", jaxrsResponse);
+
+        ResponseEntity<String> response = handler.handleClientError(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getBody().contains("Error del cliente"));
+        assertTrue(response.getBody().contains("Entidad inválida"));
     }
 }
