@@ -20,7 +20,7 @@ export const PropertyCatalog = ({
   toggleSelection,
   isSelected,
 }: Props) => {
-  const { propertiesList, handleClick, DialogUI } = useCatalog({
+  const { propertiesList, handleClick } = useCatalog({
     onFinish: onFinishAction,
     externalProperties: properties,
   });
@@ -37,7 +37,6 @@ export const PropertyCatalog = ({
         isSelected={isSelected}
         onCardClick={onCardClick}
       />
-      {DialogUI}
     </>
   );
 };
