@@ -17,7 +17,7 @@ export const SearchBar = ({
   fetchAll,
   fetchByText,
   onSearch,
-  placeholder = "Buscar…",
+  placeholder = "Buscar...",
   debounceMs = 300,
   localFilterFields = [], // por defecto ninguno
 }: SearchBarProps) => {

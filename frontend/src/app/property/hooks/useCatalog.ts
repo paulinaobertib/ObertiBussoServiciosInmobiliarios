@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { usePropertiesContext } from "../context/PropertiesContext";
 import { deleteProperty } from "../services/property.service";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
-import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
 import { Property } from "../types/property";
 import { buildRoute, ROUTES } from "../../../lib";
 import { useAuthContext } from "../../user/context/AuthContext";
@@ -15,22 +14,19 @@ interface Props {
 
 export const useCatalog = ({ onFinish, externalProperties }: Props) => {
   const navigate = useNavigate();
-  const { showAlert } = useGlobalAlert();
-  const { ask, DialogUI } = useConfirmDialog();
+  const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
 
   const { propertiesList, refreshProperties, selectedPropertyIds, toggleCompare } = usePropertiesContext();
-
   const { isAdmin } = useAuthContext();
 
-  const refreshMode = isAdmin ? 'all' : 'available';
-
+  const refreshMode = isAdmin ? "all" : "available";
   const list = externalProperties ?? propertiesList ?? [];
 
   /* --------------------------------------------------------------------- */
   /* --------------------------   HANDLERS UI   --------------------------- */
   /* --------------------------------------------------------------------- */
-  const handleClick = (mode: "normal" | "edit" | "delete", prop: Property) => {
+  const handleClick = async (mode: "normal" | "edit" | "delete", prop: Property) => {
     if (mode === "edit") {
       navigate(buildRoute(ROUTES.EDIT_PROPERTY, prop.id));
       onFinish();
@@ -38,22 +34,42 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
     }
 
     if (mode === "delete") {
-      ask(`¿Eliminar "${prop.title}"?`, async () => {
-        try {
-          await deleteProperty(prop);
-          showAlert("Propiedad eliminada con éxito!", "success");
-          try {
-            await refreshProperties(refreshMode);
-          } catch (e) {
-            // si falla el refresh, también mostramos el error
-            handleError(e);
-          }
-        } catch (e) {
-          handleError(e); // muestra el mensaje que venga del backend
-        } finally {
-          onFinish();
+      const label = prop?.title ?? `propiedad #${prop?.id ?? ""}`;
+
+      let ok = true;
+      if (typeof alertApi?.doubleConfirm === "function") {
+        ok = await alertApi.doubleConfirm({
+          kind: "error",
+          description: `¿Vas a eliminar "${label}"?`,
+        });
+      }
+      if (!ok) {
+        onFinish();
+        return;
+      }
+
+      try {
+        await deleteProperty(prop);
+
+        if (typeof alertApi?.success === "function") {
+          await alertApi.success({
+            title: "Propiedad eliminada",
+            description: `"${label}" se eliminó correctamente.`,
+            primaryLabel: "Volver",
+          });
         }
-      });
+
+        try {
+          await refreshProperties(refreshMode);
+        } catch (e) {
+          // si falla el refresh, también mostramos el error
+          handleError(e);
+        }
+      } catch (e) {
+        handleError(e); // muestra el mensaje que venga del backend
+      } finally {
+        onFinish();
+      }
       return;
     }
 
@@ -63,11 +79,10 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
 
   return {
     propertiesList: list,
-    refresh: (mode?: 'all' | 'available') => refreshProperties(mode ?? refreshMode),
+    refresh: (mode?: "all" | "available") => refreshProperties(mode ?? refreshMode),
     selectedPropertyIds,
     toggleCompare,
     handleClick,
-    DialogUI,
     isAdmin,
   };
 };

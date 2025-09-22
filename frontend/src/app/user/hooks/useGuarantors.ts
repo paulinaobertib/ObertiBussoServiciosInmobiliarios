@@ -16,14 +16,38 @@ import {
 } from "../services/guarantor.service";
 import type { GuarantorCreate, Guarantor } from "../types/guarantor";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 export function useGuarantors() {
   const { handleError } = useApiErrors();
+  const alertApi: any = useGlobalAlert();
 
   // ✅ mismo patrón que useUsers
   const [guarantors, setGuarantors] = useState<Guarantor[]>([]);
   const [loading, setLoading] = useState(false);
 
+  /* ---------------- helpers de alertas ---------------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  const confirmDanger = useCallback(async () => {
+    if (typeof alertApi?.doubleConfirm === "function") {
+      return await alertApi.doubleConfirm({
+        kind: "error",
+        description: "Eliminar este garante?",
+      });
+    }
+  }, [alertApi]);
+
+  /* ---------------- carga inicial ---------------- */
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -42,6 +66,7 @@ export function useGuarantors() {
   useEffect(() => {
     load();
   }, [load]); // 👈 carga inicial (igual a useUsers)
+
   const fetchAll = useCallback(load, [load]); // 👈 alias (igual a useUsers)
 
   const fetchByText = useCallback(
@@ -58,7 +83,144 @@ export function useGuarantors() {
     [handleError]
   );
 
-  // …(tus getters y mutations como estaban)…
+  /* ---------------- getters ---------------- */
+  const fetchById = useCallback(
+    async (id: number) => {
+      try {
+        return await getGuarantorById(id);
+      } catch (e) {
+        handleError(e);
+        return null;
+      }
+    },
+    [handleError]
+  );
+
+  const fetchByEmail = useCallback(
+    async (email: string) => {
+      try {
+        return await getGuarantorByEmail(email);
+      } catch (e) {
+        handleError(e);
+        return null;
+      }
+    },
+    [handleError]
+  );
+
+  const fetchByPhone = useCallback(
+    async (phone: string) => {
+      try {
+        return await getGuarantorByPhone(phone);
+      } catch (e) {
+        handleError(e);
+        return null;
+      }
+    },
+    [handleError]
+  );
+
+  const fetchByContract = useCallback(
+    async (contractId: number) => {
+      try {
+        return await getGuarantorsByContract(contractId);
+      } catch (e) {
+        handleError(e);
+        return [];
+      }
+    },
+    [handleError]
+  );
+
+  const fetchContractsByGuarantor = useCallback(
+    async (guarantorId: number) => {
+      try {
+        return await getContractsByGuarantor(guarantorId);
+      } catch (e) {
+        handleError(e);
+        return [] as Guarantor[];
+      }
+    },
+    [handleError]
+  );
+
+  /* ---------------- mutations ---------------- */
+  const create = useCallback(
+    async (data: GuarantorCreate) => {
+      try {
+        await postGuarantor(data);
+        await notifySuccess("Garante creado");
+        await load();
+        return true;
+      } catch (e) {
+        handleError(e);
+        return false;
+      }
+    },
+    [handleError, load, notifySuccess]
+  );
+
+  const update = useCallback(
+    async (id: number, data: GuarantorCreate) => {
+      try {
+        await putGuarantor(id, data);
+        await notifySuccess("Garante actualizado");
+        await load();
+        return true;
+      } catch (e) {
+        handleError(e);
+        return false;
+      }
+    },
+    [handleError, load, notifySuccess]
+  );
+
+  const remove = useCallback(
+    async (id: number) => {
+      const ok = await confirmDanger();
+      if (!ok) return false;
+      try {
+        await deleteGuarantor(id);
+        await notifySuccess("Garante eliminado");
+        await load();
+        return true;
+      } catch (e) {
+        handleError(e);
+        return false;
+      }
+    },
+    [handleError, load, confirmDanger, notifySuccess]
+  );
+
+  const linkToContract = useCallback(
+    async (guarantorId: number, contractId: number) => {
+      try {
+        await addGuarantorToContract(guarantorId, contractId);
+        await notifySuccess("Garante vinculado al contrato");
+        return true;
+      } catch (e) {
+        handleError(e);
+        return false;
+      }
+    },
+    [handleError, notifySuccess]
+  );
+
+  const unlinkFromContract = useCallback(
+    async (guarantorId: number, contractId: number) => {
+      const ok = await confirmDanger();
+      if (!ok) return false;
+      try {
+        await removeGuarantorFromContract(guarantorId, contractId);
+        await notifySuccess("Garante desvinculado");
+        return true;
+      } catch (e) {
+        handleError(e);
+        return false;
+      }
+    },
+    [handleError, confirmDanger, notifySuccess]
+  );
 
   return {
     guarantors,
@@ -70,95 +232,17 @@ export function useGuarantors() {
     loadAll: load,
 
     // getters…
-    fetchById: async (id: number) => {
-      try {
-        return await getGuarantorById(id);
-      } catch (e) {
-        handleError(e);
-        return null;
-      }
-    },
-    fetchByEmail: async (email: string) => {
-      try {
-        return await getGuarantorByEmail(email);
-      } catch (e) {
-        handleError(e);
-        return null;
-      }
-    },
-    fetchByPhone: async (phone: string) => {
-      try {
-        return await getGuarantorByPhone(phone);
-      } catch (e) {
-        handleError(e);
-        return null;
-      }
-    },
-    fetchByContract: async (contractId: number) => {
-      try {
-        return await getGuarantorsByContract(contractId);
-      } catch (e) {
-        handleError(e);
-        return [];
-      }
-    },
-    fetchContractsByGuarantor: async (guarantorId: number) => {
-      try {
-        return await getContractsByGuarantor(guarantorId);
-      } catch (e) {
-        handleError(e);
-        return [] as Guarantor[];
-      }
-    },
+    fetchById,
+    fetchByEmail,
+    fetchByPhone,
+    fetchByContract,
+    fetchContractsByGuarantor,
 
     // mutations…
-    create: async (data: GuarantorCreate) => {
-      try {
-        await postGuarantor(data);
-        await load();
-        return true;
-      } catch (e) {
-        handleError(e);
-        return false;
-      }
-    },
-    update: async (id: number, data: GuarantorCreate) => {
-      try {
-        await putGuarantor(id, data);
-        await load();
-        return true;
-      } catch (e) {
-        handleError(e);
-        return false;
-      }
-    },
-    remove: async (id: number) => {
-      try {
-        await deleteGuarantor(id);
-        await load();
-        return true;
-      } catch (e) {
-        handleError(e);
-        return false;
-      }
-    },
-    linkToContract: async (guarantorId: number, contractId: number) => {
-      try {
-        await addGuarantorToContract(guarantorId, contractId);
-        return true;
-      } catch (e) {
-        handleError(e);
-        return false;
-      }
-    },
-    unlinkFromContract: async (guarantorId: number, contractId: number) => {
-      try {
-        await removeGuarantorFromContract(guarantorId, contractId);
-        return true;
-      } catch (e) {
-        handleError(e);
-        return false;
-      }
-    },
+    create,
+    update,
+    remove,
+    linkToContract,
+    unlinkFromContract,
   };
 }

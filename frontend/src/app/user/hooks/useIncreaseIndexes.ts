@@ -13,12 +13,37 @@ import {
 import type { IncreaseIndex, IncreaseIndexCreate } from "../types/increaseIndex";
 import type { ContractSimple } from "../types/contract";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 export function useIncreaseIndexes() {
   const { handleError } = useApiErrors();
+  const alertApi: any = useGlobalAlert();
+
   const [indexes, setIndexes] = useState<IncreaseIndex[]>([]);
   const [loading, setLoading] = useState(false);
 
+  /* ---------------- helpers de alertas ---------------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  const confirmDanger = useCallback(async () => {
+    if (typeof alertApi?.doubleConfirm === "function") {
+      return await alertApi.doubleConfirm({
+        kind: "error",
+        description: "¿Eliminar este Índice?",
+      });
+    }
+  }, [alertApi]);
+
+  /* ---------------- loads ---------------- */
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -60,6 +85,7 @@ export function useIncreaseIndexes() {
     [handleError, indexes]
   );
 
+  /* ---------------- getters ---------------- */
   const fetchById = useCallback(
     async (id: number) => {
       try {
@@ -96,11 +122,13 @@ export function useIncreaseIndexes() {
     [handleError]
   );
 
+  /* ---------------- mutations ---------------- */
   const create = useCallback(
     async (data: IncreaseIndexCreate) => {
       try {
         await postIncreaseIndex(data);
         const list = await loadAll();
+        await notifySuccess("Índice creado");
         // retorna el creado si se encuentra por code+name
         return list.find((i) => i.code === data.code && i.name === data.name) || null;
       } catch (e) {
@@ -108,7 +136,7 @@ export function useIncreaseIndexes() {
         return null;
       }
     },
-    [handleError, loadAll]
+    [handleError, loadAll, notifySuccess]
   );
 
   const update = useCallback(
@@ -116,27 +144,32 @@ export function useIncreaseIndexes() {
       try {
         await putIncreaseIndex(data);
         await loadAll();
+        await notifySuccess("Índice actualizado");
         return true;
       } catch (e) {
         handleError(e);
         return false;
       }
     },
-    [handleError, loadAll]
+    [handleError, loadAll, notifySuccess]
   );
 
   const remove = useCallback(
     async (id: number) => {
+      const ok = await confirmDanger();
+      if (!ok) return false;
+
       try {
         await deleteIncreaseIndex(id);
         await loadAll();
+        await notifySuccess("Índice eliminado");
         return true;
       } catch (e) {
         handleError(e);
         return false;
       }
     },
-    [handleError, loadAll]
+    [handleError, loadAll, confirmDanger, notifySuccess]
   );
 
   return {
