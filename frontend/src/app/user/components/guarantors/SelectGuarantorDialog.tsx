@@ -6,10 +6,10 @@ interface Props {
   open: boolean;
   contractId: number;
   onClose: () => void;
-  onUpdated?: () => void;
+  onLinked?: () => void;
 }
 
-export function GuarantorPickerDialog({ open, contractId, onClose, onUpdated }: Props) {
+export function GuarantorPickerDialog({ open, contractId, onClose, onLinked }: Props) {
   return (
     <Modal open={open} title="Seleccionar garantes" onClose={onClose}>
       <GuarantorsSection
@@ -18,7 +18,7 @@ export function GuarantorPickerDialog({ open, contractId, onClose, onUpdated }: 
           for (const id of arr) {
             await addGuarantorToContract(id, contractId);
           }
-          onUpdated?.();
+          onLinked?.();
           onClose();
         }}
         isSelected={() => false}

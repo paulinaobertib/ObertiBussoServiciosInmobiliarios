@@ -1,3 +1,4 @@
+// src/app/user/hooks/useNotices.ts
 import { useCallback, useEffect, useState } from "react";
 import * as service from "../services/notice.service";
 import { Notice, NoticeCreate } from "../types/notice";
@@ -19,8 +20,6 @@ export function useNotices() {
     async (title: string, description?: string) => {
       if (typeof alertApi?.success === "function") {
         await alertApi.success({ title, description, primaryLabel: "Ok" });
-      } else if (typeof alertApi?.showAlert === "function") {
-        alertApi.showAlert(description ?? title, "success");
       }
     },
     [alertApi]
@@ -70,18 +69,20 @@ export function useNotices() {
   );
 
   const add = useCallback(
-    async (body: NoticeCreate) => {
+    async (body: NoticeCreate): Promise<boolean> => {
       if (!info?.id) {
         setError(handleError(new Error("No se encontró el usuario autenticado.")));
-        return;
+        return false;
       }
       setLoading(true);
       try {
         await service.createNotice({ ...body, userId: info.id });
         await notifySuccess("Aviso creado");
         await fetchAll();
+        return true;
       } catch (e) {
         setError(handleError(e));
+        return false;
       } finally {
         setLoading(false);
       }
@@ -90,18 +91,20 @@ export function useNotices() {
   );
 
   const edit = useCallback(
-    async (notice: Notice) => {
+    async (notice: Notice): Promise<boolean> => {
       if (!info?.id) {
         setError(handleError(new Error("No se encontró el usuario autenticado.")));
-        return;
+        return false;
       }
       setLoading(true);
       try {
         await service.updateNotice({ ...notice, userId: info.id });
         await notifySuccess("Aviso actualizado");
         await fetchAll();
+        return true;
       } catch (e) {
         setError(handleError(e));
+        return false;
       } finally {
         setLoading(false);
       }
@@ -110,16 +113,18 @@ export function useNotices() {
   );
 
   const remove = useCallback(
-    async (id: number) => {
+    async (id: number): Promise<boolean> => {
       const ok = await confirmDanger();
-      if (!ok) return;
+      if (!ok) return false;
       setLoading(true);
       try {
         await service.deleteNotice(id);
         await notifySuccess("Aviso eliminado");
         await fetchAll();
+        return true;
       } catch (e) {
         setError(handleError(e));
+        return false;
       } finally {
         setLoading(false);
       }

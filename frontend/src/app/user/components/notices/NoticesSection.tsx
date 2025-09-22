@@ -6,7 +6,6 @@ import { SearchBar } from "../../../shared/components/SearchBar";
 import { useNotices } from "../../hooks/useNotices";
 import { useAuthContext } from "../../../user/context/AuthContext";
 import { Modal } from "../../../shared/components/Modal";
-import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { NoticeForm, NoticeFormHandle } from "./NoticeForm";
 import { NoticesList } from "./NoticesList";
 import { LoadingButton } from "@mui/lab";
@@ -25,7 +24,7 @@ export default function NoticesSection() {
   const muiTheme = useTheme();
   const xs = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const sm = useMediaQuery(muiTheme.breakpoints.between("sm", "md"));
-  const visibleCount = xs ? 1 : sm ? 2 :  3;
+  const visibleCount = xs ? 1 : sm ? 2 : 3;
 
   const [idx, setIdx] = useState(0);
   useEffect(() => setIdx(0), [sorted, visibleCount]);
@@ -34,23 +33,24 @@ export default function NoticesSection() {
   const visibleNotices = useMemo(() => sorted.slice(idx, idx + visibleCount), [sorted, idx, visibleCount]);
   const canScroll = sorted.length > visibleCount;
 
-  /* ───────────── modal crear / confirmar ───────────── */
+  /* ───────────── modal crear ───────────── */
   const [createOpen, setCreateOpen] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
   const formRef = useRef<NoticeFormHandle>(null);
-  const { ask, DialogUI } = useConfirmDialog();
 
   const openCreate = () => setCreateOpen(true);
   const closeCreate = () => setCreateOpen(false);
 
   const handleCreate = async () => {
-    if (!formRef.current) return;
+    if (!formRef.current || !info?.id) return;
     const data = formRef.current.getCreateData();
-    await add({ ...data, userId: info!.id });
-    closeCreate();
+    const ok = await add({ ...data, userId: info.id });
+    if (ok) closeCreate(); // el hook ya mostró la alerta y refrescó
   };
 
-  const handleDelete = (id: number) => ask("¿Eliminar esta novedad?", () => remove(id));
+  const handleDelete = async (id: number) => {
+    await remove(id); // el hook pide confirmación y refresca si procede
+  };
 
   /* ───────────── render ───────────── */
   const hasNotices = sorted.length > 0;
@@ -123,7 +123,9 @@ export default function NoticesSection() {
                 notices={visibleNotices}
                 isAdmin={isAdmin}
                 visibleCount={visibleCount}
-                onUpdate={edit}
+                onUpdate={async (n) => {
+                  await edit(n);
+                }}
                 onDeleteClick={handleDelete}
               />
             </Box>
@@ -166,8 +168,6 @@ export default function NoticesSection() {
           </LoadingButton>
         </Box>
       </Modal>
-
-      {DialogUI}
     </Box>
   );
 }

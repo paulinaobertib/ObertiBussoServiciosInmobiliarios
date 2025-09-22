@@ -1,156 +1,131 @@
-import { useState, useEffect, ChangeEvent } from "react";
-import { Box, TextField, Grid, Button } from "@mui/material";
-import { postGuarantor, putGuarantor, deleteGuarantor } from "../../services/guarantor.service";
-import { useGlobalAlert } from "../../../shared/context/AlertContext";
-import type { Guarantor, GuarantorCreate } from "../../types/guarantor";
+import { useEffect, useMemo, useState, ChangeEvent } from "react";
+import { Box, Grid, TextField } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
+import type { Guarantor, GuarantorCreate } from "../../types/guarantor";
+import { useGuarantors } from "../../hooks/useGuarantors";
 
 type Action = "add" | "edit" | "delete";
 
-export interface Props {
+export interface GuarantorFormProps {
   action?: Action;
-  item?: Guarantor;
-  onSuccess?: () => void;
-  onClose?: () => void;
+  item?: Guarantor | null;
+  onSuccess?: () => void; // cerrar/refresh en el padre
 }
 
-export const GuarantorForm = ({ action, item, onSuccess, onClose }: Props) => {
-  const { showAlert } = useGlobalAlert();
+type FormState = {
+  name: string;
+  email: string;
+  phone: string;
+};
 
-  const isAdd = action === "add";
-  const isEdit = action === "edit";
-  const isDelete = action === "delete";
+const empty: FormState = {
+  name: "",
+  email: "",
+  phone: "",
+};
 
-  // inicializo el form según el modo
-  const [form, setForm] = useState<GuarantorCreate & Pick<Guarantor, "id">>({
-    id: item?.id ?? "",
-    name: item?.name ?? "",
-    email: item?.email ?? "",
-    phone: item?.phone ?? "",
-  } as any);
+export default function GuarantorForm({ action, item, onSuccess }: GuarantorFormProps) {
+  const { create, update, remove } = useGuarantors();
 
+  const mode: Action = useMemo(() => {
+    if (action) return action;
+    return item && (item as any).id != null ? "edit" : "add";
+  }, [action, item]);
+
+  const isAdd = mode === "add";
+  const isEdit = mode === "edit";
+  const isDelete = mode === "delete";
+
+  const [form, setForm] = useState<FormState>(empty);
   const [saving, setSaving] = useState(false);
 
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-  const phoneValid = /^[0-9]{10,15}$/.test(form.phone.trim());
-  const formValid = isAdd ? emailValid && phoneValid : true;
-
-  // si es edición, cargo datos al montar
   useEffect(() => {
     if (isEdit && item) {
       setForm({
-        id: item.id,
-        name: item.name,
-        email: item.email,
-        phone: item.phone ?? "",
+        name: (item as any).name ?? "",
+        email: (item as any).email ?? "",
+        phone: (item as any).phone ?? "",
       });
+    } else {
+      setForm(empty);
     }
-  }, [action, item]);
+  }, [isEdit, item]);
 
-  const handleChange = (field: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) => {
+  const onChange = (field: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
-  };
+
+  const isValid = isDelete || (!!form.name && !!form.email && !!form.phone);
+
+  const toCreateDto = (): GuarantorCreate => ({
+    // Ajustá si tu DTO real tiene otros nombres/campos
+    name: form.name,
+    email: form.email,
+    phone: form.phone,
+  });
 
   const handleSubmit = async () => {
-    // si es creación, chequeo antes
-    if (isAdd) {
-      if (!emailValid) {
-        showAlert("Email inválido", "warning");
-        return;
-      }
-      if (!phoneValid) {
-        showAlert("Teléfono debe tener entre 10 y 15 dígitos", "warning");
-        return;
-      }
-    }
+    if (!isValid) return;
     setSaving(true);
     try {
-      if (isAdd) {
-        const body: GuarantorCreate = {
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-        };
-
-        await postGuarantor(body);
-        showAlert("Garante creado con éxito", "success");
-      } else if (isDelete && form.id) {
-        await deleteGuarantor(form.id);
-        showAlert("Garante eliminado con éxito", "success");
-      } else {
-        await putGuarantor(form.id, form as Guarantor);
-        showAlert("Garante actualizado con éxito", "success");
+      if (isDelete) {
+        if (!item?.id) return;
+        const ok = await remove(item.id); // confirm + alertas en el hook
+        if (ok) onSuccess?.();
+        return;
       }
-      onSuccess?.();
-      onClose?.();
-    } catch (err: any) {
-      showAlert(err.response?.data ?? "Error desconocido", "error");
+
+      if (isAdd) {
+        const ok = await create(toCreateDto());
+        if (ok) onSuccess?.();
+        return;
+      }
+
+      if (isEdit && item?.id != null) {
+        const ok = await update(item.id, toCreateDto());
+        if (ok) onSuccess?.();
+        return;
+      }
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        gap: 2,
-        alignItems: { xs: "stretch", md: "center" },
-      }}
-    >
-      {/* Campos del formulario */}
-      <Grid container spacing={2} flexGrow={1}>
-        {/* Username */}
-        <Grid size={{ xs: 12 }}>
-          <TextField
-            label="Nombre"
-            value={form.name}
-            fullWidth
-            disabled={isDelete}
-            size="small"
-            onChange={handleChange("name")}
-          />
-        </Grid>
-        {/* Email y Teléfono */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
-            label="Correo electrónico"
-            value={form.email}
-            onChange={handleChange("email")}
-            fullWidth
-            size="small"
-            disabled={isDelete}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
-            label="Teléfono"
-            value={form.phone}
-            onChange={handleChange("phone")}
-            fullWidth
-            size="small"
-            disabled={isDelete}
-          />
-        </Grid>
-        {/* Botones */}
-        <Grid size={{ xs: 12 }}>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-            <Button onClick={onClose} disabled={saving}>
-              Cancelar
-            </Button>
-            <LoadingButton
-              variant="contained"
-              onClick={handleSubmit}
-              loading={saving}
-              disabled={saving || !formValid}
-              color={isDelete ? "error" : "primary"}
-            >
-              {isAdd ? "Guardar" : isEdit ? "Guardar" : "Eliminar"}
-            </LoadingButton>
-          </Box>
+    <Box>
+      <Grid container spacing={2}>
+        {!isDelete && (
+          <>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField label="Nombre" size="small" fullWidth value={form.name} onChange={onChange("name")} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField label="Teléfono" size="small" fullWidth value={form.phone} onChange={onChange("phone")} />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                label="Email"
+                type="email"
+                size="small"
+                fullWidth
+                value={form.email}
+                onChange={onChange("email")}
+              />
+            </Grid>
+          </>
+        )}
+
+        <Grid size={{ xs: 12 }} textAlign="right">
+          <LoadingButton
+            variant="contained"
+            color={isDelete ? "error" : "primary"}
+            loading={saving}
+            disabled={!isValid || saving}
+            onClick={handleSubmit}
+          >
+            {isDelete ? "Eliminar" : isEdit ? "Guardar" : "Confirmar"}
+          </LoadingButton>
         </Grid>
       </Grid>
     </Box>
   );
-};
+}

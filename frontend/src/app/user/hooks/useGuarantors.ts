@@ -1,4 +1,4 @@
-// useGuarantors.ts
+// src/app/user/hooks/useGuarantors.ts
 import { useCallback, useEffect, useState } from "react";
 import {
   getAllGuarantors,
@@ -22,17 +22,23 @@ export function useGuarantors() {
   const { handleError } = useApiErrors();
   const alertApi: any = useGlobalAlert();
 
-  // ✅ mismo patrón que useUsers
   const [guarantors, setGuarantors] = useState<Guarantor[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  /* ---------------- helpers de alertas ---------------- */
+  /* -------- helpers de alertas -------- */
   const notifySuccess = useCallback(
     async (title: string, description?: string) => {
       if (typeof alertApi?.success === "function") {
         await alertApi.success({ title, description, primaryLabel: "Ok" });
-      } else if (typeof alertApi?.showAlert === "function") {
-        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  const notifyInfo = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.info === "function") {
+        await alertApi.info({ title, description, primaryLabel: "Entendido" });
       }
     },
     [alertApi]
@@ -42,12 +48,12 @@ export function useGuarantors() {
     if (typeof alertApi?.doubleConfirm === "function") {
       return await alertApi.doubleConfirm({
         kind: "error",
-        description: "Eliminar este garante?",
+        description: "¿Vas a eliminar este garante?",
       });
     }
   }, [alertApi]);
 
-  /* ---------------- carga inicial ---------------- */
+  /* -------- carga inicial -------- */
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -65,9 +71,9 @@ export function useGuarantors() {
 
   useEffect(() => {
     load();
-  }, [load]); // 👈 carga inicial (igual a useUsers)
+  }, [load]);
 
-  const fetchAll = useCallback(load, [load]); // 👈 alias (igual a useUsers)
+  const fetchAll = useCallback(load, [load]);
 
   const fetchByText = useCallback(
     async (q: string) => {
@@ -83,7 +89,7 @@ export function useGuarantors() {
     [handleError]
   );
 
-  /* ---------------- getters ---------------- */
+  /* -------- getters -------- */
   const fetchById = useCallback(
     async (id: number) => {
       try {
@@ -144,7 +150,7 @@ export function useGuarantors() {
     [handleError]
   );
 
-  /* ---------------- mutations ---------------- */
+  /* -------- mutations -------- */
   const create = useCallback(
     async (data: GuarantorCreate) => {
       try {
@@ -222,27 +228,41 @@ export function useGuarantors() {
     [handleError, confirmDanger, notifySuccess]
   );
 
+  /* -------- utilidad UX -------- */
+  const warnDuplicate = useCallback(async () => {
+    if (typeof alertApi?.warning === "function") {
+      await alertApi.warning({
+        title: "Garante ya vinculado",
+        description: "Este garante ya está asociado.",
+      });
+    }
+  }, [alertApi]);
+
   return {
     guarantors,
     loading,
-    fetchAll, // 👈 igual que useUsers
-    fetchByText, // 👈 igual que useUsers
 
-    // opcional: si usás en otros lados:
+    // loads/search
+    fetchAll,
+    fetchByText,
     loadAll: load,
 
-    // getters…
+    // getters
     fetchById,
     fetchByEmail,
     fetchByPhone,
     fetchByContract,
     fetchContractsByGuarantor,
 
-    // mutations…
+    // mutations
     create,
     update,
     remove,
     linkToContract,
     unlinkFromContract,
+
+    // helper opcional para UI
+    warnDuplicate,
+    notifyInfo,
   };
 }

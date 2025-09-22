@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { Autocomplete, TextField } from "@mui/material";
 import type { Role } from "../../../types/user";
 import { useGlobalAlert } from "../../../../shared/context/AlertContext";
+import { useApiErrors } from "../../../../shared/hooks/useErrors";
 import { addRoleToUser, deleteRoleFromUser, getRoles } from "../../../services/user.service";
 
 const AVAILABLE_ROLES: { label: string; value: Role }[] = [
@@ -20,10 +21,31 @@ export interface RoleFormProps {
 }
 
 export const RoleForm = ({ userId, currentRoles, onSuccess, onClose }: RoleFormProps) => {
-  const { showAlert } = useGlobalAlert();
+  const alertApi: any = useGlobalAlert();
+  const { handleError } = useApiErrors();
+
   const [selected, setSelected] = useState<Role[]>([]);
   const [initial, setInitial] = useState<Role[]>([]);
   const [loading, setLoading] = useState(false);
+
+  /* -------- helpers de alertas (solo éxito/warning aquí) -------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      }
+    },
+    [alertApi]
+  );
+
+  const notifyWarning = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.warning === "function") {
+        await alertApi.warning({ title, description, primaryLabel: "Entendido" });
+      }
+    },
+    [alertApi]
+  );
 
   // Inicializa roles
   useEffect(() => {
@@ -37,17 +59,19 @@ export const RoleForm = ({ userId, currentRoles, onSuccess, onClose }: RoleFormP
           setSelected(res.data);
           setInitial(res.data);
         })
-        .catch(() => {
+        .catch((err) => {
+          // delega alerta/transformación al hook centralizado
+          handleError(err);
           setSelected([]);
           setInitial([]);
         })
         .finally(() => setLoading(false));
     }
-  }, [userId, currentRoles]);
+  }, [userId, currentRoles, handleError]);
 
   const handleSave = async () => {
     if (!selected.length) {
-      showAlert("Debe asignar al menos un rol", "warning");
+      await notifyWarning("Debe asignar al menos un rol");
       return;
     }
     setLoading(true);
@@ -58,14 +82,12 @@ export const RoleForm = ({ userId, currentRoles, onSuccess, onClose }: RoleFormP
         ...toAdd.map((r) => addRoleToUser(userId, r)),
         ...toRemove.map((r) => deleteRoleFromUser(userId, r)),
       ]);
-      showAlert("Roles actualizados con éxito", "success");
+      await notifySuccess("Roles actualizados con éxito");
       onSuccess();
       onClose();
-    } catch (err: any) {
-      const backendMessage =
-        err.response?.data?.message || err.response?.data || err.message || "Error al actualizar roles";
-      showAlert(backendMessage, "error");
-      console.error("Error en handleSave:", backendMessage);
+    } catch (err) {
+      // errores pasan por el manejador global (muestra alerta)
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -79,11 +101,7 @@ export const RoleForm = ({ userId, currentRoles, onSuccess, onClose }: RoleFormP
         Selecciona roles:
       </Typography>
       <Autocomplete
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            borderRadius: 2,
-          },
-        }}
+        sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
         multiple
         options={AVAILABLE_ROLES}
         getOptionLabel={(o) => o.label}
