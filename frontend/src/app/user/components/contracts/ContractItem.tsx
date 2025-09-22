@@ -21,8 +21,7 @@ export const typeLabel = (t?: Contract["contractType"]) => {
 
 interface Props {
   contract: Contract;
-  onDelete: (c: Contract) => void;
-  onToggleStatus: (c: Contract) => void;
+
   isAdmin?: boolean;
 }
 
@@ -115,7 +114,7 @@ export const ContractItem = ({ contract }: Props) => {
         <Box sx={{ display: "grid", gap: 1.25, fontSize: "0.8125rem" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "#000" }}>
             <HomeOutlined fontSize="small" />
-            <Typography component="span" fontWeight={600} sx={{ color: '#000', fontSize: '0.9375rem' }}>
+            <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
               Propiedad:
             </Typography>
             <Typography component="span" color="text.primary" noWrap fontSize="0.9375rem">
@@ -126,7 +125,7 @@ export const ContractItem = ({ contract }: Props) => {
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, color: "#000" }}>
             <CalendarMonthOutlined fontSize="small" sx={{ mt: 0.2 }} />
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-              <Typography component="span" fontWeight={600} sx={{ color: '#000', fontSize: '0.9375rem' }}>
+              <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
                 Período:
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25, ml: 1 }}>
@@ -142,7 +141,7 @@ export const ContractItem = ({ contract }: Props) => {
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "#000" }}>
             <AttachMoneyOutlined fontSize="small" />
-            <Typography component="span" fontWeight={600} sx={{ color: '#000', fontSize: '0.9375rem' }}>
+            <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
               Último pago:
             </Typography>
 
@@ -152,17 +151,13 @@ export const ContractItem = ({ contract }: Props) => {
                   ARS $ {Number(lastAmount).toLocaleString("es-AR")}
                 </Typography>
                 {lastDate && (
-                  <Typography
-                    component="span"
-                    variant="caption"
-                    sx={{ ml: 0.5, fontSize: "0.8125rem", color: '#000' }}
-                  >
+                  <Typography component="span" variant="caption" sx={{ ml: 0.5, fontSize: "0.8125rem", color: "#000" }}>
                     ({lastDate})
                   </Typography>
                 )}
               </>
             ) : (
-              <Typography component="span" sx={{ color: '#000', fontSize: '0.8125rem' }}>
+              <Typography component="span" sx={{ color: "#000", fontSize: "0.8125rem" }}>
                 Sin registros
               </Typography>
             )}
@@ -184,12 +179,7 @@ export const ContractItem = ({ contract }: Props) => {
           alignItems: "center",
         }}
       >
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<VisibilityOutlined />}
-          onClick={goDetail}
-        >
+        <Button variant="contained" size="small" startIcon={<VisibilityOutlined />} onClick={goDetail}>
           Ver detalles
         </Button>
       </CardActions>

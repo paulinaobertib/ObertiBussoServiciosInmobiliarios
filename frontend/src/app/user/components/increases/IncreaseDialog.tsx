@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Box, Button } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 import { Modal } from "../../../shared/components/Modal";
-import { IncreaseForm, IncreaseFormValues } from "../increases/IncreaseForm";
+import { IncreaseForm, type IncreaseFormValues } from "../increases/IncreaseForm";
 import { postContractIncrease } from "../../services/contractIncrease.service";
-import type { Contract } from "../../types/contract";
 import { getIncreaseIndexByContract } from "../../services/increaseIndex.service";
+import type { Contract } from "../../types/contract";
+import type { PaymentCurrency } from "../../types/payment";
+import type { ContractIncreaseCreate } from "../../types/contractIncrease";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { useApiErrors } from "../../../shared/hooks/useErrors";
-import { LoadingButton } from "@mui/lab";
 
 interface Props {
   open: boolean;
@@ -17,81 +19,89 @@ interface Props {
 }
 
 export const IncreaseDialog = ({ open, contract, onClose, onSaved }: Props) => {
-  const alertApi: any = useGlobalAlert();
+  const { showAlert } = useGlobalAlert();
   const { handleError } = useApiErrors();
 
-  const empty: IncreaseFormValues = {
-    date: "",
-    amount: "",
-    currency: "",
-    note: "",
-  };
-  const [vals, setVals] = useState<IncreaseFormValues>(empty);
   const [saving, setSaving] = useState(false);
   const [indexId, setIndexId] = useState<number | null>(null);
 
+  const [vals, setVals] = useState<IncreaseFormValues>({
+    date: new Date().toISOString().slice(0, 10),
+    amount: "",
+    currency: (contract?.currency as PaymentCurrency) ?? "",
+    adjustment: "",
+    note: "",
+  });
+
+  // Resolver índice del contrato: primero desde el propio contrato; si no, desde el API
   useEffect(() => {
-    setVals(empty);
-    setIndexId(null);
+    if (!open || !contract) {
+      setIndexId(null);
+      return;
+    }
+    const fromContract = (contract as any)?.adjustmentIndex?.id ?? null;
+    if (fromContract) {
+      setIndexId(Number(fromContract));
+      return;
+    }
     (async () => {
-      if (!contract) return;
-      const fromContract = (contract as any)?.adjustmentIndex?.id ?? null;
-      if (fromContract) {
-        setIndexId(Number(fromContract));
-        return;
-      }
       try {
         const idx = await getIncreaseIndexByContract(contract.id);
         const id = (idx as any)?.id ?? null;
-        if (id) setIndexId(Number(id));
+        setIndexId(id ? Number(id) : null);
       } catch {
         setIndexId(null);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contract, open]);
+  }, [open, contract]);
 
-  const hasIndex = indexId != null;
-  const isValid =
-    Boolean(vals.date) && vals.amount !== "" && Number(vals.amount) > 0 && Boolean(vals.currency) && hasIndex;
+  // Validación
+  const isValid = useMemo(() => {
+    const amountOk = Number(vals.amount) > 0;
+    const dateOk = Boolean(vals.date);
+    const currencyOk = Boolean(vals.currency);
+    const hasIndex = indexId != null;
+    return amountOk && dateOk && currencyOk && hasIndex && !!contract?.id;
+  }, [vals, indexId, contract?.id]);
+
+  const toApiDateTime = (d: string) => (d && d.includes("T") ? d : `${d}T00:00:00`);
 
   const handleSave = async () => {
-    if (!contract || !isValid) return;
+    if (!isValid || !contract?.id || indexId == null) return;
     setSaving(true);
-
-    const payload = {
-      date: `${vals.date}T00:00:00`,
-      amount: Number(vals.amount),
-      currency: vals.currency,
-      indexId: indexId ?? undefined,
-      contractId: contract.id,
-      note: vals.note || undefined,
-      adjustment:
-        (vals as any)?.adjustment === "" || (vals as any)?.adjustment == null ? 0 : Number((vals as any)?.adjustment),
-    } as any;
-
     try {
+      const payload: ContractIncreaseCreate = {
+        contractId: Number(contract.id),
+        date: toApiDateTime(vals.date), // enviar como datetime
+        currency: vals.currency as PaymentCurrency,
+        amount: Number(vals.amount),
+        indexId, // 👈 requerido por el backend
+        adjustment: vals.adjustment === "" ? undefined : Number(vals.adjustment),
+        note: vals.note?.trim() || undefined,
+      };
+
       await postContractIncrease(payload);
-      await alertApi?.success?.({
-        title: "Aumento creado con éxito",
-        primaryLabel: "Ok",
-      });
-      onSaved();
-    } catch (e) {
-      handleError(e); // mostrará el modal de error con el mensaje del backend
+
+      showAlert("Aumento registrado.", "success");
+      onSaved?.();
+      onClose();
+    } catch (err) {
+      handleError(err);
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Modal open={open} title="Nuevo Aumento" onClose={onClose}>
-      {!hasIndex && (
+    <Modal open={open} onClose={onClose} title="Nuevo aumento">
+      {indexId == null && (
         <Box sx={{ mb: 1, color: "warning.main", fontSize: ".875rem" }}>
-          Asigna un índice de ajuste al contrato antes de registrar un aumento.
+          Asigná un índice de ajuste al contrato antes de registrar un aumento.
         </Box>
       )}
+
       <IncreaseForm initialValues={vals} onChange={setVals} />
+
       <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
         <Button onClick={onClose} disabled={saving}>
           Cancelar
