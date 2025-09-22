@@ -18,8 +18,6 @@ export function useFavorites() {
     async (title: string, description?: string) => {
       if (typeof alertApi?.success === "function") {
         await alertApi.success({ title, description, primaryLabel: "Ok" });
-      } else if (typeof alertApi?.showAlert === "function") {
-        alertApi.showAlert(description ?? title, "success");
       }
     },
     [alertApi]
@@ -30,8 +28,6 @@ export function useFavorites() {
       // si tu AlertContext tiene .info, usalo; si no, fallback a showAlert
       if (typeof alertApi?.info === "function") {
         await alertApi.info({ title, description, primaryLabel: "Entendido" });
-      } else if (typeof alertApi?.showAlert === "function") {
-        alertApi.showAlert(description ?? title, "info");
       }
     },
     [alertApi]
@@ -40,6 +36,7 @@ export function useFavorites() {
   const confirmDanger = useCallback(async () => {
     if (typeof alertApi?.confirm === "function") {
       return await alertApi.confirm({
+        kind: "error",
         description: "¿Confirmar eliminación?",
       });
     }
