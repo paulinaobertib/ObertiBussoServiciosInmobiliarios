@@ -19,15 +19,13 @@ export function useUtilities() {
   const alertApi: any = useGlobalAlert();
 
   const [utilities, setUtilities] = useState<Utility[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   /* ---------------- helpers de alertas ---------------- */
   const notifySuccess = useCallback(
     async (title: string, description?: string) => {
       if (typeof alertApi?.success === "function") {
         await alertApi.success({ title, description, primaryLabel: "Ok" });
-      } else if (typeof alertApi?.showAlert === "function") {
-        alertApi.showAlert(description ?? title, "success");
       }
     },
     [alertApi]

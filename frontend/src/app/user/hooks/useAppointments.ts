@@ -52,36 +52,15 @@ export function useAppointments() {
       primaryLabel?: string;
       secondaryLabel?: string;
     }) => {
-      const {
-        title,
-        description = "Esta acción no se puede deshacer.",
-        step2Title = "¿Confirmar definitivamente?",
-        step2Description = "Confirmá nuevamente para continuar.",
-        primaryLabel = "Continuar",
-        secondaryLabel = "Cancelar",
-      } = opts;
+      const { title, description = "¿Vas a eliminar este elemento?" } = opts;
 
       if (typeof alertApi?.doubleConfirm === "function") {
         return await alertApi.doubleConfirm({
           kind: "error",
           title,
           description,
-          step2Title,
-          step2Description,
-          primaryLabel,
-          secondaryLabel,
-          swapOnSecond: true,
         });
       }
-      if (typeof alertApi?.confirm === "function") {
-        return await alertApi.confirm({
-          title: "Confirmar acción",
-          description: `${title}. ${description}`,
-          primaryLabel,
-          secondaryLabel,
-        });
-      }
-      return window.confirm(`${title}\n\n${description}`);
     },
     [alertApi]
   );

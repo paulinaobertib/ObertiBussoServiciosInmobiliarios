@@ -413,7 +413,7 @@ export default function ContractDetailPage() {
         open={openGuarantors}
         contractId={Number(id)}
         onClose={() => setOpenGuarantors(false)}
-        onUpdated={async () => {
+        onLinked={async () => {
           await refreshContract();
         }}
       />
