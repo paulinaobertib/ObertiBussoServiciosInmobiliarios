@@ -32,13 +32,16 @@ import { ContractUtilityIncreaseDialog } from "../app/user/components/contract-u
 import { CommissionDialog } from "../app/user/components/commission/CommissionDialog";
 
 import { getTime } from "../app/user/components/contracts/contractDetail/utils.ts";
-import { useConfirmDialog } from "../app/shared/components/ConfirmDialog";
+import { useGlobalAlert } from "../app/shared/context/AlertContext";
+import { useApiErrors } from "../app/shared/hooks/useErrors";
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
-  const { ask, DialogUI } = useConfirmDialog();
+
+  const alertApi: any = useGlobalAlert();
+  const { handleError } = useApiErrors();
 
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState<ContractGet | null>(null);
@@ -55,6 +58,8 @@ export default function ContractDetailPage() {
         const resp = await getContractById(Number(id));
         const data = (resp as any)?.data ?? resp;
         if (alive) setContract(data as ContractGet);
+      } catch (e) {
+        handleError(e);
       } finally {
         if (alive) setLoading(false);
       }
@@ -62,7 +67,7 @@ export default function ContractDetailPage() {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, handleError]);
 
   useEffect(() => {
     setRetryCount(0);
@@ -111,13 +116,32 @@ export default function ContractDetailPage() {
         const fresh = await getContractById(Number(id));
         const data = (fresh as any)?.data ?? fresh;
         setContract(data as ContractGet);
+      } catch (e) {
+        handleError(e);
       } finally {
         setRetryCount((prev) => prev + 1);
       }
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [contract, id, retryCount]);
+  }, [contract, id, retryCount, handleError]);
+
+  // helpers de confirmación/éxito
+  const confirmDanger = async (title: string, description = "Esta acción no se puede deshacer.") => {
+    if (typeof alertApi?.doubleConfirm === "function") {
+      return await alertApi.doubleConfirm({
+        kind: "error",
+        title,
+        description,
+      });
+    }
+  };
+
+  const notifySuccess = async (title: string, description?: string) => {
+    if (typeof alertApi?.success === "function") {
+      await alertApi.success({ title, description, primaryLabel: "Ok" });
+    }
+  };
 
   // acciones admin
   const onEdit = () => contract && navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id));
@@ -142,30 +166,40 @@ export default function ContractDetailPage() {
   const [openServicePay, setOpenServicePay] = useState<number | null>(null);
   const [openServiceEdit, setOpenServiceEdit] = useState<number | null>(null);
   const [openServiceIncrease, setOpenServiceIncrease] = useState<number | null>(null);
-  const onDelete = () => {
+
+  const onDelete = async () => {
     if (!contract) return;
-    ask("¿Eliminar el contrato?", async () => {
+    const ok = await confirmDanger("¿Eliminar el contrato?");
+    if (!ok) return;
+    try {
       await deleteContract(contract.id);
+      await notifySuccess("Contrato eliminado");
       navigate(ROUTES.CONTRACT);
-    });
+    } catch (e) {
+      handleError(e);
+    }
   };
 
   const onToggleStatus = async () => {
     if (!contract || savingStatus) return;
     const msg =
       contract.contractStatus === "ACTIVO"
-        ? "Este contrato se inactivará y se avisará por email que está terminado. ¿Confirmar?"
+        ? "Este contrato se inactivará y se avisará por email que está terminado."
         : "¿Reactivar contrato?";
-    ask(msg, async () => {
-      setSavingStatus(true);
-      try {
-        await patchContractStatus(contract.id);
-        const fresh = await getContractById(contract.id);
-        setContract((fresh as any)?.data ?? (fresh as ContractGet));
-      } finally {
-        setSavingStatus(false);
-      }
-    });
+    const ok = await confirmDanger(msg);
+    if (!ok) return;
+
+    setSavingStatus(true);
+    try {
+      await patchContractStatus(contract.id);
+      const fresh = await getContractById(contract.id);
+      setContract((fresh as any)?.data ?? (fresh as ContractGet));
+      await notifySuccess("Estado actualizado");
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setSavingStatus(false);
+    }
   };
 
   if (loading) {
@@ -189,9 +223,13 @@ export default function ContractDetailPage() {
   }
 
   const refreshContract = async () => {
-    const fresh = await getContractById(Number(id));
-    const data = (fresh as any)?.data ?? fresh;
-    setContract(data as ContractGet);
+    try {
+      const fresh = await getContractById(Number(id));
+      const data = (fresh as any)?.data ?? fresh;
+      setContract(data as ContractGet);
+    } catch (e) {
+      handleError(e);
+    }
   };
 
   return (
@@ -212,7 +250,7 @@ export default function ContractDetailPage() {
           onEdit={onEdit}
           onDelete={onDelete}
           onToggleStatus={onToggleStatus}
-          onPayments={onPayments}
+          onPayments={() => onPayments()}
           onIncrease={onIncrease}
         />
 
@@ -267,12 +305,17 @@ export default function ContractDetailPage() {
             onEdit={isAdmin ? (id) => setOpenServiceEdit(id) : undefined}
             onUnlink={
               isAdmin
-                ? (cuid) => {
-                    ask("¿Desvincular este servicio?", async () => {
+                ? async (cuid) => {
+                    const ok = await confirmDanger("¿Desvincular este servicio?");
+                    if (!ok) return;
+                    try {
                       const { deleteContractUtility } = await import("../app/user/services/contractUtility.service");
                       await deleteContractUtility(cuid);
+                      await notifySuccess("Servicio desvinculado");
                       await refreshContract();
-                    });
+                    } catch (e) {
+                      handleError(e);
+                    }
                   }
                 : undefined
             }
@@ -284,12 +327,17 @@ export default function ContractDetailPage() {
             onManage={isAdmin ? () => setOpenGuarantors(true) : undefined}
             onUnlink={
               isAdmin
-                ? (gid) => {
-                    ask("¿Quitar garante del contrato?", async () => {
+                ? async (gid) => {
+                    const ok = await confirmDanger("¿Quitar garante del contrato?");
+                    if (!ok) return;
+                    try {
                       const { removeGuarantorFromContract } = await import("../app/user/services/guarantor.service");
                       await removeGuarantorFromContract(gid, Number(id));
+                      await notifySuccess("Garante desvinculado");
                       await refreshContract();
-                    });
+                    } catch (e) {
+                      handleError(e);
+                    }
                   }
                 : undefined
             }
@@ -441,7 +489,7 @@ export default function ContractDetailPage() {
           setContract(data as ContractGet);
         }}
       />
-      {DialogUI}
+      {/* Eliminado: {DialogUI} */}
     </>
   );
 }
