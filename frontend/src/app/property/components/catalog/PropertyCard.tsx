@@ -61,7 +61,6 @@ export const PropertyCard = ({
         overflow: "visible",
         flexDirection: "column",
         height: "100%",
-        borderRadius: 2,
         cursor: selectionMode ? "default" : "pointer",
         transition: "transform 0.1s",
         "&:hover": { transform: "scale(1.01)" },

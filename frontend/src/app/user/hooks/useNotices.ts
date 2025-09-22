@@ -3,16 +3,39 @@ import * as service from "../services/notice.service";
 import { Notice, NoticeCreate } from "../types/notice";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 export function useNotices() {
   const { info } = useAuthContext();
   const { handleError } = useApiErrors();
+  const alertApi: any = useGlobalAlert();
 
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /* -------- helpers -------- */
+  /* ---------------- helpers de alertas ---------------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  const confirmDanger = useCallback(async () => {
+    if (typeof alertApi?.doubleConfirm === "function") {
+      return await alertApi.doubleConfirm({
+        kind: "error",
+        description: "Eliminar noticia?",
+      });
+    }
+  }, [alertApi]);
+
+  /* ---------------- CRUD & búsquedas ---------------- */
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,6 +78,7 @@ export function useNotices() {
       setLoading(true);
       try {
         await service.createNotice({ ...body, userId: info.id });
+        await notifySuccess("Aviso creado");
         await fetchAll();
       } catch (e) {
         setError(handleError(e));
@@ -62,7 +86,7 @@ export function useNotices() {
         setLoading(false);
       }
     },
-    [info?.id, fetchAll, handleError]
+    [info?.id, fetchAll, handleError, notifySuccess]
   );
 
   const edit = useCallback(
@@ -74,6 +98,7 @@ export function useNotices() {
       setLoading(true);
       try {
         await service.updateNotice({ ...notice, userId: info.id });
+        await notifySuccess("Aviso actualizado");
         await fetchAll();
       } catch (e) {
         setError(handleError(e));
@@ -81,14 +106,17 @@ export function useNotices() {
         setLoading(false);
       }
     },
-    [info?.id, fetchAll, handleError]
+    [info?.id, fetchAll, handleError, notifySuccess]
   );
 
   const remove = useCallback(
     async (id: number) => {
+      const ok = await confirmDanger();
+      if (!ok) return;
       setLoading(true);
       try {
         await service.deleteNotice(id);
+        await notifySuccess("Aviso eliminado");
         await fetchAll();
       } catch (e) {
         setError(handleError(e));
@@ -96,7 +124,7 @@ export function useNotices() {
         setLoading(false);
       }
     },
-    [fetchAll, handleError]
+    [fetchAll, handleError, notifySuccess, confirmDanger]
   );
 
   useEffect(() => {

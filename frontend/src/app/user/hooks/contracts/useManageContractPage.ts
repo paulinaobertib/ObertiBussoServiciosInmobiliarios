@@ -1,7 +1,6 @@
 // src/app/user/hooks/useManageContractPage.ts
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useConfirmDialog } from "../../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
 import { getContractById, postContract, putContract, getContractsByPropertyId } from "../../services/contract.service";
 import {
@@ -12,15 +11,15 @@ import {
 import type { ContractCreate, ContractGet } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
 import { ROUTES } from "../../../../lib";
+import { useApiErrors } from "../../../shared/hooks/useErrors";
 
 export function useManageContractPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEdit = Boolean(id);
 
-  // Confirm dialog & global alert
-  const { ask, DialogUI } = useConfirmDialog();
-  const { showAlert } = useGlobalAlert();
+  const alertApi: any = useGlobalAlert();
+  const { handleError } = useApiErrors();
 
   // Form ref & estado de validez
   const formRef = useRef<ContractFormHandle>(null);
@@ -48,24 +47,55 @@ export function useManageContractPage() {
   };
   const openCommissionStep = () => {};
 
+  /* -------------------- helpers de alertas -------------------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  const confirm = useCallback(
+    async (title: string, description?: string, primaryLabel = "Confirmar", secondaryLabel = "Cancelar") => {
+      if (typeof alertApi?.confirm === "function") {
+        return await alertApi.confirm({ title, description, primaryLabel, secondaryLabel });
+      }
+      return window.confirm(`${title}${description ? `\n\n${description}` : ""}`);
+    },
+    [alertApi]
+  );
+
+  const confirmDanger = useCallback(async () => {
+    if (typeof alertApi?.doubleConfirm === "function") {
+      return await alertApi.doubleConfirm({
+        kind: "warning",
+        description: "¿Cancelar los cambios?",
+      });
+    }
+  }, [alertApi, confirm]);
+
   // --- Sincroniza garantes: el backend NO los actualiza en el PUT de contrato
   // Orden correcto de parámetros en backend: (guarantorId, contractId)
   const syncContractGuarantors = async (contractId: number, newIds: number[]) => {
     try {
-      // Soporta axios {data: []} o arreglo directo
       const resp = await getGuarantorsByContract(contractId);
       const list = Array.isArray(resp) ? resp : Array.isArray((resp as any)?.data) ? (resp as any).data : [];
       const currentIds = list.map((g: any) => g.id);
 
-      const toAdd = newIds.filter((id) => !currentIds.includes(id));
-      const toRemove = currentIds.filter((id: number) => !newIds.includes(id));
+      const toAdd = newIds.filter((gid) => !currentIds.includes(gid));
+      const toRemove = currentIds.filter((gid: number) => !newIds.includes(gid));
 
       await Promise.all([
         ...toAdd.map((guarantorId) => addGuarantorToContract(guarantorId, contractId)),
         ...toRemove.map((guarantorId: number) => removeGuarantorFromContract(guarantorId, contractId)),
       ]);
     } catch (e) {
-      console.error("[useManageContractPage] Error sincronizando garantes", e);
+      // Si falla, no frenamos el flujo de guardado; log + alerta opcional
+      handleError(e);
     }
   };
 
@@ -76,11 +106,7 @@ export function useManageContractPage() {
     (async () => {
       setLoading(true);
       try {
-        // Si tu servicio devuelve directamente el Contract:
         const data = await getContractById(Number(id!));
-        // Si tu servicio retorna axios.Response<Contract>, usa:
-        // const { data } = await getContractById(Number(id!));
-
         setContract(data);
         setSelectedPropertyId(data.propertyId);
         setSelectedUserId(data.userId);
@@ -89,20 +115,16 @@ export function useManageContractPage() {
           ? ((data as any).guarantors as Array<{ id: number }>).map((g) => g.id)
           : [];
         setSelectedGuarantorIds(guarIds);
-      } catch {
-        // Si falla, enviamos al listado y mostramos alerta
+      } catch (e) {
+        handleError(e);
         navigate(ROUTES.CONTRACT);
-        showAlert("Error al cargar contrato", "error");
       } finally {
         setLoading(false);
       }
     })();
-    // ————————
-    // Dependencias: solo id e isEdit para que NO se repita en cada render
-  }, [id, isEdit]);
+  }, [id, isEdit]); // id/isEdit suficientes; handleError/navigate son estables
 
   // ── Lógica de habilitación de botones ──
-  // Siguiente/Guardar depende del paso actual
   const canProceed = () => {
     if (activeStep === 0) return selectedPropertyId != null;
     if (activeStep === 1) return selectedUserId != null; // garantes opcional
@@ -112,13 +134,6 @@ export function useManageContractPage() {
 
   // ── Guardar / crear ──
   const save = async () => {
-    console.log("[ManageContractPage.save] start", {
-      activeStep,
-      selectedPropertyId,
-      selectedUserId,
-      selectedGuarantorIds,
-    });
-
     await formRef.current?.submit();
     const payload: ContractCreate = formRef.current!.getCreateData();
 
@@ -128,10 +143,12 @@ export function useManageContractPage() {
         // actualización: mapeo a ContractUpdate (sin id) y envío id por path
         await putContract(Number(id!), payload as any);
         await syncContractGuarantors(Number(id!), payload.guarantorsIds || []);
-        showAlert("Contrato actualizado", "success");
+        await notifySuccess("Contrato actualizado");
+        navigate(ROUTES.CONTRACT);
       } else {
         // creación
         await postContract(payload as any);
+
         let createdId: number | null = null;
         try {
           const list = await getContractsByPropertyId(payload.propertyId);
@@ -144,37 +161,32 @@ export function useManageContractPage() {
           const chosen = (matches.length ? matches : list).sort((a: any, b: any) => b.id - a.id)[0];
           createdId = chosen?.id ?? null;
         } catch (e) {
-          console.error("[ManageContractPage] error identifying created contract", e);
+          // no es crítico; seguimos
         }
 
         if (createdId) {
           await syncContractGuarantors(createdId, payload.guarantorsIds || []);
         }
 
-        // Redirigir al listado y disparar un ask desde allí (via location.state)
+        // Redirigir al listado y mostrar confirm desde ese screen (ya migrado)
         navigate(ROUTES.CONTRACT, {
-          state: {
-            justCreated: true,
-            createdId,
-          },
+          state: { justCreated: true, createdId },
         });
       }
-      if (isEdit) navigate(ROUTES.CONTRACT);
-    } catch (e: any) {
-      const msg = e?.response?.data ?? "Error al guardar contrato";
-      console.error("[ManageContractPage.save] error", e?.response || e);
-      showAlert(String(msg), "error");
+    } catch (e) {
+      handleError(e);
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Cancelar / Back ──
-  const cancel = () =>
-    ask("¿Cancelar los cambios?", async () => {
-      formRef.current?.reset();
-      navigate(ROUTES.CONTRACT);
-    });
+  // ── Cancelar / Back ── (doble confirmación si existe)
+  const cancel = async () => {
+    const ok = await confirmDanger();
+    if (!ok) return;
+    formRef.current?.reset();
+    navigate(ROUTES.CONTRACT);
+  };
 
   // Título dinámico
   const title = isEdit ? "Editar Contrato" : "Crear Contrato";
@@ -204,7 +216,6 @@ export function useManageContractPage() {
     formRef,
     formReady,
     setFormReady,
-    // extras integrados
 
     // Controls
     canProceed,
@@ -213,12 +224,10 @@ export function useManageContractPage() {
 
     // Meta
     title,
-    DialogUI,
 
     // Comisión inmediata
     commissionContractId,
     setCommissionContractId,
-    // Post creación (vía rutas nuevas)
     openCommissionStep,
     afterCommissionSaved,
   };

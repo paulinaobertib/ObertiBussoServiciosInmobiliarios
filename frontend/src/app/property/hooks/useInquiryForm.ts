@@ -2,6 +2,7 @@ import { useState, ChangeEvent, FormEvent, useCallback } from "react";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { postInquiry } from "../services/inquiry.service";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 type InquiryFormFields = {
   firstName: string;
@@ -13,26 +14,46 @@ type InquiryFormFields = {
 
 interface Props {
   propertyIds?: number[];
+  /** Personalizar el modal de éxito (opcional) */
+  successTitle?: string;
+  successDescription?: string;
 }
 
-export const useInquiryForm = ({ propertyIds }: Props = {}) => {
+export const useInquiryForm = ({ propertyIds, successTitle, successDescription }: Props = {}) => {
   const { info, isLogged } = useAuthContext();
   const { handleError } = useApiErrors();
+  const alertApi: any = useGlobalAlert();
 
-  const [form, setForm] = useState<InquiryFormFields>({
+  const makeInitial = (): InquiryFormFields => ({
     firstName: info?.firstName ?? "",
     lastName: info?.lastName ?? "",
     email: info?.email ?? "",
     phone: info?.phone ?? "",
     description: "",
   });
+
+  const [form, setForm] = useState<InquiryFormFields>(makeInitial());
   const [formLoading, setFormLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   }, []);
+
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({
+          title,
+          description,
+          primaryLabel: "Cerrar",
+        });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
 
   const handleSubmit = useCallback(
     async (e: FormEvent) => {
@@ -48,7 +69,7 @@ export const useInquiryForm = ({ propertyIds }: Props = {}) => {
         propertyIds?: number[];
       } = {
         title,
-        description: form.description,
+        description: form.description?.trim(),
         ...(count > 0 ? { propertyIds } : {}),
       };
 
@@ -58,28 +79,34 @@ export const useInquiryForm = ({ propertyIds }: Props = {}) => {
         } else {
           await postInquiry({
             ...payloadBase,
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            phone: form.phone,
+            firstName: form.firstName.trim(),
+            lastName: form.lastName.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
           });
         }
-        setSubmitted(true);
+
+        await notifySuccess(
+          successTitle ?? "Consulta enviada",
+          successDescription ?? "Gracias por contactarte. Te responderemos a la brevedad."
+        );
+
+        // ✅ siempre resetea el formulario
+        setForm(makeInitial());
       } catch (err) {
-        // handleError muestra el toast y devuelve el string
         handleError(err);
       } finally {
         setFormLoading(false);
       }
     },
-    [form, isLogged, info, propertyIds, handleError]
+    [form, isLogged, info, propertyIds, notifySuccess, handleError]
   );
 
   return {
     form,
     formLoading,
-    submitted,
     handleChange,
     handleSubmit,
+    reset: () => setForm(makeInitial()),
   };
 };

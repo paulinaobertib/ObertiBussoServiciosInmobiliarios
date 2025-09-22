@@ -13,7 +13,6 @@ const addDays = (d: Date, n: number) => {
 export const useCommission = () => {
   /** Conteo de comisiones por estado (usa /total/status) */
   const getCountByStatus = useCallback(async () => {
-    // Record<CommissionStatus, number>
     return await commissionService.countCommissionsByStatus();
   }, []);
 

@@ -54,7 +54,7 @@ export const NavBar = () => {
   const openMenu = Boolean(anchorElNav);
 
   return (
-    <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT } }}>
+    <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT }, zIndex: 10000 }}>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
         <Toolbar
           disableGutters

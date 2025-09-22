@@ -1,22 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
 import { usePropertiesContext } from "../context/PropertiesContext";
-// ❌ Se elimina el uso interno de useImages para evitar doble fuente de verdad
-// import { useImages } from "../../shared/hooks/useImages";
 
-import type {
-  Property,
-  PropertyCreate,
-  PropertyUpdate,
-} from "../types/property";
+import type { Property, PropertyCreate, PropertyUpdate } from "../types/property";
 import { Owner } from "../types/owner";
 import { Neighborhood } from "../types/neighborhood";
 import { Type } from "../types/type";
 
 /* Helpers */
 type Img = string | File;
-const keyOf = (img: Img) =>
-  img instanceof File ? `${img.name}#${img.size}#${img.lastModified}` : img;
+const keyOf = (img: Img) => (img instanceof File ? `${img.name}#${img.size}#${img.lastModified}` : img);
 
 function makeSafeProperty(raw?: Partial<Property>): Property {
   const now = new Date().toISOString();
@@ -95,10 +88,7 @@ export const usePropertyForm = (
 
   /* evita asignar undefined/null en claves críticas */
   const setField = <K extends keyof Property>(k: K, v: Property[K]) => {
-    if (
-      (k === "owner" || k === "neighborhood" || k === "type") &&
-      (v as unknown) == null
-    ) {
+    if ((k === "owner" || k === "neighborhood" || k === "type") && (v as unknown) == null) {
       return; // ignora nulos/undefined
     }
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -116,8 +106,7 @@ export const usePropertyForm = (
       const newMain = img ?? ("" as any);
       // si la imagen que se setea como main estaba en la galería, la removemos de allí
       const k = img ? keyOf(img) : null;
-      const filtered =
-        k == null ? galleryArr : galleryArr.filter((g) => keyOf(g) !== k);
+      const filtered = k == null ? galleryArr : galleryArr.filter((g) => keyOf(g) !== k);
       return { ...prev, mainImage: newMain as any, images: filtered as any };
     });
   }, []);
@@ -156,15 +145,11 @@ export const usePropertyForm = (
 
   // Propagar imágenes a quien lo necesite (compat con tu firma actual)
   useEffect(() => {
-    onImageSelect?.(
-      (form.mainImage as any) ?? null,
-      ((form.images as any) ?? []) as Img[]
-    );
+    onImageSelect?.((form.mainImage as any) ?? null, ((form.images as any) ?? []) as Img[]);
   }, [form.mainImage, form.images]);
 
   /* ---------- catálogos / selección ---------- */
-  const { selected, ownersList, neighborhoodsList, typesList, amenitiesList } =
-    usePropertiesContext();
+  const { selected, ownersList, neighborhoodsList, typesList, amenitiesList } = usePropertiesContext();
 
   /* sincs selects */
   useEffect(() => {
@@ -184,10 +169,7 @@ export const usePropertyForm = (
 
   useEffect(() => {
     const a = amenitiesList.filter((a) => selected.amenities.includes(a.id));
-    if (
-      JSON.stringify(a.map((x) => x.id)) !==
-      JSON.stringify(form.amenities.map((x) => x.id))
-    ) {
+    if (JSON.stringify(a.map((x) => x.id)) !== JSON.stringify(form.amenities.map((x) => x.id))) {
       setField("amenities", a);
     }
   }, [selected.amenities, amenitiesList]);
@@ -198,19 +180,15 @@ export const usePropertyForm = (
   const showBedrooms = currentType?.hasBedrooms ?? false;
   const showBathrooms = currentType?.hasBathrooms ?? false;
   const showCoveredArea = currentType?.hasCoveredArea ?? false;
-  const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(
-    Boolean
-  ).length;
-  const colSize =
-    visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
+  const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(Boolean).length;
+  const colSize = visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
 
   /* limpiar campos ocultos */
   useEffect(() => {
     if (!showRooms && form.rooms !== 0) setField("rooms", 0 as any);
     if (!showBedrooms && form.bedrooms !== 0) setField("bedrooms", 0 as any);
     if (!showBathrooms && form.bathrooms !== 0) setField("bathrooms", 0 as any);
-    if (!showCoveredArea && form.coveredArea !== 0)
-      setField("coveredArea", 0 as any);
+    if (!showCoveredArea && form.coveredArea !== 0) setField("coveredArea", 0 as any);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     showRooms,
@@ -292,8 +270,7 @@ export const usePropertyForm = (
     if (!form.operation) e.operation = "Campo obligatorio";
     if (!form.currency) e.currency = "Campo obligatorio";
     if ((form.owner?.id ?? 0) <= 0) e.owner = "Selecciona un propietario";
-    if ((form.neighborhood?.id ?? 0) <= 0)
-      e.neighborhood = "Selecciona un barrio";
+    if ((form.neighborhood?.id ?? 0) <= 0) e.neighborhood = "Selecciona un barrio";
     if ((form.type?.id ?? 0) <= 0) e.type = "Selecciona un tipo";
     if (!form.mainImage) e.mainImage = "Carga la imagen principal";
 
