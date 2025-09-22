@@ -188,8 +188,6 @@ export default function ManageContractPage() {
             />
           </Box>
         )}
-
-        {ctrl.DialogUI}
       </Box>
     </BasePage>
   );

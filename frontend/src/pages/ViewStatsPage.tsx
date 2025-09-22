@@ -11,8 +11,6 @@ import { AttachMoney } from "@mui/icons-material";
 import StatsFilters from "../app/property/components/view/StatsFilters";
 import ChartCard from "../app/property/components/view/ChartCard";
 import { useViewStats } from "../app/property/hooks/useViewsStats";
-// Si querés leer la moneda para el símbolo, podés importar tu enum:
-// import { PaymentCurrency } from "../app/user/types/payment";
 import BasePage from "./BasePage";
 
 interface InfoCardProps {

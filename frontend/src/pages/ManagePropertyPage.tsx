@@ -24,7 +24,7 @@ export default function ManagePropertyPage() {
   const ctrl = useManagePropertyPage();
   const {
     seedSelectionsFromProperty, // metodo nuevo del contexto
-    selected,                   // ids seleccionados en categorías
+    selected, // ids seleccionados en categorías
     amenitiesList,
     ownersList,
     neighborhoodsList,
@@ -44,18 +44,18 @@ export default function ManagePropertyPage() {
     }
 
     if (selected.type != null) {
-      const t = typesList.find(x => x.id === selected.type);
+      const t = typesList.find((x) => x.id === selected.type);
       if (t) ref.setField("type", t as any);
     }
     if (selected.neighborhood != null) {
-      const n = neighborhoodsList.find(x => x.id === selected.neighborhood);
+      const n = neighborhoodsList.find((x) => x.id === selected.neighborhood);
       if (n) ref.setField("neighborhood", n as any);
     }
     if (selected.owner != null) {
-      const o = ownersList.find(x => x.id === selected.owner);
+      const o = ownersList.find((x) => x.id === selected.owner);
       if (o) ref.setField("owner", o as any);
     }
-    const ams = amenitiesList.filter(a => selected.amenities.includes(a.id));
+    const ams = amenitiesList.filter((a) => selected.amenities.includes(a.id));
     ref.setField("amenities", ams as any);
 
     ctrl.setActiveStep(1);
@@ -115,7 +115,7 @@ export default function ManagePropertyPage() {
             {ctrl.activeStep === 0 && (
               <Button
                 variant="contained"
-                onClick={goToFormStep}        // items seleccionados
+                onClick={goToFormStep} // items seleccionados
                 disabled={!ctrl.canProceed}
               >
                 Siguiente
@@ -160,7 +160,7 @@ export default function ManagePropertyPage() {
               display: "flex",
               flexDirection: { xs: "column", md: "row" },
               gap: 3,
-              alignItems: 'stretch',
+              alignItems: "stretch",
             }}
           >
             {/* Formulario */}
@@ -223,9 +223,6 @@ export default function ManagePropertyPage() {
             </Card>
           </Box>
         )}
-
-        {/* ---------- dialog ---------- */}
-        {ctrl.DialogUI}
       </Box>
     </BasePage>
   );

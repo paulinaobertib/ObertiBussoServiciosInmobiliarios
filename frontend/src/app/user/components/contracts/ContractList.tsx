@@ -6,11 +6,9 @@ import type { Contract } from "../../types/contract";
 
 interface Props {
   contracts: Contract[];
-  onDelete: (c: Contract) => void;
-  onToggleStatus: (c: Contract) => void;
 }
 
-export const ContractList = ({ contracts = [], onDelete, onToggleStatus }: Props) => {
+export const ContractList = ({ contracts = [] }: Props) => {
   const { isAdmin } = useAuthContext();
   const safeContracts = Array.isArray(contracts) ? contracts : [];
 
@@ -20,7 +18,7 @@ export const ContractList = ({ contracts = [], onDelete, onToggleStatus }: Props
 
   if (sorted.length === 0) {
     return (
-      <Typography align="center" sx={{ mt: 4, color: '#000', fontWeight: 500 }}>
+      <Typography align="center" sx={{ mt: 4, color: "#000", fontWeight: 500 }}>
         No hay contratos disponibles.
       </Typography>
     );
@@ -59,7 +57,7 @@ export const ContractList = ({ contracts = [], onDelete, onToggleStatus }: Props
             display: "flex",
           }}
         >
-          <ContractItem contract={c} onDelete={onDelete} onToggleStatus={onToggleStatus} isAdmin={isAdmin} />
+          <ContractItem contract={c} isAdmin={isAdmin} />
         </Box>
       ))}
     </Box>

@@ -1,6 +1,7 @@
 import { Box, Stack, Chip, Typography, Button } from "@mui/material";
 import { typeLabel } from "./utils";
 import type { ContractGet } from "../../../types/contract";
+import { LoadingButton } from "@mui/lab";
 
 type Props = {
   contract: ContractGet;
@@ -66,17 +67,18 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
               <Button size="small" variant="outlined" onClick={onEdit}>
                 Editar
               </Button>
-              <Button
+              <LoadingButton
                 size="small"
                 variant="outlined"
                 color={contract.contractStatus === "ACTIVO" ? "warning" : "success"}
                 onClick={onToggleStatus}
                 disabled={savingStatus}
+                loading={savingStatus}
               >
                 {contract.contractStatus === "ACTIVO" ? "Inactivar" : "Reactivar"}
-              </Button>
+              </LoadingButton>
               <Button size="small" variant="outlined" color="error" onClick={onDelete}>
-                Eliminar
+                Eliminar 
               </Button>
             </Box>
           )}
