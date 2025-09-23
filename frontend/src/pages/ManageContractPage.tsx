@@ -27,6 +27,9 @@ export default function ManageContractPage() {
 
   const steps = ["Propiedad", "Usuario", "Datos"];
 
+  // Si es edición, forzar a mostrar directamente el paso 3 (Datos)
+  const isEditMode = Boolean(ctrl.contract);
+
   useEffect(() => {
     const c = ctrl.contract;
     if (!c) return;
@@ -50,6 +53,13 @@ export default function ManageContractPage() {
       ctrl.setAddGuarantors(true);
     }
   }, [ctrl.contract?.id]); // reacciona cuando queda cargado el contrato
+
+  // En edición, apenas se cargue el contrato, quedate en el paso 3
+  useEffect(() => {
+    if (isEditMode) {
+      ctrl.setActiveStep(2);
+    }
+  }, [isEditMode]); // solo cambia cuando detectamos edición
 
   // Sincroniza garantes seleccionados con el formulario (sin depender del toggle visual)
   useEffect(() => {
@@ -84,7 +94,8 @@ export default function ManageContractPage() {
             Cancelar
           </Button>
 
-          {!isMobile && (
+          {/* Ocultar Stepper completamente en edición */}
+          {!isEditMode && !isMobile && (
             <Box sx={{ flexGrow: 1 }}>
               <Stepper activeStep={ctrl.activeStep} alternativeLabel>
                 {steps.map((label) => (
@@ -97,13 +108,15 @@ export default function ManageContractPage() {
           )}
 
           <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
-            {ctrl.activeStep === 0 && (
+            {/* Paso 0: Propiedad (solo creación) */}
+            {!isEditMode && ctrl.activeStep === 0 && (
               <Button variant="contained" onClick={() => ctrl.setActiveStep(1)} disabled={!ctrl.canProceed()}>
                 Siguiente
               </Button>
             )}
 
-            {ctrl.activeStep === 1 && (
+            {/* Paso 1: Usuario (solo creación) */}
+            {!isEditMode && ctrl.activeStep === 1 && (
               <>
                 <Button variant="outlined" onClick={() => ctrl.setActiveStep(0)}>
                   Volver
@@ -118,11 +131,15 @@ export default function ManageContractPage() {
               </>
             )}
 
+            {/* Paso 2: Datos (en edición mostramos solo esto) */}
             {ctrl.activeStep === 2 && (
               <>
-                <Button variant="outlined" onClick={() => ctrl.setActiveStep(1)}>
-                  Volver
-                </Button>
+                {/* En edición ocultamos el botón “Volver” para no navegar a pasos ocultos */}
+                {!isEditMode && (
+                  <Button variant="outlined" onClick={() => ctrl.setActiveStep(1)}>
+                    Volver
+                  </Button>
+                )}
                 <Button variant="contained" onClick={ctrl.save} disabled={ctrl.loading || !ctrl.formReady}>
                   {ctrl.contract ? "Actualizar" : "Crear"}
                 </Button>
@@ -131,7 +148,8 @@ export default function ManageContractPage() {
           </Box>
         </Box>
 
-        {ctrl.activeStep === 0 && (
+        {/* Paso 0: Propiedad (solo creación) */}
+        {!isEditMode && ctrl.activeStep === 0 && (
           <PropertySection
             toggleSelect={ctrl.setSelectedPropertyId} // (id: number | null) => void
             isSelected={(id: number) => id === ctrl.selectedPropertyId}
@@ -144,13 +162,14 @@ export default function ManageContractPage() {
           />
         )}
 
-        {ctrl.activeStep === 1 && (
+        {/* Paso 1: Usuario + Garantes (solo creación) */}
+        {!isEditMode && ctrl.activeStep === 1 && (
           <>
             <UsersSection
               toggleSelect={ctrl.setSelectedUserId}
               isSelected={(id) => id === ctrl.selectedUserId}
               showActions={false}
-              //mantener seleccionados
+              // mantener seleccionado
               selectedIds={ctrl.selectedUserId != null ? [String(ctrl.selectedUserId)] : []}
             />
 
@@ -177,6 +196,7 @@ export default function ManageContractPage() {
           </>
         )}
 
+        {/* Paso 2: Datos (siempre visible en edición; en creación cuando corresponde) */}
         {ctrl.selectedPropertyId != null && ctrl.selectedUserId != null && (
           <Box sx={{ display: ctrl.activeStep === 2 ? "block" : "none" }}>
             <ContractForm

@@ -18,9 +18,9 @@ export default function NewsPage() {
       </IconButton>
 
       <BasePage>
-        <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6 } }}>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
+        <Container maxWidth="lg" sx={{ py: 2 }}>
+          <Box>
+            <Typography variant="h5" fontWeight={700} gutterBottom>
               Novedades y noticias
             </Typography>
           </Box>
