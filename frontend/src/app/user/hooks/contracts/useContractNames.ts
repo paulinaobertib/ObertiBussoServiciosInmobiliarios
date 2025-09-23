@@ -1,4 +1,3 @@
-// src/app/user/hooks/contracts/useContractNames.ts
 import { useState, useEffect } from "react";
 import { getUserById } from "../../services/user.service";
 import { getPropertyById } from "../../../property/services/property.service";

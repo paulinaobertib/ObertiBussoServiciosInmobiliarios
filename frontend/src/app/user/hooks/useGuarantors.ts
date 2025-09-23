@@ -1,4 +1,3 @@
-// src/app/user/hooks/useGuarantors.ts
 import { useCallback, useEffect, useState } from "react";
 import {
   getAllGuarantors,

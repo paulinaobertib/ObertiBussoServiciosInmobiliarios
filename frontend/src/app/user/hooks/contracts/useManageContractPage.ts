@@ -1,4 +1,3 @@
-// src/app/user/hooks/useManageContractPage.ts
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";

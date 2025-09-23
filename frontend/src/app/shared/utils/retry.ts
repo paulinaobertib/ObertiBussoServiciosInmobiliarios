@@ -1,4 +1,3 @@
-// src/app/user/utils/retry.ts
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export async function retry<T>(

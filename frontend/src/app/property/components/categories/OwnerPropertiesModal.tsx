@@ -1,4 +1,3 @@
-// OwnerPropertiesModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Box, CircularProgress, Typography, Card } from "@mui/material";
 import { Modal } from "../../../shared/components/Modal"; // <-- ajustar
