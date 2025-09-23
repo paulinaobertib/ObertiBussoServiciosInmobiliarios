@@ -64,7 +64,6 @@ export default function ContactPage() {
                                         variant="outlined"
                                         onClick={() => setTab('appointment')}
                                         endIcon={<ArrowForwardIosIcon fontSize="small" />}
-                                        sx={{ textTransform: 'none' }}
                                     >
                                         Sacar turno
                                     </Button>
@@ -120,7 +119,6 @@ export default function ContactPage() {
                                         variant="outlined"
                                         onClick={() => setTab('inquiry')}
                                         startIcon={<ArrowBackIosIcon fontSize="small" />}
-                                        sx={{ textTransform: 'none' }}
                                     >
                                         Hacer consulta
                                     </Button>

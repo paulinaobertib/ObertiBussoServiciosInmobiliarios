@@ -51,11 +51,7 @@ export function UsersSection({
 
   // Adaptador: GridRowId | GridRowId[] | null  → string | null
   const gridToggleSelect = (selected: GridRowId | GridRowId[] | null) => {
-    const last = Array.isArray(selected)
-      ? selected.length
-        ? selected[selected.length - 1]
-        : null
-      : selected;
+    const last = Array.isArray(selected) ? (selected.length ? selected[selected.length - 1] : null) : selected;
     toggleSelect?.(last == null ? null : String(last));
   };
 
@@ -169,14 +165,7 @@ export function UsersSection({
             sortable: false,
             filterable: false,
             renderCell: (params: any) => (
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                gap={1}
-                width="100%"
-                height="100%"
-              >
+              <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%" height="100%">
                 <IconButton size="small" title="Editar" onClick={() => openEdit(params.row)}>
                   <EditIcon fontSize="small" />
                 </IconButton>
@@ -212,7 +201,7 @@ export function UsersSection({
   return (
     <>
       <GridSection
-        data={rows} 
+        data={rows}
         loading={loading}
         columns={columns}
         onSearch={() => {}}
@@ -228,7 +217,7 @@ export function UsersSection({
         fetchByText={fetchByText}
         multiSelect={false}
         selectable={selectable}
-        selectedIds={selectedIds} 
+        selectedIds={selectedIds}
       />
       <Modal open={modalOpen} title={modalTitle} onClose={() => setModalOpen(false)}>
         {modalContent}

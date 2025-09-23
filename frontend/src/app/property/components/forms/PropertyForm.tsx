@@ -239,7 +239,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             alignItems="center"
             px={1}
             py={0.5}
-            sx={{ border: "1px solid #ccc", borderRadius: 1, "&:hover": { borderColor: "#444" } }}
+            sx={{ border: "1px solid #ccc", borderRadius: 2, "&:hover": { borderColor: "#444" } }}
           >
             <Checkbox
               checked={form.showPrice}
@@ -260,13 +260,13 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             alignItems="center"
             px={1}
             py={0.5}
-            sx={{ border: "1px solid #ccc", borderRadius: 1, "&:hover": { borderColor: "#444" } }}
+            sx={{ border: "1px solid #ccc", borderRadius: 2, "&:hover": { borderColor: "#444" } }}
           >
             <Checkbox
               checked={form.outstanding}
               onChange={(e) => ctrl.setField("outstanding", e.target.checked)}
               size="small"
-              sx={{ p: 0.7 }}
+              sx={{ p: 0.78 }}
             />
             <Typography color="text.secondary">Destacar</Typography>
           </Stack>
@@ -380,7 +380,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
               // 2) reflejar inmediatamente en el form (lo que valida submit)
               ctrl.setField("mainImage" as any, (f ?? "") as any);
             }}
-            sx={{ width: "auto" }}
+            sx={{ width: "auto", borderRadius: 2}}
           />
         </Grid>
 
@@ -399,7 +399,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
               const current = ((ctrl.form.images as any) ?? []) as Img[];
               ctrl.setField("images" as any, [...current, ...add] as any);
             }}
-            sx={{ width: "auto" }}
+            sx={{ width: "auto", borderRadius: 2}}
           />
         </Grid>
       </Grid>

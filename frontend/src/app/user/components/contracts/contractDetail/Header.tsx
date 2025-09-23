@@ -1,6 +1,7 @@
 import { Box, Stack, Chip, Typography, Button } from "@mui/material";
 import { typeLabel } from "./utils";
 import type { ContractGet } from "../../../types/contract";
+import { LoadingButton } from "@mui/lab";
 
 type Props = {
   contract: ContractGet;
@@ -15,7 +16,7 @@ type Props = {
 
 export default function Header({ contract, isAdmin, savingStatus, onEdit, onDelete, onToggleStatus }: Props) {
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ my: 3 }}>
       <Box
         sx={{
           display: "flex",
@@ -63,32 +64,21 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
         <Stack direction="column" spacing={0.5} alignItems="flex-end">
           {isAdmin && (
             <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={onEdit}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
-              >
+              <Button size="small" variant="outlined" onClick={onEdit}>
                 Editar
               </Button>
-              <Button
+              <LoadingButton
                 size="small"
                 variant="outlined"
                 color={contract.contractStatus === "ACTIVO" ? "warning" : "success"}
                 onClick={onToggleStatus}
                 disabled={savingStatus}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
+                loading={savingStatus}
               >
                 {contract.contractStatus === "ACTIVO" ? "Inactivar" : "Reactivar"}
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                color="error"
-                onClick={onDelete}
-                sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600 }}
-              >
-                Eliminar
+              </LoadingButton>
+              <Button size="small" variant="outlined" color="error" onClick={onDelete}>
+                Eliminar 
               </Button>
             </Box>
           )}

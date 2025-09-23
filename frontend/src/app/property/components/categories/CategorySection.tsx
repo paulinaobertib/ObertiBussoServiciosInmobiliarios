@@ -1,18 +1,29 @@
-import { useState, useCallback } from 'react';
-import { Box, CircularProgress, IconButton } from '@mui/material';
-import { GridColDef, GridRowId } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { GridSection } from '../../../shared/components/GridSection';
-import { useCategorySection } from '../../hooks/useCategorySection';
-import { translate } from '../../utils/translate';
-import { ModalItem, Info } from './CategoryModal';
-import { AmenityForm } from '../forms/AmenityForm';
-import { OwnerForm } from '../forms/OwnerForm';
-import { TypeForm } from '../forms/TypeForm';
-import { NeighborhoodForm } from '../forms/NeighborhoodForm';
-import type { Category } from '../../context/PropertiesContext';
-import { usePropertiesContext } from '../../context/PropertiesContext';
+import { useState, useCallback } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
+import { GridColDef, GridRowId } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { GridSection } from "../../../shared/components/GridSection";
+import { useCategorySection } from "../../hooks/useCategorySection";
+import { translate } from "../../utils/translate";
+import { ModalItem, Info } from "./CategoryModal";
+import { AmenityForm } from "../forms/AmenityForm";
+import { OwnerForm } from "../forms/OwnerForm";
+import { TypeForm } from "../forms/TypeForm";
+import { NeighborhoodForm } from "../forms/NeighborhoodForm";
+import type { Category } from "../../context/PropertiesContext";
+import { usePropertiesContext } from "../../context/PropertiesContext";
+
+// Tipos correctos
+import type { Owner as OwnerT } from "../../types/owner";
+
+// Modal ya existente en tu proyecto (mismo folder)
+import { OwnerPropertiesModal } from "./OwnerPropertiesModal";
+
+// Helpers para parsear IDs del DataGrid (string | number)
+const toNum = (v: GridRowId): number | null =>
+  typeof v === "number" ? v : Number.isFinite(Number(v)) ? Number(v) : null;
 
 const formRegistry = {
   amenity: AmenityForm,
@@ -21,14 +32,7 @@ const formRegistry = {
   neighborhood: NeighborhoodForm,
 } as const;
 
-// Helpers para parsear IDs del DataGrid (string | number)
-const toNum = (v: GridRowId): number | null =>
-  typeof v === 'number' ? v : Number.isFinite(Number(v)) ? Number(v) : null;
-
-export const CategorySection = ({
-  category,
-  selectable = true,
-}: { category: Category; selectable?: boolean }) => {
+export const CategorySection = ({ category, selectable = true }: { category: Category; selectable?: boolean }) => {
   const {
     data,
     loading,
@@ -41,19 +45,36 @@ export const CategorySection = ({
   // Selección global (sembrada desde la Property)
   const { selected: globalSelected } = usePropertiesContext();
 
+  // Estado mínimo para el modal de propiedades del dueño
+  const [ownerModalOpen, setOwnerModalOpen] = useState(false);
+  const [ownerForModal, setOwnerForModal] = useState<OwnerT | null>(null);
+
+  const openOwnerModal = (raw: any) => {
+    // Normalizamos para cumplir con el tipo OwnerT (email/phone string, no undefined)
+    const normalized: OwnerT = {
+      id: Number(raw?.id ?? 0),
+      firstName: String(raw?.firstName ?? ""),
+      lastName: String(raw?.lastName ?? ""),
+      email: String(raw?.email ?? ""),
+      phone: String(raw?.phone ?? ""),
+    };
+    setOwnerForModal(normalized);
+    setOwnerModalOpen(true);
+  };
+  const closeOwnerModal = () => {
+    setOwnerModalOpen(false);
+    setOwnerForModal(null);
+  };
+
   // Adaptadores para GridSection
   const gridToggleSelect = useCallback(
     (sel: GridRowId | GridRowId[] | null) => {
       if (!selectable) return;
 
-      if (category === 'amenity') {
+      if (category === "amenity") {
         // multi: recibimos el conjunto completo de seleccionados (GridRowId[])
         const incoming = Array.isArray(sel) ? sel : [];
-        const next = new Set(
-          incoming
-            .map(toNum)
-            .filter((n): n is number => n != null)
-        );
+        const next = new Set(incoming.map(toNum).filter((n): n is number => n != null));
         const prev = new Set(globalSelected.amenities);
 
         // Agregados
@@ -65,14 +86,13 @@ export const CategorySection = ({
 
       // single: recibimos el último seleccionado como GridRowId o null
       const prevId =
-        category === 'type'
+        category === "type"
           ? globalSelected.type
-          : category === 'neighborhood'
+          : category === "neighborhood"
           ? globalSelected.neighborhood
           : globalSelected.owner;
 
-      const nextId =
-        sel != null && !Array.isArray(sel) ? toNum(sel) : null;
+      const nextId = sel != null && !Array.isArray(sel) ? toNum(sel) : null;
 
       if (nextId == null && prevId != null) {
         // deseleccionó todo -> toggle en el anterior para apagarlo
@@ -108,15 +128,15 @@ export const CategorySection = ({
         return data;
       }
       const columnsMap: Record<Category, string[]> = {
-        owner: ['firstName', 'lastName', 'email', 'phone'],
-        amenity: ['name'],
-        type: ['name'],
-        neighborhood: ['name', 'city', 'type'],
+        owner: ["firstName", "lastName", "email", "phone"],
+        amenity: ["name"],
+        type: ["name"],
+        neighborhood: ["name", "city", "type"],
       };
       const keys = columnsMap[category] || [];
-      const filtered = data.filter(item =>
-        keys.some(key => {
-          const value = String((item as any)[key] ?? '').toLowerCase();
+      const filtered = data.filter((item) =>
+        keys.some((key) => {
+          const value = String((item as any)[key] ?? "").toLowerCase();
           return value.includes(lower);
         })
       );
@@ -129,30 +149,29 @@ export const CategorySection = ({
   // Columnas dinámicas
   const headersMap: Record<Category, { field: string; headerName: string }[]> = {
     owner: [
-      { field: 'firstName', headerName: 'Nombre' },
-      { field: 'lastName', headerName: 'Apellido' },
-      { field: 'email', headerName: 'Email' },
-      { field: 'phone', headerName: 'Teléfono' },
+      { field: "firstName", headerName: "Nombre" },
+      { field: "lastName", headerName: "Apellido" },
+      { field: "email", headerName: "Email" },
+      { field: "phone", headerName: "Teléfono" },
     ],
-    amenity: [{ field: 'name', headerName: 'Nombre' }],
+    amenity: [{ field: "name", headerName: "Nombre" }],
     type: [
-      { field: 'name', headerName: 'Nombre' },
-      { field: 'hasRooms', headerName: 'Ambientes' },
-      { field: 'hasBedrooms', headerName: 'Dormitorios' },
-      { field: 'hasBathrooms', headerName: 'Baños' },
-      { field: 'hasCoveredArea', headerName: 'Área Cubierta' },
+      { field: "name", headerName: "Nombre" },
+      { field: "hasRooms", headerName: "Ambientes" },
+      { field: "hasBedrooms", headerName: "Dormitorios" },
+      { field: "hasBathrooms", headerName: "Baños" },
+      { field: "hasCoveredArea", headerName: "Área Cubierta" },
     ],
     neighborhood: [
-      { field: 'name', headerName: 'Nombre' },
-      { field: 'city', headerName: 'Ciudad' },
-      { field: 'type', headerName: 'Tipo' },
+      { field: "name", headerName: "Nombre" },
+      { field: "city", headerName: "Ciudad" },
+      { field: "type", headerName: "Tipo" },
     ],
   };
 
-  const columns: GridColDef[] = headersMap[category].map(col => {
+  const columns: GridColDef[] = headersMap[category].map((col) => {
     const isBooleanField =
-      category === 'type' &&
-      ['hasRooms', 'hasBedrooms', 'hasBathrooms', 'hasCoveredArea'].includes(col.field);
+      category === "type" && ["hasRooms", "hasBedrooms", "hasBathrooms", "hasCoveredArea"].includes(col.field);
 
     return {
       field: col.field,
@@ -161,39 +180,44 @@ export const CategorySection = ({
       renderCell: isBooleanField
         ? (params: any) => {
             const value = params.row?.[col.field];
-            return typeof value === 'boolean' ? (value ? 'Sí' : 'No') : '-';
+            return typeof value === "boolean" ? (value ? "Sí" : "No") : "-";
           }
         : undefined,
     };
   });
 
-  // Columna de acciones
+  // Columna de acciones + botón extra SOLO para dueños
   columns.push({
-    field: 'actions',
-    headerName: 'Acciones',
-    width: 120,
+    field: "actions",
+    headerName: "Acciones",
+    width: 140,
     sortable: false,
     filterable: false,
-    renderCell: params => {
+    renderCell: (params) => {
       const item = params.row;
       return (
         <Box>
-          <IconButton size="small" title="Editar" onClick={() => handleOpen('edit', item)}>
+          <IconButton size="small" title="Editar" onClick={() => handleOpen("edit", item)}>
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" title="Eliminar" onClick={() => handleOpen('delete', item)}>
+          <IconButton size="small" title="Eliminar" onClick={() => handleOpen("delete", item)}>
             <DeleteIcon fontSize="small" />
           </IconButton>
+          {category === "owner" && (
+            <IconButton size="small" title="Ver propiedades" onClick={() => openOwnerModal(item)}>
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
       );
     },
   });
 
-  // Modal handlers
+  // Modal CRUD (crear/editar/eliminar)
   const [modal, setModal] = useState<Info | null>(null);
-  const handleOpen = (action: 'add' | 'edit' | 'delete', item?: any) => {
+  const handleOpen = (action: "add" | "edit" | "delete", item?: any) => {
     setModal({
-      title: `${action === 'add' ? 'Crear' : action === 'edit' ? 'Editar' : 'Eliminar'} ${translate(category)}`,
+      title: `${action === "add" ? "Crear" : action === "edit" ? "Editar" : "Eliminar"} ${translate(category)}`,
       Component: formRegistry[category],
       componentProps: { action, item },
     });
@@ -201,7 +225,7 @@ export const CategorySection = ({
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 3 }}>
         <CircularProgress size={36} />
       </Box>
     );
@@ -209,13 +233,13 @@ export const CategorySection = ({
 
   // IDs seleccionados (controlados) para que el DataGrid pinte
   const selectedIds: GridRowId[] =
-    category === 'amenity'
+    category === "amenity"
       ? [...globalSelected.amenities] // números OK (GridRowId = number | string)
       : (() => {
           const id =
-            category === 'type'
+            category === "type"
               ? globalSelected.type
-              : category === 'neighborhood'
+              : category === "neighborhood"
               ? globalSelected.neighborhood
               : globalSelected.owner;
           return id != null ? [id] : [];
@@ -228,20 +252,25 @@ export const CategorySection = ({
         loading={loading}
         columns={columns}
         onSearch={onSearch}
-        onCreate={() => handleOpen('add')}
-        onEdit={item => handleOpen('edit', item)}
-        onDelete={item => handleOpen('delete', item)}
+        onCreate={() => handleOpen("add")}
+        onEdit={(item) => handleOpen("edit", item)}
+        onDelete={(item) => handleOpen("delete", item)}
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
         entityName={translate(category)}
         showActions={true}
         fetchAll={fetchAll}
         fetchByText={fetchByText}
-        multiSelect={category === 'amenity'}
+        multiSelect={category === "amenity"}
         selectable={selectable}
         selectedIds={selectedIds}
       />
+
+      {/* Modal CRUD existente */}
       <ModalItem info={modal} close={() => setModal(null)} />
+
+      {/* Modal de propiedades del dueño */}
+      <OwnerPropertiesModal open={ownerModalOpen} onClose={closeOwnerModal} owner={ownerForModal} />
     </>
   );
 };
