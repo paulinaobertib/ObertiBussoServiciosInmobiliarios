@@ -1,4 +1,3 @@
-// utils.ts
 import type { Contract } from "../../../types/contract";
 
 const parseISOAsLocal = (iso?: string | null) => {

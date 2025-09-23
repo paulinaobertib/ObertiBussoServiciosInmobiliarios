@@ -1,7 +1,6 @@
 import { Container, Box, Button, CircularProgress, Typography, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ReplyIcon from "@mui/icons-material/Reply";
-import { useLocation } from "react-router-dom";
 import { ROUTES } from "../lib";
 
 import { useContractsPage } from "../app/user/hooks/contracts/useContractsPage";
@@ -10,7 +9,7 @@ import { ContractsStats } from "../app/user/components/contracts/ContractsStats"
 import { ContractsFilters } from "../app/user/components/contracts/ContractsFilters";
 import { ContractList } from "../app/user/components/contracts/ContractList";
 import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase";
-import { EmptyState } from "../app/shared/components/EmptyState"; // <-- ajustar path si hace falta
+import { EmptyState } from "../app/shared/components/EmptyState";
 import BasePage from "./BasePage";
 
 export default function ContractsPage() {
@@ -27,8 +26,6 @@ export default function ContractsPage() {
     isAdmin,
     navigate,
   } = useContractsPage();
-
-  const location = useLocation();
 
   const activeCount = all.filter((c) => c.contractStatus === ContractStatus.ACTIVO).length;
   const inactiveCount = all.filter((c) => c.contractStatus === ContractStatus.INACTIVO).length;

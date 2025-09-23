@@ -1,5 +1,3 @@
-// ✅ Cambios clave en IncreaseForm.tsx
-
 import React, { useState, useEffect } from "react";
 import { Box, TextField, MenuItem, Grid } from "@mui/material";
 import type { PaymentCurrency } from "../../types/payment";
