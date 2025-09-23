@@ -269,6 +269,13 @@ public class ContractService implements IContractService {
     @Override
     @Transactional
     public ResponseEntity<String> create(ContractDTO contractDTO) {
+        boolean existsActive = contractRepository.existsByPropertyIdAndContractStatus(
+                contractDTO.getPropertyId(), ContractStatus.ACTIVO);
+
+        if (existsActive) {
+            throw new BadRequestException("La propiedad ya tiene un contrato activo.");
+        }
+
         if (contractDTO.getAdjustmentIndexId() == null || !increaseIndexRepository.existsById(contractDTO.getAdjustmentIndexId())) {
             throw new EntityNotFoundException("No se ha encontrado el índice de aumento con ID: " + contractDTO.getAdjustmentIndexId());
         }
@@ -647,6 +654,7 @@ public class ContractService implements IContractService {
             userRepository.deleteRoleToUser(user.get().getId(), "tenant");
 
             propertyRepository.updateStatusEspera(contract.getPropertyId());
+            
             if (!user.isEmpty()) {
                 updateStatus(contract.getId());
 
@@ -701,7 +709,6 @@ public class ContractService implements IContractService {
         User user = userRepository.findById(entity.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
 
-        entity.setPropertyId(null);
         entity.setContractStatus(ContractStatus.INACTIVO);
         contractRepository.save(entity);
         propertyRepository.updateStatus(propertyId, status);
