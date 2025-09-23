@@ -1,6 +1,7 @@
 import { Container, Box, Button, CircularProgress, Typography, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ReplyIcon from "@mui/icons-material/Reply";
+import { useLocation } from "react-router-dom";
 import { ROUTES } from "../lib";
 
 import { useContractsPage } from "../app/user/hooks/contracts/useContractsPage";
@@ -9,6 +10,7 @@ import { ContractsStats } from "../app/user/components/contracts/ContractsStats"
 import { ContractsFilters } from "../app/user/components/contracts/ContractsFilters";
 import { ContractList } from "../app/user/components/contracts/ContractList";
 import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase";
+import { EmptyState } from "../app/shared/components/EmptyState"; // <-- ajustar path si hace falta
 import BasePage from "./BasePage";
 
 export default function ContractsPage() {
@@ -21,11 +23,12 @@ export default function ContractsPage() {
     handleSearch,
     paying,
     setPaying,
-
     refresh,
     isAdmin,
     navigate,
   } = useContractsPage();
+
+  const location = useLocation();
 
   const activeCount = all.filter((c) => c.contractStatus === ContractStatus.ACTIVO).length;
   const inactiveCount = all.filter((c) => c.contractStatus === ContractStatus.INACTIVO).length;
@@ -41,7 +44,6 @@ export default function ContractsPage() {
       </IconButton>
 
       <BasePage maxWidth={false}>
-        {/* Contenedor relativo para posicionar el overlay */}
         <Box sx={{ position: "relative" }}>
           <Container sx={{ py: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -59,7 +61,15 @@ export default function ContractsPage() {
 
             {isAdmin && <ContractsFilters filter={filter} onFilterChange={setFilter} onSearch={handleSearch} />}
 
-            <ContractList contracts={disp} />
+            {/* EmptyState cuando no hay resultados y no está cargando */}
+            {!loading && disp.length === 0 ? (
+              <EmptyState
+                title={isAdmin ? "No hay contratos cargados." : "No hay contratos disponibles."}
+                minHeight={220}
+              />
+            ) : (
+              <ContractList contracts={disp} />
+            )}
 
             <PaymentDialog
               open={!!paying}
@@ -70,11 +80,22 @@ export default function ContractsPage() {
                 await refresh();
               }}
             />
-
-            {null}
           </Container>
 
-          {loading && <CircularProgress size={36} />}
+          {loading && (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "rgba(255,255,255,0.5)",
+              }}
+            >
+              <CircularProgress size={36} />
+            </Box>
+          )}
         </Box>
       </BasePage>
     </>

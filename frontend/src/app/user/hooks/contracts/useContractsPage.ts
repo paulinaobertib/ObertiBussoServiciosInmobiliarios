@@ -45,29 +45,36 @@ export function useContractsPage() {
   // Mensaje al venir de "crear contrato"
   useEffect(() => {
     const state = location.state as any;
-    if (state?.justCreated) {
-      const id = state.createdId as number | null | undefined;
-      const title = "Contrato creado con éxito";
-      const description = "Para agregar servicios y comisión inmobiliaria, podés ir al detalle ahora.";
+    if (!state?.justCreated) return;
 
-      (async () => {
-        if (typeof alertApi?.confirm === "function") {
-          const go = await alertApi.confirm({
-            title,
-            description,
-            primaryLabel: "Ir al detalle",
-            secondaryLabel: "Más tarde",
-          });
-          if (go && id) navigate(`/contracts/${id}`);
-        } else if (typeof alertApi?.success === "function") {
-          await alertApi.success({ title, description, primaryLabel: "Cerrar" });
+    const id = Number(state.createdId);
+    const title = "Contrato creado con éxito";
+    const description = "Para agregar servicios y comisión inmobiliaria, podés ir al detalle ahora.";
+
+    (async () => {
+      if (typeof alertApi?.confirm === "function") {
+        const go = await alertApi.confirm({
+          title,
+          description,
+          primaryLabel: "Ir al detalle",
+          secondaryLabel: "Más tarde",
+        });
+
+        if (go && id) {
+          // Ir al detalle y NO limpiar el state acá (se desmonta esta página)
+          navigate(`/contracts/${id}`, { replace: true });
+          return; // <--- clave: no sigas a limpiar el state de la lista
         }
-        // limpiar el state para que no se repita
-        navigate(location.pathname, { replace: true });
-      })();
-    }
-  }, [location.key]);
 
+        // Si no va al detalle, ahora sí limpiamos el state de la URL actual
+        navigate(location.pathname, { replace: true, state: {} });
+      } else if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Cerrar" });
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
   /* --------------------------- filtrado --------------------------- */
   useEffect(() => {
     setFiltered(statusFilter === "ALL" ? all : all.filter((c) => c.contractStatus === statusFilter));
