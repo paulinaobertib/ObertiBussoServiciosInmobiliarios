@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Box } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../../user/context/AuthContext";
 import { PropertyCard } from "./PropertyCard";
 import type { Property } from "../../types/property";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { useGlobalAlert } from "../../../shared/context/AlertContext";
 
 interface Props {
   properties: Property[];
@@ -11,6 +13,23 @@ interface Props {
   toggleSelection?: (id: number) => void;
   isSelected?: (id: number) => boolean;
   onCardClick?: (property: Property) => void;
+}
+
+const DISMISSED_KEY = "waitingPropsDismissedIds";
+
+function readDismissed(): number[] {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    return raw ? (JSON.parse(raw) as number[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addDismissed(id: number) {
+  const prev = readDismissed();
+  const next = Array.from(new Set([...prev, id]));
+  localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
 }
 
 export const CatalogList = ({
@@ -21,6 +40,8 @@ export const CatalogList = ({
   onCardClick = () => {},
 }: Props) => {
   const { isAdmin } = useAuthContext();
+  const alertApi: any = useGlobalAlert();
+  const navigate = useNavigate();
 
   const safeProperties = Array.isArray(properties) ? properties : [];
 
@@ -33,20 +54,65 @@ export const CatalogList = ({
 
   // 2) Ordenar: primero outstanding por fecha, luego el resto por fecha
   const sorted = useMemo(() => {
-    // Función genérica para ordenar por fecha descendente
     const byDateDesc = (a: Property, b: Property) => new Date(b.date).getTime() - new Date(a.date).getTime();
-
-    // Destacadas ordenadas por fecha
     const outstandingProps = filtered.filter((p) => p.outstanding).sort(byDateDesc);
-
-    // No destacadas ordenadas por fecha
     const normalProps = filtered.filter((p) => !p.outstanding).sort(byDateDesc);
-
-    // Concateno primero las destacadas y luego las demás
     return [...outstandingProps, ...normalProps];
   }, [filtered]);
 
-  // 3) Mensaje si no hay nada
+  // 3) Aviso de propiedades en ESPERA (solo admin). Se muestra una vez por propiedad (localStorage).
+  const promptingRef = useRef(false);
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (promptingRef.current) return;
+
+    const waiting = filtered.filter((p) => String(p?.status ?? "").toUpperCase() === "ESPERA") as Property[];
+
+    if (!waiting.length) return;
+
+    const dismissed = new Set(readDismissed());
+    const candidate = waiting.find((p) => !dismissed.has(Number(p.id)));
+    if (!candidate) return;
+
+    const propId = Number(candidate.id);
+    promptingRef.current = true;
+
+    const title = "Propiedad en estado ESPERA";
+    const description =
+      `La propiedad "${candidate.title}" quedó en ESPERA por vencimiento de contrato.\n` + `¿Qué querés hacer?`;
+
+    (async () => {
+      try {
+        if (typeof alertApi?.confirm === "function") {
+          // Primary -> Renovar contrato | Secondary -> Ver propiedad
+          const goRenew = await alertApi.confirm({
+            title,
+            description,
+            primaryLabel: "Renovar contrato",
+            secondaryLabel: "Ver propiedad",
+          });
+          addDismissed(propId);
+          if (goRenew) {
+            navigate("/contract/new");
+          } else {
+            navigate(`/properties/${propId}`);
+          }
+        } else if (typeof alertApi?.warning === "function") {
+          await alertApi.warning({ title, description, primaryLabel: "Ver propiedad" });
+          addDismissed(propId);
+          navigate(`/properties/${propId}`);
+        } else if (typeof alertApi?.showAlert === "function") {
+          alertApi.showAlert(description ?? title, "warning");
+          addDismissed(propId);
+        }
+      } finally {
+        // dejamos que vuelva a chequear por si aparece otra en ESPERA más adelante
+        promptingRef.current = false;
+      }
+    })();
+  }, [isAdmin, filtered, alertApi, navigate]);
+
+  // 4) Mensaje si no hay nada
   if (sorted.length === 0) {
     return (
       <EmptyState
