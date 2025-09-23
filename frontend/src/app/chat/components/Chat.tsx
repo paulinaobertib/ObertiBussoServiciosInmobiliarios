@@ -194,7 +194,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const handlePropertySearch = async (value: string) => {
     setSearchText(value);
     const result = await getPropertiesByText(searchText);
-    const filtered = result.filter((p) => p.status?.toLowerCase() === 'disponible' || !p.status);
+    const filtered = result.filter((p: { status: string; }) => p.status?.toLowerCase() === 'disponible' || !p.status);
     setPropertyOptions(filtered);
   };
 

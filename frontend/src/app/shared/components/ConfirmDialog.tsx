@@ -1,82 +1,43 @@
-import { useState, ReactNode, useCallback } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, useTheme } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { useLoading } from "../../property/utils/useLoading";
+import { useGlobalAlert } from "../context/AlertContext";
+import type { FC, ReactNode } from "react";
+
+type AskOptions = {
+  double?: boolean; // si true: doble confirmación con swap en paso 2
+  step2Title?: string;
+  step2Description?: ReactNode;
+  primaryLabel?: string;
+  secondaryLabel?: string;
+};
+
+const DEFAULT_DOUBLE = true;
 
 export function useConfirmDialog() {
-  const [open, setOpen] = useState(false);
-  const [message, setMsg] = useState<ReactNode>("");
-  const [onYes, setYes] = useState<() => Promise<void>>(() => async () => {});
-  const [onCancel, setOnCancel] = useState<(() => void) | null>(null);
-  const theme = useTheme();
+  const { confirm, doubleConfirm } = useGlobalAlert();
 
-  const { loading, run: runConfirm } = useLoading(
-    useCallback(async () => {
-      await onYes();
-      setOpen(false);
-    }, [onYes])
-  );
+  const ask = async (question: string, onConfirm: () => void | Promise<void>, opts?: AskOptions) => {
+    const useDouble = opts?.double ?? DEFAULT_DOUBLE;
 
-  const ask = (msg: ReactNode, yes: () => Promise<void>, cancel?: () => void) => {
-    setMsg(msg);
-    setYes(() => yes);
-    setOnCancel(() => cancel ?? null);
-    setOpen(true);
+    const ok = useDouble
+      ? await doubleConfirm({
+          title: "Esta acción es sensible",
+          description: question,
+          step2Title: "¿Estás seguro? No podrás deshacerlo.",
+          step2Description: "Confirmá nuevamente para continuar.",
+          primaryLabel: "Continuar",
+          secondaryLabel: "Cancelar",
+          swapOnSecond: true,
+        })
+      : await confirm({
+          title: "¿Confirmás la acción?",
+          description: question,
+          primaryLabel: opts?.primaryLabel ?? "Confirmar",
+          secondaryLabel: opts?.secondaryLabel ?? "Cancelar",
+        });
+
+    if (ok) await onConfirm();
+    return ok;
   };
 
-  const DialogUI = (
-    <Dialog
-      open={open}
-      onClose={() => {
-        if (!loading) setOpen(false);
-      }}
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          p: 2,
-          width: "100%",
-          maxWidth: 420,
-          bgcolor: "white",
-          boxShadow: 6,
-        },
-      }}
-    >
-      <DialogTitle
-        sx={{
-          fontWeight: 700,
-          fontSize: 20,
-          color: theme.palette.primary.main,
-          textAlign: "center",
-          pb: 0,
-        }}
-      >
-        {message}
-      </DialogTitle>
-
-      <DialogContent sx={{ mt: 2 }}>
-        <Typography sx={{ textAlign: "center", fontSize: 16 }}>
-          Ten en cuenta que no podrás deshacer el cambio.
-        </Typography>
-      </DialogContent>
-
-      <DialogActions sx={{ justifyContent: "center", gap: 2, mt: 1 }}>
-        <Button
-          variant="outlined"
-          color="inherit"
-          onClick={() => {
-            if (onCancel) onCancel();
-            setOpen(false);
-          }}
-          disabled={loading}
-        >
-          Cancelar
-        </Button>
-        <LoadingButton variant="contained" color="warning" loading={loading} onClick={() => runConfirm()}>
-          Confirmar
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
-  );
-
+  const DialogUI: FC = () => null; // compatibilidad
   return { ask, DialogUI };
 }

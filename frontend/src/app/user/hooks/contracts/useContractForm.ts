@@ -56,7 +56,6 @@ export function useContractForm(
   const [property, setProperty] = useState<Property | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loadingData, setLoadingData] = useState(true);
-  const log = (...a: any[]) => console.log("[useContractForm]", ...a);
 
   /* ---------- recarga si llega initialData (edición) ---------- */
   useEffect(() => {
@@ -123,7 +122,8 @@ export function useContractForm(
       e.endDate = "Fin anterior al inicio";
 
     // increase ya no es requerido por el DTO
-    if (values.adjustmentFrequencyMonths === "" || Number(values.adjustmentFrequencyMonths) <= 0) e.increaseFrequency = "Debe ser > 0";
+    if (values.adjustmentFrequencyMonths === "" || Number(values.adjustmentFrequencyMonths) <= 0)
+      e.increaseFrequency = "Debe ser > 0";
     if (values.initialAmount === "" || Number(values.initialAmount) <= 0) e.amount = "Debe > 0";
     if (!values.currency) e.currency = "Requerido";
     if (values.hasDeposit) {
@@ -231,10 +231,6 @@ export function useContractForm(
     };
   }, [values]);
 
-  useEffect(() => {
-    // Útil para ver el snapshot completo del form en cada cambio
-    log("values:", values);
-  }, [values]);
   return {
     values,
     errors,

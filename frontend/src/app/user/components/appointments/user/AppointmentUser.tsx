@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { Box, Stack, Typography } from '@mui/material';
 import { useAppointments } from '../../../hooks/useAppointments';
 import { AppointmentCard } from './AppointmentCard';
+import { EmptyState } from '../../../../shared/components/EmptyState';
 
 export const AppointmentUser = () => {
     const { userLoading, userAppointments, slotMap, cancelAppointment, } = useAppointments();
@@ -16,8 +17,8 @@ export const AppointmentUser = () => {
 
     if (userAppointments.length === 0) {
         return (
-            <Box sx={{ p: 3 }}>
-                <Typography color="text.secondary">Aún no tienes turnos.</Typography>
+            <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                <EmptyState title="No hay turnos disponibles." />
             </Box>
         );
     }

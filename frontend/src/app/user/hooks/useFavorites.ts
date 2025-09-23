@@ -9,9 +9,40 @@ export function useFavorites() {
   const { info, isLogged } = useAuthContext();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(false);
-  const { showAlert } = useGlobalAlert();
+
+  const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
 
+  /* ------------ helpers (alertas unificadas) ------------ */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      }
+    },
+    [alertApi]
+  );
+
+  const notifyInfo = useCallback(
+    async (title: string, description?: string) => {
+      // si tu AlertContext tiene .info, usalo; si no, fallback a showAlert
+      if (typeof alertApi?.info === "function") {
+        await alertApi.info({ title, description, primaryLabel: "Entendido" });
+      }
+    },
+    [alertApi]
+  );
+
+  const confirmDanger = useCallback(async () => {
+    if (typeof alertApi?.confirm === "function") {
+      return await alertApi.confirm({
+        kind: "error",
+        description: "¿Confirmar eliminación?",
+      });
+    }
+  }, [alertApi]);
+
+  /* ------------------- carga inicial ------------------- */
   useEffect(() => {
     if (!isLogged || !info?.id) {
       setFavorites([]);
@@ -41,10 +72,11 @@ export function useFavorites() {
     [favorites]
   );
 
+  /* ------------------- toggle favorito ------------------- */
   const toggleFavorite = useCallback(
     async (propertyId: number) => {
       if (!isLogged) {
-        showAlert("Para guardar como favorita esta propiedad, iniciá sesión", "info");
+        await notifyInfo("Iniciá sesión", "Para guardar como favorita esta propiedad, iniciá sesión.");
         return;
       }
       if (!info?.id) {
@@ -55,17 +87,20 @@ export function useFavorites() {
       setLoading(true);
       try {
         if (isFavorite(propertyId)) {
+          // doble confirmación antes de eliminar
+          const ok = await confirmDanger();
+          if (!ok) return;
+
           const fav = favorites.find((f) => f.propertyId === propertyId);
-          if (!fav) {
-            throw new Error("No se encontró el favorito a eliminar.");
-          }
+          if (!fav) throw new Error("No se encontró el favorito a eliminar.");
+
           await deleteFavorite(fav.id);
           setFavorites((prev) => prev.filter((f) => f.id !== fav.id));
-          showAlert("Propiedad eliminada de tus favoritos", "info");
+          await notifySuccess("Eliminado de favoritos");
         } else {
           const res = await createFavorite(info.id, propertyId);
           setFavorites((prev) => [...prev, res.data]);
-          showAlert("Propiedad agregada a tus favoritos", "info");
+          await notifySuccess("Agregado a favoritos");
         }
       } catch (error) {
         handleError(error);
@@ -73,7 +108,7 @@ export function useFavorites() {
         setLoading(false);
       }
     },
-    [favorites, info?.id, isLogged, isFavorite, showAlert, handleError]
+    [favorites, info?.id, isLogged, isFavorite, notifyInfo, notifySuccess, confirmDanger, handleError]
   );
 
   return { favorites, loading, isFavorite, toggleFavorite };

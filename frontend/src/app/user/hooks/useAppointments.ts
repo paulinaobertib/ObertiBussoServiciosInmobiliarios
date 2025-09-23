@@ -20,12 +20,52 @@ import type {
   AppointmentCreate,
 } from "../types/appointment";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 export function useAppointments() {
   const { info, isAdmin } = useAuthContext();
   const { handleError } = useApiErrors();
+  const alertApi: any = useGlobalAlert();
 
-  // --- Admin Logic ---
+  /** ---------- Helpers de alertas ---------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  /**
+   * Confirmación peligrosa con doble paso si está disponible.
+   * Fallback: confirm simple o window.confirm.
+   */
+  const confirmDanger = useCallback(
+    async (opts: {
+      title: string;
+      description?: string;
+      step2Title?: string;
+      step2Description?: string;
+      primaryLabel?: string;
+      secondaryLabel?: string;
+    }) => {
+      const { title, description = "¿Vas a eliminar este elemento?" } = opts;
+
+      if (typeof alertApi?.doubleConfirm === "function") {
+        return await alertApi.doubleConfirm({
+          kind: "error",
+          title,
+          description,
+        });
+      }
+    },
+    [alertApi]
+  );
+
+  /** ---------- Admin Logic ---------- */
   const [loading, setLoading] = useState(true);
   const [slots, setSlots] = useState<AvailableAppointment[]>([]);
   const [apptsBySlot, setApptsBySlot] = useState<Record<number, Appointment>>({});
@@ -50,7 +90,7 @@ export function useAppointments() {
         case "ACEPTADO":
         case "RECHAZADO": {
           const res = await getAppointmentsByStatus(filter as AppointmentStatus);
-          const pseudo = res.data.map((a: { availableAppointment: { id: any }; id: any; appointmentDate: any }) => ({
+          const pseudo = res.data.map((a: any) => ({
             id: a.availableAppointment?.id ?? a.id,
             date: a.appointmentDate,
             availability: false,
@@ -103,39 +143,57 @@ export function useAppointments() {
     async (a: Appointment) => {
       try {
         await updateAppointmentStatus(a.id, "ACEPTADO");
+        await notifySuccess("Turno aceptado");
         await loadAdmin();
       } catch (e) {
         handleError(e);
       }
     },
-    [loadAdmin, handleError]
+    [loadAdmin, handleError, notifySuccess]
   );
 
   const rejectAppointment = useCallback(
     async (a: Appointment) => {
+      const label = a?.appointmentDate ? dayjs(a.appointmentDate).format("DD/MM/YYYY HH:mm") : `#${a?.id ?? ""}`;
+      const ok = await confirmDanger({
+        title: `Vas a rechazar el turno (${label})`,
+        step2Title: "¿Rechazar definitivamente?",
+      });
+      if (!ok) return;
+
       try {
         await updateAppointmentStatus(a.id, "RECHAZADO");
+        await notifySuccess("Turno rechazado");
         await loadAdmin();
       } catch (e) {
         handleError(e);
       }
     },
-    [loadAdmin, handleError]
+    [loadAdmin, handleError, notifySuccess, confirmDanger]
   );
 
   const removeAvailableSlot = useCallback(
     async (id: number) => {
+      const s = slotMap[id];
+      const label = s?.date ? dayjs(s.date).format("DD/MM/YYYY HH:mm") : `#${id}`;
+      const ok = await confirmDanger({
+        title: `Vas a eliminar el turno disponible (${label})`,
+        step2Title: "¿Eliminar definitivamente?",
+      });
+      if (!ok) return;
+
       try {
         await deleteAvailability(id);
+        await notifySuccess("Turno eliminado", `Se eliminó el turno ${label}.`);
         await loadAdmin();
       } catch (e) {
         handleError(e);
       }
     },
-    [loadAdmin, handleError]
+    [slotMap, loadAdmin, handleError, confirmDanger, notifySuccess]
   );
 
-  // --- User Logic ---
+  /** ---------- User Logic ---------- */
   const [userLoading, setUserLoading] = useState(false);
   const [userAppointments, setUserAppointments] = useState<Appointment[]>([]);
 
@@ -161,17 +219,27 @@ export function useAppointments() {
 
   const cancelAppointment = useCallback(
     async (id: number) => {
+      const a = userAppointments.find((x) => x.id === id);
+      const label = a?.appointmentDate ? dayjs(a.appointmentDate).format("DD/MM/YYYY HH:mm") : `#${id}`;
+
+      const ok = await confirmDanger({
+        title: `Vas a cancelar tu turno (${label})`,
+        step2Title: "¿Cancelar definitivamente?",
+      });
+      if (!ok) return;
+
       try {
         await deleteAppointment(id);
+        await notifySuccess("Turno cancelado", `Cancelaste el turno ${label}.`);
         await loadUser();
       } catch (e) {
         handleError(e);
       }
     },
-    [loadUser, handleError]
+    [userAppointments, loadUser, handleError, confirmDanger, notifySuccess]
   );
 
-  // --- Booking Form Logic ---
+  /** ---------- Booking Form Logic ---------- */
   const [bookingDate, setBookingDate] = useState<Dayjs>(dayjs());
   const [bookingSlots, setBookingSlots] = useState<AvailableAppointment[]>([]);
   const [bookingSlotId, setBookingSlotId] = useState<number | null>(null);
@@ -213,14 +281,15 @@ export function useAppointments() {
       };
       await createAppointment(body);
       setBookingSubmitted(true);
+      await notifySuccess("Solicitud enviada", "Tu turno quedó en espera de confirmación.");
     } catch (e) {
       handleError(e);
     } finally {
       setBookingLoading(false);
     }
-  }, [bookingSlotId, bookingNotes, info, handleError]);
+  }, [bookingSlotId, bookingNotes, info, handleError, notifySuccess]);
 
-  // --- Slot Generator Logic ---
+  /** ---------- Slot Generator Logic ---------- */
   const [genDate, setGenDate] = useState<Dayjs>(dayjs());
   const [genStartTime, setGenStartTime] = useState("09:00");
   const [genEndTime, setGenEndTime] = useState("17:00");
@@ -258,13 +327,14 @@ export function useAppointments() {
         endTime: `${genEndTime}:00`,
       };
       await createAvailability(dto);
+      await notifySuccess("Turnos generados", `Se crearon turnos para el ${genDate.format("DD/MM/YYYY")}.`);
       await loadAdmin();
     } catch (e) {
       setGenError(handleError(e));
     } finally {
       setGenLoading(false);
     }
-  }, [genDate, genStartTime, genEndTime, loadAdmin, handleError]);
+  }, [genDate, genStartTime, genEndTime, loadAdmin, handleError, notifySuccess]);
 
   return {
     // Admin
@@ -283,14 +353,14 @@ export function useAppointments() {
     }, [slots]),
     apptsBySlot,
     acceptAppointment,
-    rejectAppointment,
-    removeAvailableSlot,
+    rejectAppointment, // ← ahora con doble confirmación
+    removeAvailableSlot, // ← ahora con doble confirmación
     reloadAdmin: loadAdmin,
     // User
     userLoading,
     userAppointments,
     slotMap,
-    cancelAppointment,
+    cancelAppointment, // ← también usa doble confirmación
     reloadUser: loadUser,
     // Booking Form
     bookingDate,

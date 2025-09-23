@@ -7,20 +7,19 @@ import { getImagesByPropertyId, postImage, deleteImageById } from "../../shared/
 import { ImageDTO } from "../../shared/components/images/image";
 import { useImages } from "../../shared/hooks/useImages";
 import { usePropertiesContext } from "../context/PropertiesContext";
-import { useConfirmDialog } from "../../shared/components/ConfirmDialog";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
 import type { Image } from "../../shared/components/images/image";
 import { useApiErrors } from "../../shared/hooks/useErrors";
 
-type BackendImageDTO = ImageDTO; // { id: number; url: string }
+type BackendImageDTO = ImageDTO;
 
 export const useManagePropertyPage = () => {
   const nav = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEdit = Boolean(id);
   const propId = Number(id);
-  const { ask, DialogUI } = useConfirmDialog();
-  const { showAlert } = useGlobalAlert();
+
+  const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
 
   const formRef = useRef<any>(null);
@@ -39,7 +38,45 @@ export const useManagePropertyPage = () => {
 
   const { setSelected, resetSelected, selected } = usePropertiesContext();
 
-  const cancel = () => ask("¿Cancelar y perder los cambios?", async () => nav("/"));
+  // Helpers de UI (confirmaciones / avisos)
+  const confirmAction = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.confirm === "function") {
+        return await alertApi.confirm({
+          title,
+          description,
+        });
+      }
+    },
+    [alertApi]
+  );
+
+  const warn = useCallback(
+    async (message: string, title = "Atención") => {
+      if (typeof alertApi?.warning === "function") {
+        await alertApi.warning({ title, description: message, primaryLabel: "Entendido" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(message, "warning");
+      }
+    },
+    [alertApi]
+  );
+
+  const success = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Volver" });
+      } else if (typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(description ?? title, "success");
+      }
+    },
+    [alertApi]
+  );
+
+  const cancel = useCallback(async () => {
+    const ok = await confirmAction("¿Cancelar y perder los cambios?");
+    if (ok) nav("/");
+  }, [confirmAction, nav]);
 
   useEffect(() => {
     // inicializar (modo crear o al cambiar id)
@@ -58,7 +95,6 @@ export const useManagePropertyPage = () => {
       try {
         setLoading(true);
 
-        // Traemos todo lo del hook “bueno” de datos
         const [prop, owner, imgs] = await Promise.all([
           getPropertyById(propId),
           getOwnerByPropertyId(propId),
@@ -98,7 +134,6 @@ export const useManagePropertyPage = () => {
   /* ────── manejo de imágenes desde el form (ImageUploader) ────── */
   const handleImages = (main: string | File | null, gallery: (string | File)[]) => {
     img.setMain(main as Image | null);
-    // solo agregamos lo nuevo; el hook ya sabe mezclar
     img.addToGallery(gallery as Image[]);
   };
 
@@ -117,6 +152,7 @@ export const useManagePropertyPage = () => {
     formRef.current?.setField?.("images", newGal);
     formRef.current?.deleteImage?.(pic);
   };
+
   const syncImagesIntoForm = () => {
     const form = formRef.current;
     if (!form) return false;
@@ -135,81 +171,80 @@ export const useManagePropertyPage = () => {
   };
 
   /* ────── guardar (create/update con flujo correcto de imágenes) ────── */
-  const save = useCallback(
-    () =>
-      ask(isEdit ? "¿Guardar cambios en la propiedad?" : "¿Crear la propiedad?", async () => {
-        const form = formRef.current;
-        if (!form) return;
+  const save = useCallback(async () => {
+    const ok = await confirmAction(isEdit ? "¿Guardar cambios en la propiedad?" : "¿Crear la propiedad?");
+    if (!ok) return;
 
-        // Sincroniza imágenes Page -> Form para que la validación use los valores correctos
-        if (!syncImagesIntoForm()) {
-          showAlert("El formulario aún no está listo", "error");
-          return;
+    const form = formRef.current;
+    if (!form) {
+      await warn("El formulario aún no está listo");
+      return;
+    }
+
+    // Sincroniza imágenes Page -> Form para que la validación use los valores correctos
+    if (!syncImagesIntoForm()) {
+      await warn("El formulario aún no está listo");
+      return;
+    }
+
+    const valid = await form.submit();
+    if (!valid) {
+      await warn("Formulario inválido, faltan datos");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Definir main a enviar: preferimos img.mainImage; si no hay, primera de la galería
+      const mainCandidate = img.mainImage ?? img.gallery[0];
+
+      if (!isEdit) {
+        /* ---------- CREATE ---------- */
+        const createDto = form.getCreateData();
+        const created = await postProperty({
+          ...createDto,
+          mainImage: mainCandidate,
+        });
+        const propertyId = created.id;
+
+        // Subir solo Files de la galería por el endpoint específico
+        const galleryFiles = img.gallery.filter((g): g is File => g instanceof File);
+        if (galleryFiles.length) {
+          await Promise.all(galleryFiles.map((f) => postImage(f, propertyId)));
         }
 
-        const valid = await form.submit();
-        if (!valid) {
-          showAlert("Formulario inválido, faltan datos", "error");
-          return;
-        }
+        await success("Propiedad creada", "Se creó correctamente.");
+        nav("/");
+        return;
+      }
 
-        try {
-          setLoading(true);
+      /* ---------- UPDATE ---------- */
+      const updateDto = form.getUpdateData();
+      await putProperty({
+        ...updateDto,
+        mainImage: mainCandidate,
+      });
 
-          // Definir main a enviar: preferimos img.mainImage; si no hay, primera de la galería
-          const mainCandidate = img.mainImage ?? img.gallery[0];
+      // Subir solo Files nuevos de la galería
+      const galleryFiles = img.gallery.filter((g): g is File => g instanceof File);
+      if (galleryFiles.length) {
+        await Promise.all(galleryFiles.map((f) => postImage(f, updateDto.id)));
+      }
 
-          if (!isEdit) {
-            /* ---------- CREATE ---------- */
-            const createDto = form.getCreateData();
-            // `postProperty` debe recibir la mainImage dentro del DTO
-            const created = await postProperty({
-              ...createDto,
-              mainImage: mainCandidate,
-              // images: [], // la galería NO viaja en postProperty
-            });
-            const propertyId = created.id;
+      // Borrar imágenes del backend marcadas previamente
+      if (toDelete.length) {
+        await Promise.all(toDelete.map((imageId) => deleteImageById(imageId)));
+      }
 
-            // Subir solo Files de la galería por el endpoint específico
-            const galleryFiles = img.gallery.filter((g): g is File => g instanceof File);
-            if (galleryFiles.length) {
-              await Promise.all(galleryFiles.map((f) => postImage(f, propertyId)));
-            }
-
-            showAlert("Propiedad creada", "success");
-            nav("/");
-            return;
-          }
-
-          /* ---------- UPDATE ---------- */
-          const updateDto = form.getUpdateData();
-          // `putProperty` también recibe mainImage (File o string)
-          await putProperty({
-            ...updateDto,
-            mainImage: mainCandidate,
-          });
-
-          // Subir solo Files nuevos de la galería
-          const galleryFiles = img.gallery.filter((g): g is File => g instanceof File);
-          if (galleryFiles.length) {
-            await Promise.all(galleryFiles.map((f) => postImage(f, updateDto.id)));
-          }
-
-          // Borrar imágenes del backend marcadas previamente
-          if (toDelete.length) {
-            await Promise.all(toDelete.map((imageId) => deleteImageById(imageId)));
-          }
-
-          showAlert("Propiedad actualizada", "success");
-          nav("/");
-        } catch (e) {
-          handleError(e);
-        } finally {
-          setLoading(false);
-        }
-      }),
-    [ask, formRef, handleError, img, isEdit, nav, showAlert, toDelete]
-  );
+      await success("Propiedad actualizada", "Se guardaron los cambios.");
+      nav("/");
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [confirmAction, warn, success, handleError, img, isEdit, nav, toDelete]);
 
   /* ────── validación de pasaje de pasos (se mantiene tu lógica) ────── */
   const canProceed = !!selected.type && !!selected.neighborhood && !!selected.owner && selected.amenities.length > 0;
@@ -231,6 +266,5 @@ export const useManagePropertyPage = () => {
     title,
     save,
     cancel,
-    DialogUI,
   };
 };

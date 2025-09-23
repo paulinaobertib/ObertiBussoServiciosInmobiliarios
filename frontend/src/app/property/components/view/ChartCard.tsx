@@ -8,8 +8,9 @@ interface ChartCardProps {
 
 export default function ChartCard({ title, data }: ChartCardProps) {
     const theme = useTheme();
-    const categories = Object.keys(data);
-    const values = Object.values(data);
+    const categories = Object.keys(data || {});
+    const values = Object.values(data || {});
+    const hasData = categories.length > 0 && values.some((value) => Number(value) > 0);
 
     return (
         <Card
@@ -27,12 +28,23 @@ export default function ChartCard({ title, data }: ChartCardProps) {
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
                     {title}
                 </Typography>
-                <Box width="100%" height={200}>
-                    <BarChart
-                        height={180}
-                        series={[{ data: values }]}
-                        xAxis={[{ data: categories, scaleType: 'band' }]}
-                    />
+                <Box width="100%" height={200} display="flex" alignItems="center" justifyContent="center">
+                    {hasData ? (
+                        <BarChart
+                            height={180}
+                            series={[{ data: values }]}
+                            xAxis={[
+                                {
+                                    data: categories,
+                                    scaleType: 'band',
+                                },
+                            ]}
+                        />
+                    ) : (
+                        <Typography variant="body2" color="text.secondary">
+                            Sin datos disponibles
+                        </Typography>
+                    )}
                 </Box>
             </CardContent>
         </Card>

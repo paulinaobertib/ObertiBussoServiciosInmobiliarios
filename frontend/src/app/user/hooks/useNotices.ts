@@ -3,16 +3,37 @@ import * as service from "../services/notice.service";
 import { Notice, NoticeCreate } from "../types/notice";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../shared/context/AlertContext";
 
 export function useNotices() {
   const { info } = useAuthContext();
   const { handleError } = useApiErrors();
+  const alertApi: any = useGlobalAlert();
 
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /* -------- helpers -------- */
+  /* ---------------- helpers de alertas ---------------- */
+  const notifySuccess = useCallback(
+    async (title: string, description?: string) => {
+      if (typeof alertApi?.success === "function") {
+        await alertApi.success({ title, description, primaryLabel: "Ok" });
+      }
+    },
+    [alertApi]
+  );
+
+  const confirmDanger = useCallback(async () => {
+    if (typeof alertApi?.doubleConfirm === "function") {
+      return await alertApi.doubleConfirm({
+        kind: "error",
+        description: "Eliminar noticia?",
+      });
+    }
+  }, [alertApi]);
+
+  /* ---------------- CRUD & búsquedas ---------------- */
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,56 +68,67 @@ export function useNotices() {
   );
 
   const add = useCallback(
-    async (body: NoticeCreate) => {
+    async (body: NoticeCreate): Promise<boolean> => {
       if (!info?.id) {
         setError(handleError(new Error("No se encontró el usuario autenticado.")));
-        return;
+        return false;
       }
       setLoading(true);
       try {
         await service.createNotice({ ...body, userId: info.id });
+        await notifySuccess("Aviso creado");
         await fetchAll();
+        return true;
       } catch (e) {
         setError(handleError(e));
+        return false;
       } finally {
         setLoading(false);
       }
     },
-    [info?.id, fetchAll, handleError]
+    [info?.id, fetchAll, handleError, notifySuccess]
   );
 
   const edit = useCallback(
-    async (notice: Notice) => {
+    async (notice: Notice): Promise<boolean> => {
       if (!info?.id) {
         setError(handleError(new Error("No se encontró el usuario autenticado.")));
-        return;
+        return false;
       }
       setLoading(true);
       try {
         await service.updateNotice({ ...notice, userId: info.id });
+        await notifySuccess("Aviso actualizado");
         await fetchAll();
+        return true;
       } catch (e) {
         setError(handleError(e));
+        return false;
       } finally {
         setLoading(false);
       }
     },
-    [info?.id, fetchAll, handleError]
+    [info?.id, fetchAll, handleError, notifySuccess]
   );
 
   const remove = useCallback(
-    async (id: number) => {
+    async (id: number): Promise<boolean> => {
+      const ok = await confirmDanger();
+      if (!ok) return false;
       setLoading(true);
       try {
         await service.deleteNotice(id);
+        await notifySuccess("Aviso eliminado");
         await fetchAll();
+        return true;
       } catch (e) {
         setError(handleError(e));
+        return false;
       } finally {
         setLoading(false);
       }
     },
-    [fetchAll, handleError]
+    [fetchAll, handleError, notifySuccess, confirmDanger]
   );
 
   useEffect(() => {

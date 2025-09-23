@@ -24,7 +24,7 @@ export default function ManagePropertyPage() {
   const ctrl = useManagePropertyPage();
   const {
     seedSelectionsFromProperty, // metodo nuevo del contexto
-    selected,                   // ids seleccionados en categorías
+    selected, // ids seleccionados en categorías
     amenitiesList,
     ownersList,
     neighborhoodsList,
@@ -44,18 +44,18 @@ export default function ManagePropertyPage() {
     }
 
     if (selected.type != null) {
-      const t = typesList.find(x => x.id === selected.type);
+      const t = typesList.find((x) => x.id === selected.type);
       if (t) ref.setField("type", t as any);
     }
     if (selected.neighborhood != null) {
-      const n = neighborhoodsList.find(x => x.id === selected.neighborhood);
+      const n = neighborhoodsList.find((x) => x.id === selected.neighborhood);
       if (n) ref.setField("neighborhood", n as any);
     }
     if (selected.owner != null) {
-      const o = ownersList.find(x => x.id === selected.owner);
+      const o = ownersList.find((x) => x.id === selected.owner);
       if (o) ref.setField("owner", o as any);
     }
-    const ams = amenitiesList.filter(a => selected.amenities.includes(a.id));
+    const ams = amenitiesList.filter((a) => selected.amenities.includes(a.id));
     ref.setField("amenities", ams as any);
 
     ctrl.setActiveStep(1);
@@ -82,7 +82,7 @@ export default function ManagePropertyPage() {
 
   return (
     <BasePage showFooter={false}>
-      <Box sx={{ display: "flex", flexDirection: "column" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
         {/* ---------- barra superior ---------- */}
         <Box
           sx={{
@@ -95,7 +95,7 @@ export default function ManagePropertyPage() {
         >
           {/* Cancelar a la izquierda */}
           <Button variant="outlined" onClick={ctrl.cancel}>
-            CANCELAR
+            Cancelar
           </Button>
 
           {/* Stepper (desktop) */}
@@ -115,7 +115,7 @@ export default function ManagePropertyPage() {
             {ctrl.activeStep === 0 && (
               <Button
                 variant="contained"
-                onClick={goToFormStep}        // items seleccionados
+                onClick={goToFormStep} // items seleccionados
                 disabled={!ctrl.canProceed}
               >
                 Siguiente
@@ -159,17 +159,18 @@ export default function ManagePropertyPage() {
             sx={{
               display: "flex",
               flexDirection: { xs: "column", md: "row" },
-              gap: 2,
+              gap: 3,
+              alignItems: "stretch",
             }}
           >
             {/* Formulario */}
             <Card
-              variant="elevation"
               sx={{
                 flex: 2,
                 display: "flex",
                 flexDirection: "column",
-                p: 2,
+                p: 3,
+                gap: 2,
               }}
             >
               <Typography
@@ -197,7 +198,8 @@ export default function ManagePropertyPage() {
                 display: "flex",
                 flex: 1,
                 flexDirection: "column",
-                p: 1,
+                p: 2,
+                gap: 2,
               }}
             >
               <Typography
@@ -221,9 +223,6 @@ export default function ManagePropertyPage() {
             </Card>
           </Box>
         )}
-
-        {/* ---------- dialog ---------- */}
-        {ctrl.DialogUI}
       </Box>
     </BasePage>
   );

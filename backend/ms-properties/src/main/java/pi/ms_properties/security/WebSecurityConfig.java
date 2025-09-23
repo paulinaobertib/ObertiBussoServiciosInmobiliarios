@@ -70,4 +70,3 @@ public class WebSecurityConfig {
         return httpSecurity.build();
     }
 }
-
