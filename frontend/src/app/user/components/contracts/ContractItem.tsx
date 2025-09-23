@@ -19,24 +19,35 @@ export const typeLabel = (t?: Contract["contractType"]) => {
   return map[t] ?? t.charAt(0) + t.slice(1).toLowerCase();
 };
 
+/** Parseo seguro para fechas YYYY-MM-DD como LOCAL (evita -1 día por timezone) */
+const parseISOAsLocal = (iso?: string | null) => {
+  if (!iso) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d); // midnight local
+  }
+  return new Date(iso);
+};
+
+const fmtLongDate = (iso: string) => {
+  const d = parseISOAsLocal(iso)!;
+  const m = d.toLocaleString("es-AR", { month: "long" });
+  return `${d.getDate()} de ${m.charAt(0).toUpperCase() + m.slice(1)} del ${d.getFullYear()}`;
+};
+
+const fmtShortDate = (iso: string) => {
+  const d = parseISOAsLocal(iso);
+  return d ? d.toLocaleDateString("es-AR") : "-";
+};
+
 interface Props {
   contract: Contract;
-  onDelete: (c: Contract) => void;
-  onToggleStatus: (c: Contract) => void;
   isAdmin?: boolean;
 }
 
 export const ContractItem = ({ contract }: Props) => {
   const navigate = useNavigate();
-
   const { userName, propertyName } = useContractNames(contract.userId, contract.propertyId);
-
-  const fmtLongDate = (iso: string) => {
-    const d = new Date(iso);
-    const m = d.toLocaleString("es-AR", { month: "long" });
-    return `${d.getDate()} de ${m.charAt(0).toUpperCase() + m.slice(1)} del ${d.getFullYear()}`;
-  };
-  const fmtShortDate = (iso: string) => new Date(iso).toLocaleDateString("es-AR");
 
   const lastAmount = contract.lastPaidAmount ?? null;
   const lastDate = contract.lastPaidDate ? fmtShortDate(contract.lastPaidDate) : null;
@@ -113,9 +124,9 @@ export const ContractItem = ({ contract }: Props) => {
 
       <CardContent sx={{ pt: 1, flexGrow: 1 }}>
         <Box sx={{ display: "grid", gap: 1.25, fontSize: "0.8125rem" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "#000" }}>
             <HomeOutlined fontSize="small" />
-            <Typography component="span" fontWeight={500} color="text.secondary" fontSize="0.9375rem">
+            <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
               Propiedad:
             </Typography>
             <Typography component="span" color="text.primary" noWrap fontSize="0.9375rem">
@@ -123,10 +134,10 @@ export const ContractItem = ({ contract }: Props) => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, color: "text.secondary" }}>
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, color: "#000" }}>
             <CalendarMonthOutlined fontSize="small" sx={{ mt: 0.2 }} />
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-              <Typography component="span" fontWeight={500} color="text.secondary" fontSize="0.9375rem">
+              <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
                 Período:
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25, ml: 1 }}>
@@ -140,9 +151,9 @@ export const ContractItem = ({ contract }: Props) => {
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "#000" }}>
             <AttachMoneyOutlined fontSize="small" />
-            <Typography component="span" fontWeight={500} color="text.secondary" fontSize="0.9375rem">
+            <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
               Último pago:
             </Typography>
 
@@ -152,18 +163,13 @@ export const ContractItem = ({ contract }: Props) => {
                   ARS $ {Number(lastAmount).toLocaleString("es-AR")}
                 </Typography>
                 {lastDate && (
-                  <Typography
-                    component="span"
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ ml: 0.5, fontSize: "0.8125rem" }}
-                  >
+                  <Typography component="span" variant="caption" sx={{ ml: 0.5, fontSize: "0.8125rem", color: "#000" }}>
                     ({lastDate})
                   </Typography>
                 )}
               </>
             ) : (
-              <Typography component="span" color="text.secondary" fontSize="0.8125rem">
+              <Typography component="span" sx={{ color: "#000", fontSize: "0.8125rem" }}>
                 Sin registros
               </Typography>
             )}
@@ -185,24 +191,7 @@ export const ContractItem = ({ contract }: Props) => {
           alignItems: "center",
         }}
       >
-        <Button
-          variant="contained"
-          color="warning"
-          size="small"
-          startIcon={<VisibilityOutlined />}
-          onClick={goDetail}
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            fontSize: "0.75rem",
-            minHeight: 28,
-            px: 1,
-            borderRadius: 3,
-            boxShadow: 1,
-            "& .MuiButton-startIcon": { mr: 0.5 },
-            "&:hover": { boxShadow: 3 },
-          }}
-        >
+        <Button variant="contained" size="small" startIcon={<VisibilityOutlined />} onClick={goDetail}>
           Ver detalles
         </Button>
       </CardActions>

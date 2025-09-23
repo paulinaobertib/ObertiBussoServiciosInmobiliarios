@@ -25,11 +25,11 @@ export default function PeriodCard({ startDate, endDate }: Props) {
         </Typography>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography sx={{ fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>Desde:</Typography>
+            <Typography sx={{ fontSize: ".875rem", color: "#000", fontWeight: 500 }}>Desde:</Typography>
             <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>{fmtLongDate(startDate)}</Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography sx={{ fontSize: ".875rem", color: "text.secondary", fontWeight: 500 }}>Hasta:</Typography>
+            <Typography sx={{ fontSize: ".875rem", color: "#000", fontWeight: 500 }}>Hasta:</Typography>
             <Typography sx={{ fontSize: "1rem", fontWeight: 600 }}>{fmtLongDate(endDate)}</Typography>
           </Box>
         </Box>

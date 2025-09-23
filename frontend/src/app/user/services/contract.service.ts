@@ -44,6 +44,27 @@ export const patchContractStatus = async (id: number) => {
   }
 };
 
+// --- NUEVO: tipo de estado de propiedad (si ya lo tenés en otro lado, reutilízalo) ---
+export type PropertyStatus = "DISPONIBLE" | "RESERVADA" | "ALQUILADA" | "VENDIDA" | "ESPERA" | "INACTIVA";
+
+/** Actualiza estado de PROPIEDAD y marca el CONTRATO (backend hace ambas cosas). */
+export const updatePropertyStatusAndContract = async (
+  propertyId: number,
+  contractId: number,
+  status: PropertyStatus
+) => {
+  try {
+    const res = await api.put(`/users/contracts/propertyContractStatus/${propertyId}/${contractId}`, null, {
+      params: { status },
+      withCredentials: true,
+    });
+    return (res as any)?.data ?? res;
+  } catch (error) {
+    console.error("Error updating property+contract status:", { propertyId, contractId, status, error });
+    throw error;
+  }
+};
+
 export const deleteContract = async (id: number) => {
   try {
     const response = await api.delete(`/users/contracts/delete/${id}`, {
@@ -111,7 +132,6 @@ export const getContractsByUserId = async (userId: string) => {
     throw error;
   }
 };
-
 
 export const getContractsByPropertyId = async (propertyId: number) => {
   try {

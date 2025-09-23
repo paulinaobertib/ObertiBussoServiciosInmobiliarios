@@ -50,18 +50,12 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
 
   // Helper para convertir GridRowId a number seguro
   const toNum = (v: GridRowId): number | null =>
-    typeof v === "number"
-      ? v
-      : Number.isFinite(Number(v))
-      ? Number(v)
-      : null;
+    typeof v === "number" ? v : Number.isFinite(Number(v)) ? Number(v) : null;
 
   const gridToggleSelect = useCallback(
     (selected: GridRowId | GridRowId[] | null) => {
       const arr: number[] = Array.isArray(selected)
-        ? selected
-            .map(toNum)
-            .filter((n): n is number => n != null)
+        ? selected.map(toNum).filter((n): n is number => n != null)
         : selected != null
         ? (() => {
             const n = toNum(selected);

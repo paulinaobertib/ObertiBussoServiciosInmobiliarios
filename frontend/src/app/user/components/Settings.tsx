@@ -199,7 +199,6 @@ export default function SettingsDrawer() {
                 <Button
                     color="inherit"
                     onClick={() => setOpen(true)}
-                    sx={{ px: 0, }}
                     aria-label="Abrir notificaciones"
                 >
                     <Typography>Notificaciones</Typography>

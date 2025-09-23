@@ -31,9 +31,9 @@ export default function NotesCard({ note, half = false }: { note?: string | null
           Notas del Contrato
         </Typography>
         {hasNote ? (
-          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6 }}>{note}</Typography>
+          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "#000" }}>{note}</Typography>
         ) : (
-          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "text.secondary" }}>
+          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "#000" }}>
             No hay notas registradas. 
           </Typography>
         )}

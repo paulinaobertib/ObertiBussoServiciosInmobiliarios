@@ -7,6 +7,8 @@ import type { Utility } from "../../types/utility";
 import { ContractUtilityForm, type ContractUtilityFormHandle } from "./ContractUtilityForm";
 import { postContractUtility, getContractUtilitiesByContract } from "../../services/contractUtility.service";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
+import { LoadingButton } from "@mui/lab";
+import { useApiErrors } from "../../../shared/hooks/useErrors";
 
 interface Props {
   open: boolean;
@@ -17,7 +19,8 @@ interface Props {
 
 export function UtilitiesPickerDialog({ open, contractId, onClose, onUpdated }: Props) {
   const { fetchById } = useUtilities();
-  const { showAlert } = useGlobalAlert();
+  const alertApi: any = useGlobalAlert();
+  const { handleError } = useApiErrors();
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [assigning, setAssigning] = useState<Utility | null>(null);
@@ -34,29 +37,51 @@ export function UtilitiesPickerDialog({ open, contractId, onClose, onUpdated }: 
         const list = await getContractUtilitiesByContract(contractId);
         const set = new Set<number>((list || []).map((cu: any) => cu.utilityId));
         setExistingIds(set);
-      } catch {
+      } catch (e) {
+        handleError(e);
         setExistingIds(new Set());
       }
     })();
-  }, [open, contractId]);
+  }, [open, contractId, handleError]);
+
+  const warnDuplicate = async () => {
+    if (typeof alertApi?.warning === "function") {
+      await alertApi.warning({
+        title: "Servicio ya vinculado",
+        description: "Ese servicio ya está asociado a este contrato.",
+      });
+    }
+  };
+
+  const notifySuccess = async (title: string, description?: string) => {
+    if (typeof alertApi?.success === "function") {
+      await alertApi.success({ title, description, primaryLabel: "Ok" });
+    }
+  };
 
   const handleSave = async () => {
     if (!assigning || !formRef.current) return;
     const data = formRef.current.getData();
     if (!(data.initialAmount > 0)) return;
     if (existingIds.has(data.utilityId)) {
-      showAlert("Ese servicio ya está vinculado al contrato", "info");
+      await warnDuplicate();
+      // deseleccionar automáticamente si detectamos duplicado al guardar
+      setSelectedId(null);
+      setAssigning(null);
       return;
     }
 
     setSaving(true);
     try {
       await postContractUtility(data);
+      await notifySuccess("Servicio agregado", "El servicio se vinculó al contrato.");
       onUpdated?.();
       // limpiar selección y cerrar
       setSelectedId(null);
       setAssigning(null);
       onClose();
+    } catch (e) {
+      handleError(e);
     } finally {
       setSaving(false);
     }
@@ -77,7 +102,10 @@ export function UtilitiesPickerDialog({ open, contractId, onClose, onUpdated }: 
           }
 
           if (existingIds.has(id)) {
-            showAlert("Ese servicio ya está vinculado al contrato", "info");
+            await warnDuplicate();
+            // 👇 deseleccionamos automáticamente
+            setSelectedId(null);
+            setAssigning(null);
             return;
           }
 
@@ -85,7 +113,8 @@ export function UtilitiesPickerDialog({ open, contractId, onClose, onUpdated }: 
           try {
             const u = await fetchById(id);
             setAssigning(u ?? null);
-          } catch {
+          } catch (e) {
+            handleError(e);
             setAssigning(null);
           }
         }}
@@ -108,9 +137,9 @@ export function UtilitiesPickerDialog({ open, contractId, onClose, onUpdated }: 
             >
               Cancelar
             </Button>
-            <Button variant="contained" onClick={handleSave} disabled={saving}>
+            <LoadingButton variant="contained" onClick={handleSave} loading={saving} disabled={saving}>
               Guardar
-            </Button>
+            </LoadingButton>
           </Box>
         </Box>
       )}

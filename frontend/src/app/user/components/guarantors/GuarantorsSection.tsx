@@ -1,4 +1,3 @@
-// GuarantorsSection.tsx
 import { useCallback, useMemo, useState } from "react";
 import { Box, CircularProgress, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -21,7 +20,7 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
 
   // id numero
   const rows = useMemo(
-    () => (guarantors ?? []).map(g => ({ ...g, id: Number((g as any).id ?? (g as any).guarantorId) })),
+    () => (guarantors ?? []).map((g) => ({ ...g, id: Number((g as any).id ?? (g as any).guarantorId) })),
     [guarantors]
   );
 
@@ -40,10 +39,7 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
     [toggleSelect]
   );
 
-  const gridIsSelected = useCallback(
-    (id: GridRowId) => isSelected?.(Number(id)) ?? false,
-    [isSelected]
-  );
+  const gridIsSelected = useCallback((id: GridRowId) => isSelected?.(Number(id)) ?? false, [isSelected]);
 
   // ── Diálogo ──
   const [dlg, setDlg] = useState<{ open: boolean; mode: "add" | "edit" | "delete"; item?: Guarantor | null }>({
@@ -74,10 +70,26 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
       filterable: false,
       renderCell: (params: any) => (
         <Box display="flex" alignItems="center" justifyContent="center" gap={1} width="100%" height="100%">
-          <IconButton size="small" title="Editar" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openEdit(params.row as Guarantor); }}>
+          <IconButton
+            size="small"
+            title="Editar"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openEdit(params.row as Guarantor);
+            }}
+          >
             <EditIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" title="Eliminar" onClick={(e) => { e.preventDefault(); e.stopPropagation(); openDelete(params.row as Guarantor); }}>
+          <IconButton
+            size="small"
+            title="Eliminar"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openDelete(params.row as Guarantor);
+            }}
+          >
             <DeleteIcon fontSize="small" />
           </IconButton>
         </Box>
