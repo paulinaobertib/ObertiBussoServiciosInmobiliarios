@@ -139,22 +139,8 @@ export const PropertySection = ({
           kind: "error",
           title: `Vas a eliminar "${label}"`,
           description: "Esta acción no se puede deshacer.",
-          step2Title: "¿Eliminar definitivamente?",
-          step2Description: "Confirmá nuevamente para borrar.",
-          primaryLabel: "Continuar",
-          secondaryLabel: "Cancelar",
-          swapOnSecond: true,
         });
       }
-      if (typeof alertApi?.confirm === "function") {
-        return await alertApi.confirm({
-          title: "Confirmar acción",
-          description: `Se eliminará "${label}". Esta acción no se puede deshacer.`,
-          primaryLabel: "Eliminar",
-          secondaryLabel: "Cancelar",
-        });
-      }
-      return window.confirm(`Eliminar "${label}"? Esta acción no se puede deshacer.`);
     },
     [alertApi]
   );
@@ -163,8 +149,6 @@ export const PropertySection = ({
     async (title: string, description?: string) => {
       if (typeof alertApi?.success === "function") {
         await alertApi.success({ title, description, primaryLabel: "Volver" });
-      } else if (typeof alertApi?.showAlert === "function") {
-        alertApi.showAlert(description ?? title, "success");
       }
     },
     [alertApi]

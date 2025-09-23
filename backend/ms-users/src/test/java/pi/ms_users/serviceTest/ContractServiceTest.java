@@ -130,11 +130,13 @@ class ContractServiceTest {
 
         assertEquals("Se ha actualizado el estado del contrato.", response.getBody());
         verify(emailService).sendContractExpiredEmail(any());
-        verify(emailService).sendAdminContractExpiredEmail(any());
+        verify(emailService, never()).sendAdminContractExpiredEmail(any());
     }
+
 
     @Test
     void delete_success() {
+        entity.setContractStatus(ContractStatus.ACTIVO);
         when(contractRepository.findById(1L)).thenReturn(Optional.of(entity));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
 
@@ -143,7 +145,9 @@ class ContractServiceTest {
         assertEquals("Se ha eliminado el contrato.", response.getBody());
         verify(contractRepository).deleteById(1L);
         verify(propertyRepository).updateStatus(entity.getPropertyId(), Status.ESPERA);
+        verify(emailService, never()).sendAdminContractExpiredEmail(any());
     }
+
 
     @Test
     void getById_success() {
@@ -158,11 +162,13 @@ class ContractServiceTest {
     void updatePropertyStatusAndContract_success() {
         when(propertyRepository.getById(100L)).thenReturn(propertyDTO);
         when(contractRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
 
         ResponseEntity<String> response = service.updatePropertyStatusAndContract(100L, 1L, Status.DISPONIBLE);
 
         assertEquals("Se ha actualizado el estado de la propiedad y del contrato.", response.getBody());
-        verify(propertyRepository, atLeastOnce()).updateStatus(100L, Status.DISPONIBLE);
+        verify(propertyRepository).updateStatus(100L, Status.DISPONIBLE);
+        verify(emailService).sendContractExpiredEmail(any());
     }
 
     @Test
@@ -305,14 +311,20 @@ class ContractServiceTest {
     }
 
     @Test
-    void delete_sendsAdminMailWhenActive() {
+    void delete_success_noAdminMail() {
         entity.setContractStatus(ContractStatus.ACTIVO);
         when(contractRepository.findById(1L)).thenReturn(Optional.of(entity));
         when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
         ResponseEntity<String> response = service.delete(1L);
+
         assertEquals("Se ha eliminado el contrato.", response.getBody());
-        verify(emailService).sendAdminContractExpiredEmail(any());
+        verify(contractRepository).deleteById(1L);
+        verify(propertyRepository).updateStatus(entity.getPropertyId(), Status.ESPERA);
+        verify(userRepository).deleteRoleToUser("user123", "tenant");
+        verify(emailService, never()).sendAdminContractExpiredEmail(any());
     }
+
 
     @Test
     void getAll_success() {

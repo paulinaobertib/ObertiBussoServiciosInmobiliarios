@@ -1,13 +1,32 @@
-import { useEffect, useState } from "react";
+// src/pages/ContractDetailPage.tsx
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Typography, CircularProgress, IconButton } from "@mui/material";
+import {
+  Container,
+  Typography,
+  CircularProgress,
+  IconButton,
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import Grid from "@mui/material/Grid";
 import ReplyIcon from "@mui/icons-material/Reply";
 import BasePage from "./BasePage";
-import { getContractById, patchContractStatus, deleteContract } from "../app/user/services/contract.service.ts";
-import type { ContractGet } from "../app/user/types/contract.ts";
-import { useContractNames } from "../app/user/hooks/contracts/useContractNames.ts";
-import { useUtilityNames } from "../app/user/hooks/contracts/useUtilityNames.ts";
+
+import {
+  getContractById,
+  updatePropertyStatusAndContract, // property + contract (inactivar manual)
+  patchContractStatus, // reactivar contrato
+  deleteContract, // eliminar contrato
+} from "../app/user/services/contract.service";
+import type { ContractGet } from "../app/user/types/contract";
+
+import { useContractNames } from "../app/user/hooks/contracts/useContractNames";
+import { useUtilityNames } from "../app/user/hooks/contracts/useUtilityNames";
 import { useAuthContext } from "../app/user/context/AuthContext";
 
 import Header from "../app/user/components/contracts/contractDetail/Header";
@@ -16,7 +35,7 @@ import PeriodCard from "../app/user/components/contracts/contractDetail/PeriodCa
 import DepositCard from "../app/user/components/contracts/contractDetail/DepositCard";
 import FinancialCard from "../app/user/components/contracts/contractDetail/FinancialCard";
 import GuarantorsCard from "../app/user/components/contracts/contractDetail/GuarantorsCard";
-import CommissionCard from "../app/user/components/contracts/contractDetail/CommissionCard.tsx";
+import CommissionCard from "../app/user/components/contracts/contractDetail/CommissionCard";
 import ServicesExpensesCard from "../app/user/components/contracts/contractDetail/ServicesExpensesCard";
 import { PaymentDialog } from "../app/user/components/payments/PaymentDialogBase";
 import { PaymentRentDialog } from "../app/user/components/payments/PaymentRentDialog";
@@ -31,9 +50,15 @@ import { ContractUtilityDialog } from "../app/user/components/contract-utilities
 import { ContractUtilityIncreaseDialog } from "../app/user/components/contract-utilities/ContractUtilityIncreaseDialog";
 import { CommissionDialog } from "../app/user/components/commission/CommissionDialog";
 
-import { getTime } from "../app/user/components/contracts/contractDetail/utils.ts";
+import { getTime } from "../app/user/components/contracts/contractDetail/utils";
 import { useGlobalAlert } from "../app/shared/context/AlertContext";
 import { useApiErrors } from "../app/shared/hooks/useErrors";
+
+import { Modal } from "../app/shared/components/Modal";
+import { putPropertyStatus } from "../app/property/services/property.service"; // para post-delete
+import type { PropertyStatus } from "../app/user/services/contract.service";
+
+const ALL_STATUSES: PropertyStatus[] = ["DISPONIBLE", "RESERVADA", "ALQUILADA", "VENDIDA", "ESPERA", "INACTIVA"];
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +75,7 @@ export default function ContractDetailPage() {
 
   const { userName, propertyName } = useContractNames(contract?.userId ?? "", contract?.propertyId ?? 0);
 
+  // ---- carga contrato ----
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -69,29 +95,29 @@ export default function ContractDetailPage() {
     };
   }, [id, handleError]);
 
-  useEffect(() => {
-    setRetryCount(0);
-  }, [id]);
+  useEffect(() => setRetryCount(0), [id]);
 
   const utilities = contract?.contractUtilities ?? [];
   const utilityNameMap = useUtilityNames(utilities);
 
-  const propertyHref = `/properties/${contract?.propertyId}`;
   const guarantors = contract?.guarantors ?? [];
   const commission = (contract as any)?.commission ?? null;
   const payments = (contract as any)?.payments ?? [];
   const increasesRaw = (contract as any)?.contractIncrease ?? [];
 
-  const paymentsSorted = [...payments].sort((a, b) => getTime(b) - getTime(a));
-  const increasesSorted = [...increasesRaw].sort((a, b) => getTime(b) - getTime(a));
-  const commissionPayments = (() => {
+  const paymentsSorted = useMemo(() => [...payments].sort((a, b) => getTime(b) - getTime(a)), [payments]);
+  const increasesSorted = useMemo(() => [...increasesRaw].sort((a, b) => getTime(b) - getTime(a)), [increasesRaw]);
+
+  const commissionPayments = useMemo(() => {
     if (!commission || !commission.id) return [] as any[];
     return payments
       .filter((p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(commission.id))
       .sort((a: any, b: any) => getTime(a) - getTime(b));
-  })();
+  }, [commission, payments]);
+
   const commissionPaidCount = commissionPayments.length;
 
+  // reintento pequeño por datos incompletos (opcional)
   useEffect(() => {
     if (!contract || !id) return;
     if (retryCount >= 3) return;
@@ -103,9 +129,7 @@ export default function ContractDetailPage() {
     const commissionReady = (() => {
       if (!commissionData) return true;
       if (!commissionData.currency || commissionData.totalAmount == null) return false;
-      if (commissionData.paymentType === "CUOTAS") {
-        return Number(commissionData.installments) > 0;
-      }
+      if (commissionData.paymentType === "CUOTAS") return Number(commissionData.installments) > 0;
       return true;
     })();
 
@@ -126,75 +150,68 @@ export default function ContractDetailPage() {
     return () => clearTimeout(timer);
   }, [contract, id, retryCount, handleError]);
 
-  // helpers de confirmación/éxito
-  const confirmDanger = async (title: string, description = "Esta acción no se puede deshacer.") => {
+  // ---- helpers alertas ----
+  const confirmDanger = async (title: string, description?: string) => {
     if (typeof alertApi?.doubleConfirm === "function") {
-      return await alertApi.doubleConfirm({
-        kind: "error",
-        title,
-        description,
-      });
+      return await alertApi.doubleConfirm({ kind: "error", title, description });
     }
+    return window.confirm(`${title}\n${description ?? ""}`);
   };
-
   const notifySuccess = async (title: string, description?: string) => {
     if (typeof alertApi?.success === "function") {
       await alertApi.success({ title, description, primaryLabel: "Ok" });
+    } else if (typeof alertApi?.showAlert === "function") {
+      alertApi.showAlert(description ?? title, "success");
     }
   };
 
-  // acciones admin
-  const onEdit = () => contract && navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id));
-  const [openPayments, setOpenPayments] = useState(false);
-  const [openRent, setOpenRent] = useState(false);
-  const [openCommissionPay, setOpenCommissionPay] = useState<{ open: boolean; installment: number | null }>({
-    open: false,
-    installment: null,
-  });
-  const onPayments = () => {
-    if (!contract) return;
-    setOpenPayments(true);
-  };
-  const onIncrease = () => setOpenIncrease(true);
-  const [openIncrease, setOpenIncrease] = useState(false);
-  const [openUtilities, setOpenUtilities] = useState(false);
-  const [openGuarantors, setOpenGuarantors] = useState(false);
-  const [openCommissionEdit, setOpenCommissionEdit] = useState<{ open: boolean; action: "add" | "edit" }>({
-    open: false,
-    action: "add",
-  });
-  const [openServicePay, setOpenServicePay] = useState<number | null>(null);
-  const [openServiceEdit, setOpenServiceEdit] = useState<number | null>(null);
-  const [openServiceIncrease, setOpenServiceIncrease] = useState<number | null>(null);
-
-  const onDelete = async () => {
-    if (!contract) return;
-    const ok = await confirmDanger("¿Eliminar el contrato?");
-    if (!ok) return;
+  const refreshContract = async () => {
     try {
-      await deleteContract(contract.id);
-      await notifySuccess("Contrato eliminado");
-      navigate(ROUTES.CONTRACT);
+      const fresh = await getContractById(Number(id));
+      const data = (fresh as any)?.data ?? fresh;
+      setContract(data as ContractGet);
     } catch (e) {
       handleError(e);
     }
   };
 
+  // ---- estados para el modal de estado de propiedad ----
+  type StatusMode = "deactivate" | "postDelete" | null;
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusMode, setStatusMode] = useState<StatusMode>(null);
+  const [selectedStatus, setSelectedStatus] = useState<PropertyStatus>("ESPERA");
+
+  // ---- acciones del header ----
+  const onEdit = () => contract && navigate(buildRoute(ROUTES.EDIT_CONTRACT, contract.id));
+
+  // Inactivar/Activar manualmente
   const onToggleStatus = async () => {
     if (!contract || savingStatus) return;
-    const msg =
-      contract.contractStatus === "ACTIVO"
-        ? "Este contrato se inactivará y se avisará por email que está terminado."
-        : "¿Reactivar contrato?";
-    const ok = await confirmDanger(msg);
-    if (!ok) return;
 
+    const propertyId = Number(contract.propertyId);
+    const contractId = Number(contract.id);
+
+    const isActive = String(contract.contractStatus) === "ACTIVO";
+
+    if (isActive) {
+      // 1) INACTIVAR MANUAL → elegir estado y actualizar ambos
+      setStatusMode("deactivate");
+      setSelectedStatus("DISPONIBLE"); // sugerencia por defecto
+      setStatusModalOpen(true);
+      return;
+    }
+
+    // 2) ACTIVAR MANUAL → sin modal: contrato activo + propiedad ALQUILADA
+    if (!propertyId) {
+      handleError(new Error("No se encontró la propiedad para reactivar."));
+      return;
+    }
     setSavingStatus(true);
     try {
-      await patchContractStatus(contract.id);
-      const fresh = await getContractById(contract.id);
-      setContract((fresh as any)?.data ?? (fresh as ContractGet));
-      await notifySuccess("Estado actualizado");
+      await patchContractStatus(contractId); // activa contrato
+      await putPropertyStatus(propertyId, "ALQUILADA"); // y pone propiedad ALQUILADA
+      await notifySuccess("Contrato reactivado", "La propiedad quedó ALQUILADA.");
+      await refreshContract();
     } catch (e) {
       handleError(e);
     } finally {
@@ -202,6 +219,88 @@ export default function ContractDetailPage() {
     }
   };
 
+  // Eliminar contrato → confirmación + luego elegir estado SOLO para propiedad
+  const onDelete = async () => {
+    if (!contract) return;
+
+    const propertyId = Number(contract.propertyId);
+    const contractId = Number(contract.id);
+
+    const ok = await confirmDanger("¿Eliminar contrato?");
+    if (!ok) return;
+
+    setSavingStatus(true);
+    try {
+      await deleteContract(contractId);
+      await notifySuccess("Contrato eliminado");
+      if (!propertyId) {
+        // sin propiedad asociada, solo salgo
+        navigate(ROUTES.CONTRACT);
+        return;
+      }
+      // abrir modal para actualizar estado SOLO de la propiedad
+      setStatusMode("postDelete");
+      setSelectedStatus("ESPERA"); // default provisorio
+      setStatusModalOpen(true);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
+  // Confirmación del modal de estado
+  const confirmStatusModal = async () => {
+    if (!contract) return;
+    const propertyId = Number(contract.propertyId);
+    const contractId = Number(contract.id);
+
+    setSavingStatus(true);
+    try {
+      if (statusMode === "deactivate") {
+        // 1) INACTIVAR MANUAL → update de propiedad + contrato en un endpoint
+        await updatePropertyStatusAndContract(propertyId, contractId, selectedStatus);
+        await notifySuccess("Contrato inactivado", `Propiedad: ${selectedStatus}`);
+        await refreshContract();
+      } else if (statusMode === "postDelete") {
+        // 4) POST-ELIMINACIÓN → solo propiedad
+        await putPropertyStatus(propertyId, selectedStatus);
+        await notifySuccess("Estado de propiedad actualizado", `Propiedad: ${selectedStatus}`);
+        navigate(`/properties/${propertyId}`);
+      }
+      setStatusModalOpen(false);
+      setStatusMode(null);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
+  // ---- pagos / comisiones / etc. ----
+  const [openPayments, setOpenPayments] = useState(false);
+  const [openRent, setOpenRent] = useState(false);
+  const [openCommissionPay, setOpenCommissionPay] = useState<{ open: boolean; installment: number | null }>({
+    open: false,
+    installment: null,
+  });
+  const [openIncrease, setOpenIncrease] = useState(false);
+  const [openUtilities, setOpenUtilities] = useState(false);
+  const [openGuarantors, setOpenGuarantors] = useState(false);
+  const [openServicePay, setOpenServicePay] = useState<number | null>(null);
+  const [openServiceEdit, setOpenServiceEdit] = useState<number | null>(null);
+  const [openServiceIncrease, setOpenServiceIncrease] = useState<number | null>(null);
+  const [openCommissionEdit, setOpenCommissionEdit] = useState<{ open: boolean; action: "add" | "edit" }>({
+    open: false,
+    action: "add",
+  });
+
+  const onPayments = () => {
+    if (!contract) return;
+    setOpenPayments(true);
+  };
+
+  // ---- renders ----
   if (loading) {
     return (
       <BasePage>
@@ -222,15 +321,7 @@ export default function ContractDetailPage() {
     );
   }
 
-  const refreshContract = async () => {
-    try {
-      const fresh = await getContractById(Number(id));
-      const data = (fresh as any)?.data ?? fresh;
-      setContract(data as ContractGet);
-    } catch (e) {
-      handleError(e);
-    }
-  };
+  const propertyHref = `/properties/${contract.propertyId}`;
 
   return (
     <>
@@ -251,7 +342,7 @@ export default function ContractDetailPage() {
           onDelete={onDelete}
           onToggleStatus={onToggleStatus}
           onPayments={() => onPayments()}
-          onIncrease={onIncrease}
+          onIncrease={() => setOpenIncrease(true)}
         />
 
         {/* Grid */}
@@ -269,10 +360,9 @@ export default function ContractDetailPage() {
           {/* Período */}
           <PeriodCard startDate={contract.startDate} endDate={contract.endDate} />
 
-          {/* Depósito junto al período (solo tenant) */}
+          {/* Depósito (solo tenant) */}
           {!isAdmin && (
             <DepositCard
-              //isAdmin={false}
               currency={contract.currency}
               hasDeposit={contract.hasDeposit}
               depositAmount={contract.depositAmount}
@@ -357,7 +447,7 @@ export default function ContractDetailPage() {
             />
           )}
 
-          {/* Depósito (admin) + Notas (admin) en la misma fila */}
+          {/* Depósito (admin) + Notas (admin) */}
           {isAdmin && (
             <>
               <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex", minWidth: 0 }}>
@@ -374,20 +464,17 @@ export default function ContractDetailPage() {
               </Grid>
             </>
           )}
-
-          {/* Notas ya incluidas junto a Depósito cuando es admin */}
         </Grid>
       </BasePage>
 
+      {/* Modales secundarios */}
       <PaymentDialog
         open={openPayments}
         contract={contract as any}
         onClose={() => setOpenPayments(false)}
         onSaved={async () => {
           setOpenPayments(false);
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <PaymentRentDialog
@@ -396,9 +483,7 @@ export default function ContractDetailPage() {
         onClose={() => setOpenRent(false)}
         onSaved={async () => {
           setOpenRent(false);
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <PaymentCommissionDialog
@@ -408,18 +493,14 @@ export default function ContractDetailPage() {
         onClose={() => setOpenCommissionPay({ open: false, installment: null })}
         onSaved={async () => {
           setOpenCommissionPay({ open: false, installment: null });
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <UtilitiesPickerDialog
         open={openUtilities}
         contractId={Number(id)}
         onClose={() => setOpenUtilities(false)}
-        onUpdated={async () => {
-          await refreshContract();
-        }}
+        onUpdated={refreshContract}
       />
       <PaymentExtrasDialog
         open={openServicePay != null}
@@ -428,9 +509,7 @@ export default function ContractDetailPage() {
         onClose={() => setOpenServicePay(null)}
         onSaved={async () => {
           setOpenServicePay(null);
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <ContractUtilityDialog
@@ -441,9 +520,7 @@ export default function ContractDetailPage() {
         onClose={() => setOpenServiceEdit(null)}
         onSaved={async () => {
           setOpenServiceEdit(null);
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <ContractUtilityIncreaseDialog
@@ -452,18 +529,14 @@ export default function ContractDetailPage() {
         onClose={() => setOpenServiceIncrease(null)}
         onSaved={async () => {
           setOpenServiceIncrease(null);
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <GuarantorPickerDialog
         open={openGuarantors}
         contractId={Number(id)}
         onClose={() => setOpenGuarantors(false)}
-        onLinked={async () => {
-          await refreshContract();
-        }}
+        onLinked={refreshContract}
       />
       <IncreaseDialog
         open={openIncrease}
@@ -471,9 +544,7 @@ export default function ContractDetailPage() {
         onClose={() => setOpenIncrease(false)}
         onSaved={async () => {
           setOpenIncrease(false);
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
       <CommissionDialog
@@ -484,12 +555,59 @@ export default function ContractDetailPage() {
         onClose={() => setOpenCommissionEdit({ open: false, action: "add" })}
         onSaved={async () => {
           setOpenCommissionEdit({ open: false, action: "add" });
-          const fresh = await getContractById(Number(id));
-          const data = (fresh as any)?.data ?? fresh;
-          setContract(data as ContractGet);
+          await refreshContract();
         }}
       />
-      {/* Eliminado: {DialogUI} */}
+
+      {/* Modal de estado (inactivar / post-eliminar) */}
+      <Modal
+        open={statusModalOpen}
+        title={
+          statusMode === "deactivate"
+            ? "Inactivar contrato: estado de la propiedad"
+            : "Contrato eliminado: estado de la propiedad"
+        }
+        onClose={() => {
+          if (!savingStatus) {
+            setStatusModalOpen(false);
+            setStatusMode(null);
+          }
+        }}
+      >
+        {/* Selector simple para no chocar con el StatusForm (que guarda por sí solo) */}
+        <FormControl fullWidth size="small">
+          <InputLabel id="prop-status-label">Estado</InputLabel>
+          <Select
+            labelId="prop-status-label"
+            value={selectedStatus}
+            label="Estado"
+            onChange={(e) => setSelectedStatus(e.target.value as PropertyStatus)}
+          >
+            {ALL_STATUSES.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
+          <Button
+            onClick={() => {
+              if (!savingStatus) {
+                setStatusModalOpen(false);
+                setStatusMode(null);
+              }
+            }}
+            disabled={savingStatus}
+          >
+            Cancelar
+          </Button>
+          <Button variant="contained" onClick={confirmStatusModal} disabled={savingStatus}>
+            {savingStatus ? "Guardando…" : "Confirmar"}
+          </Button>
+        </Box>
+      </Modal>
     </>
   );
 }
