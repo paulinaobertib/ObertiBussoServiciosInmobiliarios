@@ -1,4 +1,3 @@
-// src/app/user/hooks/useNotices.ts
 import { useCallback, useEffect, useState } from "react";
 import * as service from "../services/notice.service";
 import { Notice, NoticeCreate } from "../types/notice";

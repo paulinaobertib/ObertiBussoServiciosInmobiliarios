@@ -1,4 +1,3 @@
-// src/app/user/components/notices/NoticeDetails.tsx
 import { useState, useRef, useMemo } from "react";
 import { Container, Box, Typography, IconButton, Button, Chip, CircularProgress, Card } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";

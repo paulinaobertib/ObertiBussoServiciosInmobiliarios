@@ -1,4 +1,3 @@
-// src/app/user/hooks/useContractUtilityIncreases.ts
 import { useEffect, useState, useCallback } from "react";
 import {
   getContractUtilityIncreases,
