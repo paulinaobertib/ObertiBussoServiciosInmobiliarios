@@ -19,23 +19,35 @@ export const typeLabel = (t?: Contract["contractType"]) => {
   return map[t] ?? t.charAt(0) + t.slice(1).toLowerCase();
 };
 
+/** Parseo seguro para fechas YYYY-MM-DD como LOCAL (evita -1 día por timezone) */
+const parseISOAsLocal = (iso?: string | null) => {
+  if (!iso) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d); // midnight local
+  }
+  return new Date(iso);
+};
+
+const fmtLongDate = (iso: string) => {
+  const d = parseISOAsLocal(iso)!;
+  const m = d.toLocaleString("es-AR", { month: "long" });
+  return `${d.getDate()} de ${m.charAt(0).toUpperCase() + m.slice(1)} del ${d.getFullYear()}`;
+};
+
+const fmtShortDate = (iso: string) => {
+  const d = parseISOAsLocal(iso);
+  return d ? d.toLocaleDateString("es-AR") : "-";
+};
+
 interface Props {
   contract: Contract;
-
   isAdmin?: boolean;
 }
 
 export const ContractItem = ({ contract }: Props) => {
   const navigate = useNavigate();
-
   const { userName, propertyName } = useContractNames(contract.userId, contract.propertyId);
-
-  const fmtLongDate = (iso: string) => {
-    const d = new Date(iso);
-    const m = d.toLocaleString("es-AR", { month: "long" });
-    return `${d.getDate()} de ${m.charAt(0).toUpperCase() + m.slice(1)} del ${d.getFullYear()}`;
-  };
-  const fmtShortDate = (iso: string) => new Date(iso).toLocaleDateString("es-AR");
 
   const lastAmount = contract.lastPaidAmount ?? null;
   const lastDate = contract.lastPaidDate ? fmtShortDate(contract.lastPaidDate) : null;
