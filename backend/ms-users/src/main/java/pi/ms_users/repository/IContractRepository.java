@@ -14,15 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IContractRepository extends JpaRepository<Contract, Long> {
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM Contract c WHERE c.propertyId = ?1")
-    void deleteByPropertyId(Long propertyId);
-
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM Contract c WHERE c.userId = ?1")
-    void deleteByUserId(String userId);
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM Contract c WHERE c.propertyId = ?1 AND c.contractStatus = ?2")
+    boolean existsByPropertyIdAndContractStatus(Long propertyId, ContractStatus status);
 
     @EntityGraph(attributePaths = {"adjustmentIndex", "contractUtilities", "contractIncrease", "payments", "guarantors"})
     Optional<Contract> findById(Long id);
