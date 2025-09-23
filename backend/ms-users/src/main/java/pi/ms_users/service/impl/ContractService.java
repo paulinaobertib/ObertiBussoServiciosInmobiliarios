@@ -375,13 +375,6 @@ public class ContractService implements IContractService {
             emailExpiredContractDTO.setEndDate(entity.getEndDate());
 
             emailService.sendContractExpiredEmail(emailExpiredContractDTO);
-
-            EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
-            emailContractExpiredAdminDTO.setContractId(entity.getId());
-            emailContractExpiredAdminDTO.setPropertyId(entity.getPropertyId());
-            emailContractExpiredAdminDTO.setTenant(user.getFirstName()  + " " + user.getLastName());
-
-            emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
         } else {
             entity.setContractStatus(ContractStatus.ACTIVO);
             userRepository.addRoleToUser(user.getId(), "tenant");
@@ -408,16 +401,7 @@ public class ContractService implements IContractService {
 
         userRepository.deleteRoleToUser(user.get().getId(), "tenant");
 
-        if (!user.isEmpty() && contract.get().getContractStatus() != ContractStatus.INACTIVO) {
-            EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
-            emailContractExpiredAdminDTO.setContractId(contract.get().getId());
-            emailContractExpiredAdminDTO.setPropertyId(contract.get().getPropertyId());
-            emailContractExpiredAdminDTO.setTenant(user.get().getFirstName() + " " + user.get().getLastName());
-
-            emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
-        }
-
-            return ResponseEntity.ok("Se ha eliminado el contrato.");
+        return ResponseEntity.ok("Se ha eliminado el contrato.");
     }
 
     @Override
@@ -663,9 +647,15 @@ public class ContractService implements IContractService {
             userRepository.deleteRoleToUser(user.get().getId(), "tenant");
 
             propertyRepository.updateStatusEspera(contract.getPropertyId());
-
             if (!user.isEmpty()) {
                 updateStatus(contract.getId());
+
+                EmailContractExpiredAdminDTO emailContractExpiredAdminDTO = new EmailContractExpiredAdminDTO();
+                emailContractExpiredAdminDTO.setContractId(contract.getId());
+                emailContractExpiredAdminDTO.setPropertyId(contract.getPropertyId());
+                emailContractExpiredAdminDTO.setTenant(user.get().getFirstName()  + " " + user.get().getLastName());
+
+                emailService.sendAdminContractExpiredEmail(emailContractExpiredAdminDTO);
             }
         });
     }
@@ -708,13 +698,26 @@ public class ContractService implements IContractService {
         Contract entity = contractRepository.findById(contractId)
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado el contrato con ID: " + contractId));
 
-        if (status == Status.DISPONIBLE) {
-            entity.setPropertyId(null);
-            entity.setContractStatus(ContractStatus.INACTIVO);
-            contractRepository.save(entity);
-            propertyRepository.updateStatus(propertyId, status);
-        }
+        User user = userRepository.findById(entity.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró el usuario."));
+
+        entity.setPropertyId(null);
+        entity.setContractStatus(ContractStatus.INACTIVO);
+        contractRepository.save(entity);
         propertyRepository.updateStatus(propertyId, status);
+
+        if (user != null) {
+            userRepository.deleteRoleToUser(user.getId(), "tenant");
+
+            EmailExpiredContractDTO emailExpiredContractDTO = new EmailExpiredContractDTO();
+            emailExpiredContractDTO.setTo(user.getEmail());
+            emailExpiredContractDTO.setFirstName(user.getFirstName());
+            emailExpiredContractDTO.setLastName(user.getLastName());
+            emailExpiredContractDTO.setEndDate(entity.getEndDate());
+
+            emailService.sendContractExpiredEmail(emailExpiredContractDTO);
+        }
+
         return ResponseEntity.ok("Se ha actualizado el estado de la propiedad y del contrato.");
     }
 }
