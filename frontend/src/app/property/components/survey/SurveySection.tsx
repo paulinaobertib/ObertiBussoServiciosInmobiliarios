@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 import { EmptyState } from '../../../shared/components/EmptyState';
-import { getAllSurveys } from '../../services/survey.service'; // Ajusta el path si es necesario
+import { getAllSurveys } from '../../services/survey.service';
 import { SurveysList } from './SurveyList';
 
 interface Survey {
