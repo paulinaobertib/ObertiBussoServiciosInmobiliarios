@@ -9,6 +9,11 @@ vi.mock('@mui/x-data-grid/esm/index.css', () => ({}));
 
 type GridRowId = number | string;
 
+vi.mock('../../../components/categories/OwnerPropertiesModal', () => ({
+  OwnerPropertiesModal: (props: any) =>
+    props.open ? <div data-testid="owner-modal">{JSON.stringify(props.owner)}</div> : null,
+}));
+
 vi.mock('../../../utils/translate', () => ({
   translate: (c: string) => `TR_${c}`,
 }));
