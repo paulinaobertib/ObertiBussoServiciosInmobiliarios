@@ -43,12 +43,17 @@ describe("<ChartCard />", () => {
     ]);
   });
 
-  it("funciona con datos vacíos (sin crashear) y pasa arreglos vacíos a BarChart", () => {
-    renderWithTheme(<ChartCard title="Vacío" data={{}} />);
+it("funciona con datos vacíos (sin crashear) y muestra mensaje en lugar del BarChart", () => {
+  renderWithTheme(<ChartCard title="Vacío" data={{}} />);
 
-    expect(screen.getByText(/Vacío/i)).toBeInTheDocument();
-    expect(screen.getByTestId("bar-chart")).toBeInTheDocument();
-    expect(h.lastBarProps.series).toEqual([{ data: [] }]);
-    expect(h.lastBarProps.xAxis).toEqual([{ data: [], scaleType: "band" }]);
-  });
+  // Se muestra el título
+  expect(screen.getByText(/Vacío/i)).toBeInTheDocument();
+
+  // Muestra el mensaje de EmptyState
+  expect(screen.getByText(/Sin datos disponibles/i)).toBeInTheDocument();
+
+  // No debería renderizar el BarChart
+  expect(screen.queryByTestId("bar-chart")).not.toBeInTheDocument();
+});
+
 });
