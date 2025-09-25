@@ -5,19 +5,31 @@ import * as propertyService from "../../services/property.service";
 import * as commentService from "../../services/comment.service";
 import * as maintenanceService from "../../services/maintenance.service";
 import * as errorsHook from "../../../shared/hooks/useErrors";
+import { useGlobalAlert } from "../../../shared/context/AlertContext";
 
 vi.mock("../../services/property.service");
 vi.mock("../../services/comment.service");
 vi.mock("../../services/maintenance.service");
 vi.mock("../../../shared/hooks/useErrors");
+vi.mock("../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: vi.fn(),
+}));
 
 describe("usePropertyNotes", () => {
   const mockHandleError = vi.fn();
+  const mockSuccess = vi.fn();
+  const mockShowAlert = vi.fn();
+  const mockDoubleConfirm = vi.fn().mockResolvedValue(true);
 
   beforeEach(() => {
     vi.clearAllMocks();
     (errorsHook.useApiErrors as any).mockReturnValue({
       handleError: mockHandleError,
+    });
+    (useGlobalAlert as any).mockReturnValue({
+      success: mockSuccess,
+      showAlert: mockShowAlert,
+      doubleConfirm: mockDoubleConfirm,
     });
   });
 
@@ -32,7 +44,6 @@ describe("usePropertyNotes", () => {
 
     const { result } = renderHook(() => usePropertyNotes(1));
 
-    // Esperamos que loading sea true al inicio
     expect(result.current.loading).toBe(true);
 
     await waitFor(() => {
@@ -57,7 +68,7 @@ describe("usePropertyNotes", () => {
     });
   });
 
-  it("refreshComments actualiza comentarios y maneja errores", async () => {
+  it("refreshComments actualiza comentarios", async () => {
     const newComments = [{ id: 2, text: "Otro comentario" }];
     (commentService.getCommentsByPropertyId as any).mockResolvedValue(newComments);
 
@@ -71,7 +82,7 @@ describe("usePropertyNotes", () => {
     expect(result.current.loadingComments).toBe(false);
   });
 
-  it("refreshMaintenances actualiza mantenimientos y maneja errores", async () => {
+  it("refreshMaintenances actualiza mantenimientos", async () => {
     const newMaintenances = [{ id: 2, task: "Otro mantenimiento" }];
     (maintenanceService.getMaintenancesByPropertyId as any).mockResolvedValue(newMaintenances);
 
