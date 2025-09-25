@@ -39,7 +39,10 @@ vi.mock("../../../components/increases/IncreaseForm", () => {
       };
 
     const toggleCurrency = () => {
-      const next = { ...local, currency: local.currency === "USD" ? "ARS" : "USD" };
+      const next = {
+        ...local,
+        currency: local.currency === "USD" ? "ARS" : "USD",
+      };
       setLocal(next);
       onChange(next);
     };
@@ -127,7 +130,8 @@ const fillForm = async (overrides?: {
   }
   if (overrides?.adjustment !== undefined) {
     await user.clear(adjustment);
-    if (overrides.adjustment !== "") await user.type(adjustment, overrides.adjustment);
+    if (overrides.adjustment !== "")
+      await user.type(adjustment, overrides.adjustment);
   }
   if (overrides?.note !== undefined) {
     await user.clear(note);
@@ -158,7 +162,14 @@ describe("IncreaseDialog", () => {
     const onClose = vi.fn();
     const onSaved = vi.fn();
 
-    render(<IncreaseDialog open={true} contract={null} onClose={onClose} onSaved={onSaved} />);
+    render(
+      <IncreaseDialog
+        open={true}
+        contract={null}
+        onClose={onClose}
+        onSaved={onSaved}
+      />
+    );
 
     expect(screen.getByRole("button", { name: /^guardar$/i })).toBeDisabled();
     expect(postContractIncrease).not.toHaveBeenCalled();
@@ -175,7 +186,14 @@ describe("IncreaseDialog", () => {
       () => new Promise((res) => (resolveFn = res))
     );
 
-    render(<IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />);
+    render(
+      <IncreaseDialog
+        open={true}
+        contract={contractA}
+        onClose={onClose}
+        onSaved={onSaved}
+      />
+    );
 
     await fillForm({
       date: "2025-08-30",
@@ -188,7 +206,10 @@ describe("IncreaseDialog", () => {
     expect(screen.getByRole("button", { name: /^guardar$/i })).toBeEnabled();
     await clickSave();
 
-    expect(screen.getByRole("button", { name: /guardando…/i })).toBeDisabled();
+    // Ahora validamos que el botón "Guardar" se deshabilita y aparece el spinner
+    expect(screen.getByRole("button", { name: /guardar/i })).toBeDisabled();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeDisabled();
 
     resolveFn({});
@@ -225,31 +246,60 @@ describe("IncreaseDialog", () => {
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeEnabled();
   });
 
-  it("resetea valores cuando cambia el contract", async () => {
-    const onClose = vi.fn();
+it("resetea valores cuando cambia el contract", async () => {
+  const onClose = vi.fn();
+  const onSaved = vi.fn();
+
+  const { rerender } = render(
+    <IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
+  );
+
+  await fillForm({
+    date: "2025-09-01",
+    amount: "42",
+    currency: "USD",
+    adjustment: "10",
+    note: "Hola",
+  });
+
+  rerender(
+    <IncreaseDialog open={true} contract={contractB} onClose={onClose} onSaved={onSaved} />
+  );
+
+  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2025-09-01");
+  expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("42");
+  expect(screen.getByLabelText("Moneda").textContent).toBe("USD");
+  expect((screen.getByLabelText("Ajuste") as HTMLInputElement).value).toBe("10");
+  expect((screen.getByLabelText("Nota") as HTMLTextAreaElement).value).toBe("Hola");
+});
+
+  it("usa adjustment = undefined cuando el campo está vacío", async () => {
     const onSaved = vi.fn();
+    (postContractIncrease as any).mockResolvedValue({});
 
-    const { rerender } = render(
-      <IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
-    );
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
 
-    await fillForm({
-      date: "2025-09-01",
-      amount: "42",
-      currency: "USD",
-      adjustment: "10",
-      note: "Hola",
+    await fillForm({ date: "2025-09-02", amount: "200", currency: "USD", adjustment: "" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(postContractIncrease).toHaveBeenCalledWith(
+        expect.objectContaining({ adjustment: undefined })
+      );
     });
+  });
 
-    rerender(
-      <IncreaseDialog open={true} contract={contractB} onClose={onClose} onSaved={onSaved} />
-    );
+  it("muestra error genérico si no hay info", async () => {
+    const onSaved = vi.fn();
+    (postContractIncrease as any).mockRejectedValue({});
 
-    expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("");
-    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("");
-    expect(screen.getByLabelText("Moneda").textContent).toBe("—");
-    expect((screen.getByLabelText("Ajuste") as HTMLInputElement).value).toBe("");
-    expect((screen.getByLabelText("Nota") as HTMLTextAreaElement).value).toBe("");
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
+    await fillForm({ date: "2025-09-05", amount: "500", currency: "ARS" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(mockShowAlert).toHaveBeenCalledWith("Ocurrió un error que no supimos identificar", "error");
+    });
   });
 
   it("Cancelar llama onClose y se deshabilita mientras guarda", async () => {
@@ -273,22 +323,6 @@ describe("IncreaseDialog", () => {
     resolveFn({});
     await waitFor(() => {
       expect(onSaved).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("usa adjustment = 0 cuando el campo está vacío", async () => {
-    const onSaved = vi.fn();
-    (postContractIncrease as any).mockResolvedValue({});
-
-    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
-
-    await fillForm({ date: "2025-09-02", amount: "200", currency: "USD", adjustment: "" });
-    await clickSave();
-
-    await waitFor(() => {
-      expect(postContractIncrease).toHaveBeenCalledWith(
-        expect.objectContaining({ adjustment: 0 })
-      );
     });
   });
 
@@ -318,6 +352,22 @@ describe("IncreaseDialog", () => {
     });
   });
 
+  it("usa adjustment = undefined cuando el campo está vacío", async () => {
+    const onSaved = vi.fn();
+    (postContractIncrease as any).mockResolvedValue({});
+
+    render(<IncreaseDialog open={true} contract={contractA} onClose={() => {}} onSaved={onSaved} />);
+
+    await fillForm({ date: "2025-09-02", amount: "200", currency: "USD", adjustment: "" });
+    await clickSave();
+
+    await waitFor(() => {
+      expect(postContractIncrease).toHaveBeenCalledWith(
+        expect.objectContaining({ adjustment: undefined })
+      );
+    });
+  });
+
   it("muestra error genérico si no hay info", async () => {
     const onSaved = vi.fn();
     (postContractIncrease as any).mockRejectedValue({});
@@ -327,7 +377,8 @@ describe("IncreaseDialog", () => {
     await clickSave();
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith("Error al crear aumento", "error");
+      expect(mockShowAlert).toHaveBeenCalledWith("Ocurrió un error que no supimos identificar", "error");
     });
   });
+
 });
