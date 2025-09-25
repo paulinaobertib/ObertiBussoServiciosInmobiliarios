@@ -21,7 +21,8 @@ vi.mock("../../../shared/components/Modal", () => ({
 }));
 
 vi.mock("../../../components/increases/IncreaseIndexForm", () => ({
-  IncreaseIndexForm: (props: any) => (
+  __esModule: true,            // 👈 necesario para default
+  default: (props: any) => (   // 👈 en vez de IncreaseIndexForm
     <div data-testid="increase-form" data-action={props.action}>
       <button
         data-testid="increase-done"
