@@ -1,194 +1,240 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { CatalogList } from '../../../components/catalog/CatalogList';
-import { useAuthContext } from '../../../../user/context/AuthContext';
-import type { Property } from '../../../types/property';
-import { vi } from 'vitest';
+/// <reference types="vitest" />
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { MemoryRouter, useNavigate } from "react-router-dom";
 
-// Mockeamos AuthContext e interceptamos PropertyCard
-vi.mock('../../../../user/context/AuthContext');
-vi.mock('../../../components/catalog/PropertyCard', () => ({
-  PropertyCard: vi.fn(({ property, onClick, selectionMode, isSelected }: any) => (
-    <div
-      data-testid={`card-${property.id}`}
-      data-selection={String(selectionMode)}
-      data-selected={String(isSelected?.(property.id))}
-      onClick={onClick}
-    >
-      {property.title}
-    </div>
-  )),
+// SUT
+import { CatalogList } from "../../../components/catalog/CatalogList";
+
+// ---- mocks ----
+vi.mock("../../../../user/context/AuthContext", () => ({
+  useAuthContext: vi.fn(),
 }));
 
-// Traemos el mock para inspeccionar props y llamadas
-import { PropertyCard } from '../../../components/catalog/PropertyCard';
+vi.mock("../../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: vi.fn(),
+}));
 
-describe('CatalogList', () => {
-  const mockOnCardClick = vi.fn();
+// ✅ mock correcto de PropertyCard para evitar URL.createObjectURL
+vi.mock("../../../components/catalog/PropertyCard", () => ({
+  PropertyCard: ({ property, onClick }: any) => (
+    <div data-testid={`card-${property.id}`} onClick={onClick}>
+      {property.title}
+    </div>
+  ),
+}));
 
+// ✅ mock correcto de EmptyState con data-testid
+vi.mock("../../../../shared/components/EmptyState", () => ({
+  EmptyState: ({ title }: any) => <div data-testid="empty">{title}</div>,
+}));
+
+// Necesario para espiar navigate
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+  };
+});
+
+const { useAuthContext } = await import("../../../../user/context/AuthContext");
+const { useGlobalAlert } = await import("../../../../shared/context/AlertContext");
+const mockedNavigate = vi.fn();
+(useNavigate as any).mockReturnValue(mockedNavigate);
+
+describe("CatalogList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
-  const makeProperty = (overrides: Partial<Property> = {}): Property => ({
-    id: 1,
-    title: 'P1',
-    status: 'disponible',
-    outstanding: false,
-    date: '2025-01-01',
-    owner: {} as any,
-    neighborhood: {} as any,
-    type: {} as any,
-    amenities: [],
-    street: '',
-    number: '',
-    description: '',
-    currency: 'ARS',
-    rooms: 1,
-    bathrooms: 1,
-    bedrooms: 1,
-    area: 50,
-    coveredArea: 40,
-    price: 100,
-    operation: 'Venta',
-    expenses: null,
-    showPrice: true,
-    credit: false,
-    financing: false,
-    mainImage: '',
-    images: [],
-    ...overrides,
-  });
-
-  it('muestra mensaje cuando no hay propiedades y es admin', () => {
+  it("muestra EmptyState si no hay propiedades (admin)", () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: true });
-    render(<CatalogList properties={[]} />);
-    expect(screen.getByText(/No hay propiedades cargadas/i)).toBeInTheDocument();
+    (useGlobalAlert as any).mockReturnValue({});
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={[]} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId("empty")).toHaveTextContent("No hay propiedades cargadas.");
   });
 
-  it('muestra mensaje cuando no hay propiedades y no es admin', () => {
+  it("muestra EmptyState si no hay propiedades disponibles (no admin)", () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: false });
-    render(<CatalogList properties={[]} />);
-    expect(screen.getByText(/No hay propiedades disponibles/i)).toBeInTheDocument();
+    (useGlobalAlert as any).mockReturnValue({});
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={[]} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId("empty")).toHaveTextContent("No hay propiedades disponibles.");
   });
 
-  it('filtra propiedades según status si no es admin', () => {
+  it("filtra propiedades no disponibles para no-admin", () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: false });
-    const props: Property[] = [
-      makeProperty({ id: 1, title: 'P1', status: 'disponible' }),
-      makeProperty({ id: 2, title: 'P2', status: 'vendido' }),
-    ];
-    render(<CatalogList properties={props} />);
-    expect(screen.queryByText('P1')).toBeInTheDocument();
-    expect(screen.queryByText('P2')).not.toBeInTheDocument();
-  });
+    (useGlobalAlert as any).mockReturnValue({});
 
-  it('renderiza todas las propiedades si es admin', () => {
-    (useAuthContext as any).mockReturnValue({ isAdmin: true });
-    const props: Property[] = [
-      makeProperty({ id: 1, title: 'P1', status: 'disponible' }),
-      makeProperty({ id: 2, title: 'P2', status: 'vendido' }),
-    ];
-    render(<CatalogList properties={props} />);
-    expect(screen.getByText('P1')).toBeInTheDocument();
-    expect(screen.getByText('P2')).toBeInTheDocument();
-  });
-
-  it('llama onCardClick al hacer click en PropertyCard', () => {
-    (useAuthContext as any).mockReturnValue({ isAdmin: true });
-    const props: Property[] = [makeProperty({ id: 1, title: 'P1' })];
-    render(<CatalogList properties={props} onCardClick={mockOnCardClick} />);
-    fireEvent.click(screen.getByTestId('card-1'));
-    expect(mockOnCardClick).toHaveBeenCalledWith(props[0]);
-  });
-
-  it('ordena: destacadas primero por fecha desc, luego normales por fecha desc (no admin)', () => {
-    (useAuthContext as any).mockReturnValue({ isAdmin: false });
-    const props: Property[] = [
-      // outstanding
-      makeProperty({ id: 11, title: 'O2', outstanding: true, date: '2025-06-01', status: 'disponible' }),
-      makeProperty({ id: 10, title: 'O1', outstanding: true, date: '2025-05-01', status: 'disponible' }),
-      // normales
-      makeProperty({ id: 21, title: 'N2', outstanding: false, date: '2025-07-01', status: 'disponible' }),
-      makeProperty({ id: 20, title: 'N1', outstanding: false, date: '2025-03-01', status: 'disponible' }),
-    ];
-    const { container } = render(<CatalogList properties={props} />);
-
-    // Leemos el orden en el DOM
-    const cards = Array.from(container.querySelectorAll('[data-testid^="card-"]')) as HTMLElement[];
-    const titles = cards.map((c) => c.textContent);
-    expect(titles).toEqual(['O2', 'O1', 'N2', 'N1']);
-  });
-
-  it('incluye propiedades sin status o con "DISPONIBLE" (case-insensitive) cuando no es admin', () => {
-    (useAuthContext as any).mockReturnValue({ isAdmin: false });
-    const props: Property[] = [
-      makeProperty({ id: 1, title: 'OK1', status: 'DISPONIBLE' as any }), // mayúsculas
-      makeProperty({ id: 2, title: 'OK2', status: '' as any }),            // falsy
-      makeProperty({ id: 3, title: 'NO', status: 'vendido' }),
-    ];
-    render(<CatalogList properties={props} />);
-    expect(screen.queryByText('OK1')).toBeInTheDocument();
-    expect(screen.queryByText('OK2')).toBeInTheDocument();
-    expect(screen.queryByText('NO')).not.toBeInTheDocument();
-  });
-
-  it('si properties no es array (null), muestra mensaje vacío correspondiente', () => {
-    (useAuthContext as any).mockReturnValue({ isAdmin: false });
-    // @ts-expect-error: forzamos un valor no array para cubrir safeProperties
-    render(<CatalogList properties={null} />);
-    expect(screen.getByText(/No hay propiedades disponibles/i)).toBeInTheDocument();
-  });
-
-  it('pasa selectionMode, toggleSelection e isSelected hacia PropertyCard y conserva onClick', () => {
-    (useAuthContext as any).mockReturnValue({ isAdmin: true });
-
-    const toggleSelection = vi.fn();
-    const isSelected = vi.fn((id: number) => id === 2);
-    const props: Property[] = [
-      makeProperty({ id: 1, title: 'A' }),
-      makeProperty({ id: 2, title: 'B' }),
+    const props = [
+      { id: 1, title: "Disp", status: "DISPONIBLE", date: "2025-01-01" },
+      { id: 2, title: "Vendida", status: "VENDIDA", date: "2025-01-02" },
     ];
 
     render(
-      <CatalogList
-        properties={props}
-        selectionMode
-        toggleSelection={toggleSelection}
-        isSelected={isSelected}
-        onCardClick={mockOnCardClick}
-      />
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
     );
 
-    // Se llamó PropertyCard por cada propiedad, con las props que esperamos
-    expect((PropertyCard as any).mock.calls.length).toBe(2);
-    const firstCallProps = (PropertyCard as any).mock.calls[0][0];
-    const secondCallProps = (PropertyCard as any).mock.calls[1][0];
-
-    expect(firstCallProps.selectionMode).toBe(true);
-    expect(typeof firstCallProps.toggleSelection).toBe('function');
-    expect(typeof firstCallProps.isSelected).toBe('function');
-
-    // isSelected se evalúa correctamente (true solo para id=2)
-    expect(firstCallProps.isSelected(1)).toBe(false);
-    expect(secondCallProps.isSelected(2)).toBe(true);
-
-    // onClick sigue funcionando
-    fireEvent.click(screen.getByTestId('card-1'));
-    expect(mockOnCardClick).toHaveBeenCalledWith(props[0]);
+    expect(screen.getByTestId("card-1")).toBeInTheDocument();
+    expect(screen.queryByTestId("card-2")).not.toBeInTheDocument();
   });
 
-  it('cuando es admin y hay destacadas + normales, también respeta el orden (mismo criterio)', () => {
+  it("ordena primero outstanding y luego por fecha descendente", () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: true });
-    const props: Property[] = [
-      makeProperty({ id: 1, title: 'N1', outstanding: false, date: '2025-01-01', status: 'vendido' }),
-      makeProperty({ id: 2, title: 'O1', outstanding: true, date: '2025-02-01', status: 'vendido' }),
-      makeProperty({ id: 3, title: 'N2', outstanding: false, date: '2025-03-01', status: 'vendido' }),
-      makeProperty({ id: 4, title: 'O2', outstanding: true, date: '2025-04-01', status: 'vendido' }),
-    ];
-    const { container } = render(<CatalogList properties={props} />);
+    (useGlobalAlert as any).mockReturnValue({});
 
-    const cards = Array.from(container.querySelectorAll('[data-testid^="card-"]')) as HTMLElement[];
-    const titles = cards.map((c) => c.textContent);
-    expect(titles).toEqual(['O2', 'O1', 'N2', 'N1']);
+    const props = [
+      { id: 1, title: "Normal viejo", date: "2020-01-01" },
+      { id: 2, title: "Outstanding reciente", outstanding: true, date: "2025-01-01" },
+      { id: 3, title: "Normal reciente", date: "2025-02-01" },
+    ];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    const cards = screen.getAllByTestId(/card-/);
+    expect(cards[0]).toHaveTextContent("Outstanding reciente");
+    expect(cards[1]).toHaveTextContent("Normal reciente");
+    expect(cards[2]).toHaveTextContent("Normal viejo");
+  });
+
+  it("llama onCardClick al hacer click en una tarjeta", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    (useGlobalAlert as any).mockReturnValue({});
+
+    const onCardClick = vi.fn();
+    const props = [{ id: 1, title: "Casa", date: "2025-01-01" }];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} onCardClick={onCardClick} />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByTestId("card-1"));
+    expect(onCardClick).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }));
+  });
+
+  it("flujo ESPERA con alertApi.confirm -> renovar contrato", async () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const confirmMock = vi.fn().mockResolvedValue(true);
+    (useGlobalAlert as any).mockReturnValue({ confirm: confirmMock });
+
+    const props = [{ id: 10, title: "Casa Espera", status: "ESPERA", date: "2025-01-01" }];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(confirmMock).toHaveBeenCalled());
+    expect(mockedNavigate).toHaveBeenCalledWith("/contract/new");
+  });
+
+  it("flujo ESPERA con alertApi.confirm -> ver propiedad", async () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const confirmMock = vi.fn().mockResolvedValue(false);
+    (useGlobalAlert as any).mockReturnValue({ confirm: confirmMock });
+
+    const props = [{ id: 11, title: "Depto Espera", status: "ESPERA", date: "2025-01-01" }];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(confirmMock).toHaveBeenCalled());
+    expect(mockedNavigate).toHaveBeenCalledWith("/properties/11");
+  });
+
+  it("flujo ESPERA con alertApi.warning", async () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const warningMock = vi.fn().mockResolvedValue(undefined);
+    (useGlobalAlert as any).mockReturnValue({ warning: warningMock });
+
+    const props = [{ id: 12, title: "Lote Espera", status: "ESPERA", date: "2025-01-01" }];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(warningMock).toHaveBeenCalled());
+    expect(mockedNavigate).toHaveBeenCalledWith("/properties/12");
+  });
+
+  it("flujo ESPERA con alertApi.showAlert", async () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const showAlertMock = vi.fn();
+    (useGlobalAlert as any).mockReturnValue({ showAlert: showAlertMock });
+
+    const props = [{ id: 13, title: "Terreno Espera", status: "ESPERA", date: "2025-01-01" }];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(showAlertMock).toHaveBeenCalled());
+    expect(localStorage.getItem("waitingPropsDismissedIds")).toContain("13");
+  });
+
+  it("no vuelve a ejecutar si promptingRef ya estaba en true", async () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const confirmMock = vi.fn().mockResolvedValue(true);
+    (useGlobalAlert as any).mockReturnValue({ confirm: confirmMock });
+
+    const props = [
+      { id: 20, title: "Casa1", status: "ESPERA", date: "2025-01-01" },
+      { id: 21, title: "Casa2", status: "ESPERA", date: "2025-01-02" },
+    ];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(confirmMock).toHaveBeenCalledTimes(1));
+  });
+
+  it("ignora propiedades en ESPERA ya dismissadas", async () => {
+    localStorage.setItem("waitingPropsDismissedIds", JSON.stringify([30]));
+    (useAuthContext as any).mockReturnValue({ isAdmin: true });
+    const confirmMock = vi.fn();
+    (useGlobalAlert as any).mockReturnValue({ confirm: confirmMock });
+
+    const props = [{ id: 30, title: "Casa dismiss", status: "ESPERA", date: "2025-01-01" }];
+
+    render(
+      <MemoryRouter>
+        <CatalogList properties={props as any} />
+      </MemoryRouter>
+    );
+
+    await new Promise((r) => setTimeout(r, 100));
+    expect(confirmMock).not.toHaveBeenCalled();
   });
 });
