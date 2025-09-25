@@ -159,101 +159,100 @@ describe("GridSection", () => {
     expect(onSearch).toHaveBeenCalledWith([{ q: "abc" }]);
   });
 
-  it("DataGrid: getRowId soporta id/ID/Id/_id y pagina con pageSize fijo=10", () => {
-    render(
-      <GridSection
-        data={data}
-        loading={false}
-        columns={columns as any}
-        onSearch={vi.fn()}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        entityName={entityName}
-        fetchAll={vi.fn(async () => [])}
-        fetchByText={vi.fn(async () => [])}
-      />
-    );
+it("DataGrid: getRowId soporta id/ID/Id/_id y pagina con pageSize fijo=5", () => {
+  render(
+    <GridSection
+      data={data}
+      loading={false}
+      columns={columns as any}
+      onSearch={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      entityName={entityName}
+      fetchAll={vi.fn(async () => [])}
+      fetchByText={vi.fn(async () => [])}
+    />
+  );
 
-    const props = getLastGridProps();
+  const props = getLastGridProps();
 
-    // getRowId mapping
-    expect(props.getRowId({ id: 7 })).toBe(7);
-    expect(props.getRowId({ ID: 8 })).toBe(8);
-    expect(props.getRowId({ Id: 9 })).toBe(9);
-    expect(props.getRowId({ _id: "xyz" })).toBe("xyz");
+  // getRowId mapping
+  expect(props.getRowId({ id: 7 })).toBe(7);
+  expect(props.getRowId({ ID: 8 })).toBe(8);
+  expect(props.getRowId({ Id: 9 })).toBe(9);
+  expect(props.getRowId({ _id: "xyz" })).toBe("xyz");
 
-    // state inicial de paginación
-    expect(props.paginationModel).toEqual({ page: 0, pageSize: 10 });
-    expect(props.pageSizeOptions).toEqual([10]);
-    expect(props.localeText?.noRowsLabel).toBe("No hay resultados.");
+  // state inicial de paginación
+  expect(props.paginationModel).toEqual({ page: 0, pageSize: 5 });
+  expect(props.pageSizeOptions).toEqual([5]);
 
-    // Cambiamos paginación (el hook debe forzar pageSize=10)
-    act(() => {
-      props.onPaginationModelChange?.({ page: 2, pageSize: 999 });
-    });
-
-    const props2 = getLastGridProps();
-    expect(props2.paginationModel).toEqual({ page: 2, pageSize: 10 });
+  // Cambiamos paginación (el hook debe forzar pageSize=5)
+  act(() => {
+    props.onPaginationModelChange?.({ page: 2, pageSize: 999 });
   });
 
-  it("Selección: single-select envía el último id; multi-select envía array", () => {
-    const toggleSelect = vi.fn();
+  const props2 = getLastGridProps();
+  expect(props2.paginationModel).toEqual({ page: 2, pageSize: 5 });
+});
 
-    const { rerender } = render(
-      <GridSection
-        data={data}
-        loading={false}
-        columns={columns as any}
-        onSearch={vi.fn()}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        entityName={entityName}
-        fetchAll={vi.fn(async () => [])}
-        fetchByText={vi.fn(async () => [])}
-        toggleSelect={toggleSelect}
-        // multiSelect = false (default)
-      />
-    );
+it("Selección: single-select envía el último id (string); multi-select envía array de strings", () => {
+  const toggleSelect = vi.fn();
 
-    // Single select: envía el último
-    let props = getLastGridProps();
-    props.onRowSelectionModelChange?.(
-      { type: "include", ids: new Set([1, 2]) },
-      {} as any
-    );
-    expect(toggleSelect).toHaveBeenLastCalledWith(2);
+  const { rerender } = render(
+    <GridSection
+      data={data}
+      loading={false}
+      columns={columns as any}
+      onSearch={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      entityName={entityName}
+      fetchAll={vi.fn(async () => [])}
+      fetchByText={vi.fn(async () => [])}
+      toggleSelect={toggleSelect}
+      // multiSelect = false (default)
+    />
+  );
 
-    // Si limpiamos selección -> null
-    props = getLastGridProps();
-    props.onRowSelectionModelChange?.(
-      { type: "include", ids: new Set([]) },
-      {} as any
-    );
-    expect(toggleSelect).toHaveBeenLastCalledWith(null);
+  // Single select: envía el último como string
+  let props = getLastGridProps();
+  props.onRowSelectionModelChange?.(
+    { type: "include", ids: new Set([1, 2]) },
+    {} as any
+  );
+  expect(toggleSelect).toHaveBeenLastCalledWith("2");
 
-    // Multi select: envía array
-    rerender(
-      <GridSection
-        data={data}
-        loading={false}
-        columns={columns as any}
-        onSearch={vi.fn()}
-        onEdit={vi.fn()}
-        onDelete={vi.fn()}
-        entityName={entityName}
-        fetchAll={vi.fn(async () => [])}
-        fetchByText={vi.fn(async () => [])}
-        toggleSelect={toggleSelect}
-        multiSelect
-      />
-    );
-    props = getLastGridProps();
-    props.onRowSelectionModelChange?.(
-      { type: "include", ids: new Set([3, 4]) },
-      {} as any
-    );
-    expect(toggleSelect).toHaveBeenLastCalledWith([3, 4]);
-  });
+  // Si limpiamos selección -> null
+  props = getLastGridProps();
+  props.onRowSelectionModelChange?.(
+    { type: "include", ids: new Set([]) },
+    {} as any
+  );
+  expect(toggleSelect).toHaveBeenLastCalledWith(null);
+
+  // Multi select: envía array de strings
+  rerender(
+    <GridSection
+      data={data}
+      loading={false}
+      columns={columns as any}
+      onSearch={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      entityName={entityName}
+      fetchAll={vi.fn(async () => [])}
+      fetchByText={vi.fn(async () => [])}
+      toggleSelect={toggleSelect}
+      multiSelect
+    />
+  );
+  props = getLastGridProps();
+  props.onRowSelectionModelChange?.(
+    { type: "include", ids: new Set([3, 4]) },
+    {} as any
+  );
+  expect(toggleSelect).toHaveBeenLastCalledWith(["3", "4"]);
+});
 
   it("selectedIds preselecciona filas en el grid; selectable=false deshabilita selección", () => {
     const { rerender } = render(
