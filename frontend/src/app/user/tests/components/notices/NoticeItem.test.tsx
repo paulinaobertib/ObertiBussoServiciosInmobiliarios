@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent  } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { NoticeItem } from "../../../components/notices/NoticeItem";
 
 // ---------- mocks utilitarios ----------
@@ -79,9 +79,7 @@ describe("<NoticeItem />", () => {
 
   it("muestra chip NUEVO y fecha cuando la noticia es reciente (<3 días)", () => {
     const notice = makeNotice(); // fecha = ahora
-    render(
-      <NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />
-    );
+    render(<NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />);
 
     // Chip NUEVO presente y fecha formateada (es-AR)
     expect(screen.getByText("NUEVO")).toBeInTheDocument();
@@ -93,29 +91,26 @@ describe("<NoticeItem />", () => {
     expect(screen.getByText(day)).toBeInTheDocument();
   });
 
-  it("si NO es reciente, no muestra chip NUEVO ni fecha", () => {
+  it("si NO es reciente, no muestra chip NUEVO pero sí la fecha", () => {
     const oldDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
     const notice = makeNotice({ date: oldDate });
-    render(
-      <NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />
-    );
+    render(<NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />);
 
     expect(screen.queryByText("NUEVO")).toBeNull();
+
     const day = new Date(oldDate).toLocaleDateString("es-AR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-    expect(screen.queryByText(day)).toBeNull();
+    expect(screen.getByText(day)).toBeInTheDocument();
   });
 
-  it("navega al detalle al clickear la card y al clickear 'Leer más'", () => {
+  it("navega al detalle al clickear la card y al clickear 'Ver detalle'", () => {
     const notice = makeNotice({ id: 101 });
-    render(
-      <NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />
-    );
+    render(<NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Leer más/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Ver detalle/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/news/101");
 
     fireEvent.click(screen.getByText("Título"));
@@ -133,7 +128,7 @@ describe("<NoticeItem />", () => {
         onDeleteClick={onDeleteClick}
       />
     );
-    
+
     const iconButtons = screen
       .getAllByRole("button")
       .filter((b) => b.querySelector("svg"));
@@ -144,7 +139,6 @@ describe("<NoticeItem />", () => {
     fireEvent.click(deleteBtn);
 
     expect(onDeleteClick).toHaveBeenCalledWith(55);
-    // Asegura que NO navegó (por stopPropagation)
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -156,7 +150,6 @@ describe("<NoticeItem />", () => {
     // abrir modal
     fireEvent.click(screen.getAllByRole("button").find((b) => b.querySelector("svg"))!);
 
-    // fuerza validez true
     fireEvent.click(screen.getByText("form-valid"));
 
     const saveBtn = screen.getByRole("button", { name: /Guardar/i });
@@ -169,7 +162,6 @@ describe("<NoticeItem />", () => {
         expect.objectContaining({ id: notice.id, userId: notice.userId })
       )
     );
-    // modal se cierra
     expect(screen.queryByTestId("modal")).toBeNull();
   });
 
@@ -177,7 +169,6 @@ describe("<NoticeItem />", () => {
     const notice = makeNotice();
     render(<NoticeItem notice={notice} isAdmin onUpdate={vi.fn()} />);
 
-    // abrir modal
     fireEvent.click(screen.getAllByRole("button").find((b) => b.querySelector("svg"))!);
 
     fireEvent.click(screen.getByText("form-invalid"));
@@ -191,14 +182,12 @@ describe("<NoticeItem />", () => {
     const notice = makeNotice();
     render(<NoticeItem notice={notice} isAdmin onUpdate={onUpdate} />);
 
-    // abrir modal
     fireEvent.click(screen.getAllByRole("button").find((b) => b.querySelector("svg"))!);
 
-    // forzamos el ref a null simulando que no existe
+    // simulamos ref nulo
     // @ts-expect-error
     screen.getByTestId("notice-form").ref = null;
 
-    // aún así apretamos guardar
     const saveBtn = screen.getByRole("button", { name: /Guardar/i });
     fireEvent.click(saveBtn);
 
@@ -209,16 +198,10 @@ describe("<NoticeItem />", () => {
 
   it("usa URL.createObjectURL si mainImage es File", () => {
     const file = new File(["dummy"], "test.png", { type: "image/png" });
-
     const notice = makeNotice({ mainImage: file });
     render(<NoticeItem notice={notice} isAdmin={false} onUpdate={vi.fn()} />);
 
-    // o mejor: busca por estilo
-    const imageBox = screen.getByRole("button", { name: /Leer más/i }).parentElement!
-      .previousSibling as HTMLElement;
-
-    expect(imageBox).toHaveStyle(`background-image: url(blob:mock)`);
+    const img = screen.getByRole("img", { name: /Título/i });
+    expect(img).toHaveAttribute("src", "blob:mock");
   });
-
-
 });
