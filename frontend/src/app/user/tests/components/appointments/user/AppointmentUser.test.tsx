@@ -33,17 +33,19 @@ describe('AppointmentUser', () => {
     expect(screen.getByText(/Cargando…/i)).toBeInTheDocument();
   });
 
-  it('muestra mensaje si no hay turnos', () => {
-    (useAppointments as any).mockReturnValue({
-      userLoading: false,
-      userAppointments: [],
-      slotMap: {},
-      cancelAppointment,
-    });
-
-    render(<AppointmentUser />);
-    expect(screen.getByText(/Aún no tienes turnos/i)).toBeInTheDocument();
+it('muestra mensaje si no hay turnos', () => {
+  (useAppointments as any).mockReturnValue({
+    userLoading: false,
+    userAppointments: [],
+    slotMap: {},
+    cancelAppointment,
   });
+
+  render(<AppointmentUser />);
+  expect(
+    screen.getByText(/No hay turnos disponibles/i)
+  ).toBeInTheDocument();
+});
 
   it('renderiza AppointmentCard para cada turno pendiente', () => {
     const slots = {
