@@ -20,10 +20,24 @@ vi.mock("../../services/guarantor.service", () => ({
   removeGuarantorFromContract: vi.fn(),
 }));
 
-// Mock de useApiErrors
+// --- Mock de useApiErrors ---
 const mockHandleError = vi.fn();
 vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: mockHandleError }),
+}));
+
+// --- Mock de useGlobalAlert ---
+const mockSuccess = vi.fn();
+const mockInfo = vi.fn();
+const mockWarning = vi.fn();
+const mockDoubleConfirm = vi.fn().mockResolvedValue(true); // confirmaciones siempre true
+vi.mock("../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => ({
+    success: mockSuccess,
+    info: mockInfo,
+    warning: mockWarning,
+    doubleConfirm: mockDoubleConfirm,
+  }),
 }));
 
 import * as service from "../../services/guarantor.service";
@@ -31,6 +45,7 @@ import * as service from "../../services/guarantor.service";
 describe("useGuarantors", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDoubleConfirm.mockResolvedValue(true); // reset: confirm true
   });
 
   it("carga inicial con getAllGuarantors", async () => {
@@ -38,7 +53,6 @@ describe("useGuarantors", () => {
 
     const { result } = renderHook(() => useGuarantors());
 
-    // loading empieza en true
     expect(result.current.loading).toBe(true);
 
     await waitFor(() => {
@@ -58,19 +72,17 @@ describe("useGuarantors", () => {
     });
   });
 
-it("fetchByText carga guarantors", async () => {
+  it("fetchByText carga guarantors", async () => {
     (service.searchGuarantors as any).mockResolvedValue([{ id: 2 }]);
     const { result } = renderHook(() => useGuarantors());
 
     const list = await result.current.fetchByText("abc");
 
     expect(list).toEqual([{ id: 2 }]);
-
-    // esperar a que se actualice el estado
     await waitFor(() => {
-        expect(result.current.guarantors).toEqual([{ id: 2 }]);
+      expect(result.current.guarantors).toEqual([{ id: 2 }]);
     });
-});
+  });
 
   it("fetchById retorna objeto y maneja error", async () => {
     (service.getGuarantorById as any).mockResolvedValue({ id: 1 });
