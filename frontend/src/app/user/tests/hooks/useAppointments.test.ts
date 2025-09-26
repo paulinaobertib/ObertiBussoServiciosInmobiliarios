@@ -29,6 +29,16 @@ vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: handleErrorMock }),
 }));
 
+const alertMock = {
+  success: vi.fn(),
+  showAlert: vi.fn(),
+  doubleConfirm: vi.fn().mockResolvedValue(true),
+};
+
+vi.mock("../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => alertMock,
+}));
+
 import * as service from "../../services/appointment.service";
 import { useAuthContext as _useAuthContext } from "../../../user/context/AuthContext";
 
