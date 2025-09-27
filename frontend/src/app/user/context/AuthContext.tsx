@@ -82,14 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   //para que aparezcan seleccionadas las caracteristicas al editar un contrato
   const clearPropertyUiState = () => {
     try {
-      localStorage.removeItem('selectedPropertyId');
-      localStorage.removeItem('propertyCategorySelection');
+      localStorage.removeItem("selectedPropertyId");
+      localStorage.removeItem("propertyCategorySelection");
     } catch {}
   };
 
-  const broadcastAuthEvent = (type: 'login' | 'logout' | 'user-loaded' | 'session-expired') => {
+  const broadcastAuthEvent = (type: "login" | "logout" | "user-loaded" | "session-expired") => {
     try {
-      window.dispatchEvent(new CustomEvent('auth:event', { detail: { type } }));
+      window.dispatchEvent(new CustomEvent("auth:event", { detail: { type } }));
     } catch {}
   };
 
@@ -140,9 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setInfo({ ...user, roles, preferences });
       setSessionExpired(false);
       clearPropertyUiState();
-      broadcastAuthEvent('user-loaded');
+      broadcastAuthEvent("user-loaded");
       setReady(true);
-
     } catch (e) {
       // si algo falla, limpiamos y marcamos no listo
       setInfo(null);
@@ -164,8 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {}
     setSessionExpired(false);
 
-    clearPropertyUiState();         // limpia selección/estado previo
-    broadcastAuthEvent('login');    // por si otro contexto quiere reaccionar
+    clearPropertyUiState(); // limpia selección/estado previo
+    broadcastAuthEvent("login"); // por si otro contexto quiere reaccionar
 
     window.location.href = loginUrl;
   };
@@ -175,10 +174,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionExpired(false);
     sessionStorage.clear();
 
-    clearPropertyUiState();         // idem
-    broadcastAuthEvent('logout');   // por si querés resetear selección en otros contextos
+    clearPropertyUiState(); // idem
+    broadcastAuthEvent("logout"); // por si querés resetear selección en otros contextos
 
-    window.location.href = `${GW_URL}/logout`;
+    try {
+      const target = new URL(`${GW_URL}/oidc/logout`);
+      window.location.href = target.toString();
+    } catch {
+      window.location.href = `${GW_URL}/oidc/logout`;
+    }
   };
 
   const refreshUser = async () => {
@@ -192,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (error: any) => {
         // 1) NetworkError (sin response) y estamos online -> tratar como sesión expirada
         if (!error?.response) {
-          const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+          const isOnline = typeof navigator === "undefined" ? true : navigator.onLine;
           if (isOnline) {
             try {
               const next = window.location.pathname + window.location.search;
@@ -200,7 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } catch {}
             setRefreshing(false);
             setSessionExpired(true);
-            broadcastAuthEvent('session-expired'); // notifica evento global
+            broadcastAuthEvent("session-expired"); // notifica evento global
           }
           return Promise.reject(error);
         }
@@ -226,7 +230,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ info, setInfo, isLogged, isAdmin, isTenant, loading, refreshing, sessionExpired, ready, login, logout, refreshUser }}
+      value={{
+        info,
+        setInfo,
+        isLogged,
+        isAdmin,
+        isTenant,
+        loading,
+        refreshing,
+        sessionExpired,
+        ready,
+        login,
+        logout,
+        refreshUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
