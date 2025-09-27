@@ -1,8 +1,9 @@
 /* src/app/user/tests/components/contracts/ContractForm.test.tsx */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { createRef } from "react";
+import userEvent from "@testing-library/user-event";
 
 // ─── Mocks globales ───
 vi.mock("@mui/material/styles", () => ({}));
@@ -15,13 +16,14 @@ vi.mock("../../../shared/components/Modal", () => ({
       <button data-testid="modal-close" onClick={props.onClose}>
         close
       </button>
-      {props.children}
+      {props.open ? props.children : null}
     </div>
   ),
 }));
 
 vi.mock("../../../components/increases/IncreaseIndexForm", () => ({
-  IncreaseIndexForm: (props: any) => (
+  __esModule: true,           
+  default: (props: any) => ( 
     <div data-testid="increase-form" data-action={props.action}>
       <button
         data-testid="increase-done"
@@ -80,6 +82,7 @@ import {
 } from "../../../components/contracts/ContractForm";
 
 beforeEach(() => {
+  indexes = [{ id: 1, code: "IDX", name: "IndiceX" }];
   values = {
     contractType: "",
     contractStatus: "",
@@ -101,6 +104,8 @@ beforeEach(() => {
   getCreateDataMock.mockReset();
   setGuarantorsIdsMock.mockReset();
   loadAllMock.mockReset();
+  loadAllMock.mockImplementation(async () => indexes);
+  handleChangeMock.mockClear();
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -146,6 +151,77 @@ describe("ContractForm", () => {
     render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
     expect(screen.getByLabelText("Monto del depósito")).toBeInTheDocument();
     expect(screen.getByText("Requerido")).toBeInTheDocument();
+  });
+
+  it("invoca loadAll al montar el componente", () => {
+    render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
+    expect(loadAllMock).toHaveBeenCalled();
+  });
+
+  it("selecciona el índice agregado al confirmar el modal", async () => {
+    const user = userEvent.setup();
+    const newIndex = { id: 99, code: "IDX", name: "IndiceX" };
+    indexes = [];
+    loadAllMock.mockImplementationOnce(async () => [])
+      .mockImplementationOnce(async () => [newIndex])
+      .mockImplementation(async () => [newIndex]);
+
+    render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
+
+    await user.click(await screen.findByRole("button", { name: "Agregar índice" }));
+    const increaseForm = await screen.findByTestId("increase-form");
+    expect(increaseForm).toHaveAttribute("data-action", "add");
+
+    await user.click(within(increaseForm).getByTestId("increase-done"));
+
+    expect(loadAllMock).toHaveBeenCalledTimes(2);
+    expect(handleChangeMock).toHaveBeenCalledWith("adjustmentIndexId");
+  });
+
+  it("limpia el índice seleccionado cuando se elimina desde el modal", async () => {
+    const user = userEvent.setup();
+    values.adjustmentIndexId = 1;
+    loadAllMock
+      .mockImplementationOnce(async () => indexes)
+      .mockImplementationOnce(async () => indexes)
+      .mockImplementation(async () => indexes);
+
+    render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
+
+    const select = await screen.findByLabelText(/Seleccionar Indice/i);
+    await user.click(select);
+
+    const options = await screen.findAllByRole("option");
+    const option = options[0];
+    const [, deleteButton] = within(option).getAllByRole("button");
+    await user.click(deleteButton);
+
+    const increaseForm = await screen.findByTestId("increase-form");
+    expect(increaseForm).toHaveAttribute("data-action", "delete");
+    await user.click(within(increaseForm).getByTestId("increase-done"));
+
+    expect(handleChangeMock).toHaveBeenCalledWith("adjustmentIndexId");
+  });
+
+  it("abre modal de edición desde el menú del índice", async () => {
+    const user = userEvent.setup();
+    loadAllMock.mockImplementation(async () => indexes);
+
+    render(<ContractForm initialPropertyId={1} initialUserId="u1" />);
+
+    const select = await screen.findByLabelText(/Seleccionar Indice/i);
+    await user.click(select);
+
+    const options = await screen.findAllByRole("option");
+    const option = options[0];
+    const [editButton] = within(option).getAllByRole("button");
+    await user.click(editButton);
+
+    const increaseForm = await screen.findByTestId("increase-form");
+    expect(increaseForm).toHaveAttribute("data-action", "edit");
+
+    await user.click(within(increaseForm).getByTestId("increase-done"));
+    expect(loadAllMock).toHaveBeenCalled();
   });
 
 });

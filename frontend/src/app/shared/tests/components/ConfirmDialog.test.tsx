@@ -1,55 +1,76 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { useConfirmDialog } from '../../components/ConfirmDialog';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { useConfirmDialog } from "../../components/ConfirmDialog";
+import { AlertProvider } from "../../context/AlertContext";
 
 function Wrapper() {
-  const { ask, DialogUI } = useConfirmDialog();
+  const { ask } = useConfirmDialog();
 
   const handleClick = () => {
-    ask('¿Estás seguro?', async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    ask("¿Estás seguro?", async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
     });
   };
 
   return (
     <ThemeProvider theme={createTheme()}>
       <button onClick={handleClick}>Abrir diálogo</button>
-      {DialogUI}
     </ThemeProvider>
   );
 }
 
-describe('useConfirmDialog', () => {
+describe("useConfirmDialog", () => {
+  it("cierra el diálogo al hacer clic en 'Cancelar'", async () => {
+    render(
+      <AlertProvider>
+        <Wrapper />
+      </AlertProvider>
+    );
 
-  it('cierra el diálogo al hacer clic en "Cancelar"', () => {
-    render(<Wrapper />);
-    fireEvent.click(screen.getByText('Abrir diálogo'));
+    fireEvent.click(screen.getByText("Abrir diálogo"));
 
-    fireEvent.click(screen.getByText('Cancelar'));
-    expect(screen.queryByText('¿Estás seguro?')).not.toBeVisible(); // Puede seguir en el DOM por MUI Portal
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Cancelar"));
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    );
   });
 
-  it('ejecuta la función confirmación al hacer clic en "Confirmar"', async () => {
-    const confirmFn = vi.fn().mockResolvedValue(undefined);
+it("ejecuta la función confirmación al hacer clic en 'Confirmar'", async () => {
+  const confirmFn = vi.fn().mockResolvedValue(undefined);
 
-    function CustomWrapper() {
-      const { ask, DialogUI } = useConfirmDialog();
-      return (
-        <ThemeProvider theme={createTheme()}>
-          <button onClick={() => ask('¿Confirmar acción?', confirmFn)}>Abrir</button>
-          {DialogUI}
-        </ThemeProvider>
-      );
-    }
+  function CustomWrapper() {
+    const { ask } = useConfirmDialog();
+    return (
+      <ThemeProvider theme={createTheme()}>
+        <button
+          onClick={() =>
+            ask("¿Confirmar acción?", confirmFn, { double: false })
+          }
+        >
+          Abrir
+        </button>
+      </ThemeProvider>
+    );
+  }
 
-    render(<CustomWrapper />);
-    fireEvent.click(screen.getByText('Abrir'));
+  render(
+    <AlertProvider>
+      <CustomWrapper />
+    </AlertProvider>
+  );
 
-    fireEvent.click(screen.getByText('Confirmar'));
+  fireEvent.click(screen.getByText("Abrir"));
 
-    await waitFor(() => {
-      expect(confirmFn).toHaveBeenCalled();
-    });
+  // ahora sí va a existir el botón "Confirmar"
+  fireEvent.click(await screen.findByText("Confirmar"));
+
+  await waitFor(() => {
+    expect(confirmFn).toHaveBeenCalled();
   });
+});
+
 });

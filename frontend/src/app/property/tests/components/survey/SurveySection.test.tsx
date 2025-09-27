@@ -20,27 +20,27 @@ describe("SurveysSection", () => {
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
-  it("muestra mensaje de error si falla la carga", async () => {
-    (getAllSurveys as Mock).mockRejectedValue(new Error("error"));
-    render(<SurveysSection />);
+it("muestra mensaje de error si falla la carga", async () => {
+  (getAllSurveys as Mock).mockRejectedValue(new Error("error"));
+  render(<SurveysSection />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("No se pudieron cargar las encuestas")
-      ).toBeInTheDocument();
-    });
+  await waitFor(() => {
+    expect(
+      screen.getByText("No pudimos cargar las valoraciones.")
+    ).toBeInTheDocument();
   });
+});
 
-  it("muestra lista vacía si no hay encuestas", async () => {
-    (getAllSurveys as Mock).mockResolvedValue([]);
-    render(<SurveysSection />);
+it("muestra lista vacía si no hay encuestas", async () => {
+  (getAllSurveys as Mock).mockResolvedValue([]);
+  render(<SurveysSection />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/no hay encuestas/i)
-      ).toBeInTheDocument();
-    });
+  await waitFor(() => {
+    expect(
+      screen.getByText("No hay valoraciones disponibles.")
+    ).toBeInTheDocument();
   });
+});
 
   it("muestra encuestas si existen", async () => {
     (getAllSurveys as Mock).mockResolvedValue([

@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { renderHook, act} from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { useUtilities } from "../../hooks/useUtilities";
 
@@ -19,6 +19,15 @@ vi.mock("../../services/utility.service", () => ({
 const mockHandleError = vi.fn();
 vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: mockHandleError }),
+}));
+
+// --- Mock de useGlobalAlert ---
+const mockAlertApi = {
+  success: vi.fn(),
+  doubleConfirm: vi.fn().mockResolvedValue(true),
+};
+vi.mock("../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => mockAlertApi,
 }));
 
 import {
@@ -80,7 +89,7 @@ describe("useUtilities", () => {
       res = await result.current.fetchByText("ga");
     });
 
-    // Solo debe incluir Gas, no Agua (porque "agua" no contiene "ga")
+    // Solo debe incluir Gas
     expect(res).toEqual([{ id: 2, name: "Gas" }]);
   });
 
@@ -96,7 +105,6 @@ describe("useUtilities", () => {
     });
 
     expect(res).toEqual([]);
-    // no se llama handleError porque el catch interno lo absorbe
     expect(mockHandleError).not.toHaveBeenCalled();
   });
 

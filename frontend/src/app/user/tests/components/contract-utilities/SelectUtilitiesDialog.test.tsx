@@ -94,18 +94,26 @@ describe("UtilitiesPickerDialog", () => {
     expect(screen.queryByTestId("contract-utility-form")).not.toBeInTheDocument();
   });
 
-  it("muestra alerta si se selecciona un servicio duplicado", async () => {
-    (getContractUtilitiesByContract as any).mockResolvedValue([
-      { utilityId: 999 },
-    ]);
-    renderDialog();
-    await waitFor(() => expect(getContractUtilitiesByContract).toHaveBeenCalled());
-    fireEvent.click(screen.getByText("SelectDuplicate"));
-    expect(mockShowAlert).toHaveBeenCalledWith(
-      "Ese servicio ya está vinculado al contrato",
-      "info"
-    );
-  });
+it("muestra alerta si se selecciona un servicio duplicado", async () => {
+  const mockWarning = vi.fn();
+  (useGlobalAlert as any).mockReturnValue({ warning: mockWarning });
+  (getContractUtilitiesByContract as any).mockResolvedValue([{ utilityId: 999 }]);
+
+  renderDialog();
+
+  await waitFor(() => expect(getContractUtilitiesByContract).toHaveBeenCalled());
+
+  fireEvent.click(screen.getByText("SelectDuplicate"));
+
+  await waitFor(() =>
+    expect(mockWarning).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Servicio ya vinculado",
+        description: "Ese servicio ya está asociado a este contrato.",
+      })
+    )
+  );
+});
 
   it("guarda correctamente cuando initialAmount > 0", async () => {
     (postContractUtility as any).mockResolvedValue({});
