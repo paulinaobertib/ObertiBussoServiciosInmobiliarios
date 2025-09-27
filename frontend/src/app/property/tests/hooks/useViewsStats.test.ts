@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { PaymentCurrency, PaymentConcept } from "../../../user/types/payment";
 
 // ---- MOCKS ----
 vi.mock("../../services/view.service", () => ({
@@ -81,11 +82,15 @@ import { useViewStats } from "../../hooks/useViewsStats";
 let viewService: any;
 let surveyService: any;
 let inquiryService: any;
+let commissionService: any;
+let paymentService: any;
 
 beforeAll(async () => {
   viewService = await import("../../services/view.service");
   surveyService = await import("../../services/survey.service");
   inquiryService = await import("../../services/inquiry.service");
+  commissionService = await import("../../../user/services/commission.service");
+  paymentService = await import("../../../user/services/payment.service");
 });
 
 describe("useViewStats", () => {
@@ -144,5 +149,93 @@ describe("useViewStats", () => {
 
     expect(handleErrorMock).toHaveBeenCalled();
     expect(result.current.error).not.toBeNull();
+  });
+
+  it("respeta opciones: filtra por moneda, agrega listas y maneja fallbacks", async () => {
+    viewService.getViewsByProperty.mockResolvedValueOnce({});
+    viewService.getViewsByPropertyType.mockResolvedValueOnce({});
+    viewService.getViewsByDay.mockResolvedValueOnce({});
+    viewService.getViewsByMonth.mockResolvedValueOnce({});
+    viewService.getViewsByNeighborhood.mockResolvedValueOnce({});
+    viewService.getViewsByNeighborhoodType.mockResolvedValueOnce({});
+    viewService.getViewsByStatus.mockResolvedValueOnce({});
+    viewService.getViewsByStatusAndType.mockResolvedValueOnce({});
+    viewService.getViewsByOperation.mockResolvedValueOnce({});
+    viewService.getViewsByRooms.mockResolvedValueOnce({});
+    viewService.getViewsByAmenity.mockResolvedValueOnce({});
+
+    surveyService.getAllSurveys.mockResolvedValueOnce([]);
+    surveyService.getAverageScore.mockResolvedValueOnce(0);
+    surveyService.getScoreDistribution.mockResolvedValueOnce({});
+    surveyService.getDailyAverageScore.mockResolvedValueOnce({});
+    surveyService.getMonthlyAverageScore.mockResolvedValueOnce({});
+
+    inquiryService.getAverageInquiryResponseTime.mockResolvedValueOnce({ data: "00:00:00" });
+    inquiryService.getInquiryStatusDistribution.mockResolvedValueOnce({ data: {} });
+    inquiryService.getInquiriesGroupedByDayOfWeek.mockResolvedValueOnce({ data: {} });
+    inquiryService.getInquiriesGroupedByTimeRange.mockResolvedValueOnce({ data: {} });
+    inquiryService.getInquiriesPerMonth.mockResolvedValueOnce({ data: {} });
+    inquiryService.getMostConsultedProperties.mockResolvedValueOnce({ data: {} });
+
+    commissionService.countCommissionsByStatus.mockResolvedValueOnce({ PAGADA: 1, PARCIAL: 2, PENDIENTE: 3 });
+    commissionService.getTotalAmountByStatus.mockResolvedValueOnce(100); // PAGADA
+    commissionService.getTotalAmountByStatus.mockResolvedValueOnce(50); // PARCIAL
+    commissionService.getTotalAmountByStatus.mockResolvedValueOnce(25); // PENDIENTE
+    commissionService.getDateTotals.mockResolvedValueOnce(175);
+    commissionService.getYearMonthlyTotals.mockResolvedValueOnce({ "2024-02": 80 });
+
+    commissionService.getCommissionsByPaymentType.mockResolvedValueOnce([{ id: "c-completo" } as any]);
+    commissionService.getCommissionsByPaymentType.mockRejectedValueOnce(new Error("cuotas fail"));
+    commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-pag" } as any]);
+    commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-par" } as any]);
+    commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-pen" } as any]);
+
+    const paymentsInRange = [
+      { paymentCurrency: PaymentCurrency.USD, amount: 200, concept: PaymentConcept.ALQUILER, date: "2024-02-10" },
+      { paymentCurrency: PaymentCurrency.ARS, amount: 150, concept: PaymentConcept.EXTRA, date: "2024-02-18" },
+      { paymentCurrency: PaymentCurrency.USD, amount: 50, concept: PaymentConcept.COMISION, date: "2024-03-05" },
+    ];
+    paymentService.getPaymentsByDateRange.mockResolvedValueOnce(paymentsInRange);
+    paymentService.getPaymentsByCurrency.mockResolvedValueOnce([{ id: "p-ars" } as any]);
+    paymentService.getPaymentsByCurrency.mockRejectedValueOnce(new Error("usd fail"));
+    paymentService.getPaymentsByContractRange.mockResolvedValueOnce([{ id: 1 } as any, { id: 2 } as any]);
+    paymentService.getPaymentsByCommissionRange.mockResolvedValueOnce([{ id: 3 } as any]);
+    paymentService.getPaymentsByUtilityRange.mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() =>
+      useViewStats({
+        commissions: {
+          includeLists: true,
+          currency: PaymentCurrency.USD,
+          from: "2024-02-01",
+          to: "2024-03-31",
+          year: 2024,
+        },
+        payments: {
+          currency: PaymentCurrency.USD,
+          from: "2024-02-01",
+          to: "2024-03-31",
+        },
+      })
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.stats.paymentsTotalInDateRange).toBe(250);
+    expect(result.current.stats.paymentsCountByConcept).toEqual({
+      [PaymentConcept.ALQUILER]: 1,
+      [PaymentConcept.EXTRA]: 1,
+      [PaymentConcept.COMISION]: 1,
+    });
+    expect(result.current.stats.paymentsMonthlyTotals).toEqual({ "2024-02": 350, "2024-03": 50 });
+    expect(result.current.stats.paymentsCountByCurrency).toEqual({ ARS: 1, USD: 0 });
+    expect(result.current.stats.paymentsByContractRangeCount).toBe(2);
+    expect(result.current.stats.paymentsByCommissionRangeCount).toBe(1);
+    expect(result.current.stats.paymentsByUtilityRangeCount).toBe(0);
+
+    expect(result.current.stats.commissionsCountByPaymentType).toEqual({ COMPLETO: 1, CUOTAS: 0 });
+    expect(result.current.stats.commissionsTotalByStatus).toEqual({ PAGADA: 100, PARCIAL: 50, PENDIENTE: 25 });
+    expect(result.current.stats.commissionsByStatus?.PAGADA).toHaveLength(1);
+    expect(result.current.stats.commissionsByPaymentTypeList?.COMPLETO).toHaveLength(1);
   });
 });
