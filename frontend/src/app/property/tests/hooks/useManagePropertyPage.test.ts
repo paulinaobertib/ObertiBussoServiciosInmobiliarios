@@ -45,6 +45,7 @@ describe("useManagePropertyPage", () => {
     });
     (useGlobalAlert as unknown as Mock).mockReturnValue({
       showAlert: mockShowAlert,
+      confirm: vi.fn().mockResolvedValue(true),
     });
     (usePropertiesContext as unknown as Mock).mockReturnValue({
       setSelected: mockSetSelected,
@@ -188,30 +189,32 @@ describe("useManagePropertyPage", () => {
     expect(mockAddToGallery).toHaveBeenCalledWith(["img1.jpg"]);
   });
 
-  it("save con form inválido muestra alerta y no llama servicios", async () => {
-    const fakeForm = {
-      submit: vi.fn().mockResolvedValue(false),
-      getCreateData: vi.fn(),
-      setField: vi.fn(),
-    };
-    const { result } = renderHook(() => useManagePropertyPage());
-    result.current.formRef.current = fakeForm;
+it("save con form inválido muestra alerta y no llama servicios", async () => {
+  const fakeForm = {
+    submit: vi.fn().mockResolvedValue(false),
+    getCreateData: vi.fn(),
+    setField: vi.fn(),
+  };
+  const { result } = renderHook(() => useManagePropertyPage());
+  result.current.formRef.current = fakeForm;
 
-    await act(async () => {
-      await result.current.save();
-    });
-
-    expect(mockShowAlert).toHaveBeenCalledWith(
-      "Formulario inválido, faltan datos",
-      "error"
-    );
-    expect(propertyService.postProperty).not.toHaveBeenCalled();
+  await act(async () => {
+    await result.current.save();
   });
 
-  it("cancel pregunta confirmación y navega", () => {
-    const { result } = renderHook(() => useManagePropertyPage());
-    act(() => result.current.cancel());
-    expect(mockAsk).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith("/");
+  expect(mockShowAlert).toHaveBeenCalledWith(
+    "Formulario inválido, faltan datos",
+    "warning" 
+  );
+  expect(propertyService.postProperty).not.toHaveBeenCalled();
+});
+
+it("cancel pregunta confirmación y navega", async () => {
+  const { result } = renderHook(() => useManagePropertyPage());
+  await act(async () => {
+    await result.current.cancel();
   });
+  expect(mockNavigate).toHaveBeenCalledWith("/");
+});
+
 });

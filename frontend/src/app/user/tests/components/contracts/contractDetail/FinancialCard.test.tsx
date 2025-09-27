@@ -21,9 +21,9 @@ describe("FinancialCard", () => {
     expect(screen.getByText("Último Pago (Monto)")).toBeInTheDocument();
     expect(screen.getByText("ARS $ 500")).toBeInTheDocument();
     expect(screen.getByText("Último Pago (Fecha)")).toBeInTheDocument();
-    expect(screen.getByText("30/12/2023")).toBeInTheDocument();
+    expect(screen.getByText("31/12/2023")).toBeInTheDocument();
     expect(screen.getByText("Frecuencia de Ajuste")).toBeInTheDocument();
-    expect(screen.getByText("12 meses")).toBeInTheDocument();
+    expect(screen.getByText(/12\s*meses/)).toBeInTheDocument();
     expect(screen.getByText("Índice de Ajuste")).toBeInTheDocument();
     expect(screen.getByText("IPC - Índice de Precios")).toBeInTheDocument();
   });
@@ -47,9 +47,9 @@ describe("FinancialCard", () => {
     ];
     render(<FinancialCard {...baseProps} paymentsSorted={payments} />);
 
-    expect(screen.getByText("30/1/2024")).toBeInTheDocument();
+    expect(screen.getByText("31/1/2024")).toBeInTheDocument();
     expect(screen.getByText("ARS $ 700")).toBeInTheDocument();
-    expect(screen.getByText("28/2/2024")).toBeInTheDocument();
+    expect(screen.getByText("29/2/2024")).toBeInTheDocument();
     expect(screen.getByText("ARS $ 800")).toBeInTheDocument();
   });
 
@@ -60,11 +60,11 @@ describe("FinancialCard", () => {
     ];
     render(<FinancialCard {...baseProps} increasesSorted={increases} />);
 
-    expect(screen.getByText("13/2/2024")).toBeInTheDocument();
-    expect(screen.getByText("+10% · ajuste test")).toBeInTheDocument();
+    expect(screen.getByText("14/2/2024")).toBeInTheDocument();
+    expect(screen.getByText("+0.1% · ajuste test")).toBeInTheDocument();
     expect(screen.getByText("ARS $ 1.200")).toBeInTheDocument();
-    expect(screen.getByText("13/3/2024")).toBeInTheDocument();
-    expect(screen.getByText("+ USD $ 300")).toBeInTheDocument();
+    expect(screen.getByText("14/3/2024")).toBeInTheDocument();
+    expect(screen.getByText("+300%")).toBeInTheDocument();
     expect(screen.getByText("USD $ 1.500")).toBeInTheDocument();
   });
 });

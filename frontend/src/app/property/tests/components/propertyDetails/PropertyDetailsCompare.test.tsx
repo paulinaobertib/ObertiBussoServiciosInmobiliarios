@@ -66,10 +66,21 @@ describe("PropertyDetailsCompare", () => {
     date: new Date().toISOString(),
   });
 
-  it("muestra mensaje si hay menos de 2 propiedades", () => {
-    render(<PropertyDetailsCompare comparisonItems={[mockProperty(1, "P1")]} />);
-    expect(screen.getByText(/Selecciona 2 o 3 propiedades para comparar/i)).toBeInTheDocument();
-  });
+it("muestra mensaje si hay menos de 2 propiedades", () => {
+  render(<PropertyDetailsCompare comparisonItems={[mockProperty(1, "P1")]} />);
+
+  // Verificamos el título
+  expect(
+    screen.getByText("No hay suficientes propiedades para comparar.")
+  ).toBeInTheDocument();
+
+  // Verificamos la descripción
+  expect(
+    screen.getByText(
+      "Selecciona entre dos y tres propiedades del catálogo para ver la comparación."
+    )
+  ).toBeInTheDocument();
+});
 
   it("renderiza correctamente 2 propiedades", () => {
     const items = [mockProperty(1, "P1"), mockProperty(2, "P2")];

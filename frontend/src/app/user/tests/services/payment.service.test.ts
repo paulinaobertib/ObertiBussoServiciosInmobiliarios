@@ -8,6 +8,14 @@ import {
   getPaymentById,
   getPaymentsByContractId,
   getPaymentsByCommissionId,
+  getAllPayments,
+  getPaymentsByDateRange,
+  getPaymentsByContractRange,
+  getPaymentsByCommissionRange,
+  getPaymentsByUtilityRange,
+  getPaymentsByConcept,
+  getPaymentsByCurrency,
+  getPaymentsMonthlyTotals,
 } from "../../services/payment.service";
 
 vi.mock("../../../../api", () => ({
@@ -165,6 +173,234 @@ describe("payment.service", () => {
     await expect(getPaymentsByCommissionId(7)).rejects.toBe(boom);
     expect(errorSpy).toHaveBeenCalledWith(
       "Error fetching payments for commission 7:",
+      boom
+    );
+  });
+
+  /* --------------------------- getAllPayments --------------------------- */
+  it("getAllPayments: GET /users/payments/getAll", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 99 }]));
+
+    const r = await getAllPayments();
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getAll", cred);
+    expect(r).toEqual([{ id: 99 }]);
+  });
+
+  it("getAllPayments: error retorna [] y loguea", async () => {
+    const boom = new Error("get all fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getAllPayments();
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments:", boom);
+  });
+
+  it("getAllPayments: sin data responde []", async () => {
+    (api.get as any).mockResolvedValueOnce(resp(undefined));
+
+    const r = await getAllPayments();
+    expect(r).toEqual([]);
+  });
+
+  /* ------------------------ getPaymentsByDateRange ----------------------- */
+  it("getPaymentsByDateRange: GET con params from/to", async () => {
+    const from = "2024-01-01";
+    const to = "2024-01-31";
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }]));
+
+    const r = await getPaymentsByDateRange(from, to);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/dateRange",
+      {
+        params: { from, to },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual([{ id: 1 }]);
+  });
+
+  it("getPaymentsByDateRange: error retorna [] y loguea", async () => {
+    const boom = new Error("date range fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getPaymentsByDateRange("2024-01-01", "2024-01-31");
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments by date range:",
+      boom
+    );
+  });
+
+  /* --------------------- getPaymentsByContractRange ---------------------- */
+  it("getPaymentsByContractRange: GET con params", async () => {
+    const from = "2024-02-01";
+    const to = "2024-02-29";
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 2 }]));
+
+    const r = await getPaymentsByContractRange(from, to);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/contractRange",
+      {
+        params: { from, to },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual([{ id: 2 }]);
+  });
+
+  it("getPaymentsByContractRange: error retorna [] y loguea", async () => {
+    const boom = new Error("contract range fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getPaymentsByContractRange("2024-02-01", "2024-02-29");
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments by contract range:",
+      boom
+    );
+  });
+
+  /* ------------------- getPaymentsByCommissionRange --------------------- */
+  it("getPaymentsByCommissionRange: GET con params", async () => {
+    const from = "2024-03-01";
+    const to = "2024-03-31";
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 3 }]));
+
+    const r = await getPaymentsByCommissionRange(from, to);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/commissionRange",
+      {
+        params: { from, to },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual([{ id: 3 }]);
+  });
+
+  it("getPaymentsByCommissionRange: error retorna [] y loguea", async () => {
+    const boom = new Error("commission range fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getPaymentsByCommissionRange("2024-03-01", "2024-03-31");
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments by commission range:",
+      boom
+    );
+  });
+
+  /* --------------------- getPaymentsByUtilityRange ---------------------- */
+  it("getPaymentsByUtilityRange: GET con params", async () => {
+    const from = "2024-04-01";
+    const to = "2024-04-30";
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 4 }]));
+
+    const r = await getPaymentsByUtilityRange(from, to);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/utilityRange",
+      {
+        params: { from, to },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual([{ id: 4 }]);
+  });
+
+  it("getPaymentsByUtilityRange: error retorna [] y loguea", async () => {
+    const boom = new Error("utility range fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getPaymentsByUtilityRange("2024-04-01", "2024-04-30");
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments by utility range:",
+      boom
+    );
+  });
+
+  /* ------------------------- getPaymentsByConcept ------------------------ */
+  it("getPaymentsByConcept: GET con concept param", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 5 }]));
+
+    const r = await getPaymentsByConcept("ALQUILER" as any);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/getByConcept",
+      {
+        params: { concept: "ALQUILER" },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual([{ id: 5 }]);
+  });
+
+  it("getPaymentsByConcept: error retorna [] y loguea", async () => {
+    const boom = new Error("concept fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getPaymentsByConcept("ALQUILER" as any);
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments by concept:",
+      boom
+    );
+  });
+
+  /* ------------------------- getPaymentsByCurrency ----------------------- */
+  it("getPaymentsByCurrency: GET con currency param", async () => {
+    (api.get as any).mockResolvedValueOnce(resp([{ id: 6 }]));
+
+    const r = await getPaymentsByCurrency("ARS" as any);
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/getByCurrency",
+      {
+        params: { currency: "ARS" },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual([{ id: 6 }]);
+  });
+
+  it("getPaymentsByCurrency: error retorna [] y loguea", async () => {
+    const boom = new Error("currency fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    const r = await getPaymentsByCurrency("ARS" as any);
+    expect(r).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments by currency:",
+      boom
+    );
+  });
+
+  /* ----------------------- getPaymentsMonthlyTotals ---------------------- */
+  it("getPaymentsMonthlyTotals: GET con params completos", async () => {
+    const responseData = { "2024-01": 5000 };
+    (api.get as any).mockResolvedValueOnce(resp(responseData));
+
+    const r = await getPaymentsMonthlyTotals(
+      "2024-01-01",
+      "2024-03-31",
+      "ARS" as any
+    );
+    expect(api.get).toHaveBeenCalledWith(
+      "/users/payments/monthlyTotals",
+      {
+        params: { from: "2024-01-01", to: "2024-03-31", currency: "ARS" },
+        withCredentials: true,
+      }
+    );
+    expect(r).toEqual(responseData);
+  });
+
+  it("getPaymentsMonthlyTotals: error re-lanza y loguea", async () => {
+    const boom = new Error("monthly totals fail");
+    (api.get as any).mockRejectedValueOnce(boom);
+
+    await expect(
+      getPaymentsMonthlyTotals("2024-01-01", "2024-03-31", "ARS" as any)
+    ).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith(
+      "Error fetching payments monthly totals:",
       boom
     );
   });

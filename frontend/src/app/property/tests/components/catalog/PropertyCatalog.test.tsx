@@ -91,19 +91,11 @@ describe('PropertyCatalog', () => {
     mockedUseCatalog.mockReturnValue({
       propertiesList: mockProperties,
       handleClick: handleClickMock,
-      DialogUI: <div data-testid="dialog-ui">DialogUI</div>,
       refresh: async () => {},
       selectedPropertyIds: [],
       toggleCompare: vi.fn(),
       isAdmin: false,
     });
-  });
-
-  it('renderiza todas las propiedades y el DialogUI', () => {
-    render(<PropertyCatalog properties={mockProperties} mode="normal" onFinishAction={vi.fn()} />);
-    expect(screen.getByText('Propiedad 1')).toBeInTheDocument();
-    expect(screen.getByText('Propiedad 2')).toBeInTheDocument();
-    expect(screen.getByTestId('dialog-ui')).toBeInTheDocument();
   });
 
   it('llama handleClick al hacer click en una propiedad', () => {
@@ -131,8 +123,6 @@ describe('PropertyCatalog', () => {
     expect(handleClickMock).toHaveBeenCalledWith('normal', mockProperties[1]);
   });
 
-  // ─────────── TESTS NUEVOS ───────────
-
   it('llama useCatalog con los parámetros correctos (onFinish y externalProperties)', () => {
     const onFinishAction = vi.fn();
     render(<PropertyCatalog properties={mockProperties} mode="normal" onFinishAction={onFinishAction} />);
@@ -146,26 +136,6 @@ describe('PropertyCatalog', () => {
       })
     );
   });
-
-it('si propertiesList es undefined, pasa [] a CatalogList y sigue renderizando DialogUI', () => {
-  mockedUseCatalog.mockReturnValueOnce({
-    // 👇 forzamos el tipo del objeto completo
-    propertiesList: undefined as unknown as Property[],
-    handleClick: handleClickMock,
-    DialogUI: <div data-testid="dialog-ui">DialogUI</div>,
-    refresh: async () => {},
-    selectedPropertyIds: [],
-    toggleCompare: vi.fn(),
-    isAdmin: false,
-  } as unknown as ReturnType<typeof useCatalog>);
-
-  render(<PropertyCatalog properties={mockProperties} mode="normal" onFinishAction={vi.fn()} />);
-
-  // No hay títulos porque propertiesList -> [] en CatalogList
-  expect(screen.getByTestId('catalog-list').textContent).toBe('');
-  // DialogUI igual aparece
-  expect(screen.getByTestId('dialog-ui')).toBeInTheDocument();
-});
 
   it('actualiza el callback cuando cambia "mode" entre renders', () => {
     const { rerender } = render(
