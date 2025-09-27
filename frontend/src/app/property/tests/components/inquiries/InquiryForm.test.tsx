@@ -22,7 +22,6 @@ function baseState() {
       description: "",
     },
     formLoading: false,
-    submitted: false,
     handleChange: vi.fn(
       (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => e
     ),
@@ -70,10 +69,9 @@ describe("<InquiryForm />", () => {
 
     const changeAndCheck = (label: RegExp, name: string, value: string) => {
       const el = screen.getByLabelText(label);
-      fireEvent.change(el, { target: { value } }); // no asertamos value, solo name + call
+      fireEvent.change(el, { target: { value } });
       expect(hookState.handleChange).toHaveBeenCalled();
       const evt = (hookState.handleChange as any).mock.calls.at(-1)?.[0];
-      // el target del evento es el input real -> su name viene del DOM
       expect((evt?.target as HTMLInputElement).name).toBe(name);
     };
 
@@ -103,18 +101,6 @@ describe("<InquiryForm />", () => {
     render(<InquiryForm />);
     const btn = screen.getByRole("button", { name: /Enviar Consulta/i });
     expect(btn).toBeDisabled();
-  });
-
-  it("cuando submitted=true muestra mensaje de agradecimiento y oculta el formulario", () => {
-    const hookState = makeHookState({ submitted: true });
-    useInquiryFormMock.mockReturnValue(hookState);
-
-    render(<InquiryForm />);
-    expect(screen.getByText(/¡Consulta enviada!/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Te avisaremos en cuanto tengamos una respuesta/i)
-    ).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Nombre/i)).toBeNull();
   });
 
   it("renderiza valores iniciales en inputs (controlado por el hook)", () => {

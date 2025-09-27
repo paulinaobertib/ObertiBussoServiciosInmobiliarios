@@ -4,10 +4,15 @@ import { describe, it, expect } from "vitest";
 import { SurveysList } from "../../../components/survey/SurveyList";
 
 describe("SurveysList", () => {
-  it("muestra mensaje cuando no hay encuestas", () => {
-    render(<SurveysList surveys={[]} />);
-    expect(screen.getByText("No hay encuestas.")).toBeInTheDocument();
-  });
+it("muestra mensaje cuando no hay encuestas", () => {
+  render(<SurveysList surveys={[]} />);
+  expect(
+    screen.getByText("No hay valoraciones disponibles.")
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText("Mantente atento a nuevas actualizaciones.")
+  ).toBeInTheDocument();
+});
 
   it("renderiza la cantidad correcta de encuestas", () => {
     const surveys = [
