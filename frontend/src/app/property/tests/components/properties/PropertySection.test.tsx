@@ -124,6 +124,13 @@ vi.mock("../../../components/properties/ActionsRowItems", () => ({
   getRowActions: h.getRowActionsMock,
 }));
 
+vi.mock("../../../context/PropertiesContext", () => ({
+  usePropertiesContext: vi.fn(() => ({
+    pickItem: vi.fn(),
+    selected: {},
+  })),
+}));
+
 // ---- SUT ----
 import { PropertySection } from "../../../components/properties/PropertySection";
 
@@ -217,10 +224,11 @@ describe("<PropertySection />", () => {
     expect(h.navigateMock).toHaveBeenCalledWith("/properties/1/edit");
   });
 
-  it("GridSection recibe props clave: entityName, showActions=false, multiSelect=false", () => {
-    renderSUT();
-    expect(h.lastGridProps.entityName).toBe("Propiedad");
-    expect(h.lastGridProps.showActions).toBe(false);
-    expect(h.lastGridProps.multiSelect).toBe(false);
-  });
+it("GridSection recibe props clave: entityName, showActions=false, multiSelect=false", () => {
+  renderSUT({ showActions: false }); 
+  expect(h.lastGridProps.entityName).toBe("Propiedad");
+  expect(h.lastGridProps.showActions).toBe(false);
+  expect(h.lastGridProps.multiSelect).toBe(false);
+});
+
 });

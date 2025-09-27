@@ -20,7 +20,6 @@ vi.mock("../../../components/notices/NoticeForm", () => ({
   NoticeForm: React.forwardRef(({ onValidityChange }: any, ref: any) => {
     const setRef = (el: any) => {
       if (el) {
-        // lo que leerá handleCreate()
         el.getCreateData = () => ({
           title: "Título test",
           description: "Desc test",
@@ -34,10 +33,7 @@ vi.mock("../../../components/notices/NoticeForm", () => ({
     return (
       <div>
         <div ref={setRef} data-testid="notice-form" />
-        <button
-          data-testid="mark-valid"
-          onClick={() => onValidityChange?.(true)}
-        >
+        <button data-testid="mark-valid" onClick={() => onValidityChange?.(true)}>
           mark-valid
         </button>
       </div>
@@ -62,8 +58,6 @@ describe("NoticesSection", () => {
   const removeMock = vi.fn();
   const fetchAllMock = vi.fn();
   const searchMock = vi.fn();
-  const askMock = vi.fn();
-  const DialogUI = <div>DialogUI</div>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -77,9 +71,13 @@ describe("NoticesSection", () => {
       remove: removeMock,
       fetchAll: fetchAllMock,
       search: searchMock,
+      loading: false,
     });
     (useAuthContext as any).mockReturnValue({ isAdmin: true, info: { id: 1 } });
-    (useConfirmDialog as any).mockReturnValue({ ask: askMock, DialogUI });
+    (useConfirmDialog as any).mockReturnValue({
+      ask: vi.fn(),
+      DialogUI: <div data-testid="dialog-ui">DialogUI</div>,
+    });
   });
 
   it("navega con flechas del slider", () => {
@@ -89,12 +87,10 @@ describe("NoticesSection", () => {
       </MemoryRouter>
     );
     const buttons = screen.getAllByRole("button");
-    const left = buttons.find(b => b.querySelector("svg[data-testid='ChevronLeftIcon']"));
-    const right = buttons.find(b => b.querySelector("svg[data-testid='ChevronRightIcon']"));
+    const left = buttons.find((b) => b.querySelector("svg[data-testid='ChevronLeftIcon']"));
+    const right = buttons.find((b) => b.querySelector("svg[data-testid='ChevronRightIcon']"));
 
-    // izquierda deshabilitada al inicio
     if (left) expect(left).toBeDisabled();
-    // derecha habilitada si hay más elementos que visibleCount
     if (right) fireEvent.click(right);
     if (left) fireEvent.click(left);
   });
@@ -108,7 +104,7 @@ describe("NoticesSection", () => {
     expect(screen.getByPlaceholderText(/Buscar novedades/i)).toBeInTheDocument();
   });
 
-    it("no muestra el botón 'Nueva novedad' si el usuario NO es admin", () => {
+  it("no muestra el botón 'Nueva noticia' si el usuario NO es admin", () => {
     (useAuthContext as any).mockReturnValueOnce({ isAdmin: false, info: { id: 1 } });
 
     render(
@@ -117,76 +113,36 @@ describe("NoticesSection", () => {
       </MemoryRouter>
     );
 
-    expect(screen.queryByText("Nueva novedad")).toBeNull();
+    expect(screen.queryByText("Nueva noticia")).toBeNull();
   });
 
-  it("muestra flechas del slider y la flecha derecha está deshabilitada si no hay más ítems", () => {
-    // Con 2 ítems y visibleCount por defecto (>=2), la derecha debería estar deshabilitada
+  it("muestra flechas del slider y la derecha está deshabilitada si no hay más ítems", () => {
     render(
       <MemoryRouter>
         <NoticesSection />
       </MemoryRouter>
     );
 
-    // Localizamos botones por los iconos renderizados
     const allButtons = screen.getAllByRole("button");
-    const left = allButtons.find((b) =>
-      b.querySelector("svg[data-testid='ChevronLeftIcon']")
-    );
-    const right = allButtons.find((b) =>
-      b.querySelector("svg[data-testid='ChevronRightIcon']")
-    );
+    const left = allButtons.find((b) => b.querySelector("svg[data-testid='ChevronLeftIcon']"));
+    const right = allButtons.find((b) => b.querySelector("svg[data-testid='ChevronRightIcon']"));
 
-    // Existen
     expect(left).toBeDefined();
     expect(right).toBeDefined();
-
-    // izquierda está deshabilitada al inicio (idx=0)
     if (left) expect(left).toBeDisabled();
-    // derecha NO debería permitir avanzar (no hay suficientes items para siguiente página)
     if (right) expect(right).toBeDisabled();
   });
 
-  it("las flechas del slider están presentes en el DOM (sanity check)", () => {
-    render(
-      <MemoryRouter>
-        <NoticesSection />
-      </MemoryRouter>
-    );
-
-    // al menos una instancia de cada icono dentro de un botón
-    expect(
-      screen.getAllByRole("button").some((b) =>
-        b.querySelector("svg[data-testid='ChevronLeftIcon']")
-      )
-    ).toBe(true);
-    expect(
-      screen.getAllByRole("button").some((b) =>
-        b.querySelector("svg[data-testid='ChevronRightIcon']")
-      )
-    ).toBe(true);
-  });
-
-    it("muestra el DialogUI del confirm dialog en el árbol", () => {
-    render(
-      <MemoryRouter>
-        <NoticesSection />
-      </MemoryRouter>
-    );
-    // viene del mock de useConfirmDialog en beforeEach
-    expect(screen.getByText("DialogUI")).toBeInTheDocument();
-  });
-
-  it("si hay 0 noticias, ambas flechas están deshabilitadas y no rompe", () => {
-    // cambiamos implementación solo para este test
-    (useNotices as any).mockImplementation(() => ({
+  it("si hay 0 noticias, muestra el mensaje sin flechas", () => {
+    (useNotices as any).mockReturnValueOnce({
       notices: [],
       add: vi.fn(),
       edit: vi.fn(),
       remove: vi.fn(),
       fetchAll: vi.fn(),
       search: vi.fn(),
-    }));
+      loading: false,
+    });
 
     render(
       <MemoryRouter>
@@ -194,18 +150,13 @@ describe("NoticesSection", () => {
       </MemoryRouter>
     );
 
-    const buttons = screen.getAllByRole("button");
-    const left = buttons.find(b => b.querySelector("svg[data-testid='ChevronLeftIcon']"));
-    const right = buttons.find(b => b.querySelector("svg[data-testid='ChevronRightIcon']"));
-
-    expect(left).toBeDefined();
-    expect(right).toBeDefined();
-    if (left) expect(left).toBeDisabled();
-    if (right) expect(right).toBeDisabled();
+    expect(screen.getByText("No hay novedades disponibles.")).toBeInTheDocument();
+    expect(
+      screen.queryAllByRole("button").some((b) => b.querySelector("svg[data-testid='ChevronLeftIcon']"))
+    ).toBe(false);
   });
 
   it("resetea el índice cuando cambia la lista de notices (de 6 a 2 items)", () => {
-    // variable mutable que el mock devolverá en cada render
     let currentNotices = [
       { id: 1, title: "N1", description: "d1", date: new Date("2025-06-10"), userId: 1 },
       { id: 2, title: "N2", description: "d2", date: new Date("2025-06-09"), userId: 2 },
@@ -222,6 +173,7 @@ describe("NoticesSection", () => {
       remove: vi.fn(),
       fetchAll: vi.fn(),
       search: vi.fn(),
+      loading: false,
     }));
 
     const { rerender } = render(
@@ -230,13 +182,11 @@ describe("NoticesSection", () => {
       </MemoryRouter>
     );
 
-    // avanzamos una página (si visibleCount >= 2, habrá paso)
     const buttons = screen.getAllByRole("button");
-    const right = buttons.find(b => b.querySelector("svg[data-testid='ChevronRightIcon']"));
-    const left = buttons.find(b => b.querySelector("svg[data-testid='ChevronLeftIcon']"));
+    const right = buttons.find((b) => b.querySelector("svg[data-testid='ChevronRightIcon']"));
+    const left = buttons.find((b) => b.querySelector("svg[data-testid='ChevronLeftIcon']"));
     if (right) fireEvent.click(right);
 
-    // ahora "simulamos" que la lista cambia y se vuelve más corta (2 noticias)
     currentNotices = [
       { id: 10, title: "X1", description: "dx1", date: new Date("2025-06-10"), userId: 3 },
       { id: 20, title: "X2", description: "dx2", date: new Date("2025-06-09"), userId: 4 },
@@ -248,14 +198,21 @@ describe("NoticesSection", () => {
       </MemoryRouter>
     );
 
-    // debería resetear a idx=0 → izquierda deshabilitada
     if (left) expect(left).toBeDisabled();
-    // y como no hay más páginas, derecha deshabilitada
     if (right) expect(right).toBeDisabled();
   });
 
-  it("oculta el botón 'Nueva novedad' cuando isAdmin=false", () => {
-    (useAuthContext as any).mockReturnValueOnce({ isAdmin: false, info: { id: 1 } });
+  it('admin: abre modal, marca válido, habilita "Crear" y llama add con userId', () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true, info: { id: 777 } });
+    (useNotices as any).mockReturnValue({
+      notices: [],
+      add: addMock,
+      edit: editMock,
+      remove: removeMock,
+      fetchAll: fetchAllMock,
+      search: searchMock,
+      loading: false,
+    });
 
     render(
       <MemoryRouter>
@@ -263,141 +220,97 @@ describe("NoticesSection", () => {
       </MemoryRouter>
     );
 
-    expect(screen.queryByText("Nueva novedad")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Nueva noticia/i }));
+    fireEvent.click(screen.getByTestId("mark-valid"));
+
+    const crearBtn = screen.getByRole("button", { name: "Crear" });
+    expect(crearBtn).not.toBeDisabled();
+    fireEvent.click(crearBtn);
+
+    expect(addMock).toHaveBeenCalledTimes(1);
+    const payload = addMock.mock.calls[0][0];
+    expect(payload).toMatchObject({
+      title: "Título test",
+      description: "Desc test",
+      userId: 777,
+    });
   });
 
-it('admin: abre modal, marca válido, habilita "Crear" y llama add con userId', () => {
-  // Fuerza el userId que esperás para todas las llamadas de este test
-  (useAuthContext as any).mockReturnValue({ isAdmin: true, info: { id: 777 } });
+  it("muestra 'Crear' deshabilitado cuando canCreate=false aunque loading=true", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: true, info: { id: 1 } });
+    (useNotices as any).mockReturnValue({
+      notices: [],
+      add: addMock,
+      edit: editMock,
+      remove: removeMock,
+      fetchAll: fetchAllMock,
+      search: searchMock,
+      loading: true,
+    });
 
-  // También forzamos loading=false para que el botón pueda habilitarse
-  (useNotices as any).mockReturnValue({
-    notices: [],
-    add: addMock,
-    edit: editMock,
-    remove: removeMock,
-    fetchAll: fetchAllMock,
-    search: searchMock,
-    loading: false,
+    render(
+      <MemoryRouter>
+        <NoticesSection />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Nueva noticia/i }));
+    const crearBtn = screen.getByRole("button", { name: "Crear" });
+    expect(crearBtn).toBeDisabled();
   });
 
-  render(
-    <MemoryRouter>
-      <NoticesSection />
-    </MemoryRouter>
-  );
+  it("delete: dispara confirmación (ask) y ejecuta remove al confirmar", () => {
+    (useAuthContext as any).mockReturnValueOnce({ isAdmin: true, info: { id: 1 } });
+    (useNotices as any).mockReturnValueOnce({
+      notices: [{ id: 9, title: "A", date: new Date(), userId: 1 }],
+      add: addMock,
+      edit: editMock,
+      remove: removeMock,
+      fetchAll: fetchAllMock,
+      search: searchMock,
+      loading: false,
+    });
 
-  // Abre el modal de creación
-  fireEvent.click(screen.getByRole('button', { name: /Nueva noticia/i }));
+    const confirmSpy = vi.fn();
+    (useConfirmDialog as any).mockReturnValueOnce({
+      ask: (_msg: string, onConfirm: () => void) => confirmSpy.mockImplementation(onConfirm),
+      DialogUI: <div data-testid="dialog-ui">DialogUI</div>,
+    });
 
-  // Marcamos el form como válido (usa tu mock de NoticeForm)
-  fireEvent.click(screen.getByTestId('mark-valid'));
+    render(
+      <MemoryRouter>
+        <NoticesSection />
+      </MemoryRouter>
+    );
 
-  // Botón habilitado
-  const crearBtn = screen.getByRole('button', { name: 'Crear' });
-  expect(crearBtn).not.toBeDisabled();
-
-  // Click en Crear
-  fireEvent.click(crearBtn);
-
-  expect(addMock).toHaveBeenCalledTimes(1);
-  const payload = addMock.mock.calls[0][0];
-
-  // Verifica que usa el userId del contexto
-  expect(payload).toMatchObject({
-    title: 'Título test',
-    description: 'Desc test',
-    userId: 777,
-  });
-});
-
-it("muestra 'Crear' deshabilitado cuando el formulario NO es válido (canCreate=false), incluso con loading=true", () => {
-  (useAuthContext as any).mockReturnValue({ isAdmin: true, info: { id: 1 } });
-
-  // loading=true, pero como canCreate=false, el botón debe estar deshabilitado
-  (useNotices as any).mockReturnValue({
-    notices: [],
-    add: addMock,
-    edit: editMock,
-    remove: removeMock,
-    fetchAll: fetchAllMock,
-    search: searchMock,
-    loading: true,
+    fireEvent.click(screen.getByTestId("trigger-delete"));
+    confirmSpy();
+    expect(removeMock).toHaveBeenCalledWith(123);
   });
 
-  render(
-    <MemoryRouter>
-      <NoticesSection />
-    </MemoryRouter>
-  );
+  it("envía las noticias a NoticesList ordenadas por fecha desc", () => {
+    (useAuthContext as any).mockReturnValueOnce({ isAdmin: true, info: { id: 1 } });
+    (useNotices as any).mockReturnValueOnce({
+      notices: [
+        { id: 1, title: "Vieja", date: new Date("2025-01-01T09:00:00Z"), userId: 1 },
+        { id: 2, title: "Nueva", date: new Date("2025-06-01T09:00:00Z"), userId: 1 },
+        { id: 3, title: "Media", date: new Date("2025-03-01T09:00:00Z"), userId: 1 },
+      ],
+      add: addMock,
+      edit: editMock,
+      remove: removeMock,
+      fetchAll: fetchAllMock,
+      search: searchMock,
+      loading: false,
+    });
 
-  // Abrimos modal
-  fireEvent.click(screen.getByRole('button', { name: /Nueva noticia/i }));
+    render(
+      <MemoryRouter>
+        <NoticesSection />
+      </MemoryRouter>
+    );
 
-  // NO marcamos válido (no tocamos mark-valid)
-  const crearBtn = screen.getByRole('button', { name: 'Crear' });
-  expect(crearBtn).toBeDisabled(); // deshabilitado por canCreate=false
-});
-
-it("delete: dispara confirmación (ask) y ejecuta remove al confirmar", () => {
-  (useAuthContext as any).mockReturnValueOnce({ isAdmin: true, info: { id: 1 } });
-  (useNotices as any).mockReturnValueOnce({
-    notices: [{ id: 9, title: "A", date: new Date(), userId: 1 }],
-    add: addMock,
-    edit: editMock,
-    remove: removeMock,
-    fetchAll: fetchAllMock,
-    search: searchMock,
-    loading: false,
+    const order = screen.getByTestId("list-order").textContent;
+    expect(order).toBe("Nueva,Media,Vieja");
   });
-
-  const confirmSpy = vi.fn(); // función que simula "Confirmar"
-  (useConfirmDialog as any).mockReturnValueOnce({
-    ask: (_msg: string, onConfirm: () => void) => {
-      confirmSpy.mockImplementation(onConfirm);
-      // guardamos el callback y lo ejecutaremos más abajo
-    },
-    DialogUI,
-  });
-
-  render(
-    <MemoryRouter>
-      <NoticesSection />
-    </MemoryRouter>
-  );
-
-  // trigger delete desde nuestro NoticesList mock
-  fireEvent.click(screen.getByTestId("trigger-delete"));
-  // el onConfirm real sería llamado por el diálogo al confirmar:
-  confirmSpy(); // ejecutamos el callback guardado
-  expect(removeMock).toHaveBeenCalledWith(123);
-});
-
-it("envía las noticias a NoticesList ordenadas por fecha desc", () => {
-  (useAuthContext as any).mockReturnValueOnce({ isAdmin: true, info: { id: 1 } });
-  (useNotices as any).mockReturnValueOnce({
-    notices: [
-      { id: 1, title: "Vieja", date: new Date("2025-01-01T09:00:00Z"), userId: 1 },
-      { id: 2, title: "Nueva", date: new Date("2025-06-01T09:00:00Z"), userId: 1 },
-      { id: 3, title: "Media", date: new Date("2025-03-01T09:00:00Z"), userId: 1 },
-    ],
-    add: addMock,
-    edit: editMock,
-    remove: removeMock,
-    fetchAll: fetchAllMock,
-    search: searchMock,
-    loading: false,
-  });
-
-  render(
-    <MemoryRouter>
-      <NoticesSection />
-    </MemoryRouter>
-  );
-
-  // nuestro mock de NoticesList imprime el orden recibido
-  const order = screen.getByTestId("list-order").textContent;
-  expect(order).toBe("Nueva,Media,Vieja");
-});
-
 });

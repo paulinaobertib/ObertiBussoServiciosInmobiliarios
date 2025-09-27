@@ -2,29 +2,31 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import "@testing-library/jest-dom/vitest"; // 👈 importa los matchers
+import "@testing-library/jest-dom/vitest";
 
 import { IncreaseForm } from "../../../components/increases/IncreaseForm";
 import type { PaymentCurrency } from "../../../types/payment";
 
 describe("IncreaseForm", () => {
-  it("emite onChange con valores iniciales vacíos al montar", () => {
+  it("emite onChange con valores iniciales (fecha = hoy, demás vacíos)", () => {
     const onChange = vi.fn();
     render(<IncreaseForm onChange={onChange} />);
 
     expect(onChange).toHaveBeenCalled();
     const first = onChange.mock.calls[0][0];
 
+    const today = new Date().toISOString().slice(0, 10);
+
     expect(first).toMatchObject({
-      date: "",
+      date: today, // 👈 ahora validamos que sea la fecha de hoy
       amount: "",
       currency: "",
       adjustment: "",
       note: "",
     });
 
-    // Inputs deberían estar vacíos
-    expect(screen.getByLabelText("Fecha desde que regirá")).toHaveValue("");
+    // Inputs deberían estar inicializados
+    expect(screen.getByLabelText("Fecha desde que regirá")).toHaveValue(today);
     expect(screen.getByLabelText("Nuevo monto")).toHaveValue(null);
     expect(screen.getByLabelText("Porcentaje de ajuste")).toHaveValue(null);
     expect(screen.getByLabelText("Nota (opcional)")).toHaveValue("");
@@ -84,5 +86,4 @@ describe("IncreaseForm", () => {
       currency: "USD",
     });
   });
-
 });
