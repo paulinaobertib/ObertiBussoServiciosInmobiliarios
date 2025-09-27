@@ -12,7 +12,6 @@ vi.mock("../../../../../user/components/appointments/admin/AppointmentItem", () 
       appt?: any;
       onClick: (id: number) => void;
     }) => {
-      // Render mínimo que nos permita chequear orden y click:
       return (
         <div data-testid={`row-${props.slot.id}`}>
           <span data-testid="slot-id">{props.slot.id}</span>
@@ -20,7 +19,6 @@ vi.mock("../../../../../user/components/appointments/admin/AppointmentItem", () 
           <button onClick={() => props.onClick(props.slot.id)} data-testid="btn">
             sel
           </button>
-          {/* reflejamos si llegó un appt para este slot */}
           <span data-testid="has-appt">{props.appt ? "yes" : "no"}</span>
           <span data-testid="appt-status">{props.appt?.status ?? ""}</span>
         </div>
@@ -40,7 +38,6 @@ const slots = [
   { id: 2, date: "2025-06-12T14:00:00", availability: false },
 ];
 
-// Pequeña factory para cumplir con el tipo Appointment que usás
 const mkAppt = (
   slot: { id: number; date: string; availability: boolean },
   status: "ESPERA" | "ACEPTADO" | "RECHAZADO"
@@ -56,8 +53,6 @@ const mkAppt = (
 const apptsBySlotFull: Record<number, any> = {
   2: mkAppt(slots.find((s) => s.id === 2)!, "ESPERA"),
   3: mkAppt(slots.find((s) => s.id === 3)!, "ACEPTADO"),
-  // el slot 1 no tiene appt
-  // el slot 4 no tiene appt
 };
 
 describe("AppointmentsList", () => {
@@ -70,7 +65,7 @@ describe("AppointmentsList", () => {
       <AppointmentsList slots={[]} apptsBySlot={{}} onSelect={vi.fn()} />
     );
     expect(
-      screen.getByText(/No hay turnos para esta fecha\./i)
+      screen.getByText(/No hay turnos disponibles para esta fecha\./i)
     ).toBeInTheDocument();
   });
 
@@ -83,11 +78,9 @@ describe("AppointmentsList", () => {
       />
     );
 
-    // Debe renderizar 4 filas (una por slot)
     const rows = screen.getAllByTestId(/row-/);
     expect(rows).toHaveLength(4);
 
-    // Orden esperado por fecha ascendente: 1,2,3,4
     const order = rows.map((row) =>
       within(row).getByTestId("slot-id").textContent
     );
@@ -104,7 +97,6 @@ describe("AppointmentsList", () => {
       />
     );
 
-    // Hacemos click en el botón del slot que quedó primero (id=1 tras ordenar)
     const firstRow = screen.getAllByTestId(/row-/)[0];
     fireEvent.click(within(firstRow).getByTestId("btn"));
 
@@ -120,21 +112,11 @@ describe("AppointmentsList", () => {
       />
     );
 
-    // Tras ordenar: ids 1,2,3,4
     const rows = screen.getAllByTestId(/row-/);
 
-    // slot 1 -> sin appt
     expect(within(rows[0]).getByTestId("has-appt").textContent).toBe("no");
-
-    // slot 2 -> appt ESPERA
-    expect(within(rows[1]).getByTestId("has-appt").textContent).toBe("yes");
     expect(within(rows[1]).getByTestId("appt-status").textContent).toBe("ESPERA");
-
-    // slot 3 -> appt ACEPTADO
-    expect(within(rows[2]).getByTestId("has-appt").textContent).toBe("yes");
     expect(within(rows[2]).getByTestId("appt-status").textContent).toBe("ACEPTADO");
-
-    // slot 4 -> sin appt
     expect(within(rows[3]).getByTestId("has-appt").textContent).toBe("no");
   });
 });

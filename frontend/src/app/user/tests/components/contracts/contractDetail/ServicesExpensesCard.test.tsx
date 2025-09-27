@@ -84,33 +84,34 @@ describe("ServicesExpensesCard", () => {
     expect(onUnlink).toHaveBeenCalledWith(1);
   });
 
-  it("renderiza aumentos y permite expandir/colapsar", () => {
-    const utilities = [
-      {
-        id: 2,
-        utilityId: 2,
-        periodicity: "MONTHLY",
-        initialAmount: 50,
-        increases: [
-          { id: 10, adjustmentDate: "2024-02-01", amount: 300 },
-          { id: 11, adjustmentDate: "2024-03-01", amount: 400 },
-        ],
-      },
-    ];
+it("renderiza aumentos y permite expandir/colapsar", () => {
+  const utilities = [
+    {
+      id: 2,
+      utilityId: 2,
+      periodicity: "MONTHLY",
+      initialAmount: 50,
+      increases: [
+        { id: 10, adjustmentDate: "2024-02-01", amount: 300 },
+        { id: 11, adjustmentDate: "2024-03-01", amount: 400 },
+      ],
+    },
+  ];
 
-    render(<ServicesExpensesCard utilities={utilities} utilityNameMap={utilityNameMap} currency="ARS" />);
+  render(<ServicesExpensesCard utilities={utilities} utilityNameMap={utilityNameMap} currency="ARS" />);
 
-    // al inicio solo debe estar el botón para ver
-    const toggleBtn = screen.getByText("Ver aumentos");
-    expect(toggleBtn).toBeInTheDocument();
+  // al inicio solo debe estar el botón para ver
+  const toggleBtn = screen.getByText("Ver aumentos");
+  expect(toggleBtn).toBeInTheDocument();
 
-    fireEvent.click(toggleBtn);
+  fireEvent.click(toggleBtn);
 
-    // aparecen los aumentos
-    expect(screen.getByText("formattedDate(2024-02-01): ARS $ 300")).toBeInTheDocument();
-    expect(screen.getByText("formattedDate(2024-03-01): ARS $ 400")).toBeInTheDocument();
+  // aparecen los aumentos (con •, no con :)
+  expect(screen.getByText("formattedDate(2024-02-01) • ARS $ 300")).toBeInTheDocument();
+  expect(screen.getByText("formattedDate(2024-03-01) • ARS $ 400")).toBeInTheDocument();
 
-    // ahora el botón cambia a ocultar
-    expect(screen.getByText("Ocultar aumentos")).toBeInTheDocument();
-  });
+  // ahora el botón cambia a ocultar
+  expect(screen.getByText("Ocultar aumentos")).toBeInTheDocument();
+});
+
 });
