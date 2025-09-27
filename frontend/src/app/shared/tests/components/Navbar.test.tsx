@@ -116,10 +116,10 @@ describe('NavBar', () => {
     expect(screen.getByText(/INICIAR SESIÓN/i)).toBeInTheDocument();
   });
 
-  it('ejecuta login al hacer click en INICIAR SESIÓN (desktop)', () => {
+  it('navega a /login al hacer click en INICIAR SESIÓN (desktop)', () => {
     renderNavBar();
     fireEvent.click(screen.getByText(/INICIAR SESIÓN/i));
-    expect(mockLogin).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.LOGIN);
   });
 
   it('muestra íconos de usuario en desktop si está logueado', () => {
@@ -212,7 +212,7 @@ describe('NavBar', () => {
     // derecha: login (icon button)
     const loginBtn = screen.getByLabelText(/login/i);
     fireEvent.click(loginBtn);
-    expect(mockLogin).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.LOGIN);
   });
 
   it('móvil (usuario no admin): menú hamburguesa se abre y muestra items esperados', async () => {

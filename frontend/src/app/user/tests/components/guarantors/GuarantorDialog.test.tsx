@@ -14,12 +14,11 @@ const MockModal = vi.fn(({ open, title, children }: any) =>
   ) : null
 );
 
-const MockGuarantorForm = vi.fn(({ action, item, onSuccess, onClose }: any) => (
+const MockGuarantorForm = vi.fn(({ action, item, onSuccess }: any) => (
   <div data-testid="guarantor-form">
     <span>Action: {action}</span>
     <span>Item: {item?.name ?? "none"}</span>
     <button onClick={onSuccess}>TriggerSuccess</button>
-    <button onClick={onClose}>TriggerClose</button>
   </div>
 ));
 
@@ -27,8 +26,9 @@ vi.mock("../../../shared/components/Modal", () => ({
   Modal: (props: any) => MockModal(props),
 }));
 
+// 👇 importante: default export porque GuarantorForm es default
 vi.mock("../../../components/guarantors/GuarantorForm", () => ({
-  GuarantorForm: (props: any) => MockGuarantorForm(props),
+  default: (props: any) => MockGuarantorForm(props),
 }));
 
 /* ========== Fixtures ========== */
@@ -52,7 +52,6 @@ describe("GuarantorDialog", () => {
         action: "add",
         item: guarantor,
         onSuccess: onSaved,
-        onClose,
       })
     );
   });
@@ -69,7 +68,6 @@ describe("GuarantorDialog", () => {
         action: "edit",
         item: guarantor,
         onSuccess: onSaved,
-        onClose,
       })
     );
   });
@@ -86,7 +84,6 @@ describe("GuarantorDialog", () => {
         action: "delete",
         item: guarantor,
         onSuccess: onSaved,
-        onClose,
       })
     );
   });
@@ -114,13 +111,4 @@ describe("GuarantorDialog", () => {
     expect(onSaved).toHaveBeenCalledTimes(1);
   });
 
-  it("llama onClose desde GuarantorForm", () => {
-    const onClose = vi.fn();
-    const onSaved = vi.fn();
-
-    render(<GuarantorDialog open={true} mode="add" item={guarantor} onClose={onClose} onSaved={onSaved} />);
-
-    screen.getByText("TriggerClose").click();
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
 });

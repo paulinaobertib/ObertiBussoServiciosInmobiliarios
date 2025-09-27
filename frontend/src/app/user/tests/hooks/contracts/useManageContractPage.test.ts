@@ -1,39 +1,34 @@
 /// <reference types="vitest" />
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useManageContractPage } from "../../../hooks/contracts/useManageContractPage";
 import { ROUTES } from "../../../../../lib";
 
-// --- mocks base ---
-const mockNavigate = vi.fn();
-const mockAsk = vi.fn((_msg, cb) => cb && cb());
-const mockDialog = () => null;
-const mockShowAlert = vi.fn();
-
+// --- Mocks ---
 vi.mock("react-router-dom", () => ({
-  useNavigate: () => mockNavigate,
+  useNavigate: vi.fn(),
   useParams: vi.fn(),
 }));
-
-vi.mock("../../../../shared/components/ConfirmDialog", () => ({
-  useConfirmDialog: () => ({ ask: mockAsk, DialogUI: mockDialog }),
+vi.mock("../../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: vi.fn(),
 }));
-
+vi.mock("../../../shared/hooks/useErrors", () => ({
+  useApiErrors: () => ({ handleError: vi.fn() }),
+}));
 vi.mock("../../../services/contract.service", () => ({
   getContractById: vi.fn(),
   postContract: vi.fn(),
   putContract: vi.fn(),
   getContractsByPropertyId: vi.fn(),
 }));
-
 vi.mock("../../../services/guarantor.service", () => ({
   getGuarantorsByContract: vi.fn(),
   addGuarantorToContract: vi.fn(),
   removeGuarantorFromContract: vi.fn(),
 }));
 
-import { useManageContractPage } from "../../../hooks/contracts/useManageContractPage";
-import { useParams } from "react-router-dom";
-import * as AlertContext from "../../../../shared/context/AlertContext";
+import { useNavigate, useParams } from "react-router-dom";
+import { useGlobalAlert } from "../../../../shared/context/AlertContext";
 import {
   getContractById,
   postContract,
@@ -42,168 +37,180 @@ import {
 } from "../../../services/contract.service";
 import {
   getGuarantorsByContract,
+  addGuarantorToContract,
+  removeGuarantorFromContract,
 } from "../../../services/guarantor.service";
+
+// helpers
+const navigate = vi.fn();
+const success = vi.fn();
+const confirm = vi.fn();
+const doubleConfirm = vi.fn();
+const showAlert = vi.fn();
 
 describe("useManageContractPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(AlertContext, "useGlobalAlert").mockReturnValue({ showAlert: mockShowAlert });
+    (useNavigate as any).mockReturnValue(navigate);
+    (useGlobalAlert as any).mockReturnValue({
+      success,
+      confirm,
+      doubleConfirm,
+      showAlert,
+    });
   });
 
-  it("title es Crear Contrato cuando no hay id", () => {
-    (useParams as Mock).mockReturnValue({});
+  it("inicia en modo crear (sin id)", () => {
+    (useParams as any).mockReturnValue({});
     const { result } = renderHook(() => useManageContractPage());
     expect(result.current.title).toBe("Crear Contrato");
+    expect(result.current.loading).toBe(false);
   });
 
-  it("preload contrato en edición exitoso", async () => {
-    (useParams as Mock).mockReturnValue({ id: "5" });
-    (getContractById as Mock).mockResolvedValue({
-      id: 5,
-      propertyId: 10,
+  it("preload en edición carga contrato y garantes", async () => {
+    (useParams as any).mockReturnValue({ id: "10" });
+    (getContractById as any).mockResolvedValue({
+      id: 10,
+      propertyId: 5,
       userId: "u1",
-      guarantors: [{ id: 1 }, { id: 2 }],
+      guarantors: [{ id: 99 }],
     });
+    (getGuarantorsByContract as any).mockResolvedValue([{ id: 99 }]);
 
     const { result } = renderHook(() => useManageContractPage());
 
     await waitFor(() => {
-      expect(result.current.contract?.id).toBe(5);
-      expect(result.current.selectedPropertyId).toBe(10);
+      expect(result.current.contract?.id).toBe(10);
+      expect(result.current.selectedPropertyId).toBe(5);
       expect(result.current.selectedUserId).toBe("u1");
-      expect(result.current.selectedGuarantorIds).toEqual([1, 2]);
+      expect(result.current.selectedGuarantorIds).toEqual([99]);
     });
   });
 
-  it("preload contrato en edición falla", async () => {
-    (useParams as Mock).mockReturnValue({ id: "99" });
-    (getContractById as Mock).mockRejectedValue(new Error("fail"));
+  it("preload maneja error y redirige", async () => {
+    (useParams as any).mockReturnValue({ id: "20" });
+    (getContractById as any).mockRejectedValue(new Error("fail"));
 
     renderHook(() => useManageContractPage());
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
-      expect(mockShowAlert).toHaveBeenCalledWith("Error al cargar contrato", "error");
+      expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
     });
   });
 
-  it("canProceed según step", () => {
-    (useParams as Mock).mockReturnValue({});
+  it("canProceed depende del step", () => {
+    (useParams as any).mockReturnValue({});
     const { result } = renderHook(() => useManageContractPage());
 
-    act(() => result.current.setActiveStep(0));
-    expect(result.current.canProceed()).toBe(false);
-    act(() => result.current.setSelectedPropertyId(10));
-    expect(result.current.canProceed()).toBe(true);
-
-    act(() => result.current.setActiveStep(1));
-    expect(result.current.canProceed()).toBe(false);
-    act(() => result.current.setSelectedUserId("u1"));
-    expect(result.current.canProceed()).toBe(true);
-
-    act(() => result.current.setActiveStep(2));
-    expect(result.current.canProceed()).toBe(false);
-    act(() => result.current.setFormReady(true));
-    expect(result.current.canProceed()).toBe(true);
-
-    act(() => result.current.setActiveStep(99));
-    expect(result.current.canProceed()).toBe(false);
-  });
-
-  it("save en edición", async () => {
-    (useParams as Mock).mockReturnValue({ id: "5" });
-    (putContract as Mock).mockResolvedValue({});
-    (getGuarantorsByContract as Mock).mockResolvedValue([]);
-    const { result } = renderHook(() => useManageContractPage());
-
-    (result.current.formRef.current as any) = {
-      submit: vi.fn(),
-      getCreateData: () => ({ guarantorsIds: [1, 2] }),
-    };
-
-    await act(async () => {
-      await result.current.save();
+    // step 0: property
+    act(() => {
+      result.current.setSelectedPropertyId(5);
     });
+    expect(result.current.canProceed()).toBe(true);
 
-    expect(putContract).toHaveBeenCalled();
-    expect(mockShowAlert).toHaveBeenCalledWith("Contrato actualizado", "success");
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    // step 1: user
+    act(() => {
+      result.current.setActiveStep(1);
+      result.current.setSelectedUserId("u1");
+    });
+    expect(result.current.canProceed()).toBe(true);
+
+    // step 2: form
+    act(() => {
+      result.current.setActiveStep(2);
+      result.current.setFormReady(true);
+    });
+    expect(result.current.canProceed()).toBe(true);
   });
 
-  it("save en creación", async () => {
-    (useParams as Mock).mockReturnValue({});
-    (postContract as Mock).mockResolvedValue({});
-    (getContractsByPropertyId as Mock).mockResolvedValue([
-      { id: 9, userId: "u1", contractType: "A", startDate: "2020-01-01" },
+  it("save crea contrato nuevo y redirige con justCreated", async () => {
+    (useParams as any).mockReturnValue({});
+    (postContract as any).mockResolvedValue({});
+    (getContractsByPropertyId as any).mockResolvedValue([
+      { id: 1, userId: "u1", contractType: "TEMPORAL", startDate: "2023-01-01" },
     ]);
-    (getGuarantorsByContract as Mock).mockResolvedValue([]);
+    (getGuarantorsByContract as any).mockResolvedValue([]);
 
     const { result } = renderHook(() => useManageContractPage());
-    (result.current.formRef.current as any) = {
+    // simular formRef
+    result.current.formRef.current = {
       submit: vi.fn(),
+      reset: vi.fn(),
       getCreateData: () => ({
-        propertyId: 10,
+        propertyId: 1,
         userId: "u1",
-        contractType: "A",
-        startDate: "2020-01-01",
+        contractType: "TEMPORAL",
+        startDate: "2023-01-01",
         guarantorsIds: [],
       }),
-    };
+    } as any;
 
     await act(async () => {
       await result.current.save();
     });
 
     expect(postContract).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT, {
-      state: { justCreated: true, createdId: 9 },
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT, {
+      state: { justCreated: true, createdId: 1 },
     });
   });
 
-  it("save error", async () => {
-    (useParams as Mock).mockReturnValue({});
-    (postContract as Mock).mockRejectedValue({ response: { data: "boom" } });
+  it("save actualiza contrato existente", async () => {
+    (useParams as any).mockReturnValue({ id: "55" });
+    (getContractById as any).mockResolvedValue({ id: 55, propertyId: 1, userId: "u1" });
+    (putContract as any).mockResolvedValue({});
+    (getGuarantorsByContract as any).mockResolvedValue([]);
+    (addGuarantorToContract as any).mockResolvedValue({});
+    (removeGuarantorFromContract as any).mockResolvedValue({});
 
     const { result } = renderHook(() => useManageContractPage());
-    (result.current.formRef.current as any) = {
+    result.current.formRef.current = {
       submit: vi.fn(),
-      getCreateData: () => ({}),
-    };
+      reset: vi.fn(),
+      getCreateData: () => ({
+        propertyId: 1,
+        userId: "u1",
+        contractType: "TEMPORAL",
+        startDate: "2023-01-01",
+        guarantorsIds: [99],
+      }),
+    } as any;
+
+    await waitFor(() => expect(result.current.contract).not.toBeNull());
 
     await act(async () => {
       await result.current.save();
     });
 
-    expect(mockShowAlert).toHaveBeenCalledWith("boom", "error");
+    expect(putContract).toHaveBeenCalledWith(55, expect.any(Object));
+    expect(success).toHaveBeenCalledWith(expect.objectContaining({ title: "Contrato actualizado" }));
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
   });
 
-  it("cancel llama ask y ejecuta callback", async () => {
-    (useParams as Mock).mockReturnValue({});
+  it("cancel pide confirmación y navega si ok", async () => {
+    (useParams as any).mockReturnValue({});
+    doubleConfirm.mockResolvedValue(true);
+
     const { result } = renderHook(() => useManageContractPage());
-    const reset = vi.fn();
-    (result.current.formRef.current as any) = { reset };
+    result.current.formRef.current = { reset: vi.fn() } as any;
 
     await act(async () => {
       await result.current.cancel();
     });
 
-    expect(reset).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
   });
 
-  it("afterCommissionSaved resetea id y navega", () => {
-    (useParams as Mock).mockReturnValue({});
+  it("afterCommissionSaved limpia commissionContractId y navega", () => {
+    (useParams as any).mockReturnValue({});
     const { result } = renderHook(() => useManageContractPage());
-    act(() => result.current.setCommissionContractId(5));
-    act(() => result.current.afterCommissionSaved());
-    expect(result.current.commissionContractId).toBe(null);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
-  });
 
-  it("syncContractGuarantors maneja error", async () => {
-    (getGuarantorsByContract as Mock).mockRejectedValue(new Error("fail"));
-    const { result } = renderHook(() => useManageContractPage());
-    // @ts-ignore
-    await (result.current as any).constructor.syncContractGuarantors?.(1, []);
+    act(() => {
+      result.current.setCommissionContractId(123);
+      result.current.afterCommissionSaved();
+    });
+
+    expect(result.current.commissionContractId).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
   });
 });

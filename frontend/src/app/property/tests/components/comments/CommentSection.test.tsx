@@ -1,11 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { usePropertyNotes } from '../../../hooks/usePropertyNotes';
 
 vi.mock('@mui/material/styles', () => ({}));
 
 const lastFormProps: any[] = [];
 const lastListProps: any[] = [];
+
+vi.mock('../../../hooks/usePropertyNotes', () => ({
+  usePropertyNotes: vi.fn(() => ({
+    removeComment: vi.fn(async () => true), // simula eliminación exitosa
+  })),
+}));
 
 vi.mock('../../../components/forms/CommentForm', () => ({
   CommentForm: (props: any) => {
@@ -76,7 +83,7 @@ const make = (over: Partial<Comment>): Comment => ({
 });
 
 describe('CommentSection', () => {
-  it('render inicial: muestra "Agregar Comentario", pasa props a CommentForm y contador de lista', () => {
+  it('render inicial: muestra "Agregar Comentario", pasa props a CommentForm y renderiza lista', () => {
     const items = [make({ id: 1 }), make({ id: 2 })];
     const refresh = vi.fn(async () => {});
     const getUserName = vi.fn((id: string) => `Name(${id})`);
@@ -102,8 +109,8 @@ describe('CommentSection', () => {
     expect(lastForm.propertyId).toBe(999);
     expect(lastForm.refresh).toBe(refresh);
 
-    // Contador en la lista
-    expect(screen.getByText('Lista de Comentarios (2)')).toBeInTheDocument();
+    // Encabezado de lista
+    expect(screen.getByText('Lista de Comentarios')).toBeInTheDocument();
 
     // CommentList visible
     expect(screen.getByTestId('comment-list')).toBeInTheDocument();
@@ -112,6 +119,33 @@ describe('CommentSection', () => {
     expect(lastList.items).toHaveLength(2);
     expect(lastList.getUserName).toBe(getUserName);
   });
+
+it('onDeleteItem llama removeComment del hook y luego refresh', async () => {
+  const items = [make({ id: 7 })];
+  const refresh = vi.fn(async () => {});
+  const removeComment = vi.fn(async () => true);
+
+  // Sobrescribimos la implementación del mock para este test
+  (usePropertyNotes as Mock).mockReturnValue({ removeComment });
+
+  render(
+    <CommentSection
+      propertyId={1}
+      loading={false}
+      items={items}
+      refresh={refresh}
+      getUserName={(id) => id}
+    />
+  );
+
+  fireEvent.click(screen.getByTestId('list-delete-first'));
+
+  // Esperamos a que se haya invocado removeComment
+  await waitFor(() => expect(removeComment).toHaveBeenCalledWith(items[0]));
+
+  // Y que luego se haya invocado refresh
+  await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+});
 
   it('al editar desde la lista cambia a "Editar Comentario" y el CommentForm recibe action="edit" e item', () => {
     const items = [make({ id: 10, description: 'A' }), make({ id: 20, description: 'B' })];
@@ -188,25 +222,4 @@ describe('CommentSection', () => {
     expect(screen.queryByTestId('comment-list')).not.toBeInTheDocument();
   });
 
-  it('onDeleteItem llama deleteComment y luego refresh', async () => {
-    const items = [make({ id: 7 })];
-    const refresh = vi.fn(async () => {});
-
-    render(
-      <CommentSection
-        propertyId={1}
-        loading={false}
-        items={items}
-        refresh={refresh}
-        getUserName={(id) => id}
-      />
-    );
-
-    fireEvent.click(screen.getByTestId('list-delete-first'));
-
-    await waitFor(() => expect(deleteCommentMock).toHaveBeenCalledTimes(1));
-    expect(deleteCommentMock.mock.calls[0][0].id).toBe(7);
-
-    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
-  });
 });

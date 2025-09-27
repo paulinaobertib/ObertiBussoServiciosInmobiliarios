@@ -53,12 +53,12 @@ beforeEach(() => {
 
 describe("ContractList", () => {
   it("muestra mensaje cuando no hay contratos", () => {
-    render(<ContractList contracts={[]} onDelete={() => {}} onToggleStatus={() => {}} />);
+    render(<ContractList contracts={[]} />);
     expect(screen.getByText(/No hay contratos/i)).toBeInTheDocument();
   });
 
   it("renderiza un ContractItem por cada contrato", () => {
-    render(<ContractList contracts={[c1, c2]} onDelete={() => {}} onToggleStatus={() => {}} />);
+    render(<ContractList contracts={[c1, c2]} />);
     const items = screen.getAllByTestId("contract-item");
     expect(items).toHaveLength(2);
     expect(items[0]).toHaveAttribute("data-id", "2"); // c2 primero (más reciente)
@@ -66,7 +66,7 @@ describe("ContractList", () => {
   });
 
   it("pasa las props correctas a ContractItem", () => {
-    render(<ContractList contracts={[c1]} onDelete={() => {}} onToggleStatus={() => {}} />);
+    render(<ContractList contracts={[c1]} />);
     const props = MockContractItem.mock.calls[0]?.[0] as any;
     expect(props.contract.id).toBe(1);
     expect(props.isAdmin).toBe(true);

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, CircularProgress, Typography, Card } from "@mui/material";
-import { Modal } from "../../../shared/components/Modal"; // <-- ajustar
-import { EmptyState } from "../../../shared/components/EmptyState"; // <-- ajustar
-import type { Owner } from "../../types/owner"; // <-- ajustar
-import type { Property } from "../../types/property"; // <-- ajustar
-import { useApiErrors } from "../../../shared/hooks/useErrors"; // <-- ajustar
-import { getPropertiesByOwner } from "../../services/owner.service"; // <-- ajustar
+import { Modal } from "../../../shared/components/Modal";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import type { Owner } from "../../types/owner";
+import type { Property } from "../../types/property";
+import { useApiErrors } from "../../../shared/hooks/useErrors";
+import { getPropertiesByOwner } from "../../services/owner.service";
 
 type Props = {
   open: boolean;
