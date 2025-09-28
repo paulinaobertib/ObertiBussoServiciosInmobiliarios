@@ -43,7 +43,7 @@ describe("SessionExpiredDialog", () => {
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
     // Mensaje real
     expect(
-      screen.getByText(/tu sesión ha caducado/i)
+      screen.getByText(/tu sesión finalizó/i)
     ).toBeInTheDocument();
   });
 

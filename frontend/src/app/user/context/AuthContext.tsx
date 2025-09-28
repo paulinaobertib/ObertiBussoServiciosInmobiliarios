@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { Role, User } from "../types/user";
 import { NotificationType, UserNotificationPreference } from "../types/notification";
 import {
@@ -66,9 +66,10 @@ const ensureDefaultPreferences = async (userId: string): Promise<UserNotificatio
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const stored = sessionStorage.getItem("authInfo");
+  const hasStoredInfo = Boolean(stored);
   const [info, setInfo] = useState<AuthInfo | null>(stored ? JSON.parse(stored) : null);
   const [loading, setLoading] = useState(!stored);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing] = useState(false);
   const [ready, setReady] = useState(Boolean(stored)); // listo para renderizar
   const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -80,18 +81,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isTenant = info?.roles.includes("TENANT" as Role) ?? false;
 
   //para que aparezcan seleccionadas las caracteristicas al editar un contrato
-  const clearPropertyUiState = () => {
+  const clearPropertyUiState = useCallback(() => {
     try {
       localStorage.removeItem("selectedPropertyId");
       localStorage.removeItem("propertyCategorySelection");
     } catch {}
-  };
+  }, []);
 
-  const broadcastAuthEvent = (type: "login" | "logout" | "user-loaded" | "session-expired") => {
+  const broadcastAuthEvent = useCallback((type: "login" | "logout" | "user-loaded" | "session-expired") => {
     try {
       window.dispatchEvent(new CustomEvent("auth:event", { detail: { type } }));
     } catch {}
-  };
+  }, []);
+
+  const markSessionExpired = useCallback(() => {
+    setInfo(null);
+    setReady(false);
+    setSessionExpired(true);
+    clearPropertyUiState();
+    broadcastAuthEvent("session-expired");
+  }, [broadcastAuthEvent, clearPropertyUiState]);
 
   // Sincronizar con sessionStorage
   useEffect(() => {
@@ -102,10 +111,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Carga completa de info de sesión
   const loadUserInfo = async () => {
     setLoading(true);
-    setReady(false);
+    if (isLogged) setReady(false);
     try {
       // 1) datos básicos
-      const { data: user } = await getMe();
+      const meResponse = await getMe();
+      const user = meResponse?.data ?? meResponse;
+      if (!user) throw new Error("No se pudo obtener la información del usuario");
 
       // 3) si no hay roles, asignar principal y reintentar obtenerlos
       await addPrincipalRole();
@@ -113,15 +124,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await sleep(1000);
 
       // 2) roles (pueden venir vacíos en primer login)
-      let { data: rawRoles } = await getRoles(user.id);
+      const rolesResponse = await getRoles(user.id);
+      let rawRoles: string[] = rolesResponse?.data ?? rolesResponse ?? [];
       let roles = rawRoles.map((r: string) => r.toUpperCase() as Role);
 
       // Reintenta 5 veces con 700ms entre intentos
       rawRoles = await retry(
         async () => {
           const resp = await getRoles(user.id);
-          if (!resp.data || !resp.data.length) throw new Error("Roles aún no asignados");
-          return resp.data;
+          const data = resp?.data ?? resp ?? [];
+          if (!data.length) throw new Error("Roles aún no asignados");
+          return data;
         },
         { attempts: 5, delayMs: 700 }
       );
@@ -142,10 +155,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearPropertyUiState();
       broadcastAuthEvent("user-loaded");
       setReady(true);
-    } catch (e) {
-      // si algo falla, limpiamos y marcamos no listo
-      setInfo(null);
-      setReady(false);
+    } catch (e: any) {
+      const status = e?.response?.status ?? e?.status;
+      if (status === 401 || status === 403) {
+        if (isLogged || hasStoredInfo) {
+          markSessionExpired();
+        } else {
+          setSessionExpired(false);
+          setReady(true);
+        }
+      } else {
+        // si algo falla, limpiamos y marcamos no listo
+        setInfo(null);
+        setReady(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -162,6 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem("postLoginNext", next);
     } catch {}
     setSessionExpired(false);
+    setReady(false);
+    setLoading(true);
 
     clearPropertyUiState(); // limpia selección/estado previo
     broadcastAuthEvent("login"); // por si otro contexto quiere reaccionar
@@ -172,6 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setInfo(null);
     setSessionExpired(false);
+    setReady(false);
+    setLoading(true);
     sessionStorage.clear();
 
     clearPropertyUiState(); // idem
@@ -189,31 +216,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadUserInfo();
   };
 
-  // Interceptor mínimo: si detectamos caducidad, mostramos diálogo
+  // Interceptor mínimo: si detectamos caducidad, intentamos refrescar y, si falla, marcamos sesión expirada
   useEffect(() => {
     const resId = api.interceptors.response.use(
       (resp) => resp,
       async (error: any) => {
+        const status = error?.response?.status;
+        const originalRequest = error?.config as { _retry?: boolean } | undefined;
+
+        if ((status === 401 || status === 403) && originalRequest) {
+          if (!isLogged) {
+            return Promise.reject(error);
+          }
+          if (originalRequest._retry) {
+            markSessionExpired();
+            return Promise.reject(error);
+          }
+
+          originalRequest._retry = true;
+          try {
+            const next = window.location.pathname + window.location.search;
+            sessionStorage.setItem("postLoginNext", next);
+          } catch {}
+
+          markSessionExpired();
+          return Promise.reject(error);
+        }
+
         // 1) NetworkError (sin response) y estamos online -> tratar como sesión expirada
-        if (!error?.response) {
+        if (!error?.response && isLogged) {
           const isOnline = typeof navigator === "undefined" ? true : navigator.onLine;
           if (isOnline) {
             try {
               const next = window.location.pathname + window.location.search;
               sessionStorage.setItem("postLoginNext", next);
             } catch {}
-            setRefreshing(false);
-            setSessionExpired(true);
-            broadcastAuthEvent("session-expired"); // notifica evento global
+            markSessionExpired();
           }
-          return Promise.reject(error);
         }
+        return Promise.reject(error);
       }
     );
     return () => {
       api.interceptors.response.eject(resId);
     };
-  }, []);
+  }, [isLogged, markSessionExpired]);
 
   useEffect(() => {
     if (!ready || !isLogged) return;
