@@ -654,7 +654,7 @@ public class ContractService implements IContractService {
             userRepository.deleteRoleToUser(user.get().getId(), "tenant");
 
             propertyRepository.updateStatusEspera(contract.getPropertyId());
-            
+
             if (!user.isEmpty()) {
                 updateStatus(contract.getId());
 
