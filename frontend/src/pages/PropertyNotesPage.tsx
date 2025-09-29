@@ -1,4 +1,3 @@
-// /pages/PropertyNotesPage.tsx
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, IconButton, CircularProgress, Card } from '@mui/material';

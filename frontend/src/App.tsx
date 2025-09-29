@@ -23,8 +23,8 @@ function App() {
   return (
     <React.StrictMode>
       <ThemeProvider theme={theme}>
-        <BrowserRouter>
-          <AlertProvider>
+        <AlertProvider>
+          <BrowserRouter>
             <AuthProvider>
               <PropertyCrudProvider>
                 <ChatProvider>
@@ -36,8 +36,8 @@ function App() {
                 </ChatProvider>
               </PropertyCrudProvider>
             </AuthProvider>
-          </AlertProvider>
-        </BrowserRouter>
+          </BrowserRouter>
+        </AlertProvider>
       </ThemeProvider>
     </React.StrictMode>
   );

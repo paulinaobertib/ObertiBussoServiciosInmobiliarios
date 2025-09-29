@@ -9,10 +9,7 @@ export interface NoticeFormState {
   mainImage: Image | null;
 }
 
-export function useNoticeForm(
-  initial?: NoticeFormState,
-  onValidChange?: (v: boolean) => void
-) {
+export function useNoticeForm(initial?: NoticeFormState, onValidChange?: (v: boolean) => void) {
   /* ---------- estado base ---------- */
   const [form, setForm] = useState<NoticeFormState>({
     id: initial?.id,
@@ -30,16 +27,10 @@ export function useNoticeForm(
   }, [mainImage]);
 
   /* ---------- helpers ---------- */
-  const setField = <K extends keyof NoticeFormState>(
-    k: K,
-    v: NoticeFormState[K]
-  ) => setForm((f) => ({ ...f, [k]: v }));
+  const setField = <K extends keyof NoticeFormState>(k: K, v: NoticeFormState[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   /* ---------- validación ---------- */
-  const valid =
-    form.title.trim() !== "" &&
-    form.description.trim() !== "" &&
-    form.mainImage !== null;
+  const valid = form.title.trim() !== "" && form.description.trim() !== "" && form.mainImage !== null;
 
   useEffect(() => onValidChange?.(valid), [valid, onValidChange]);
 
@@ -54,7 +45,7 @@ export function useNoticeForm(
 
   return {
     form,
-    /* API pública para el componente */
+
     setField,
     setMain,
     validate: () => valid,

@@ -3,7 +3,7 @@ import { getAllAmenities } from '../services/amenity.service';
 import { getAllOwners } from '../services/owner.service';
 import { getAllNeighborhoods } from '../services/neighborhood.service';
 import { getAllTypes } from '../services/type.service';
-import { getAllProperties, getPropertyById } from '../services/property.service';
+import { getAllProperties, getAvailableProperties, getPropertyById } from '../services/property.service';
 
 import { Amenity } from '../types/amenity';
 import { Owner } from '../types/owner';
@@ -39,7 +39,7 @@ interface Ctx {
   refreshOwners: () => Promise<void>;
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
-  refreshProperties: () => Promise<void>;
+  refreshProperties: (mode?: 'all' | 'available') => Promise<void>;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
@@ -91,8 +91,9 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setTypesList(Array.isArray(list) ? list : []);
   }, []);
 
-  const refreshProperties = useCallback(async () => {
-    const list = await getAllProperties();
+  const refreshProperties = useCallback(async (mode: 'all' | 'available' = 'all') => {
+    const fetcher = mode === 'available' ? getAvailableProperties : getAllProperties;
+    const list = await fetcher();
     setPropertiesList(Array.isArray(list) ? list : []);
   }, []);
 

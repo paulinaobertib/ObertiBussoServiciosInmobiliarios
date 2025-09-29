@@ -1,4 +1,3 @@
-// src/features/properties/components/FavoriteButton.tsx
 import { MouseEvent } from 'react';
 import { IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';

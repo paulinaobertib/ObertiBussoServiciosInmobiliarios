@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
-import { getAllSurveys } from '../../services/survey.service'; // Ajusta el path si es necesario
+import { Box, CircularProgress } from '@mui/material';
+import { EmptyState } from '../../../shared/components/EmptyState';
+import { getAllSurveys } from '../../services/survey.service';
 import { SurveysList } from './SurveyList';
 
 interface Survey {
@@ -36,8 +37,8 @@ export const SurveysSection = () => {
 
     if (error) {
         return (
-            <Box p={3}>
-                <Typography color="error" align="center">{error}</Typography>
+            <Box>
+                <EmptyState title="No pudimos cargar las valoraciones." tone="error" />
             </Box>
         );
     }

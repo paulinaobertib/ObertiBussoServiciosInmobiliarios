@@ -23,6 +23,15 @@ let theme = createTheme({
     background: { default: "#FFFFFF" },
   },
   components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: 8,
+          fontWeight: 600,
+        },
+      },
+    },
     MuiListItemButton: {
       styleOverrides: {
         root: {
@@ -40,6 +49,61 @@ let theme = createTheme({
             backgroundColor: "#FFE0B2",
             "&:hover": { backgroundColor: "#FFD699" },
           },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: 8,
+          border: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: "0px 12px 32px rgba(15, 23, 42, 0.08)",
+        }),
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          '& fieldset': {
+            borderRadius: 8,
+          },
+        },
+        input: {
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiFilledInput: {
+      styleOverrides: {
+        root: {
+          borderTopLeftRadius: 8,
+          borderTopRightRadius: 8,
+        },
+      },
+    },
+    MuiAutocomplete: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 8,
+        },
+        option: {
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
         },
       },
     },

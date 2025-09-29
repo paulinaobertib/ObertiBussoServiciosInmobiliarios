@@ -17,10 +17,22 @@ vi.mock("../../services/increaseIndex.service", () => ({
   deleteIncreaseIndex: vi.fn(),
 }));
 
-// Mock de useApiErrors
+// --- Mock de useApiErrors ---
 const mockHandleError = vi.fn();
 vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: mockHandleError }),
+}));
+
+// --- Mock de useGlobalAlert ---
+const mockAlert = {
+  success: vi.fn(),
+  warning: vi.fn(),
+  confirm: vi.fn(),
+  doubleConfirm: vi.fn().mockResolvedValue(true),
+  showAlert: vi.fn(),
+};
+vi.mock("../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => mockAlert,
 }));
 
 import * as service from "../../services/increaseIndex.service";
@@ -68,26 +80,24 @@ describe("useIncreaseIndexes", () => {
     ]);
   });
 
-it("fetchByText usa fallback local si no encuentra nada remoto", async () => {
-  (service.getIncreaseIndexByName as any).mockResolvedValue(null);
-  (service.getIncreaseIndexByCode as any).mockResolvedValue(null);
+  it("fetchByText usa fallback local si no encuentra nada remoto", async () => {
+    (service.getIncreaseIndexByName as any).mockResolvedValue(null);
+    (service.getIncreaseIndexByCode as any).mockResolvedValue(null);
 
-  const { result } = renderHook(() => useIncreaseIndexes());
+    const { result } = renderHook(() => useIncreaseIndexes());
 
-  // Simular loadAll para llenar indexes
-  (service.getAllIncreaseIndexes as any).mockResolvedValue([
-    { id: 1, code: "AAA", name: "Nombre" },
-  ]);
-  await result.current.loadAll();
+    (service.getAllIncreaseIndexes as any).mockResolvedValue([
+      { id: 1, code: "AAA", name: "Nombre" },
+    ]);
+    await result.current.loadAll();
 
-  // esperar a que indexes se actualice en el estado
-  await waitFor(() => {
-    expect(result.current.indexes).toEqual([{ id: 1, code: "AAA", name: "Nombre" }]);
+    await waitFor(() => {
+      expect(result.current.indexes).toEqual([{ id: 1, code: "AAA", name: "Nombre" }]);
+    });
+
+    const res = await result.current.fetchByText("aaa");
+    expect(res).toEqual([{ id: 1, code: "AAA", name: "Nombre" }]);
   });
-
-  const res = await result.current.fetchByText("aaa");
-  expect(res).toEqual([{ id: 1, code: "AAA", name: "Nombre" }]);
-});
 
   it("fetchById retorna index o null", async () => {
     (service.getIncreaseIndexById as any).mockResolvedValue({ id: 10 });
@@ -119,6 +129,7 @@ it("fetchByText usa fallback local si no encuentra nada remoto", async () => {
 
     const created = await result.current.create({ code: "C1", name: "N1" } as any);
     expect(created).toEqual({ id: 1, code: "C1", name: "N1" });
+    expect(mockAlert.success).toHaveBeenCalled();
   });
 
   it("update y remove retornan true en éxito, false en error", async () => {

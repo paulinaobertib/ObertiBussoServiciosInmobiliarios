@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Box, CircularProgress } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
-import { useFavorites } from '../../hooks/useFavorites';
-import { getPropertyById } from '../../../property/services/property.service';
-import type { Property } from '../../../property/types/property';
-import { CatalogList } from '../../../property/components/catalog/CatalogList';
+import { useFavorites } from "../../hooks/useFavorites";
+import { getPropertyById } from "../../../property/services/property.service";
+import type { Property } from "../../../property/types/property";
+import { CatalogList } from "../../../property/components/catalog/CatalogList";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 export const FavoritesPanel = () => {
   const navigate = useNavigate();
@@ -17,21 +18,20 @@ export const FavoritesPanel = () => {
     let mounted = true;
     if (favorites.length === 0) {
       setFavoriteProps([]);
+      setLoadingProps(false);
       return;
     }
     setLoadingProps(true);
     (async () => {
       const results = await Promise.all(
-        favorites.map(f =>
+        favorites.map((f) =>
           getPropertyById(f.propertyId)
-            .then(r => (r as any).data ?? r)
+            .then((r) => (r as any).data ?? r)
             .catch(() => null)
         )
       );
       if (!mounted) return;
-      setFavoriteProps(
-        results.filter((p): p is Property => !!p && typeof p.id === 'number')
-      );
+      setFavoriteProps(results.filter((p): p is Property => !!p && typeof p.id === "number"));
       setLoadingProps(false);
     })();
     return () => {
@@ -41,13 +41,11 @@ export const FavoritesPanel = () => {
 
   const loading = favLoading || loadingProps;
 
-  const availableFavorites = favoriteProps.filter(
-    p => (p.status || '').trim().toLowerCase() === 'disponible'
-  );
+  const availableFavorites = favoriteProps.filter((p) => (p.status || "").trim().toLowerCase() === "disponible");
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
         <CircularProgress size={36} />
       </Box>
     );
@@ -55,18 +53,13 @@ export const FavoritesPanel = () => {
 
   if (availableFavorites.length === 0) {
     return (
-      <Box sx={{ p: 2, textAlign: 'center' }}>
-        <Typography color="text.secondary">
-          No tienes favoritos disponibles.
-        </Typography>
-      </Box>
+      <EmptyState
+        title={"No tienes favoritos disponibles"}
+        description="Puedes agregar los tuyos desde el catalogo."
+        minHeight={220}
+      />
     );
   }
 
-  return (
-    <CatalogList
-      properties={availableFavorites}
-      onCardClick={prop => navigate(`/properties/${prop.id}`)}
-    />
-  );
+  return <CatalogList properties={availableFavorites} onCardClick={(prop) => navigate(`/properties/${prop.id}`)} />;
 };

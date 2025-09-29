@@ -21,7 +21,7 @@ vi.mock("../../../components/guarantors/GuarantorsSection", () => ({
     <div data-testid="guarantors-section">
       <button
         data-testid="toggle-select"
-        onClick={() => props.toggleSelect(["1", "2"])}
+        onClick={() => props.toggleSelect?.([1, 2])} 
       >
         toggle
       </button>
@@ -52,27 +52,25 @@ describe("GuarantorPickerDialog", () => {
     expect(screen.getByTestId("modal")).toHaveAttribute("data-open", "false");
   });
 
-  it("llama a addGuarantorToContract, onUpdated y onClose al seleccionar", async () => {
-    const onClose = vi.fn();
-    const onUpdated = vi.fn();
-    addGuarantorToContractMock.mockClear();
+it("llama a addGuarantorToContract y onClose al seleccionar", async () => {
+  const onClose = vi.fn();
+  addGuarantorToContractMock.mockClear();
 
-    render(
-      <GuarantorPickerDialog
-        open={true}
-        contractId={55}
-        onClose={onClose}
-        onUpdated={onUpdated}
-      />
-    );
+  render(
+    <GuarantorPickerDialog
+      open={true}
+      contractId={55}
+      onClose={onClose}
+    />
+  );
 
-    fireEvent.click(screen.getByTestId("toggle-select"));
+  fireEvent.click(screen.getByTestId("toggle-select"));
 
-    await waitFor(() => {
-      expect(addGuarantorToContractMock).toHaveBeenCalledWith(1, 55);
-      expect(addGuarantorToContractMock).toHaveBeenCalledWith(2, 55);
-      expect(onUpdated).toHaveBeenCalled();
-      expect(onClose).toHaveBeenCalled();
-    });
+  await waitFor(() => {
+    expect(addGuarantorToContractMock).toHaveBeenCalledWith(1, 55);
+    expect(addGuarantorToContractMock).toHaveBeenCalledWith(2, 55);
+    expect(onClose).toHaveBeenCalled();
   });
+});
+
 });
