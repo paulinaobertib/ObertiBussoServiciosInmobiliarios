@@ -30,9 +30,20 @@ interface Props {
   disableCurrency?: boolean;
 }
 
-export const PaymentForm = ({ contractId, initialValues, onChange, externalConcept, externalContractUtilityId, hideConceptSelect, hideUtilitySelect, hideCommissionInfo, disableAmount, disableCurrency }: Props) => {
+export const PaymentForm = ({
+  contractId,
+  initialValues,
+  onChange,
+  externalConcept,
+  externalContractUtilityId,
+  hideConceptSelect,
+  hideUtilitySelect,
+  hideCommissionInfo,
+  disableCurrency,
+}: Props) => {
   const currencies = Object.values(PaymentCurrency) as PaymentCurrency[];
-  const currencyLabel = (c: PaymentCurrency) => (c === PaymentCurrency.ARS ? "Peso argentino" : c === PaymentCurrency.USD ? "Dólar" : c);
+  const currencyLabel = (c: PaymentCurrency) =>
+    c === PaymentCurrency.ARS ? "Peso argentino" : c === PaymentCurrency.USD ? "Dólar" : c;
   const concepts = Object.values(PaymentConcept) as PaymentConcept[];
   const labelize = (s: string) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : "");
 
@@ -54,9 +65,7 @@ export const PaymentForm = ({ contractId, initialValues, onChange, externalConce
     onChange(vals);
   }, [vals, onChange]);
 
-  const handle = (field: keyof PaymentFormValues) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handle = (field: keyof PaymentFormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
     let value: any = e.target.value;
     if (field === "amount") {
       value = value === "" ? "" : Number(value);
@@ -150,19 +159,13 @@ export const PaymentForm = ({ contractId, initialValues, onChange, externalConce
             label="Monto"
             value={vals.amount}
             onChange={handle("amount")}
-            disabled={!!disableAmount}
+            // disabled={!!disableAmount}
           />
         </Grid>
 
         {!hideConceptSelect && (
           <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              select
-              fullWidth
-              label="Concepto"
-              value={vals.concept}
-              onChange={handle("concept")}
-            >
+            <TextField select fullWidth label="Concepto" value={vals.concept} onChange={handle("concept")}>
               {concepts.map((c) => (
                 <MenuItem key={c} value={c}>
                   {labelize(c)}
@@ -173,12 +176,7 @@ export const PaymentForm = ({ contractId, initialValues, onChange, externalConce
         )}
 
         <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            fullWidth
-            label="Descripción"
-            value={vals.description}
-            onChange={handle("description")}
-          />
+          <TextField fullWidth label="Descripción" value={vals.description} onChange={handle("description")} />
         </Grid>
 
         <Grid size={{ xs: 12, sm: 6 }}>

@@ -8,6 +8,13 @@ interface FormProps {
 }
 
 export function ProfileForm({ user, editMode, onChange }: FormProps) {
+    const labels: Partial<Record<keyof User, string>> = {
+        userName: "Nombre de usuario",
+        firstName: "Nombre",
+        lastName: "Apellido",
+        email: "Correo electrónico",
+        phone: "Teléfono",
+    };
     return (
         <Grid
             container
@@ -20,7 +27,7 @@ export function ProfileForm({ user, editMode, onChange }: FormProps) {
                 field => (
                     <Grid size={{ xs: 12, sm: field === 'userName' ? 12 : 6 }} key={field}>
                         <TextField
-                            label={field}
+                            label={labels[field] ?? field}
                             value={user[field] || ''}
                             onChange={e => onChange(field, e.target.value)}
                             fullWidth

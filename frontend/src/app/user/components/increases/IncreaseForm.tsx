@@ -4,7 +4,7 @@ import type { PaymentCurrency } from "../../types/payment";
 
 export interface IncreaseFormValues {
   date: string;
-  amount: number | "";
+  amount: number | ""; // seguirá pudiendo estar vacío
   currency: PaymentCurrency | "";
   adjustment?: number | "";
   note?: string;
@@ -16,30 +16,42 @@ interface Props {
 }
 
 export const IncreaseForm = ({ initialValues, onChange }: Props) => {
-  const currencies = ["ARS", "USD"] as PaymentCurrency[];
-  const currencyLabel = (c: PaymentCurrency | "") => (c === "ARS" ? "Peso argentino" : c === "USD" ? "Dólar" : "");
-
   const [vals, setVals] = useState<IncreaseFormValues>({
-    date: initialValues?.date ?? "",
+    date: initialValues?.date ?? new Date().toISOString().slice(0, 10),
     amount: initialValues?.amount ?? "",
     currency: (initialValues?.currency as PaymentCurrency) ?? "",
-    adjustment: (initialValues as any)?.adjustment ?? "",
+    adjustment: initialValues?.adjustment ?? "",
     note: initialValues?.note ?? "",
   });
 
+  const currencies = ["ARS", "USD"] as PaymentCurrency[];
+  const currencyLabel = (c: PaymentCurrency | "") => (c === "ARS" ? "Peso argentino" : c === "USD" ? "Dólar" : "");
+
+  // 🔸 Normaliza números cuando cambian los inputs
+  const handle =
+    <K extends keyof IncreaseFormValues>(key: K) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value;
+
+      const value =
+        key === "amount" || key === "adjustment"
+          ? raw === ""
+            ? ""
+            : Number(raw) // <- string -> number (o "")
+          : raw;
+
+      setVals((prev) => {
+        const next = { ...prev, [key]: value } as IncreaseFormValues;
+        onChange(next); // propaga al padre en cada cambio
+        return next;
+      });
+    };
+
+  // 🔸 Enviar un onChange inicial al montar (evita vals indefinidos en el padre)
   useEffect(() => {
     onChange(vals);
-  }, [vals, onChange]);
-
-  const handle = (field: keyof IncreaseFormValues) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value: any = e.target.value;
-    if (field === "amount" || field === "adjustment") {
-      value = value === "" ? "" : Number(value);
-    } else if (field === "currency") {
-      value = value as PaymentCurrency;
-    }
-    setVals((prev) => ({ ...prev, [field]: value }));
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box component="form" noValidate>

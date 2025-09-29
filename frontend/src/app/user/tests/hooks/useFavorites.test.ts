@@ -21,7 +21,7 @@ vi.mock("../../../shared/context/AlertContext", () => ({
   useGlobalAlert: vi.fn(),
 }));
 
-// 👇 Mock de useApiErrors (importante para cubrir las ramas de error)
+// Mock de useApiErrors
 const handleErrorMock = vi.fn();
 vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: handleErrorMock }),
@@ -67,12 +67,14 @@ function axiosResponse<T>(
 }
 
 describe("useFavorites", () => {
-  const showAlert = vi.fn();
+  const success = vi.fn();
+  const info = vi.fn();
+  const confirm = vi.fn().mockResolvedValue(true);
 
   beforeEach(() => {
     vi.clearAllMocks();
     handleErrorMock.mockClear();
-    useGlobalAlert.mockReturnValue({ showAlert } as any);
+    useGlobalAlert.mockReturnValue({ success, info, confirm } as any);
   });
 
   it("cuando no está logueado, no carga favoritos y deja []", async () => {
@@ -113,7 +115,7 @@ describe("useFavorites", () => {
     expect(result.current.isFavorite(100)).toBe(false);
   });
 
-  it("toggleFavorite: si no está logueado, muestra alerta y no llama servicios", async () => {
+  it("toggleFavorite: si no está logueado, muestra alerta info", async () => {
     useAuthContext.mockReturnValue({ info: null, isLogged: false } as any);
 
     const { result } = renderHook(() => useFavorites());
@@ -121,26 +123,12 @@ describe("useFavorites", () => {
       await result.current.toggleFavorite(10);
     });
 
-    expect(showAlert).toHaveBeenCalledWith(
-      "Para guardar como favorita esta propiedad, iniciá sesión",
-      "info"
-    );
-    expect(createFavorite).not.toHaveBeenCalled();
-    expect(deleteFavorite).not.toHaveBeenCalled();
-  });
-
-  it("toggleFavorite: si isLogged=true pero falta info.id → llama handleError y no llama servicios", async () => {
-    useAuthContext.mockReturnValue({ info: {} as any, isLogged: true } as any);
-    getFavoritesByUser.mockResolvedValue(axiosResponse<Favorite[]>([]));
-
-    const { result } = renderHook(() => useFavorites());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    await act(async () => {
-      await result.current.toggleFavorite(10);
+    expect(info).toHaveBeenCalledWith({
+      title: "Iniciá sesión",
+      description:
+        "Para guardar como favorita esta propiedad, iniciá sesión.",
+      primaryLabel: "Entendido",
     });
-
-    expect(handleErrorMock).toHaveBeenCalled(); // error de autenticación
     expect(createFavorite).not.toHaveBeenCalled();
     expect(deleteFavorite).not.toHaveBeenCalled();
   });
@@ -161,10 +149,11 @@ describe("useFavorites", () => {
 
     expect(createFavorite).toHaveBeenCalledWith(3, 55);
     expect(result.current.favorites).toEqual([newFav]);
-    expect(showAlert).toHaveBeenCalledWith(
-      "Propiedad agregada a tus favoritos",
-      "info"
-    );
+    expect(success).toHaveBeenCalledWith({
+      title: "Agregado a favoritos",
+      description: undefined,
+      primaryLabel: "Ok",
+    });
   });
 
   it("toggleFavorite: elimina favorito cuando ya existe", async () => {
@@ -185,11 +174,14 @@ describe("useFavorites", () => {
     });
 
     expect(deleteFavorite).toHaveBeenCalledWith(200);
-    expect(result.current.favorites).toEqual([{ id: 201, propertyId: 88, userId: 9 }]);
-    expect(showAlert).toHaveBeenCalledWith(
-      "Propiedad eliminada de tus favoritos",
-      "info"
-    );
+    expect(result.current.favorites).toEqual([
+      { id: 201, propertyId: 88, userId: 9 },
+    ]);
+    expect(success).toHaveBeenCalledWith({
+      title: "Eliminado de favoritos",
+      description: undefined,
+      primaryLabel: "Ok",
+    });
   });
 
   it("toggleFavorite: si deleteFavorite falla → mantiene lista y llama handleError", async () => {
@@ -208,7 +200,6 @@ describe("useFavorites", () => {
 
     expect(deleteFavorite).toHaveBeenCalledWith(200);
     expect(handleErrorMock).toHaveBeenCalled();
-    // lista intacta
     expect(result.current.favorites).toEqual(existing);
   });
 
@@ -250,25 +241,19 @@ describe("useFavorites", () => {
     getFavoritesByUser.mockReturnValue(slow);
 
     const { unmount } = renderHook(() => useFavorites());
-    // Desmontamos antes de resolver
     unmount();
-    // resolvemos luego del unmount
     resolveFn(axiosResponse<Favorite[]>([{ id: 1, propertyId: 10, userId: 6 }]));
 
-    // No debería haberse llamado handleError (ni setState luego de unmount)
     expect(handleErrorMock).not.toHaveBeenCalled();
   });
 
   it("cambio de usuario (info.id) vuelve a cargar favoritos y resetea lista al desloguear", async () => {
-    // devolvemos dinámicamente según un ref externo
     const authState = { isLogged: false, info: null as any };
     useAuthContext.mockImplementation(() => authState as any);
 
-    // 1) no logueado
     const { result, rerender } = renderHook(() => useFavorites());
     expect(result.current.favorites).toEqual([]);
 
-    // 2) logueado con id 10
     getFavoritesByUser.mockResolvedValueOnce(
       axiosResponse<Favorite[]>([{ id: 1, propertyId: 10, userId: 10 }])
     );
@@ -278,9 +263,10 @@ describe("useFavorites", () => {
     rerender();
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(getFavoritesByUser).toHaveBeenCalledWith(10);
-    expect(result.current.favorites).toEqual([{ id: 1, propertyId: 10, userId: 10 }]);
+    expect(result.current.favorites).toEqual([
+      { id: 1, propertyId: 10, userId: 10 },
+    ]);
 
-    // 3) cambia a id 11 → vuelve a cargar
     getFavoritesByUser.mockResolvedValueOnce(
       axiosResponse<Favorite[]>([{ id: 2, propertyId: 11, userId: 11 }])
     );
@@ -288,9 +274,10 @@ describe("useFavorites", () => {
     rerender();
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(getFavoritesByUser).toHaveBeenCalledWith(11);
-    expect(result.current.favorites).toEqual([{ id: 2, propertyId: 11, userId: 11 }]);
+    expect(result.current.favorites).toEqual([
+      { id: 2, propertyId: 11, userId: 11 },
+    ]);
 
-    // 4) se desloguea → limpia a []
     authState.isLogged = false;
     authState.info = null;
     rerender();

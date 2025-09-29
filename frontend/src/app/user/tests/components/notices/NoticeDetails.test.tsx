@@ -4,7 +4,6 @@ import { NoticeDetails } from "../../../components/notices/NoticeDetails";
 import { useNotices } from "../../../hooks/useNotices";
 import { useAuthContext } from "../../../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
-import { useConfirmDialog } from "../../../../shared/components/ConfirmDialog";
 
 // ----- Mocks -----
 vi.mock("../../../hooks/useNotices");
@@ -17,17 +16,10 @@ vi.mock("react-router-dom", async () => {
     useNavigate: vi.fn(),
   };
 });
-vi.mock("../../../../shared/components/ConfirmDialog", () => ({
-  Modal: ({ children }: any) => <div>{children}</div>,
-}));
-vi.mock("../../../../shared/components/ConfirmDialog", () => ({
-  useConfirmDialog: vi.fn(),
-}));
 vi.mock("../../../components/notices/NoticeForm", () => {
   const React = require("react");
   const NoticeForm = React.forwardRef((props: any, ref: any) => {
     const { onValidityChange } = props;
-    // Permite que el test cambie qué devuelve getUpdateData
     React.useImperativeHandle(ref, () => ({
       getUpdateData: () =>
         (globalThis as any).__UPDATED_DATA__ ?? {
@@ -46,13 +38,10 @@ vi.mock("../../../components/notices/NoticeForm", () => {
   return { NoticeForm };
 });
 
-
-describe("NoticeDetails ", () => {
+describe("NoticeDetails", () => {
   const navigateMock = vi.fn();
   const removeMock = vi.fn();
   const editMock = vi.fn();
-  const askMock = vi.fn();
-  const DialogUI = <div>DialogUI</div>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,18 +50,30 @@ describe("NoticeDetails ", () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: true });
     (useNotices as any).mockReturnValue({
       notices: [
-        { id: 1, title: "Notice 1", description: "Desc", date: new Date(), mainImage: "img.png", userId: 99 }
+        {
+          id: 1,
+          title: "Notice 1",
+          description: "Desc",
+          date: new Date(),
+          mainImage: "img.png",
+          userId: 99,
+        },
       ],
       edit: editMock,
       remove: removeMock,
     });
-    (useConfirmDialog as any).mockReturnValue({ ask: askMock, DialogUI });
   });
 
   it("Muestra mensaje cuando la noticia no se encuentra", () => {
     (useParams as any).mockReturnValue({ id: "999" });
+    (useNotices as any).mockReturnValue({ notices: [], edit: editMock, remove: removeMock });
+
     render(<NoticeDetails />);
-    expect(screen.getByText(/Noticia no encontrada/i)).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/No encontramos esta noticia/i)
+    ).toBeInTheDocument();
+
     fireEvent.click(screen.getByText(/Volver/i));
     expect(navigateMock).toHaveBeenCalledWith(-1);
   });
@@ -83,11 +84,13 @@ describe("NoticeDetails ", () => {
     expect(screen.getByAltText("Notice 1")).toBeInTheDocument();
   });
 
-  it("Elimina la noticia al confirmar en el diálogo", async () => {
-    askMock.mockImplementation(async (_msg, cb) => cb());
+  it("Elimina la noticia y navega atrás si remove devuelve true", async () => {
+    removeMock.mockResolvedValueOnce(true);
+
     render(<NoticeDetails />);
     const deleteButton = screen.getByLabelText("Eliminar noticia");
     fireEvent.click(deleteButton);
+
     await waitFor(() => expect(removeMock).toHaveBeenCalledWith(1));
     expect(navigateMock).toHaveBeenCalledWith(-1);
   });
@@ -99,89 +102,76 @@ describe("NoticeDetails ", () => {
   });
 
   it("abre el modal de edición, habilita Guardar y llama edit con el payload; luego cierra el modal", async () => {
-  render(<NoticeDetails />);
+    editMock.mockResolvedValueOnce(true);
 
-  // Abre modal
-  fireEvent.click(screen.getByLabelText("Editar noticia"));
-  // Título del modal visible
-  expect(screen.getByText("Editar noticia")).toBeInTheDocument();
+    render(<NoticeDetails />);
 
-  // Guardar debe estar deshabilitado hasta que el formulario sea válido
-  const guardarBtn = screen.getByRole("button", { name: /guardar/i });
-  expect(guardarBtn).toBeDisabled();
+    // Abrir modal
+    fireEvent.click(screen.getByLabelText("Editar noticia"));
+    expect(screen.getByText("Editar noticia")).toBeInTheDocument();
 
-  // Habilitar validez desde el mock del formulario
-  fireEvent.click(screen.getByText("set-valid"));
-  expect(guardarBtn).not.toBeDisabled();
+    const guardarBtn = screen.getByRole("button", { name: /guardar/i });
+    expect(guardarBtn).toBeDisabled();
 
-  // Configuramos qué quiere devolver getUpdateData()
-  (globalThis as any).__UPDATED_DATA__ = {
-    title: "Edited by test",
-    description: "Edited description",
-    mainImage: "new.png",
-  };
+    // Simular validez
+    fireEvent.click(screen.getByText("set-valid"));
+    expect(guardarBtn).not.toBeDisabled();
 
-  fireEvent.click(guardarBtn);
+    (globalThis as any).__UPDATED_DATA__ = {
+      title: "Edited by test",
+      description: "Edited description",
+      mainImage: "new.png",
+    };
 
-  await waitFor(() => {
-    expect(editMock).toHaveBeenCalledTimes(1);
+    fireEvent.click(guardarBtn);
+
+    await waitFor(() => {
+      expect(editMock).toHaveBeenCalledWith({
+        id: 1,
+        userId: 99,
+        title: "Edited by test",
+        description: "Edited description",
+        mainImage: "new.png",
+      });
+    });
+
+    // Modal se cierra
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    (globalThis as any).__UPDATED_DATA__ = undefined;
   });
 
-  // Payload incluye id y userId del notice + lo devuelto por getUpdateData
-  expect(editMock).toHaveBeenCalledWith({
-    id: 1,
-    userId: 99,
-    title: "Edited by test",
-    description: "Edited description",
-    mainImage: "new.png",
+  it("cierra el modal al pulsar la X", async () => {
+    render(<NoticeDetails />);
+    fireEvent.click(screen.getByLabelText("Editar noticia"));
+    expect(screen.getByText("Editar noticia")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText(/cerrar modal/i));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
   });
 
-  // El modal se cierra
-  await waitFor(() => {
-    expect(screen.queryByText("Editar noticia")).not.toBeInTheDocument();
+  it("no muestra acciones de editar/eliminar si el usuario no es admin", () => {
+    (useAuthContext as any).mockReturnValue({ isAdmin: false });
+    render(<NoticeDetails />);
+
+    expect(screen.queryByLabelText("Editar noticia")).toBeNull();
+    expect(screen.queryByLabelText("Eliminar noticia")).toBeNull();
   });
 
-  // Limpieza
-  (globalThis as any).__UPDATED_DATA__ = undefined;
-});
+  it("si remove devuelve false, NO navega hacia atrás", async () => {
+    removeMock.mockResolvedValueOnce(false);
 
-it("cierra el modal al pulsar la X (cerrar modal)", async () => {
-  render(<NoticeDetails />);
+    render(<NoticeDetails />);
+    fireEvent.click(screen.getByLabelText("Eliminar noticia"));
 
-  // Abrir modal
-  fireEvent.click(screen.getByLabelText("Editar noticia"));
-  expect(screen.getByText("Editar noticia")).toBeInTheDocument();
-
-  // Cerrar con la X (IconButton del Modal tiene aria-label="cerrar modal")
-  fireEvent.click(screen.getByLabelText(/cerrar modal/i));
-
-  // Esperar a que se desmonte
-  await waitFor(() => {
-    expect(screen.queryByText("Editar noticia")).not.toBeInTheDocument();
-  });
-});
-
-it("no muestra acciones de editar/eliminar si el usuario no es admin", () => {
-  (useAuthContext as any).mockReturnValue({ isAdmin: false });
-  render(<NoticeDetails />);
-
-  expect(screen.queryByLabelText("Editar noticia")).toBeNull();
-  expect(screen.queryByLabelText("Eliminar noticia")).toBeNull();
-});
-
-it("si el diálogo de confirmación no confirma, NO elimina ni navega", async () => {
-  // El ask mock NO ejecuta el callback
-  askMock.mockImplementation(async (_msg: string, _cb: () => Promise<void>) => {});
-
-  render(<NoticeDetails />);
-
-  fireEvent.click(screen.getByLabelText("Eliminar noticia"));
-
-  await waitFor(() => {
-    expect(removeMock).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(removeMock).toHaveBeenCalledWith(1);
+    });
     expect(navigateMock).not.toHaveBeenCalledWith(-1);
   });
-});
-
-
 });

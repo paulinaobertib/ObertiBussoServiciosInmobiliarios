@@ -50,20 +50,36 @@ describe("<ProfileView />", () => {
     expect(screen.getByText("JP")).toBeInTheDocument();
   });
 
-  it("el botón 'Eliminar mi cuenta' dispara onDeleteProfile si se provee", () => {
-    render(
-      <ProfileView
-        user={baseUser}
-        editMode={false}
-        saving={false}
-        onToggleEdit={onToggleEdit}
-        onDeleteProfile={onDeleteProfile}
-      />
-    );
+it("el botón 'Eliminar mi cuenta' dispara onDeleteProfile si se provee", () => {
+  render(
+    <ProfileView
+      user={baseUser}
+      editMode={true}   // ✅ habilitar modo edición
+      saving={false}
+      onToggleEdit={onToggleEdit}
+      onDeleteProfile={onDeleteProfile}
+    />
+  );
 
-    fireEvent.click(screen.getByRole("button", { name: /eliminar mi cuenta/i }));
-    expect(onDeleteProfile).toHaveBeenCalledTimes(1);
-  });
+  fireEvent.click(
+    screen.getByRole("button", { name: /eliminar mi cuenta/i })
+  );
+  expect(onDeleteProfile).toHaveBeenCalledTimes(1);
+});
+
+it("no rompe si no se pasa onDeleteProfile", () => {
+  render(
+    <ProfileView
+      user={baseUser}
+      editMode={true}   // ✅ habilitar modo edición
+      saving={false}
+      onToggleEdit={onToggleEdit}
+    />
+  );
+
+  const button = screen.getByRole("button", { name: /eliminar mi cuenta/i });
+  fireEvent.click(button); // no debería lanzar error aunque no haya callback
+});
 
   it("soporta valores faltantes: sin lastName, renderiza inicial solo del firstName", () => {
     const userSinApellido = { ...baseUser, firstName: "ana", lastName: "" };
@@ -78,20 +94,6 @@ describe("<ProfileView />", () => {
 
     expect(screen.getByText("A")).toBeInTheDocument();
     expect(screen.getByText("ana")).toBeInTheDocument();
-  });
-
-  it("no rompe si no se pasa onDeleteProfile", () => {
-    render(
-      <ProfileView
-        user={baseUser}
-        editMode={false}
-        saving={false}
-        onToggleEdit={onToggleEdit}
-      />
-    );
-
-    const button = screen.getByRole("button", { name: /eliminar mi cuenta/i });
-    fireEvent.click(button); // no debería lanzar error
   });
 
   it("muestra EditIcon cuando editMode es false", () => {

@@ -6,7 +6,7 @@ export const getAllTypes = async () => {
     const response = await api.get(`/properties/type/getAll`, {
       withCredentials: true,
     });
-    return response.data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error fetching types:", error);
     throw error;
@@ -18,7 +18,7 @@ export const getTypeById = async (id: number) => {
     const response = await api.get(`/properties/type/getById/${id}`, {
       withCredentials: true,
     });
-    return response.data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error(`Error fetching type with ID ${id}:`, error);
     throw error;
@@ -31,7 +31,7 @@ export const postType = async (typeData: TypeCreate) => {
       headers: { "Content-Type": "application/json" },
       withCredentials: true, // <— added
     });
-    return response.data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error creating type:", error);
     throw error;
@@ -43,7 +43,7 @@ export const putType = async (typeData: Type) => {
     const response = await api.put(`/properties/type/update`, typeData, {
       withCredentials: true,
     });
-    return response.data;
+    return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error saving type:", error);
     throw error;

@@ -6,6 +6,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import { getPropertiesByFilters } from "../services/property.service";
 import { LIMITS } from "../utils/filterLimits";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useAuthContext } from "../../user/context/AuthContext";
 
 export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
   const {
@@ -22,6 +23,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
   } = usePropertiesContext();
 
   const { handleError } = useApiErrors();
+  const { isAdmin } = useAuthContext();
 
   /* ───────── cargar catálogos ───────── */
   useEffect(() => {
@@ -133,12 +135,16 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
 
       const res = await getPropertiesByFilters(buildSearchParams(base) as SearchParams);
 
+      const availableFiltered = isAdmin
+        ? res
+        : res.filter((p) => String(p.status ?? '').toUpperCase() === 'DISPONIBLE');
+
       const filtered = local.rooms.length
-        ? res.filter((p) => {
+        ? availableFiltered.filter((p) => {
             const r = Number(p.rooms);
             return local.rooms.some((n) => (n === 3 ? r >= 3 : r === n));
           })
-        : res;
+        : availableFiltered;
 
       onSearch(filtered);
       return filtered;

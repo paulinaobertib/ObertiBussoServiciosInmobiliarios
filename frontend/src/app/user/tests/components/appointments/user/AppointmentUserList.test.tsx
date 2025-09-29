@@ -36,17 +36,17 @@ describe('AppointmentUserList', () => {
     };
   });
 
-  it('muestra mensaje si no hay turnos futuros', () => {
-    render(
-      <AppointmentUserList
-        appointments={[]}
-        slotMap={{}}
-        onCancel={onCancel}
-        reload={reload}
-      />
-    );
-    expect(screen.getByText(/Aún no tienes turnos/i)).toBeInTheDocument();
-  });
+it('muestra mensaje si no hay turnos futuros', () => {
+  render(
+    <AppointmentUserList
+      appointments={[]}
+      slotMap={{}}
+      onCancel={onCancel}
+      reload={reload}
+    />
+  );
+  expect(screen.getByText(/No hay turnos disponibles\./i)).toBeInTheDocument();
+});
 
   it('renderiza solo los turnos futuros', () => {
     render(

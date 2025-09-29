@@ -66,16 +66,16 @@ export function ProfileView({ user, editMode, saving, onToggleEdit, onDeleteProf
           {user.phone}
         </Typography>
       </Stack>
-
-
-      <Button
-        variant="outlined"
-        color="error"
-        sx={{ mt: 3 }}
-        onClick={onDeleteProfile}
-      >
-        Eliminar mi cuenta
-      </Button>
+      {editMode && (
+        <Button
+          variant="outlined"
+          color="error"
+          sx={{ mt: 3 }}
+          onClick={onDeleteProfile}
+        >
+          Eliminar mi cuenta
+        </Button>
+      )}
     </Box>
   );
 }

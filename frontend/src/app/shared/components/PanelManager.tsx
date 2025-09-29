@@ -1,7 +1,7 @@
-import { Box, Card, Stack } from '@mui/material';
-import { ReactNode } from 'react';
-import { PanelButton } from './PanelButton';
-import { usePanelManager } from '../hooks/usePanelManager';
+import { Box, Stack } from "@mui/material";
+import { ReactNode } from "react";
+import { PanelButton } from "./PanelButton";
+import { usePanelManager } from "../hooks/usePanelManager";
 
 export interface PanelConfig {
   key: string;
@@ -15,11 +15,11 @@ export interface PanelConfig {
 
 interface Props {
   panels: PanelConfig[];
-  direction?: 'row' | 'column';
+  direction?: "row" | "column";
 }
 
-export const PanelManager = ({ panels, direction = 'row' }: Props) => {
-  const keys = panels.map(p => p.key);
+export const PanelManager = ({ panels, direction = "row" }: Props) => {
+  const keys = panels.map((p) => p.key);
   const { open, toggle } = usePanelManager(keys);
 
   return (
@@ -27,21 +27,23 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
       {/* Botones con scroll horizontal */}
       <Box
         sx={{
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          width: '100%',
-          py: 2,
+          overflowX: "auto",
+          overflowY: "hidden",
+          width: "100%",
+          py: 1,
         }}
       >
         <Stack
           direction={direction}
           spacing={1}
           sx={{
-            flexWrap: 'nowrap',
-            width: 'max-content',
+            flexWrap: "nowrap",
+            width: "fit-content",
+            mx: "auto",
+            minWidth: direction === "row" ? "fit-content" : "auto",
           }}
         >
-          {panels.map(p => {
+          {panels.map((p) => {
             const isActive = open[p.key];
             const handle = () => toggle(p.key);
 
@@ -49,30 +51,23 @@ export const PanelManager = ({ panels, direction = 'row' }: Props) => {
               const B = p.ButtonComponent;
               return <B key={p.key} active={isActive} onClick={handle} />;
             }
-            return (
-              <PanelButton
-                key={p.key}
-                label={p.label}
-                active={isActive}
-                onClick={handle}
-              />
-            );
+            return <PanelButton key={p.key} label={p.label} active={isActive} onClick={handle} />;
           })}
         </Stack>
       </Box>
 
       {/* Contenido de panel */}
-      {panels.map(p =>
+      {panels.map((p) =>
         open[p.key] ? (
-          <Card variant='elevation'
+          <Box
             key={p.key}
             sx={{
               mb: 2,
-              width: '100%',
+              width: "100%",
             }}
           >
             {p.content}
-          </Card>
+          </Box>
         ) : null
       )}
     </>

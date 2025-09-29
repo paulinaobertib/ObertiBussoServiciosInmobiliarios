@@ -13,11 +13,44 @@ interface Props<T extends {}> {
 
 export const useCategories = <T extends {}>({ initial, action, save, refresh, onDone }: Props<T>) => {
   const [form, setForm] = useState<T>(initial);
-  const { showAlert } = useGlobalAlert();
+  const alertApi: any = useGlobalAlert(); // puede tener success/confirm/doubleConfirm o showAlert (legacy)
   const { handleError } = useApiErrors();
+
+  // Título de éxito según acción
+  const successTitle =
+    action === "add" ? "Categoría creada" : action === "edit" ? "Cambios guardados" : "Categoría eliminada";
+
+  const notifySuccess = async (title: string, description?: string) => {
+    if (alertApi?.success) {
+      await alertApi.success({
+        title,
+        description: description ?? "Acción ejecutada con éxito",
+        primaryLabel: "Volver",
+      });
+    } else if (alertApi?.showAlert) {
+      alertApi.showAlert(description ?? title, "success");
+    }
+  };
 
   const { loading, run } = useLoading(async () => {
     try {
+      // ---- DOBLE CONFIRMACIÓN SÓLO PARA DELETE ----
+      if (action === "delete") {
+        const f: any = form ?? {};
+        const label =
+          f?.name ?? f?.firstName ?? f?.neighborhood ?? (typeof f?.id !== "undefined" ? `#${f.id}` : "este registro");
+
+        let ok = true;
+        if (typeof alertApi?.doubleConfirm === "function") {
+          ok = await alertApi.doubleConfirm({
+            kind: "error",
+            description: `¿Eliminar "${String(label)}"?`,
+          });
+        }
+        if (!ok) return; // usuario canceló
+      }
+      // ---------------------------------------------
+
       // En "add" ignoramos id si vino en initial
       if (action === "add") {
         const { id, ...formWithoutId } = (form as any) ?? {};
@@ -26,15 +59,15 @@ export const useCategories = <T extends {}>({ initial, action, save, refresh, on
         await save(form);
       }
 
+      // Intentar refrescar (si falla, informar pero no romper el flujo)
       try {
         await refresh();
       } catch (e) {
-        // Si el refresh falla, mostramos el error pero no “rompemos” el save exitoso
         handleError(e);
       }
 
       onDone();
-      showAlert("Acción ejecutada con éxito", "success");
+      await notifySuccess(successTitle, "Acción ejecutada con éxito");
     } catch (e) {
       handleError(e);
     }
