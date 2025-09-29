@@ -16,6 +16,6 @@ export default function SessionExpiredDialog() {
   if (!sessionExpired) return null;
 
   return (
-    <Loading message="Tu sesión ha caducado. Redirigiendo para iniciar sesión… Volverás a donde estabas." />
+    <Loading message="Tu sesión finalizó. Redirigiendo a la pagina de Inicio de Sesión." />
   );
 }
