@@ -13,7 +13,7 @@ export const Loading = ({ message = "Espera, estamos preparando tu experiencia..
     left={0}
     width="100%"
     height="100%"
-    zIndex={(theme) => theme.zIndex.modal + 1000}
+    zIndex={(theme) => theme.zIndex.modal + 3000}
     display="flex"
     alignItems="center"
     justifyContent="center"
