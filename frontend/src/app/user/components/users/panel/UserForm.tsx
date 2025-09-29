@@ -1,12 +1,13 @@
-import { useState, useEffect, ChangeEvent } from 'react';
-import { Box, TextField, Grid } from '@mui/material';
-import { useAuthContext } from '../../../context/AuthContext';
-import { postUser, putUser, deleteUser } from '../../../services/user.service';
-import { useGlobalAlert } from '../../../../shared/context/AlertContext';
-import type { User, UserCreate } from '../../../types/user';
-import { LoadingButton } from '@mui/lab';
+import { useState, useEffect, ChangeEvent } from "react";
+import { Box, TextField, Grid } from "@mui/material";
+import { useAuthContext } from "../../../context/AuthContext";
+import { postUser, putUser, deleteUser } from "../../../services/user.service";
+import { useGlobalAlert } from "../../../../shared/context/AlertContext";
+import type { User, UserCreate } from "../../../types/user";
+import { LoadingButton } from "@mui/lab";
+import { useApiErrors } from "../../../../shared/hooks/useErrors";
 
-type Action = 'add' | 'edit' | 'delete';
+type Action = "add" | "edit" | "delete";
 
 export interface UserFormProps {
   action?: Action;
@@ -15,71 +16,121 @@ export interface UserFormProps {
   onClose?: () => void;
 }
 
-export const UserForm = ({
-  action,
-  item,
-  onSuccess,
-  onClose,
-}: UserFormProps) => {
-  const { info } = useAuthContext();
-  const { showAlert } = useGlobalAlert();
+export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormProps) => {
+  const { info } = useAuthContext(); // si no lo usás, podés removerlo
+  const alertApi: any = useGlobalAlert();
+  const { handleError } = useApiErrors();
 
-  const isAdd = action === 'add';
-  const isEdit = action === 'edit';
-  const isDelete = action === 'delete';
-
-  // inicializo el form según el modo
-  const [form, setForm] = useState<UserCreate & Pick<User, 'id'>>({
-    id: item?.id ?? '',
-    userName: item?.userName ?? '',
-    email: item?.email ?? '',
-    firstName: item?.firstName ?? '',
-    lastName: item?.lastName ?? '',
-    phone: item?.phone ?? '',
-  } as any);
+  const isAdd = action === "add";
+  const isEdit = action === "edit";
+  const isDelete = action === "delete";
 
   const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<{
+    id?: string | number;
+    userName: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+  }>({
+    id: item?.id ?? "",
+    userName: item?.userName ?? "",
+    email: item?.email ?? "",
+    firstName: item?.firstName ?? "",
+    lastName: item?.lastName ?? "",
+    phone: item?.phone ?? "",
+  });
 
-  const userNameValid = form.userName.trim().length >= 3;
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-  const phoneValid = /^[0-9]{10,15}$/.test(form.phone.trim());
-  const formValid = isAdd ? userNameValid && emailValid && phoneValid : true;
-
-  // si es edición, cargo datos al montar
   useEffect(() => {
-    if (isEdit && item) {
+    if (item) {
       setForm({
         id: item.id,
-        userName: item.userName,
-        email: item.email,
-        firstName: item.firstName,
-        lastName: item.lastName,
-        phone: item.phone ?? '',
+        userName: item.userName ?? "",
+        email: item.email ?? "",
+        firstName: item.firstName ?? "",
+        lastName: item.lastName ?? "",
+        phone: item.phone ?? "",
+      });
+    } else {
+      setForm({
+        id: undefined,
+        userName: "",
+        email: "",
+        firstName: "",
+        lastName: "",
+        phone: "",
       });
     }
   }, [action, info, item]);
 
-  const handleChange = (field: keyof typeof form) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setForm(prev => ({ ...prev, [field]: e.target.value }));
-    };
+  const handleChange = (field: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
+  // -------- Validaciones simples --------
+  const userNameValid = form.userName.trim().length >= 3;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+  const phoneDigits = form.phone.replace(/\D+/g, "");
+  const phoneValid = phoneDigits.length >= 10 && phoneDigits.length <= 15;
+
+  const requiredOk =
+    (isDelete ? true : form.userName.trim() !== "" && form.email.trim() !== "") &&
+    (isDelete ? true : userNameValid && emailValid && phoneValid);
+
+  const formValid = requiredOk;
+
+  // -------- Helpers de alerta --------
+  const notifySuccess = async (title: string, description?: string) => {
+    if (alertApi?.success) {
+      await alertApi.success({
+        title,
+        description: description ?? "Acción ejecutada con éxito",
+        primaryLabel: "Volver",
+      });
+    } else if (alertApi?.showAlert) {
+      alertApi.showAlert(description ?? title, "success");
+    }
+  };
+
+  const warn = async (message: string) => {
+    if (alertApi?.warning) {
+      await alertApi.warning({ title: "Atención", description: message, primaryLabel: "Entendido" });
+    } else if (alertApi?.showAlert) {
+      alertApi.showAlert(message, "warning");
+    }
+  };
+
+  // -------- Submit con confirmaciones --------
   const handleSubmit = async () => {
-    // si es creación, chequeo antes
-    if (isAdd) {
+    // Validaciones para creación/edición
+    if (!isDelete) {
       if (!userNameValid) {
-        showAlert('Username debe tener al menos 3 caracteres', 'warning');
+        await warn("Username debe tener al menos 3 caracteres");
         return;
       }
       if (!emailValid) {
-        showAlert('Email inválido', 'warning');
+        await warn("Email inválido");
         return;
       }
       if (!phoneValid) {
-        showAlert('Teléfono debe tener entre 10 y 15 dígitos', 'warning');
+        await warn("Teléfono debe tener entre 10 y 15 dígitos");
         return;
       }
     }
+
+    // Doble confirmación para eliminar
+    if (isDelete && form.id != null) {
+      let ok = true;
+      if (typeof alertApi?.doubleConfirm === "function") {
+        ok = await alertApi.doubleConfirm({
+          kind: "error",
+          description: "¿Vas a eliminar a este usuario definitivamente?",
+        });
+        if (!ok) return;
+      }
+    }
+
     setSaving(true);
     try {
       if (isAdd) {
@@ -90,20 +141,20 @@ export const UserForm = ({
           lastName: form.lastName,
           phone: form.phone,
         };
-
         await postUser(body);
-        showAlert('Usuario creado con éxito', 'success');
-      } else if (isDelete && form.id) {
-        await deleteUser(form.id);
-        showAlert('Usuario eliminado con éxito', 'success');
+        await notifySuccess("Usuario creado");
+      } else if (isDelete && form.id != null) {
+        const id = String(form.id); // normaliza a string
+        await deleteUser(id);
+        await notifySuccess("Usuario eliminado");
       } else {
-        await putUser(form as User);
-        showAlert('Usuario actualizado con éxito', 'success');
+        await putUser(form as unknown as User);
+        await notifySuccess("Usuario actualizado");
       }
       onSuccess?.();
       onClose?.();
-    } catch (err: any) {
-      showAlert(err.response?.data ?? 'Error desconocido', 'error');
+    } catch (e) {
+      handleError(e);
     } finally {
       setSaving(false);
     }
@@ -112,76 +163,87 @@ export const UserForm = ({
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: 2,
-        alignItems: { xs: 'stretch', md: 'center' },
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        alignItems: { xs: "stretch", md: "center" },
       }}
     >
       {/* Campos del formulario */}
-      <Grid container spacing={2} flexGrow={1}>
+      <Grid container spacing={2}>
         {/* Username */}
         <Grid size={{ xs: 12 }}>
           <TextField
-            label="Username"
+            label="Nombre de usuario"
             value={form.userName}
+            onChange={handleChange("userName")}
             fullWidth
-            disabled={!isAdd}
-            size="small"
-            onChange={handleChange('userName')}
+            disabled={isDelete}
+            error={!isDelete && form.userName !== "" && !userNameValid}
           />
         </Grid>
-        {/* Nombre y Apellido */}
-        <Grid size={{ xs: 12, md: 6 }}>
+
+        {/* Email */}
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            label="Email"
+            value={form.email}
+            onChange={handleChange("email")}
+            fullWidth
+            disabled={isDelete}
+            error={!isDelete && form.email !== "" && !emailValid}
+          />
+        </Grid>
+
+        {/* Nombre */}
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Nombre"
             value={form.firstName}
-            onChange={handleChange('firstName')}
-            fullWidth size="small"
-            disabled={!(isAdd || isEdit)}
+            onChange={handleChange("firstName")}
+            fullWidth
+            disabled={isDelete}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+
+        {/* Apellido */}
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Apellido"
             value={form.lastName}
-            onChange={handleChange('lastName')}
-            fullWidth size="small"
-            disabled={!(isAdd || isEdit)}
+            onChange={handleChange("lastName")}
+            fullWidth
+            disabled={isDelete}
           />
         </Grid>
-        {/* Email y Teléfono */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
-            label="Correo electrónico"
-            value={form.email}
-            onChange={handleChange('email')}
-            fullWidth size="small"
-            disabled={!(isAdd || isEdit)}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+
+        {/* Teléfono */}
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Teléfono"
             value={form.phone}
-            onChange={handleChange('phone')}
-            fullWidth size="small"
-            disabled={!(isAdd || isEdit)}
+            onChange={handleChange("phone")}
+            fullWidth
+            disabled={isDelete}
+            error={!isDelete && form.phone !== "" && !phoneValid}
           />
         </Grid>
-        {/* Botones */}
+
+        {/* Acción */}
         <Grid size={{ xs: 12 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Box display="flex" gap={2} justifyContent="flex-end">
+            {onClose && (
+              <LoadingButton onClick={onClose} loading={false} variant="outlined">
+                Cancelar
+              </LoadingButton>
+            )}
             <LoadingButton
               variant="contained"
               onClick={handleSubmit}
               loading={saving}
               disabled={saving || !formValid}
-              color={isDelete ? 'error' : 'primary'}
+              color={isDelete ? "error" : "primary"}
             >
-              {isAdd ? 'Crear usuario'
-                : isEdit ? 'Guardar cambios'
-                  : 'Eliminar usuario'}
+              {isAdd ? "Crear usuario" : isEdit ? "Guardar cambios" : "Eliminar usuario"}
             </LoadingButton>
           </Box>
         </Grid>
@@ -189,3 +251,5 @@ export const UserForm = ({
     </Box>
   );
 };
+
+export default UserForm;

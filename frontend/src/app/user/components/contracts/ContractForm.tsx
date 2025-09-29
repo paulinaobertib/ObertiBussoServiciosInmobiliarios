@@ -21,7 +21,7 @@ import { useIncreaseIndexes } from "../../hooks/useIncreaseIndexes";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Modal } from "../../../shared/components/Modal";
-import { IncreaseIndexForm } from "../increases/IncreaseIndexForm";
+import IncreaseIndexForm from "../increases/IncreaseIndexForm";
 import { useContractForm, ContractFormValues } from "../../hooks/contracts/useContractForm";
 
 export type ContractFormHandle = {

@@ -72,7 +72,6 @@ export const MapSection = ({ address }: Props) => {
                             bgcolor: '#fff',
                             color: 'text.primary',
                             zIndex: 1000,
-                            textTransform: 'none'
                         }}
                         onClick={() => window.open(gm, '_blank')}
                     >

@@ -111,7 +111,7 @@ export const Survey = () => {
                 style={{ width: "80%", marginBottom: "1%" }}
             />
 
-            <Button type="submit" variant="contained" color="primary" disabled={loading} sx={{ mt: { xs: "5%", sm: "2%" }, width: "auto", alignSelf: "center", mb: { xs: "8%", sm: "2%" } }}>
+            <Button type="submit" variant="contained" disabled={loading} sx={{ mt: { xs: "5%", sm: "2%" }, width: "auto", alignSelf: "center", mb: { xs: "8%", sm: "2%" } }}>
                 {loading ? "Enviando..." : "Enviar"}
             </Button>
         </form>

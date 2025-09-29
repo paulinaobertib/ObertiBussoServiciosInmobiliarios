@@ -3,7 +3,6 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="${url.resourcesPath}/styles.css">
 
   <div class="login-layout">
 
@@ -31,7 +30,7 @@
           </div>
       
           <div class="forgot-password">
-              <a href="${url.forgotPasswordAction!'#'}">¿Olvidaste tu contraseña?</a>
+              <a href="${url.loginResetCredentialsUrl}">¿Olvidaste tu contraseña?</a>
           </div>
       
           <div class="form-actions">

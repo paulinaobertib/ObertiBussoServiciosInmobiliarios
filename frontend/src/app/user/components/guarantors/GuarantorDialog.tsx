@@ -1,6 +1,6 @@
 // Actions are handled inside GuarantorForm
 import { Modal } from "../../../shared/components/Modal";
-import { GuarantorForm } from "./GuarantorForm";
+import GuarantorForm from "./GuarantorForm";
 import type { Guarantor } from "../../types/guarantor";
 
 type Mode = "add" | "edit" | "delete";
@@ -18,7 +18,7 @@ export function GuarantorDialog({ open, mode, item, onClose, onSaved }: Props) {
 
   return (
     <Modal open={open} title={title} onClose={onClose}>
-      <GuarantorForm action={mode} item={item ?? undefined} onSuccess={onSaved} onClose={onClose} />
+      <GuarantorForm action={mode} item={item ?? undefined} onSuccess={onSaved} />
     </Modal>
   );
 }

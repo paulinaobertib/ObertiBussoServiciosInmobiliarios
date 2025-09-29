@@ -2,6 +2,16 @@ import { useState, useEffect } from "react";
 import * as viewService from "../services/view.service";
 import * as inquiryService from "../services/inquiry.service";
 import * as surveyService from "../services/survey.service";
+import { useContractStats } from "../../user/hooks/contracts/useContractStats";
+import { useApiErrors } from "../../shared/hooks/useErrors";
+
+// —— COMISIONES
+import * as commissionService from "../../user/services/commission.service";
+import { Commission, CommissionStatus, CommissionPaymentType } from "../../user/types/commission";
+import { PaymentCurrency, PaymentConcept, Payment } from "../../user/types/payment";
+
+// —— PAYMENTS
+import * as paymentService from "../../user/services/payment.service";
 
 import {
   ViewsByProperty,
@@ -16,10 +26,54 @@ import {
   ViewsByRooms,
   ViewsByAmenity,
 } from "../types/view";
-import { useApiErrors } from "../../shared/hooks/useErrors";
 
-export const useViewStats = () => {
+type CommissionOptions = {
+  currency?: PaymentCurrency;
+  year?: number;
+  from?: string;
+  to?: string;
+  includeLists?: boolean;
+};
+
+type PaymentsOptions = {
+  currency?: PaymentCurrency; // para calcular totales filtrados por moneda en el rango
+  from?: string;
+  to?: string;
+};
+
+type UseViewStatsOptions = {
+  commissions?: CommissionOptions;
+  payments?: PaymentsOptions;
+};
+
+function monthKey(isoDate: string) {
+  // isoDate "YYYY-MM-DD" o "YYYY-MM-DDTHH:mm..."
+  return (isoDate ?? "").slice(0, 7); // YYYY-MM
+}
+
+export const useViewStats = (options?: UseViewStatsOptions) => {
   const { handleError } = useApiErrors();
+  const { getCountByStatus, getCountByType } = useContractStats();
+
+  // —— Defaults generales
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const defaultFrom = new Date(yyyy, today.getMonth(), 1).toISOString().slice(0, 10);
+  const defaultTo = new Date().toISOString().slice(0, 10);
+
+  const commissionCfg: Required<CommissionOptions> = {
+    currency: options?.commissions?.currency ?? PaymentCurrency.ARS,
+    year: options?.commissions?.year ?? yyyy,
+    from: options?.commissions?.from ?? defaultFrom,
+    to: options?.commissions?.to ?? defaultTo,
+    includeLists: options?.commissions?.includeLists ?? false,
+  };
+
+  const paymentsCfg: Required<PaymentsOptions> = {
+    currency: options?.payments?.currency ?? PaymentCurrency.ARS,
+    from: options?.payments?.from ?? defaultFrom,
+    to: options?.payments?.to ?? defaultTo,
+  };
 
   const [stats, setStats] = useState<{
     // — VISTAS —
@@ -47,7 +101,27 @@ export const useViewStats = () => {
     inquiriesByTimeRange: Record<string, number>;
     inquiriesPerMonth: Record<string, number>;
     mostConsultedProperties: Record<string, number>;
+    // - CONTRATOS -
+    contractStatus: Record<string, number>;
+    contractType: Record<string, number>;
+    // - COMISIONES -
+    commissionsCountByStatus: Record<CommissionStatus, number>;
+    commissionsCountByPaymentType: Record<CommissionPaymentType, number>;
+    commissionsTotalByStatus: Record<CommissionStatus, number>;
+    commissionsTotalInDateRange: number;
+    commissionsYearMonthlyTotals: Record<string, number>;
+    commissionsByStatus?: Record<CommissionStatus, Commission[]>;
+    commissionsByPaymentTypeList?: Record<CommissionPaymentType, Commission[]>;
+    // - PAYMENTS -
+    paymentsTotalInDateRange: number; // suma de amount del rango, filtrado por paymentsCfg.currency
+    paymentsCountByConcept: Record<PaymentConcept | string, number>;
+    paymentsCountByCurrency: Record<PaymentCurrency, number>;
+    paymentsMonthlyTotals: Record<string, number>; // YYYY-MM -> total (en currency del pago)
+    paymentsByContractRangeCount: number;
+    paymentsByCommissionRangeCount: number;
+    paymentsByUtilityRangeCount: number;
   }>({
+    // — VISTAS —
     property: {},
     propertyType: {},
     day: {},
@@ -59,18 +133,38 @@ export const useViewStats = () => {
     operation: {},
     rooms: {},
     amenity: {},
+    // — ENCUESTAS —
     surveysCount: 0,
     averageSurveyScore: 0,
     surveyScoreDistribution: {},
     surveyDailyAverageScore: {},
     surveyMonthlyAverageScore: {},
+    // — CONSULTAS —
     inquiryResponseTime: "",
     inquiryStatusDistribution: {},
     inquiriesByDayOfWeek: {},
     inquiriesByTimeRange: {},
     inquiriesPerMonth: {},
     mostConsultedProperties: {},
+    // — CONTRATOS —
+    contractStatus: {},
+    contractType: {},
+    // — COMISIONES —
+    commissionsCountByStatus: { PAGADA: 0, PARCIAL: 0, PENDIENTE: 0 },
+    commissionsCountByPaymentType: { COMPLETO: 0, CUOTAS: 0 },
+    commissionsTotalByStatus: { PAGADA: 0, PARCIAL: 0, PENDIENTE: 0 },
+    commissionsTotalInDateRange: 0,
+    commissionsYearMonthlyTotals: {},
+    // — PAYMENTS —
+    paymentsTotalInDateRange: 0,
+    paymentsCountByConcept: {},
+    paymentsCountByCurrency: { ARS: 0, USD: 0 },
+    paymentsMonthlyTotals: {},
+    paymentsByContractRangeCount: 0,
+    paymentsByCommissionRangeCount: 0,
+    paymentsByUtilityRangeCount: 0,
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,8 +173,9 @@ export const useViewStats = () => {
       setLoading(true);
       setError(null);
       try {
+        // ====== Batch principal (todo lo “duro”) ======
         const [
-          // — VISTAS (11 llamadas) —
+          // — VISTAS —
           property,
           propertyType,
           day,
@@ -92,20 +187,33 @@ export const useViewStats = () => {
           operation,
           rooms,
           amenity,
-          // — ENCUESTAS (5 llamadas) —
+          // — ENCUESTAS —
           surveyList,
           avgSurveyScore,
           surveyScoreDistrib,
           surveyDailyAvg,
           surveyMonthlyAvg,
-          // — CONSULTAS (6 llamadas) —
+          // — CONSULTAS —
           resTimeResp,
           statusDistResp,
           byDayResp,
           byTimeResp,
           perMonthResp,
           mostPropsResp,
+          // — CONTRATOS —
+          contractStatusMap,
+          contractTypeMap,
+          // — COMISIONES — totales / conteos
+          commissionsCountByStatusResp,
+          totalPagadas,
+          totalParcial,
+          totalPendiente,
+          totalInRange,
+          yearMonthlyTotals,
+          // — PAYMENTS — base por rango de fechas
+          paymentsInRange,
         ] = await Promise.all([
+          // VIEWS
           viewService.getViewsByProperty(),
           viewService.getViewsByPropertyType(),
           viewService.getViewsByDay(),
@@ -117,20 +225,111 @@ export const useViewStats = () => {
           viewService.getViewsByOperation(),
           viewService.getViewsByRooms(),
           viewService.getViewsByAmenity(),
+          // SURVEYS
           surveyService.getAllSurveys(),
           surveyService.getAverageScore(),
           surveyService.getScoreDistribution(),
           surveyService.getDailyAverageScore(),
           surveyService.getMonthlyAverageScore(),
+          // INQUIRIES
           inquiryService.getAverageInquiryResponseTime(),
           inquiryService.getInquiryStatusDistribution(),
           inquiryService.getInquiriesGroupedByDayOfWeek(),
           inquiryService.getInquiriesGroupedByTimeRange(),
           inquiryService.getInquiriesPerMonth(),
           inquiryService.getMostConsultedProperties(),
+          // CONTRACTS
+          getCountByStatus(),
+          getCountByType(),
+          // COMMISSIONS — conteos / totales
+          commissionService.countCommissionsByStatus(),
+          commissionService.getTotalAmountByStatus(CommissionStatus.PAGADA, commissionCfg.currency),
+          commissionService.getTotalAmountByStatus(CommissionStatus.PARCIAL, commissionCfg.currency),
+          commissionService.getTotalAmountByStatus(CommissionStatus.PENDIENTE, commissionCfg.currency),
+          commissionService.getDateTotals(commissionCfg.from, commissionCfg.to, commissionCfg.currency),
+          commissionService.getYearMonthlyTotals(commissionCfg.year, commissionCfg.currency),
+          // PAYMENTS — por rango principal
+          paymentService.getPaymentsByDateRange(paymentsCfg.from, paymentsCfg.to),
         ]);
 
-        setStats({
+        // ====== Batch tolerante para comisiones (paymentType + listas por estado) ======
+        const commissionsSettled = await Promise.allSettled([
+          commissionService.getCommissionsByPaymentType(CommissionPaymentType.COMPLETO),
+          commissionService.getCommissionsByPaymentType(CommissionPaymentType.CUOTAS),
+          commissionCfg.includeLists
+            ? commissionService.getCommissionsByStatus(CommissionStatus.PAGADA)
+            : Promise.resolve([] as Commission[]),
+          commissionCfg.includeLists
+            ? commissionService.getCommissionsByStatus(CommissionStatus.PARCIAL)
+            : Promise.resolve([] as Commission[]),
+          commissionCfg.includeLists
+            ? commissionService.getCommissionsByStatus(CommissionStatus.PENDIENTE)
+            : Promise.resolve([] as Commission[]),
+        ]);
+
+        const safeAt = <T>(arr: PromiseSettledResult<any>[], i: number, fallback: T): T =>
+          arr[i]?.status === "fulfilled" ? (arr[i] as PromiseFulfilledResult<T>).value : fallback;
+
+        const listCompleto = safeAt<Commission[]>(commissionsSettled, 0, []);
+        const listCuotas = safeAt<Commission[]>(commissionsSettled, 1, []);
+        const listPagadas = safeAt<Commission[]>(commissionsSettled, 2, []);
+        const listParcial = safeAt<Commission[]>(commissionsSettled, 3, []);
+        const listPendiente = safeAt<Commission[]>(commissionsSettled, 4, []);
+
+        const commissionsCountByPaymentType = {
+          COMPLETO: listCompleto.length,
+          CUOTAS: listCuotas.length,
+        } as Record<CommissionPaymentType, number>;
+
+        const commissionsTotalByStatus = {
+          PAGADA: totalPagadas,
+          PARCIAL: totalParcial,
+          PENDIENTE: totalPendiente,
+        } as Record<CommissionStatus, number>;
+
+        // ====== Batch tolerante para payments (currency + sub-rangos) ======
+        const paymentsSettled = await Promise.allSettled([
+          paymentService.getPaymentsByCurrency(PaymentCurrency.ARS),
+          paymentService.getPaymentsByCurrency(PaymentCurrency.USD),
+          paymentService.getPaymentsByContractRange(paymentsCfg.from, paymentsCfg.to),
+          paymentService.getPaymentsByCommissionRange(paymentsCfg.from, paymentsCfg.to),
+          paymentService.getPaymentsByUtilityRange(paymentsCfg.from, paymentsCfg.to),
+        ]);
+
+        const paymentsARS = safeAt<Payment[]>(paymentsSettled, 0, []);
+        const paymentsUSD = safeAt<Payment[]>(paymentsSettled, 1, []);
+        const paymentsContractRange = safeAt<Payment[]>(paymentsSettled, 2, []);
+        const paymentsCommissionRange = safeAt<Payment[]>(paymentsSettled, 3, []);
+        const paymentsUtilityRange = safeAt<Payment[]>(paymentsSettled, 4, []);
+
+        // === KPIs de payments derivados ===
+        // Total en el rango principal, filtrado por la moneda elegida en options.payments.currency
+        const paymentsTotalInDateRange = paymentsInRange
+          .filter((p) => p.paymentCurrency === paymentsCfg.currency)
+          .reduce((acc, p) => acc + Number(p.amount || 0), 0);
+
+        // Conteo por concepto (ALQUILER, EXTRA, COMISION) dentro del rango principal
+        const paymentsCountByConcept = paymentsInRange.reduce<Record<string, number>>((acc, p) => {
+          const k = p.concept ?? "UNKNOWN";
+          acc[k] = (acc[k] ?? 0) + 1;
+          return acc;
+        }, {});
+
+        // Conteo por moneda (usando el endpoint del back para alinear 1:1)
+        const paymentsCountByCurrency = {
+          ARS: paymentsARS.length,
+          USD: paymentsUSD.length,
+        } as Record<PaymentCurrency, number>;
+
+        // Totales mensuales (sumando montos según currency del propio pago)
+        const paymentsMonthlyTotals = paymentsInRange.reduce<Record<string, number>>((acc, p) => {
+          const key = monthKey(p.date);
+          acc[key] = (acc[key] ?? 0) + Number(p.amount || 0);
+          return acc;
+        }, {});
+
+        const next = {
+          // — VISTAS —
           property,
           propertyType,
           day,
@@ -142,26 +341,66 @@ export const useViewStats = () => {
           operation,
           rooms,
           amenity,
+          // — ENCUESTAS —
           surveysCount: surveyList.length,
           averageSurveyScore: avgSurveyScore,
           surveyScoreDistribution: surveyScoreDistrib,
           surveyDailyAverageScore: surveyDailyAvg,
           surveyMonthlyAverageScore: surveyMonthlyAvg,
+          // — CONSULTAS —
           inquiryResponseTime: resTimeResp.data,
           inquiryStatusDistribution: statusDistResp.data,
           inquiriesByDayOfWeek: byDayResp.data,
           inquiriesByTimeRange: byTimeResp.data,
           inquiriesPerMonth: perMonthResp.data,
           mostConsultedProperties: mostPropsResp.data,
-        });
+          // — CONTRATOS —
+          contractStatus: contractStatusMap,
+          contractType: contractTypeMap,
+          // — COMISIONES —
+          commissionsCountByStatus: commissionsCountByStatusResp,
+          commissionsCountByPaymentType,
+          commissionsTotalByStatus,
+          commissionsTotalInDateRange: totalInRange,
+          commissionsYearMonthlyTotals: yearMonthlyTotals,
+          ...(commissionCfg.includeLists && {
+            commissionsByStatus: { PAGADA: listPagadas, PARCIAL: listParcial, PENDIENTE: listPendiente },
+            commissionsByPaymentTypeList: { COMPLETO: listCompleto, CUOTAS: listCuotas },
+          }),
+          // — PAYMENTS —
+          paymentsTotalInDateRange,
+          paymentsCountByConcept,
+          paymentsCountByCurrency,
+          paymentsMonthlyTotals,
+          paymentsByContractRangeCount: paymentsContractRange.length,
+          paymentsByCommissionRangeCount: paymentsCommissionRange.length,
+          paymentsByUtilityRangeCount: paymentsUtilityRange.length,
+        };
+
+        setStats((prev) => ({ ...prev, ...next }));
       } catch (e) {
-        handleError(e); // toast + mensaje legible
+        handleError(e);
+        setError((e as any)?.message ?? "Error al cargar estadísticas");
       } finally {
         setLoading(false);
       }
     }
+
     fetchAll();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    // Recompute si cambian opciones
+    // Comisiones
+    commissionCfg.currency,
+    commissionCfg.year,
+    commissionCfg.from,
+    commissionCfg.to,
+    commissionCfg.includeLists,
+    // Payments
+    paymentsCfg.currency,
+    paymentsCfg.from,
+    paymentsCfg.to,
+  ]);
 
   return { stats, loading, error };
 };

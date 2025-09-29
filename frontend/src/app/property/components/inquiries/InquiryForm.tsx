@@ -1,71 +1,28 @@
-import { Box, TextField, Stack, Typography, } from '@mui/material';
-import { useInquiryForm } from '../../hooks/useInquiryForm';
-import { LoadingButton } from '@mui/lab';
+import { Box, TextField, Stack } from "@mui/material";
+import { useInquiryForm } from "../../hooks/useInquiryForm";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
   propertyIds?: number[];
 }
 
 export const InquiryForm = ({ propertyIds = [] }: Props) => {
-  const {
-    form,
-    formLoading,
-    submitted,
-    handleChange,
-    handleSubmit,
-  } = useInquiryForm({ propertyIds });
-
-  if (submitted) {
-    return (
-      <Box
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          mx: 2,
-        }}
-      >
-        <Typography variant="h6" gutterBottom>
-          ¡Consulta enviada!
-        </Typography>
-        <Typography>
-          Gracias. Te avisaremos en cuanto tengamos una respuesta.
-        </Typography>
-      </Box>
-    );
-  }
+  const { form, formLoading, handleChange, handleSubmit } = useInquiryForm({ propertyIds }); // siempre resetea al enviar
 
   return (
     <Box
       component="form"
       onSubmit={handleSubmit}
       sx={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <Stack spacing={2} sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-        <TextField
-          label="Nombre"
-          name="firstName"
-          value={form.firstName}
-          onChange={handleChange}
-          fullWidth
-          required
-        />
-        <TextField
-          label="Apellido"
-          name="lastName"
-          value={form.lastName}
-          onChange={handleChange}
-          fullWidth
-          required
-        />
+      <Stack spacing={2} sx={{ flex: 1, overflowY: "auto", p: 2 }}>
+        <TextField label="Nombre" name="firstName" value={form.firstName} onChange={handleChange} fullWidth required />
+        <TextField label="Apellido" name="lastName" value={form.lastName} onChange={handleChange} fullWidth required />
         <TextField
           label="Email"
           name="email"
@@ -75,14 +32,7 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           fullWidth
           required
         />
-        <TextField
-          label="Teléfono"
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-          fullWidth
-          required
-        />
+        <TextField label="Teléfono" name="phone" value={form.phone} onChange={handleChange} fullWidth required />
         <TextField
           label="Descripción de la consulta"
           name="description"
@@ -94,13 +44,7 @@ export const InquiryForm = ({ propertyIds = [] }: Props) => {
           required
         />
 
-        <LoadingButton
-          loading={formLoading}
-          type="submit"
-          variant="contained"
-          disabled={formLoading}
-          fullWidth
-        >
+        <LoadingButton loading={formLoading} type="submit" variant="contained" disabled={formLoading} fullWidth>
           Enviar Consulta
         </LoadingButton>
       </Stack>

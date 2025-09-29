@@ -17,7 +17,7 @@ export const SearchBar = ({
   fetchAll,
   fetchByText,
   onSearch,
-  placeholder = "Buscar…",
+  placeholder = "Buscar...",
   debounceMs = 300,
   localFilterFields = [], // por defecto ninguno
 }: SearchBarProps) => {
@@ -74,6 +74,11 @@ export const SearchBar = ({
         placeholder={placeholder}
         value={q}
         onChange={(e) => setQ(e.target.value)}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+          },
+        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
