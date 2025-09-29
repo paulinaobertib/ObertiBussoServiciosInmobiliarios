@@ -228,7 +228,7 @@ public class EmailService implements IEmailService {
             context.setVariable("username", emailData.getUserName());
             context.setVariable("password", emailData.getPassword());
             //LINK
-            String loginUrl = appProperties.getFrontendBaseUrl() + "/login";
+            String loginUrl = appProperties.getFrontendBaseUrl() + "/";
             context.setVariable("loginUrl", loginUrl);
 
             MimeMessage message = javaMailSender.createMimeMessage();
