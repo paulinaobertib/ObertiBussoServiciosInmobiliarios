@@ -25,7 +25,7 @@ jobs:
   build-and-push:
     name: Build · Docker
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -63,3 +63,5 @@ jobs:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+          
