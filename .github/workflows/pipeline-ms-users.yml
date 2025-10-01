@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
   # push:
     # branches:
-    # - main
+      # - main
+      # - feature/pipelines
 
 permissions:
   contents: read
@@ -24,8 +25,8 @@ env:
 
   # Properties-specific
   IMAGE_NAME: ms-users
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_CORE_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_USERS_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_USERS_PROD }}
   SERVICE_PORT: 8081
@@ -303,7 +304,7 @@ jobs:
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
               "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
-              
+
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
