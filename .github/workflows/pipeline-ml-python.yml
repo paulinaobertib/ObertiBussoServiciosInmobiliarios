@@ -57,4 +57,3 @@ jobs:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
-
