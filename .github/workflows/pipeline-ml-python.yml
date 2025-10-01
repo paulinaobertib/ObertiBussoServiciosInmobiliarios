@@ -51,17 +51,10 @@ jobs:
             docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-      # (Opcional) verificación
-      - name: Show image digest
-        run: echo "DIGEST=${{ steps.build.outputs.digest }}"
-
-      # (Opcional) si usás Render con Existing Image + Deploy Hook
-      # after build-push
-      - name: Trigger Render deploy (latest)
+      - name: Deploy on Render
         if: ${{ success() && env.RENDER_DEPLOY_HOOK_URL != '' }}
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
           curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
 
-          

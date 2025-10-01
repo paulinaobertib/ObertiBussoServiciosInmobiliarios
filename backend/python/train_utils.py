@@ -13,7 +13,6 @@ def get_db_url():
     name = os.getenv("DB_SQL_NAME_PROD", "obertibussoserviciosinmobiliarios")
 
     suffix = f"?sslMode=REQUIRED&serverTimezone=UTC"
-
     return f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}{suffix}"
 
 def entrenar_modelo():
