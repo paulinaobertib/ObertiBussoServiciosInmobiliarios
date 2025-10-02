@@ -63,6 +63,7 @@ client: # Cambiar a Variable de Entorno
 ml:  # Cambiar a Variable de Entorno
   api:
     url: http://localhost:8000
+    # url: https://ml-service-gosc.onrender.com
 
 gemini:  # Cambiar a Variable de Entorno
   api:
