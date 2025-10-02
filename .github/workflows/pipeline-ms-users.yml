@@ -1,11 +1,12 @@
+# LISTO
 name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  push:
-    branches:
+  # push:
+    # branches:
       # - main
-      - feature/pipelines
+      # - feature/pipelines
 
 permissions:
   contents: read
