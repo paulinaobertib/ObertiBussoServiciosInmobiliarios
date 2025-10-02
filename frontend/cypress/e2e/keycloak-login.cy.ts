@@ -1,4 +1,4 @@
-const appUrl = Cypress.env("appUrl");
+import { appBaseUrl } from "../support/e2e";
 const keycloakUrl = Cypress.env("keycloakUrl");
 
 const keycloakOrigin = new URL(keycloakUrl).origin;
@@ -20,7 +20,7 @@ describe("Login con Keycloak", () => {
   });
 
   it("Rechaza login con usuario incorrecto", () => {
-    cy.visit(appUrl);
+    cy.visit(appBaseUrl);
     cy.contains("button", /Iniciar Ses/i).click();
 
     cy.origin(
@@ -48,7 +48,7 @@ describe("Login con Keycloak", () => {
   });
 
   it("Rechaza login con contraseña incorrecta", () => {
-    cy.visit(appUrl);
+    cy.visit(appBaseUrl);
     cy.contains("button", /Iniciar Ses/i).click();
 
     cy.origin(
@@ -75,7 +75,7 @@ describe("Login con Keycloak", () => {
   });
 
   it("Permite iniciar sesión y regresar autenticado a la aplicación", () => {
-    cy.visit(appUrl);
+    cy.visit(appBaseUrl);
 
     cy.contains("button", /Iniciar Ses/i)
       .should("be.visible")
