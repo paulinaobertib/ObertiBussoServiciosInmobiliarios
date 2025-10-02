@@ -1,4 +1,4 @@
-const appBaseUrl = Cypress.env("appUrl");
+import { appBaseUrl } from "../support/e2e";
 
 describe("Integración: Favoritos", () => {
   beforeEach(() => {
