@@ -51,6 +51,7 @@ export const PropertyCard = ({
 
   return (
     <Card
+      data-testid="favorite-item"
       elevation={2}
       onClick={() => {
         if (!selectionMode) onClick();
