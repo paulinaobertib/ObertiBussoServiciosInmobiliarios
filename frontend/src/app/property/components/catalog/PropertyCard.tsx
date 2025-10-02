@@ -71,6 +71,7 @@ export const PropertyCard = ({
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: "relative" }}>
         <Box
+          data-testid="property-card"
           component="img"
           src={src}
           alt={property.title}
