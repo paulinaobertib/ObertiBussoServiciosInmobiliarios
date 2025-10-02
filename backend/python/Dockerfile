@@ -11,7 +11,7 @@ RUN pip install --upgrade pip setuptools wheel \
  && pip install "numpy<2.0.0" \
  && pip install --no-cache-dir -r requirements.txt
 
-COPY main.py train_ml_model.py train_utils ./
+COPY main.py train_ml_model.py train_utils.py ./
 COPY model/ model/
 
 EXPOSE 8000
