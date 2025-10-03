@@ -4,7 +4,7 @@ server:
     session:
       timeout: PT24H # 24 horas de inactividad
       cookie:
-        same-site: NONE # mejor en mayúsculas
+        same-site: none
         secure: true # requerido cuando SameSite=None y usás HTTPS
 
 eureka:
