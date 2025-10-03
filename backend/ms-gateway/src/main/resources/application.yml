@@ -1,5 +1,11 @@
 server:
   port: ${WEBSITES_PORT}
+  reactive:
+    session:
+      timeout: PT24H # 24 horas de inactividad
+      cookie:
+        same-site: NONE # mejor en mayúsculas
+        secure: true # requerido cuando SameSite=None y usás HTTPS
 
 eureka:
   instance:
@@ -18,6 +24,8 @@ frontend:
 spring:
   application:
     name: ms-gateway
+  main:
+    allow-bean-definition-overriding: true
   security:
     oauth2:
       client:
