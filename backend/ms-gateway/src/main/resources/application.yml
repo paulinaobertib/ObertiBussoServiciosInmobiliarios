@@ -101,6 +101,7 @@ spring:
         - id: ms-users-public
           uri: lb://ms-users
           predicates:
+            - Path=/api/users/user/me
             - Path=/api/users/appointments/create
             - Path=/api/users/user/login
             - Path=/api/users/notices/getById/**
