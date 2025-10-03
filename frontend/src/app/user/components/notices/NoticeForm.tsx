@@ -33,6 +33,7 @@ export const NoticeForm = forwardRef<NoticeFormHandle, any>(
                             fullWidth
                             size="small"
                             value={f.form.title}
+                            inputProps={{ "data-testid": "input-titulo" }}
                             onChange={(e) => f.setField("title", e.target.value)}
                         />
                     </Grid>
@@ -46,6 +47,7 @@ export const NoticeForm = forwardRef<NoticeFormHandle, any>(
                             <ImageUploader
                                 label="Imagen"
                                 onSelect={(files) => f.setMain(files[0] ?? null)}
+                                inputProps={{ "data-testid": "input-imagen" }}
                                 sx={{
                                     width: "100%",
                                     maxWidth: "100%",
@@ -70,6 +72,7 @@ export const NoticeForm = forwardRef<NoticeFormHandle, any>(
                             size="small"
                             value={f.form.description}
                             onChange={(e) => f.setField("description", e.target.value)}
+                            inputProps={{ "data-testid": "input-descripcion" }}
                         />
                     </Grid>
 
