@@ -109,7 +109,7 @@ export const GridSection = ({
           fetchByText={fetchByText}
         />
         {showCreateButton && onCreate && (
-          <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate}>
+          <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate} data-testid={`add-${entityName.toLowerCase()}-button`}>
             {entityName}
           </Button>
         )}
