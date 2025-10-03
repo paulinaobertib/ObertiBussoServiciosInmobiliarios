@@ -87,6 +87,7 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         title,
         description: description ?? "Acción ejecutada con éxito",
         primaryLabel: "Volver",
+        primaryProps: { "data-testid": "btn-volver" }, 
       });
     } else if (alertApi?.showAlert) {
       alertApi.showAlert(description ?? title, "success");
@@ -174,11 +175,13 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         <Grid size={{ xs: 12 }}>
           <TextField
             label="Nombre de usuario"
+            name="username" 
             value={form.userName}
             onChange={handleChange("userName")}
             fullWidth
             disabled={isDelete}
             error={!isDelete && form.userName !== "" && !userNameValid}
+            inputProps={{ "data-testid": "input-username" }}
           />
         </Grid>
 
@@ -186,11 +189,13 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Email"
+            name="email"
             value={form.email}
             onChange={handleChange("email")}
             fullWidth
             disabled={isDelete}
             error={!isDelete && form.email !== "" && !emailValid}
+            inputProps={{ "data-testid": "input-email" }}
           />
         </Grid>
 
@@ -198,10 +203,12 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Nombre"
+            name="firstName"
             value={form.firstName}
             onChange={handleChange("firstName")}
             fullWidth
             disabled={isDelete}
+            inputProps={{ "data-testid": "input-firstName" }}
           />
         </Grid>
 
@@ -209,10 +216,12 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Apellido"
+            name="lastName"
             value={form.lastName}
             onChange={handleChange("lastName")}
             fullWidth
             disabled={isDelete}
+            inputProps={{ "data-testid": "input-lastName" }}
           />
         </Grid>
 
@@ -220,11 +229,13 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Teléfono"
+            name="phone"
             value={form.phone}
             onChange={handleChange("phone")}
             fullWidth
             disabled={isDelete}
             error={!isDelete && form.phone !== "" && !phoneValid}
+            inputProps={{ "data-testid": "input-phone" }}
           />
         </Grid>
 
