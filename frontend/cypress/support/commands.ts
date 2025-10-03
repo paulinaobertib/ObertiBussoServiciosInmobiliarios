@@ -1,3 +1,5 @@
+import 'cypress-file-upload';
+
 Cypress.Commands.add("loginKeycloak", () => {
   const username = Cypress.env("keycloakUsername");
   const password = Cypress.env("keycloakPassword");
