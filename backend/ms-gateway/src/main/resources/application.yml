@@ -44,6 +44,13 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
+logging:
+  level:
+    org.springframework.cloud.gateway.filter: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory: DEBUG
+
   cloud:
     gateway:
       globalcors:
@@ -60,7 +67,8 @@ spring:
               - DELETE
               - OPTIONS
             allowCredentials: true # Ver si se puede sacar
-      default-filters: TokenRelay
+      default-filters:
+        - TokenRelay
       routes:
         - id: ms-properties-public
           uri: lb://ms-properties
@@ -120,3 +128,4 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=2
+            - TokenRelay
