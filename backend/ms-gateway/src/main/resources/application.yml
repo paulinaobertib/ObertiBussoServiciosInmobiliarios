@@ -44,13 +44,6 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: https://${GATEWAY_HOSTNAME}/login/oauth2/code/keycloak
 
-logging:
-  level:
-    org.springframework.cloud.gateway.filter: DEBUG
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.security.oauth2.client: DEBUG
-    org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory: DEBUG
-
   cloud:
     gateway:
       globalcors:
@@ -109,7 +102,6 @@ logging:
         - id: ms-users-public
           uri: lb://ms-users
           predicates:
-            - Path=/api/users/user/me
             - Path=/api/users/appointments/create
             - Path=/api/users/user/login
             - Path=/api/users/notices/getById/**
@@ -129,3 +121,10 @@ logging:
           filters:
             - StripPrefix=2
             - TokenRelay
+
+logging:
+  level:
+    org.springframework.cloud.gateway.filter: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory: DEBUG
