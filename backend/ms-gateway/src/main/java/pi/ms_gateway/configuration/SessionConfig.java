@@ -22,6 +22,8 @@ public class SessionConfig {
         // Asegura el envío cross-site desde el frontend (SWA)
         resolver.addCookieInitializer(builder -> builder.sameSite("None"));
         resolver.addCookieInitializer(builder -> builder.secure(true));
+        // CHIPS (Partitioned cookies) permiten que la cookie viaje aun con bloqueo de third-party
+        resolver.addCookieInitializer(builder -> builder.partitioned(true));
         return resolver;
     }
 }
