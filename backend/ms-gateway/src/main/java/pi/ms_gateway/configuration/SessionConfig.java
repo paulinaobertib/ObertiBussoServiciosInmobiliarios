@@ -16,7 +16,8 @@ public class SessionConfig {
     public WebSessionIdResolver webSessionIdResolver(
             @Value("${server.reactive.session.timeout:PT24H}") Duration timeout,
             @Value("${server.reactive.session.cookie.same-site:None}") String sameSite,
-            @Value("${server.reactive.session.cookie.secure:false}") boolean secure
+            @Value("${server.reactive.session.cookie.secure:false}") boolean secure,
+            @Value("${server.reactive.session.cookie.partitioned:false}") boolean partitioned
     ) {
         CookieWebSessionIdResolver resolver = new CookieWebSessionIdResolver();
         resolver.setCookieName("SESSION");
@@ -28,6 +29,9 @@ public class SessionConfig {
                 builder.sameSite(normalizedSameSite);
             }
             builder.secure(secure);
+            if (partitioned) {
+                builder.partitioned(true);
+            }
         });
         return resolver;
     }
