@@ -26,7 +26,7 @@ public class SecurityConfig {
         logoutSuccessHandler.setPostLogoutRedirectUri(frontUrl);
 
         http
-                .csrf().disable()
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(ex -> ex
                         .pathMatchers("/oidc/logout").authenticated()
                         .anyExchange().permitAll()

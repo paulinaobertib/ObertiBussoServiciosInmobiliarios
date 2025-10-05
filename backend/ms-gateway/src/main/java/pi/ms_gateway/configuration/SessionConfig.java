@@ -19,7 +19,9 @@ public class SessionConfig {
         resolver.setCookieName("SESSION");
         // Hace persistente la cookie por el mismo tiempo que la sesión del gateway
         resolver.setCookieMaxAge(timeout);
+        // Asegura el envío cross-site desde el frontend (SWA)
+        resolver.addCookieInitializer(builder -> builder.sameSite("None"));
+        resolver.addCookieInitializer(builder -> builder.secure(true));
         return resolver;
     }
 }
-
