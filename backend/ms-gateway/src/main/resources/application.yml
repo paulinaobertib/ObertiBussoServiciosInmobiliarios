@@ -109,7 +109,6 @@ spring:
             - Path=/api/users/notices/getAll
             - Path=/api/users/notices/search
             - Path=/api/users/agentChat/getEnabledTrue
-            - Path=/api/users/user/me
           filters:
             - StripPrefix=2
             - name: RemoveRequestHeader
