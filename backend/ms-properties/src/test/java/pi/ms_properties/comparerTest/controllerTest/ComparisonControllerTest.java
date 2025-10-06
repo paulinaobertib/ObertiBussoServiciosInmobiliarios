@@ -7,9 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import pi.ms_properties.comparer.controller.ComparisonController;
 import pi.ms_properties.comparer.dto.PropertyDTOAI;
-import pi.ms_properties.comparer.service.GeminiService;
+import pi.ms_properties.comparer.service.AzureOpenAIService;
 import pi.ms_properties.comparer.service.GeolocationService;
 
 import java.util.List;
@@ -24,7 +25,7 @@ class ComparisonControllerTest {
     private GeolocationService geoService;
 
     @Mock
-    private GeminiService geminiService;
+    private AzureOpenAIService azureOpenAIService;
 
     @InjectMocks
     private ComparisonController controller;
@@ -47,27 +48,29 @@ class ComparisonControllerTest {
 
         when(geoService.geolocation(prop1)).thenReturn(geo1);
         when(geoService.geolocation(prop2)).thenReturn(geo2);
-        when(geminiService.compareProperties(List.of(geo1, geo2)))
-                .thenReturn("Comparación hecha");
+        when(azureOpenAIService.compareProperties(List.of(geo1, geo2)))
+                .thenReturn("Comparación realizada correctamente");
 
-        var response = controller.comparer(List.of(prop1, prop2));
+        ResponseEntity<String> response = controller.comparer(List.of(prop1, prop2));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Comparación hecha", response.getBody());
+        assertEquals("Comparación realizada correctamente", response.getBody());
     }
 
     // casos de error
 
     @Test
     void shouldReturnBadRequest_whenLessThan2Properties() {
-        var response = controller.comparer(List.of(prop1));
+        ResponseEntity<String> response = controller.comparer(List.of(prop1));
+
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Debe enviar 2 o 3 propiedades.", response.getBody());
     }
 
     @Test
     void shouldReturnBadRequest_whenMoreThan3Properties() {
-        var response = controller.comparer(List.of(prop1, prop2, prop1, prop2));
+        ResponseEntity<String> response = controller.comparer(List.of(prop1, prop2, prop1, prop2));
+
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Debe enviar 2 o 3 propiedades.", response.getBody());
     }

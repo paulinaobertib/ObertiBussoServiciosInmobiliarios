@@ -66,7 +66,7 @@ ml:  # Cambiar a Variable de Entorno
 
 gemini:  # Cambiar a Variable de Entorno
   api:
-    key: ${API_KEY_GEMINI}
+
 
 logging:
   level:
