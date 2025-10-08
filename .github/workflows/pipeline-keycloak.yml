@@ -189,21 +189,11 @@ jobs:
 
       - name: Create Web App (if not exists)
         run: |
-          set -e
-          RG="${{ env.AZURE_RESOURCE_GROUP }}"
-          APP="${{ env.APP_NAME_PROD }}"
-          PLAN="${{ env.APP_PLAN_PROD }}"
-
-          if az webapp show -g "$RG" -n "$APP" >/dev/null 2>&1; then
-            echo "✅ Web App '$APP' ya existe en el RG '$RG'."
-          else
-            echo "🆕 Creando Web App '$APP' en '$RG' (plan: $PLAN)..."
-            az webapp create \
-              --resource-group "$RG" \
-              --plan "$PLAN" \
-              --name "$APP"
-            echo "✅ Creado."
-          fi
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_PROD }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --deployment-container-image-name $IMAGE
 
       - name: Configure Web App container
         run: |
