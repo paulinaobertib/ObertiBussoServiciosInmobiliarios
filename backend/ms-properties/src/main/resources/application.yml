@@ -65,9 +65,11 @@ ml:  # Cambiar a Variable de Entorno
     url: http://localhost:8000
     # url: https://ml-service-gosc.onrender.com
 
-gemini:  # Cambiar a Variable de Entorno
-  api:
-    key: ${API_KEY_GEMINI}
+comparer:
+  endpoint: ${URL_IA}
+  apiKey: ${APIKEY_IA}
+  deployment: ${DEPLOY_IA}
+  apiVersion: ${VERSION_IA}
 
 logging:
   level:

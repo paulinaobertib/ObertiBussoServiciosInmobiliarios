@@ -4,9 +4,9 @@ name: CI/CD - Keycloak
 on:
   workflow_dispatch:
   # push:
-    # branches:
-      # - main
-      # - feature/pipelines
+  # branches:
+  # - main
+  # - feature/pipelines
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -127,8 +127,8 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
               WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
-              WEBSITES_PORT=8443 \
-              SERVICE_PORT=8443 \
+              WEBSITES_PORT=8080 \
+              SERVICE_PORT=8080 \
               WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
               KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
               KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
@@ -136,7 +136,7 @@ jobs:
               KC_DB_URL='${{ secrets.DB_PG_URL_DEV }}' \
               KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
               KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
-              KC_HTTP_PORT=8443 \
+              KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
               KC_PROXY=edge \
               KC_PROXY_HEADERS=xforwarded \
@@ -219,21 +219,26 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
               WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
-              WEBSITES_PORT=8443 \
-              SERVICE_PORT=8443 \
-              WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+              WEBSITES_PORT=8080 \
+              SERVICE_PORT=8080 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=800 \
               KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
               KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
               KC_DB=postgres \
               KC_DB_URL='${{ secrets.DB_PG_URL_PROD }}' \
               KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
               KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
-              KC_HTTP_PORT=8443 \
+              KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
-              KC_PROXY=edge \
               KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME_STRICT=false \
-              KC_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net
+              KC_HOSTNAME_URL=${{ secrets.URL_KEYCLOAK_PROD }}
+
+      - name: Enforce HTTPS
+        run: |
+          az webapp update \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --set httpsOnly=true
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
