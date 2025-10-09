@@ -3,10 +3,10 @@ name: CI/CD - MS Users
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - main
-      # - feature/pipelines
+  push:
+    branches:
+        # - main
+      - feature/pipelines
 
 permissions:
   contents: read
@@ -33,13 +33,12 @@ env:
   SERVICE_PORT: 8081
 
   # Utils
-  SPRING_DATASOURCE_URL_DEV: ${{ secrets.DB_SQL_URL_DEV }}
-  SPRING_DATASOURCE_URL_PROD: ${{ secrets.DB_SQL_URL_PROD }}
-  SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_SQL_USERNAME }}
-  SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_SQL_PASSWORD }}
-
-  EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-  EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+  EUREKA_HOSTNAME_DEV: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+  EUREKA_HOSTNAME_PROD: ${{ secrets.EUREKA_HOSTNAME_PROD }}
+  KEYCLOAK_HOSTNAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+  KEYCLOAK_HOSTNAME_PROD: ${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
+  PROPERTIES_HOSTNAME_DEV: ${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net
+  PROPERTIES_HOSTNAME_PROD: ${{ secrets.PROPERTIES_HOSTNAME_PROD }}
 
 jobs:
   # --------------------------------------------------------------
@@ -192,18 +191,18 @@ jobs:
             --settings \
               "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net" \
+              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }}" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net" \
-              "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_DEV }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD }}" \
-              "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
-              "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
+              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }}" \
+              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_DEV }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
-              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net" \
+              "PROPERTY_HOSTNAME=${{ env.PROPERTIES_HOSTNAME_DEV }}" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
       - name: Restart Web App to apply App Settings
@@ -292,18 +291,18 @@ jobs:
             --settings \
               "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
               "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net" \
+              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net" \
-              "SPRING_DATASOURCE_URL=${{ env.SPRING_DATASOURCE_URL_PROD }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ env.SPRING_DATASOURCE_USERNAME }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ env.SPRING_DATASOURCE_PASSWORD }}" \
-              "EMAIL_USERNAME=${{ env.EMAIL_USERNAME }}" \
-              "EMAIL_PASSWORD=${{ env.EMAIL_PASSWORD }}" \
+              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }}" \
+              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_PROD }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
               "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
-              "PROPERTY_HOSTNAME=${{ secrets.APP_PROPERTIES_PROD }}.azurewebsites.net" \
+              "PROPERTY_HOSTNAME=${{ env.PROPERTIES_HOSTNAME_PROD }}" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
 
       - name: Restart Web App to apply App Settings
