@@ -138,10 +138,8 @@ jobs:
               KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
-              KC_PROXY=edge \
               KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME_STRICT=false \
-              KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
+              KC_HOSTNAME_URL=https://${{ env.APP_NAME_DEV }}.azurewebsites.net
 
       - name: Reiniciar Web App para aplicar los App Settings
         run: |
@@ -176,16 +174,6 @@ jobs:
         id: vars
         run: |
           echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
-
-      - name: 🐞 Debug Variables and Permissions
-        run: |
-          echo "--- DEBUGGING ---"
-          echo "Attempting to deploy to App Name: ${{ env.APP_NAME_PROD }}"
-          echo "Using App Plan: ${{ env.APP_PLAN_PROD }}"
-          echo "In Resource Group: ${{ env.AZURE_RESOURCE_GROUP }}"
-          echo "Verifying access with 'az webapp show'..."
-          az webapp show --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" --name "${{ env.APP_NAME_PROD }}"
-          echo "--- END DEBUGGING ---"
 
       - name: Create Web App (if not exists)
         run: |
@@ -241,9 +229,9 @@ jobs:
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
               KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME_URL=${{ secrets.URL_KEYCLOAK_PROD }}
+              KC_HOSTNAME_URL=${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
 
-      - name: Enforce HTTPS
+      - name: Set HTTPS
         run: |
           az webapp update \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \

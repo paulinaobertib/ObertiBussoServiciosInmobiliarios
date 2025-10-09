@@ -3,10 +3,10 @@ name: CI/CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
+  push:
+    branches:
       # - main
-      # - feature/pipelines
+      - feature/pipelines
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
@@ -27,6 +27,14 @@ env:
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_GATEWAY_PROD }}
+
+  EUREKA_HOSTNAME_DEV: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+  EUREKA_HOSTNAME_PROD: ${{ secrets.EUREKA_HOSTNAME_PROD }}
+  KEYCLOAK_HOSTNAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+  KEYCLOAK_HOSTNAME_PROD: ${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
+  GATEWAY_HOSTNAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net
+  GATEWAY_HOSTNAME_PROD: ${{ secrets.GATEWAY_HOSTNAME_PROD }}
+
   SERVICE_PORT: 8090
 
 jobs:
@@ -153,13 +161,14 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
-                       EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net \
-                       KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }} \
+                       KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }} \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
-                       GATEWAY_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net \
+                       GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_DEV }} \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME \
-                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}
+
       - name: Restart Web App to apply App Settings
         run: |
           az webapp restart \
@@ -246,11 +255,11 @@ jobs:
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
                        APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
-                       EUREKA_HOSTNAME=${{ secrets.APP_EUREKA_PROD }}.azurewebsites.net \
-                       KEYCLOAK_HOSTNAME=${{ secrets.APP_KEYCLOAK_PROD }}.azurewebsites.net \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }} \
+                       KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }} \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
-                       GATEWAY_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net \
+                       GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_PROD }} \
                        SWA_FRONTEND=$FRONTEND_HOSTNAME \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
