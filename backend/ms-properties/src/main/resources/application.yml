@@ -57,13 +57,9 @@ email:
 frontend:
   base-url: ${SWA_FRONTEND}
 
-client: # Cambiar a Variable de Entorno
-  secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
-
 ml:  # Cambiar a Variable de Entorno
   api:
-    url: http://localhost:8000
-    # url: https://ml-service-gosc.onrender.com
+    url: ${ML_API_URL}
 
 comparer:
   endpoint: ${URL_IA}

@@ -52,10 +52,6 @@ pi:
     clientId: ${KEYCLOAK_SB_CLIENT_ID}
     clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
 
-
-# client: # Ver esto que es nuevo
-#   secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
-
 logging:
   level:
     org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
