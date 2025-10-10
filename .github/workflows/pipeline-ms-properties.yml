@@ -215,6 +215,7 @@ jobs:
               "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
               "USER_HOSTNAME=${{ env.USERS_HOSTNAME_DEV }}" \
               "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "ML_API_URL=${{ secrets.ML_API_URL }}" \
               "URL_IA=${{ secrets.URL_IA }}" \
               "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
               "VERSION_IA=${{ secrets.VERSION_IA }}" \
@@ -309,6 +310,7 @@ jobs:
               "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
               "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
               "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "ML_API_URL=${{ secrets.ML_API_URL }}" \
               "URL_IA=${{ secrets.URL_IA }}" \
               "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
               "VERSION_IA=${{ secrets.VERSION_IA }}" \
