@@ -23,14 +23,13 @@ env:
 
   # Properties-specific
   SWA_LOCATION: ${{ secrets.SWA_LOCATION }}
-  SWA_FRONTEND_DEV: ${{ secrets.SWA_FRONTEND_DEV }}
-  SWA_FRONTEND_PROD: ${{ secrets.SWA_FRONTEND_PROD }}
+  SWA_NAME_DEV: ${{ secrets.SWA_NAME_DEV }}
+  SWA_NAME_PROD: ${{ secrets.SWA_NAME_PROD }}
+  URL_FRONTEND_DEV: ${{ secrets.URL_FRONTEND_DEV }}
+  URL_FRONTEND_PROD: ${{ secrets.URL_FRONTEND_PROD }}
 
-  # Utils
-  API_URL_DEV: "https://${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net/api"
-  API_URL_PROD: "https://${{ secrets.APP_GATEWAY_PROD }}.azurewebsites.net/api"
-  GATEWAY_URL_DEV: "https://${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net"
-  GATEWAY_URL_PROD: "https://${{ secrets.APP_GATEWAY_PROD }}.azurewebsites.net"
+  GATEWAY_HOSTNAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net
+  GATEWAY_HOSTNAME_PROD: ${{ secrets.GATEWAY_HOSTNAME_PROD }}
 
 jobs:
   # --------------------------------------------------------------
@@ -127,47 +126,33 @@ jobs:
 
       - name: Ensure Static Web App Exists
         run: |
-          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_FRONTEND_DEV" &>/dev/null; then
-            echo "🚀 Creating $SWA_FRONTEND_DEV..."
+          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_NAME_DEV" &>/dev/null; then
+            echo "🚀 Creating $SWA_NAME_DEV..."
             az staticwebapp create \
               -g "$AZURE_RESOURCE_GROUP" \
-              -n "${{ env.SWA_FRONTEND_DEV }}" \
+              -n "${{ env.SWA_NAME_DEV }}" \
               --location "$SWA_LOCATION" \
               --app-location frontend \
               --output-location frontend/dist \
               --sku Free
           else
-            echo "✏️ $SWA_FRONTEND_DEV already exists."
+            echo "✏️ $SWA_NAME_DEV already exists."
           fi
-
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.SWA_FRONTEND_DEV }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
 
       - name: Insert DEV URLs
         shell: bash
+        env:
+          BASE_URL: ${{ env.URL_FRONTEND_DEV }}
+          GATEWAY_URL: https://${{ env.GATEWAY_HOSTNAME_DEV }}
+          API_URL: https://${{ env.GATEWAY_HOSTNAME_DEV }}/api
         run: |
-          echo "Reemplazando __GATEWAY_URL_PLACEHOLDER__ por $GATEWAY_URL_DEV"
-          echo "Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_DEV"
-          echo "Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
-
-          GATEWAY_ESCAPED=${GATEWAY_URL_DEV//\//\\/}
-          API_ESCAPED=${API_URL_DEV//\//\\/}
-          BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
+          echo "BASE_URL=$BASE_URL"
+          GATEWAY_ESCAPED=${GATEWAY_URL//\//\\/}
+          API_ESCAPED=${API_URL//\//\\/}
+          BASE_ESCAPED=${BASE_URL//\//\\/}
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
 
       - name: Install SWA CLI
         run: npm install -g @azure/static-web-apps-cli@latest
@@ -175,11 +160,11 @@ jobs:
       - name: Deploy to SWA
         run: |
           DEPLOY_TOKEN=$(az staticwebapp secrets list \
-            --name "$SWA_FRONTEND_DEV" \
+            --name "$SWA_NAME_DEV" \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --query properties.apiKey -o tsv)
           swa deploy frontend/dist \
-            --app-name "$SWA_FRONTEND_DEV" \
+            --app-name "$SWA_NAME_DEV" \
             --env production \
             --deployment-token "$DEPLOY_TOKEN"
 
@@ -206,47 +191,33 @@ jobs:
 
       - name: Ensure Static Web App Exists
         run: |
-          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_FRONTEND_PROD" &>/dev/null; then
-            echo "🚀 Creating $SWA_FRONTEND_PROD..."
+          if ! az staticwebapp show -g "$AZURE_RESOURCE_GROUP" -n "$SWA_NAME_PROD" &>/dev/null; then
+            echo "🚀 Creating $SWA_NAME_PROD..."
             az staticwebapp create \
               -g "$AZURE_RESOURCE_GROUP" \
-              -n "${{ env.SWA_FRONTEND_PROD }}" \
+              -n "${{ env.SWA_NAME_PROD }}" \
               --location "$SWA_LOCATION" \
               --app-location frontend \
               --output-location frontend/dist \
               --sku Free
           else
-            echo "✏️ $SWA_FRONTEND_PROD already exists."
+            echo "✏️ $SWA_NAME_PROD already exists."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.SWA_FRONTEND_PROD }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
-      - name: Insert DEV URLs
+      - name: Insert PROD URLs
         shell: bash
+        env:
+          BASE_URL: ${{ env.URL_FRONTEND_PROD }}
+          GATEWAY_URL: https://${{ env.GATEWAY_HOSTNAME_PROD }}
+          API_URL: https://${{ env.GATEWAY_HOSTNAME_PROD }}/api
         run: |
-          echo "Reemplazando __GATEWAY_URL_PLACEHOLDER__ por $GATEWAY_URL_PROD"
-          echo "Reemplazando __API_URL_PLACEHOLDER__ por $API_URL_PROD"
-          echo "Reemplazando __BASE_URL_PLACEHOLDER__ por https://${FRONTEND_HOSTNAME}"
-
-          GATEWAY_ESCAPED=${GATEWAY_URL_PROD//\//\\/}
-          API_ESCAPED=${API_URL_PROD//\//\\/}
-          BASE_ESCAPED=https:\\/${FRONTEND_HOSTNAME}
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
-
-          find frontend/dist -type f -name '*.js' -exec \
-            sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
+          echo "BASE_URL=$BASE_URL"
+          GATEWAY_ESCAPED=${GATEWAY_URL//\//\\/}
+          API_ESCAPED=${API_URL//\//\\/}
+          BASE_ESCAPED=${BASE_URL//\//\\/}
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
 
       - name: Install SWA CLI
         run: npm install -g @azure/static-web-apps-cli@latest
@@ -254,10 +225,10 @@ jobs:
       - name: Deploy to SWA
         run: |
           DEPLOY_TOKEN=$(az staticwebapp secrets list \
-            --name "$SWA_FRONTEND_PROD" \
+            --name "$SWA_NAME_PROD" \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --query properties.apiKey -o tsv)
           swa deploy frontend/dist \
-            --app-name "$SWA_FRONTEND_PROD" \
+            --app-name "$SWA_NAME_PROD" \
             --env production \
             --deployment-token "$DEPLOY_TOKEN"

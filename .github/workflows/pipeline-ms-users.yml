@@ -174,15 +174,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.SWA_FRONTEND_DEV }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
       - name: Set environment variables (App Settings)
         run: |
           az webapp config appsettings set \
@@ -201,7 +192,7 @@ jobs:
               "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
               "PROPERTY_HOSTNAME=${{ env.PROPERTIES_HOSTNAME_DEV }}" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
@@ -274,15 +265,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.SWA_FRONTEND_PROD }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
       - name: Set environment variables (App Settings)
         run: |
           az webapp config appsettings set \
@@ -301,7 +283,7 @@ jobs:
               "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
               "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
               "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_PROD }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
               "PROPERTY_HOSTNAME=${{ env.PROPERTIES_HOSTNAME_PROD }}" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
 

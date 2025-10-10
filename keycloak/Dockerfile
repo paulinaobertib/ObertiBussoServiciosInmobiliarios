@@ -25,23 +25,23 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
 # Valores por defecto que coinciden con App Settings
 ENV KC_DB=postgres \
-    KC_HTTP_PORT=8443 \
+    KC_HTTP_PORT=8080 \
     KC_HTTP_ENABLED=true \
     KC_PROXY=edge \
     KC_PROXY_HEADERS=xforwarded \
     KC_HOSTNAME_STRICT=false
 
-EXPOSE 8443
+EXPOSE 8080
 
 # ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-# CMD ["start", "--optimized", "--http-port=8443"]
+# CMD ["start", "--optimized", "--http-port=8080"]
 
 # 1) Le decimos a Docker que use un shell
 # ENTRYPOINT ["/bin/sh", "-c"]
 
 # 2) Y le pasamos TODO el comando en un solo string,
 #    donde el shell hará la expansión de variables.
-# CMD  "/opt/keycloak/bin/kc.sh start --optimized --http-port=8443 \
+# CMD  "/opt/keycloak/bin/kc.sh start --optimized --http-port=8080 \
 #       --db=postgres \
 #       --db-url=\"$KC_DB_URL\" \
 #       --db-username=\"$KC_DB_USERNAME\" \

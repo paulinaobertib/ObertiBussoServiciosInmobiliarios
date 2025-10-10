@@ -195,15 +195,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.SWA_FRONTEND_DEV }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
       - name: Set environment variables (App Settings Dev)
         run: |
           az webapp config appsettings set \
@@ -221,7 +212,7 @@ jobs:
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
               "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
               "USER_HOSTNAME=${{ env.USERS_HOSTNAME_DEV }}" \
               "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
               "URL_IA=${{ secrets.URL_IA }}" \
@@ -298,15 +289,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.SWA_FRONTEND_PROD }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
       - name: Set environment variables (App Settings)
         run: |
           az webapp config appsettings set \
@@ -324,7 +306,7 @@ jobs:
               "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
               "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
               "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=$FRONTEND_HOSTNAME" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
               "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
               "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
               "URL_IA=${{ secrets.URL_IA }}" \
