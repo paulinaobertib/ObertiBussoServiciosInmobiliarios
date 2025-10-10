@@ -3,10 +3,10 @@ name: CI/CD - Keycloak
 
 on:
   workflow_dispatch:
-  push:
-    branches:
+  # push:
+    # branches:
       # - main
-      - feature/pipelines
+      # - feature/pipelines
 
 # --------------------------------------------------------------
 # VARIABLES GLOBALES
