@@ -58,22 +58,15 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      - name: Build & Package JAR
-        working-directory: backend/${{ env.IMAGE_NAME }}
-        run: mvn -B package -DskipTests
-
-      - name: Upload Backend JAR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.IMAGE_NAME }}-jar
-          path: backend/${{ env.IMAGE_NAME }}/target/*.jar
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           registry: docker.io
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Set Docker image tag
         id: set-tag
@@ -82,11 +75,14 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build & Push Docker image
-        run: |
-          TAG=${{ steps.set-tag.outputs.tag }}
-          IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
-          docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
-          docker push $IMAGE
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/${{ env.IMAGE_NAME }}
+          file: backend/${{ env.IMAGE_NAME }}/Dockerfile
+          push: true
+          tags: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.set-tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # --------------------------------------------------------------
   # JOB 2: Deploy to Development
@@ -151,7 +147,10 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       APP_HOSTNAME=$WEBSITE_HOSTNAME \
                        EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }} \
                        KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }} \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
@@ -159,12 +158,6 @@ jobs:
                        GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_DEV }} \
                        SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }} \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}
-
-      - name: Restart Web App to apply App Settings
-        run: |
-          az webapp restart \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Enable Container Logs
         run: |
@@ -236,7 +229,10 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
                        WEBSITES_PORT=${{ env.SERVICE_PORT }} \
-                       APP_HOSTNAME=$(WEBSITE_HOSTNAME) \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       APP_HOSTNAME=$WEBSITE_HOSTNAME \
                        EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }} \
                        KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }} \
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
@@ -244,12 +240,6 @@ jobs:
                        GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_PROD }} \
                        SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }} \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
-
-      - name: Restart Web App to apply App Settings
-        run: |
-          az webapp restart \
-            --name ${{ env.APP_NAME_PROD }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Enable Container Logs
         run: |
