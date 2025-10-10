@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pi.ms_properties.comparer.dto.PropertyDTOAI;
-import pi.ms_properties.comparer.service.GeminiService;
+import pi.ms_properties.comparer.service.AzureOpenAIService;
 import pi.ms_properties.comparer.service.GeolocationService;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public class ComparisonController {
 
     private final GeolocationService geoService;
 
-    private final GeminiService geminiService;
+    private final AzureOpenAIService azureOpenAIService;
 
     @PostMapping
     public ResponseEntity<String> comparer(@RequestBody List<PropertyDTOAI> properties) {
@@ -31,7 +31,8 @@ public class ComparisonController {
                 .map(geoService::geolocation)
                 .toList();
 
-        String result = geminiService.compareProperties(geolocated);
+        String result = azureOpenAIService.compareProperties(geolocated);
+
         return ResponseEntity.ok(result);
     }
 }
