@@ -138,6 +138,7 @@ jobs:
               WEBSITES_CONTAINER_START_TIME_LIMIT=800 \
               WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
               DOCKER_ENABLE_CI=true \
+              WEBSITE_HEALTHCHECK_URL=/health/ready \
               KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
               KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
               KC_DB=postgres \
@@ -146,7 +147,9 @@ jobs:
               KC_DB_PASSWORD=${{ secrets.DB_PG_PASSWORD }} \
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
-              KC_HOSTNAME_STRICT_HTTPS=true \
+              KC_PROXY=edge \
+              KC_HOSTNAME_STRICT=false \
+              KC_HOSTNAME_STRICT_HTTPS=false \
               KC_PROXY_HEADERS=xforwarded \
               KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
 
@@ -225,6 +228,7 @@ jobs:
               WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
               WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
               DOCKER_ENABLE_CI=true \
+              WEBSITE_HEALTHCHECK_URL=/health/ready \
               KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
               KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
               KC_DB=postgres \
@@ -233,7 +237,9 @@ jobs:
               KC_DB_PASSWORD=${{ secrets.DB_PG_PASSWORD }} \
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
-              KC_HOSTNAME_STRICT_HTTPS=true \
+              KC_PROXY=edge \
+              KC_HOSTNAME_STRICT=false \
+              KC_HOSTNAME_STRICT_HTTPS=false \
               KC_PROXY_HEADERS=xforwarded \
               KC_HOSTNAME=${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
 

@@ -202,6 +202,7 @@ jobs:
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
               "DOCKER_ENABLE_CI=true" \
+              "WEBSITE_HEALTHCHECK_URL=/actuator/health" \
               "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }}" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }}" \
@@ -294,6 +295,7 @@ jobs:
               "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
               "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
               "DOCKER_ENABLE_CI=true" \
+              "WEBSITE_HEALTHCHECK_URL=/actuator/health" \
               "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}" \
               "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
               "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }}" \

@@ -73,6 +73,16 @@ logging:
     org.hibernate.type.descriptor.sql: TRACE
     org.springframework.orm.jpa: DEBUG
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 ---
 
 # Configuración para perfil "test"

@@ -32,7 +32,9 @@ public class WebSecurityConfig {
                                 "/notices/getById/{id}",
                                 "/notices/getAll",
                                 "/notices/search",
-                                "/agentChat/getEnabledTrue").permitAll()
+                                "/agentChat/getEnabledTrue",
+                                "/actuator/health",
+                                "/actuator/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

@@ -18,15 +18,21 @@ RUN ./mvnw -B -q -Dmaven.artifact.threads=8 dependency:go-offline
 COPY src ./src
 RUN ./mvnw -T 1C -B -q -Dmaven.artifact.threads=8 clean package -DskipTests
 
+# Extraemos capas del JAR para cachear dependencias
+RUN java -Djarmode=layertools -jar target/*.jar extract
+
 ####################### Runtime stage #######################
 FROM eclipse-temurin:24-jre-alpine
 WORKDIR /app
 
-# Flags JVM para arrancar más rápido en B1 y limitar memoria
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseContainerSupport"
+# Flags JVM afinadas para App Service
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=75 -XX:+UseSerialGC -XX:+AlwaysActAsServerClassMachine"
 
-# Copiamos solo el JAR
-COPY --from=build /app/target/*.jar app.jar
+# Copiamos cada capa del fat JAR
+COPY --from=build /app/dependencies/ ./dependencies/
+COPY --from=build /app/snapshot-dependencies/ ./snapshot-dependencies/
+COPY --from=build /app/spring-boot-loader/ ./spring-boot-loader/
+COPY --from=build /app/application/ ./application/
 
 # Puerto
 EXPOSE 8081
@@ -35,4 +41,4 @@ EXPOSE 8081
 RUN rm -rf /tmp/* /var/tmp/* /usr/share/man /usr/share/doc
 
 # Comando de arranque
-ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -cp 'spring-boot-loader/*:dependencies/*:snapshot-dependencies/*:application' org.springframework.boot.loader.launch.JarLauncher"]
