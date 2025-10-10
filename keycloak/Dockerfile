@@ -69,10 +69,11 @@ EXPOSE 8080 9000
 
 # Defaults de runtime (no secretos). Importante: sin KC_PROXY ni HOSTNAME_URL.
 ENV KC_HTTP_PORT=8080 \
+    KC_PROXY=edge \
     KC_PROXY_HEADERS=xforwarded \
     KC_HEALTH_ENABLED=true \
     KC_METRICS_ENABLED=true
 
 # Ejecutable y comando por defecto
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start","--optimized","--http-port=8080"]
+CMD ["start","--optimized","--http-port=8080","--http-enabled=true","--hostname-strict=false","--hostname-strict-https=false","--proxy=edge"]
