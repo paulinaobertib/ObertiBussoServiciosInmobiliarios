@@ -18,9 +18,9 @@ interface Props {
 }
 
 const adminActions = [
-  { icon: <AddCircleOutlineIcon />, name: "Agregar", action: "create" as const },
-  { icon: <EditIcon />, name: "Editar", action: "edit" as const },
-  { icon: <DeleteIcon />, name: "Eliminar", action: "delete" as const },
+  { icon: <AddCircleOutlineIcon data-testid="admin-action-create" />, name: "Agregar", action: "create" as const },
+  { icon: <EditIcon data-testid="admin-action-edit" />, name: "Editar", action: "edit" as const },
+  { icon: <DeleteIcon data-testid="admin-action-delete" />, name: "Eliminar", action: "delete" as const },
 ];
 
 export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, onCompare }: Props) => {
@@ -84,6 +84,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
             ariaLabel="Acciones de Propiedad"
             icon={<SettingsIcon />}
             direction="up"
+            data-testid="admin-actions-speed-dial"
             onClick={() => setOpen((p) => !p)}
             open={open}
             sx={{
