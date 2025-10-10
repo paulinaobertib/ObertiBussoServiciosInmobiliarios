@@ -290,6 +290,7 @@ export const NavBar = () => {
             </Button>
 
             <Button
+              data-testid="navbar-news"
               onClick={() => navigate(ROUTES.NEWS)}
               sx={{
                 color: palette.common.white,
