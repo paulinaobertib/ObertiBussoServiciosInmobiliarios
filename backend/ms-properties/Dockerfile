@@ -27,6 +27,8 @@ WORKDIR /app
 
 # Flags JVM ajustadas para App Service de recursos limitados
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:InitialRAMPercentage=25 -XX:MaxRAMPercentage=75 -XX:+UseSerialGC -XX:+AlwaysActAsServerClassMachine"
+ENV SPRING_BOOT_MAIN_CLASS="pi.ms_properties.MsPropertiesApplication"
+ENV SPRING_BOOT_LOADER_PATH="application/BOOT-INF/classes,dependencies/BOOT-INF/lib,snapshot-dependencies/BOOT-INF/lib"
 
 # Copiamos las capas del fat JAR
 COPY --from=build /app/dependencies/ ./dependencies/
@@ -41,4 +43,4 @@ EXPOSE 8083
 RUN rm -rf /tmp/* /var/tmp/* /usr/share/man /usr/share/doc
 
 # Comando de arranque
-ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -cp 'spring-boot-loader/*:dependencies/*:snapshot-dependencies/*:application' org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -cp spring-boot-loader -Dloader.path=$SPRING_BOOT_LOADER_PATH -Dloader.main=$SPRING_BOOT_MAIN_CLASS org.springframework.boot.loader.launch.PropertiesLauncher"]
