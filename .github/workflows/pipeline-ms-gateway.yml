@@ -144,15 +144,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.SWA_FRONTEND_DEV }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
       - name: Set environment variables (App Settings)
         run: |
           az webapp config appsettings set \
@@ -166,7 +157,7 @@ jobs:
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
                        GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_DEV }} \
-                       SWA_FRONTEND=$FRONTEND_HOSTNAME \
+                       SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }} \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}
 
       - name: Restart Web App to apply App Settings
@@ -238,15 +229,6 @@ jobs:
             echo "✅ App Service ya está en ejecución."
           fi
 
-      - name: Fetch FQDNs
-        run: |
-          FRONTEND_FQDN=$(az staticwebapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ secrets.SWA_FRONTEND_PROD }} \
-            --query defaultHostname -o tsv)
-          echo "🔖 Frontend FQDN: $FRONTEND_FQDN"
-          echo "FRONTEND_HOSTNAME=$FRONTEND_FQDN" >> $GITHUB_ENV
-
       - name: Set environment variables (App Settings)
         run: |
           az webapp config appsettings set \
@@ -260,7 +242,7 @@ jobs:
                        KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
                        KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
                        GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_PROD }} \
-                       SWA_FRONTEND=$FRONTEND_HOSTNAME \
+                       SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }} \
                        SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
       - name: Restart Web App to apply App Settings
