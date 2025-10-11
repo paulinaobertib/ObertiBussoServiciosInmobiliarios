@@ -135,23 +135,22 @@ jobs:
               WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
               WEBSITES_PORT=8080 \
               SERVICE_PORT=8080 \
-              WEBSITES_CONTAINER_START_TIME_LIMIT=800 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
               WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
               DOCKER_ENABLE_CI=true \
-              WEBSITE_HEALTHCHECK_URL=/health/ready \
-              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
-              KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+              KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
+              KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
               KC_DB=postgres \
-              KC_DB_URL=${{ secrets.DB_PG_URL_DEV }} \
-              KC_DB_USERNAME=${{ secrets.DB_PG_USERNAME }} \
-              KC_DB_PASSWORD=${{ secrets.DB_PG_PASSWORD }} \
+              KC_DB_URL='${{ secrets.DB_PG_URL_DEV }}' \
+              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
+              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
-              KC_PROXY=edge \
-              KC_HOSTNAME_STRICT=false \
-              KC_HOSTNAME_STRICT_HTTPS=false \
+              KC_HEALTH_ENABLED=true \
               KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
+              KC_HOSTNAME='${{ env.APP_NAME_DEV }}' \
+              KC_HOSTNAME_STRICT=true \
+              KC_HOSTNAME_STRICT_HTTPS=true
 
       - name: Enable Container Logs
         run: |
@@ -228,20 +227,19 @@ jobs:
               WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
               WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
               DOCKER_ENABLE_CI=true \
-              WEBSITE_HEALTHCHECK_URL=/health/ready \
-              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
-              KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+              KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
+              KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
               KC_DB=postgres \
-              KC_DB_URL=${{ secrets.DB_PG_URL_PROD }} \
-              KC_DB_USERNAME=${{ secrets.DB_PG_USERNAME }} \
-              KC_DB_PASSWORD=${{ secrets.DB_PG_PASSWORD }} \
+              KC_DB_URL='${{ secrets.DB_PG_URL_PROD }}' \
+              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
+              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
-              KC_PROXY=edge \
-              KC_HOSTNAME_STRICT=false \
-              KC_HOSTNAME_STRICT_HTTPS=false \
+              KC_HEALTH_ENABLED=true \
               KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME=${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
+              KC_HOSTNAME='${{ secrets.KEYCLOAK_HOSTNAME_PROD }}' \
+              KC_HOSTNAME_STRICT=true \
+              KC_HOSTNAME_STRICT_HTTPS=true
 
       - name: Set HTTPS
         run: |
