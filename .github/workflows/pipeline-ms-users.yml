@@ -143,13 +143,6 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --deployment-container-image-name $IMAGE || true
 
-      - name: Enable Always On
-        run: |
-          az webapp config set \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_DEV }} \
-            --always-on true
-
       - name: Configure Web App container
         run: |
           az webapp config container set \
@@ -237,13 +230,6 @@ jobs:
             --plan ${{ env.APP_PLAN_PROD }} \
             --name ${{ env.APP_NAME_PROD }} \
             --deployment-container-image-name $IMAGE || true
-
-      - name: Enable Always On
-        run: |
-          az webapp config set \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --always-on true
 
       - name: Configure Web App container
         run: |
