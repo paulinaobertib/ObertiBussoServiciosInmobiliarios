@@ -101,10 +101,10 @@ jobs:
 
       - name: Enable Always On
         run: |
-          az webapp update \
+          az webapp config set \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_DEV }} \
-            --set siteConfig.alwaysOn=true
+            --always-on true
 
       - name: Configure Web App container
         run: |
@@ -197,10 +197,10 @@ jobs:
 
       - name: Enable Always On
         run: |
-          az webapp update \
+          az webapp config set \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
-            --set siteConfig.alwaysOn=true
+            --always-on true
 
       - name: Configure Web App container
         run: |

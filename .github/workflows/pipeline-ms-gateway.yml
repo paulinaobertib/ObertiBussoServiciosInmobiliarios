@@ -115,10 +115,10 @@ jobs:
 
       - name: Enable Always On
         run: |
-          az webapp update \
+          az webapp config set \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_DEV }} \
-            --set siteConfig.alwaysOn=true
+            --always-on true
 
       - name: Configure Web App container
         run: |
@@ -157,7 +157,6 @@ jobs:
                        WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
                        DOCKER_ENABLE_CI=true \
-                       WEBSITE_HEALTHCHECK_URL=/actuator/health \
                        APP_HOSTNAME=$WEBSITE_HOSTNAME \
                        EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }} \
                        KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }} \
@@ -205,10 +204,10 @@ jobs:
 
       - name: Enable Always On
         run: |
-          az webapp update \
+          az webapp config set \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
-            --set siteConfig.alwaysOn=true
+            --always-on true
 
       - name: Configure Web App container
         run: |
@@ -247,7 +246,6 @@ jobs:
                        WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
                        WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
                        DOCKER_ENABLE_CI=true \
-                       WEBSITE_HEALTHCHECK_URL=/actuator/health \
                        APP_HOSTNAME=$WEBSITE_HOSTNAME \
                        EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }} \
                        KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }} \
