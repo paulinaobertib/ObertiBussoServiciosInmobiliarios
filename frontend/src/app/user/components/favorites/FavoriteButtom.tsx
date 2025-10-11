@@ -20,6 +20,7 @@ export const FavoriteButton = ({ propertyId }: Props) => {
 
     return (
         <IconButton
+            data-testid={`favorite-button-${propertyId}`}
             onClick={handleClick}
             disabled={loading}
             sx={{

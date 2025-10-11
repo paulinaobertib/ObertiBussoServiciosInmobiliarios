@@ -290,6 +290,7 @@ export const NavBar = () => {
             </Button>
 
             <Button
+              data-testid="navbar-news"
               onClick={() => navigate(ROUTES.NEWS)}
               sx={{
                 color: palette.common.white,
@@ -345,7 +346,7 @@ export const NavBar = () => {
                 )}
 
                 <Tooltip title={isAdmin ? 'Panel de Administrador' : 'Perfil'}>
-                  <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
+                  <IconButton color="inherit" aria-label="profile" data-testid={isAdmin ? "navbar-admin-panel" : "navbar-user-profile"} onClick={goToProfile}>
                     <AccountCircleIcon />
                   </IconButton>
                 </Tooltip>

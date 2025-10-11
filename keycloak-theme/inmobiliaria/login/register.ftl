@@ -91,7 +91,6 @@
             placeholder="Usuario"
             title="El nombre de usuario debe tener 3 dígitos como mínimo"
             minlength="3"
-            value=tomi
             required
           />
 

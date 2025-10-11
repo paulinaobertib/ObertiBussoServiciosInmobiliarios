@@ -94,6 +94,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
         {/* ---------- TÍTULO ---------- */}
         <Grid size={{ xs: 12 }}>
           <TextField
+            data-testid="input-titulo"
             fullWidth
             label="Título"
             value={form.title}
@@ -115,6 +116,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             required
             error={!!fieldErrors.operation}
             size="small"
+            data-testid="select-operacion"
           >
             <MenuItem value="VENTA">Venta</MenuItem>
             <MenuItem value="ALQUILER">Alquiler</MenuItem>
@@ -130,6 +132,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             required
             error={!!fieldErrors.status}
             size="small"
+            data-testid="select-estado"
           >
             <MenuItem value="DISPONIBLE">Disponible</MenuItem>
             <MenuItem value="VENDIDA">Vendida</MenuItem>
@@ -190,6 +193,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             required
             error={!!fieldErrors.currency}
             size="small"
+            data-testid="select-moneda"
           >
             <MenuItem value="ARS">Peso Argentino</MenuItem>
             <MenuItem value="USD">Dólar</MenuItem>
@@ -205,6 +209,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             error={!!fieldErrors.price}
             inputProps={{ inputMode: "numeric", pattern: "[0-9]*", "data-testid": "expensas" }}
             size="small"
+            data-testid="select-moneda"
           />
         </Grid>
         <Grid size={{ xs: 6 }}>
@@ -284,6 +289,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             required
             error={!!fieldErrors.description}
             size="small"
+            inputProps={{ "data-testid": "input-descripcion" }}
           />
         </Grid>
 
@@ -381,6 +387,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
               ctrl.setField("mainImage" as any, (f ?? "") as any);
             }}
             sx={{ width: "auto", borderRadius: 2}}
+            inputProps={{ "data-testid": "input-imagen-principal" }}
           />
         </Grid>
 
@@ -400,6 +407,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
               ctrl.setField("images" as any, [...current, ...add] as any);
             }}
             sx={{ width: "auto", borderRadius: 2}}
+            inputProps={{ "data-testid": "input-imagenes-adicionales" }}
           />
         </Grid>
       </Grid>

@@ -41,6 +41,7 @@ export const Modal = ({ open, title, onClose, children, maxWidth = "sm" }: Props
             >
                 {title}
                 <IconButton
+                    data-testid="inquiry-form-close"
                     onClick={onClose}
                     sx={{ color: theme.palette.primary.main }}
                     aria-label="cerrar modal"
