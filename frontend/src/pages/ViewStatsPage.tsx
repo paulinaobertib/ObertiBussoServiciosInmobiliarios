@@ -375,21 +375,21 @@ export default function ViewStatsPage() {
                 </Typography>
                 <Grid container spacing={3}>
                   {[
-                    { title: "Por Día", data: stats.day },
-                    { title: "Por Mes", data: stats.month },
-                    { title: "Top Propiedades", data: topViewsByProperty },
-                    { title: "Por Tipo", data: topViewsByPropertyType },
-                    { title: "Por Barrio", data: topViewsByNeighborhood },
-                    { title: "Tipo de Barrio", data: topViewsByNeighborhoodType },
-                    { title: "Por Estado", data: topViewsByStatus },
-                    { title: "Estado y Tipo", data: topViewsByStatusAndType },
-                    { title: "Por Operación", data: topViewsByOperation },
-                    { title: "Por Ambientes", data: topViewsByRooms },
-                    { title: "Por Amenidad", data: topViewsByAmenity },
+                    { title: "Por Día", data: stats.day, type: "bar" },
+                    { title: "Por Mes", data: stats.month, type: "doughnut" },
+                    { title: "Top Propiedades", data: topViewsByProperty, type: "bar" },
+                    { title: "Por Tipo", data: topViewsByPropertyType, type: "pie" },
+                    { title: "Por Barrio", data: topViewsByNeighborhood, type: "pie" },
+                    { title: "Tipo de Barrio", data: topViewsByNeighborhoodType, type: "doughnut" },
+                    { title: "Por Estado", data: topViewsByStatus, type: "doughnut" },
+                    { title: "Estado y Tipo", data: topViewsByStatusAndType, type: "bar" },
+                    { title: "Por Operación", data: topViewsByOperation, type: "pie" },
+                    { title: "Por Ambientes", data: topViewsByRooms, type: "bar" },
+                    { title: "Por Amenidad", data: topViewsByAmenity, type: "bar" },
                   ].map((cfg) => (
-                    <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title={cfg.title} data={cfg.data} />
-                    </Grid>
+                      <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                        <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
+                      </Grid>
                   ))}
                 </Grid>
               </Box>
@@ -402,11 +402,11 @@ export default function ViewStatsPage() {
                 </Typography>
                 <Grid container spacing={3}>
                   {[
-                    { title: "Consultas por Mes", data: inquiriesPerMonth },
-                    { title: "Propiedades Más Consultadas", data: mostConsultedProperties },
-                    { title: "Distribución por Estado", data: inquiryStatusDistribution },
-                    { title: "Por Día de la Semana", data: inquiriesByDayOfWeek },
-                    { title: "Por Franja Horaria", data: inquiriesByTimeRange },
+                    { title: "Consultas por Mes", data: inquiriesPerMonth, type: "line" },
+                    { title: "Propiedades Más Consultadas", data: mostConsultedProperties, type: "bar" },
+                    { title: "Distribución por Estado", data: inquiryStatusDistribution, type: "doughnut" },
+                    { title: "Por Día de la Semana", data: inquiriesByDayOfWeek, type: "pie" },
+                    { title: "Por Franja Horaria", data: inquiriesByTimeRange, type: "bar" },
                   ].map((cfg) => (
                     <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
                       <ChartCard title={cfg.title} data={cfg.data} />
@@ -423,9 +423,9 @@ export default function ViewStatsPage() {
                 </Typography>
                 <Grid container spacing={3}>
                   {[
-                    { title: "Distribución de Puntajes", data: surveyScoreDistribution },
-                    { title: "Puntaje Promedio Diario", data: surveyDailyAverage },
-                    { title: "Puntaje Promedio Mensual", data: surveyMonthlyAverage },
+                    { title: "Distribución de Puntajes", data: surveyScoreDistribution, type: "bar" },
+                    { title: "Puntaje Promedio Diario", data: surveyDailyAverage, type: "line" },
+                    { title: "Puntaje Promedio Mensual", data: surveyMonthlyAverage, type: "doughnut" },
                   ].map((cfg) => (
                     <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
                       <ChartCard title={cfg.title} data={cfg.data} />
