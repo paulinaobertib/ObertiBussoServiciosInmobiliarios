@@ -31,7 +31,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
 
   servlet:
     multipart:
@@ -69,19 +69,9 @@ comparer:
 
 logging:
   level:
-    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
-    org.springframework.orm.jpa: DEBUG
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      probes:
-        enabled: true
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate: WARN
 
 ---
 
