@@ -17,6 +17,7 @@ import {
 } from "../app/property/services/property.service";
 import { useEffect, useState } from "react";
 import { useAuthContext } from "../app/user/context/AuthContext";
+import { Snackbar, Alert } from "@mui/material";
 
 export default function Home() {
   localStorage.setItem("selectedPropertyId", "");
@@ -25,6 +26,11 @@ export default function Home() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { isAdmin } = useAuthContext();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "info" | "warning" }>({
+      open: false,
+      message: "",
+      severity: "info",
+  });
 
   const alertApi: any = useGlobalAlert();
   const notifyInfo = (title: string, description?: string) => {
@@ -67,18 +73,19 @@ export default function Home() {
     }
   };
 
-  const toggleSelectionMode = () =>
-    setSelectionMode((prev) => {
-      if (prev) {
-        clearComparison();
-        notifyInfo("Saliendo del modo comparación");
-      } else {
-        notifyInfo("Entrando al modo comparación");
-      }
-      return !prev;
-    });
+    const toggleSelectionMode = () =>
+        setSelectionMode((prev) => {
+            const next = !prev;
+            setSnackbar({
+                open: true,
+                message: next ? "Entrando al modo comparación" : "Saliendo del modo comparación",
+                severity: "info",
+            });
+            if (!next) clearComparison();
+            return next;
+        });
 
-  const handleCompare = () => {
+    const handleCompare = () => {
     if (disabledCompare) {
       notifyWarn("Debes seleccionar 2 o 3 propiedades");
       return;
@@ -172,6 +179,29 @@ export default function Home() {
         toggleSelectionMode={toggleSelectionMode}
         onCompare={handleCompare}
       />
+
+      <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+          <Alert
+              onClose={() => setSnackbar({ ...snackbar, open: false })}
+              severity={snackbar.severity}
+              sx={{
+                  width: "100%",
+                  backgroundColor: "#EB7333",
+                  color: "white",
+                  '& .MuiAlert-icon': {
+                      color: 'white',
+                  },
+              }}
+          >
+              {snackbar.message}
+          </Alert>
+      </Snackbar>
+
     </BasePage>
   );
 }
