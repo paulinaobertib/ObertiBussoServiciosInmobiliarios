@@ -62,52 +62,52 @@ jobs:
           distribution: temurin
           java-version: "24"
 
-      # - name: Run Unit Tests
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
+      - name: Run Unit Tests
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: mvn -B clean test jacoco:report -Dmaven.test.failure.ignore=false
 
-      # - name: Show first failing report (debug)
-      #   if: failure()
-      #   working-directory: backend/${{ env.IMAGE_NAME }}
-      #   run: |
-      #     ls -1 target/surefire-reports | head -n 5
-      #     echo "─── FIRST REPORT ───"
-      #     FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
-      #     cat "$FIRST" | head -n 120
+      - name: Show first failing report (debug)
+        if: failure()
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: |
+          ls -1 target/surefire-reports | head -n 5
+          echo "─── FIRST REPORT ───"
+          FIRST=$(ls -1 target/surefire-reports/*.txt | head -n 1)
+          cat "$FIRST" | head -n 120
 
-      # - name: Publish JUnit Results
-      #   uses: EnricoMi/publish-unit-test-result-action@v2
-      #   if: always()
-      #   with:
-      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      - name: Publish JUnit Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - name: Test Summary
-      #   uses: test-summary/action@v2
-      #   if: always()
-      #   with:
-      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        if: always()
+        with:
+          paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      # - name: Publish JaCoCo Coverage
-      #   id: jacoco
-      #   uses: PavanMudigonda/jacoco-reporter@v5.0
-      #   with:
-      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-      #     coverage_report_name: Code Coverage
-      #     coverage_report_title: "JaCoCo Coverage"
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     minimum_coverage: 80
-      #     publish_only_summary: false
+      - name: Publish JaCoCo Coverage
+        id: jacoco
+        uses: PavanMudigonda/jacoco-reporter@v5.0
+        with:
+          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+          coverage_report_name: Code Coverage
+          coverage_report_title: "JaCoCo Coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          publish_only_summary: false
 
-      # - name: Publish JaCoCo Coverage on Summary
-      #   if: always()
-      #   run: |
-      #     echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
-      #     echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
-      #     echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-      #     echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
-      #     echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
-      #     echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
-      #     echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
+      - name: Publish JaCoCo Coverage on Summary
+        if: always()
+        run: |
+          echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -135,186 +135,186 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # --------------------------------------------------------------
-  # JOB 2: Deploy to Development
-  # --------------------------------------------------------------
-  deploy-dev:
-    name: Deploy to Development
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    environment: development
+  # # --------------------------------------------------------------
+  # # JOB 2: Deploy to Development
+  # # --------------------------------------------------------------
+  # deploy-dev:
+  #   name: Deploy to Development
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   environment: development
 
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ env.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+  #   steps:
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ env.AZURE_CREDENTIALS }}
+  #         enable-AzPSSession: true
 
-      - name: Set variables
-        id: vars
-        run: |
-          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
+  #     - name: Set variables
+  #       id: vars
+  #       run: |
+  #         echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
 
-      - name: Create Web App (if not exists)
-        run: |
-          az webapp create \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ env.APP_PLAN_DEV }} \
-            --name ${{ env.APP_NAME_DEV }} \
-            --deployment-container-image-name $IMAGE || true
+  #     - name: Create Web App (if not exists)
+  #       run: |
+  #         az webapp create \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --plan ${{ env.APP_PLAN_DEV }} \
+  #           --name ${{ env.APP_NAME_DEV }} \
+  #           --deployment-container-image-name $IMAGE || true
 
-      - name: Configure Web App container
-        run: |
-          az webapp config container set \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name $IMAGE \
-            --container-registry-url https://index.docker.io \
-            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
-            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+  #     - name: Configure Web App container
+  #       run: |
+  #         az webapp config container set \
+  #           --name ${{ env.APP_NAME_DEV }} \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --container-image-name $IMAGE \
+  #           --container-registry-url https://index.docker.io \
+  #           --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+  #           --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Ensure App Service Is Running
-        run: |
-          echo "Verificando estado del App Service..."
-          status=$(az webapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_DEV }} \
-            --query state -o tsv)
-          echo "Estado actual: $status"
-          if [ "$status" != "Running" ]; then
-            echo "🔄 Iniciando App Service..."
-            az webapp start \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --name ${{ env.APP_NAME_DEV }}
-          else
-            echo "✅ App Service ya está en ejecución."
-          fi
+  #     - name: Ensure App Service Is Running
+  #       run: |
+  #         echo "Verificando estado del App Service..."
+  #         status=$(az webapp show \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --name ${{ env.APP_NAME_DEV }} \
+  #           --query state -o tsv)
+  #         echo "Estado actual: $status"
+  #         if [ "$status" != "Running" ]; then
+  #           echo "🔄 Iniciando App Service..."
+  #           az webapp start \
+  #             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #             --name ${{ env.APP_NAME_DEV }}
+  #         else
+  #           echo "✅ App Service ya está en ejecución."
+  #         fi
 
-      - name: Set environment variables (App Settings Dev)
-        run: |
-          az webapp config appsettings set \
-            --name ${{ env.APP_NAME_DEV }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings \
-              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
-              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
-              "DOCKER_ENABLE_CI=true" \
-              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }}" \
-              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }}" \
-              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_DEV }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
-              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
-              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
-              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
-              "USER_HOSTNAME=${{ env.USERS_HOSTNAME_DEV }}" \
-              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
-              "ML_API_URL=${{ secrets.ML_API_URL }}" \
-              "URL_IA=${{ secrets.URL_IA }}" \
-              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
-              "VERSION_IA=${{ secrets.VERSION_IA }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
+  #     - name: Set environment variables (App Settings Dev)
+  #       run: |
+  #         az webapp config appsettings set \
+  #           --name ${{ env.APP_NAME_DEV }} \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --settings \
+  #             "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+  #             "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+  #             "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+  #             "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
+  #             "DOCKER_ENABLE_CI=true" \
+  #             "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }}" \
+  #             "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+  #             "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }}" \
+  #             "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_DEV }}" \
+  #             "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+  #             "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+  #             "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
+  #             "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+  #             "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
+  #             "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
+  #             "USER_HOSTNAME=${{ env.USERS_HOSTNAME_DEV }}" \
+  #             "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+  #             "ML_API_URL=${{ secrets.ML_API_URL }}" \
+  #             "URL_IA=${{ secrets.URL_IA }}" \
+  #             "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+  #             "VERSION_IA=${{ secrets.VERSION_IA }}" \
+  #             "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
 
-      - name: Enable Container Logs
-        run: |
-          az webapp log config \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_DEV }} \
-            --docker-container-logging filesystem
+  #     - name: Enable Container Logs
+  #       run: |
+  #         az webapp log config \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --name ${{ env.APP_NAME_DEV }} \
+  #           --docker-container-logging filesystem
 
-  # --------------------------------------------------------------
-  # JOB 3: Deploy to Production
-  # --------------------------------------------------------------
-  deploy-prod:
-    name: Deploy to Production
-    needs: [deploy-dev, build-and-push]
-    runs-on: ubuntu-latest
-    environment: production
+  # # --------------------------------------------------------------
+  # # JOB 3: Deploy to Production
+  # # --------------------------------------------------------------
+  # deploy-prod:
+  #   name: Deploy to Production
+  #   needs: [deploy-dev, build-and-push]
+  #   runs-on: ubuntu-latest
+  #   environment: production
 
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ env.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+  #   steps:
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ env.AZURE_CREDENTIALS }}
+  #         enable-AzPSSession: true
 
-      - name: Set variables
-        id: vars
-        run: |
-          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
+  #     - name: Set variables
+  #       id: vars
+  #       run: |
+  #         echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
 
-      - name: Create Web App (if not exists)
-        run: |
-          az webapp create \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ env.APP_PLAN_PROD }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --deployment-container-image-name $IMAGE || true
+  #     - name: Create Web App (if not exists)
+  #       run: |
+  #         az webapp create \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --plan ${{ env.APP_PLAN_PROD }} \
+  #           --name ${{ env.APP_NAME_PROD }} \
+  #           --deployment-container-image-name $IMAGE || true
 
-      - name: Configure Web App container
-        run: |
-          az webapp config container set \
-            --name ${{ env.APP_NAME_PROD }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name $IMAGE \
-            --container-registry-url https://index.docker.io \
-            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
-            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+  #     - name: Configure Web App container
+  #       run: |
+  #         az webapp config container set \
+  #           --name ${{ env.APP_NAME_PROD }} \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --container-image-name $IMAGE \
+  #           --container-registry-url https://index.docker.io \
+  #           --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+  #           --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Ensure App Service Is Running
-        run: |
-          echo "Verificando estado del App Service..."
-          status=$(az webapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --query state -o tsv)
-          echo "Estado actual: $status"
-          if [ "$status" != "Running" ]; then
-            echo "🔄 Iniciando App Service..."
-            az webapp start \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --name ${{ env.APP_NAME_PROD }}
-          else
-            echo "✅ App Service ya está en ejecución."
-          fi
+  #     - name: Ensure App Service Is Running
+  #       run: |
+  #         echo "Verificando estado del App Service..."
+  #         status=$(az webapp show \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --name ${{ env.APP_NAME_PROD }} \
+  #           --query state -o tsv)
+  #         echo "Estado actual: $status"
+  #         if [ "$status" != "Running" ]; then
+  #           echo "🔄 Iniciando App Service..."
+  #           az webapp start \
+  #             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #             --name ${{ env.APP_NAME_PROD }}
+  #         else
+  #           echo "✅ App Service ya está en ejecución."
+  #         fi
 
-      - name: Set environment variables (App Settings)
-        run: |
-          az webapp config appsettings set \
-            --name ${{ env.APP_NAME_PROD }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings \
-              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
-              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
-              "DOCKER_ENABLE_CI=true" \
-              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}" \
-              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }}" \
-              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_PROD }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
-              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
-              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
-              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
-              "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
-              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
-              "ML_API_URL=${{ secrets.ML_API_URL }}" \
-              "URL_IA=${{ secrets.URL_IA }}" \
-              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
-              "VERSION_IA=${{ secrets.VERSION_IA }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
+  #     - name: Set environment variables (App Settings)
+  #       run: |
+  #         az webapp config appsettings set \
+  #           --name ${{ env.APP_NAME_PROD }} \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --settings \
+  #             "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+  #             "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+  #             "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+  #             "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
+  #             "DOCKER_ENABLE_CI=true" \
+  #             "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}" \
+  #             "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+  #             "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }}" \
+  #             "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_PROD }}" \
+  #             "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+  #             "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+  #             "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
+  #             "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+  #             "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
+  #             "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
+  #             "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
+  #             "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+  #             "ML_API_URL=${{ secrets.ML_API_URL }}" \
+  #             "URL_IA=${{ secrets.URL_IA }}" \
+  #             "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+  #             "VERSION_IA=${{ secrets.VERSION_IA }}" \
+  #             "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
 
-      - name: Enable Container Logs
-        run: |
-          az webapp log config \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --docker-container-logging filesystem
+  #     - name: Enable Container Logs
+  #       run: |
+  #         az webapp log config \
+  #           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+  #           --name ${{ env.APP_NAME_PROD }} \
+  #           --docker-container-logging filesystem
