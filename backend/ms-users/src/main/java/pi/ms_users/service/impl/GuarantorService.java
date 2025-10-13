@@ -178,7 +178,7 @@ public class GuarantorService implements IGuarantorService {
         g.setEmail(dto.getEmail());
 
         guarantorRepository.save(g);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el garante.");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el garante: " + dto.getName());
     }
 
     @Override
