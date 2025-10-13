@@ -2,7 +2,6 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
+import pi.ms_properties.domain.Currency;
 import pi.ms_properties.dto.*;
 import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.dto.feign.NotificationDTO;
@@ -27,10 +27,7 @@ import pi.ms_properties.specification.PropertySpecification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -146,18 +143,33 @@ public class PropertyService implements IPropertyService {
 
         propertyRepository.save(property);
 
+        boolean notificationFailed = false;
+        boolean recommendationFailed = false;
+
         try {
             NotificationDTO notificationDTO = new NotificationDTO();
             notificationDTO.setDate(property.getDate());
-            notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
+            notificationDTO.setType(NotificationType.PROPIEDADNUEVA);
             notificationRepository.createNotification(notificationDTO, property.getId());
         } catch (Exception e) {
-            throw new RuntimeException("Error al crear la notificación", e);
+            notificationFailed = true;
         }
 
-        recommendationService.evaluateNewProperty(property);
+        try {
+            recommendationService.evaluateNewProperty(property);
+        } catch (Exception e) {
+            recommendationFailed = true;
+        }
 
-        return ResponseEntity.ok("Se ha guardado la propiedad");
+        if (notificationFailed && recommendationFailed) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero fallaron la notificación y la recomendación.");
+        } else if (notificationFailed) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero falló la notificación.");
+        } else if (recommendationFailed) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero falló el servicio de recomendación.");
+        } else {
+            return ResponseEntity.ok("La propiedad se ha guardado correctamente.");
+        }
     }
 
     @Transactional
