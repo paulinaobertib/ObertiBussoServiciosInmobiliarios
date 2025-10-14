@@ -41,7 +41,7 @@ public class AmenityServiceTest {
         ResponseEntity<String> response = amenityService.createAmenity(name);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha guardado correctamente el servicio", response.getBody());
+        assertEquals("Se ha guardado correctamente el servicio: WiFi", response.getBody());
         verify(amenityRepository).save(any(Amenity.class));
     }
 
