@@ -52,7 +52,7 @@ class IncreaseIndexServiceTest {
 
         ResponseEntity<String> response = service.create(index);
 
-        assertEquals("Se ha creado el indice de aumento.", response.getBody());
+        assertEquals("Se ha creado el indice de aumento: Índice de Precios", response.getBody());
         verify(increaseIndexRepository).save(index);
     }
 

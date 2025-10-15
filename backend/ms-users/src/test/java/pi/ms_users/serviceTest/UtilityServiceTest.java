@@ -54,7 +54,7 @@ class UtilityServiceTest {
 
         ResponseEntity<String> response = service.create(dto);
 
-        assertEquals("Se ha creado el servicio.", response.getBody());
+        assertEquals("Se ha creado el servicio: Luz", response.getBody());
         verify(utilityRepository).save(any(Utility.class));
     }
 

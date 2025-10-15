@@ -61,7 +61,7 @@ public class OwnerService implements IOwnerService {
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("El email '" + owner.getEmail() + "' ya existe");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario: " + owner.getFirstName() + " " + owner.getLastName());
     }
 
     @Override

@@ -62,7 +62,7 @@ public class NeighborhoodService implements INeighborhoodService {
             throw new IllegalArgumentException("El barrio '" + neighborhoodDTO.getName() + "' ya existe");
         }
 
-        return ResponseEntity.ok("Se ha guardado el barrio");
+        return ResponseEntity.ok("Se ha guardado el barrio: " + neighborhoodDTO.getName());
     }
 
     @Override
