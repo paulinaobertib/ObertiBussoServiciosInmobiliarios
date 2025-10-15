@@ -45,7 +45,7 @@ Cypress.Commands.add("loginKeycloak", () => {
           .first()
           .clear()
           .type(password, { log: false });
-        cy.get("input#kc-login, button[type=submit']").first().click();
+        cy.get("input#kc-login, button[type='submit']").first().click();
       });
     }
   );
@@ -77,7 +77,7 @@ Cypress.Commands.add("loginAdmin", () => {
           .first()
           .clear()
           .type(password, { log: false });
-        cy.get("input#kc-login, button[type=submit']").first().click();
+        cy.get("input#kc-login, button[type='submit']").first().click();
       });
     }
   );

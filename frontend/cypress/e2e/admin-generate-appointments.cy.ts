@@ -1,274 +1,278 @@
-﻿// ACOMODAR PORQUE USA MOCKS
-const appointmentsUrl = "http://localhost:5173/appointments";
+﻿/// <reference types="cypress" />
 
-const adminUsername = Cypress.env("adminUsername") ?? "admin";
-const adminEmail = Cypress.env("adminEmail") ?? `${adminUsername}@test.com`;
-const adminFirstName = Cypress.env("adminFirstName") ?? "Admin";
-const adminLastName = Cypress.env("adminLastName") ?? "Cypress";
+const MONTH_LABELS = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+const DECEMBER_INDEX = 11;
+const DECEMBER_NAME = "diciembre";
+const BASE_DAY = 15;
+const MAX_DAY = 31;
 
-type AvailableSlot = {
-  id: number;
-  date: string;
-  availability: boolean;
+type AppointmentState = {
+  year: number;
+  lastGeneratedDay: number;
 };
 
-const adminUser = {
-  id: "admin-1",
-  firstName: adminFirstName,
-  lastName: adminLastName,
-  userName: adminUsername,
-  email: adminEmail,
-  phone: Cypress.env("adminPhone") ?? "123456789",
+const sanitize = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const parseCalendarHeader = (label: string) => {
+  const normalized = sanitize(label).replace(/\s+/g, " ");
+  const regex = new RegExp(`(${MONTH_LABELS.join("|")})(?:\\s+de)?\\s+(\\d{4})`);
+  const match = normalized.match(regex);
+
+  if (!match) {
+    throw new Error(`No se pudo interpretar el encabezado del calendario: "${label}"`);
+  }
+
+  const monthName = match[1];
+  const year = Number(match[2]);
+  const monthIndex = MONTH_LABELS.indexOf(monthName);
+
+  return { monthIndex, year };
 };
 
-const extractId = (url: string) => {
-  const match = url.match(/(\d+)(?:\?.*)?$/);
-  return match ? Number(match[1]) : null;
-};
+const moveCalendarTo = (monthIndex: number, year: number) => {
+  const headerSelector = ".MuiPickersCalendarHeader-label";
+  const nextSelector = "button[aria-label='Next month'], button[aria-label='Siguiente mes']";
+  const prevSelector = "button[aria-label='Previous month'], button[aria-label='Mes anterior']";
 
-const setupAppointmentsBackend = () => {
-  let availabilityStore: AvailableSlot[] = [];
-  let slotSequence = 1;
-
-  cy.intercept("GET", "**/users/availableAppointments/getAll", (req) => {
-    const body = [...availabilityStore].sort((a, b) => a.date.localeCompare(b.date));
-    req.reply({ statusCode: 200, body });
-  }).as("getAvailabilities");
-
-  cy.intercept("GET", "**/users/availableAppointments/available", (req) => {
-    const body = availabilityStore.filter((slot) => slot.availability);
-    req.reply({ statusCode: 200, body });
-  });
-
-  cy.intercept("GET", "**/users/availableAppointments/unavailable", (req) => {
-    const body = availabilityStore.filter((slot) => !slot.availability);
-    req.reply({ statusCode: 200, body });
-  });
-
-  cy.intercept("GET", "**/users/appointments/status*", (req) => {
-    req.reply({ statusCode: 200, body: [] });
-  }).as("getAppointmentsStatus");
-
-  cy.intercept("GET", "**/users/appointments/user/*", {
-    statusCode: 200,
-    body: { data: [] },
-  }).as("getUserAppointments");
-
-  cy.intercept("POST", "**/users/availableAppointments/create", (req) => {
-    const { date, startTime, endTime } = req.body as {
-      date: string;
-      startTime: string;
-      endTime: string;
-    };
-
-    const toMinutes = (value: string) => {
-      const [hourStr = "0", minuteStr = "0"] = value.split(":");
-      return Number(hourStr) * 60 + Number(minuteStr);
-    };
-
-    const start = toMinutes(startTime);
-    const end = toMinutes(endTime);
-
-    const generated: AvailableSlot[] = [];
-
-    for (let current = start; current < end; current += 30) {
-      const hour = Math.floor(current / 60);
-      const minute = current % 60;
-      generated.push({
-        id: slotSequence++,
-        date: `${date}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`,
-        availability: true,
-      });
-    }
-
-    const generatedKeys = new Set(generated.map((slot) => slot.date));
-    availabilityStore = availabilityStore.filter((slot) => !generatedKeys.has(slot.date));
-    availabilityStore = [...availabilityStore, ...generated].sort((a, b) => a.date.localeCompare(b.date));
-
-    req.reply({ statusCode: 201, body: generated });
-  }).as("createAvailability");
-
-  cy.intercept("DELETE", "**/users/availableAppointments/delete/*", (req) => {
-    const id = extractId(req.url);
-    if (id != null) {
-      availabilityStore = availabilityStore.filter((slot) => slot.id !== id);
-    }
-    req.reply({ statusCode: 200, body: {} });
-  }).as("deleteAvailability");
-};
-
-const setupAdminAuth = () => {
-  cy.intercept("GET", "**/users/user/me", {
-    statusCode: 200,
-    body: adminUser,
-  }).as("getMe");
-
-  cy.intercept("POST", "**/users/user/registerRole", {
-    statusCode: 200,
-    body: {},
-  }).as("registerRole");
-
-  cy.intercept("GET", "**/users/user/role/*", {
-    statusCode: 200,
-    body: ["ADMIN"],
-  }).as("getRoles");
-};
-
-const setupCatalogStubs = () => {
-  const emptyList: any[] = [];
-
-  cy.intercept("GET", "**/properties/property/getAll", {
-    statusCode: 200,
-    body: emptyList,
-  }).as("getAllProperties");
-
-  cy.intercept("GET", "**/properties/property/get", {
-    statusCode: 200,
-    body: emptyList,
-  }).as("getPropertiesCatalog");
-
-  cy.intercept("GET", "**/properties/property/search*", {
-    statusCode: 200,
-    body: emptyList,
-  });
-
-  cy.intercept("GET", "**/properties/property/text*", {
-    statusCode: 200,
-    body: emptyList,
-  });
-};
-
-const goToMonth = (monthName: string) => {
-  cy.get(".MuiPickersCalendarHeader-label")
+  cy.get(headerSelector)
+    .first()
     .invoke("text")
-    .then((text) => {
-      if (!text.toLowerCase().includes(monthName.toLowerCase())) {
-        cy.get("button[aria-label='Next month'], button[aria-label='Siguiente mes']")
+    .then((label) => {
+      const { monthIndex: currentMonth, year: currentYear } = parseCalendarHeader(label);
+
+      if (currentMonth === monthIndex && currentYear === year) {
+        return;
+      }
+
+      const monthDelta = (year - currentYear) * 12 + (monthIndex - currentMonth);
+      const selector = monthDelta > 0 ? nextSelector : prevSelector;
+      const steps = Math.abs(monthDelta);
+
+      Cypress._.times(steps, () => {
+        cy.get(selector)
+          .filter(":visible")
           .first()
           .click();
-        goToMonth(monthName);
-      }
+      });
+    })
+    .then(() => {
+      cy.get(headerSelector)
+        .first()
+        .invoke("text")
+        .then((finalLabel) => {
+          const { monthIndex: finalMonth, year: finalYear } = parseCalendarHeader(finalLabel);
+          expect(finalMonth, "mes esperado en calendario").to.eq(monthIndex);
+          expect(finalYear, "año esperado en calendario").to.eq(year);
+        });
     });
 };
 
-describe("Integración: Pantalla de turnos con administrador logueado", () => {
+const selectCalendarDay = (day: number) => {
+  const dayLabel = new RegExp(`^${String(day)}$`);
+
+  cy.contains("button.MuiPickersDay-root", dayLabel)
+    .filter(":visible")
+    .first()
+    .should("not.be.disabled")
+    .click({ force: true });
+};
+
+const setTimeInput = (labelText: string, value: string) => {
+  cy.contains("label", labelText)
+    .parent()
+    .find("input")
+    .clear()
+    .type(value);
+};
+
+const computeDefaultYear = () => {
+  const today = new Date();
+  const baseDateThisYear = new Date(today.getFullYear(), DECEMBER_INDEX, BASE_DAY);
+
+  if (today <= baseDateThisYear) {
+    return baseDateThisYear.getFullYear();
+  }
+
+  return baseDateThisYear.getFullYear() + 1;
+};
+
+const SLOT_TIMEOUT = 70000;
+
+const getSlotByTime = (timeLabel: RegExp) =>
+  cy.contains(".MuiPaper-root", timeLabel, { timeout: SLOT_TIMEOUT }).filter(":visible").first();
+
+describe("Integración: Turnero admin genera turnos reales en diciembre", () => {
+  let targetDay = BASE_DAY;
+  let targetYear = computeDefaultYear();
+
+  before(function () {
+    const requiredEnvVars = ["adminUsername", "adminPassword", "keycloakUrl", "appUrl"];
+    const missing = requiredEnvVars.filter((key) => {
+      const value = Cypress.env(key);
+      return typeof value !== "string" || value.trim().length === 0;
+    });
+
+    if (missing.length > 0) {
+      cy.log(`Faltan variables de entorno requeridas: ${missing.join(", ")}`);
+      this.skip();
+      return;
+    }
+
+    cy.task("adminAppointments:state:read").then((rawState) => {
+      const state = rawState as AppointmentState | null;
+      const defaultYear = computeDefaultYear();
+      const storedYear = typeof state?.year === "number" ? state.year : defaultYear;
+      const storedDay = typeof state?.lastGeneratedDay === "number" ? state.lastGeneratedDay : BASE_DAY - 1;
+
+      let nextYear = storedYear;
+      let nextDay = storedDay + 1;
+
+      if (nextDay > MAX_DAY) {
+        nextDay = BASE_DAY;
+        nextYear += 1;
+      }
+
+      if (nextDay < BASE_DAY) {
+        nextDay = BASE_DAY;
+      }
+
+      if (nextYear < defaultYear) {
+        nextYear = defaultYear;
+        if (nextDay < BASE_DAY) {
+          nextDay = BASE_DAY;
+        }
+      }
+
+      targetDay = nextDay;
+      targetYear = nextYear;
+
+      cy.log(`Generando turnos para ${targetDay} de ${DECEMBER_NAME} de ${targetYear}`);
+    });
+  });
+
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
-
-    setupAdminAuth();
-    setupAppointmentsBackend();
-    setupCatalogStubs();
-
-    const adminSession = {
-      ...adminUser,
-      roles: ["ADMIN"],
-      preferences: [],
-    };
-
-    cy.visit(appointmentsUrl, {
-      onBeforeLoad(win) {
-        win.sessionStorage.setItem("authInfo", JSON.stringify(adminSession));
-      },
-    });
-
-    cy.get("body", { timeout: 1000 }).then(($body) => {
-      const normalized = $body
-        .text()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      if (normalized.includes("ocurrio un error")) {
-        cy.wrap($body)
-          .contains("button", "Aceptar", { matchCase: false })
-          .click();
-      }
-    });
-
-    cy.wait("@getMe");
-    cy.wait("@getRoles");
-    cy.wait("@getUserAppointments");
-    cy.wait("@getAvailabilities");
   });
 
-  it("genera turnos disponibles para el dia seleccionado", () => {
-    cy.url({ timeout: 10000 }).should("include", "/appointments");
-    cy.contains("Turnero de Visitas", { timeout: 10000 }).should("be.visible");
-    cy.contains("Resumen de Turnos del Día", { timeout: 10000 }).should("be.visible");
+  afterEach(function () {
+    if (this.currentTest?.state !== "passed") {
+      return;
+    }
 
-    cy.contains("button", "Generar turnos").click();
+    cy.task("adminAppointments:state:write", {
+      year: targetYear,
+      lastGeneratedDay: targetDay,
+    });
+  });
+
+  it("Genera turnos disponibles y luego los elimina", () => {
+    cy.loginAdmin();
+
+    cy.get("header, nav")
+      .first()
+      .within(() => {
+        cy.contains("button", /^Turnero$/i).should("be.visible").click();
+      });
+
+    cy.location("pathname", { timeout: 30000 }).should("include", "/appointments");
+    cy.contains("Turnero de Visitas", { timeout: 30000 }).should("be.visible");
+
+    moveCalendarTo(DECEMBER_INDEX, targetYear);
+    selectCalendarDay(targetDay);
+
+    cy.contains("button", /^Generar turnos$/i).should("be.visible").click();
 
     cy.get("[role='dialog']").within(() => {
-      goToMonth("diciembre");
-      cy.contains("button", /^17$/).click({ force: true });
+      cy.contains("Generar turnos", { timeout: 10000 }).should("be.visible");
 
-      cy.contains("label", "Desde")
-        .parent()
-        .find("input")
-        .clear()
-        .type("09:30");
+      moveCalendarTo(DECEMBER_INDEX, targetYear);
+      selectCalendarDay(targetDay);
 
-      cy.contains("label", "Hasta")
-        .parent()
-        .find("input")
-        .clear()
-        .type("13:00");
+      setTimeInput("Desde", "09:00");
+      setTimeInput("Hasta", "10:00");
 
-      cy.contains("button", /^Generar$/).should("not.be.disabled").click();
+      cy.contains("button", /^Generar$/i).should("be.enabled").click();
     });
 
-    cy.wait("@createAvailability");
+    cy.contains("Turnos generados", { timeout: 30000 }).should("be.visible");
+    cy.contains("Se crearon turnos", { timeout: 30000 }).should("be.visible");
+    cy.contains("button", /^Ok$/i).click();
 
-    cy.contains("Turnos generados", { timeout: 10000 }).should("be.visible");
-    cy.contains("Se crearon turnos", { timeout: 10000 }).should("be.visible");
-    cy.contains("button", "Ok").click();
-
+    cy.contains("Turnos generados").should("not.exist");
     cy.get("[role='dialog']")
-      .find("button[aria-label='cerrar modal']")
-      .click();
+      .find("button[aria-label='cerrar modal'], button[aria-label='close']")
+      .filter(":visible")
+      .first()
+      .click({ force: true });
+    cy.get("[role='dialog']").should("not.exist");
 
-    cy.wait("@getAvailabilities");
+    moveCalendarTo(DECEMBER_INDEX, targetYear);
+    selectCalendarDay(targetDay);
 
-    cy.scrollTo("top");
+    cy.contains("button", /^POR DIA$/i).click();
 
-    const nextMonthButton = "button[aria-label='Next month'], button[aria-label='Siguiente mes']";
-    cy.get(nextMonthButton).first().click();
-    cy.get(nextMonthButton).first().click();
+    getSlotByTime(/09:00/)
+      .should("be.visible")
+      .and("contain.text", "Libre");
+    getSlotByTime(/09:30/)
+      .should("be.visible")
+      .and("contain.text", "Libre");
 
-    cy.contains("button", /^17$/).click({ force: true });
+    const confirmDeletion = () => {
+      cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
+        .filter(":visible")
+        .first()
+        .click();
 
-    cy.contains("Disponible: 7", { timeout: 10000 }).should("be.visible");
+      cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
+        .filter(":visible")
+        .first()
+        .click();
 
-    cy.contains("button", "POR DIA").click();
-    cy.contains("09:30", { timeout: 10000 }).should("be.visible");
-    cy.contains("12:30", { timeout: 10000 }).should("be.visible");
-    cy.contains("Libre").should("exist");
+      cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("be.visible");
+      cy.contains("button", /^Ok$/i, { timeout: SLOT_TIMEOUT }).click();
+      cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("not.exist");
+      cy.get("[role='dialog']", { timeout: SLOT_TIMEOUT }).should("not.exist");
+    };
 
-    cy.contains("09:30")
-      .closest(".MuiPaper-root")
-      .click();
+    const deleteSlot = (timePattern: RegExp) => {
+      getSlotByTime(timePattern).click();
 
-    cy.get("[role='dialog']").within(() => {
-      cy.contains("Detalle del turno").should("be.visible");
-      cy.contains("button", "Eliminar").click();
-    });
+      cy.contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT })
+        .should("be.visible")
+        .within(() => {
+          cy.contains("button", /^Eliminar$/i, { timeout: SLOT_TIMEOUT })
+            .should("not.have.attr", "disabled")
+            .click();
+        });
 
-    cy.contains("button", "Confirmar").click();
-    cy.contains("button", "Confirmar").click();
+      confirmDeletion();
+      cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
+    };
 
-    cy.wait("@deleteAvailability");
+    deleteSlot(/09:00/);
+    deleteSlot(/09:30/);
 
-    cy.contains("Turno eliminado", { timeout: 10000 }).should("be.visible");
-    cy.contains("button", "Ok").click();
-
-    cy.wait("@getAvailabilities");
-
-    cy.contains("Detalle del turno").should("not.exist");
-
-    cy.contains("Disponible: 6", { timeout: 10000 }).should("be.visible");
-
-    cy.contains("button", "POR DIA").click();
-    cy.contains("09:30").should("not.exist");
+    cy.contains(".MuiPaper-root", /Libre/).should("not.exist");
   });
 });
