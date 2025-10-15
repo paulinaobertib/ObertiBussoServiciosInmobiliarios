@@ -19,8 +19,11 @@ import java.util.Set;
 public class RecommendationService {
 
     private final ContentBasedRecommender contentRecommender;
+
     private final CollaborativeRecommender collaborativeRecommender;
+
     private final NotificationRepository notificationRepository;
+
     private final FavoriteRepository favoriteRepository;
 
     public void evaluateNewProperty(Property newProperty) {

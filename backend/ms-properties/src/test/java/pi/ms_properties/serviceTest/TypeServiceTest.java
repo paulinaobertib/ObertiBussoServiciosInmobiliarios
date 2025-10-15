@@ -43,7 +43,7 @@ class TypeServiceTest {
         ResponseEntity<String> response = typeService.createType(type);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha guardado el tipo de propiedad", response.getBody());
+        assertEquals("Se ha guardado el tipo de propiedad: Casa", response.getBody());
         verify(typeRepository).save(type);
     }
 

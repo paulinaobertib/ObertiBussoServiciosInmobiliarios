@@ -51,7 +51,7 @@ public class IncreaseIndexService implements IIncreaseIndexService {
         });
 
         increaseIndexRepository.save(increaseIndex);
-        return ResponseEntity.ok("Se ha creado el indice de aumento.");
+        return ResponseEntity.ok("Se ha creado el indice de aumento: " + increaseIndex.getName());
     }
 
     @Override

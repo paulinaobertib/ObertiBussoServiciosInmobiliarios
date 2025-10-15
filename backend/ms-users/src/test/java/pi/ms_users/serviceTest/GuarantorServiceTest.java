@@ -71,7 +71,7 @@ class GuarantorServiceTest {
         ResponseEntity<String> response = service.create(dto);
 
         assertEquals(201, response.getStatusCode().value());
-        assertEquals("Se ha guardado el garante.", response.getBody());
+        assertEquals("Se ha guardado el garante: Juan", response.getBody());
         verify(guarantorRepository).save(any(Guarantor.class));
     }
 

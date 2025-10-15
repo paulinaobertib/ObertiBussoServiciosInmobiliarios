@@ -6,7 +6,7 @@ import { useApiErrors } from "../../shared/hooks/useErrors";
 interface Props<T extends {}> {
   initial: T;
   action: "add" | "edit" | "delete";
-  save: (payload: T) => Promise<void>;
+  save: (payload: T) => Promise<string>;
   refresh: () => Promise<void>;
   onDone: () => void;
 }
@@ -18,7 +18,7 @@ export const useCategories = <T extends {}>({ initial, action, save, refresh, on
 
   // Título de éxito según acción
   const successTitle =
-    action === "add" ? "Categoría creada" : action === "edit" ? "Cambios guardados" : "Categoría eliminada";
+    action === "add" ? "Creado correctamente" : action === "edit" ? "Cambios guardados" : "Eliminado correctamente";
 
   const notifySuccess = async (title: string, description?: string) => {
     if (alertApi?.success) {
@@ -52,11 +52,12 @@ export const useCategories = <T extends {}>({ initial, action, save, refresh, on
       // ---------------------------------------------
 
       // En "add" ignoramos id si vino en initial
+      let message;
       if (action === "add") {
         const { id, ...formWithoutId } = (form as any) ?? {};
-        await save(formWithoutId as T);
+        message = await save(formWithoutId as T); // 👈 el backend devuelve el texto
       } else {
-        await save(form);
+        message = await save(form); // 👈 idem si es edición o delete
       }
 
       // Intentar refrescar (si falla, informar pero no romper el flujo)
@@ -67,7 +68,7 @@ export const useCategories = <T extends {}>({ initial, action, save, refresh, on
       }
 
       onDone();
-      await notifySuccess(successTitle, "Acción ejecutada con éxito");
+      await notifySuccess(successTitle, message);
     } catch (e) {
       handleError(e);
     }

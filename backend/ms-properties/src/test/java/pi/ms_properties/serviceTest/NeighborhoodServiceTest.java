@@ -57,7 +57,7 @@ class NeighborhoodServiceTest {
         ResponseEntity<String> response = service.createNeighborhood(dto);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Se ha guardado el barrio", response.getBody());
+        assertEquals("Se ha guardado el barrio: Barrio Norte", response.getBody());
         verify(repository).save(any(Neighborhood.class));
     }
 

@@ -33,7 +33,7 @@ public class AmenityService implements IAmenityService {
         amenity.setName(name);
         amenityRepository.save(amenity);
 
-        return ResponseEntity.ok("Se ha guardado correctamente el servicio");
+        return ResponseEntity.ok("Se ha guardado correctamente el servicio: " + name);
     }
 
     @Override

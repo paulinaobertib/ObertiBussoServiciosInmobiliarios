@@ -77,7 +77,7 @@ class OwnerServiceTest {
         ResponseEntity<String> response = ownerService.createOwner(owner);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("Se ha guardado el propietario", response.getBody());
+        assertEquals("Se ha guardado el propietario: John Doe", response.getBody());
         verify(ownerRepository).save(owner);
     }
 
