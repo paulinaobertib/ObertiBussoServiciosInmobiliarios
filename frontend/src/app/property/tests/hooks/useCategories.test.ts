@@ -42,7 +42,7 @@ describe("useCategories", () => {
     expect(save).toHaveBeenCalledWith({ name: "cat 1" }); // id removido
     expect(refresh).toHaveBeenCalled();
     expect(onDone).toHaveBeenCalled();
-    expect(showAlert).toHaveBeenCalledWith("Acción ejecutada con éxito", "success");
+    expect(showAlert).toHaveBeenCalledWith("Creado correctamente", "success");
   });
 
   it("ejecuta correctamente la acción 'edit'", async () => {
@@ -58,7 +58,7 @@ describe("useCategories", () => {
     expect(save).toHaveBeenCalledWith(initial);
     expect(refresh).toHaveBeenCalled();
     expect(onDone).toHaveBeenCalled();
-    expect(showAlert).toHaveBeenCalledWith("Acción ejecutada con éxito", "success");
+    expect(showAlert).toHaveBeenCalledWith("Cambios guardados", "success");
   });
 
   it("maneja errores al ejecutar run()", async () => {
