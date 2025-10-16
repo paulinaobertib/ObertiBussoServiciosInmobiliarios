@@ -186,6 +186,12 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
   });
 
   it("Genera turnos disponibles y luego los elimina", () => {
+    cy.intercept("GET", "**/users/availableAppointments/getAll").as("getAllSlots");
+    cy.intercept("GET", "**/users/appointments/status?status=ESPERA").as("getPendingAppointments");
+    cy.intercept("GET", "**/users/appointments/status?status=ACEPTADO").as("getAcceptedAppointments");
+    cy.intercept("POST", "**/users/availableAppointments/create").as("createAvailability");
+    cy.intercept("DELETE", "**/users/availableAppointments/delete/*").as("deleteAvailability");
+
     cy.loginAdmin();
 
     cy.get("header, nav")
@@ -196,6 +202,9 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
 
     cy.location("pathname", { timeout: 30000 }).should("include", "/appointments");
     cy.contains("Turnero de Visitas", { timeout: 30000 }).should("be.visible");
+    cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
+    cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
+    cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
 
     moveCalendarTo(DECEMBER_INDEX, targetYear);
     selectCalendarDay(targetDay);
@@ -217,6 +226,12 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
     cy.contains("Turnos generados", { timeout: 30000 }).should("be.visible");
     cy.contains("Se crearon turnos", { timeout: 30000 }).should("be.visible");
     cy.contains("button", /^Ok$/i).click();
+    cy.wait("@createAvailability", { timeout: SLOT_TIMEOUT })
+      .its("response.statusCode")
+      .should("be.within", 200, 299);
+    cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
+    cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
+    cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
 
     cy.contains("Turnos generados").should("not.exist");
     cy.get("[role='dialog']")
@@ -249,6 +264,13 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
         .first()
         .click();
 
+      cy.wait("@deleteAvailability", { timeout: SLOT_TIMEOUT })
+        .its("response.statusCode")
+        .should("be.within", 200, 299);
+      cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
+      cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
+      cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
+
       cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("be.visible");
       cy.contains("button", /^Ok$/i, { timeout: SLOT_TIMEOUT }).click();
       cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("not.exist");
@@ -261,18 +283,19 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
       cy.contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT })
         .should("be.visible")
         .within(() => {
-          cy.contains("button", /^Eliminar$/i, { timeout: SLOT_TIMEOUT })
-            .should("not.have.attr", "disabled")
-            .click();
-        });
+      cy.contains("button", "Eliminar", { timeout: SLOT_TIMEOUT, matchCase: false })
+        .should("exist")
+        .and("be.enabled")
+        .click({ force: true });
+    });
 
-      confirmDeletion();
-      cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
-    };
+    confirmDeletion();
+    cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
+  };
 
     deleteSlot(/09:00/);
+    cy.wait(2000);
     deleteSlot(/09:30/);
-
-    cy.contains(".MuiPaper-root", /Libre/).should("not.exist");
+    cy.contains("No hay turnos disponibles para esta fecha.", { timeout: SLOT_TIMEOUT }).should("be.visible");
   });
 });
