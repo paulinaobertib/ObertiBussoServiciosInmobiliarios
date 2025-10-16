@@ -11,7 +11,7 @@ describe("Integracion: Comparar propiedades", () => {
     cy.visit(appBaseUrl);
   });
 
-  it("permite comparar propiedades y enviar una consulta por las seleccionadas", () => {
+  it("Permite comparar propiedades y enviar una consulta por las seleccionadas", () => {
     cy.intercept("GET", "**/properties/property/getById/*").as("getPropertyById");
     cy.intercept("POST", "**/properties/inquiries/create").as("postInquiry");
 
