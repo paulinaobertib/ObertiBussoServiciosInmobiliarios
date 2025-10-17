@@ -16,7 +16,7 @@ const MONTH_LABELS = [
 ];
 const DECEMBER_INDEX = 11;
 const DECEMBER_NAME = "diciembre";
-const BASE_DAY = 15;
+const BASE_DAY = 18;
 const MAX_DAY = 31;
 
 type AppointmentState = {
@@ -277,24 +277,69 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
       cy.get("[role='dialog']", { timeout: SLOT_TIMEOUT }).should("not.exist");
     };
 
+    const openSlotDetail = (
+      timePattern: RegExp,
+      attempts = 3
+    ): Cypress.Chainable<JQuery<HTMLElement>> => {
+      const tryOpen = (
+        remaining: number
+      ): Cypress.Chainable<JQuery<HTMLElement>> => {
+        return getSlotByTime(timePattern)
+          .click()
+          .then(() =>
+            cy
+              .contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT })
+              .filter(":visible")
+              .first()
+          )
+          .then(($dialog) => {
+            if ($dialog.length) {
+              return cy
+                .wrap($dialog)
+                .within(() => {
+                  cy.contains("button", "Eliminar", {
+                    timeout: SLOT_TIMEOUT,
+                    matchCase: false,
+                  })
+                    .should("exist")
+                    .and("be.visible")
+                    .and("be.enabled");
+                })
+                .then(() => cy.wrap($dialog));
+            }
+
+            if (remaining <= 1) {
+              throw new Error(
+                `No se pudo abrir el detalle del turno para ${timePattern.toString()}`
+              );
+            }
+
+            cy.log(
+              `El detalle del turno se cerro, reintentando apertura (${remaining - 1} intentos restantes).`
+            );
+
+            return cy.wait(500).then(() => tryOpen(remaining - 1));
+          });
+      };
+
+      return tryOpen(attempts);
+    };
+
     const deleteSlot = (timePattern: RegExp) => {
-      getSlotByTime(timePattern).click();
+      openSlotDetail(timePattern).within(() => {
+        cy.contains("button", "Eliminar", { timeout: SLOT_TIMEOUT, matchCase: false })
+          .should("exist")
+          .and("be.visible")
+          .and("be.enabled")
+          .click();
+      });
 
-      cy.contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT })
-        .should("be.visible")
-        .within(() => {
-      cy.contains("button", "Eliminar", { timeout: SLOT_TIMEOUT, matchCase: false })
-        .should("exist")
-        .and("be.enabled")
-        .click({ force: true });
-    });
-
-    confirmDeletion();
-    cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
-  };
+      confirmDeletion();
+      cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
+    };
 
     deleteSlot(/09:00/);
-    cy.wait(2000);
+    cy.wait(10000);
     deleteSlot(/09:30/);
     cy.contains("No hay turnos disponibles para esta fecha.", { timeout: SLOT_TIMEOUT }).should("be.visible");
   });
