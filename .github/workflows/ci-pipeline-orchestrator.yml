@@ -10,11 +10,17 @@ jobs:
   ci_ms_properties:
     name: CI - Properties
     uses: ./.github/workflows/ci-ms-properties.yml
+    permissions:
+      contents: read
+      checks: write
     secrets: inherit
 
   ci_ms_users:
     name: CI - Users
     uses: ./.github/workflows/ci-ms-users.yml
+    permissions:
+      contents: read
+      checks: write
     secrets: inherit
 
   ci_ms_gateway:
