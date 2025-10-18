@@ -44,6 +44,8 @@ jobs:
         if: always()
         with:
           files: ./frontend/vitest-report.xml
+          check_run: false
+          job_summary: true
 
       - name: Publish Coverage Summary
         if: always()
