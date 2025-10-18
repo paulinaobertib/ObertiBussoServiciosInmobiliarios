@@ -61,6 +61,8 @@ jobs:
         if: always()
         with:
           files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+          check_run: false
+          job_summary: true
 
       - name: Test Summary
         uses: test-summary/action@v2
