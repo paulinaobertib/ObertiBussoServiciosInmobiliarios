@@ -96,11 +96,13 @@ jobs:
       - name: Seed Keycloak test user
         run: |
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
-          ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | jq -r '.[0].id')
+          USER_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | jq -r '.[0].id')
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username user --new-password Usuario1.
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000001"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000001"]'
+          ADMIN_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=admin | jq -r '.[0].id')
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
