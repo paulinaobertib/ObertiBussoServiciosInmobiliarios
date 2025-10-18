@@ -19,10 +19,10 @@ jobs:
       INTEGRATION_DB_USERNAME: ${{ secrets.DB_SQL_USERNAME }}
       INTEGRATION_DB_PASSWORD: ${{ secrets.DB_SQL_PASSWORD }}
       ML_API_URL: ${{ secrets.ML_API_URL_QA }}
-      AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_QA }}
+      AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING }}
       EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
       EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
