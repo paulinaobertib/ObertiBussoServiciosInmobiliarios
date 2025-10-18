@@ -59,9 +59,6 @@ jobs:
       - name: Launch integration stack
         run: docker compose -f $COMPOSE_FILE up -d
 
-      - name: Add 1-minute additional wait
-        run: sleep 60
-
       - name: Wait for services readiness
         run: |
           services=(
@@ -77,10 +74,13 @@ jobs:
             url="${entry##*|}"
             echo "Waiting for $service at $url"
             for i in {1..30}; do
+              printf '  ↳ attempt %2d/30 … ' "$i"
               if curl -sf "$url" > /dev/null; then
+                echo "success"
                 echo "$service ready"
                 break
               fi
+              echo "not ready yet"
               if [ "$i" -eq 30 ]; then
                 echo "::error::$service did not become ready in time"
                 docker compose -f $COMPOSE_FILE logs "$service" || true
@@ -90,6 +90,9 @@ jobs:
             done
           done
 
+      - name: Add 1-minute additional wait
+        run: sleep 60
+        
       - name: Seed Keycloak test user
         run: |
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin

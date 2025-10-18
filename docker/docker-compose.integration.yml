@@ -211,10 +211,6 @@ services:
       ms-users:
         condition: service_started
     hostname: api.localtest.me
-    entrypoint:
-      - sh
-      - -c
-      - exec java $JAVA_OPTS -cp spring-boot-loader -Dloader.path=$SPRING_BOOT_LOADER_PATH -Dloader.main=$SPRING_BOOT_MAIN_CLASS org.springframework.boot.loader.launch.PropertiesLauncher
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://api.localtest.me:8090/actuator/health || exit 1"]
       interval: 10s
@@ -242,10 +238,6 @@ services:
     depends_on:
       gateway:
         condition: service_started
-    command:
-      - sh
-      - -c
-      - exec serve -s dist -l 4173
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://app.localtest.me:4173"]
       interval: 10s
