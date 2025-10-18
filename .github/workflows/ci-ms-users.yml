@@ -60,29 +60,6 @@ jobs:
         with:
           paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
-      - name: Publish JaCoCo Coverage
-        if: github.event_name != 'workflow_call'
-        id: jacoco
-        uses: PavanMudigonda/jacoco-reporter@v5.0
-        with:
-          coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
-          coverage_report_name: Code Coverage
-          coverage_report_title: "JaCoCo Coverage"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_coverage: 80
-          publish_only_summary: true
-
-      - name: Publish JaCoCo Coverage on Summary
-        if: always() && github.event_name != 'workflow_call'
-        run: |
-          echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Code Coverage % | ${{ steps.jacoco.outputs.coverage_percentage }}% |" >> $GITHUB_STEP_SUMMARY
-          echo "| ✔️ Number of Lines Covered | ${{ steps.jacoco.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| ❌ Number of Lines Missed | ${{ steps.jacoco.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Total Number of Lines | ${{ steps.jacoco.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
