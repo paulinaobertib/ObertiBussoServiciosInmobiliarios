@@ -1,4 +1,4 @@
-name: CI Pipeline Orchestrator
+name: CI/CD - Pipeline Orchestrator
 
 on:
   workflow_dispatch:
@@ -8,42 +8,42 @@ on:
 
 jobs:
   ci_ms_properties:
-    name: CI · ms-properties
+    name: CI - Properties
     uses: ./.github/workflows/ci-ms-properties.yml
     secrets: inherit
 
   ci_ms_users:
-    name: CI · ms-users
+    name: CI - Users
     uses: ./.github/workflows/ci-ms-users.yml
     secrets: inherit
 
   ci_ms_gateway:
-    name: CI · ms-gateway
+    name: CI - Gateway
     uses: ./.github/workflows/ci-ms-gateway.yml
     secrets: inherit
 
   ci_eureka:
-    name: CI · eureka
+    name: CI - Eureka
     uses: ./.github/workflows/ci-eureka-server.yml
     secrets: inherit
 
   ci_keycloak:
-    name: CI · keycloak
+    name: CI - Keycloak
     uses: ./.github/workflows/ci-keycloak.yml
     secrets: inherit
 
   ci_frontend:
-    name: CI · frontend
+    name: CI - Frontend
     uses: ./.github/workflows/ci-frontend.yml
     secrets: inherit
 
   ci_ml:
-    name: CI · ml-service
+    name: CI - Machine Learning
     uses: ./.github/workflows/ci-ml-python.yml
     secrets: inherit
 
   ci_integration:
-    name: CI · integration tests
+    name: CI - Integration Tests
     needs:
       - ci_ms_properties
       - ci_ms_users
@@ -56,7 +56,7 @@ jobs:
     secrets: inherit
 
   cd_ms_properties:
-    name: CD · ms-properties
+    name: CD - Properties
     needs:
       - ci_integration
       - ci_ms_properties
@@ -66,7 +66,7 @@ jobs:
     secrets: inherit
 
   cd_ms_users:
-    name: CD · ms-users
+    name: CD - Users
     needs:
       - ci_integration
       - ci_ms_users
@@ -76,7 +76,7 @@ jobs:
     secrets: inherit
 
   cd_ms_gateway:
-    name: CD · ms-gateway
+    name: CD - Gateway
     needs:
       - ci_integration
       - ci_ms_gateway
@@ -86,7 +86,7 @@ jobs:
     secrets: inherit
 
   cd_eureka:
-    name: CD · eureka
+    name: CD - Eureka
     needs:
       - ci_integration
       - ci_eureka
@@ -96,7 +96,7 @@ jobs:
     secrets: inherit
 
   cd_keycloak:
-    name: CD · keycloak
+    name: CD - Keycloak
     needs:
       - ci_integration
       - ci_keycloak
@@ -106,7 +106,7 @@ jobs:
     secrets: inherit
 
   cd_frontend:
-    name: CD · frontend
+    name: CD - Frontend
     needs:
       - ci_integration
       - ci_frontend
