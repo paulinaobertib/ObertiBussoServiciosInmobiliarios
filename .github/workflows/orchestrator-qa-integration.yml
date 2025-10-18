@@ -1,0 +1,586 @@
+name: QA Orchestrator · Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Docker tag generado por los CI de los microservicios.
+        required: true
+        type: string
+      git_ref:
+        description: Ref (commit/branch) para compilar el frontend.
+        required: false
+        type: string
+
+env:
+  FRONTEND_URL_QA: ${{ secrets.URL_FRONTEND_DEV }}
+  GATEWAY_HOSTNAME_QA: ${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net
+  PROPERTIES_HOSTNAME_QA: ${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net
+  USERS_HOSTNAME_QA: ${{ secrets.APP_USERS_DEV }}.azurewebsites.net
+  KEYCLOAK_HOSTNAME_QA: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+  EUREKA_HOSTNAME_QA: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+
+jobs:
+  deploy-eureka:
+    name: Deploy Eureka QA
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      IMAGE_NAME: eureka-server
+      APP_PLAN_QA: ${{ secrets.APP_PLAN_EDGE_DEV }}
+      APP_NAME_QA: ${{ secrets.APP_EUREKA_DEV }}
+      SERVICE_PORT: 8761
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set image reference
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          echo "IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_ENV"
+
+      - name: Ensure Web App exists
+        run: |
+          az webapp create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --plan $APP_PLAN_QA \
+            --name $APP_NAME_QA \
+            --deployment-container-image-name $IMAGE \
+            --assign-identity [system] || true
+
+      - name: Configure container
+        run: |
+          az webapp config container set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Ensure app service running
+        run: |
+          status=$(az webapp show \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name $APP_NAME_QA \
+            --query state -o tsv)
+          echo "Current state: $status"
+          if [ "$status" != "Running" ]; then
+            az webapp start \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --name $APP_NAME_QA
+          fi
+
+      - name: Configure app settings
+        run: |
+          az webapp config appsettings set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=$SERVICE_PORT \
+                       WEBSITES_PORT=$SERVICE_PORT \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_QA }}
+
+  deploy-keycloak:
+    name: Deploy Keycloak QA
+    needs: deploy-eureka
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      IMAGE_NAME: keycloak
+      SERVICE_PORT: 8080
+      APP_PLAN_QA: ${{ secrets.APP_PLAN_EDGE_DEV }}
+      APP_NAME_QA: ${{ secrets.APP_KEYCLOAK_DEV }}
+      HOSTNAME_QA: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set image reference
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          echo "IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_ENV"
+
+      - name: Ensure Web App exists
+        run: |
+          az webapp create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --plan $APP_PLAN_QA \
+            --name $APP_NAME_QA \
+            --deployment-container-image-name $IMAGE \
+            --assign-identity [system] || true
+
+      - name: Configure container
+        run: |
+          az webapp config container set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Ensure app service running
+        run: |
+          status=$(az webapp show \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name $APP_NAME_QA \
+            --query state -o tsv)
+          echo "Current state: $status"
+          if [ "$status" != "Running" ]; then
+            az webapp start \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --name $APP_NAME_QA
+          fi
+
+      - name: Configure app settings
+        run: |
+          az webapp config appsettings set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+              WEBSITES_PORT=$SERVICE_PORT \
+              SERVICE_PORT=$SERVICE_PORT \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
+              WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+              DOCKER_ENABLE_CI=true \
+              KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
+              KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
+              KC_DB=postgres \
+              KC_DB_URL='${{ secrets.DB_PG_URL_QA }}' \
+              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
+              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
+              KC_HTTP_PORT=$SERVICE_PORT \
+              KC_HTTP_ENABLED=true \
+              KC_HEALTH_ENABLED=true \
+              KC_PROXY_HEADERS=xforwarded \
+              KC_HOSTNAME='$HOSTNAME_QA' \
+              KC_HOSTNAME_STRICT=true \
+              KC_HOSTNAME_STRICT_HTTPS=true
+
+  deploy-gateway:
+    name: Deploy Gateway QA
+    needs:
+      - deploy-eureka
+      - deploy-keycloak
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      IMAGE_NAME: ms-gateway
+      SERVICE_PORT: 8090
+      APP_PLAN_QA: ${{ secrets.APP_PLAN_EDGE_DEV }}
+      APP_NAME_QA: ${{ secrets.APP_GATEWAY_DEV }}
+      EUREKA_HOSTNAME_QA: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+      KEYCLOAK_HOSTNAME_QA: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+      GATEWAY_HOSTNAME_QA: ${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set image reference
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          echo "IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_ENV"
+
+      - name: Ensure Web App exists
+        run: |
+          az webapp create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --plan $APP_PLAN_QA \
+            --name $APP_NAME_QA \
+            --deployment-container-image-name $IMAGE \
+            --assign-identity [system] || true
+
+      - name: Configure container
+        run: |
+          az webapp config container set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Ensure app service running
+        run: |
+          status=$(az webapp show \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name $APP_NAME_QA \
+            --query state -o tsv)
+          echo "Current state: $status"
+          if [ "$status" != "Running" ]; then
+            az webapp start \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --name $APP_NAME_QA
+          fi
+
+      - name: Configure app settings
+        run: |
+          az webapp config appsettings set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=$SERVICE_PORT \
+                       WEBSITES_PORT=$SERVICE_PORT \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       APP_HOSTNAME=$WEBSITE_HOSTNAME \
+                       EUREKA_HOSTNAME=$EUREKA_HOSTNAME_QA \
+                       KEYCLOAK_HOSTNAME=$KEYCLOAK_HOSTNAME_QA \
+                       KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
+                       KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
+                       GATEWAY_HOSTNAME=$GATEWAY_HOSTNAME_QA \
+                       SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }} \
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}
+
+  deploy-properties:
+    name: Deploy MS Properties QA
+    needs: deploy-gateway
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      IMAGE_NAME: ms-properties
+      SERVICE_PORT: 8083
+      APP_PLAN_QA: ${{ secrets.APP_PLAN_CORE_DEV }}
+      APP_NAME_QA: ${{ secrets.APP_PROPERTIES_DEV }}
+      EUREKA_HOSTNAME_QA: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+      KEYCLOAK_HOSTNAME_QA: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+      USERS_HOSTNAME_QA: ${{ secrets.APP_USERS_DEV }}.azurewebsites.net
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set image reference
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          echo "IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_ENV"
+
+      - name: Ensure Web App exists
+        run: |
+          az webapp create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --plan $APP_PLAN_QA \
+            --name $APP_NAME_QA \
+            --deployment-container-image-name $IMAGE \
+            --assign-identity [system] || true
+
+      - name: Configure container
+        run: |
+          az webapp config container set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Ensure app service running
+        run: |
+          status=$(az webapp show \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name $APP_NAME_QA \
+            --query state -o tsv)
+          echo "Current state: $status"
+          if [ "$status" != "Running" ]; then
+            az webapp start \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --name $APP_NAME_QA
+          fi
+
+      - name: Configure app settings
+        run: |
+          az webapp config appsettings set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              "SERVICE_PORT=${SERVICE_PORT}" \
+              "WEBSITES_PORT=${SERVICE_PORT}" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
+              "DOCKER_ENABLE_CI=true" \
+              "EUREKA_HOSTNAME=${EUREKA_HOSTNAME_QA}" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME_QA}" \
+              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_QA }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+              "AZURE_BLOB_CONNECTION_STRING=${{ secrets.AZURE_BLOB_CONNECTION_STRING }}" \
+              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
+              "USER_HOSTNAME=${USERS_HOSTNAME_QA}" \
+              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "ML_API_URL=${{ secrets.ML_API_URL }}" \
+              "URL_IA=${{ secrets.URL_IA }}" \
+              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+              "VERSION_IA=${{ secrets.VERSION_IA }}" \
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}"
+
+  deploy-users:
+    name: Deploy MS Users QA
+    needs: deploy-properties
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      IMAGE_NAME: ms-users
+      SERVICE_PORT: 8081
+      APP_PLAN_QA: ${{ secrets.APP_PLAN_CORE_DEV }}
+      APP_NAME_QA: ${{ secrets.APP_USERS_DEV }}
+      EUREKA_HOSTNAME_QA: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+      KEYCLOAK_HOSTNAME_QA: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+      PROPERTIES_HOSTNAME_QA: ${{ secrets.APP_PROPERTIES_DEV }}.azurewebsites.net
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set image reference
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          echo "IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_ENV"
+
+      - name: Ensure Web App exists
+        run: |
+          az webapp create \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --plan $APP_PLAN_QA \
+            --name $APP_NAME_QA \
+            --deployment-container-image-name $IMAGE \
+            --assign-identity [system] || true
+
+      - name: Configure container
+        run: |
+          az webapp config container set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ secrets.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Ensure app service running
+        run: |
+          status=$(az webapp show \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name $APP_NAME_QA \
+            --query state -o tsv)
+          echo "Current state: $status"
+          if [ "$status" != "Running" ]; then
+            az webapp start \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --name $APP_NAME_QA
+          fi
+
+      - name: Configure app settings
+        run: |
+          az webapp config appsettings set \
+            --name $APP_NAME_QA \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              "SERVICE_PORT=${SERVICE_PORT}" \
+              "WEBSITES_PORT=${SERVICE_PORT}" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
+              "DOCKER_ENABLE_CI=true" \
+              "EUREKA_HOSTNAME=${EUREKA_HOSTNAME_QA}" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME_QA}" \
+              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_QA }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
+              "KEYCLOAK_SB_CLIENT_ID=${{ secrets.KEYCLOAK_SB_CLIENT_ID }}" \
+              "KEYCLOAK_SB_CLIENT_SECRET=${{ secrets.KEYCLOAK_SB_CLIENT_SECRET_DEV }}" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
+              "PROPERTY_HOSTNAME=${PROPERTIES_HOSTNAME_QA}" \
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}"
+
+  deploy-frontend:
+    name: Deploy Frontend QA
+    needs:
+      - deploy-gateway
+      - deploy-users
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref != '' && inputs.git_ref || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_API_URL: "__API_URL_PLACEHOLDER__"
+          VITE_BASE_URL: "__BASE_URL_PLACEHOLDER__"
+          VITE_GATEWAY_URL: "__GATEWAY_URL_PLACEHOLDER__"
+          CI: "true"
+        run: npm run build -- --mode production
+
+      - name: Copy staticwebapp.config.json
+        run: cp frontend/staticwebapp.config.json frontend/dist/
+
+      - name: Replace placeholders (QA)
+        shell: bash
+        env:
+          BASE_URL: ${{ secrets.URL_FRONTEND_DEV }}
+          GATEWAY_URL: https://${{ env.GATEWAY_HOSTNAME_QA }}
+        run: |
+          API_URL="${GATEWAY_URL}/api"
+          for file in $(find frontend/dist -type f -name '*.js'); do
+            sed -i "s#__GATEWAY_URL_PLACEHOLDER__#${GATEWAY_URL//\//\\/}#g" "$file"
+            sed -i "s#__API_URL_PLACEHOLDER__#${API_URL//\//\\/}#g" "$file"
+            sed -i "s#__BASE_URL_PLACEHOLDER__#${BASE_URL//\//\\/}#g" "$file"
+          done
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Ensure Static Web App exists
+        run: |
+          if ! az staticwebapp show -g "${{ secrets.AZURE_RESOURCE_GROUP }}" -n "${{ secrets.SWA_NAME_DEV }}" &>/dev/null; then
+            az staticwebapp create \
+              -g "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+              -n "${{ secrets.SWA_NAME_DEV }}" \
+              --location "${{ secrets.SWA_LOCATION }}" \
+              --app-location frontend \
+              --output-location frontend/dist \
+              --sku Free
+          fi
+
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli@latest
+
+      - name: Deploy to SWA
+        run: |
+          DEPLOY_TOKEN=$(az staticwebapp secrets list \
+            --name "${{ secrets.SWA_NAME_DEV }}" \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --query properties.apiKey -o tsv)
+          swa deploy frontend/dist \
+            --app-name "${{ secrets.SWA_NAME_DEV }}" \
+            --env production \
+            --deployment-token "$DEPLOY_TOKEN"
+
+  integration-tests:
+    name: Cypress Integration Tests
+    runs-on: ubuntu-latest
+    env:
+      CYPRESS_appUrl: http://app.localtest.me:4173
+      CYPRESS_keycloakUrl: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
+      CYPRESS_gatewayUrl: http://api.localtest.me:8090
+      CYPRESS_apiUrl: http://api.localtest.me:8090/api
+      CYPRESS_keycloakUsername: ${{ secrets.QA_KEYCLOAK_USERNAME }}
+      CYPRESS_keycloakPassword: ${{ secrets.QA_KEYCLOAK_PASSWORD }}
+      CYPRESS_adminUsername: ${{ secrets.QA_ADMIN_USERNAME }}
+      CYPRESS_adminPassword: ${{ secrets.QA_ADMIN_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref != '' && inputs.git_ref || github.sha }}
+
+      - name: Map integration domains
+        run: |
+          for host in auth.localtest.me api.localtest.me app.localtest.me eureka.localtest.me properties.localtest.me users.localtest.me ml.localtest.me; do
+            if ! grep -q "$host" /etc/hosts; then
+              echo "127.0.0.1 $host" | sudo tee -a /etc/hosts > /dev/null
+            fi
+          done
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
+
+      - name: Start Docker Compose
+        run: |
+          docker compose -f docker/docker-compose.integration.yml up -d --wait
+
+      - name: Wait for endpoints
+        run: |
+          endpoints=(
+            "Keycloak|http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration"
+            "Eureka|http://eureka.localtest.me:8761/actuator/health"
+            "Gateway|http://api.localtest.me:8090/actuator/health"
+            "Properties|http://properties.localtest.me:8083/actuator/health"
+            "Users|http://users.localtest.me:8081/actuator/health"
+            "Frontend|http://app.localtest.me:4173"
+          )
+          for entry in "${endpoints[@]}"; do
+            name="${entry%%|*}"
+            url="${entry##*|}"
+            echo "Waiting for $name at $url"
+            if ! curl --fail --retry 12 --retry-delay 10 --retry-all-errors "$url"; then
+              echo "::error::Unable to confirm readiness for $name"
+              exit 1
+            fi
+          done
+
+      - name: Install Cypress dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run Cypress suite
+        working-directory: frontend
+        run: npx cypress run --config baseUrl=$CYPRESS_appUrl
+
+      - name: Teardown Docker Compose
+        if: always()
+        run: docker compose -f docker/docker-compose.integration.yml down -v
+
+      - name: Unmap integration domains
+        if: always()
+        run: |
+          for host in auth.localtest.me api.localtest.me app.localtest.me eureka.localtest.me properties.localtest.me users.localtest.me ml.localtest.me; do
+            sudo sed -i "/$host/d" /etc/hosts
+          done

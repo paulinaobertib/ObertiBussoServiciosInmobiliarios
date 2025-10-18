@@ -1,0 +1,84 @@
+name: CI - Frontend
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+  checks: write
+
+env:
+  # Azure
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+jobs:
+  build-and-push:
+    name: Build · Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Unit Tests
+        id: vitest
+        working-directory: ./frontend
+        run: |
+          npx vitest run --coverage --reporter=junit --outputFile=vitest-report.xml
+
+      - name: Publish JUnit Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: ./frontend/vitest-report.xml
+
+      - name: Publish Coverage Summary
+        if: always()
+        working-directory: ./frontend
+        run: |
+          COV="coverage/coverage-summary.json"
+          LINES_TOTAL=$(jq '.total.lines.total'    $COV)
+          LINES_COVER=$(jq '.total.lines.covered'  $COV)
+          COVER_PCT=$(jq '.total.lines.pct'        $COV)
+          LINES_MISS=$((LINES_TOTAL - LINES_COVER))
+
+          echo "## Coverage Report: Vitest Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "| Outcome | Value |"                  >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|"                           >> $GITHUB_STEP_SUMMARY
+          echo "| Code Coverage % | ${COVER_PCT}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✔️ Number of Lines Covered | ${LINES_COVER} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Number of Lines Missed | ${LINES_MISS} |"   >> $GITHUB_STEP_SUMMARY
+          echo "| Total Number of Lines | ${LINES_TOTAL} |"      >> $GITHUB_STEP_SUMMARY
+
+      - name: Build
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: "__API_URL_PLACEHOLDER__"
+          VITE_BASE_URL: "__BASE_URL_PLACEHOLDER__"
+          VITE_GATEWAY_URL: "__GATEWAY_URL_PLACEHOLDER__"
+          CI: "true"
+        run: npm run build -- --mode production
+
+      - name: Copy staticwebapp.config.json to dist
+        run: |
+          cp frontend/staticwebapp.config.json frontend/dist/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist

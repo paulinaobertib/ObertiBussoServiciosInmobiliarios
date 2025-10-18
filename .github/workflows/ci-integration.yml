@@ -1,0 +1,156 @@
+name: CI - Integration
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  integration:
+    name: Build · Compose · Cypress
+    runs-on: ubuntu-latest
+
+    env:
+      COMPOSE_FILE: docker/docker-compose.integration.yml
+      CYPRESS_BASE_URL: http://app.localtest.me:4173
+      CYPRESS_GATEWAY_URL: http://api.localtest.me:8090
+      CYPRESS_KEYCLOAK_URL: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
+      CYPRESS_appUrl: http://app.localtest.me:4173
+      CYPRESS_keycloakUrl: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
+      CYPRESS_gatewayUrl: http://api.localtest.me:8090
+      CYPRESS_apiUrl: http://api.localtest.me:8090/api
+      CYPRESS_KEYCLOAK_USERNAME: integration.user
+      CYPRESS_KEYCLOAK_PASSWORD: Integration1.
+      CYPRESS_ADMINUSERNAME: admin
+      CYPRESS_ADMINPASSWORD: admin
+      INTEGRATION_DB_URL: ${{ secrets.DB_SQL_URL_QA }}
+      INTEGRATION_DB_USERNAME: ${{ secrets.DB_SQL_USERNAME }}
+      INTEGRATION_DB_PASSWORD: ${{ secrets.DB_SQL_PASSWORD }}
+      ML_API_URL: ${{ secrets.ML_API_URL_QA }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Map integration domains
+        run: |
+          for host in auth.localtest.me api.localtest.me app.localtest.me eureka.localtest.me properties.localtest.me users.localtest.me ml.localtest.me; do
+            if ! grep -q "$host" /etc/hosts; then
+              echo "127.0.0.1 $host" | sudo tee -a /etc/hosts > /dev/null
+            fi
+          done
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Cypress dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build integration images
+        run: docker compose -f $COMPOSE_FILE build
+
+      - name: Launch integration stack
+        run: docker compose -f $COMPOSE_FILE up -d
+
+      - name: Add 1-minute additional wait
+        run: sleep 60
+
+      - name: Wait for services readiness
+        run: |
+          services=(
+            "gateway|http://api.localtest.me:8090/actuator/health"
+            "ms-properties|http://properties.localtest.me:8083/actuator/health"
+            "ms-users|http://users.localtest.me:8081/actuator/health"
+            "eureka|http://eureka.localtest.me:8761/actuator/health"
+            "keycloak|http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration"
+            "frontend|http://app.localtest.me:4173"
+          )
+          for entry in "${services[@]}"; do
+            service="${entry%%|*}"
+            url="${entry##*|}"
+            echo "Waiting for $service at $url"
+            for i in {1..30}; do
+              if curl -sf "$url" > /dev/null; then
+                echo "$service ready"
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "::error::$service did not become ready in time"
+                docker compose -f $COMPOSE_FILE logs "$service" || true
+                exit 1
+              fi
+              sleep 10
+            done
+          done
+
+      - name: Seed Keycloak test user
+        run: |
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh create users -r obertibussoserviciosinmobiliarios-integration -s username=integration.user -s firstName=Integration -s lastName=User -s enabled=true || true
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username integration.user --new-password Integration1.
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
+          docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
+          {
+            "rootUrl": "http://api.localtest.me:8090",
+            "redirectUris": [
+              "http://app.localtest.me:4173/*",
+              "https://oauth.pstmn.io/v1/browser-callback",
+              "http://api.localtest.me:8090/login/oauth2/code/keycloak"
+            ],
+            "webOrigins": [
+              "http://app.localtest.me:4173"
+            ],
+            "frontchannelLogout": true,
+            "directAccessGrantsEnabled": true,
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1746664664",
+              "backchannel.logout.session.required": "false",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "use.jwks.url": "false",
+              "backchannel.logout.revoke.offline.tokens": "false",
+              "post.logout.redirect.uris": "http://app.localtest.me:4173/*",
+              "homeURL": "http://app.localtest.me:4173"
+            }
+          }
+          EOF'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update clients/9689a5de-feda-4483-ae30-ac65599cc1eb -r obertibussoserviciosinmobiliarios-integration -f /tmp/gateway-client.json
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+
+      - name: Run Cypress suite
+        working-directory: frontend
+        env:
+          CYPRESS_BASE_URL: ${{ env.CYPRESS_BASE_URL }}
+          CYPRESS_KEYCLOAK_URL: ${{ env.CYPRESS_KEYCLOAK_URL }}
+          CYPRESS_KEYCLOAK_USERNAME: ${{ env.CYPRESS_KEYCLOAK_USERNAME }}
+          CYPRESS_KEYCLOAK_PASSWORD: ${{ env.CYPRESS_KEYCLOAK_PASSWORD }}
+          CYPRESS_GATEWAY_URL: ${{ env.CYPRESS_GATEWAY_URL }}
+          CYPRESS_gatewayUrl: ${{ env.CYPRESS_gatewayUrl }}
+          CYPRESS_apiUrl: ${{ env.CYPRESS_apiUrl }}
+        run: npx cypress run --config baseUrl=$CYPRESS_BASE_URL
+
+      - name: Collect compose logs
+        if: failure()
+        run: docker compose -f $COMPOSE_FILE logs
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f $COMPOSE_FILE down -v
+
+      - name: Unmap integration domains
+        if: always()
+        run: |
+          for host in auth.localtest.me api.localtest.me app.localtest.me eureka.localtest.me properties.localtest.me users.localtest.me ml.localtest.me; do
+            sudo sed -i "/$host/d" /etc/hosts
+          done

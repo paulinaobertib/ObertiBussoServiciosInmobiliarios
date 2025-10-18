@@ -1,0 +1,101 @@
+server:
+  port: 8090
+  reactive:
+    session:
+      timeout: PT24H
+eureka:
+  instance:
+    hostname: api.localtest.me
+    prefer-ip-address: false
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${server.port}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka:8761/eureka/
+spring:
+  application:
+    name: GATEWAY-SERVICE
+  main:
+    allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak-client:
+            authorization-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/auth
+            token-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/token
+            user-info-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/userinfo
+            issuer-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
+            user-name-attribute: preferred_username
+        registration:
+          keycloak-client:
+            client-id: api-gateway-client
+            client-secret: hbt8d8syFPaH3VLjcMRYgBIcdcbOnMou
+            scope:
+              - openid
+              - profile
+              - email
+            authorization-grant-type: authorization_code
+            redirect-uri: http://api.localtest.me:8090/login/oauth2/code/keycloak
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins:
+              - "http://app.localtest.me:4173"
+            allowedHeaders: "*"
+            allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+            allowCredentials: true
+      routes:
+        - id: ms-properties-public
+          uri: lb://PROPERTIES-SERVICE
+          predicates:
+            - Path=/api/properties/property/get,/api/properties/property/getAll,/api/properties/property/getById/**,/api/properties/property/getByTitle,/api/properties/property/search,/api/properties/property/text,/api/properties/property/getSimple/**,/api/properties/amenity/getAll,/api/properties/amenity/getById/**,/api/properties/amenity/getByName,/api/properties/image/getByProperty/**,/api/properties/neighborhood/getAll,/api/properties/neighborhood/getById/**,/api/properties/type/getAll,/api/properties/type/getById/**,/api/properties/inquiries/create,/api/properties/survey/create,/api/properties/compare/**,/api/properties/chat/message,/api/properties/chatSession/create
+          filters:
+            - StripPrefix=2
+            - name: RemoveRequestHeader
+              args:
+                name: Authorization
+        - id: ms-properties-private
+          uri: lb://PROPERTIES-SERVICE
+          predicates:
+            - Path=/api/properties/**
+          filters:
+            - StripPrefix=2
+            - TokenRelay
+        - id: ms-users-public
+          uri: lb://USERS-SERVICE
+          predicates:
+            - Path=/api/users/appointments/create,/api/users/user/login,/api/users/notices/getById/**,/api/users/notices/getAll,/api/users/notices/search,/api/users/agentChat/getEnabledTrue
+          filters:
+            - StripPrefix=2
+            - name: RemoveRequestHeader
+              args:
+                name: Authorization
+        - id: ms-users-private
+          uri: lb://USERS-SERVICE
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=2
+            - TokenRelay
+frontend:
+  base-url: http://app.localtest.me:4173
+  allowed-origins: http://app.localtest.me:4173
+cors:
+  additional-origins: http://app.localtest.me:4173
+logging:
+  level:
+    root: DEBUG # Enable debug for troubleshooting
+    org.springframework.security: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
