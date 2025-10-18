@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: PROPERTIES-SERVICE
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 260MB
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
+          jwk-set-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/certs
+server:
+  port: 8083
+eureka:
+  instance:
+    hostname: ms-properties
+    prefer-ip-address: false
+    nonSecurePort: ${server.port}
+    securePortEnabled: false
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://eureka:8761/eureka/
+user:
+  service:
+    url: http://ms-users:8081
+frontend:
+  base-url: http://app.localtest.me:4173
+azure:
+  blob-storage:
+    connection-string: UseDevelopmentStorage=true
+    container-name: images
+email:
+  username: ${EMAIL_USERNAME:test@example.com}
+  password: ${EMAIL_PASSWORD:changeit}
+ml:
+  api:
+    url: ${ML_API_URL}
+logging:
+  level:
+    root: INFO
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

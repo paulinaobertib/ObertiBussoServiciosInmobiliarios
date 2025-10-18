@@ -1,0 +1,219 @@
+name: CD - MS Properties
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy (from CI).
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy (from CI).
+        required: true
+        type: string
+
+env:
+  # Azure
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING }}
+
+  # Docker Hub
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # Properties-specific
+  IMAGE_NAME: ms-properties
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_CORE_PROD }}
+  APP_NAME_DEV: ${{ secrets.APP_PROPERTIES_DEV }}
+  APP_NAME_PROD: ${{ secrets.APP_PROPERTIES_PROD }}
+  SERVICE_PORT: 8083
+
+  EUREKA_HOSTNAME_DEV: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+  EUREKA_HOSTNAME_PROD: ${{ secrets.EUREKA_HOSTNAME_PROD }}
+  KEYCLOAK_HOSTNAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+  KEYCLOAK_HOSTNAME_PROD: ${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
+  USERS_HOSTNAME_DEV: ${{ secrets.APP_USERS_DEV }}.azurewebsites.net
+  USERS_HOSTNAME_PROD: ${{ secrets.USERS_HOSTNAME_PROD }}
+
+jobs:
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
+
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_DEV }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --deployment-container-image-name $IMAGE || true
+
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_DEV }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
+
+      - name: Set environment variables (App Settings Dev)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
+              "DOCKER_ENABLE_CI=true" \
+              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }}" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }}" \
+              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_DEV }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
+              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }}" \
+              "USER_HOSTNAME=${{ env.USERS_HOSTNAME_DEV }}" \
+              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "ML_API_URL=${{ secrets.ML_API_URL }}" \
+              "URL_IA=${{ secrets.URL_IA }}" \
+              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+              "VERSION_IA=${{ secrets.VERSION_IA }}" \
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
+
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --docker-container-logging filesystem
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: [deploy-dev]
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
+
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_PROD }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --deployment-container-image-name $IMAGE || true
+
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_PROD }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
+
+      - name: Set environment variables (App Settings)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
+              "WEBSITES_CONTAINER_START_TIME_LIMIT=600" \
+              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
+              "DOCKER_ENABLE_CI=true" \
+              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}" \
+              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
+              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }}" \
+              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_PROD }}" \
+              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
+              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
+              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
+              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
+              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
+              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
+              "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
+              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "ML_API_URL=${{ secrets.ML_API_URL }}" \
+              "URL_IA=${{ secrets.URL_IA }}" \
+              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+              "VERSION_IA=${{ secrets.VERSION_IA }}" \
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
+
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --docker-container-logging filesystem

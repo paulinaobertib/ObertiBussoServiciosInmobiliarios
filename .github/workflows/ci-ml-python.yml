@@ -1,16 +1,9 @@
-# LISTO
-name: CI/CD - Machine Learning
+name: CI - Machine Learning
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - main
-      # - feature/pipelines
+  workflow_call:
 
-# --------------------------------------------------------------
-# VARIABLES GLOBALES
-# --------------------------------------------------------------
 env:
   # Docker Hub
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -20,9 +13,6 @@ env:
   IMAGE_NAME: ml-service
 
 jobs:
-  # --------------------------------------------------------------
-  # JOB 1: Build · Docker
-  # --------------------------------------------------------------
   build-and-push:
     name: Build · Docker
     runs-on: ubuntu-latest

@@ -1,0 +1,188 @@
+name: CD - Eureka Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy (from CI).
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy (from CI).
+        required: true
+        type: string
+
+env:
+  # Azure
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+  # Docker Hub
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # Eureka-specific
+  IMAGE_NAME: eureka-server
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
+  APP_NAME_DEV: ${{ secrets.APP_EUREKA_DEV }}
+  APP_NAME_PROD: ${{ secrets.APP_EUREKA_PROD }}
+
+  EUREKA_HOSTNAME_DEV: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+  EUREKA_HOSTNAME_PROD: ${{ secrets.EUREKA_HOSTNAME_PROD }}
+
+  SERVICE_PORT: 8761
+
+jobs:
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
+
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_DEV }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --deployment-container-image-name $IMAGE || true
+
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_DEV }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
+
+      - name: Set environment variables (app settings)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }}
+
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --docker-container-logging filesystem
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: [deploy-dev]
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
+
+      - name: Create Web App (if not exists)
+        run: |
+          az webapp create \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_PROD }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --deployment-container-image-name $IMAGE || true
+
+      - name: Configure Web App container
+        run: |
+          az webapp config container set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --container-image-name $IMAGE \
+            --container-registry-url https://index.docker.io \
+            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
+            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Ensure App Service Is Running
+        run: |
+          echo "Verificando estado del App Service..."
+          status=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --query state -o tsv)
+          echo "Estado actual: $status"
+          if [ "$status" != "Running" ]; then
+            echo "🔄 Iniciando App Service..."
+            az webapp start \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_PROD }}
+          else
+            echo "✅ App Service ya está en ejecución."
+          fi
+
+      - name: Set environment variables (app settings)
+        run: |
+          az webapp config appsettings set \
+            --name ${{ env.APP_NAME_PROD }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}
+
+      - name: Set HTTPS
+        run: |
+          az webapp update \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --set httpsOnly=true
+
+      - name: Enable Container Logs
+        run: |
+          az webapp log config \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --docker-container-logging filesystem

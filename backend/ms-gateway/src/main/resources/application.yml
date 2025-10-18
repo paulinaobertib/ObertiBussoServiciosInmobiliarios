@@ -128,3 +128,13 @@ logging:
     root: INFO
     org.springframework.security: INFO
     org.springframework.cloud.gateway: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

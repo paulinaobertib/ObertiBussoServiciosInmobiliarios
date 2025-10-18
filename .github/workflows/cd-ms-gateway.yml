@@ -1,16 +1,19 @@
-# LISTO
-name: CI/CD - Keycloak
+name: CD - MS Gateway
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - main
-      # - feature/pipelines
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy (from CI).
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Docker image tag to deploy (from CI).
+        required: true
+        type: string
 
-# --------------------------------------------------------------
-# VARIABLES GLOBALES
-# --------------------------------------------------------------
 env:
   # Azure
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
@@ -21,61 +24,25 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  # Properties-specific
-  IMAGE_NAME: keycloak
+  # Gateway-specific
+  IMAGE_NAME: ms-gateway
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
-  APP_NAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}
-  APP_NAME_PROD: ${{ secrets.APP_KEYCLOAK_PROD }}
-  SERVICE_PORT: 8080
+  APP_NAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}
+  APP_NAME_PROD: ${{ secrets.APP_GATEWAY_PROD }}
+
+  EUREKA_HOSTNAME_DEV: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
+  EUREKA_HOSTNAME_PROD: ${{ secrets.EUREKA_HOSTNAME_PROD }}
+  KEYCLOAK_HOSTNAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
+  KEYCLOAK_HOSTNAME_PROD: ${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
+  GATEWAY_HOSTNAME_DEV: ${{ secrets.APP_GATEWAY_DEV }}.azurewebsites.net
+  GATEWAY_HOSTNAME_PROD: ${{ secrets.GATEWAY_HOSTNAME_PROD }}
+
+  SERVICE_PORT: 8090
 
 jobs:
-  # --------------------------------------------------------------
-  # JOB 1: Build · Test · Docker
-  # --------------------------------------------------------------
-  build-and-push:
-    name: Build · Test · Docker
-    runs-on: ubuntu-latest
-
-    outputs:
-      tag: ${{ steps.set-tag.outputs.tag }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          registry: docker.io
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Set Docker image tag
-        id: set-tag
-        run: |
-          TAG=${GITHUB_SHA::8}
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Build & Push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: keycloak/Dockerfile
-          push: true
-          tags: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.set-tag.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # --------------------------------------------------------------
-  # JOB 2: Deploy to Development
-  # --------------------------------------------------------------
   deploy-dev:
     name: Deploy to Development
-    needs: build-and-push
     runs-on: ubuntu-latest
     environment: development
 
@@ -89,7 +56,7 @@ jobs:
       - name: Set variables
         id: vars
         run: |
-          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
 
       - name: Create Web App (if not exists)
         run: |
@@ -131,26 +98,19 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_DEV }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings \
-              WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
-              WEBSITES_PORT=8080 \
-              SERVICE_PORT=8080 \
-              WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
-              WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
-              DOCKER_ENABLE_CI=true \
-              KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
-              KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
-              KC_DB=postgres \
-              KC_DB_URL='${{ secrets.DB_PG_URL_DEV }}' \
-              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
-              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
-              KC_HTTP_PORT=8080 \
-              KC_HTTP_ENABLED=true \
-              KC_HEALTH_ENABLED=true \
-              KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME='${{ env.APP_NAME_DEV }}' \
-              KC_HOSTNAME_STRICT=true \
-              KC_HOSTNAME_STRICT_HTTPS=true
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       APP_HOSTNAME=$WEBSITE_HOSTNAME \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_DEV }} \
+                       KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_DEV }} \
+                       KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
+                       KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_DEV }} \
+                       GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_DEV }} \
+                       SWA_FRONTEND=${{ secrets.URL_FRONTEND_DEV }} \
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{ secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV }}
 
       - name: Enable Container Logs
         run: |
@@ -159,12 +119,9 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --docker-container-logging filesystem
 
-  # --------------------------------------------------------------
-  # JOB 3: Deploy to Production
-  # --------------------------------------------------------------
   deploy-prod:
     name: Deploy to Production
-    needs: [deploy-dev, build-and-push]
+    needs: [deploy-dev]
     runs-on: ubuntu-latest
     environment: production
 
@@ -178,7 +135,7 @@ jobs:
       - name: Set variables
         id: vars
         run: |
-          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}" >> $GITHUB_ENV
+          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
 
       - name: Create Web App (if not exists)
         run: |
@@ -220,33 +177,19 @@ jobs:
           az webapp config appsettings set \
             --name ${{ env.APP_NAME_PROD }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings \
-              WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
-              WEBSITES_PORT=8080 \
-              SERVICE_PORT=8080 \
-              WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
-              WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
-              DOCKER_ENABLE_CI=true \
-              KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
-              KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
-              KC_DB=postgres \
-              KC_DB_URL='${{ secrets.DB_PG_URL_PROD }}' \
-              KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
-              KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
-              KC_HTTP_PORT=8080 \
-              KC_HTTP_ENABLED=true \
-              KC_HEALTH_ENABLED=true \
-              KC_PROXY_HEADERS=xforwarded \
-              KC_HOSTNAME='${{ secrets.KEYCLOAK_HOSTNAME_PROD }}' \
-              KC_HOSTNAME_STRICT=true \
-              KC_HOSTNAME_STRICT_HTTPS=true
-
-      - name: Set HTTPS
-        run: |
-          az webapp update \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --set httpsOnly=true
+            --settings SERVICE_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_PORT=${{ env.SERVICE_PORT }} \
+                       WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+                       WEBSITES_CONTAINER_STOP_TIME_LIMIT=120 \
+                       DOCKER_ENABLE_CI=true \
+                       APP_HOSTNAME=$WEBSITE_HOSTNAME \
+                       EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }} \
+                       KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }} \
+                       KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }} \
+                       KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET_PROD }} \
+                       GATEWAY_HOSTNAME=${{ env.GATEWAY_HOSTNAME_PROD }} \
+                       SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }} \
+                       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}
 
       - name: Enable Container Logs
         run: |
