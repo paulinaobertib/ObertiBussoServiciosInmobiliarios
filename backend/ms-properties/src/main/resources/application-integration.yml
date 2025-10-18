@@ -35,16 +35,16 @@ eureka:
       defaultZone: http://eureka:8761/eureka/
 user:
   service:
-    url: http://ms-users:8081
+    url: ${USER_SERVICE_URL}
 frontend:
   base-url: http://app.localtest.me:4173
 azure:
   blob-storage:
-    connection-string: UseDevelopmentStorage=true
+    connection-string: ${AZURE_BLOB_CONNECTION_STRING}
     container-name: images
 email:
-  username: ${EMAIL_USERNAME:test@example.com}
-  password: ${EMAIL_PASSWORD:changeit}
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
 ml:
   api:
     url: ${ML_API_URL}
