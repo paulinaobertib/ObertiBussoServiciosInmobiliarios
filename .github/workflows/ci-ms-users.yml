@@ -61,6 +61,7 @@ jobs:
           paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
 
       - name: Publish JaCoCo Coverage
+        if: github.event_name != 'workflow_call'
         id: jacoco
         uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
@@ -69,10 +70,10 @@ jobs:
           coverage_report_title: "JaCoCo Coverage"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           minimum_coverage: 80
-          publish_only_summary: false
+          publish_only_summary: true
 
       - name: Publish JaCoCo Coverage on Summary
-        if: always()
+        if: always() && github.event_name != 'workflow_call'
         run: |
           echo "## Coverage Report: JaCoCo Coverage" >> $GITHUB_STEP_SUMMARY
           echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
