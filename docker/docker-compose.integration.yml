@@ -113,14 +113,16 @@ services:
       SERVICE_PORT: 8083
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-properties
-      EMAIL_USERNAME: test@example.com
-      EMAIL_PASSWORD: changeit
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       ML_API_URL: ${ML_API_URL}
       APIKEY_IA: dummy-key
       URL_IA: http://ml:8000
       DEPLOY_IA: mock-deployment
       VERSION_IA: v1
       FRONTEND_BASE_URL: http://app.localtest.me:4173
+      USER_SERVICE_URL: http://users.localtest.me:8081
+      AZURE_BLOB_CONNECTION_STRING: ${AZURE_BLOB_CONNECTION_STRING}
       SPRING_DATASOURCE_URL: ${INTEGRATION_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${INTEGRATION_DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${INTEGRATION_DB_PASSWORD}
@@ -154,11 +156,12 @@ services:
       SERVICE_PORT: 8081
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: ms-users
-      EMAIL_USERNAME: test@example.com
-      EMAIL_PASSWORD: changeit
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       KEYCLOAK_SB_CLIENT_ID: springboot-keycloak-client
       KEYCLOAK_SB_CLIENT_SECRET: kRTGRUQRMpWDw2x3DTQEDnsnVK9POZMb
       FRONTEND_BASE_URL: http://app.localtest.me:4173
+      PROPERTY_SERVICE_URL: http://properties.localtest.me:8083
       SPRING_DATASOURCE_URL: ${INTEGRATION_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${INTEGRATION_DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${INTEGRATION_DB_PASSWORD}
@@ -199,6 +202,7 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_REDIRECT_URI: http://api.localtest.me:8090/login/oauth2/code/keycloak
       FRONTEND_BASE_URL: http://app.localtest.me:4173
       FRONTEND_ALLOWED_ORIGINS: http://app.localtest.me:4173
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
     ports:
       - "8090:8090"
     depends_on:
@@ -247,6 +251,7 @@ services:
       default:
         aliases:
           - app.localtest.me
+
 
 volumes:
   postgres-data:

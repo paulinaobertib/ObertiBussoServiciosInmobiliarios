@@ -7,6 +7,8 @@ const keycloakUrl =
   process.env.CYPRESS_KEYCLOAK_URL ??
   "http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration";
 
+const apiUrl = process.env.CYPRESS_API_URL;
+
 export default defineConfig({
   e2e: {
     baseUrl,
@@ -14,8 +16,7 @@ export default defineConfig({
       appUrl: baseUrl,
       gatewayUrl,
       keycloakUrl,
-      keycloakUsername: process.env.CYPRESS_KEYCLOAK_USERNAME,
-      keycloakPassword: process.env.CYPRESS_KEYCLOAK_PASSWORD,
+      ...(apiUrl ? { apiUrl } : {}),
     },
     setupNodeEvents(on, config) {
       return config;

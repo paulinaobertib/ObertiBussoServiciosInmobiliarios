@@ -37,7 +37,7 @@ eureka:
 
 property:
   service:
-    url: http://ms-properties:8083
+    url: ${PROPERTY_SERVICE_URL}
 
 frontend:
   base-url: http://app.localtest.me:4173
@@ -50,8 +50,8 @@ pi:
     clientSecret: kRTGRUQRMpWDw2x3DTQEDnsnVK9POZMb
 
 email:
-  username: ${EMAIL_USERNAME:test@example.com}
-  password: ${EMAIL_PASSWORD:changeit}
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
 
 logging:
   level:

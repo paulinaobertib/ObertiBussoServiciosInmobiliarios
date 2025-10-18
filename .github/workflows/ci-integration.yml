@@ -14,19 +14,15 @@ jobs:
       CYPRESS_BASE_URL: http://app.localtest.me:4173
       CYPRESS_GATEWAY_URL: http://api.localtest.me:8090
       CYPRESS_KEYCLOAK_URL: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
-      CYPRESS_appUrl: http://app.localtest.me:4173
-      CYPRESS_keycloakUrl: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
-      CYPRESS_gatewayUrl: http://api.localtest.me:8090
-      CYPRESS_apiUrl: http://api.localtest.me:8090/api
-      CYPRESS_KEYCLOAK_USERNAME: integration.user
-      CYPRESS_KEYCLOAK_PASSWORD: Integration1.
-      CYPRESS_ADMINUSERNAME: admin
-      CYPRESS_ADMINPASSWORD: admin
+      CYPRESS_API_URL: http://api.localtest.me:8090/api
       INTEGRATION_DB_URL: ${{ secrets.DB_SQL_URL_QA }}
       INTEGRATION_DB_USERNAME: ${{ secrets.DB_SQL_USERNAME }}
       INTEGRATION_DB_PASSWORD: ${{ secrets.DB_SQL_PASSWORD }}
       ML_API_URL: ${{ secrets.ML_API_URL_QA }}
-
+      AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING_QA }}
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -96,13 +92,17 @@ jobs:
       - name: Seed Keycloak test user
         run: |
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
-          USER_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | jq -r '.[0].id')
+          USER_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username user --new-password Usuario1.
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000001"]'
-          ADMIN_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=admin | jq -r '.[0].id')
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000001"]'
+          ADMIN_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=admin | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000002"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000002"]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
@@ -141,11 +141,8 @@ jobs:
         env:
           CYPRESS_BASE_URL: ${{ env.CYPRESS_BASE_URL }}
           CYPRESS_KEYCLOAK_URL: ${{ env.CYPRESS_KEYCLOAK_URL }}
-          CYPRESS_KEYCLOAK_USERNAME: ${{ env.CYPRESS_KEYCLOAK_USERNAME }}
-          CYPRESS_KEYCLOAK_PASSWORD: ${{ env.CYPRESS_KEYCLOAK_PASSWORD }}
           CYPRESS_GATEWAY_URL: ${{ env.CYPRESS_GATEWAY_URL }}
-          CYPRESS_gatewayUrl: ${{ env.CYPRESS_gatewayUrl }}
-          CYPRESS_apiUrl: ${{ env.CYPRESS_apiUrl }}
+          CYPRESS_API_URL: ${{ env.CYPRESS_API_URL }}
         run: npx cypress run --config baseUrl=$CYPRESS_BASE_URL,chromeWebSecurity=false
 
       - name: Collect compose logs
