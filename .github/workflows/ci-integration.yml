@@ -35,6 +35,19 @@ jobs:
             fi
           done
 
+      - name: Debug email secrets presence
+        run: |
+          if [ -z "${EMAIL_USERNAME}" ]; then
+            echo "::warning::EMAIL_USERNAME is empty"
+          else
+            echo "EMAIL_USERNAME length: ${#EMAIL_USERNAME}"
+          fi
+          if [ -z "${EMAIL_PASSWORD}" ]; then
+            echo "::warning::EMAIL_PASSWORD is empty"
+          else
+            echo "EMAIL_PASSWORD length: ${#EMAIL_PASSWORD}"
+          fi
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
