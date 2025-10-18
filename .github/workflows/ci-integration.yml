@@ -92,12 +92,15 @@ jobs:
 
       - name: Add 1-minute additional wait
         run: sleep 60
-        
+
       - name: Seed Keycloak test user
         run: |
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh create users -r obertibussoserviciosinmobiliarios-integration -s username=integration.user -s firstName=Integration -s lastName=User -s enabled=true || true
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username integration.user --new-password Integration1.
+          ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | jq -r '.[0].id')
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username user --new-password Usuario1.
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000001"]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
@@ -141,7 +144,7 @@ jobs:
           CYPRESS_GATEWAY_URL: ${{ env.CYPRESS_GATEWAY_URL }}
           CYPRESS_gatewayUrl: ${{ env.CYPRESS_gatewayUrl }}
           CYPRESS_apiUrl: ${{ env.CYPRESS_apiUrl }}
-        run: npx cypress run --config baseUrl=$CYPRESS_BASE_URL
+        run: npx cypress run --config baseUrl=$CYPRESS_BASE_URL,chromeWebSecurity=false
 
       - name: Collect compose logs
         if: failure()
