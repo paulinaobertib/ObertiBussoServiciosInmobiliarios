@@ -30,7 +30,7 @@ describe('FloatingButtons', () => {
     );
 
     expect(screen.getByAltText('Comparer')).toBeInTheDocument();
-    expect(screen.getByAltText('Select')).toBeInTheDocument();
+    expect(screen.getByAltText('Seleccionar')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Acciones de Propiedad/i)).not.toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe('FloatingButtons', () => {
       />
     );
 
-    fireEvent.click(screen.getByAltText('Select'));
+    fireEvent.click(screen.getByAltText('Seleccionar'));
     expect(mockToggleSelectionMode).toHaveBeenCalled();
   });
 
@@ -153,7 +153,7 @@ describe('FloatingButtons', () => {
     );
 
     expect(screen.queryByAltText('Comparer')).not.toBeInTheDocument();
-    expect(screen.queryByAltText('Select')).not.toBeInTheDocument();
+    expect(screen.queryByAltText('Seleccionar')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Acciones de Propiedad/i)).toBeInTheDocument();
   });
 

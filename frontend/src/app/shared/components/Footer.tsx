@@ -148,12 +148,29 @@ const Footer = () => {
 
           {/* Ubicación */}
           <Grid size={{ xs: 12, sm: 4, md: 4 }}>
-            <Typography variant="h6" fontWeight="bold" mb={2} textAlign={"center"}>
+            <Typography variant="h6" fontWeight="bold" mb={2} textAlign={"center"} sx={{ lineHeight: 2 }}>
               Ubicación de Oficinas
             </Typography>
             <Typography variant="body2" textAlign="center">
-              Luis Galeano 1910 - Local 2<br />
-              Villa Cabrera, Córdoba, Argentina
+              <a
+                  href="https://maps.google.com/?q=Luis+Galeano+1910,+Villa+Cabrera,+Córdoba,+Argentina"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "inherit", textDecoration: "none", display: "inline-block", marginBottom: "32px" }}
+              >
+                Luis Galeano 1910 - Local 2<br />
+                Villa Cabrera, Córdoba, Argentina
+              </a>
+              <br />
+              <a
+                  href="https://www.google.com/maps?q=Lisandro+de+la+Torre+299,+Local+7,+Villa+Carlos+Paz,+Córdoba,+Argentina"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "inherit", textDecoration: "none" }}
+              >
+                Lisandro de la Torre 299 – Local 7<br />
+                Villa Carlos Paz, Córdoba, Argentina
+              </a>
             </Typography>
             <Box
               component="ul"

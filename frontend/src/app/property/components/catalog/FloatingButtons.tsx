@@ -4,6 +4,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import selectIcon from "../../../../assets/ic_select.png";
+import cancelIcon from "../../../../assets/ic_cancel.svg";
 import compareIcon from "../../../../assets/ic_comparer.png";
 import { useAuthContext } from "../../../user/context/AuthContext";
 import { usePropertiesContext } from "../../context/PropertiesContext";
@@ -71,7 +72,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
                 color: "#fff",
               }}
             >
-              <img src={selectIcon} alt="Select" style={{ width: "2.2rem", height: "2.2rem" }} />
+              <img src={selectionMode ? cancelIcon : selectIcon} alt={selectionMode ? "Cancelar selección" : "Seleccionar"} style={{ width: "2.2rem", height: "2.2rem" }} />
             </Fab>
           </Tooltip>
         </Box>
