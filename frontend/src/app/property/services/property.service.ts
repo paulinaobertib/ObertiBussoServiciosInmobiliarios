@@ -21,7 +21,10 @@ export const postProperty = async (data: PropertyCreate) => {
       form,
       { withCredentials: true }
     );
-    return (response as any)?.data ?? response;
+    return {
+      data: (response as any)?.data ?? response.data,
+      status: response.status,
+    };
   } catch (error) {
     console.error("Error creating property:", error);
     throw error;

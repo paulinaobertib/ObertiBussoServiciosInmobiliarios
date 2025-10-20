@@ -136,7 +136,8 @@ const mockSearchParams: SearchParams = {
 
     const result = await propertyService.postProperty(mockPropertyCreate);
     expect(api.post).toHaveBeenCalled();
-    expect(result).toEqual(mockPropertyCreate);
+    expect(result.data).toEqual(mockPropertyCreate);
+    expect(result.status).toBeUndefined();
   });
 
   it("putProperty actualiza propiedad correctamente", async () => {
