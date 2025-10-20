@@ -105,6 +105,19 @@ export default function ViewStatsPage() {
     () => pickTopEntries(flattenStatusAndType(stats.statusAndType), 10),
     [stats.statusAndType]
   );
+  const viewCharts = [
+    { title: "Por Día", data: stats.day, type: "bar" as const },
+    { title: "Por Mes", data: stats.month, type: "doughnut" as const },
+    { title: "Top Propiedades", data: topViewsByProperty, type: "bar" as const },
+    { title: "Por Tipo", data: topViewsByPropertyType, type: "pie" as const },
+    { title: "Por Barrio", data: topViewsByNeighborhood, type: "pie" as const },
+    { title: "Tipo de Barrio", data: topViewsByNeighborhoodType, type: "doughnut" as const },
+    { title: "Por Estado", data: topViewsByStatus, type: "doughnut" as const },
+    { title: "Estado y Tipo", data: topViewsByStatusAndType, type: "bar" as const },
+    { title: "Por Operación", data: topViewsByOperation, type: "pie" as const },
+    { title: "Por Ambientes", data: topViewsByRooms, type: "bar" as const },
+    { title: "Por Amenidad", data: topViewsByAmenity, type: "bar" as const },
+  ] as const;
 
   // --- CONSULTAS ---
   const inquiryStatusDistribution = useMemo(
@@ -374,22 +387,10 @@ export default function ViewStatsPage() {
                   Vistas de Propiedades
                 </Typography>
                 <Grid container spacing={3}>
-                  {[
-                    { title: "Por Día", data: stats.day, type: "bar" },
-                    { title: "Por Mes", data: stats.month, type: "doughnut" },
-                    { title: "Top Propiedades", data: topViewsByProperty, type: "bar" },
-                    { title: "Por Tipo", data: topViewsByPropertyType, type: "pie" },
-                    { title: "Por Barrio", data: topViewsByNeighborhood, type: "pie" },
-                    { title: "Tipo de Barrio", data: topViewsByNeighborhoodType, type: "doughnut" },
-                    { title: "Por Estado", data: topViewsByStatus, type: "doughnut" },
-                    { title: "Estado y Tipo", data: topViewsByStatusAndType, type: "bar" },
-                    { title: "Por Operación", data: topViewsByOperation, type: "pie" },
-                    { title: "Por Ambientes", data: topViewsByRooms, type: "bar" },
-                    { title: "Por Amenidad", data: topViewsByAmenity, type: "bar" },
-                  ].map((cfg) => (
-                      <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                        <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
-                      </Grid>
+                  {viewCharts.map((cfg) => (
+                    <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
+                    </Grid>
                   ))}
                 </Grid>
               </Box>
