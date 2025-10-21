@@ -159,5 +159,20 @@ describe("Administrador: creación básica de una propiedad", () => {
 
     cy.contains("¿Crear la propiedad?", { timeout: ADMIN_TIMEOUT }).should("be.visible");
     cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    // Esperar el modal de error y cerrarlo
+    cy.contains("button", /^Aceptar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Hacer clic en el logo para volver al home
+    cy.get('img[alt="Logo"]:visible', { timeout: ADMIN_TIMEOUT }).click({ force: true })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Verificar que redirigió al home
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+
   });
+
 });
