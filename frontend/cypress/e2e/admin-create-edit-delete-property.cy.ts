@@ -9,7 +9,7 @@ describe("Administrador: creación básica de una propiedad", () => {
     cy.viewport(1280, 720);
   });
 
-  it("Permite seleccionar categorías y acceder al formulario de creación", () => {
+  it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
     cy.loginAdmin();
     cy.visit(appBaseUrl);
 
@@ -34,6 +34,19 @@ describe("Administrador: creación básica de una propiedad", () => {
     openSpeedDialAction("Agregar");
 
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("include", "/properties/new");
+
+    const clickModalButtonIfPresent = (...labels: RegExp[]) => {
+      cy.get("body", { timeout: ADMIN_TIMEOUT }).then(($body) => {
+        const buttons = $body.find("button").toArray();
+        const target = buttons.find((btn) => {
+          const text = btn.innerText.trim();
+          return labels.some((label) => label.test(text));
+        });
+        if (target) {
+          cy.wrap(target).click({ force: true });
+        }
+      });
+    };
 
     cy.intercept("GET", "**/properties/type/getAll").as("getTypes");
     cy.intercept("GET", "**/properties/neighborhood/getAll").as("getNeighborhoods");
@@ -173,6 +186,100 @@ describe("Administrador: creación básica de una propiedad", () => {
     // Verificar que redirigió al home
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
 
-  });
+    // Abrir nuevamente las acciones administrativas para editar la propiedad creada
+    cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
 
+    cy.on("window:confirm", () => true);
+
+    openSpeedDialAction("Editar");
+
+    // Si aparece una alerta personalizada, aceptarla
+    clickModalButtonIfPresent(/^ok$/i, /^aceptar$/i, /^entendido$/i);
+
+    cy.intercept("GET", "**/properties/property/getById/**").as("getPropertyById");
+    cy.intercept("GET", "**/properties/owner/getByProperty/**").as("getOwnerByProperty");
+    cy.intercept("GET", "**/properties/image/getByProperty/**").as("getPropertyImages");
+
+    cy.contains('[data-testid="favorite-item"]', "Propiedad Cypress", { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    cy.wait("@getPropertyById", { timeout: ADMIN_TIMEOUT });
+    cy.wait("@getOwnerByProperty", { timeout: ADMIN_TIMEOUT });
+    cy.wait("@getPropertyImages", { timeout: ADMIN_TIMEOUT });
+
+    cy.contains("button", /^Siguiente$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("Propiedad Cypress Editada");
+      });
+
+    cy.contains("button", /^Actualizar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    cy.contains("Guardar cambios en la propiedad?", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    cy.contains("Propiedad actualizada", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    // Volver al home
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+
+    // Limpiar registros relacionados antes de eliminar
+    cy.task(
+      "queryDb",
+      "DELETE FROM view WHERE property_id IN (SELECT id FROM property WHERE description LIKE 'Descripción de prueba generada por Cypress.%')"
+    );
+
+    // Esperar un momento antes de continuar
+    cy.wait(1000);
+
+    // 🔹 Abrir nuevamente las acciones administrativas
+    cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // 🔹 Confirmaciones iniciales del navegador (si las hubiera)
+    cy.on("window:confirm", () => true);
+
+    // 🔹 Ejecutar la acción de eliminar
+    openSpeedDialAction("Eliminar");
+
+    // 🔹 Aceptar el aviso de "modo eliminación" (botón Entendido)
+    cy.contains("button", /^Entendido$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // 🔹 Seleccionar la propiedad editada a eliminar
+    cy.contains('[data-testid="favorite-item"]', "Propiedad Cypress Editada", { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // 🔹 Confirmar primera vez
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // 🔹 Confirmar segunda vez
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // 🔹 Esperar mensaje final de éxito y volver
+    cy.contains("Propiedad eliminada", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // 🔹 Verificar que volvió al home
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+
+
+  });
 });

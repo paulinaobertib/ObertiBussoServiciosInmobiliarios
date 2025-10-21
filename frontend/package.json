@@ -32,6 +32,7 @@
     "leaflet": "^1.9.4",
     "leaflet-pip": "^1.1.0",
     "lucide-react": "^0.537.0",
+    "mysql2": "^3.15.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
