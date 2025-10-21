@@ -42,15 +42,8 @@ describe("Integracion: Comparar propiedades", () => {
         cy.wrap(title.trim()).as("secondTitle");
       });
 
-    cy.get("img[alt='Select']", { timeout: CATALOG_TIMEOUT }).closest("button").click();
-
-    cy.get("[role='dialog']", { timeout: CATALOG_TIMEOUT })
-      .should("be.visible")
-      .within(() => {
-        cy.contains("button", /^Ok$/i).click();
-      });
-
-    cy.get("[role='dialog']").should("not.exist");
+    cy.get("img[alt='Seleccionar']", { timeout: CATALOG_TIMEOUT }).closest("button").click();
+    cy.contains("[role='alert']", /Entrando al modo/i, { timeout: CATALOG_TIMEOUT }).should("be.visible");
 
     cy.get("img[alt='Comparer']", { timeout: CATALOG_TIMEOUT }).closest("button").as("compareButton");
     cy.get("@compareButton").should("be.disabled");

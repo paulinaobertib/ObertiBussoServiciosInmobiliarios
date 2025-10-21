@@ -174,6 +174,10 @@ describe("Administrador: creación básica de una propiedad", () => {
     cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
 
     // Esperar el modal de error y cerrarlo
+    cy.contains("button", /^Entendido$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
     cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
