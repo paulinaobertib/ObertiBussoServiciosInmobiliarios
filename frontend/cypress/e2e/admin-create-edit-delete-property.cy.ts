@@ -240,46 +240,45 @@ describe("Administrador: creación básica de una propiedad", () => {
     // Esperar un momento antes de continuar
     cy.wait(1000);
 
-    // 🔹 Abrir nuevamente las acciones administrativas
+    // Abrir nuevamente las acciones administrativas
     cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    // 🔹 Confirmaciones iniciales del navegador (si las hubiera)
+    // Confirmaciones iniciales del navegador (si las hubiera)
     cy.on("window:confirm", () => true);
 
-    // 🔹 Ejecutar la acción de eliminar
+    // Ejecutar la acción de eliminar
     openSpeedDialAction("Eliminar");
 
-    // 🔹 Aceptar el aviso de "modo eliminación" (botón Entendido)
+    // Aceptar el aviso de "modo eliminación" (botón Entendido)
     cy.contains("button", /^Entendido$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    // 🔹 Seleccionar la propiedad editada a eliminar
+    // Seleccionar la propiedad editada a eliminar
     cy.contains('[data-testid="favorite-item"]', "Propiedad Cypress Editada", { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    // 🔹 Confirmar primera vez
+    // Confirmar primera vez
     cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    // 🔹 Confirmar segunda vez
+    // Confirmar segunda vez
     cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    // 🔹 Esperar mensaje final de éxito y volver
+    // Esperar mensaje final de éxito y volver
     cy.contains("Propiedad eliminada", { timeout: ADMIN_TIMEOUT }).should("be.visible");
     cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    // 🔹 Verificar que volvió al home
+    // Verificar que volvió al home
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
-
 
   });
 });
