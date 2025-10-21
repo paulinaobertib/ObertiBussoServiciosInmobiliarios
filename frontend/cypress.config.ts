@@ -2,7 +2,6 @@
 import { defineConfig } from "cypress";
 import * as fs from "fs";
 import * as path from "path";
-import mysql from "mysql2/promise"; // agregado para ejecutar queries SQL
 
 const STATE_FILE_PATH = "cypress/fixtures/admin-generate-appointments-state.json";
 
