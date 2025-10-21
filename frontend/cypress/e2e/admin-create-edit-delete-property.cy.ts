@@ -174,7 +174,7 @@ describe("Administrador: creación básica de una propiedad", () => {
     cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
 
     // Esperar el modal de error y cerrarlo
-    cy.contains("button", /^Aceptar$/i, { timeout: ADMIN_TIMEOUT })
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
@@ -230,12 +230,6 @@ describe("Administrador: creación básica de una propiedad", () => {
 
     // Volver al home
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
-
-    // Limpiar registros relacionados antes de eliminar
-    cy.task(
-      "queryDb",
-      "DELETE FROM view WHERE property_id IN (SELECT id FROM property WHERE description LIKE 'Descripción de prueba generada por Cypress.%')"
-    );
 
     // Esperar un momento antes de continuar
     cy.wait(1000);

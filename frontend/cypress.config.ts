@@ -50,28 +50,6 @@ export default defineConfig({
           fs.writeFileSync(fullPath, JSON.stringify(payload, null, 2), "utf-8");
           return null;
         },
-
-        // ==============================
-        // NUEVA TAREA: queryDb
-        // ==============================
-        async queryDb(query: string) {
-          const connection = await mysql.createConnection({
-            host: "obertibussoserviciosinmobiliarios-desarrolloinmobertibusso-0051.i.aivencloud.com",
-            port: 18294,
-            user: "avnadmin",
-            password: dbPassword, // Tomado desde variable de entorno
-            database: "obertibussoserviciosinmobiliarios_qa",
-          });
-
-          try {
-            const [rows] = await connection.execute(query);
-            await connection.end();
-            return rows;
-          } catch (err) {
-            console.error("❌ Error ejecutando query:", err);
-            throw err;
-          }
-        },
       });
 
       return config;
