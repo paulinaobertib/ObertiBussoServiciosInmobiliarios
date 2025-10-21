@@ -172,21 +172,6 @@ public class PropertyService implements IPropertyService {
         } else {
             return ResponseEntity.ok("La propiedad se ha guardado correctamente.");
         }
-
-        propertyRepository.save(property);
-
-        try {
-            NotificationDTO notificationDTO = new NotificationDTO();
-            notificationDTO.setDate(property.getDate());
-            notificationDTO.setType(NotificationType.valueOf("PROPIEDADNUEVA"));
-            notificationRepository.createNotification(notificationDTO, property.getId());
-        } catch (Exception e) {
-            throw new RuntimeException("Error al crear la notificación", e);
-        }
-
-        recommendationService.evaluateNewProperty(property);
-
-        return ResponseEntity.ok("Se ha guardado la propiedad");
     }
 
     @Transactional
