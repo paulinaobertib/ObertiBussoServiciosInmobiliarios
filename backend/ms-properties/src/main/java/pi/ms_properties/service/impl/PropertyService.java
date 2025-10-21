@@ -64,6 +64,8 @@ public class PropertyService implements IPropertyService {
 
     private final ContractRepository contractRepository;
 
+    private final IViewRepository viewRepository;
+
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
 
@@ -190,6 +192,7 @@ public class PropertyService implements IPropertyService {
             chatDerivationRepository.deleteAllBySessionIds(sessionIds);
         }
 
+        viewRepository.deleteAllByPropertyId(id);
         chatSessionRepository.deleteAllByPropertyId(id);
         propertyRepository.delete(property);
 

@@ -91,6 +91,9 @@ public class PropertyServiceTest {
     @Mock
     private ContractRepository contractRepository;
 
+    @Mock
+    private IViewRepository viewRepository;
+
     @InjectMocks
     private PropertyService propertyService;
 
