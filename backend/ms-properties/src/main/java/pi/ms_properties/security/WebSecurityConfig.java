@@ -40,7 +40,9 @@ public class WebSecurityConfig {
                                 "/neighborhood/getAll",
                                 "/neighborhood/getById/**",
                                 "/type/getAll",
-                                "/type/getById/**"
+                                "/type/getById/**",
+                                "/actuator/health",
+                                "/actuator/health/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/inquiries/create",

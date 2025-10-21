@@ -17,9 +17,8 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import LogoutIcon from '@mui/icons-material/Logout';
 import RealEstateAgentIcon from '@mui/icons-material/RealEstateAgent';
 import LoginIcon from '@mui/icons-material/Login';
-import ContactMailIcon from '@mui/icons-material/ContactMail';
-import NewspaperIcon from '@mui/icons-material/Newspaper';
-
+import ContactMailIcon from '../../../assets/ic_consulta.svg';
+import NewspaperIcon from '../../../assets/ic_news.svg';
 import { ROUTES } from '../../../lib';
 import logo from '../../../assets/logoJPG.png';
 
@@ -104,12 +103,12 @@ export const NavBar = () => {
                 <>
                   <Tooltip title="Contacto">
                     <IconButton size="small" color="inherit" onClick={() => navigate(ROUTES.CONTACT)}>
-                      <ContactMailIcon />
+                        <img src={ContactMailIcon} alt="Consulta" width={24} height={24} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Noticias">
                     <IconButton size="small" color="inherit" onClick={() => navigate(ROUTES.NEWS)}>
-                      <NewspaperIcon />
+                        <img src={NewspaperIcon} alt="Noticias" width={24} height={24} />
                     </IconButton>
                   </Tooltip>
                 </>
@@ -290,6 +289,7 @@ export const NavBar = () => {
             </Button>
 
             <Button
+              data-testid="navbar-news"
               onClick={() => navigate(ROUTES.NEWS)}
               sx={{
                 color: palette.common.white,
@@ -345,7 +345,7 @@ export const NavBar = () => {
                 )}
 
                 <Tooltip title={isAdmin ? 'Panel de Administrador' : 'Perfil'}>
-                  <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
+                  <IconButton color="inherit" aria-label="profile" data-testid={isAdmin ? "navbar-admin-panel" : "navbar-user-profile"} onClick={goToProfile}>
                     <AccountCircleIcon />
                   </IconButton>
                 </Tooltip>

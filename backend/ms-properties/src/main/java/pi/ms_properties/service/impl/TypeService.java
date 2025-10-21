@@ -25,7 +25,7 @@ public class TypeService implements ITypeService {
         }
 
         typeRepository.save(type);
-        return ResponseEntity.ok("Se ha guardado el tipo de propiedad");
+        return ResponseEntity.ok("Se ha guardado el tipo de propiedad: " + type.getName());
     }
 
     @Override

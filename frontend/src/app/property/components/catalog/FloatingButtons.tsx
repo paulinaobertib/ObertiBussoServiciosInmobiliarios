@@ -4,6 +4,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import selectIcon from "../../../../assets/ic_select.png";
+import cancelIcon from "../../../../assets/ic_cancel.svg";
 import compareIcon from "../../../../assets/ic_comparer.png";
 import { useAuthContext } from "../../../user/context/AuthContext";
 import { usePropertiesContext } from "../../context/PropertiesContext";
@@ -18,9 +19,9 @@ interface Props {
 }
 
 const adminActions = [
-  { icon: <AddCircleOutlineIcon />, name: "Agregar", action: "create" as const },
-  { icon: <EditIcon />, name: "Editar", action: "edit" as const },
-  { icon: <DeleteIcon />, name: "Eliminar", action: "delete" as const },
+  { icon: <AddCircleOutlineIcon data-testid="admin-action-create" />, name: "Agregar", action: "create" as const },
+  { icon: <EditIcon data-testid="admin-action-edit" />, name: "Editar", action: "edit" as const },
+  { icon: <DeleteIcon data-testid="admin-action-delete" />, name: "Eliminar", action: "delete" as const },
 ];
 
 export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, onCompare }: Props) => {
@@ -71,7 +72,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
                 color: "#fff",
               }}
             >
-              <img src={selectIcon} alt="Select" style={{ width: "2.2rem", height: "2.2rem" }} />
+              <img src={selectionMode ? cancelIcon : selectIcon} alt={selectionMode ? "Cancelar selección" : "Seleccionar"} style={{ width: "2.2rem", height: "2.2rem" }} />
             </Fab>
           </Tooltip>
         </Box>
@@ -84,6 +85,7 @@ export const FloatingButtons = ({ onAction, selectionMode, toggleSelectionMode, 
             ariaLabel="Acciones de Propiedad"
             icon={<SettingsIcon />}
             direction="up"
+            data-testid="admin-actions-speed-dial"
             onClick={() => setOpen((p) => !p)}
             open={open}
             sx={{

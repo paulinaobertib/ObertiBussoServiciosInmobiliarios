@@ -1,5 +1,12 @@
 server:
   port: ${WEBSITES_PORT}
+  reactive:
+    session:
+      timeout: PT24H # 24 horas de inactividad
+      cookie:
+        same-site: none
+        secure: true # requerido cuando SameSite=None y usás HTTPS
+        partitioned: true # permite cookies de terceros compartimentadas (CHIPS)
 
 eureka:
   instance:
@@ -13,11 +20,13 @@ eureka:
       defaultZone: https://${EUREKA_HOSTNAME}/eureka/
 
 frontend:
-  base-url: "https://${SWA_FRONTEND}"
+  base-url: "${SWA_FRONTEND}"
 
 spring:
   application:
     name: ms-gateway
+  main:
+    allow-bean-definition-overriding: true
   security:
     oauth2:
       client:
@@ -42,7 +51,7 @@ spring:
         corsConfigurations:
           "[/**]":
             allowedOrigins:
-              - "https://${SWA_FRONTEND}"
+              - "${SWA_FRONTEND}"
             allowedHeaders: "*"
             allowedMethods:
               - GET
@@ -52,7 +61,8 @@ spring:
               - DELETE
               - OPTIONS
             allowCredentials: true # Ver si se puede sacar
-      default-filters: TokenRelay
+      default-filters:
+        - TokenRelay
       routes:
         - id: ms-properties-public
           uri: lb://ms-properties
@@ -111,3 +121,20 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=2
+            - TokenRelay
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    org.springframework.cloud.gateway: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

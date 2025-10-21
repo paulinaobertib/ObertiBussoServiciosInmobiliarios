@@ -2,7 +2,6 @@ package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
+import pi.ms_properties.domain.Currency;
 import pi.ms_properties.dto.*;
 import pi.ms_properties.dto.feign.ContractDTO;
 import pi.ms_properties.dto.feign.NotificationDTO;
@@ -27,10 +27,7 @@ import pi.ms_properties.specification.PropertySpecification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,6 +63,8 @@ public class PropertyService implements IPropertyService {
     private final IChatDerivationRepository chatDerivationRepository;
 
     private final ContractRepository contractRepository;
+
+    private final IViewRepository viewRepository;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -146,6 +145,36 @@ public class PropertyService implements IPropertyService {
 
         propertyRepository.save(property);
 
+        boolean notificationFailed = false;
+        boolean recommendationFailed = false;
+
+        try {
+            NotificationDTO notificationDTO = new NotificationDTO();
+            notificationDTO.setDate(property.getDate());
+            notificationDTO.setType(NotificationType.PROPIEDADNUEVA);
+            notificationRepository.createNotification(notificationDTO, property.getId());
+        } catch (Exception e) {
+            notificationFailed = true;
+        }
+
+        try {
+            recommendationService.evaluateNewProperty(property);
+        } catch (Exception e) {
+            recommendationFailed = true;
+        }
+
+        if (notificationFailed && recommendationFailed) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero fallaron la notificación y la recomendación.");
+        } else if (notificationFailed) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero falló la notificación.");
+        } else if (recommendationFailed) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero falló el servicio de recomendación.");
+        } else {
+            return ResponseEntity.ok("La propiedad se ha guardado correctamente.");
+        }
+
+        propertyRepository.save(property);
+
         try {
             NotificationDTO notificationDTO = new NotificationDTO();
             notificationDTO.setDate(property.getDate());
@@ -178,6 +207,7 @@ public class PropertyService implements IPropertyService {
             chatDerivationRepository.deleteAllBySessionIds(sessionIds);
         }
 
+        viewRepository.deleteAllByPropertyId(id);
         chatSessionRepository.deleteAllByPropertyId(id);
         propertyRepository.delete(property);
 

@@ -51,6 +51,7 @@ export const PropertyCard = ({
 
   return (
     <Card
+      data-testid="favorite-item"
       elevation={2}
       onClick={() => {
         if (!selectionMode) onClick();
@@ -70,6 +71,7 @@ export const PropertyCard = ({
       {/* Imagen / Vídeo y controles */}
       <Box sx={{ position: "relative" }}>
         <Box
+          data-testid="property-card"
           component="img"
           src={src}
           alt={property.title}

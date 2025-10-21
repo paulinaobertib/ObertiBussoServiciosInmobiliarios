@@ -7,9 +7,12 @@ interface Props {
     append?: boolean;
     onSelect: (files: File[]) => void;
     imagesOnly?: boolean;
+    inputProps?: React.InputHTMLAttributes<HTMLInputElement> & {
+        ["data-testid"]?: string;
+    };
 }
 
-export const ImageUploader = ({ label, multiple = false, sx, append = false, onSelect, imagesOnly = false }: Props) => {
+export const ImageUploader = ({ label, multiple = false, sx, append = false, onSelect, imagesOnly = false, inputProps }: Props) => {
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) return;
         const files = Array.from(e.target.files);
@@ -35,7 +38,7 @@ export const ImageUploader = ({ label, multiple = false, sx, append = false, onS
                 ...sx,
             }}
         >
-            <input hidden type="file" accept={imagesOnly ? "image/*" : "image/*,video/*"} multiple={multiple} onChange={onChange} />
+            <input hidden type="file" accept={imagesOnly ? "image/*" : "image/*,video/*"} multiple={multiple} onChange={onChange} {...inputProps} />
             <Typography variant="body2" sx={{
                 textAlign: 'center', color: 'text.secondary'
             }}>{label}</Typography>

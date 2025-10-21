@@ -53,7 +53,7 @@ public class UtilityService implements IUtilityService {
         Utility utility = new Utility();
         utility.setName(utilityDTO.getName());
         utilityRepository.save(utility);
-        return ResponseEntity.ok("Se ha creado el servicio.");
+        return ResponseEntity.ok("Se ha creado el servicio: " + utilityDTO.getName());
     }
 
     @Override

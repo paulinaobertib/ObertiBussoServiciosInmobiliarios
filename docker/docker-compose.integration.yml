@@ -1,0 +1,257 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: obib-integration-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    build:
+      context: ..
+      dockerfile: keycloak/Dockerfile
+    image: obib/keycloak:integration
+    container_name: obib-integration-keycloak
+    hostname: auth.localtest.me
+    environment:
+      SPRING_PROFILES_ACTIVE: integration
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "8080"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_HOSTNAME: auth.localtest.me
+      KC_HOSTNAME_URL: http://auth.localtest.me:8080
+      KC_PROXY: passthrough
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: "false"
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    volumes:
+      - ../realm/realm-obertibussoserviciosinmobiliarios-integration.json:/opt/keycloak/data/import/realm-obertibussoserviciosinmobiliarios-integration.json:ro
+    entrypoint: ["/opt/keycloak/bin/kc.sh"]
+    command:
+      - start-dev
+      - --http-port=8080
+      - --hostname=auth.localtest.me
+      - --hostname-backchannel-dynamic=false
+      - --import-realm
+    networks:
+      default:
+        aliases:
+          - auth.localtest.me
+          - keycloak
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-lc",
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: auth.localtest.me\\r\\n\\r\\n' >&3 && head -n 1 <&3 | grep -q '200'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  eureka:
+    build:
+      context: ../backend/eureka-server
+      dockerfile: Dockerfile
+    image: obib/eureka-server:integration
+    container_name: obib-integration-eureka
+    hostname: eureka
+    networks:
+      default:
+        aliases:
+          - eureka.localtest.me
+    environment:
+      SPRING_PROFILES_ACTIVE: integration
+      EUREKA_HOSTNAME: eureka
+    ports:
+      - "8761:8761"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://eureka.localtest.me:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  ms-properties:
+    build:
+      context: ../backend/ms-properties
+      dockerfile: Dockerfile
+    image: obib/ms-properties:integration
+    container_name: obib-integration-ms-properties
+    hostname: properties.localtest.me
+    environment:
+      SPRING_PROFILES_ACTIVE: integration
+      SERVICE_PORT: 8083
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-properties
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      ML_API_URL: ${ML_API_URL}
+      APIKEY_IA: dummy-key
+      URL_IA: http://ml:8000
+      DEPLOY_IA: mock-deployment
+      VERSION_IA: v1
+      FRONTEND_BASE_URL: http://app.localtest.me:4173
+      USER_SERVICE_URL: http://users.localtest.me:8081
+      AZURE_BLOB_CONNECTION_STRING: ${AZURE_BLOB_CONNECTION_STRING}
+      SPRING_DATASOURCE_URL: ${INTEGRATION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${INTEGRATION_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${INTEGRATION_DB_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/certs
+    ports:
+      - "8083:8083"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://properties.localtest.me:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      default:
+        aliases:
+          - properties.localtest.me
+
+  ms-users:
+    build:
+      context: ../backend/ms-users
+      dockerfile: Dockerfile
+    image: obib/ms-users:integration
+    container_name: obib-integration-ms-users
+    hostname: users.localtest.me
+    environment:
+      SPRING_PROFILES_ACTIVE: integration
+      SERVICE_PORT: 8081
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: ms-users
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      KEYCLOAK_SB_CLIENT_ID: springboot-keycloak-client
+      KEYCLOAK_SB_CLIENT_SECRET: kRTGRUQRMpWDw2x3DTQEDnsnVK9POZMb
+      FRONTEND_BASE_URL: http://app.localtest.me:4173
+      PROPERTY_SERVICE_URL: http://properties.localtest.me:8083
+      SPRING_DATASOURCE_URL: ${INTEGRATION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${INTEGRATION_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${INTEGRATION_DB_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/certs
+    ports:
+      - "8081:8081"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://users.localtest.me:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      default:
+        aliases:
+          - users.localtest.me
+
+  gateway:
+    build:
+      context: ../backend/ms-gateway
+      dockerfile: Dockerfile
+    image: obib/ms-gateway:integration
+    container_name: obib-integration-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: integration
+      SERVICE_PORT: 8090
+      KEYCLOAK_CLIENT_ID: api-gateway-client
+      KEYCLOAK_CLIENT_SECRET: hbt8d8syFPaH3VLjcMRYgBIcdcbOnMou
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_CLIENT_AUTHORIZATION_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_CLIENT_TOKEN_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_CLIENT_USER_INFO_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/userinfo
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_CLIENT_JWK_SET_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_CLIENT_USER_NAME_ATTRIBUTE: preferred_username
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_REDIRECT_URI: http://api.localtest.me:8090/login/oauth2/code/keycloak
+      FRONTEND_BASE_URL: http://app.localtest.me:4173
+      FRONTEND_ALLOWED_ORIGINS: http://app.localtest.me:4173
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+    ports:
+      - "8090:8090"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+      ms-properties:
+        condition: service_started
+      ms-users:
+        condition: service_started
+    hostname: api.localtest.me
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://api.localtest.me:8090/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      default:
+        aliases:
+          - api.localtest.me
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.integration
+      args:
+        VITE_BASE_URL: http://app.localtest.me:4173
+        VITE_GATEWAY_URL: http://api.localtest.me:8090
+        VITE_API_URL: http://api.localtest.me:8090/api
+    image: obib/frontend:integration
+    container_name: obib-integration-frontend
+    hostname: app.localtest.me
+    ports:
+      - "4173:4173"
+    depends_on:
+      gateway:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://app.localtest.me:4173"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      default:
+        aliases:
+          - app.localtest.me
+
+
+volumes:
+  postgres-data:

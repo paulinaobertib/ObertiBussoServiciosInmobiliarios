@@ -30,7 +30,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
 
   security:
     oauth2:
@@ -52,15 +52,21 @@ pi:
     clientId: ${KEYCLOAK_SB_CLIENT_ID}
     clientSecret: ${KEYCLOAK_SB_CLIENT_SECRET}
 
-
-# client: # Ver esto que es nuevo
-#   secret: qI8ZfJH8VnL2bBt7T4z0c91wWoTQUxAWm6q1fXKhfH4=
-
 logging:
   level:
-    org.hibernate.engine.jdbc.batch.internal.BatchingBatch: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
-    org.springframework.orm.jpa: DEBUG
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
 
 ---
 
@@ -77,3 +83,4 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+      

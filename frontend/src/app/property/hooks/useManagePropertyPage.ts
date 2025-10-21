@@ -202,16 +202,26 @@ export const useManagePropertyPage = () => {
       if (!isEdit) {
         /* ---------- CREATE ---------- */
         const createDto = form.getCreateData();
-        const created = await postProperty({
+        const { data: created, status } = await postProperty({
           ...createDto,
           mainImage: mainCandidate,
         });
-        const propertyId = created.id;
+        if (status === 202 || status === 207) {
+          await warn(created);
+        } else {
+          await success("Propiedad creada", created);
+        }
 
         // Subir solo Files de la galería por el endpoint específico
         const galleryFiles = img.gallery.filter((g): g is File => g instanceof File);
         if (galleryFiles.length) {
-          await Promise.all(galleryFiles.map((f) => postImage(f, propertyId)));
+          const rawId = created?.id ?? (created as any)?.data?.id;
+          const propertyId =
+            typeof rawId === "number" ? rawId : typeof rawId === "string" ? Number(rawId) : undefined;
+
+          if (typeof propertyId === "number" && Number.isFinite(propertyId)) {
+            await Promise.all(galleryFiles.map((f) => postImage(f, propertyId)));
+          }
         }
 
         await success("Propiedad creada", "Se creó correctamente.");

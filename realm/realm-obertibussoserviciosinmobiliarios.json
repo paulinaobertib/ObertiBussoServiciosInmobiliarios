@@ -28,7 +28,7 @@
   "oauth2DeviceCodeLifespan": 600,
   "oauth2DevicePollingInterval": 5,
   "enabled": true,
-  "sslRequired": "external",
+  "sslRequired": "none",
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "rememberMe": false,
@@ -353,6 +353,15 @@
         {
           "id": "965b8853-011e-41a2-ab6b-5e85e164bc35",
           "name": "user",
+          "description": "",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "48201fcd-982c-4c85-960a-d8aee5778d50",
+          "attributes": {}
+        },
+        {
+          "id": "186458ad-58dc-4745-988f-0026ff3bd179",
+          "name": "tenant",
           "description": "",
           "composite": false,
           "clientRole": true,
@@ -715,20 +724,20 @@
       "clientId": "api-gateway-client",
       "name": "Gateway",
       "description": "Gateway client",
-      "rootUrl": "http://localhost:8090",
+      "rootUrl": "http://api.localtest.me:8090",
       "adminUrl": "",
       "baseUrl": "",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "",
       "redirectUris": [
         "https://oauth.pstmn.io/v1/browser-callback",
-        "http://localhost:8090/login/oauth2/code/keycloak"
+        "http://api.localtest.me:8090/login/oauth2/code/keycloak"
       ],
       "webOrigins": [
-        "/*"
+        "http://app.localtest.me:4173"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -936,7 +945,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "",
       "redirectUris": [
         "/*"
       ],
@@ -1719,7 +1728,7 @@
         "disableUserInfo": "false",
         "syncMode": "LEGACY",
         "filteredByClaim": "false",
-        "clientSecret": "**********",
+        "clientSecret": "",
         "caseSensitiveOriginalUsername": "false"
       }
     }

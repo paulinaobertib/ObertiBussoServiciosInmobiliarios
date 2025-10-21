@@ -1,7 +1,7 @@
-# main.py
 from fastapi import FastAPI, Query
 import joblib
-from surprise import SVD
+
+from train_utils import entrenar_modelo
 
 app = FastAPI()
 

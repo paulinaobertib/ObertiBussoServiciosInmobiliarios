@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: USERS-SERVICE
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
+          jwk-set-uri: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/certs
+
+server:
+  port: 8081
+
+eureka:
+  instance:
+    hostname: ms-users
+    prefer-ip-address: false
+    nonSecurePort: ${server.port}
+    securePortEnabled: false
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.name}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://eureka:8761/eureka/
+
+property:
+  service:
+    url: ${PROPERTY_SERVICE_URL}
+
+frontend:
+  base-url: http://app.localtest.me:4173
+
+pi:
+  keycloak:
+    serverUrl: http://auth.localtest.me:8080/
+    realm: obertibussoserviciosinmobiliarios-integration
+    clientId: springboot-keycloak-client
+    clientSecret: kRTGRUQRMpWDw2x3DTQEDnsnVK9POZMb
+
+email:
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
+
+logging:
+  level:
+    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
