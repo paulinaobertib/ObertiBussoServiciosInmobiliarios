@@ -22,9 +22,7 @@ export default defineConfig({
     },
 
     setupNodeEvents(on, config) {
-      // ==============================
       // Tareas personalizadas
-      // ==============================
       on("task", {
         // --- Persistencia de estado de turnos admin ---
         "adminAppointments:state:read"() {
