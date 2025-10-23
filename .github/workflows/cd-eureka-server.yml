@@ -2,6 +2,7 @@ name: CD - Eureka Server
 
 on:
   workflow_dispatch:
+<<<<<<<< HEAD:.github/workflows/cd-eureka-server.yml
     inputs:
       image_tag:
         description: Docker image tag to deploy (from CI).
@@ -14,6 +15,15 @@ on:
         required: true
         type: string
 
+========
+  # push:
+    # branches:
+    # - main
+      
+# --------------------------------------------------------------
+# VARIABLES GLOBALES
+# --------------------------------------------------------------
+>>>>>>>> develop:.github/workflows/pipeline-eureka-server.yml
 env:
   # Azure
   AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
@@ -26,8 +36,8 @@ env:
 
   # Eureka-specific
   IMAGE_NAME: eureka-server
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_EUREKA_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_EUREKA_PROD }}
 
@@ -37,6 +47,88 @@ env:
   SERVICE_PORT: 8761
 
 jobs:
+<<<<<<<< HEAD:.github/workflows/cd-eureka-server.yml
+========
+  # --------------------------------------------------------------
+  # JOB 1: Build · Test · Docker
+  # --------------------------------------------------------------
+  build-and-push:
+    name: Build · Test · Docker
+    runs-on: ubuntu-latest
+
+    outputs:
+      tag: ${{ steps.set-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: "24"
+
+      # - name: Run Backend Tests
+      #   working-directory: backend/${{ env.IMAGE_NAME }}
+      #   run: mvn -B test
+
+      # - name: Publish JUnit Results
+      #   uses: EnricoMi/publish-unit-test-result-action@v2
+      #   if: always()
+      #   with:
+      #     files: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+
+      # - name: Test Summary
+      #   uses: test-summary/action@v2
+      #   if: always()
+      #   with:
+      #     paths: backend/${{ env.IMAGE_NAME }}/target/surefire-reports/*.xml
+
+      # - name: Publish JaCoCo Coverage
+      #   uses: PavanMudigonda/jacoco-reporter@v5.0
+      #   with:
+      #     coverage_results_path: backend/${{ env.IMAGE_NAME }}/target/site/jacoco/jacoco.xml
+      #     coverage_report_name: Code Coverage
+      #     coverage_report_title: "📈 JaCoCo Coverage"
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     minimum_coverage: 80
+      #     publish_only_summary: true
+
+      - name: Build & Package JAR
+        working-directory: backend/${{ env.IMAGE_NAME }}
+        run: mvn -B package -DskipTests
+
+      - name: Upload Backend JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IMAGE_NAME }}-jar
+          path: backend/${{ env.IMAGE_NAME }}/target/*.jar
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Set Docker image tag
+        id: set-tag
+        run: |
+          TAG=${GITHUB_SHA::8}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build & Push Docker image
+        run: |
+          TAG=${{ steps.set-tag.outputs.tag }}
+          IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
+          docker build -t $IMAGE -f backend/${{ env.IMAGE_NAME }}/Dockerfile backend/${{ env.IMAGE_NAME }}
+          docker push $IMAGE
+
+  # --------------------------------------------------------------
+  # JOB 2: Deploy to Development
+  # --------------------------------------------------------------
+>>>>>>>> develop:.github/workflows/pipeline-eureka-server.yml
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest

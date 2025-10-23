@@ -4,7 +4,7 @@
  */
 import { useState, useMemo } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import { Stack, TextField, Alert, Button, Box } from "@mui/material";
+import { Stack, TextField, Alert, Box } from "@mui/material";
 
 import { Calendar } from "../../Calendar";
 import { Modal } from "../../../../shared/components/Modal";

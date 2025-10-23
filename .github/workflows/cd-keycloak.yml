@@ -2,6 +2,7 @@ name: CD - Keycloak
 
 on:
   workflow_dispatch:
+<<<<<<<< HEAD:.github/workflows/cd-keycloak.yml
     inputs:
       image_tag:
         description: Docker image tag to deploy (from CI).
@@ -13,6 +14,11 @@ on:
         description: Docker image tag to deploy (from CI).
         required: true
         type: string
+========
+  push:
+    branches:
+    - main
+>>>>>>>> develop:.github/workflows/pipeline-keycloak.yml
 
 env:
   # Azure
@@ -26,13 +32,53 @@ env:
 
   # Properties-specific
   IMAGE_NAME: keycloak
-  APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
+  APP_PLAN_DEV: ${{ secrets.APP_PLAN_DEV }}
+  APP_PLAN_PROD: ${{ secrets.APP_PLAN_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}
   APP_NAME_PROD: ${{ secrets.APP_KEYCLOAK_PROD }}
   SERVICE_PORT: 8080
 
 jobs:
+<<<<<<<< HEAD:.github/workflows/cd-keycloak.yml
+========
+  # --------------------------------------------------------------
+  # JOB 1: Build · Test · Docker
+  # --------------------------------------------------------------
+  build-and-push:
+    name: Build · Test · Docker
+    runs-on: ubuntu-latest
+
+    outputs:
+      tag: ${{ steps.set-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Set Docker image tag
+        id: set-tag
+        run: |
+          TAG=${GITHUB_SHA::8}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build & Push Docker image
+        run: |
+          TAG=${{ steps.set-tag.outputs.tag }}
+          IMAGE="docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:$TAG"
+          docker build --no-cache -t $IMAGE -f keycloak/Dockerfile .
+          docker push $IMAGE
+
+  # --------------------------------------------------------------
+  # JOB 2: Deploy to Development
+  # --------------------------------------------------------------
+>>>>>>>> develop:.github/workflows/pipeline-keycloak.yml
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
@@ -92,6 +138,7 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
               WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+<<<<<<<< HEAD:.github/workflows/cd-keycloak.yml
               WEBSITES_PORT=8080 \
               SERVICE_PORT=8080 \
               WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
@@ -99,10 +146,18 @@ jobs:
               DOCKER_ENABLE_CI=true \
               KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
               KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
+========
+              WEBSITES_PORT=8443 \
+              SERVICE_PORT=8443 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
+              KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+>>>>>>>> develop:.github/workflows/pipeline-keycloak.yml
               KC_DB=postgres \
               KC_DB_URL='${{ secrets.DB_PG_URL_DEV }}' \
               KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
               KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
+<<<<<<<< HEAD:.github/workflows/cd-keycloak.yml
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
               KC_HEALTH_ENABLED=true \
@@ -110,6 +165,20 @@ jobs:
               KC_HOSTNAME='${{ env.APP_NAME_DEV }}' \
               KC_HOSTNAME_STRICT=true \
               KC_HOSTNAME_STRICT_HTTPS=true
+========
+              KC_HTTP_PORT=8443 \
+              KC_HTTP_ENABLED=true \
+              KC_PROXY=edge \
+              KC_PROXY_HEADERS=xforwarded \
+              KC_HOSTNAME_STRICT=false \
+              KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net
+
+      - name: Reiniciar Web App para aplicar los App Settings
+        run: |
+          az webapp restart \
+            --name ${{ env.APP_NAME_DEV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+>>>>>>>> develop:.github/workflows/pipeline-keycloak.yml
 
       - name: Enable Container Logs
         run: |
@@ -178,6 +247,7 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --settings \
               WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+<<<<<<<< HEAD:.github/workflows/cd-keycloak.yml
               WEBSITES_PORT=8080 \
               SERVICE_PORT=8080 \
               WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
@@ -185,10 +255,18 @@ jobs:
               DOCKER_ENABLE_CI=true \
               KC_BOOTSTRAP_ADMIN_USERNAME='${{ secrets.KEYCLOAK_ADMIN }}' \
               KC_BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}' \
+========
+              WEBSITES_PORT=8443 \
+              SERVICE_PORT=8443 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=600 \
+              KC_BOOTSTRAP_ADMIN_USERNAME=${{ secrets.KEYCLOAK_ADMIN }} \
+              KC_BOOTSTRAP_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }} \
+>>>>>>>> develop:.github/workflows/pipeline-keycloak.yml
               KC_DB=postgres \
               KC_DB_URL='${{ secrets.DB_PG_URL_PROD }}' \
               KC_DB_USERNAME='${{ secrets.DB_PG_USERNAME }}' \
               KC_DB_PASSWORD='${{ secrets.DB_PG_PASSWORD }}' \
+<<<<<<<< HEAD:.github/workflows/cd-keycloak.yml
               KC_HTTP_PORT=8080 \
               KC_HTTP_ENABLED=true \
               KC_HEALTH_ENABLED=true \
@@ -196,6 +274,14 @@ jobs:
               KC_HOSTNAME='${{ secrets.KEYCLOAK_HOSTNAME_PROD }}' \
               KC_HOSTNAME_STRICT=true \
               KC_HOSTNAME_STRICT_HTTPS=true
+========
+              KC_HTTP_PORT=8443 \
+              KC_HTTP_ENABLED=true \
+              KC_PROXY=edge \
+              KC_PROXY_HEADERS=xforwarded \
+              KC_HOSTNAME_STRICT=false \
+              KC_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net
+>>>>>>>> develop:.github/workflows/pipeline-keycloak.yml
 
       - name: Set HTTPS
         run: |

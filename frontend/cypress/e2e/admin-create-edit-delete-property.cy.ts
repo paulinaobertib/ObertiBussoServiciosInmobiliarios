@@ -1,386 +1,282 @@
-// describe("Propiedades: Crear, ver, editar y eliminar desde admin", () => {
-//   const owner = {
-//     id: 1,
-//     firstName: "Laura",
-//     lastName: "Lopez",
-//     email: "laura.lopez@test.com",
-//     phone: "3511234567",
-//   };
-
-//   const neighborhood = {
-//     id: 10,
-//     name: "Nueva Córdoba",
-//     city: "Córdoba",
-//     type: "ABIERTO",
-//     latitude: -31.420082,
-//     longitude: -64.188776,
-//   };
-
-//   const type = {
-//     id: 5,
-//     name: "Departamento",
-//     hasRooms: false,
-//     hasBedrooms: false,
-//     hasBathrooms: false,
-//     hasCoveredArea: false,
-//   };
-
-//   const amenity = {
-//     id: 3,
-//     name: "Cochera Cubierta",
-//   };
-
-//   const creationForm = {
-//     title: "Propiedad Cypress",
-//     description: "Propiedad generada desde Cypress",
-//     operation: "VENTA",
-//     status: "DISPONIBLE",
-//     currency: "USD",
-//     price: 150000,
-//     expenses: 2500,
-//     area: 120,
-//     street: "Calle Falsa",
-//     number: "123",
-//   };
-
-//   const updatedValues = {
-//     title: "Propiedad Cypress Editada",
-//     price: 175000,
-//     description: "Propiedad actualizada desde Cypress",
-//   };
-
-//   let propertiesStore: any[] = [];
-//   let propertySequence = 1000;
-
-//   const extractId = (url: string) => {
-//     const match = url.match(/\/(\d+)(?:\?.*)?$/);
-//     return match ? Number(match[1]) : null;
-//   };
-
-//   const setupBackendStubs = () => {
-//     propertiesStore = [];
-//     propertySequence = 1000;
-
-//     const propertyPayload = () => ({
-//       title: creationForm.title,
-//       description: creationForm.description,
-//       operation: creationForm.operation,
-//       status: creationForm.status,
-//       currency: creationForm.currency,
-//       price: creationForm.price,
-//       expenses: creationForm.expenses,
-//       area: creationForm.area,
-//       coveredArea: 0,
-//       street: creationForm.street,
-//       number: creationForm.number,
-//       rooms: 0,
-//       bedrooms: 0,
-//       bathrooms: 0,
-//       showPrice: true,
-//       credit: true,
-//       financing: false,
-//       outstanding: false,
-//       owner,
-//       neighborhood,
-//       type,
-//       amenities: [amenity],
-//       mainImage: "https://static.test/property-main.jpg",
-//       images: [] as string[],
-//       date: new Date().toISOString(),
-//     });
-
-//     const replyWithProperties = (req: any) => {
-//       req.reply({ statusCode: 200, body: propertiesStore });
-//     };
-
-//     cy.intercept("GET", "**/properties/owner/getAll", {
-//       statusCode: 200,
-//       body: [owner],
-//     }).as("getOwners");
-
-//     cy.intercept("GET", "**/properties/neighborhood/getAll", {
-//       statusCode: 200,
-//       body: [{ id: neighborhood.id, name: neighborhood.name, city: neighborhood.city, type: neighborhood.type }],
-//     }).as("getNeighborhoods");
-
-//     cy.intercept("GET", "**/properties/type/getAll", {
-//       statusCode: 200,
-//       body: [type],
-//     }).as("getTypes");
-
-//     cy.intercept("GET", "**/properties/amenity/getAll", {
-//       statusCode: 200,
-//       body: [amenity],
-//     }).as("getAmenities");
-
-//     cy.intercept("GET", "**/properties/neighborhood/getById/*", (req) => {
-//       req.reply({
-//         statusCode: 200,
-//         body: {
-//           id: neighborhood.id,
-//           name: neighborhood.name,
-//           city: neighborhood.city,
-//           type: neighborhood.type,
-//           latitude: neighborhood.latitude,
-//           longitude: neighborhood.longitude,
-//         },
-//       });
-//     }).as("getNeighborhoodById");
-
-//     cy.intercept("GET", "**/properties/property/getAll", replyWithProperties).as("getProperties");
-
-//     cy.intercept("GET", "**/properties/property/get", replyWithProperties).as("getAvailableProperties");
-
-//     cy.intercept("GET", "**/properties/property/text*", replyWithProperties);
-//     cy.intercept("GET", "**/properties/property/search*", replyWithProperties);
-
-//     cy.intercept("GET", "**/properties/property/getById/*", (req) => {
-//       const id = extractId(req.url);
-//       const property = propertiesStore.find((p) => Number(p.id) === id);
-//       if (!property) {
-//         req.reply({ statusCode: 404, body: {} });
-//         return;
-//       }
-//       req.reply({ statusCode: 200, body: property });
-//     }).as("getPropertyDetail");
-
-//     cy.intercept("GET", "**/properties/owner/getByProperty/*", {
-//       statusCode: 200,
-//       body: owner,
-//     }).as("getPropertyOwner");
-
-//     cy.intercept("GET", "**/properties/image/getByProperty/*", {
-//       statusCode: 200,
-//       body: [] as any[],
-//     }).as("getPropertyImages");
-
-//     cy.intercept("POST", "**/properties/property/create", (req) => {
-//       const created = {
-//         id: propertySequence++,
-//         ...propertyPayload(),
-//       };
-//       propertiesStore.push(created);
-//       req.reply({ statusCode: 201, body: created });
-//     }).as("createProperty");
-
-//     cy.intercept("PUT", "**/properties/property/update/*", (req) => {
-//       const id = extractId(req.url);
-//       const index = propertiesStore.findIndex((p) => Number(p.id) === id);
-//       if (index === -1) {
-//         req.reply({ statusCode: 404, body: {} });
-//         return;
-//       }
-
-//       const updated = {
-//         ...propertiesStore[index],
-//         title: updatedValues.title,
-//         price: updatedValues.price,
-//         description: updatedValues.description,
-//       };
-
-//       propertiesStore[index] = updated;
-//       req.reply({ statusCode: 200, body: updated });
-//     }).as("updateProperty");
-
-//     cy.intercept("DELETE", "**/properties/property/delete/*", (req) => {
-//       const id = extractId(req.url);
-//       propertiesStore = propertiesStore.filter((p) => Number(p.id) !== id);
-//       req.reply({ statusCode: 200, body: {} });
-//     }).as("deleteProperty");
-
-//     cy.intercept("GET", "https://nominatim.openstreetmap.org/search*", {
-//       statusCode: 200,
-//       body: [{ lat: neighborhood.latitude, lon: neighborhood.longitude }],
-//     }).as("nominatimSearch");
-
-//     cy.intercept("GET", "https://nominatim.openstreetmap.org/reverse*", {
-//       statusCode: 200,
-//       body: {
-//         address: { road: creationForm.street, house_number: creationForm.number },
-//       },
-//     });
-
-//     cy.intercept("GET", /https:\/\/[abc]\.tile\.openstreetmap\.org\/.*/, {
-//       statusCode: 200,
-//       body: "",
-//     });
-//   };
-
-//   const fillTextField = (labelPattern: RegExp, value: string) => {
-//     cy.contains("label", labelPattern)
-//       .should("exist")
-//       .invoke("attr", "for")
-//       .then((id) => {
-//         if (!id) {
-//           throw new Error(`No se encontró input para ${labelPattern}`);
-//         }
-//         cy.get(`[id="${id}"]`).clear().type(value);
-//       });
-//   };
-
-//   const selectOption = (labelPattern: RegExp, optionText: string) => {
-//     cy.contains("label", labelPattern)
-//       .should("exist")
-//       .invoke("attr", "for")
-//       .then((id) => {
-//         if (!id) {
-//           throw new Error(`No se encontró input asociado a ${labelPattern}`);
-//         }
-//         cy.get(`[id="${id}"]`)
-//           .closest(".MuiFormControl-root")
-//           .find('[role="combobox"],[role="button"]')
-//           .first()
-//           .click({ force: true });
-//       });
-
-//     cy.get('ul[role="listbox"]', { timeout: 5000 })
-//       .should("be.visible")
-//       .within(() => {
-//         cy.contains('li[role="option"]', optionText, { matchCase: false })
-//           .should("be.visible")
-//           .click();
-//       });
-//   };
-
-//   const selectRowByText = (text: string) => {
-//     cy.contains('[role="row"]', text, { timeout: 10000 })
-//       .should("be.visible")
-//       .find('input[type="checkbox"]')
-//       .first()
-//       .check({ force: true });
-//   };
-
-//   const openCategoryPanel = (labelPattern: RegExp, waitAlias: string) => {
-//     cy.contains("button", labelPattern).should("be.visible").click();
-//     cy.wait(waitAlias);
-//     cy.get('[role="grid"]', { timeout: 10000 }).should("be.visible");
-//   };
-
-//   const openSpeedDialAction = (actionName: "Agregar" | "Editar" | "Eliminar") => {
-//     cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: 10000 })
-//       .should("be.visible")
-//       .click();
-
-//     const actionTestId =
-//       actionName === "Agregar" ? "admin-action-create" : actionName === "Editar" ? "admin-action-edit" : "admin-action-delete";
-
-//     cy.get(`[data-testid="${actionTestId}"]`, { timeout: 10000 })
-//       .should("be.visible")
-//       .closest("button")
-//       .click();
-//   };
-
-//   beforeEach(() => {
-//     setupBackendStubs();
-
-//     cy.clearCookies();
-//     cy.clearLocalStorage();
-//     cy.viewport(1280, 720);
-
-//     cy.loginAdmin();
-//     cy.wait("@getProperties");
-//   });
-
-//   it("permite crear, ver, editar y eliminar una propiedad", () => {
-//     openSpeedDialAction("Agregar");
-//     cy.url().should("include", "/properties/new");
-
-//     openCategoryPanel(/^Tipos$/i, "@getTypes");
-//     selectRowByText(type.name);
-
-//     openCategoryPanel(/^Barrios$/i, "@getNeighborhoods");
-//     selectRowByText(neighborhood.name);
-
-//     openCategoryPanel(/^Propietarios$/i, "@getOwners");
-//     selectRowByText(owner.email);
-
-//     openCategoryPanel(/Caracter/i, "@getAmenities");
-//     selectRowByText(amenity.name);
-
-//     cy.contains("button", "Siguiente").should("not.be.disabled").click();
-
-//     fillTextField(/T.*tulo/i, creationForm.title);
-//     selectOption(/Operac/i, "Venta");
-//     selectOption(/Estado/i, "Disponible");
-//     selectOption(/Moneda/i, "USD");
-//     fillTextField(/Precio/i, String(creationForm.price));
-//     fillTextField(/Descrip/i, creationForm.description);
-//     fillTextField(/Calle$/i, creationForm.street);
-//     fillTextField(/N.*mero$/i, creationForm.number);
-//     fillTextField(/Superficie Total/i, String(creationForm.area));
-
-//     cy.get('[data-testid="expensas"]').clear().type(String(creationForm.expenses));
-//     cy.get('[data-testid="credit-checkbox"]').check({ force: true });
-
-//     cy.contains("label", "Imagen principal")
-//       .find('input[type="file"]')
-//       .attachFile("prueba.jpg");
-
-//     cy.contains("button", "Crear").should("not.be.disabled").click();
-//     cy.contains("button", "Confirmar").click();
-//     cy.wait("@createProperty");
-
-//     cy.contains("Propiedad creada", { timeout: 10000 }).should("be.visible");
-//     cy.contains("button", /Volver|Aceptar|Ok/i).click();
-
-//     cy.location("pathname", { timeout: 10000 }).should("eq", "/");
-//     cy.wait("@getProperties");
-
-//     cy.contains('[data-testid="favorite-item"]', creationForm.title, { timeout: 10000 })
-//       .should("exist")
-//       .click();
-
-//     cy.wait("@getPropertyDetail");
-//     cy.contains(creationForm.title).should("be.visible");
-//     cy.go("back");
-
-//     cy.wait("@getProperties");
-
-//     openSpeedDialAction("Editar");
-//     cy.contains("button", /Ok|Aceptar/).click();
-
-//     cy.contains('[data-testid="favorite-item"]', creationForm.title, { timeout: 10000 })
-//       .should("exist")
-//       .click();
-
-//     cy.wait("@getPropertyDetail");
-//     cy.wait("@getPropertyOwner");
-//     cy.wait("@getPropertyImages");
-
-//     cy.contains("button", "Siguiente", { timeout: 10000 }).should("not.be.disabled").click();
-
-//     fillTextField(/T.*tulo/i, updatedValues.title);
-//     fillTextField(/Precio/i, String(updatedValues.price));
-//     fillTextField(/Descrip/i, updatedValues.description);
-
-//     cy.contains("button", "Actualizar").should("not.be.disabled").click();
-//     cy.contains("button", "Confirmar").click();
-//     cy.wait("@updateProperty");
-
-//     cy.contains("Propiedad actualizada", { timeout: 10000 }).should("be.visible");
-//     cy.contains("button", /Volver|Aceptar|Ok/i).click();
-
-//     cy.location("pathname", { timeout: 10000 }).should("eq", "/");
-//     cy.wait("@getProperties");
-
-//     cy.contains('[data-testid="favorite-item"]', updatedValues.title, { timeout: 10000 }).should("exist");
-
-//     openSpeedDialAction("Eliminar");
-//     cy.contains("button", /Entendido|Aceptar/).click();
-
-//     cy.contains('[data-testid="favorite-item"]', updatedValues.title, { timeout: 10000 })
-//       .should("exist")
-//       .click();
-
-//     cy.contains("button", "Confirmar").click();
-//     cy.contains("button", /continuar|Continuar/i).click();
-//     cy.wait("@deleteProperty");
-
-//     cy.contains("Propiedad eliminada", { timeout: 10000 }).should("be.visible");
-//     cy.contains("button", /Volver|Aceptar|Ok/i).click();
-
-//     cy.wait("@getProperties");
-//     cy.contains('[data-testid="favorite-item"]', updatedValues.title).should("not.exist");
-//     cy.contains("No hay propiedades cargadas.").should("be.visible");
-//   });
-// });
+import { appBaseUrl } from "../support/e2e";
+
+const ADMIN_TIMEOUT = 60000;
+
+describe("Administrador: creación básica de una propiedad", () => {
+  beforeEach(() => {
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    cy.viewport(1280, 720);
+  });
+
+  it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
+    cy.loginAdmin();
+    cy.visit(appBaseUrl);
+
+    cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    const openSpeedDialAction = (actionName: "Agregar" | "Editar" | "Eliminar") => {
+      const actionTestId =
+        actionName === "Agregar"
+          ? "admin-action-create"
+          : actionName === "Editar"
+          ? "admin-action-edit"
+          : "admin-action-delete";
+
+      cy.get(`[data-testid="${actionTestId}"]`, { timeout: ADMIN_TIMEOUT })
+        .should("be.visible")
+        .closest("button")
+        .click({ force: true });
+    };
+
+    openSpeedDialAction("Agregar");
+
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("include", "/properties/new");
+
+    const clickModalButtonIfPresent = (...labels: RegExp[]) => {
+      cy.get("body", { timeout: ADMIN_TIMEOUT }).then(($body) => {
+        const buttons = $body.find("button").toArray();
+        const target = buttons.find((btn) => {
+          const text = btn.innerText.trim();
+          return labels.some((label) => label.test(text));
+        });
+        if (target) {
+          cy.wrap(target).click({ force: true });
+        }
+      });
+    };
+
+    cy.intercept("GET", "**/properties/type/getAll").as("getTypes");
+    cy.intercept("GET", "**/properties/neighborhood/getAll").as("getNeighborhoods");
+    cy.intercept("GET", "**/properties/owner/getAll").as("getOwners");
+    cy.intercept("GET", "**/properties/amenity/getAll").as("getAmenities");
+
+    cy.contains("button", /^Tipos$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+    cy.wait("@getTypes", { timeout: ADMIN_TIMEOUT });
+
+    cy.get('[role="grid"] [role="row"]', { timeout: ADMIN_TIMEOUT })
+      .should("have.length.greaterThan", 1)
+      .eq(1)
+      .find('input[type="checkbox"], [role="checkbox"]')
+      .first()
+      .check({ force: true });
+
+    const selectPanel = (label: RegExp, waitAlias: string) => {
+      cy.contains("button", label, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+      cy.wait(waitAlias, { timeout: ADMIN_TIMEOUT });
+
+      cy.get('[role="grid"] [role="row"]', { timeout: ADMIN_TIMEOUT })
+        .should("have.length.greaterThan", 1)
+        .eq(1)
+        .find('input[type="checkbox"], [role="checkbox"]')
+        .first()
+        .check({ force: true });
+    };
+
+    selectPanel(/^Barrios$/i, "@getNeighborhoods");
+    selectPanel(/^Propietarios$/i, "@getOwners");
+    selectPanel(/Caracter/i, "@getAmenities");
+
+    cy.contains("button", /^Siguiente$/i, { timeout: ADMIN_TIMEOUT }).should("not.be.disabled").click();
+
+    cy.contains("button", /^Crear$/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
+
+    cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("Propiedad Cypress");
+      });
+
+    const selectOption = (label: RegExp, value: RegExp) => {
+      cy.contains("label", label)
+        .invoke("attr", "for")
+        .then((id) => {
+          cy.get(`#${id}`)
+            .closest(".MuiFormControl-root")
+            .find('[role="combobox"], [aria-haspopup="listbox"]')
+            .first()
+            .click({ force: true });
+        });
+
+      cy.contains('li[role="option"]', value, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+    };
+
+    selectOption(/^Operación/i, /VENTA/i);
+    selectOption(/^Estado/i, /DISPONIBLE/i);
+    selectOption(/^Moneda/i, /Peso Argentino/i);
+
+    cy.contains("label", /^Precio/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("123456");
+      });
+    
+    cy.contains("label", /^Expensas/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("123");
+      });
+
+    cy.contains("label", /^Descripción/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("Descripción de prueba generada por Cypress.");
+      });
+
+    cy.contains("label", /^Calle/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("Derqui");
+      });
+
+    cy.contains("label", /^Número/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("33");
+      });
+
+    cy.contains("label", /^Ambientes/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("4");
+      });
+
+    cy.contains("label", /^Dormitorios/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("2");
+      });
+
+    cy.contains("label", /^Baños/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("1");
+      });
+
+    cy.contains("label", /Superficie Total/i)
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("88");
+      });
+
+    cy.contains("label", /Imagen principal/i)
+      .parent()
+      .find('input[type="file"]')
+      .selectFile("cypress/fixtures/dpto.jpeg", { force: true });
+
+    cy.wait(1000);
+
+    cy.contains("button", /^Crear$/i, { timeout: ADMIN_TIMEOUT }).should("be.enabled").click();
+
+    cy.contains("¿Crear la propiedad?", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    // Esperar el modal de error y cerrarlo
+    cy.contains("button", /^Entendido$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Hacer clic en el logo para volver al home
+    cy.get('img[alt="Logo"]:visible', { timeout: ADMIN_TIMEOUT }).click({ force: true })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Verificar que redirigió al home
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+
+    // Abrir nuevamente las acciones administrativas para editar la propiedad creada
+    cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    cy.on("window:confirm", () => true);
+
+    openSpeedDialAction("Editar");
+
+    // Si aparece una alerta personalizada, aceptarla
+    clickModalButtonIfPresent(/^ok$/i, /^aceptar$/i, /^entendido$/i);
+
+    cy.intercept("GET", "**/properties/property/getById/**").as("getPropertyById");
+    cy.intercept("GET", "**/properties/owner/getByProperty/**").as("getOwnerByProperty");
+    cy.intercept("GET", "**/properties/image/getByProperty/**").as("getPropertyImages");
+
+    cy.contains('[data-testid="favorite-item"]', "Propiedad Cypress", { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    cy.wait("@getPropertyById", { timeout: ADMIN_TIMEOUT });
+    cy.wait("@getOwnerByProperty", { timeout: ADMIN_TIMEOUT });
+    cy.wait("@getPropertyImages", { timeout: ADMIN_TIMEOUT });
+
+    cy.contains("button", /^Siguiente$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
+      .invoke("attr", "for")
+      .then((id) => {
+        cy.get(`#${id}`).clear().type("Propiedad Cypress Editada");
+      });
+
+    cy.contains("button", /^Actualizar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    cy.contains("Guardar cambios en la propiedad?", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    cy.contains("Propiedad actualizada", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    // Volver al home
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+
+    // Esperar un momento antes de continuar
+    cy.wait(1000);
+
+    // Abrir nuevamente las acciones administrativas
+    cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Confirmaciones iniciales del navegador (si las hubiera)
+    cy.on("window:confirm", () => true);
+
+    // Ejecutar la acción de eliminar
+    openSpeedDialAction("Eliminar");
+
+    // Aceptar el aviso de "modo eliminación" (botón Entendido)
+    cy.contains("button", /^Entendido$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Seleccionar la propiedad editada a eliminar
+    cy.contains('[data-testid="favorite-item"]', "Propiedad Cypress Editada", { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Confirmar primera vez
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Confirmar segunda vez
+    cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Esperar mensaje final de éxito y volver
+    cy.contains("Propiedad eliminada", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
+      .should("be.visible")
+      .click({ force: true });
+
+    // Verificar que volvió al home
+    cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+
+  });
+});

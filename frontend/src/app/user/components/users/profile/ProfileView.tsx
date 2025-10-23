@@ -1,4 +1,4 @@
-import { Box, Avatar, Typography, Stack, Button, IconButton } from "@mui/material";
+import { Box, Avatar, Typography, Stack, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { User } from "../../../types/user";
 import { LoadingButton } from "@mui/lab";
