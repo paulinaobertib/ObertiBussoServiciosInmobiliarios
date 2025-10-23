@@ -1,21 +1,19 @@
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from 'react';
-import { getAllAmenities } from '../services/amenity.service';
-import { getAllOwners } from '../services/owner.service';
-import { getAllNeighborhoods } from '../services/neighborhood.service';
-import { getAllTypes } from '../services/type.service';
-import { getAllProperties, getAvailableProperties, getPropertyById } from '../services/property.service';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from "react";
+import { getAllAmenities } from "../services/amenity.service";
+import { getAllOwners } from "../services/owner.service";
+import { getAllNeighborhoods } from "../services/neighborhood.service";
+import { getAllTypes } from "../services/type.service";
+import { getAllProperties, getAvailableProperties, getPropertyById } from "../services/property.service";
 
-import { Amenity } from '../types/amenity';
-import { Owner } from '../types/owner';
-import { Neighborhood } from '../types/neighborhood';
-import { Type } from '../types/type';
-import { Property } from '../types/property';
-import { SearchParams } from '../types/searchParams';
+import { Amenity } from "../types/amenity";
+import { Owner } from "../types/owner";
+import { Neighborhood } from "../types/neighborhood";
+import { Type } from "../types/type";
+import { Property } from "../types/property";
+import { SearchParams } from "../types/searchParams";
 
-export type Category = 'amenity' | 'owner' | 'type' | 'neighborhood';
-export type Picked =
-  | { type: 'category'; value: Category | null }
-  | { type: 'property'; value: Property | null };
+export type Category = "amenity" | "owner" | "type" | "neighborhood";
+export type Picked = { type: "category"; value: Category | null } | { type: "property"; value: Property | null };
 
 interface SelectedIds {
   owner: number | null;
@@ -30,7 +28,9 @@ interface Ctx {
   neighborhoodsList: Neighborhood[];
   typesList: Type[];
   propertiesList: Property[] | null;
-  pickItem: (type: Picked['type'], value: any) => void;
+  propertiesLoading: boolean;
+  setPropertiesLoading: (loading: boolean) => void;
+  pickItem: (type: Picked["type"], value: any) => void;
   selected: SelectedIds;
   setSelected: (n: SelectedIds) => void;
   toggleSelect: (category: Category, id: number) => void;
@@ -39,7 +39,7 @@ interface Ctx {
   refreshOwners: () => Promise<void>;
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
-  refreshProperties: (mode?: 'all' | 'available') => Promise<void>;
+  refreshProperties: (mode?: "all" | "available") => Promise<void>;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
@@ -60,15 +60,13 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [neighborhoodsList, setNeighborhoodsList] = useState<Neighborhood[]>([]);
   const [typesList, setTypesList] = useState<Type[]>([]);
   const [propertiesList, setPropertiesList] = useState<Property[] | null>(null);
+  const [propertiesLoading, setPropertiesLoading] = useState<boolean>(true);
 
   // Picked item
   const pickedItem = useRef<Picked | null>(null);
-  const pickItem = useCallback(
-    (type: Picked['type'], value: any) => {
-      pickedItem.current = { type, value } as Picked; // no re-render
-    },
-    []
-  );
+  const pickItem = useCallback((type: Picked["type"], value: any) => {
+    pickedItem.current = { type, value } as Picked; // no re-render
+  }, []);
 
   // Refrescos
   const refreshAmenities = useCallback(async () => {
@@ -91,10 +89,15 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setTypesList(Array.isArray(list) ? list : []);
   }, []);
 
-  const refreshProperties = useCallback(async (mode: 'all' | 'available' = 'all') => {
-    const fetcher = mode === 'available' ? getAvailableProperties : getAllProperties;
-    const list = await fetcher();
-    setPropertiesList(Array.isArray(list) ? list : []);
+  const refreshProperties = useCallback(async (mode: "all" | "available" = "all") => {
+    setPropertiesLoading(true);
+    try {
+      const fetcher = mode === "available" ? getAvailableProperties : getAllProperties;
+      const list = await fetcher();
+      setPropertiesList(Array.isArray(list) ? list : []);
+    } finally {
+      setPropertiesLoading(false);
+    }
   }, []);
 
   // Selección de items
@@ -111,13 +114,13 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   );
 
   const toggleSelect = (category: Category, id: number) => {
-    if (category === 'amenity') {
-      setSelected(prev => ({
+    if (category === "amenity") {
+      setSelected((prev) => ({
         ...prev,
-        amenities: prev.amenities.includes(id) ? prev.amenities.filter(x => x !== id) : [...prev.amenities, id],
+        amenities: prev.amenities.includes(id) ? prev.amenities.filter((x) => x !== id) : [...prev.amenities, id],
       }));
     } else {
-      setSelected(prev => ({
+      setSelected((prev) => ({
         ...prev,
         [category]: prev[category] === id ? null : id,
       }));
@@ -135,16 +138,19 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       owner: p.owner?.id ?? null,
       neighborhood: p.neighborhood?.id ?? null,
       type: p.type?.id ?? null,
-      amenities: Array.isArray(p.amenities) ? p.amenities.map(a => a.id) : [],
+      amenities: Array.isArray(p.amenities) ? p.amenities.map((a) => a.id) : [],
     });
   }, []);
 
-  const buildSearchParams = useCallback((numeric: Partial<SearchParams>) => {
-    const amNames = selected.amenities
-      .map(id => amenitiesList.find(a => a.id === id)?.name)
-      .filter((x): x is string => !!x);
-    return { ...numeric, amenities: amNames };
-  }, [selected, amenitiesList]);
+  const buildSearchParams = useCallback(
+    (numeric: Partial<SearchParams>) => {
+      const amNames = selected.amenities
+        .map((id) => amenitiesList.find((a) => a.id === id)?.name)
+        .filter((x): x is string => !!x);
+      return { ...numeric, amenities: amNames };
+    },
+    [selected, amenitiesList]
+  );
 
   // Detalle de propiedad (si todavía lo usás)
   const [currentProperty, setCurrentProperty] = useState<Property | null>(null);
@@ -177,12 +183,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
   const toggleCompare = useCallback(
     (id: number) =>
-      setSelectedPropertyIds(prev =>
-        prev.includes(id)
-          ? prev.filter(x => x !== id)
-          : prev.length < 3
-            ? [...prev, id]
-            : [...prev.slice(1), id],
+      setSelectedPropertyIds((prev) =>
+        prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 3 ? [...prev, id] : [...prev.slice(1), id]
       ),
     []
   );
@@ -205,6 +207,8 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         neighborhoodsList,
         typesList,
         propertiesList,
+        propertiesLoading,
+        setPropertiesLoading,
         pickItem,
         selected,
         setSelected,
@@ -233,6 +237,6 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
 
 export function usePropertiesContext() {
   const ctx = useContext(Context);
-  if (!ctx) throw new Error('usePropertiesContext debe usarse dentro de PropertyCrudProvider');
+  if (!ctx) throw new Error("usePropertiesContext debe usarse dentro de PropertyCrudProvider");
   return ctx;
 }

@@ -49,7 +49,7 @@ describe("CatalogList", () => {
     localStorage.clear();
   });
 
-  it("muestra EmptyState si no hay propiedades (admin)", () => {
+  it("muestra EmptyState si no hay propiedades (admin)", async () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: true });
     (useGlobalAlert as any).mockReturnValue({});
 
@@ -59,10 +59,11 @@ describe("CatalogList", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByTestId("empty")).toHaveTextContent("No hay propiedades cargadas.");
+    const empty = await screen.findByTestId("empty");
+    expect(empty).toHaveTextContent("No hay propiedades cargadas.");
   });
 
-  it("muestra EmptyState si no hay propiedades disponibles (no admin)", () => {
+  it("muestra EmptyState si no hay propiedades disponibles (no admin)", async () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: false });
     (useGlobalAlert as any).mockReturnValue({});
 
@@ -72,10 +73,11 @@ describe("CatalogList", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByTestId("empty")).toHaveTextContent("No hay propiedades disponibles.");
+    const empty = await screen.findByTestId("empty");
+    expect(empty).toHaveTextContent("No hay propiedades disponibles.");
   });
 
-  it("filtra propiedades no disponibles para no-admin", () => {
+  it("filtra propiedades no disponibles para no-admin", async () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: false });
     (useGlobalAlert as any).mockReturnValue({});
 
@@ -90,11 +92,11 @@ describe("CatalogList", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByTestId("card-1")).toBeInTheDocument();
-    expect(screen.queryByTestId("card-2")).not.toBeInTheDocument();
+    expect(await screen.findByTestId("card-1")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId("card-2")).not.toBeInTheDocument());
   });
 
-  it("ordena primero outstanding y luego por fecha descendente", () => {
+  it("ordena primero outstanding y luego por fecha descendente", async () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: true });
     (useGlobalAlert as any).mockReturnValue({});
 
@@ -110,13 +112,13 @@ describe("CatalogList", () => {
       </MemoryRouter>
     );
 
-    const cards = screen.getAllByTestId(/card-/);
+    const cards = await screen.findAllByTestId(/card-/);
     expect(cards[0]).toHaveTextContent("Outstanding reciente");
     expect(cards[1]).toHaveTextContent("Normal reciente");
     expect(cards[2]).toHaveTextContent("Normal viejo");
   });
 
-  it("llama onCardClick al hacer click en una tarjeta", () => {
+  it("llama onCardClick al hacer click en una tarjeta", async () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: true });
     (useGlobalAlert as any).mockReturnValue({});
 
@@ -129,7 +131,8 @@ describe("CatalogList", () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByTestId("card-1"));
+    const card = await screen.findByTestId("card-1");
+    fireEvent.click(card);
     expect(onCardClick).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }));
   });
 

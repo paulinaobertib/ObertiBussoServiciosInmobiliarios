@@ -38,7 +38,7 @@ describe('PendingAppointmentsList', () => {
     3: makeAppt(baseSlots['2025-08-20'][0], 'ESPERA'),
   };
 
-  it('muestra mensaje de carga si loading=true', () => {
+  it('muestra spinner de carga si loading=true', () => {
     render(
       <PendingAppointmentsList
         slotsByDate={{}}
@@ -48,7 +48,7 @@ describe('PendingAppointmentsList', () => {
       />
     );
 
-    expect(screen.getByText(/Cargando turnos pendientes/i)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
   it('muestra mensaje "No hay turnos pendientes" si no hay pendientes', () => {

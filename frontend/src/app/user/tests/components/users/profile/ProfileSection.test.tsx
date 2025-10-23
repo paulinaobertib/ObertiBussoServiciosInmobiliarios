@@ -74,12 +74,10 @@ describe("ProfileSection", () => {
   it("toggle edición: entra y llama updateProfile al guardar", async () => {
     render(<ProfileSection />);
 
-    // botón editar (ícono)
-    const editBtn = screen.getByRole("button", { name: /edit/i });
+    const editBtn = screen.getByRole("button", { name: /Editar perfil/i });
     fireEvent.click(editBtn);
 
-    // botón guardar (ícono con aria-label="save")
-    const saveBtn = screen.getByRole("button", { name: /save/i });
+    const saveBtn = screen.getByRole("button", { name: /Guardar perfil/i });
     fireEvent.click(saveBtn);
 
     await waitFor(() => {

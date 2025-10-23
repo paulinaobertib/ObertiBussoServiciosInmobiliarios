@@ -1,5 +1,6 @@
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import { ImageCarousel } from "../app/shared/components/images/ImageCarousel";
 import { SearchBar } from "../app/shared/components/SearchBar";
@@ -15,7 +16,7 @@ import {
   getAvailableProperties,
   getPropertiesByText,
 } from "../app/property/services/property.service";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthContext } from "../app/user/context/AuthContext";
 import { Snackbar, Alert } from "@mui/material";
 
@@ -27,9 +28,9 @@ export default function Home() {
   const { isAdmin } = useAuthContext();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "info" | "warning" }>({
-      open: false,
-      message: "",
-      severity: "info",
+    open: false,
+    message: "",
+    severity: "info",
   });
 
   const alertApi: any = useGlobalAlert();
@@ -43,8 +44,15 @@ export default function Home() {
     if (typeof alertApi?.showAlert === "function") return alertApi.showAlert(description ?? title, "warning");
   };
 
-  const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, refreshProperties, resetSelected } =
-    usePropertiesContext();
+  const {
+    selectedPropertyIds,
+    toggleCompare,
+    clearComparison,
+    disabledCompare,
+    refreshProperties,
+    resetSelected,
+    setPropertiesLoading,
+  } = usePropertiesContext();
 
   const [mode, setMode] = useState<"normal" | "edit" | "delete">("normal");
   const [selectionMode, setSelectionMode] = useState(false);
@@ -73,19 +81,21 @@ export default function Home() {
     }
   };
 
-    const toggleSelectionMode = () =>
-        setSelectionMode((prev) => {
-            const next = !prev;
-            setSnackbar({
-                open: true,
-                message: next ? "Entrando al modo comparación" : "Saliendo del modo comparación",
-                severity: "info",
-            });
-            if (!next) clearComparison();
-            return next;
-        });
+  const toggleSelectionMode = () =>
+    setSelectionMode((prev) => {
+      const next = !prev;
+      setSnackbar({
+        open: true,
+        message: next
+          ? "Entraste al modo comparación: seleccioná 2 o más propiedades."
+          : "Saliendo del modo comparación",
+        severity: "info",
+      });
+      if (!next) clearComparison();
+      return next;
+    });
 
-    const handleCompare = () => {
+  const handleCompare = () => {
     if (disabledCompare) {
       notifyWarn("Debes seleccionar 2 o 3 propiedades");
       return;
@@ -94,48 +104,146 @@ export default function Home() {
     setSelectionMode(false);
   };
 
+  const fetchAllProperties = useCallback(async () => {
+    setPropertiesLoading(true);
+    try {
+      const fetcher = isAdmin ? getAllProperties : getAvailableProperties;
+      return await fetcher();
+    } finally {
+      setPropertiesLoading(false);
+    }
+  }, [isAdmin, setPropertiesLoading]);
+
+  const fetchPropertiesByText = useCallback(
+    async (value: string) => {
+      setPropertiesLoading(true);
+      try {
+        const results = await getPropertiesByText(value);
+        return isAdmin
+          ? results
+          : (results ?? []).filter((p: any) => String(p?.status ?? "").toUpperCase() === "DISPONIBLE");
+      } finally {
+        setPropertiesLoading(false);
+      }
+    },
+    [isAdmin, setPropertiesLoading]
+  );
+
+  const renderCompareControls = (sxOverrides: Record<string, any> = {}) => {
+    if (isAdmin) return null;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "stretch",
+          gap: 1,
+          flexGrow: { xs: 1, sm: 0 },
+          ...sxOverrides,
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={selectionMode ? handleCompare : toggleSelectionMode}
+          disabled={selectionMode && disabledCompare}
+          sx={{
+            flexGrow: 1,
+            flexBasis: { xs: 0, sm: "auto" },
+            minWidth: selectionMode ? 160 : undefined,
+            whiteSpace: { xs: "normal", sm: "nowrap" },
+            px: { xs: 1.5, sm: 2 },
+          }}
+        >
+          {selectionMode ? "Ir a Comparar" : "Comparar Propiedades"}
+        </Button>
+
+        {selectionMode && (
+          <Button
+            variant="contained"
+            onClick={toggleSelectionMode}
+            sx={{
+              flexShrink: 0,
+              minWidth: 48,
+              px: { xs: 1.5, sm: 2 },
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </Button>
+        )}
+      </Box>
+    );
+  };
+
   return (
     <BasePage maxWidth={false}>
       <Box sx={{ p: 2 }}>
         <ImageCarousel />
 
         {/* ── SearchBar con botón FILTROS a la izquierda (solo mobile) ── */}
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+        <Box
+          sx={{
+            mt: 2,
+            display: "flex",
+            justifyContent: { xs: "flex-start", sm: "center" },
+          }}
+        >
           <Box
             sx={{
               width: isMobile ? "100%" : "40rem",
               display: "flex",
-              flexDirection: "row",
+              flexDirection: isMobile ? "column" : "row",
               gap: 1,
-              alignItems: "center",
+              alignItems: isMobile ? "stretch" : "center",
               justifyContent: "center",
             }}
           >
-            {isMobile && (
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                onClick={() => setFiltersOpen(true)}
-                sx={{ flexShrink: 0 }}
-              >
-                Filtros
-              </Button>
+            {isMobile ? (
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                    flexWrap: "nowrap",
+                    alignItems: "stretch",
+                    width: "100%",
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    startIcon={<FilterListIcon />}
+                    onClick={() => setFiltersOpen(true)}
+                    sx={{ flexShrink: 0 }}
+                  >
+                    Filtros
+                  </Button>
+                  {renderCompareControls()}
+                </Box>
+                <Box sx={{ flexGrow: 1, width: "100%" }}>
+                  <SearchBar
+                    fetchAll={fetchAllProperties}
+                    fetchByText={fetchPropertiesByText}
+                    onSearch={(items) => setResults(items as Property[])}
+                    placeholder="Buscar propiedad"
+                    debounceMs={400}
+                  />
+                </Box>
+              </>
+            ) : (
+              <>
+                <Box sx={{ flexGrow: 1 }}>
+                  <SearchBar
+                    fetchAll={fetchAllProperties}
+                    fetchByText={fetchPropertiesByText}
+                    onSearch={(items) => setResults(items as Property[])}
+                    placeholder="Buscar propiedad"
+                    debounceMs={400}
+                  />
+                </Box>
+                {renderCompareControls()}
+              </>
             )}
-
-            <Box sx={{ flexGrow: 1 }}>
-              <SearchBar
-                fetchAll={isAdmin ? getAllProperties : getAvailableProperties}
-                fetchByText={async (value) => {
-                  const results = await getPropertiesByText(value);
-                  return isAdmin
-                    ? results
-                    : (results ?? []).filter((p: any) => String(p?.status ?? "").toUpperCase() === "DISPONIBLE");
-                }}
-                onSearch={(items) => setResults(items as Property[])}
-                placeholder="Buscar propiedad"
-                debounceMs={400}
-              />
-            </Box>
           </Box>
         </Box>
 
@@ -177,31 +285,29 @@ export default function Home() {
         onAction={handleAction}
         selectionMode={selectionMode}
         toggleSelectionMode={toggleSelectionMode}
-        onCompare={handleCompare}
       />
 
       <Snackbar
-          open={snackbar.open}
-          autoHideDuration={3000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-          <Alert
-              onClose={() => setSnackbar({ ...snackbar, open: false })}
-              severity={snackbar.severity}
-              sx={{
-                  width: "100%",
-                  backgroundColor: "#EB7333",
-                  color: "white",
-                  '& .MuiAlert-icon': {
-                      color: 'white',
-                  },
-              }}
-          >
-              {snackbar.message}
-          </Alert>
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{
+            width: "100%",
+            backgroundColor: "#EB7333",
+            color: "white",
+            "& .MuiAlert-icon": {
+              color: "white",
+            },
+          }}
+        >
+          {snackbar.message}
+        </Alert>
       </Snackbar>
-
     </BasePage>
   );
 }

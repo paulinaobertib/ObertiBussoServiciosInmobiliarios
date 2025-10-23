@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Box } from "@mui/material";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Box, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../../user/context/AuthContext";
 import { PropertyCard } from "./PropertyCard";
@@ -13,6 +13,7 @@ interface Props {
   toggleSelection?: (id: number) => void;
   isSelected?: (id: number) => boolean;
   onCardClick?: (property: Property) => void;
+  isLoading?: boolean;
 }
 
 const DISMISSED_KEY = "waitingPropsDismissedIds";
@@ -38,10 +39,13 @@ export const CatalogList = ({
   toggleSelection = () => {},
   isSelected = () => false,
   onCardClick = () => {},
+  isLoading = false,
 }: Props) => {
   const { isAdmin } = useAuthContext();
   const alertApi: any = useGlobalAlert();
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState<boolean>(() => Boolean(isLoading) || properties.length === 0);
 
   const safeProperties = Array.isArray(properties) ? properties : [];
 
@@ -111,6 +115,41 @@ export const CatalogList = ({
       }
     })();
   }, [isAdmin, filtered, alertApi, navigate]);
+
+  useEffect(() => {
+    if (isLoading) {
+      setLoading(true);
+      return;
+    }
+    // delay toggling off until we actually received properties (avoid flicker when still empty)
+    if (!isLoading) {
+      setLoading(false);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (properties.length > 0) {
+      setLoading(false);
+    }
+  }, [properties]);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: 220,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          gap: 2,
+          p: 3,
+        }}
+      >
+        <CircularProgress size={36} />
+      </Box>
+    );
+  }
 
   // 4) Mensaje si no hay nada
   if (sorted.length === 0) {

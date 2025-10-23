@@ -20,7 +20,7 @@ export const PropertyCatalog = ({
   toggleSelection,
   isSelected,
 }: Props) => {
-  const { propertiesList, handleClick } = useCatalog({
+  const { propertiesList, handleClick, isLoading } = useCatalog({
     onFinish: onFinishAction,
     externalProperties: properties,
   });
@@ -32,6 +32,7 @@ export const PropertyCatalog = ({
     <>
       <CatalogList
         properties={propertiesList ?? []}
+        isLoading={isLoading}
         selectionMode={selectionMode}
         toggleSelection={toggleSelection}
         isSelected={isSelected}

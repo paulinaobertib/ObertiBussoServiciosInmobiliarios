@@ -94,6 +94,7 @@ describe('PropertyCatalog', () => {
       refresh: async () => {},
       selectedPropertyIds: [],
       toggleCompare: vi.fn(),
+      isLoading: false,
       isAdmin: false,
     });
   });
@@ -167,6 +168,7 @@ describe('PropertyCatalog', () => {
         refresh: async () => {},
         selectedPropertyIds: [],
         toggleCompare: vi.fn(),
+        isLoading: false,
         isAdmin: false,
       }))
       .mockImplementationOnce(() => ({
@@ -176,6 +178,7 @@ describe('PropertyCatalog', () => {
         refresh: async () => {},
         selectedPropertyIds: [],
         toggleCompare: vi.fn(),
+        isLoading: false,
         isAdmin: false,
       }));
 

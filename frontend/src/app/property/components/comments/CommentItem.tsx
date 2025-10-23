@@ -33,7 +33,16 @@ export const CommentItem = ({ comment, authorName, onEdit, onDelete, deleting }:
           </Typography>
         </Box>
         <Box>
-          {isNew && <Chip label="Nuevo" color="primary" size="small" sx={{ mr: 1 }} />}
+          {isNew && (
+            <Chip
+              label="Nuevo"
+              color="primary"
+              size="small"
+              clickable={false}
+              tabIndex={-1}
+              sx={{ mr: 1, pointerEvents: "none", cursor: "default", userSelect: "none" }}
+            />
+          )}
 
           <Box display={"flex"}>
             <Tooltip title="Editar">

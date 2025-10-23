@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { PropertyCarousel } from "../../../components/propertyDetails/PropertyCarousel";
 
@@ -54,5 +54,20 @@ describe("PropertyCarousel", () => {
     const thumb2 = screen.getByAltText("Miniatura 2");
     fireEvent.click(thumb2);
     expect(screen.getByText("2/3")).toBeInTheDocument();
+  });
+
+  it("abre y cierra el lightbox al hacer click en la imagen principal", async () => {
+    render(<PropertyCarousel images={images} mainImage={mainImage} title={title} />);
+
+    const mainImg = screen.getByAltText("Imagen 1 de Propiedad Test");
+    fireEvent.click(mainImg);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByAltText("Imagen ampliada 1 de Propiedad Test")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Cerrar galería"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    // Espera a que el diálogo se cierre tras la animación de MUI
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 });

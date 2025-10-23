@@ -106,6 +106,7 @@ export const PropertyCard = ({
               minWidth: { xs: "80px", sm: "100px", xl: "120px" },
               backgroundSize: "200% 200%",
               overflow: "hidden",
+              pointerEvents: "none",
             }}
           >
             {/* Brillo interno limitado al chip */}
@@ -161,7 +162,12 @@ export const PropertyCard = ({
                 bgcolor: theme.palette.quaternary.main,
                 color: theme.palette.quaternary.contrastText,
                 fontSize: "0.70rem",
+                pointerEvents: "none",
+                cursor: "default",
+                userSelect: "none",
               }}
+              tabIndex={-1}
+              clickable={false}
             />
           )}
           <Chip
@@ -170,7 +176,12 @@ export const PropertyCard = ({
             sx={{
               bgcolor: "rgba(255,255,255,0.8)",
               fontSize: "0.70rem",
+              pointerEvents: "none",
+              cursor: "default",
+              userSelect: "none",
             }}
+            tabIndex={-1}
+            clickable={false}
           />
         </Box>
 

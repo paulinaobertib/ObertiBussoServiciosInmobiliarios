@@ -2,13 +2,14 @@
  * Generar turnos disponibles (30 min).
  * Al generar, recarga inmediatamente el panel admin.
  */
-import { useState, useMemo } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
-import { Stack, TextField, Alert, Button, Box } from '@mui/material';
+import { useState, useMemo } from "react";
+import dayjs, { Dayjs } from "dayjs";
+import { Stack, TextField, Alert, Button, Box } from "@mui/material";
 
-import { Calendar } from '../../Calendar';
-import { Modal } from '../../../../shared/components/Modal';
-import { useAppointments } from '../../../hooks/useAppointments';
+import { Calendar } from "../../Calendar";
+import { Modal } from "../../../../shared/components/Modal";
+import { useAppointments } from "../../../hooks/useAppointments";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
   open: boolean;
@@ -16,24 +17,25 @@ interface Props {
 }
 
 export const GenerateSlotsDialog = ({ open, onClose }: Props) => {
-  const { genDate, setGenDate, genStartTime, setGenStartTime, genEndTime, setGenEndTime, generateSlots } = useAppointments();
+  const { genDate, setGenDate, genStartTime, setGenStartTime, genEndTime, setGenEndTime, generateSlots } =
+    useAppointments();
   const [submitting, setSubmitting] = useState(false);
 
   const slots = useMemo(() => {
-    const st = dayjs(`${genDate.format('YYYY-MM-DD')}T${genStartTime}`);
-    const et = dayjs(`${genDate.format('YYYY-MM-DD')}T${genEndTime}`);
+    const st = dayjs(`${genDate.format("YYYY-MM-DD")}T${genStartTime}`);
+    const et = dayjs(`${genDate.format("YYYY-MM-DD")}T${genEndTime}`);
     const arr: Dayjs[] = [];
     let t = st;
     while (t.isBefore(et)) {
       arr.push(t);
-      t = t.add(30, 'minute');
+      t = t.add(30, "minute");
     }
     return arr;
   }, [genDate, genStartTime, genEndTime]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await generateSlots();   // crea y refresca admin
+    await generateSlots(); // crea y refresca admin
     setSubmitting(false);
     onClose();
   };
@@ -43,7 +45,7 @@ export const GenerateSlotsDialog = ({ open, onClose }: Props) => {
       <Stack spacing={1}>
         <Calendar initialDate={genDate} onSelectDate={setGenDate} />
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
           <TextField
             label="Desde"
             type="time"
@@ -67,15 +69,16 @@ export const GenerateSlotsDialog = ({ open, onClose }: Props) => {
         </Alert>
 
         <Box display="flex" justifyContent="flex-end">
-          <Button
+          <LoadingButton
             variant="contained"
             onClick={handleSubmit}
             disabled={submitting || slots.length === 0}
+            loading={submitting}
           >
             Generar
-          </Button>
+          </LoadingButton>
         </Box>
       </Stack>
     </Modal>
   );
-}
+};

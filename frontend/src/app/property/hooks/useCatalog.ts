@@ -17,7 +17,8 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
   const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
 
-  const { propertiesList, refreshProperties, selectedPropertyIds, toggleCompare } = usePropertiesContext();
+  const { propertiesList, refreshProperties, selectedPropertyIds, toggleCompare, propertiesLoading } =
+    usePropertiesContext();
   const { isAdmin } = useAuthContext();
 
   const refreshMode = isAdmin ? "all" : "available";
@@ -84,5 +85,6 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
     toggleCompare,
     handleClick,
     isAdmin,
+    isLoading: propertiesLoading,
   };
 };

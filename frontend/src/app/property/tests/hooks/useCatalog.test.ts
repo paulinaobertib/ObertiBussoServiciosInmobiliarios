@@ -45,6 +45,7 @@ describe("useCatalog", () => {
       refreshProperties: mockRefresh,
       selectedPropertyIds: ["1"],
       toggleCompare: mockToggleCompare,
+      propertiesLoading: false,
     });
 
     (useAuthContext as unknown as Mock).mockReturnValue({ isAdmin: true });
@@ -53,9 +54,7 @@ describe("useCatalog", () => {
 
   it("usa externalProperties si está presente", () => {
     const external = [{ id: 99, title: "Depto Externo" } as any];
-    const { result } = renderHook(() =>
-      useCatalog({ onFinish: mockOnFinish, externalProperties: external })
-    );
+    const { result } = renderHook(() => useCatalog({ onFinish: mockOnFinish, externalProperties: external }));
     expect(result.current.propertiesList).toEqual(external);
   });
 
@@ -67,9 +66,7 @@ describe("useCatalog", () => {
   it("handleClick navega a detalles (modo normal)", async () => {
     const { result } = renderHook(() => useCatalog({ onFinish: mockOnFinish }));
     await act(async () => result.current.handleClick("normal", property));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      buildRoute(ROUTES.PROPERTY_DETAILS, property.id)
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(buildRoute(ROUTES.PROPERTY_DETAILS, property.id));
     expect(mockOnFinish).toHaveBeenCalled();
   });
 

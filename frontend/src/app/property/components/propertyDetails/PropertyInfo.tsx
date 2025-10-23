@@ -1,31 +1,24 @@
-import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Chip,
-  Stack,
-  IconButton,
-  Divider,
-  useTheme,
-  Switch,
-} from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EditIcon from '@mui/icons-material/Edit';
-import HotelIcon from '@mui/icons-material/Hotel';
-import BathtubIcon from '@mui/icons-material/Bathtub';
-import DoorFrontIcon from '@mui/icons-material/DoorFront';
-import SquareFootIcon from '@mui/icons-material/SquareFoot';
-import FoundationIcon from '@mui/icons-material/Foundation';
+import { useState } from "react";
+import { Box, Typography, Chip, Stack, IconButton, Divider, useTheme, Switch } from "@mui/material";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import EditIcon from "@mui/icons-material/Edit";
+import HotelIcon from "@mui/icons-material/Hotel";
+import BathtubIcon from "@mui/icons-material/Bathtub";
+import DoorFrontIcon from "@mui/icons-material/DoorFront";
+import SquareFootIcon from "@mui/icons-material/SquareFoot";
+import FoundationIcon from "@mui/icons-material/Foundation";
 
-import { Property } from '../../types/property';
-import { formatPrice } from '../../utils/formatPrice';
-import { useAuthContext } from '../../../user/context/AuthContext';
-import { ModalItem, Info } from '../categories/CategoryModal';
-import { StatusForm } from '../forms/StatusForm';
+import { Property } from "../../types/property";
+import { formatPrice } from "../../utils/formatPrice";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { ModalItem, Info } from "../categories/CategoryModal";
+import { StatusForm } from "../forms/StatusForm";
 // Importa tu servicio de actualización si lo tienes
-import { putPropertyOutstanding } from '../../services/property.service';
+import { putPropertyOutstanding } from "../../services/property.service";
 
-interface Props { property: Property }
+interface Props {
+  property: Property;
+}
 
 type Amenity = string | { id?: string | number; name?: string; label?: string };
 
@@ -35,9 +28,7 @@ export const PropertyInfo = ({ property }: Props) => {
   const theme = useTheme();
   const [outstanding, setOutstanding] = useState<boolean>(property.outstanding ?? false);
 
-  const handleToggleOutstanding = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleToggleOutstanding = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.checked;
     try {
       await putPropertyOutstanding(property.id, newValue);
@@ -47,100 +38,128 @@ export const PropertyInfo = ({ property }: Props) => {
     }
   };
 
-  const labelOfAmenity = (a: Amenity) => (typeof a === 'string' ? a : a.name ?? a.label ?? '');
-  const keyOfAmenity = (a: Amenity, i: number) => (typeof a === 'string' ? a : a.id ?? i);
-  const featureLabel = (v?: number | null, s?: string, p?: string) =>
-    v && v > 0 ? `${v} ${v === 1 ? s : p}` : '-';
+  const labelOfAmenity = (a: Amenity) => (typeof a === "string" ? a : a.name ?? a.label ?? "");
+  const keyOfAmenity = (a: Amenity, i: number) => (typeof a === "string" ? a : a.id ?? i);
+  const featureLabel = (v?: number | null, s?: string, p?: string) => (v && v > 0 ? `${v} ${v === 1 ? s : p}` : "-");
 
   const features = [
-    { label: featureLabel(property.bedrooms, 'dormitorio', 'dormitorios'), icon: <HotelIcon sx={{ color: theme.palette.primary.main }} /> },
-    { label: featureLabel(property.bathrooms, 'baño', 'baños'), icon: <BathtubIcon sx={{ color: theme.palette.primary.main }} /> },
-    { label: featureLabel(property.rooms, 'ambiente', 'ambientes'), icon: <DoorFrontIcon sx={{ color: theme.palette.primary.main }} /> },
-    { label: property.area ? `${property.area} m²` : '- m²', icon: <SquareFootIcon sx={{ color: theme.palette.primary.main }} /> },
-    { label: property.coveredArea ? `${property.coveredArea} m² cubiertos` : '- m² cubiertos', icon: <FoundationIcon sx={{ color: theme.palette.primary.main }} /> },
-  ].filter(f => !f.label.startsWith('-'));
+    {
+      label: featureLabel(property.bedrooms, "dormitorio", "dormitorios"),
+      icon: <HotelIcon sx={{ color: theme.palette.primary.main }} />,
+    },
+    {
+      label: featureLabel(property.bathrooms, "baño", "baños"),
+      icon: <BathtubIcon sx={{ color: theme.palette.primary.main }} />,
+    },
+    {
+      label: featureLabel(property.rooms, "ambiente", "ambientes"),
+      icon: <DoorFrontIcon sx={{ color: theme.palette.primary.main }} />,
+    },
+    {
+      label: property.area ? `${property.area} m²` : "- m²",
+      icon: <SquareFootIcon sx={{ color: theme.palette.primary.main }} />,
+    },
+    {
+      label: property.coveredArea ? `${property.coveredArea} m² cubiertos` : "- m² cubiertos",
+      icon: <FoundationIcon sx={{ color: theme.palette.primary.main }} />,
+    },
+  ].filter((f) => !f.label.startsWith("-"));
 
   const rawAmenities: Amenity[] = property.amenities ?? [];
   const amenities = rawAmenities.map(labelOfAmenity).filter(Boolean);
 
   const address = property.neighborhood
     ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
-    : property.street ?? '';
+    : property.street ?? "";
 
   return (
     <Stack spacing={2}>
       {/* Title */}
-      <Typography variant='h5' fontWeight={700} gutterBottom>
+      <Typography variant="h5" fontWeight={700} gutterBottom>
         {property.title}
       </Typography>
 
       {/* Location */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
-        <LocationOnIcon fontSize='small' sx={{ opacity: 0.7, fontSize: 18 }} />
-        <Typography variant='body2' color='text.secondary'>
-          {address || 'Ubicación desconocida'}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+        <LocationOnIcon fontSize="small" sx={{ opacity: 0.7, fontSize: 18 }} />
+        <Typography variant="body2" color="text.secondary">
+          {address || "Ubicación desconocida"}
         </Typography>
       </Box>
 
       {/* Price & Expenses */}
-      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2, mb: 1 }}>
-        <Typography variant='h5' color='primary' fontWeight={700}>
+      <Box sx={{ display: "flex", alignItems: "baseline", gap: 2, mb: 1 }}>
+        <Typography variant="h5" color="primary" fontWeight={700}>
           {property.showPrice && property.price > 0
             ? formatPrice(property.price, property.currency)
-            : 'Consultar precio'}
+            : "Consultar precio"}
         </Typography>
         {property.showPrice && (
-          <Typography variant='subtitle1' color='text.secondary' fontWeight={600}>
+          <Typography variant="subtitle1" color="text.secondary" fontWeight={600}>
             {property.expenses && property.expenses > 0
-              ? `Expensas ${formatPrice(property.expenses, 'ARS')}`
-              : 'Sin expensas'}
+              ? `Expensas ${formatPrice(property.expenses, "ARS")}`
+              : "Sin expensas"}
           </Typography>
         )}
       </Box>
 
       {/* Operation/Status */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+      <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
         <Chip
           label={property.operation.toUpperCase()}
-          size='medium'
+          size="medium"
           sx={{
             bgcolor: theme.palette.secondary.main,
-            color: '#fff', fontWeight: 600, fontSize: '0.875rem', py: 0.5, px: 1.2
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: "0.875rem",
+            py: 0.5,
+            px: 1.2,
+            pointerEvents: "none",
+            cursor: "default",
+            userSelect: "none",
           }}
+          clickable={false}
+          tabIndex={-1}
         />
         <Chip
           label={property.status}
-          size='medium'
-          sx={{ fontSize: '0.875rem' }}
+          size="medium"
+          sx={{ fontSize: "0.875rem", pointerEvents: "none", cursor: "default", userSelect: "none" }}
+          clickable={false}
+          tabIndex={-1}
         />
 
         {isAdmin && (
           <>
             <IconButton
               aria-label="editar estado"
-              size='small'
+              size="small"
               onClick={() =>
                 setStatusModal({
-                  title: 'Editar estado',
+                  title: "Editar estado",
                   Component: StatusForm,
-                  componentProps: { action: 'edit-status' as const, item: { id: property.id, status: property.status } }
+                  componentProps: {
+                    action: "edit-status" as const,
+                    item: { id: property.id, status: property.status },
+                  },
                 })
               }
             >
-              <EditIcon fontSize='small' />
+              <EditIcon fontSize="small" />
             </IconButton>
 
             <Chip
               label="Destacar"
               variant="filled"
-              sx={{ ml: 'auto' }}
+              sx={{ ml: "auto" }}
               icon={
                 <Switch
                   aria-label="Destacar propiedad"
                   checked={outstanding}
                   onChange={handleToggleOutstanding}
                   size="small"
-                  onClick={e => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                 />
               }
             />
@@ -156,34 +175,41 @@ export const PropertyInfo = ({ property }: Props) => {
           <Box
             sx={{
               mt: 2,
-              display: 'grid',
+              display: "grid",
               // 2 columnas en todos los breakpoints (incluido xs)
-              gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', sm: 'repeat(2, minmax(0,1fr))' },
+              gridTemplateColumns: { xs: "repeat(2, minmax(0,1fr))", sm: "repeat(2, minmax(0,1fr))" },
               columnGap: { xs: 2, sm: 3 },
               rowGap: 2,
-              alignItems: 'start',
+              alignItems: "start",
             }}
           >
             {/* Especificaciones (izquierda) */}
             <Stack spacing={{ xs: 1.25, sm: 2 }}>
-              <Typography variant='subtitle1' fontWeight={600}>Especificaciones</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Especificaciones
+              </Typography>
               {features.map((f, i) => (
-                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                <Box key={i} sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 1.5 } }}>
                   {f.icon}
-                  <Typography variant='body2'>{f.label}</Typography>
+                  <Typography variant="body2">{f.label}</Typography>
                 </Box>
               ))}
             </Stack>
 
             <Stack spacing={{ xs: 1, sm: 1.25 }}>
-              <Typography variant='subtitle1' fontWeight={600}>Características</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Características
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {rawAmenities.map((am, i) => (
                   <Chip
                     key={keyOfAmenity(am, i)}
                     label={labelOfAmenity(am)}
-                    size='small'
-                    variant='outlined'
+                    size="small"
+                    variant="outlined"
+                    clickable={false}
+                    tabIndex={-1}
+                    sx={{ pointerEvents: "none", cursor: "default", userSelect: "none" }}
                   />
                 ))}
               </Box>
@@ -196,8 +222,10 @@ export const PropertyInfo = ({ property }: Props) => {
       {property.description && (
         <Box>
           <Divider />
-          <Typography variant='subtitle1' fontWeight={700} sx={{ mt: 2 }}>Descripción</Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ mt: 2 }}>
+            Descripción
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {property.description}
           </Typography>
         </Box>

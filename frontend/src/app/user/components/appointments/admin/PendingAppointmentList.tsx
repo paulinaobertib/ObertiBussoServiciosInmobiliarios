@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import dayjs from "dayjs";
 import { AppointmentItem } from "./AppointmentItem";
 import type { AvailableAppointment, Appointment } from "../../../types/appointment";
@@ -22,7 +22,7 @@ export const PendingAppointmentsList = ({ slotsByDate, apptsBySlot, loading, onS
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <Typography>Cargando turnos pendientes…</Typography>
+        <CircularProgress size={24} />
       </Box>
     );
   }

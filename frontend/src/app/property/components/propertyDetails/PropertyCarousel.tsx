@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery } from '@mui/material';
+import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery, Dialog } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { getFullImageUrl } from '../../utils/getFullImageUrl';
 
 interface Image { id: number; url: string }
@@ -24,9 +25,18 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
 
   const [idx, setIdx] = useState(0);
   const [showAll, setShowAll] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const thumbs = mobile ? 3 : tablet ? 3 : 3;
   const next = () => setIdx((idx + 1) % all.length);
   const prev = () => setIdx((idx - 1 + all.length) % all.length);
+  const openLightbox = (index: number) => {
+    setLightboxIdx(index);
+    setLightboxOpen(true);
+  };
+  const closeLightbox = () => setLightboxOpen(false);
+  const lightboxNext = () => setLightboxIdx((lightboxIdx + 1) % all.length);
+  const lightboxPrev = () => setLightboxIdx((lightboxIdx - 1 + all.length) % all.length);
 
   useEffect(() => {
     if (all.length > 1) {
@@ -45,8 +55,11 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
         <Paper elevation={3}
           sx={{
             borderRadius: 2, overflow: 'hidden',
-            height: mobile ? 300 : 450, position: 'relative'
-          }}>
+            height: mobile ? 300 : 450, position: 'relative',
+            cursor: 'zoom-in',
+          }}
+          onClick={() => openLightbox(idx)}
+        >
           {all.map((img, i) => (
             <Box key={img.id} sx={{
               position: 'absolute', inset: 0,
@@ -72,7 +85,10 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
             <>
               <IconButton
                 aria-label="Imagen anterior"
-                onClick={prev}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  prev();
+                }}
                 sx={{
                   position: 'absolute',
                   top: '50%',
@@ -91,7 +107,10 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
               </IconButton>
               <IconButton
                 aria-label="Siguiente imagen"
-                onClick={next}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  next();
+                }}
                 sx={{
                   position: 'absolute',
                   top: '50%',
@@ -153,6 +172,134 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
           </Box>
         )}
       </Box>
+
+      <Dialog
+        open={lightboxOpen}
+        onClose={closeLightbox}
+        maxWidth="xl"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            boxShadow: 'none',
+            borderRadius: 0,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            width: { xs: '90vw', md: '70vw' },
+            maxHeight: '90vh',
+            mx: 'auto',
+          }}
+        >
+          <IconButton
+            aria-label="Cerrar galería"
+            onClick={closeLightbox}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              color: '#fff',
+              zIndex: 2,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+            }}
+          >
+            <CancelIcon />
+          </IconButton>
+
+          {all.length > 1 && (
+            <>
+              <IconButton
+                aria-label="Imagen anterior ampliada"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  lightboxPrev();
+                }}
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: 16,
+                  transform: 'translateY(-50%)',
+                  color: '#fff',
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+                  zIndex: 2,
+                }}
+              >
+                <ArrowBackIosNewIcon />
+              </IconButton>
+              <IconButton
+                aria-label="Imagen siguiente ampliada"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  lightboxNext();
+                }}
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: 16,
+                  transform: 'translateY(-50%)',
+                  color: '#fff',
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+                  zIndex: 2,
+                }}
+              >
+                <ArrowForwardIosIcon />
+              </IconButton>
+            </>
+          )}
+
+          {all[lightboxIdx] && (
+            <Box sx={{ width: '100%', height: '100%', textAlign: 'center' }}>
+              {isVideo(all[lightboxIdx].url) ? (
+                <video
+                  src={getFullImageUrl(all[lightboxIdx].url)}
+                  muted
+                  controls
+                  playsInline
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    maxHeight: '90vh',
+                    objectFit: 'contain',
+                  }}
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              ) : (
+                <Box
+                  component="img"
+                  src={getFullImageUrl(all[lightboxIdx].url) || '/placeholder.svg'}
+                  alt={`Imagen ampliada ${lightboxIdx + 1} de ${title}`}
+                  sx={{
+                    display: 'block',
+                    maxHeight: '90vh',
+                    width: '100%',
+                    height: 'auto',
+                    objectFit: 'contain',
+                  }}
+                />
+              )}
+            </Box>
+          )}
+
+          <Chip
+            label={`${lightboxIdx + 1}/${all.length}`}
+            size="small"
+            sx={{
+              position: 'absolute',
+              bottom: 16,
+              right: 16,
+              bgcolor: 'rgba(0,0,0,0.6)',
+              color: '#fff',
+              fontWeight: 'bold',
+            }}
+          />
+        </Box>
+      </Dialog>
     </Box>
   );
 };

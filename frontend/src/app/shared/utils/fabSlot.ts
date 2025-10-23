@@ -8,11 +8,17 @@ export const fabSlot = (slot: number, size = "3.5rem", gap: Gap = { xs: 8, sm: 1
   return {
     position: "fixed" as const,
     zIndex: 10,
-    bottom: 16,
+    top: "auto",
+    left: "auto",
+    bottom: {
+      xs: `calc(16px + env(safe-area-inset-bottom, 0px))`,
+      sm: `calc(20px + env(safe-area-inset-bottom, 0px))`,
+      md: `calc(24px + env(safe-area-inset-bottom, 0px))`,
+    },
     right: {
-      xs: `calc(16px + env(safe-area-inset-right) + ${slot} * (${size} + ${gx}px))`,
-      sm: `calc(20px + env(safe-area-inset-right) + ${slot} * (${size} + ${gs}px))`,
-      md: `calc(24px + env(safe-area-inset-right) + ${slot} * (${size} + ${gm}px))`,
+      xs: `calc(16px + env(safe-area-inset-right, 0px) + ${slot} * (${size} + ${gx}px))`,
+      sm: `calc(20px + env(safe-area-inset-right, 0px) + ${slot} * (${size} + ${gs}px))`,
+      md: `calc(24px + env(safe-area-inset-right, 0px) + ${slot} * (${size} + ${gm}px))`,
     },
   };
 };

@@ -20,6 +20,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
     refreshAmenities,
     refreshTypes,
     refreshNeighborhoods,
+    setPropertiesLoading,
   } = usePropertiesContext();
 
   const { handleError } = useApiErrors();
@@ -113,6 +114,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
 
   /* ───────── llamada al backend ───────── */
   async function apply(local = params) {
+    setPropertiesLoading(true);
     try {
       const base: Partial<SearchParams> = {
         ...local,
@@ -137,7 +139,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
 
       const availableFiltered = isAdmin
         ? res
-        : res.filter((p) => String(p.status ?? '').toUpperCase() === 'DISPONIBLE');
+        : res.filter((p) => String(p.status ?? "").toUpperCase() === "DISPONIBLE");
 
       const filtered = local.rooms.length
         ? availableFiltered.filter((p) => {
@@ -152,6 +154,8 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
       handleError(e);
       onSearch([]);
       return [];
+    } finally {
+      setPropertiesLoading(false);
     }
   }
 

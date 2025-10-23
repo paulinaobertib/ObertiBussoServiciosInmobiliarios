@@ -1,7 +1,7 @@
-import { Box, Avatar, Typography, Stack, IconButton, Button } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import type { User } from '../../../types/user';
+import { Box, Avatar, Typography, Stack, Button, IconButton } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import type { User } from "../../../types/user";
+import { LoadingButton } from "@mui/lab";
 
 interface ViewProps {
   user: User;
@@ -18,46 +18,41 @@ export function ProfileView({ user, editMode, saving, onToggleEdit, onDeleteProf
       flexDirection="column"
       alignItems="center"
       flexGrow={1}
-      pr={{ md: 4, xs: 0 }}
       width="100%"
-      p={3}
-      sx={{ flex: '1 1 30%' }}
-
+      pt={3}
+      pb={3}
+      sx={{ flex: "1 1 30%", position: "relative" }}
     >
       <Box position="relative">
-        <Avatar
-          sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: 'primary.main' }}
-        >
+        <Avatar sx={{ width: 120, height: 120, fontSize: "3rem", bgcolor: "primary.main" }}>
           {user.firstName?.[0]?.toUpperCase()}
           {user.lastName?.[0]?.toUpperCase()}
         </Avatar>
-        <IconButton
-          disableRipple
-          onClick={onToggleEdit}
-          disabled={saving}
-          aria-label={editMode ? "save" : "edit"}
-          sx={{
-            position: 'absolute',
-            bottom: -4,
-            right: -4,
-            bgcolor: 'background.paper',
-            boxShadow: 1,
-            '&:hover': { bgcolor: 'background.paper' },
-          }}
-        >
-          {editMode ? <SaveIcon /> : <EditIcon />}
-        </IconButton>
       </Box>
-      <Typography
-        variant="h6"
-        mt={2}
-        fontWeight="bold"
-        noWrap
-        textAlign="center"
-        width="100%"
-      >
-        {user.firstName} {user.lastName}
-      </Typography>
+      <Box position="relative" mt={2} textAlign="center">
+        <Typography variant="h6" fontWeight="bold" noWrap>
+          {user.firstName} {user.lastName}
+        </Typography>
+        {editMode && (
+          <IconButton
+            onClick={onDeleteProfile}
+            size="small"
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: -30,
+              transform: "translateY(-50%)",
+              opacity: 0.7,
+              color: "error.main",
+              "&:hover": {
+                opacity: 1,
+              },
+            }}
+          >
+            <DeleteIcon sx={{ fontSize: "1rem" }} />
+          </IconButton>
+        )}
+      </Box>
       <Stack spacing={0.5} mt={1} alignItems="center">
         <Typography variant="body2" color="text.secondary" noWrap>
           {user.email}
@@ -66,16 +61,11 @@ export function ProfileView({ user, editMode, saving, onToggleEdit, onDeleteProf
           {user.phone}
         </Typography>
       </Stack>
-      {editMode && (
-        <Button
-          variant="outlined"
-          color="error"
-          sx={{ mt: 3 }}
-          onClick={onDeleteProfile}
-        >
-          Eliminar mi cuenta
-        </Button>
-      )}
+      <Box mt="1rem" width="100%" display="flex" justifyContent="center">
+        <LoadingButton variant="contained" color="primary" onClick={onToggleEdit} loading={saving}>
+          {editMode ? "Guardar perfil" : "Editar perfil"}
+        </LoadingButton>
+      </Box>
     </Box>
   );
 }
