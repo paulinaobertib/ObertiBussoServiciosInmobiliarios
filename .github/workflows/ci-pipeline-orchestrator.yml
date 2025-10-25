@@ -2,9 +2,9 @@ name: CI/CD - Pipeline Orchestrator
 
 on:
   workflow_dispatch:
-  # push:
-    # branches:
-      # - feature/details-front
+  push:
+    branches:
+      - feature/details-front
 
 jobs:
   ci_ms_properties:
