@@ -8,7 +8,8 @@ import { getContractUtilitiesByContract } from "../services/contractUtility.serv
 import { getUtilityById } from "../services/utility.service";
 
 import type { Contract } from "../types/contract";
-import type { Payment, PaymentCreate, PaymentCurrency, PaymentConcept } from "../types/payment";
+import type { Payment, PaymentCreate } from "../types/payment";
+import { PaymentConcept, PaymentCurrency } from "../types/payment";
 import { CommissionPaymentType, CommissionStatus } from "../types/commission";
 import type { Commission } from "../types/commission";
 import type { ContractUtilityGet } from "../types/contractUtility";
@@ -106,21 +107,36 @@ export function usePaymentDialog({
     if (!open || !contract) return;
     const c = (contract as any)?.commission as Commission | null;
     setCommission(c ?? null);
+
     if (c?.id) {
-      const count = Array.isArray((contract as any)?.payments)
-        ? (contract as any).payments.filter(
-            (p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(c.id)
-          ).length
-        : 0;
+      const paymentsSource = Array.isArray((contract as any)?.payments) ? (contract as any).payments : [];
+      const count = paymentsSource.filter(
+        (p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(c.id)
+      ).length;
       setCommissionPaidCount(count);
-      const next = c.paymentType === CommissionPaymentType.CUOTAS ? Math.min(c.installments || 1, count + 1) : 1;
+      const next = c.paymentType === CommissionPaymentType.CUOTAS ? Math.max(Math.min(c.installments || 1, count + 1), 1) : 1;
       const desired = presetInstallment ?? next;
       setSelectedInstallment(Math.min(desired, next));
+
+      const targetConcept = (fixedConcept ?? concept ?? "") as PaymentConcept | "";
+      if (targetConcept === PaymentConcept.COMISION) {
+        const installmentsRaw =
+          c.paymentType === CommissionPaymentType.CUOTAS ? Number(c.installments) || 1 : 1;
+        const installments = Math.max(1, installmentsRaw);
+        const totalAmount = Number(c.totalAmount ?? 0);
+        const perInstallment = installments > 0 ? totalAmount / installments : totalAmount;
+        const normalized = Number.isFinite(perInstallment) ? Number(perInstallment.toFixed(2)) : 0;
+        setVals((prev) => ({
+          ...prev,
+          paymentCurrency: (c.currency ?? "") as PaymentCurrency,
+          amount: normalized,
+        }));
+      }
     } else {
       setCommissionPaidCount(0);
       setSelectedInstallment(null);
     }
-  }, [open, contract, presetInstallment]);
+  }, [open, contract, presetInstallment, concept, fixedConcept]);
 
   /* ---------- limpiar expansiones cada vez que abre ---------- */
   useEffect(() => {

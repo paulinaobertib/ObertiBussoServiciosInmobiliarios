@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, TextField, MenuItem, Grid, Typography } from "@mui/material";
 import { PaymentCurrency, PaymentConcept } from "../../types/payment";
 import { getContractUtilitiesByContract } from "../../services/contractUtility.service";
@@ -30,6 +30,25 @@ interface Props {
   disableCurrency?: boolean;
 }
 
+const buildState = (source?: Partial<PaymentFormValues>): PaymentFormValues => ({
+  date: source?.date ?? "",
+  amount: source?.amount ?? "",
+  description: source?.description ?? "",
+  paymentCurrency: source?.paymentCurrency ?? "",
+  concept: source?.concept ?? "",
+  contractUtilityId: source?.contractUtilityId ?? "",
+  commissionId: source?.commissionId ?? "",
+});
+
+const shallowEqual = (a: PaymentFormValues, b: PaymentFormValues) =>
+  a.date === b.date &&
+  a.amount === b.amount &&
+  a.description === b.description &&
+  a.paymentCurrency === b.paymentCurrency &&
+  a.concept === b.concept &&
+  a.contractUtilityId === b.contractUtilityId &&
+  a.commissionId === b.commissionId;
+
 export const PaymentForm = ({
   contractId,
   initialValues,
@@ -39,6 +58,7 @@ export const PaymentForm = ({
   hideConceptSelect,
   hideUtilitySelect,
   hideCommissionInfo,
+  disableAmount,
   disableCurrency,
 }: Props) => {
   const currencies = Object.values(PaymentCurrency) as PaymentCurrency[];
@@ -51,15 +71,17 @@ export const PaymentForm = ({
   const [utilNames, setUtilNames] = useState<Record<number, string>>({});
   const [commission, setCommission] = useState<Commission | null>(null);
 
-  const [vals, setVals] = useState<PaymentFormValues>({
-    date: initialValues?.date ?? "",
-    amount: initialValues?.amount ?? "",
-    description: initialValues?.description ?? "",
-    paymentCurrency: initialValues?.paymentCurrency ?? "",
-    concept: initialValues?.concept ?? "",
-    contractUtilityId: initialValues?.contractUtilityId ?? "",
-    commissionId: initialValues?.commissionId ?? "",
-  });
+  const [vals, setVals] = useState<PaymentFormValues>(buildState(initialValues));
+  const prevInitialRef = useRef<PaymentFormValues | null>(initialValues ? buildState(initialValues) : null);
+
+  useEffect(() => {
+    if (!initialValues) return;
+    const next = buildState(initialValues);
+    if (!prevInitialRef.current || !shallowEqual(prevInitialRef.current, next)) {
+      prevInitialRef.current = next;
+      setVals(next);
+    }
+  }, [initialValues]);
 
   useEffect(() => {
     onChange(vals);
@@ -73,7 +95,6 @@ export const PaymentForm = ({
       value = value as PaymentCurrency;
     } else if (field === "concept") {
       value = value as PaymentConcept;
-      // Reset dependents when concept changes
       if (value !== PaymentConcept.EXTRA) {
         setVals((prev) => ({ ...prev, concept: value, contractUtilityId: "" }));
         return;
@@ -88,14 +109,12 @@ export const PaymentForm = ({
 
   useEffect(() => {
     (async () => {
-      // Evitar llamadas cuando no hay contrato válido
       if (!contractId || contractId <= 0) return;
 
       if (!hideUtilitySelect) {
         try {
           const list = await getContractUtilitiesByContract(contractId);
           setUtilities(list as any);
-          // cargar nombres reales
           const names: Record<number, string> = {};
           for (const cu of (list as any) || []) {
             try {
@@ -116,7 +135,11 @@ export const PaymentForm = ({
         try {
           const com = await getCommissionByContractId(contractId);
           setCommission(com as any);
-          if (com?.id) setVals((prev) => ({ ...prev, commissionId: com.id as any }));
+          if (com?.id) {
+            setVals((prev) => ({ ...prev, commissionId: com.id as any }));
+          } else {
+            setVals((prev) => ({ ...prev, commissionId: "" }));
+          }
         } catch {
           setCommission(null);
           setVals((prev) => ({ ...prev, commissionId: "" }));
@@ -125,7 +148,6 @@ export const PaymentForm = ({
     })();
   }, [contractId, hideUtilitySelect, hideCommissionInfo]);
 
-  // External overrides from parent (e.g., concept buttons, utility list)
   useEffect(() => {
     if (externalConcept !== undefined) {
       setVals((prev) => ({ ...prev, concept: externalConcept ?? "" }));
@@ -159,7 +181,7 @@ export const PaymentForm = ({
             label="Monto"
             value={vals.amount}
             onChange={handle("amount")}
-            // disabled={!!disableAmount}
+            disabled={!!disableAmount}
           />
         </Grid>
 

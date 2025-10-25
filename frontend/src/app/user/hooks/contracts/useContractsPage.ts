@@ -87,6 +87,14 @@ export function useContractsPage() {
     [statusFilter]
   );
 
+  const setStatusFilterSafe = useCallback(
+    (value: "ALL" | Contract["contractStatus"]) => {
+      if (!isAdmin) return;
+      setStatusFilter(value);
+    },
+    [isAdmin]
+  );
+
   const refresh = load;
 
   return {
@@ -94,7 +102,7 @@ export function useContractsPage() {
     filtered,
     loading,
     statusFilter,
-    setStatusFilter,
+    setStatusFilter: setStatusFilterSafe,
     handleSearch,
     paying,
     setPaying,

@@ -179,7 +179,7 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
             value={form.userName}
             onChange={handleChange("userName")}
             fullWidth
-            disabled={isDelete}
+            disabled={isDelete || isEdit}
             error={!isDelete && form.userName !== "" && !userNameValid}
             inputProps={{ "data-testid": "input-username" }}
           />

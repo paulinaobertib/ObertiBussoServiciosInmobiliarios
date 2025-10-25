@@ -75,7 +75,7 @@ export const useManagePropertyPage = () => {
 
   const cancel = useCallback(async () => {
     const ok = await confirmAction("¿Cancelar y perder los cambios?");
-    if (ok) nav("/");
+    if (ok) nav("/", { replace: true });
   }, [confirmAction, nav]);
 
   useEffect(() => {
@@ -123,7 +123,7 @@ export const useManagePropertyPage = () => {
         img.addToGallery(galleryUrls); // acepta (string | File)[]
       } catch (e) {
         handleError(e);
-        nav("/");
+        nav("/", { replace: true });
       } finally {
         setLoading(false);
       }
@@ -225,7 +225,7 @@ export const useManagePropertyPage = () => {
         }
 
         await success("Propiedad creada", "Se creó correctamente.");
-        nav("/");
+        nav("/", { replace: true });
         return;
       }
 
@@ -248,7 +248,7 @@ export const useManagePropertyPage = () => {
       }
 
       await success("Propiedad actualizada", "Se guardaron los cambios.");
-      nav("/");
+      nav("/", { replace: true });
     } catch (e) {
       handleError(e);
     } finally {

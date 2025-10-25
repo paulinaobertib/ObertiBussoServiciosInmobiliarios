@@ -37,6 +37,8 @@ export function ProfileView({ user, editMode, saving, onToggleEdit, onDeleteProf
           <IconButton
             onClick={onDeleteProfile}
             size="small"
+            aria-label="Eliminar mi cuenta"
+            title="Eliminar mi cuenta"
             sx={{
               position: "absolute",
               top: "50%",

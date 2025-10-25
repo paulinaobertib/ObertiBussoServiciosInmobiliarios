@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
-  const loginUrl = `${GW_URL}/oauth2/authorization/keycloak-client?next=/`;
+  const loginBaseUrl = `${GW_URL}/oauth2/authorization/keycloak-client`;
 
   const isLogged = Boolean(info);
   const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
@@ -180,9 +180,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = () => {
+    const nextPath = "/";
     try {
-      const next = window.location.pathname + window.location.search;
-      sessionStorage.setItem("postLoginNext", next);
+      sessionStorage.setItem("postLoginNext", nextPath);
     } catch {}
     setSessionExpired(false);
     setReady(false);
@@ -191,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearPropertyUiState(); // limpia selección/estado previo
     broadcastAuthEvent("login"); // por si otro contexto quiere reaccionar
 
+    const loginUrl = `${loginBaseUrl}?next=${encodeURIComponent(nextPath || "/")}`;
     window.location.href = loginUrl;
   };
 

@@ -47,6 +47,7 @@ let selectedState = {
 const refreshAmenitiesMock = vi.fn(() => Promise.resolve());
 const refreshTypesMock = vi.fn(() => Promise.resolve());
 const refreshNeighborhoodsMock = vi.fn(() => Promise.resolve());
+const setPropertiesLoadingMock = vi.fn();
 
 // buildSearchParams identidad
 const buildSearchParamsMock = vi.fn((x: any) => x);
@@ -76,6 +77,7 @@ vi.mock("../../../property/context/PropertiesContext", () => ({
     refreshAmenities: refreshAmenitiesMock,
     refreshTypes: refreshTypesMock,
     refreshNeighborhoods: refreshNeighborhoodsMock,
+    setPropertiesLoading: setPropertiesLoadingMock,
   }),
 }));
 
@@ -100,6 +102,7 @@ beforeEach(() => {
   currentPropsList = sampleProps;
   selectedState = { owner: null, neighborhood: null, type: null, amenities: [] };
   isAdmin = true; // default
+  setPropertiesLoadingMock.mockImplementation(() => {});
 });
 
 // ---------- Tests ----------

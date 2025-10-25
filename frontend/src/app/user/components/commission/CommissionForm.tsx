@@ -119,7 +119,7 @@ export const CommissionForm = ({ action, item, contractId, onSuccess }: Props) =
             size="small"
             label="Cuotas"
             inputProps={{ min: 1 }}
-            value={isCuotas ? (form.installments === "" ? 1 : form.installments) : 1}
+            value={isCuotas ? form.installments ?? "" : 1}
             onChange={handleField("installments")}
             disabled={!isCuotas || isDelete}
           />

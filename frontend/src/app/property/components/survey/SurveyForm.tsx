@@ -4,9 +4,8 @@ import { Box, Rating, TextField, Button, Typography } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { useSurvey } from "../../hooks/useSurvey";
 import { SurveyDTO } from "../../types/survey";
-import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
-import { useTheme } from '@mui/material/styles';
+import { useGlobalAlert } from "../../../shared/context/AlertContext";
 
 const labels: { [key: number]: string } = {
     1: "Insatisfecho",
@@ -28,9 +27,7 @@ export const Survey = () => {
     const [hover, setHover] = useState<number>(-1);
     const [comment, setComment] = useState<string>("");
     const navigate = useNavigate();
-
-    const theme = useTheme();
-    const primaryColor = theme.palette.primary.main;
+    const alert = useGlobalAlert();
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -44,29 +41,21 @@ export const Survey = () => {
 
         try {
             await postSurvey(dto, token!);
-            Swal.fire({
-                title: '¡Muchas gracias!',
-                text: 'Agradecemos el tiempo que te tomaste para calificar nuestro servicio. Tu opinión nos ayuda a mejorar.',
-                icon: 'success',
-                confirmButtonText: 'Finalizar',
-                confirmButtonColor: primaryColor,
-                allowOutsideClick: false,
-                allowEscapeKey: false
-            }).then(() => {
-                navigate("/", { replace: true });
+            await alert.success({
+                title: "¡Muchas gracias!",
+                description: "Agradecemos el tiempo que te tomaste para calificar nuestro servicio. Tu opinión nos ayuda a mejorar.",
+                primaryLabel: "Finalizar",
+                disableBackdropClose: true,
             });
+            navigate("/", { replace: true });
         } catch (err: any) {
-            Swal.fire({
-                title: '¡Lo sentimos!',
-                text: err?.response?.data || 'Ocurrió un error al enviar la encuesta.',
-                icon: 'error',
-                confirmButtonText: 'Finalizar',
-                confirmButtonColor: primaryColor,
-                allowOutsideClick: false,
-                allowEscapeKey: false
-            }).then(() => {
-                navigate("/", { replace: true });
+            await alert.error({
+                title: "¡Lo sentimos!",
+                description: err?.response?.data || "Ocurrió un error al enviar la encuesta.",
+                primaryLabel: "Finalizar",
+                disableBackdropClose: true,
             });
+            navigate("/", { replace: true });
         }
     };
 

@@ -94,7 +94,7 @@ describe("useManageContractPage", () => {
     renderHook(() => useManageContractPage());
 
     await waitFor(() => {
-      expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+      expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT, { replace: true });
     });
   });
 
@@ -152,6 +152,7 @@ describe("useManageContractPage", () => {
     expect(postContract).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT, {
       state: { justCreated: true, createdId: 1 },
+      replace: true,
     });
   });
 
@@ -184,7 +185,7 @@ describe("useManageContractPage", () => {
 
     expect(putContract).toHaveBeenCalledWith(55, expect.any(Object));
     expect(success).toHaveBeenCalledWith(expect.objectContaining({ title: "Contrato actualizado" }));
-    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT, { replace: true });
   });
 
   it("cancel pide confirmación y navega si ok", async () => {
@@ -198,7 +199,7 @@ describe("useManageContractPage", () => {
       await result.current.cancel();
     });
 
-    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT, { replace: true });
   });
 
   it("afterCommissionSaved limpia commissionContractId y navega", () => {
@@ -211,6 +212,6 @@ describe("useManageContractPage", () => {
     });
 
     expect(result.current.commissionContractId).toBeNull();
-    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    expect(navigate).toHaveBeenCalledWith(ROUTES.CONTRACT, { replace: true });
   });
 });

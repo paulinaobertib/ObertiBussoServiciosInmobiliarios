@@ -3,18 +3,13 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, beforeEach, expect } from "vitest";
 import { Survey } from "../../../components/survey/SurveyForm";
 import * as useSurveyHook from "../../../hooks/useSurvey";
-import Swal from "sweetalert2";
+const successMock = vi.fn();
+const errorMock = vi.fn();
+const useGlobalAlertMock = vi.fn();
 
-// Mock de Swal con export default
-vi.mock("sweetalert2", async () => {
-  const actual = await vi.importActual<any>("sweetalert2");
-  return {
-    ...actual,
-    default: {
-      fire: vi.fn().mockResolvedValue({}),
-    },
-  };
-});
+vi.mock("../../../../shared/context/AlertContext", () => ({
+  useGlobalAlert: () => useGlobalAlertMock(),
+}));
 
 // Mock de useNavigate y useParams
 const mockNavigate = vi.fn();
@@ -38,6 +33,12 @@ describe("Survey", () => {
       loading: false,
       error: null,
     } as any);
+    successMock.mockResolvedValue(undefined);
+    errorMock.mockResolvedValue(undefined);
+    useGlobalAlertMock.mockReturnValue({
+      success: successMock,
+      error: errorMock,
+    });
   });
 
   it("renderiza correctamente los elementos", () => {
@@ -58,7 +59,7 @@ describe("Survey", () => {
     expect(textarea).toHaveValue("Muy bueno");
   });
 
-  it("envía la encuesta correctamente y muestra Swal", async () => {
+  it("envía la encuesta correctamente y muestra alerta de éxito", async () => {
     postSurveyMock.mockResolvedValue({});
 
     render(<Survey />);
@@ -71,14 +72,17 @@ describe("Survey", () => {
         { score: 5, comment: "", inquiryId: 123 },
         "abc"
       );
-      expect(Swal.fire).toHaveBeenCalledWith(
-        expect.objectContaining({ icon: "success" })
+      expect(successMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "¡Muchas gracias!",
+          primaryLabel: "Finalizar",
+        })
       );
       expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
     });
   });
 
-  it("muestra Swal de error si falla el envío", async () => {
+  it("muestra alerta de error si falla el envío", async () => {
     postSurveyMock.mockRejectedValue({
       response: { data: "Error al enviar" },
     });
@@ -89,10 +93,10 @@ describe("Survey", () => {
     fireEvent.submit(button.closest("form")!);
 
     await waitFor(() => {
-      expect(Swal.fire).toHaveBeenCalledWith(
+      expect(errorMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          icon: "error",
-          text: "Error al enviar",
+          description: "Error al enviar",
+          primaryLabel: "Finalizar",
         })
       );
       expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });

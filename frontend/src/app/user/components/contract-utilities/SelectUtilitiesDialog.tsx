@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Divider, Stack } from "@mui/material";
 import { Modal } from "../../../shared/components/Modal";
 import { UtilitiesSection } from "../utilities/UtilitiesSection";
 import { useUtilities } from "../../hooks/useUtilities";
@@ -88,61 +88,73 @@ export function UtilitiesPickerDialog({ open, contractId, onClose, onUpdated }: 
   };
 
   return (
-    <Modal open={open} title="Seleccionar servicios" onClose={onClose}>
-      {/* Lista */}
-      <UtilitiesSection
-        toggleSelect={async (ids: any) => {
-          const arr = (Array.isArray(ids) ? ids : ids != null ? [ids] : []).map((v: any) => Number(v));
-          const id = arr.length ? arr[arr.length - 1] : null;
+    <Modal open={open} title="Seleccionar servicios" onClose={onClose} maxWidth="lg">
+      <Stack direction={{ xs: "column", md: "row" }} spacing={{ xs: 3, md: 4 }}>
+        <Box flex={1} minWidth={0}>
+          <UtilitiesSection
+            toggleSelect={async (ids: any) => {
+              const arr = (Array.isArray(ids) ? ids : ids != null ? [ids] : []).map((v: any) => Number(v));
+              const id = arr.length ? arr[arr.length - 1] : null;
 
-          if (!id) {
-            setSelectedId(null);
-            setAssigning(null);
-            return;
-          }
-
-          if (existingIds.has(id)) {
-            await warnDuplicate();
-            // 👇 deseleccionamos automáticamente
-            setSelectedId(null);
-            setAssigning(null);
-            return;
-          }
-
-          setSelectedId(id);
-          try {
-            const u = await fetchById(id);
-            setAssigning(u ?? null);
-          } catch (e) {
-            handleError(e);
-            setAssigning(null);
-          }
-        }}
-        isSelected={(id: number | string) => Number(id) === selectedId}
-        showActions={true}
-        multiSelect={false}
-      />
-
-      {/* Formulario: siempre abajo y solo si hay selección */}
-      {assigning && (
-        <Box mt={2}>
-          <ContractUtilityForm ref={formRef} utility={assigning} contractId={contractId} />
-          <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-            <Button
-              onClick={() => {
+              if (!id) {
                 setSelectedId(null);
                 setAssigning(null);
-              }}
-              disabled={saving}
-            >
-              Cancelar
-            </Button>
-            <LoadingButton variant="contained" onClick={handleSave} loading={saving} disabled={saving}>
-              Guardar
-            </LoadingButton>
-          </Box>
+                return;
+              }
+
+              if (existingIds.has(id)) {
+                await warnDuplicate();
+                setSelectedId(null);
+                setAssigning(null);
+                return;
+              }
+
+              setSelectedId(id);
+              try {
+                const u = await fetchById(id);
+                setAssigning(u ?? null);
+              } catch (e) {
+                handleError(e);
+                setAssigning(null);
+              }
+            }}
+            isSelected={(id: number | string) => Number(id) === selectedId}
+            showActions={true}
+            multiSelect={false}
+          />
         </Box>
-      )}
+
+        <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", md: "block" } }} />
+
+        <Box
+          flex={{ xs: "none", md: 0.9 }}
+          minWidth={{ xs: "100%", md: 360 }}
+          display="flex"
+          justifyContent="center"
+          alignItems={{ xs: "stretch", md: "center" }}
+        >
+          {assigning && (
+            <Stack spacing={2} sx={{ width: "100%", maxWidth: 420, mx: "auto" }}>
+              <ContractUtilityForm ref={formRef} utility={assigning} contractId={contractId} />
+
+              <Box display="flex" justifyContent="flex-end" gap={1}>
+                <Button
+                  onClick={() => {
+                    setSelectedId(null);
+                    setAssigning(null);
+                  }}
+                  disabled={saving}
+                >
+                  Cancelar
+                </Button>
+                <LoadingButton variant="contained" onClick={handleSave} loading={saving} disabled={saving}>
+                  Guardar
+                </LoadingButton>
+              </Box>
+            </Stack>
+          )}
+        </Box>
+      </Stack>
     </Modal>
   );
 }

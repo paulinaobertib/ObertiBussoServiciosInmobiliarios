@@ -58,8 +58,19 @@ export default function ContractsPage() {
 
             {isAdmin && <ContractsFilters filter={filter} onFilterChange={setFilter} onSearch={handleSearch} />}
 
-            {/* EmptyState cuando no hay resultados y no está cargando */}
-            {!loading && disp.length === 0 ? (
+            {loading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 220,
+                  py: 6,
+                }}
+              >
+                <CircularProgress size={36} />
+              </Box>
+            ) : disp.length === 0 ? (
               <EmptyState
                 title={isAdmin ? "No hay contratos cargados." : "No hay contratos disponibles."}
                 minHeight={220}
@@ -78,21 +89,6 @@ export default function ContractsPage() {
               }}
             />
           </Container>
-
-          {loading && (
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: "rgba(255,255,255,0.5)",
-              }}
-            >
-              <CircularProgress size={36} />
-            </Box>
-          )}
         </Box>
       </BasePage>
     </>

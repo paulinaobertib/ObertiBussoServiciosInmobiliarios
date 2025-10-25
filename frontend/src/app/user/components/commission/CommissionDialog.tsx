@@ -15,7 +15,7 @@ export const CommissionDialog = ({ open, contractId, action, item, onClose, onSa
   const title = action === "add" ? "Nueva comisión" : action === "edit" ? "Editar comisión" : "Eliminar comisión";
 
   return (
-    <Modal open={open} title={title} onClose={onClose}>
+    <Modal open={open} title={title} onClose={onClose} maxWidth="md">
       <CommissionForm
         action={action}
         item={item ?? undefined}

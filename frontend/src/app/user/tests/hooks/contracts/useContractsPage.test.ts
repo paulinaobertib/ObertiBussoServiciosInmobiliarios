@@ -135,6 +135,27 @@ describe("useContractsPage", () => {
     expect(result.current.filtered).toEqual([]);
   });
 
+  it("no permite cambiar el filtro de estado si no es admin", async () => {
+    (useAuthContext as any).mockReturnValue({ info: { id: 42 }, isAdmin: false });
+    (getContractsByUserId as any).mockResolvedValue([
+      { id: 1, contractStatus: ContractStatus.ACTIVO },
+      { id: 2, contractStatus: ContractStatus.INACTIVO },
+    ]);
+
+    const { result } = renderHook(() => useContractsPage());
+
+    await waitFor(() => expect(result.current.filtered.length).toBe(2));
+
+    act(() => {
+      result.current.setStatusFilter(ContractStatus.ACTIVO);
+    });
+
+    expect(result.current.filtered).toEqual([
+      { id: 1, contractStatus: ContractStatus.ACTIVO },
+      { id: 2, contractStatus: ContractStatus.INACTIVO },
+    ]);
+  });
+
   it("maneja modales (paying, increasing, history)", () => {
     (useAuthContext as any).mockReturnValue({ info: { id: 1 }, isAdmin: true });
     (getAllContracts as any).mockResolvedValue([]);

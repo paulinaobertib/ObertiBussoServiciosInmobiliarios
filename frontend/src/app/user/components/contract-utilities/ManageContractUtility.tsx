@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Box, Button, CircularProgress } from "@mui/material";
 import { Modal } from "../../../shared/components/Modal";
 import { ContractUtilityForm, type ContractUtilityFormHandle } from "./ContractUtilityForm";
-import { getContractUtilityById, postContractUtility, putContractUtility } from "../../services/contractUtility.service";
+import {
+  getContractUtilityById,
+  postContractUtility,
+  putContractUtility,
+} from "../../services/contractUtility.service";
 import type { ContractUtilityGet } from "../../types/contractUtility";
 import { useUtilities } from "../../hooks/useUtilities";
 import type { Utility } from "../../types/utility";
@@ -79,21 +83,37 @@ export function ContractUtilityDialog({ open, mode, contractId, utility, contrac
         ? `Asignar: ${util.name}`
         : "Asignar servicio"
       : util
-        ? `Editar valores iniciales de ${util.name}`
-        : "Editar servicio del contrato";
+      ? `Editar valores iniciales de ${util.name}`
+      : "Editar servicio del contrato";
+
+  const isLoading = mode === "edit" && (loading || !initial || !util);
 
   return (
     <Modal open={open} title={title} onClose={onClose}>
-      {mode === "edit" && (loading || !initial || !util) ? (
-        <Box textAlign="center"><CircularProgress /></Box>
+      {isLoading ? (
+        <Box display="flex" justifyContent="center" py={6}>
+          <CircularProgress />
+        </Box>
       ) : (
-        util && <ContractUtilityForm ref={formRef} utility={util} contractId={contractId} initial={mode === "edit" ? (initial as any) : undefined} />
+        <>
+          {util && (
+            <ContractUtilityForm
+              ref={formRef}
+              utility={util}
+              contractId={contractId}
+              initial={mode === "edit" ? (initial as any) : undefined}
+            />
+          )}
+          <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={onClose} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button variant="contained" onClick={handleSave} disabled={loading || !util}>
+              Guardar
+            </Button>
+          </Box>
+        </>
       )}
-      <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
-        <Button variant="contained" onClick={handleSave} disabled={loading || !util}>Guardar</Button>
-      </Box>
     </Modal>
   );
 }
-

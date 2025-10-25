@@ -195,7 +195,7 @@ describe("PaymentDialog", () => {
       </AlertProvider>
     );
 
-    expect(screen.getByText("Servicios del contrato:")).toBeInTheDocument();
+    expect(screen.getByText("Servicios del contrato")).toBeInTheDocument();
     const listItem = screen.getByText("Agua").closest("li");
     expect(listItem).toHaveTextContent(/Periodicidad: Mensual/);
     expect(listItem).toHaveTextContent(/Próximo:/);
@@ -303,8 +303,8 @@ describe("PaymentDialog", () => {
 
     expect(screen.getByText("Cuota #1")).toBeInTheDocument();
     expect(screen.getByText("Pago cuota 1")).toBeInTheDocument();
-    expect(screen.getByText("Pagada")).toBeInTheDocument();
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    expect(screen.getByText(/Pagada/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pendiente/i)).toBeInTheDocument();
   });
 
   it("invoca toggleDescription al clickear el ícono de información", async () => {

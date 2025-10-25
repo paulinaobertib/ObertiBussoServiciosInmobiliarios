@@ -459,7 +459,7 @@ export default function ContractDetailPage() {
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex", minWidth: 0 }}>
-                <NotesCard note={contract.note} />
+                <NotesCard note={contract.note} isAdmin={isAdmin} />
               </Grid>
             </>
           )}

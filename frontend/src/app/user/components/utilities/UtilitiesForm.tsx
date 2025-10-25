@@ -36,21 +36,21 @@ export const UtilitiesForm = ({ action, item, onDone }: Props) => {
       if (isAdd) {
         const payload: Utility = { id: 0, name: form.name.trim() };
         await postUtility(payload);
-        showAlert("Utility creada", "success");
+        showAlert("Servicio creado", "success");
         onDone({ action, form: payload });
       } else if (isEdit) {
         const payload: Utility = { id: form.id, name: form.name.trim() };
         await putUtility(payload);
-        showAlert("Utility actualizada", "success");
+        showAlert("Servicio actualizado", "success");
         onDone({ action, form: payload });
       } else if (isDelete) {
         await deleteUtility(form.id);
-        showAlert("Utility eliminada", "success");
+        showAlert("Servicio eliminado", "success");
         onDone({ action, form });
       }
     } catch (e: any) {
       console.error(e);
-      showAlert(e?.message ?? "Error al guardar índice", "error");
+      showAlert(e?.message ?? "Error al guardar servicio", "error");
     } finally {
       setLoading(false);
     }

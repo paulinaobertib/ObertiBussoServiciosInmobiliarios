@@ -45,7 +45,8 @@ describe("PropertyInfoCompare", () => {
     expect(screen.getByText(/Palermo/i)).toBeInTheDocument();
     expect(screen.getByText(/Buenos Aires/i)).toBeInTheDocument();
     expect(screen.getByText(/\$ ?120[.,]000/)).toBeInTheDocument();
-    expect(screen.getByText(/Expensas/i)).toHaveTextContent(/2[.,\s]?000/);
+    const expensasNodes = screen.getAllByText(/Expensas/i);
+    expect(expensasNodes[0]).toHaveTextContent(/2[.,\s]?000/);
   });
 
   it("muestra descripción si existe", () => {

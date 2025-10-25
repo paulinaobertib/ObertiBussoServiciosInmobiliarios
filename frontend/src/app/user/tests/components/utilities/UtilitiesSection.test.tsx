@@ -85,10 +85,10 @@ describe("UtilitiesSection", () => {
 
   it("renderiza con showActions=true y abre modal de crear", () => {
     render(<UtilitiesSection />);
-    expect(screen.getByTestId("grid")).toHaveTextContent("Utility");
+    expect(screen.getByTestId("grid")).toHaveTextContent("Servicio");
     fireEvent.click(screen.getByTestId("create"));
     expect(screen.getByTestId("modal")).toBeInTheDocument();
-    expect(screen.getByTestId("title")).toHaveTextContent("Crear utility");
+    expect(screen.getByTestId("title")).toHaveTextContent("Crear servicio");
     expect(screen.getByTestId("form-add")).toBeInTheDocument();
   });
 
@@ -102,7 +102,7 @@ describe("UtilitiesSection", () => {
     mockLoadAll.mockResolvedValue([{ id: 1, name: "newU" }]);
     render(<UtilitiesSection />);
     fireEvent.click(screen.getByTestId("edit"));
-    expect(screen.getByTestId("title")).toHaveTextContent("Editar utility");
+    expect(screen.getByTestId("title")).toHaveTextContent("Editar servicio");
     fireEvent.click(screen.getByTestId("form-edit"));
     await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
   });
@@ -111,7 +111,7 @@ describe("UtilitiesSection", () => {
     mockLoadAll.mockResolvedValue([{ id: 2, name: "newU" }]);
     render(<UtilitiesSection />);
     fireEvent.click(screen.getByTestId("delete"));
-    expect(screen.getByTestId("title")).toHaveTextContent("Eliminar utility");
+    expect(screen.getByTestId("title")).toHaveTextContent("Eliminar servicio");
     fireEvent.click(screen.getByTestId("form-delete"));
     await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
   });

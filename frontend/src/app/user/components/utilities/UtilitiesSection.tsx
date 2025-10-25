@@ -81,7 +81,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   }, [loadAll]);
 
   const openEdit = (u: Utility) => {
-    setModalTitle("Editar utility");
+    setModalTitle("Editar servicio");
     setModalContent(
       <UtilitiesForm
         action="edit"
@@ -96,7 +96,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   };
 
   const openDelete = (u: Utility) => {
-    setModalTitle("Eliminar utility");
+    setModalTitle("Eliminar servicio");
     setModalContent(
       <UtilitiesForm
         action="delete"
@@ -111,7 +111,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
   };
 
   const openCreate = () => {
-    setModalTitle("Crear utility");
+    setModalTitle("Crear servicio");
     setModalContent(
       <UtilitiesForm
         action="add"
@@ -152,7 +152,7 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
         onRoles={undefined}
         toggleSelect={gridToggleSelect}
         isSelected={gridIsSelected}
-        entityName="Utility"
+        entityName="Servicio"
         showActions={showActions}
         fetchAll={fetchAllAdapter}
         fetchByText={fetchByTextAdapter}

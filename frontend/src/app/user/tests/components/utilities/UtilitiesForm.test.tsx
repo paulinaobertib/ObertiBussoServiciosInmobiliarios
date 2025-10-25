@@ -39,7 +39,7 @@ describe("UtilitiesForm", () => {
 
     await waitFor(() => {
       expect(postUtility).toHaveBeenCalledWith({ id: 0, name: "Nueva" });
-      expect(mockShowAlert).toHaveBeenCalledWith("Utility creada", "success");
+      expect(mockShowAlert).toHaveBeenCalledWith("Servicio creado", "success");
       expect(mockOnDone).toHaveBeenCalledWith({
         action: "add",
         form: { id: 0, name: "Nueva" },
@@ -56,7 +56,7 @@ describe("UtilitiesForm", () => {
 
     await waitFor(() => {
       expect(putUtility).toHaveBeenCalledWith({ id: 5, name: "Actualizada" });
-      expect(mockShowAlert).toHaveBeenCalledWith("Utility actualizada", "success");
+      expect(mockShowAlert).toHaveBeenCalledWith("Servicio actualizado", "success");
       expect(mockOnDone).toHaveBeenCalledWith({
         action: "edit",
         form: { id: 5, name: "Actualizada" },
@@ -73,7 +73,7 @@ describe("UtilitiesForm", () => {
 
     await waitFor(() => {
       expect(deleteUtility).toHaveBeenCalledWith(10);
-      expect(mockShowAlert).toHaveBeenCalledWith("Utility eliminada", "success");
+      expect(mockShowAlert).toHaveBeenCalledWith("Servicio eliminado", "success");
       expect(mockOnDone).toHaveBeenCalledWith({
         action: "delete",
         form: { id: 10, name: "Borrar" },
@@ -99,7 +99,7 @@ describe("UtilitiesForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /Confirmar/i }));
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith("Error al guardar índice", "error");
+      expect(mockShowAlert).toHaveBeenCalledWith("Error al guardar servicio", "error");
     });
   });
 

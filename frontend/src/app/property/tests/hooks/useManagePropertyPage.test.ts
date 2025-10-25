@@ -214,7 +214,7 @@ it("cancel pregunta confirmación y navega", async () => {
   await act(async () => {
     await result.current.cancel();
   });
-  expect(mockNavigate).toHaveBeenCalledWith("/");
+  expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
 });
 
 });

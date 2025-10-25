@@ -53,7 +53,17 @@ export const BasePage = ({ children, maxWidth = true, showFooter = true }: Props
         }}
       >
         <Toolbar />
-        {children}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+          }}
+        >
+          {children}
+        </Box>
       </Container>
 
       {/* Footer condicional */}

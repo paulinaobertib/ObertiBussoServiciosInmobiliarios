@@ -42,7 +42,7 @@ export function useManageContractPage() {
   const [commissionContractId, setCommissionContractId] = useState<number | null>(null);
   const afterCommissionSaved = () => {
     setCommissionContractId(null);
-    navigate(ROUTES.CONTRACT);
+    navigate(ROUTES.CONTRACT, { replace: true });
   };
   const openCommissionStep = () => {};
 
@@ -116,7 +116,7 @@ export function useManageContractPage() {
         setSelectedGuarantorIds(guarIds);
       } catch (e) {
         handleError(e);
-        navigate(ROUTES.CONTRACT);
+        navigate(ROUTES.CONTRACT, { replace: true });
       } finally {
         setLoading(false);
       }
@@ -143,7 +143,7 @@ export function useManageContractPage() {
         await putContract(Number(id!), payload as any);
         await syncContractGuarantors(Number(id!), payload.guarantorsIds || []);
         await notifySuccess("Contrato actualizado");
-        navigate(ROUTES.CONTRACT);
+        navigate(ROUTES.CONTRACT, { replace: true });
       } else {
         // creación
         await postContract(payload as any);
@@ -170,6 +170,7 @@ export function useManageContractPage() {
         // Redirigir al listado y mostrar confirm desde ese screen (ya migrado)
         navigate(ROUTES.CONTRACT, {
           state: { justCreated: true, createdId },
+          replace: true,
         });
       }
     } catch (e) {
@@ -184,7 +185,7 @@ export function useManageContractPage() {
     const ok = await confirmDanger();
     if (!ok) return;
     formRef.current?.reset();
-    navigate(ROUTES.CONTRACT);
+    navigate(ROUTES.CONTRACT, { replace: true });
   };
 
   // Título dinámico
