@@ -97,7 +97,7 @@ export const CatalogList = ({
           });
           addDismissed(propId);
           if (goRenew) {
-            navigate("/contract/new");
+            navigate("/contracts/new");
           } else {
             navigate(`/properties/${propId}`);
           }

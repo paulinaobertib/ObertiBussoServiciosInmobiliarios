@@ -131,12 +131,12 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.contains("button", /^Contratos$/i).should("be.visible").click();
       });
 
-    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contract");
+    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
 
     cy.contains("button", "Nuevo Contrato", { timeout: SLOT_TIMEOUT }).click();
 
-    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contract/new");
+    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts/new");
     cy.wait("@getAvailableProperties", { timeout: SLOT_TIMEOUT });
     cy.wait("@getAllProperties", { timeout: SLOT_TIMEOUT });
 
@@ -275,7 +275,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.contains("button", /^Ok$/i).click();
       });
 
-    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contract");
+    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
 
     cy.then(() => {
@@ -349,7 +349,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.contains("button", /^Contratos$/i).click();
       });
 
-    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contract");
+    cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
 
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT }).then(({ response }) => {
       const list = Array.isArray(response?.body) ? response.body : [];

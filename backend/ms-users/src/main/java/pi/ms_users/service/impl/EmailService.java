@@ -75,6 +75,7 @@ public class EmailService implements IEmailService {
             context.setVariable("lastName", emailDTO.getLastName());
             context.setVariable("phone", emailDTO.getPhone());
             context.setVariable("to", emailDTO.getTo());
+            context.setVariable("comment", emailDTO.getComment());
 
             // Email para inmobiliaria
             MimeMessage messageInmo = javaMailSender.createMimeMessage();
@@ -107,6 +108,7 @@ public class EmailService implements IEmailService {
             context.setVariable("decision", accepted ? "aceptado" : "rechazado");
             context.setVariable("firstName", firstName);
             context.setVariable("date", formatDateTime(date));
+
             if (!(address == null) && !address.isEmpty()) {
                 context.setVariable("address", address);
             }
@@ -165,6 +167,7 @@ public class EmailService implements IEmailService {
             context.setVariable("phone", emailDTO.getPhone());
             context.setVariable("mail", emailDTO.getTo());
             context.setVariable("date", formatDateTime(emailDTO.getDate()));
+            context.setVariable("comment", emailDTO.getComment());
 
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -248,7 +251,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendNewContractEmail(EmailNewContractDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -294,7 +297,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendContractExpiringSoonEmail(EmailContractExpiringSoonDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -318,7 +321,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendContractUpcomingIncreaseOneMonthEmail(EmailContractUpcomingIncreaseOneMonthDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -342,7 +345,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendContractIncreaseLoadedEmail(EmailContractIncreaseLoadedDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -368,7 +371,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendContractIncreaseLoadedEmailUpdate(EmailContractIncreaseLoadedDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -394,7 +397,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendContractPaymentReminderEmail(EmailContractPaymentReminderDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -419,7 +422,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendUtilityPaymentReminderEmail(EmailUtilityPaymentReminderDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -444,7 +447,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendUtilityAmountLoadedEmail(EmailUtilityAmountLoadedDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);
@@ -469,7 +472,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendUtilityAmountLoadedEmailUpdate(EmailUtilityAmountLoadedDTO dto, Long contractId) {
         try {
-            String contractUrl = appProperties.getFrontendBaseUrl() + "/contract" + contractId;
+            String contractUrl = appProperties.getFrontendBaseUrl() + "/contracts" + contractId;
 
             Context context = new Context();
             context.setVariable("contractUrl", contractUrl);

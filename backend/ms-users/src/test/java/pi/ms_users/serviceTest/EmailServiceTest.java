@@ -18,8 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -425,6 +424,24 @@ class EmailServiceTest {
 
         assertTrue(usd.startsWith("USD"));
         assertTrue(ars.startsWith("ARS"));
+    }
+
+    @Test
+    void sendAppointmentRequest_includesCommentInContext() {
+        emailDTO.setComment("Comentario de test");
+
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("email_inmobiliaria"), any(Context.class))).thenAnswer(invocation -> {
+            Context ctx = invocation.getArgument(1);
+            assertEquals("Comentario de test", ctx.getVariable("comment"));
+            return "contenido-inmobiliaria";
+        });
+        when(templateEngine.process(eq("email_client"), any(Context.class))).thenReturn("contenido-cliente");
+        when(appProperties.getEmailInmobiliaria()).thenReturn("inmobiliaria@mail.com");
+
+        emailService.sendAppointmentRequest(emailDTO);
+
+        verify(javaMailSender, times(2)).send(any(MimeMessage.class));
     }
 
     // casos de error

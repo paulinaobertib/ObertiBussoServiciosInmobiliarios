@@ -81,6 +81,32 @@ class AppointmentServiceTest {
     }
 
     @Test
+    void create_includesCommentInEmailDTO() throws MessagingException {
+        Appointment appointment = new Appointment();
+        appointment.setUserId("user123");
+        appointment.setComment("Comentario de test");
+
+        AvailableAppointment available = new AvailableAppointment();
+        available.setId(10L);
+        available.setAvailability(true);
+        available.setDate(LocalDateTime.now());
+        appointment.setAvailableAppointment(available);
+
+        User user = new User();
+        user.setEmail("user@mail.com");
+
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(availableAppointmentRepository.findById(10L)).thenReturn(Optional.of(available));
+        when(appointmentRepository.save(appointment)).thenReturn(appointment);
+
+        appointmentService.create(appointment);
+
+        verify(emailService).sendAppointmentRequest(argThat(dto ->
+                "Comentario de test".equals(dto.getComment())
+        ));
+    }
+
+    @Test
     void delete_success() {
         Appointment appointment = new Appointment();
         appointment.setId(1L);

@@ -150,7 +150,7 @@ describe("CatalogList", () => {
     );
 
     await waitFor(() => expect(confirmMock).toHaveBeenCalled());
-    expect(mockedNavigate).toHaveBeenCalledWith("/contract/new");
+    expect(mockedNavigate).toHaveBeenCalledWith("/contracts/new");
   });
 
   it("flujo ESPERA con alertApi.confirm -> ver propiedad", async () => {

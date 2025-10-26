@@ -18,7 +18,7 @@
             <li><strong>Email:</strong> <span th:text="${to}"></span></li>
             <li><strong>Teléfono:</strong> <span th:text="${phone}"></span></li>
             <li><strong>Fecha y hora:</strong> <span th:text="${date}"></span></li>
-            <li><strong>Mensaje:</strong> <span th:text="${description}"></span></li>
+            <li th:if="${not #strings.isEmpty(comment)}"><strong>Mensaje:</strong> <span th:text="${comment}"></span></li>
         </ul>
         <p>Ingresá al panel para aceptar o rechazar el turno.</p>
     </div>

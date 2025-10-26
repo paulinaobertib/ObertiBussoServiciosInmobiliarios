@@ -59,6 +59,7 @@ public class AppointmentService implements IAppointmentService {
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setLastName(user.getLastName());
         emailDTO.setDate(availableAppointment.getDate());
+        emailDTO.setComment(appointment.getComment());
 
         emailService.sendAppointmentRequest(emailDTO);
 
@@ -91,6 +92,7 @@ public class AppointmentService implements IAppointmentService {
         emailDTO.setPhone(user.getPhone());
         emailDTO.setTo(user.getEmail());
         emailDTO.setDate(availableAppointment.getDate());
+        emailDTO.setComment(appointment.getComment());
 
         emailService.sendAppointmentCancelledMail(emailDTO);
 
@@ -112,6 +114,7 @@ public class AppointmentService implements IAppointmentService {
         emailDTO.setTo(user.getEmail());
         emailDTO.setFirstName(user.getFirstName());
         emailDTO.setDate(availableAppointment.getDate());
+        emailDTO.setComment(appointment.getComment());
 
         if (appointment.getStatus() == AppointmentStatus.ACEPTADO) {
             availableAppointment.setAvailability(true);
