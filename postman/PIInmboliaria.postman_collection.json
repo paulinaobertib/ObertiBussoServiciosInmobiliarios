@@ -6074,6 +6074,107 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "Suggestions",
+					"item": [
+						{
+							"name": "getAll",
+							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/suggestions/getAll",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"suggestions",
+										"getAll"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8083/suggestions/create?description=Agregar una sección de preguntas frecuentes.",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8083",
+									"path": [
+										"suggestions",
+										"create"
+									],
+									"query": [
+										{
+											"key": "description",
+											"value": "Agregar una sección de preguntas frecuentes."
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		},
@@ -10755,7 +10856,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 15000.0,\r\n  \"lastPaidAmount\": null,\r\n  \"lastPaidDate\": null,\r\n  \"notes\": \"Agua mensual contrato 6\",\r\n  \"contractId\": 2,\r\n  \"utilityId\": 1\r\n}",
+									"raw": "{\r\n  \"id\": null,\r\n  \"periodicity\": \"MENSUAL\",\r\n  \"initialAmount\": 50000,\r\n  \"lastPaidAmount\": 50000,\r\n  \"lastPaidDate\": \"2025-08-17T00:00:00\",\r\n  \"notes\": \"Prueba recordatorio utility mensual\",\r\n  \"contractId\": 1,\r\n  \"utilityId\": 1,\r\n  \"increases\": []\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -11496,11 +11597,61 @@
 						{
 							"name": "create",
 							"request": {
+								"auth": {
+									"type": "oauth2",
+									"oauth2": [
+										{
+											"key": "clientSecret",
+											"value": "75wRgBPc9nCBLNvCUgptfUHPc3uWHO1A",
+											"type": "string"
+										},
+										{
+											"key": "addTokenTo",
+											"value": "header",
+											"type": "string"
+										},
+										{
+											"key": "clientId",
+											"value": "api-gateway-client",
+											"type": "string"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"type": "string"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "https://oauth.pstmn.io/v1/browser-callback",
+											"type": "string"
+										},
+										{
+											"key": "tokenName",
+											"value": "inmobiliaria",
+											"type": "string"
+										},
+										{
+											"key": "authUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/auth",
+											"type": "string"
+										},
+										{
+											"key": "accessTokenUrl",
+											"value": "http://localhost:8080/realms/obertibussoserviciosinmobiliarios/protocol/openid-connect/token",
+											"type": "string"
+										},
+										{
+											"key": "scope",
+											"value": "openid",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"date\": \"2025-03-01T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 300000.0,\r\n  \"adjustment\": 0.15,\r\n  \"note\": \"Ajuste trimestral - IPC\",\r\n  \"periodFrom\": \"2025-03-01T00:00:00\",\r\n  \"periodTo\": \"2025-05-31T23:59:59\",\r\n  \"contractId\": 6,\r\n  \"indexId\": 1\r\n}\r\n",
+									"raw": "{\r\n  \"date\": \"2025-04-07T00:00:00\",\r\n  \"currency\": \"ARS\",\r\n  \"amount\": 250000,\r\n  \"adjustment\": 10,\r\n  \"note\": \"Primer aumento de prueba\",\r\n  \"periodFrom\": \"2025-01-01T00:00:00\",\r\n  \"periodTo\": \"2025-06-30T23:59:59\",\r\n  \"contractId\": 1,\r\n  \"indexId\": 1\r\n}\r\n",
 									"options": {
 										"raw": {
 											"language": "json"

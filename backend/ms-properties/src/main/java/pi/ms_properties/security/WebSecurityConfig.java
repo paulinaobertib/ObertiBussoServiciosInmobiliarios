@@ -49,7 +49,8 @@ public class WebSecurityConfig {
                                 "/survey/create",
                                 "/compare/**",
                                 "/chat/message",
-                                "/chatSession/create")
+                                "/chatSession/create",
+                                "/suggestions/create")
                         .permitAll()
                         .requestMatchers(HttpMethod.PUT,
                                 "property/statusEspera/**")

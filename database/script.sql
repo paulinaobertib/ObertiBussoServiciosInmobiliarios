@@ -345,3 +345,9 @@ CREATE TABLE Agent_Assignment (
     id INT PRIMARY KEY AUTO_INCREMENT,
     last_assigned_agent_id VARCHAR(100)
 );
+
+CREATE TABLE Suggestion (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    description VARCHAR(2000),
+    date DATETIME NOT NULL
+);
