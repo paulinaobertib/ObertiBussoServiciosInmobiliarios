@@ -21,10 +21,22 @@ const buildRedirectUrl = (baseUrl: string, redirectPath?: string) => {
   return `${normalizedBase}${normalizedPath}`;
 };
 
+const resolveAppUrl = () => {
+  const envUrl = Cypress.env("appUrl") as string | undefined;
+  const configUrl = Cypress.config("baseUrl");
+  const appUrl = envUrl ?? (typeof configUrl === "string" ? configUrl : undefined);
+
+  if (!appUrl) {
+    throw new Error("appUrl/baseUrl no configurado para Cypress");
+  }
+
+  return appUrl;
+};
+
 Cypress.Commands.add("loginKeycloak", () => {
   const username = Cypress.env("keycloakUsername");
   const password = Cypress.env("keycloakPassword");
-  const appUrl = Cypress.env("appUrl");
+  const appUrl = resolveAppUrl();
   const keycloakUrl = Cypress.env("keycloakUrl");
   const keycloakOrigin = new URL(keycloakUrl).origin;
 
@@ -56,7 +68,7 @@ Cypress.Commands.add("loginKeycloak", () => {
 Cypress.Commands.add("loginAdmin", () => {
   const username = Cypress.env("adminUsername");
   const password = Cypress.env("adminPassword");
-  const appUrl = Cypress.env("appUrl");
+  const appUrl = resolveAppUrl();
   const keycloakUrl = Cypress.env("keycloakUrl");
   const keycloakOrigin = new URL(keycloakUrl).origin;
 
@@ -93,7 +105,7 @@ Cypress.Commands.add("loginTenant", () => {
   if (!username || !password) {
     throw new Error("Credenciales de tenant no configuradas en Cypress env");
   }
-  const appUrl = Cypress.env("appUrl");
+  const appUrl = resolveAppUrl();
   const keycloakUrl = Cypress.env("keycloakUrl");
   const keycloakOrigin = new URL(keycloakUrl).origin;
 

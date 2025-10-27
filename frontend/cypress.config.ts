@@ -57,6 +57,11 @@ export default defineConfig({
         },
       });
 
+      config.env = {
+        ...config.env,
+        appUrl: config.baseUrl ?? config.env?.appUrl,
+      };
+
       return config;
     },
   },
