@@ -203,16 +203,16 @@ describe("payment.service", () => {
   });
 
   /* ------------------------ getPaymentsByDateRange ----------------------- */
-  it("getPaymentsByDateRange: GET con params from/to", async () => {
+  it("getPaymentsByDateRange: GET con params from/to ajustados a rango completo", async () => {
     const from = "2024-01-01";
     const to = "2024-01-31";
     (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }]));
 
     const r = await getPaymentsByDateRange(from, to);
     expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/dateRange",
+      "/users/payments/getByRange",
       {
-        params: { from, to },
+        params: { from: `${from}T00:00:00`, to: `${to}T23:59:59` },
         withCredentials: true,
       }
     );
