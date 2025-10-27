@@ -8,16 +8,21 @@ type LoadingProps = {
 
 export const Loading = ({ message = "Espera, estamos preparando tu experiencia..." }: LoadingProps) => (
   <Box
-    position="fixed"
-    top={0}
-    left={0}
-    width="100%"
-    height="100%"
-    zIndex={(theme) => theme.zIndex.modal + 3000}
-    display="flex"
-    alignItems="center"
-    justifyContent="center"
-    bgcolor={(theme) => theme.palette.background.default || "#fff"}
+    component="div"
+    sx={(theme) => ({
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      zIndex: theme.zIndex.modal + 3000,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      bgcolor: theme.palette.background.default || "#fff",
+      overflow: "hidden",
+      touchAction: "none",
+    })}
   >
     <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
       <Box

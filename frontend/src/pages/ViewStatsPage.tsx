@@ -1,14 +1,28 @@
-import React, { useState, useMemo } from "react";
-import { Box, Grid, Typography, Paper, CircularProgress, Alert, IconButton, useTheme } from "@mui/material";
+import React, { useState, useMemo, useCallback, ChangeEvent } from "react";
+import {
+  Box,
+  Grid,
+  Typography,
+  Paper,
+  CircularProgress,
+  Alert,
+  IconButton,
+  useTheme,
+  Stack,
+  TextField,
+  Divider,
+  Tabs,
+  Tab,
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import ReplyIcon from "@mui/icons-material/Reply";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PollIcon from "@mui/icons-material/Poll";
 import GavelIcon from "@mui/icons-material/Gavel";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import { AttachMoney } from "@mui/icons-material";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 
-import StatsFilters from "../app/property/components/view/StatsFilters";
 import ChartCard from "../app/property/components/view/ChartCard";
 import { useViewStats } from "../app/property/hooks/useViewsStats";
 import BasePage from "./BasePage";
@@ -21,29 +35,45 @@ interface InfoCardProps {
 
 function InfoCard({ title, value, icon }: InfoCardProps) {
   const theme = useTheme();
+  const iconWrapperBg = alpha(theme.palette.primary.main, theme.palette.mode === "light" ? 0.12 : 0.24);
   return (
     <Paper
-      elevation={1}
+      elevation={3}
       sx={{
         p: 2,
+        minHeight: 120,
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        gap: 1.5,
         borderRadius: 2,
         bgcolor: theme.palette.background.paper,
-        transition: "transform 0.2s, box-shadow 0.2s",
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: theme.shadows[4],
-        },
       }}
     >
-      {icon}
-      <Box ml={2}>
-        <Typography variant="h5" fontWeight={700}>
-          {value}
-        </Typography>
-        <Typography variant="subtitle2" color="textSecondary">
+      <Box display="flex" alignItems="center" gap={1.5}>
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: 1.5,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: iconWrapperBg,
+            color: theme.palette.primary.main,
+            flexShrink: 0,
+          }}
+        >
+          {icon}
+        </Box>
+        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.4 }}>
           {title}
+        </Typography>
+      </Box>
+
+      <Box display="flex" flexDirection="column" gap={1}>
+        <Typography variant="h4" fontWeight={700} sx={{ lineHeight: 1.1 }}>
+          {typeof value === "number" ? value.toLocaleString() : value}
         </Typography>
       </Box>
     </Paper>
@@ -76,14 +106,82 @@ const flattenStatusAndType = (data: Record<string, Record<string, number>> | und
 const formatMoney = (amount: number, currency: "ARS" | "USD" = "ARS") =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency }).format(amount || 0);
 
+const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
+
+const getInitialRange = () => {
+  const now = new Date();
+  return {
+    from: toIsoDate(new Date(now.getFullYear(), now.getMonth(), 1)),
+    to: toIsoDate(now),
+  };
+};
+
+const parseDurationToHours = (value: string | number | null | undefined) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const normalized = value.toLowerCase();
+    const timeParts = normalized.match(/\d+/g)?.map((part) => Number(part) || 0);
+    if (timeParts && timeParts.length >= 4 && normalized.includes("día")) {
+      const [days = 0, hours = 0, minutes = 0, seconds = 0] = timeParts;
+      return days * 24 + hours + minutes / 60 + seconds / 3600;
+    }
+    const segments = value.split(":").map((segment) => Number(segment));
+    if (segments.length === 3 && segments.every((num) => !Number.isNaN(num))) {
+      const [hours, minutes, seconds] = segments;
+      return hours + minutes / 60 + seconds / 3600;
+    }
+    const numeric = Number(value);
+    if (!Number.isNaN(numeric)) {
+      return numeric;
+    }
+  }
+  return 0;
+};
+
 export default function ViewStatsPage() {
-  const { stats, loading, error } = useViewStats();
-  const [categories, setCategories] = useState<("views" | "inquiry" | "survey" | "contract")[]>([
-    "views",
-    "inquiry",
-    "survey",
-    "contract",
-  ]);
+  const [dateRange, setDateRange] = useState(getInitialRange);
+  const commissionYear = useMemo(() => {
+    const parsed = Number.parseInt(dateRange.to.slice(0, 4), 10);
+    if (Number.isNaN(parsed)) {
+      return new Date().getFullYear();
+    }
+    return parsed;
+  }, [dateRange.to]);
+
+  const { stats, loading, error } = useViewStats({
+    commissions: {
+      from: dateRange.from,
+      to: dateRange.to,
+      year: commissionYear,
+    },
+    payments: {
+      from: dateRange.from,
+      to: dateRange.to,
+    },
+  });
+
+  const [activeSection, setActiveSection] = useState<"views" | "inquiry" | "survey" | "finances">("views");
+
+  const handleDateChange = useCallback(
+    (field: "from" | "to") => (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      if (!value) return;
+      setDateRange((prev) => {
+        const next = { ...prev, [field]: value };
+        if (next.from > next.to) {
+          if (field === "from") {
+            next.to = value;
+          } else {
+            next.from = value;
+          }
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   // --- VISTAS ---
   const totalViews = useMemo(
@@ -106,17 +204,17 @@ export default function ViewStatsPage() {
     [stats.statusAndType]
   );
   const viewCharts = [
-    { title: "Por Día", data: stats.day, type: "bar" as const },
-    { title: "Por Mes", data: stats.month, type: "doughnut" as const },
-    { title: "Top Propiedades", data: topViewsByProperty, type: "bar" as const },
-    { title: "Por Tipo", data: topViewsByPropertyType, type: "pie" as const },
-    { title: "Por Barrio", data: topViewsByNeighborhood, type: "pie" as const },
-    { title: "Tipo de Barrio", data: topViewsByNeighborhoodType, type: "doughnut" as const },
-    { title: "Por Estado", data: topViewsByStatus, type: "doughnut" as const },
-    { title: "Estado y Tipo", data: topViewsByStatusAndType, type: "bar" as const },
-    { title: "Por Operación", data: topViewsByOperation, type: "pie" as const },
-    { title: "Por Ambientes", data: topViewsByRooms, type: "bar" as const },
-    { title: "Por Amenidad", data: topViewsByAmenity, type: "bar" as const },
+    { title: "Vistas por día", data: stats.day, type: "bar" as const },
+    { title: "Vistas por mes", data: stats.month, type: "doughnut" as const },
+    { title: "Propiedades con más vistas", data: topViewsByProperty, type: "bar" as const },
+    { title: "Vistas por tipo de propiedad", data: topViewsByPropertyType, type: "pie" as const },
+    { title: "Vistas por barrio", data: topViewsByNeighborhood, type: "pie" as const },
+    { title: "Vistas por tipo de barrio", data: topViewsByNeighborhoodType, type: "doughnut" as const },
+    { title: "Vistas por estado", data: topViewsByStatus, type: "doughnut" as const },
+    { title: "Vistas por estado y tipo", data: topViewsByStatusAndType, type: "bar" as const },
+    { title: "Vistas por tipo de operación", data: topViewsByOperation, type: "pie" as const },
+    { title: "Vistas por ambientes", data: topViewsByRooms, type: "bar" as const },
+    { title: "Amenidades más consultadas", data: topViewsByAmenity, type: "bar" as const },
   ] as const;
 
   // --- CONSULTAS ---
@@ -198,6 +296,28 @@ export default function ViewStatsPage() {
     [stats.commissionsTotalInDateRange, currencySymbol]
   );
 
+  const averageInquiryResponseHours = useMemo(
+    () => parseDurationToHours(stats.inquiryResponseTime),
+    [stats.inquiryResponseTime]
+  );
+  const averageInquiryResponseLabel = useMemo(() => {
+    const raw = stats.inquiryResponseTime;
+    if (typeof raw === "string" && /día|hora|minuto|segundo/.test(raw.toLowerCase())) {
+      return raw;
+    }
+    const hours = averageInquiryResponseHours;
+    if (!hours) return "0 h";
+    const totalMinutes = Math.round(hours * 60);
+    const days = Math.floor(totalMinutes / (24 * 60));
+    const hoursPart = Math.floor((totalMinutes - days * 24 * 60) / 60);
+    const minutesPart = totalMinutes % 60;
+    const parts: string[] = [];
+    if (days) parts.push(`${days} día${days !== 1 ? "s" : ""}`);
+    if (hoursPart) parts.push(`${hoursPart} h`);
+    if (minutesPart && parts.length < 2) parts.push(`${minutesPart} min`);
+    return parts.join(" ") || "0 h";
+  }, [stats.inquiryResponseTime, averageInquiryResponseHours]);
+
   // --- PAYMENTS ---
   const paymentsTotal = useMemo(() => Number(stats.paymentsTotalInDateRange || 0), [stats.paymentsTotalInDateRange]);
   const paymentsByConcept = useMemo(
@@ -225,85 +345,146 @@ export default function ViewStatsPage() {
           </Typography>
         </Box>
 
-        {/* Filtros de categoría */}
+        {/* Tabs de navegación */}
         <Box mb={4}>
-          <StatsFilters selected={categories} onChange={setCategories} />
+          <Tabs
+            value={activeSection}
+            onChange={(_, newValue) => setActiveSection(newValue)}
+            centered
+            TabIndicatorProps={{ sx: { height: 4, borderRadius: 999, bgcolor: "primary.main" } }}
+            sx={{
+              borderBottom: 1,
+              borderColor: "divider",
+              maxWidth: 520,
+              mx: "auto",
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "1.05rem",
+                minWidth: "auto",
+                px: { xs: 1, sm: 2.5 },
+              },
+              "& .MuiTab-root.Mui-selected": {
+                color: "primary.main",
+              },
+            }}
+          >
+            <Tab label="Vistas" value="views" />
+            <Tab label="Consultas" value="inquiry" />
+            <Tab label="Encuestas" value="survey" />
+            <Tab label="Finanzas" value="finances" />
+          </Tabs>
         </Box>
+
+        {/* Filtro de rango de fechas (solo en Finanzas) */}
+        {activeSection === "finances" && (
+          <Box mb={4}>
+            <Paper
+              elevation={1}
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Rango de fechas para comisiones y pagos
+              </Typography>
+              <Divider />
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                <TextField
+                  label="Desde"
+                  type="date"
+                  value={dateRange.from}
+                  onChange={handleDateChange("from")}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ width: { xs: "100%", sm: 220 } }}
+                />
+                <TextField
+                  label="Hasta"
+                  type="date"
+                  value={dateRange.to}
+                  onChange={handleDateChange("to")}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ width: { xs: "100%", sm: 220 } }}
+                />
+              </Stack>
+            </Paper>
+          </Box>
+        )}
 
         {/* Resúmenes numéricos */}
         <Grid container spacing={3} mb={4}>
-          {categories.includes("views") && (
+          {activeSection === "views" && (
             <>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                 <InfoCard
-                  icon={<VisibilityIcon fontSize="large" color="primary" />}
+                  icon={<VisibilityIcon fontSize="large" color="inherit" />}
                   title="Total de Vistas"
-                  value={totalViews.toLocaleString()}
+                  value={totalViews}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                 <InfoCard
-                  icon={<VisibilityIcon fontSize="large" color="secondary" />}
-                  title="Vistas Promedio/Día"
-                  value={avgViewsPerDay.toLocaleString()}
+                  icon={<VisibilityIcon fontSize="large" color="inherit" />}
+                  title="Vistas promedio por día"
+                  value={avgViewsPerDay}
                 />
               </Grid>
             </>
           )}
 
-          {categories.includes("inquiry") && (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          {activeSection === "inquiry" && (
+            <Grid size={{ xs: 12, sm: 12, md: 12 }}>
               <InfoCard
-                icon={<AccessTimeIcon fontSize="large" color="warning" />}
-                title="Tiempo Prom. Respuesta (h)"
-                value={
-                  stats.inquiryResponseTime && !isNaN(Number(stats.inquiryResponseTime))
-                    ? Number(stats.inquiryResponseTime).toFixed(2)
-                    : "0.00"
-                }
+                icon={<AccessTimeIcon fontSize="large" color="inherit" />}
+                title="Tiempo promedio de respuesta"
+                value={averageInquiryResponseLabel}
               />
             </Grid>
           )}
 
-          {categories.includes("survey") && (
+          {activeSection === "survey" && (
             <>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                 <InfoCard
-                  icon={<PollIcon fontSize="large" color="success" />}
+                  icon={<PollIcon fontSize="large" color="inherit" />}
                   title="Total de Encuestas"
                   value={stats.surveysCount}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                 <InfoCard
-                  icon={<PollIcon fontSize="large" color="error" />}
+                  icon={<PollIcon fontSize="large" color="inherit" />}
                   title="Puntaje Prom. Encuestas"
-                  value={stats.averageSurveyScore.toFixed(2)}
+                  value={`${stats.averageSurveyScore.toFixed(2)} / 5`}
                 />
               </Grid>
             </>
           )}
 
-          {/* --- KPIs de Contratos --- */}
-          {categories.includes("contract") && (
+          {/* --- KPIs de Finanzas --- */}
+          {activeSection === "finances" && (
             <>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<GavelIcon fontSize="large" color="primary" />}
+                  icon={<GavelIcon fontSize="large" color="inherit" />}
                   title="Total Contratos"
                   value={totalContracts}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<GavelIcon fontSize="large" color="success" />}
+                  icon={<GavelIcon fontSize="large" color="inherit" />}
                   title="Contratos Activos"
                   value={activeContracts}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<GavelIcon fontSize="large" color="error" />}
+                  icon={<GavelIcon fontSize="large" color="inherit" />}
                   title="Contratos Inactivos"
                   value={inactiveContracts}
                 />
@@ -311,57 +492,57 @@ export default function ViewStatsPage() {
 
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="primary" />}
-                  title="Comisiones (Rango Seleccionado)"
+                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                  title="Comisiones totales en el rango"
                   value={totalCommissionInRangeMoney}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="success" />}
+                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                   title="Comisiones Pagadas (Total $)"
                   value={formatMoney(commissionTotalsByStatus["PAGADA"] || 0, currencySymbol)}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="warning" />}
+                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                   title="Comisiones Parciales (Total $)"
                   value={formatMoney(commissionTotalsByStatus["PARCIAL"] || 0, currencySymbol)}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="error" />}
+                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                   title="Comisiones Pendientes (Total $)"
                   value={formatMoney(commissionTotalsByStatus["PENDIENTE"] || 0, currencySymbol)}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="primary" />}
-                  title="Pagos Totales (rango)"
-                  value={paymentsTotal.toLocaleString()}
+                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                  title="Pagos totales en el rango"
+                  value={paymentsTotal}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<AttachMoney fontSize="large" color="success" />}
-                  title="Pagos por Contrato (rango)"
+                  icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
+                  title="Pagos asociados a contratos (rango)"
                   value={paymentsByContractRangeCount}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<AttachMoney fontSize="large" color="warning" />}
-                  title="Pagos por Comisión (rango)"
+                  icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
+                  title="Pagos asociados a comisiones (rango)"
                   value={paymentsByCommissionRangeCount}
                 />
               </Grid>
               {/* Si querés mostrar utilities */}
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <InfoCard
-                  icon={<AttachMoney fontSize="large" color="secondary" />}
+                  icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
                   title="Pagos de Servicios (rango)"
                   value={paymentsByUtilityRangeCount}
                 />
@@ -381,7 +562,7 @@ export default function ViewStatsPage() {
         {/* Grilla de gráficos */}
         {!loading && !error && (
           <Box display="flex" flexDirection="column" gap={4}>
-            {categories.includes("views") && (
+            {activeSection === "views" && (
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                   Vistas de Propiedades
@@ -396,7 +577,7 @@ export default function ViewStatsPage() {
               </Box>
             )}
 
-            {categories.includes("inquiry") && (
+            {activeSection === "inquiry" && (
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                   Consultas
@@ -417,7 +598,7 @@ export default function ViewStatsPage() {
               </Box>
             )}
 
-            {categories.includes("survey") && (
+            {activeSection === "survey" && (
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                   Encuestas
@@ -436,11 +617,11 @@ export default function ViewStatsPage() {
               </Box>
             )}
 
-            {/* --- Sección Contratos --- */}
-            {categories.includes("contract") && (
+            {/* --- Sección Finanzas --- */}
+            {activeSection === "finances" && (
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Contratos
+                  Finanzas
                 </Typography>
 
                 {/* --- KPIs de Payments dentro de la sección Contratos --- */}
@@ -450,32 +631,32 @@ export default function ViewStatsPage() {
                 <Grid container spacing={3}>
                   {/* Lo que ya tenías */}
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Contratos por Estado" data={topContractsByStatus} />
+                    <ChartCard title="Contratos por estado" data={topContractsByStatus} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Contratos por Tipo" data={topContractsByType} />
+                    <ChartCard title="Contratos por tipo" data={topContractsByType} />
                   </Grid>
 
                   {/* Payments */}
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Pagos por Concepto (rango)" data={paymentsByConcept} />
+                    <ChartCard title="Pagos por concepto (rango)" data={paymentsByConcept} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Pagos por Moneda (rango)" data={paymentsByCurrency} />
+                    <ChartCard title="Pagos por moneda (rango)" data={paymentsByCurrency} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 12, md: 8 }}>
-                    <ChartCard title="Pagos por Mes (rango)" data={paymentsMonthlyTotals} />
+                    <ChartCard title="Pagos por mes (rango)" data={paymentsMonthlyTotals} />
                   </Grid>
 
                   {/* (Opcional) Comisiones – útiles si querés ver todo “económico” en la pestaña Contratos */}
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Comisiones por Estado" data={commissionTotalsByStatus} />
+                    <ChartCard title="Comisiones por estado" data={commissionTotalsByStatus} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Comisiones por Mes" data={commissionYearMonthlyTotals} />
+                    <ChartCard title="Comisiones por mes" data={commissionYearMonthlyTotals} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Cantidad de Comisiones por Estado" data={commissionCountsByStatus} />
+                    <ChartCard title="Cantidad de comisiones por estado" data={commissionCountsByStatus} />
                   </Grid>
                   {/* <Grid size={{ xs: 12, sm: 6, md: 4 }}> */}
                   {/* <ChartCard title="Comisiones por Tipo de Pago" data={commissionsCountByPaymentType} />  */}

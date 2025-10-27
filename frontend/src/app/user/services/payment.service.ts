@@ -78,11 +78,15 @@ export const getAllPayments = async () => {
   }
 };
 
-/** GET /users/payments/dateRange?from=YYYY-MM-DD&to=YYYY-MM-DD */
+/** GET /users/payments/getByRange?from=YYYY-MM-DDTHH:mm:ss&to=YYYY-MM-DDTHH:mm:ss */
 export const getPaymentsByDateRange = async (from: string, to: string) => {
   try {
-    const response = await api.get(`/users/payments/dateRange`, {
-      params: { from, to },
+    // Convertir YYYY-MM-DD a YYYY-MM-DDTHH:mm:ss si es necesario
+    const fromDateTime = from.includes('T') ? from : `${from}T00:00:00`;
+    const toDateTime = to.includes('T') ? to : `${to}T23:59:59`;
+    
+    const response = await api.get(`/users/payments/getByRange`, {
+      params: { from: fromDateTime, to: toDateTime },
       withCredentials: true,
     });
     return (response?.data ?? []) as Payment[];

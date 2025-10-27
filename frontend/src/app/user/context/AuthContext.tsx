@@ -44,6 +44,8 @@ const AuthContext = createContext<AuthContextValue>({
   refreshUser: async () => {},
 });
 
+const AUTH_EVENT_STORAGE_KEY = "auth:event";
+
 const ensureDefaultPreferences = async (userId: string): Promise<UserNotificationPreference[]> => {
   // 1) leer existentes
   const resp = await getUserNotificationPreferencesByUser(userId);
@@ -91,6 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const broadcastAuthEvent = useCallback((type: "login" | "logout" | "user-loaded" | "session-expired") => {
     try {
       window.dispatchEvent(new CustomEvent("auth:event", { detail: { type } }));
+    } catch {}
+    try {
+      localStorage.setItem(
+        AUTH_EVENT_STORAGE_KEY,
+        JSON.stringify({ type, ts: Date.now() })
+      );
     } catch {}
   }, []);
 
@@ -173,6 +181,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== AUTH_EVENT_STORAGE_KEY || !event.newValue) return;
+      try {
+        const parsed = JSON.parse(event.newValue) as { type?: string };
+        const type = parsed?.type;
+        if (type === "logout") {
+          sessionStorage.clear();
+          clearPropertyUiState();
+          setInfo(null);
+          setSessionExpired(false);
+          setLoading(false);
+          setReady(true);
+        }
+        if (type === "session-expired") {
+          sessionStorage.clear();
+          clearPropertyUiState();
+          setInfo(null);
+          setSessionExpired(true);
+          setLoading(false);
+          setReady(true);
+        }
+      } catch {}
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [clearPropertyUiState]);
 
   // Al montar, siempre refrescar desde la API (aunque haya stored) para evitar estados viejos
   useEffect(() => {

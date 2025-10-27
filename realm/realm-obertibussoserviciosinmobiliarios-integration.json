@@ -523,6 +523,35 @@
       "groups": []
     },
     {
+      "id": "3f998809-6787-4341-a981-74b78779ffc0",
+      "username": "tenant",
+      "email": "tenant@test.com",
+      "firstName": "Usuario",
+      "lastName": "Inquilino",
+      "emailVerified": true,
+      "createdTimestamp": 0,
+      "enabled": true,
+      "totp": false,
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": ["default-roles-obertibussoserviciosinmobiliarios-integration"],
+      "clientRoles": {
+        "springboot-keycloak-client": ["user", "tenant"]
+      },
+      "attributes": {
+        "phoneNumber": ["+5491100000003"]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Inquilino1.",
+          "temporary": false
+        }
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
       "id": "5d442f09-9bb1-4c6f-b26b-5a59263730c7",
       "username": "admin",
       "email": "admin@test.com",
@@ -614,8 +643,8 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "4d051db6-84fd-4c97-b773-603a0da9e758",
@@ -657,8 +686,8 @@
           "config": {}
         }
       ],
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "87ef525a-e8ad-4ad7-8961-2a5220c3dc98",
@@ -687,8 +716,8 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": 0,
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "9689a5de-feda-4483-ae30-ac65599cc1eb",
@@ -736,8 +765,8 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "5b549cdd-a1c9-45ad-85f6-858831775eb7",
@@ -765,8 +794,8 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "7fe726cb-8346-40e4-bc23-7623e4bb093e",
@@ -794,8 +823,8 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "ae4c5c83-3bf3-4aa4-85aa-ddfb29518e39",
@@ -846,8 +875,8 @@
           }
         }
       ],
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     },
     {
       "id": "48201fcd-982c-4c85-960a-d8aee5778d50",
@@ -888,8 +917,8 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": ["service_account", "web-origins", "acr", "profile", "roles", "basic", "email"],
-      "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
+      "defaultClientScopes": ["service_account", "web-origins", "acr", "profile", "roles", "basic", "email", "phone"],
+      "optionalClientScopes": ["address", "organization", "offline_access", "microprofile-jwt"]
     }
   ],
   "clientScopes": [
@@ -1381,7 +1410,7 @@
           "config": {
             "introspection.token.claim": "true",
             "userinfo.token.claim": "true",
-            "user.attribute": "phone",
+            "user.attribute": "phoneNumber",
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "phone_number",
@@ -1580,9 +1609,10 @@
     "roles",
     "web-origins",
     "acr",
-    "basic"
+    "basic",
+    "phone"
   ],
-  "defaultOptionalClientScopes": ["offline_access", "address", "phone", "microprofile-jwt", "organization"],
+  "defaultOptionalClientScopes": ["offline_access", "address", "microprofile-jwt", "organization"],
   "browserSecurityHeaders": {
     "contentSecurityPolicyReportOnly": "",
     "xContentTypeOptions": "nosniff",
@@ -1729,7 +1759,7 @@
         "subComponents": {},
         "config": {
           "kc.user.profile.config": [
-            "{\"attributes\":[{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phone\",\"displayName\":\"Phone Number\",\"validations\":{\"length\":{\"min\":\"10\",\"max\":\"15\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+            "{\"attributes\":[{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"phoneNumber\",\"displayName\":\"Phone Number\",\"validations\":{\"length\":{\"min\":\"10\",\"max\":\"15\"}},\"annotations\":{},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
           ]
         }
       }

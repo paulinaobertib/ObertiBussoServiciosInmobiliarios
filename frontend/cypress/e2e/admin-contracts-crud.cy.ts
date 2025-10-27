@@ -9,7 +9,7 @@ const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
 describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
-  const TENANT_EMAIL = "mariavvaccarini@gmail.com";
+  const TENANT_EMAIL = "tenant@test.com";
 
   const creationData = {
     contractType: "Vivienda",
@@ -36,10 +36,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         if (!id) {
           throw new Error(`No se encontro input para ${labelPattern}`);
         }
-        cy.get(`#${id}`)
-          .should("exist")
-          .clear({ force: true })
-          .type(value, { force: true });
+        cy.get(`#${id}`).should("exist").clear({ force: true }).type(value, { force: true });
       });
   };
 
@@ -54,10 +51,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.get(`#${id}`)
           .should("have.attr", "type", "date")
           .then(($input) => {
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-              HTMLInputElement.prototype,
-              "value"
-            )?.set;
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
 
             if (!nativeInputValueSetter) {
               throw new Error("No se pudo obtener el setter nativo de value para inputs de fecha");
@@ -128,7 +122,9 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
     cy.get("header, nav")
       .first()
       .within(() => {
-        cy.contains("button", /^Contratos$/i).should("be.visible").click();
+        cy.contains("button", /^Contratos$/i)
+          .should("be.visible")
+          .click();
       });
 
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
@@ -146,7 +142,9 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.get('input[type="checkbox"]').first().check({ force: true });
       });
 
-    cy.contains("button", /^Siguiente$/i, { timeout: SLOT_TIMEOUT }).should("not.be.disabled").click();
+    cy.contains("button", /^Siguiente$/i, { timeout: SLOT_TIMEOUT })
+      .should("not.be.disabled")
+      .click();
 
     cy.wait("@getAllUsers", { timeout: SLOT_TIMEOUT });
 
@@ -156,7 +154,9 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.get('input[type="checkbox"]').first().check({ force: true });
       });
 
-    cy.contains("button", /^Siguiente$/i, { timeout: SLOT_TIMEOUT }).should("not.be.disabled").click();
+    cy.contains("button", /^Siguiente$/i, { timeout: SLOT_TIMEOUT })
+      .should("not.be.disabled")
+      .click();
 
     cy.wait("@getUserById", { timeout: SLOT_TIMEOUT });
     cy.wait("@getIncreaseIndexes", { timeout: SLOT_TIMEOUT });
@@ -204,11 +204,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
 
       const body = interception.response?.body as any;
       const idFromResponse =
-        body?.id ??
-        body?.data?.id ??
-        body?.contract?.id ??
-        (Array.isArray(body) && body[0]?.id) ??
-        null;
+        body?.id ?? body?.data?.id ?? body?.contract?.id ?? (Array.isArray(body) && body[0]?.id) ?? null;
 
       if (idFromResponse != null) {
         createdContractId = Number(idFromResponse);
@@ -237,9 +233,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
     cy.wait("@getContractById", { timeout: SLOT_TIMEOUT });
 
     cy.contains("Detalle de Contrato", { timeout: SLOT_TIMEOUT }).should("be.visible");
-    cy.contains("Notas del Contrato")
-      .parent()
-      .should("contain.text", creationData.note);
+    cy.contains("Notas del Contrato").parent().should("contain.text", creationData.note);
 
     cy.contains("button", /^Editar$/i, { timeout: SLOT_TIMEOUT }).click();
 
@@ -263,11 +257,11 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
 
     cy.wait(1000);
 
-    cy.contains("button", /^Actualizar$/i, { timeout: SLOT_TIMEOUT }).should("be.enabled").click();
+    cy.contains("button", /^Actualizar$/i, { timeout: SLOT_TIMEOUT })
+      .should("be.enabled")
+      .click();
 
-    cy.wait("@updateContract", { timeout: SLOT_TIMEOUT })
-      .its("response.statusCode")
-      .should("be.within", 200, 299);
+    cy.wait("@updateContract", { timeout: SLOT_TIMEOUT }).its("response.statusCode").should("be.within", 200, 299);
 
     cy.get('[role="dialog"]', { timeout: SLOT_TIMEOUT })
       .should("be.visible")
@@ -282,7 +276,9 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
       expect(createdContractId, "ID del contrato creado").to.be.a("number");
     });
 
-    cy.contains("button", /^Ver detalle/i, { timeout: SLOT_TIMEOUT }).first().click({ force: true });
+    cy.contains("button", /^Ver detalle/i, { timeout: SLOT_TIMEOUT })
+      .first()
+      .click({ force: true });
 
     cy.wait("@getContractById", { timeout: SLOT_TIMEOUT });
 
@@ -300,9 +296,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
         cy.contains("button", /^Confirmar$/i).click();
       });
 
-    cy.wait("@deleteContract", { timeout: SLOT_TIMEOUT })
-      .its("response.statusCode")
-      .should("be.within", 200, 299);
+    cy.wait("@deleteContract", { timeout: SLOT_TIMEOUT }).its("response.statusCode").should("be.within", 200, 299);
 
     cy.get('[role="dialog"]', { timeout: SLOT_TIMEOUT })
       .should("be.visible")
@@ -317,7 +311,9 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
           .parents(".MuiFormControl-root")
           .first()
           .within(() => {
-            cy.get('[aria-haspopup="listbox"], [role="button"][aria-haspopup="listbox"]').first().click({ force: true });
+            cy.get('[aria-haspopup="listbox"], [role="button"][aria-haspopup="listbox"]')
+              .first()
+              .click({ force: true });
           });
       });
 

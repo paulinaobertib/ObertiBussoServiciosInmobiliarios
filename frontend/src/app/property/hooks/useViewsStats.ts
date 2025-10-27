@@ -51,6 +51,12 @@ function monthKey(isoDate: string) {
   return (isoDate ?? "").slice(0, 7); // YYYY-MM
 }
 
+function isWithinRange(dateIso: string | undefined, from: string, to: string) {
+  if (!dateIso) return false;
+  const dateOnly = dateIso.slice(0, 10);
+  return (!from || dateOnly >= from) && (!to || dateOnly <= to);
+}
+
 export const useViewStats = (options?: UseViewStatsOptions) => {
   const { handleError } = useApiErrors();
   const { getCountByStatus, getCountByType } = useContractStats();
@@ -211,7 +217,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           totalInRange,
           yearMonthlyTotals,
           // — PAYMENTS — base por rango de fechas
-          paymentsInRange,
+          allPayments,
         ] = await Promise.all([
           // VIEWS
           viewService.getViewsByProperty(),
@@ -248,14 +254,21 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           commissionService.getTotalAmountByStatus(CommissionStatus.PENDIENTE, commissionCfg.currency),
           commissionService.getDateTotals(commissionCfg.from, commissionCfg.to, commissionCfg.currency),
           commissionService.getYearMonthlyTotals(commissionCfg.year, commissionCfg.currency),
-          // PAYMENTS — por rango principal
-          paymentService.getPaymentsByDateRange(paymentsCfg.from, paymentsCfg.to),
+          // PAYMENTS — usar endpoint de rango con fechas amplias (1 año hacia atrás)
+          paymentService.getPaymentsByDateRange(
+            new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().slice(0, 10),
+            new Date().toISOString().slice(0, 10)
+          ),
         ]);
+        const paymentsInRange = (allPayments as Payment[]).filter((p) =>
+          isWithinRange(p?.date, paymentsCfg.from, paymentsCfg.to)
+        );
+
+        const totalCommissionsCount = Object.values(commissionsCountByStatusResp).reduce((acc, v) => acc + Number(v ?? 0), 0);
 
         // ====== Batch tolerante para comisiones (paymentType + listas por estado) ======
         const commissionsSettled = await Promise.allSettled([
           commissionService.getCommissionsByPaymentType(CommissionPaymentType.COMPLETO),
-          commissionService.getCommissionsByPaymentType(CommissionPaymentType.CUOTAS),
           commissionCfg.includeLists
             ? commissionService.getCommissionsByStatus(CommissionStatus.PAGADA)
             : Promise.resolve([] as Commission[]),
@@ -267,19 +280,24 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
             : Promise.resolve([] as Commission[]),
         ]);
 
-        const safeAt = <T>(arr: PromiseSettledResult<any>[], i: number, fallback: T): T =>
+        const safeAt = <T>(arr: PromiseSettledResult<unknown>[], i: number, fallback: T): T =>
           arr[i]?.status === "fulfilled" ? (arr[i] as PromiseFulfilledResult<T>).value : fallback;
 
         const listCompleto = safeAt<Commission[]>(commissionsSettled, 0, []);
-        const listCuotas = safeAt<Commission[]>(commissionsSettled, 1, []);
-        const listPagadas = safeAt<Commission[]>(commissionsSettled, 2, []);
-        const listParcial = safeAt<Commission[]>(commissionsSettled, 3, []);
-        const listPendiente = safeAt<Commission[]>(commissionsSettled, 4, []);
+        const listPagadas = safeAt<Commission[]>(commissionsSettled, 1, []);
+        const listParcial = safeAt<Commission[]>(commissionsSettled, 2, []);
+        const listPendiente = safeAt<Commission[]>(commissionsSettled, 3, []);
+
+        const cuotasCount = Math.max(totalCommissionsCount - listCompleto.length, 0);
 
         const commissionsCountByPaymentType = {
           COMPLETO: listCompleto.length,
-          CUOTAS: listCuotas.length,
+          CUOTAS: cuotasCount,
         } as Record<CommissionPaymentType, number>;
+
+        const commissionsByPaymentTypeList = commissionCfg.includeLists
+          ? { COMPLETO: listCompleto, CUOTAS: [] as Commission[] }
+          : undefined;
 
         const commissionsTotalByStatus = {
           PAGADA: totalPagadas,
@@ -288,19 +306,11 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
         } as Record<CommissionStatus, number>;
 
         // ====== Batch tolerante para payments (currency + sub-rangos) ======
-        const paymentsSettled = await Promise.allSettled([
-          paymentService.getPaymentsByCurrency(PaymentCurrency.ARS),
-          paymentService.getPaymentsByCurrency(PaymentCurrency.USD),
-          paymentService.getPaymentsByContractRange(paymentsCfg.from, paymentsCfg.to),
-          paymentService.getPaymentsByCommissionRange(paymentsCfg.from, paymentsCfg.to),
-          paymentService.getPaymentsByUtilityRange(paymentsCfg.from, paymentsCfg.to),
-        ]);
-
-        const paymentsARS = safeAt<Payment[]>(paymentsSettled, 0, []);
-        const paymentsUSD = safeAt<Payment[]>(paymentsSettled, 1, []);
-        const paymentsContractRange = safeAt<Payment[]>(paymentsSettled, 2, []);
-        const paymentsCommissionRange = safeAt<Payment[]>(paymentsSettled, 3, []);
-        const paymentsUtilityRange = safeAt<Payment[]>(paymentsSettled, 4, []);
+        const paymentsContractRange = paymentsInRange.filter(
+          (p) => !p.commissionId && !p.contractUtilityId
+        );
+        const paymentsCommissionRange = paymentsInRange.filter((p) => Boolean(p.commissionId));
+        const paymentsUtilityRange = paymentsInRange.filter((p) => Boolean(p.contractUtilityId));
 
         // === KPIs de payments derivados ===
         // Total en el rango principal, filtrado por la moneda elegida en options.payments.currency
@@ -315,11 +325,14 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           return acc;
         }, {});
 
-        // Conteo por moneda (usando el endpoint del back para alinear 1:1)
-        const paymentsCountByCurrency = {
-          ARS: paymentsARS.length,
-          USD: paymentsUSD.length,
-        } as Record<PaymentCurrency, number>;
+        // Conteo por moneda (derivando de paymentsInRange)
+        const paymentsCountByCurrency = paymentsInRange.reduce<Record<PaymentCurrency, number>>((acc, p) => {
+          const curr = p.paymentCurrency;
+          if (curr === PaymentCurrency.ARS || curr === PaymentCurrency.USD) {
+            acc[curr] = (acc[curr] ?? 0) + 1;
+          }
+          return acc;
+        }, { ARS: 0, USD: 0 });
 
         // Totales mensuales (sumando montos según currency del propio pago)
         const paymentsMonthlyTotals = paymentsInRange.reduce<Record<string, number>>((acc, p) => {
@@ -365,7 +378,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           commissionsYearMonthlyTotals: yearMonthlyTotals,
           ...(commissionCfg.includeLists && {
             commissionsByStatus: { PAGADA: listPagadas, PARCIAL: listParcial, PENDIENTE: listPendiente },
-            commissionsByPaymentTypeList: { COMPLETO: listCompleto, CUOTAS: listCuotas },
+            commissionsByPaymentTypeList,
           }),
           // — PAYMENTS —
           paymentsTotalInDateRange,
@@ -380,7 +393,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
         setStats((prev) => ({ ...prev, ...next }));
       } catch (e) {
         handleError(e);
-        setError((e as any)?.message ?? "Error al cargar estadísticas");
+        setError((e as Error)?.message ?? "Error al cargar estadísticas");
       } finally {
         setLoading(false);
       }
