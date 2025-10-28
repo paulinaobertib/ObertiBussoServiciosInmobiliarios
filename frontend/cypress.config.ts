@@ -60,6 +60,9 @@ export default defineConfig({
       config.env = {
         ...config.env,
         appUrl: config.baseUrl ?? config.env?.appUrl,
+        gatewayUrl: process.env.CYPRESS_GATEWAY_URL ?? config.env?.gatewayUrl,
+        keycloakUrl: process.env.CYPRESS_KEYCLOAK_URL ?? config.env?.keycloakUrl,
+        ...(process.env.CYPRESS_API_URL ? { apiUrl: process.env.CYPRESS_API_URL } : {}),
       };
 
       return config;
