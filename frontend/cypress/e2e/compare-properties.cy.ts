@@ -42,10 +42,9 @@ describe("Integracion: Comparar propiedades", () => {
         cy.wrap(title.trim()).as("secondTitle");
       });
 
-    cy.get("img[alt='Seleccionar']", { timeout: CATALOG_TIMEOUT }).closest("button").click();
-    cy.contains("[role='alert']", /Entrando al modo/i, { timeout: CATALOG_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Comparar Propiedades$/i, { timeout: CATALOG_TIMEOUT }).click();
 
-    cy.get("img[alt='Comparer']", { timeout: CATALOG_TIMEOUT }).closest("button").as("compareButton");
+    cy.contains("button", /^Ir a Comparar$/i, { timeout: CATALOG_TIMEOUT }).as("compareButton");
     cy.get("@compareButton").should("be.disabled");
 
     cy.get("@firstCard").find("input[type='checkbox']").check({ force: true });
