@@ -7,41 +7,41 @@ on:
       - feature/details-front
 
 jobs:
-  ci_ms_properties:
-    name: CI - Properties
-    uses: ./.github/workflows/ci-ms-properties.yml
-    permissions:
-      contents: read
-      checks: write
-    secrets: inherit
+  # ci_ms_properties:
+  #   name: CI - Properties
+  #   uses: ./.github/workflows/ci-ms-properties.yml
+  #   permissions:
+  #     contents: read
+  #     checks: write
+  #   secrets: inherit
 
-  ci_ms_users:
-    name: CI - Users
-    uses: ./.github/workflows/ci-ms-users.yml
-    permissions:
-      contents: read
-      checks: write
-    secrets: inherit
+  # ci_ms_users:
+  #   name: CI - Users
+  #   uses: ./.github/workflows/ci-ms-users.yml
+  #   permissions:
+  #     contents: read
+  #     checks: write
+  #   secrets: inherit
 
-  ci_ms_gateway:
-    name: CI - Gateway
-    uses: ./.github/workflows/ci-ms-gateway.yml
-    secrets: inherit
+  # ci_ms_gateway:
+  #   name: CI - Gateway
+  #   uses: ./.github/workflows/ci-ms-gateway.yml
+  #   secrets: inherit
 
-  ci_eureka:
-    name: CI - Eureka
-    uses: ./.github/workflows/ci-eureka-server.yml
-    secrets: inherit
+  # ci_eureka:
+  #   name: CI - Eureka
+  #   uses: ./.github/workflows/ci-eureka-server.yml
+  #   secrets: inherit
 
-  ci_keycloak:
-    name: CI - Keycloak
-    uses: ./.github/workflows/ci-keycloak.yml
-    secrets: inherit
+  # ci_keycloak:
+  #   name: CI - Keycloak
+  #   uses: ./.github/workflows/ci-keycloak.yml
+  #   secrets: inherit
 
-  ci_frontend:
-    name: CI - Frontend
-    uses: ./.github/workflows/ci-frontend.yml
-    secrets: inherit
+  # ci_frontend:
+  #   name: CI - Frontend
+  #   uses: ./.github/workflows/ci-frontend.yml
+  #   secrets: inherit
 
   ci_ml:
     name: CI - Machine Learning
@@ -71,60 +71,60 @@ jobs:
       image_tag: ${{ needs.ci_ml.outputs.tag }}
     secrets: inherit
 
-  cd_ms_properties:
-    name: CD - Properties
-    needs:
-      # - ci_integration
-      - ci_ms_properties
-    uses: ./.github/workflows/cd-ms-properties.yml
-    with:
-      image_tag: ${{ needs.ci_ms_properties.outputs.tag }}
-    secrets: inherit
+  # cd_ms_properties:
+  #   name: CD - Properties
+  #   needs:
+  #     # - ci_integration
+  #     - ci_ms_properties
+  #   uses: ./.github/workflows/cd-ms-properties.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_ms_properties.outputs.tag }}
+  #   secrets: inherit
 
-  cd_ms_users:
-    name: CD - Users
-    needs:
-      # - ci_integration
-      - ci_ms_users
-    uses: ./.github/workflows/cd-ms-users.yml
-    with:
-      image_tag: ${{ needs.ci_ms_users.outputs.tag }}
-    secrets: inherit
+  # cd_ms_users:
+  #   name: CD - Users
+  #   needs:
+  #     # - ci_integration
+  #     - ci_ms_users
+  #   uses: ./.github/workflows/cd-ms-users.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_ms_users.outputs.tag }}
+  #   secrets: inherit
 
-  cd_ms_gateway:
-    name: CD - Gateway
-    needs:
-      # - ci_integration
-      - ci_ms_gateway
-    uses: ./.github/workflows/cd-ms-gateway.yml
-    with:
-      image_tag: ${{ needs.ci_ms_gateway.outputs.tag }}
-    secrets: inherit
+  # cd_ms_gateway:
+  #   name: CD - Gateway
+  #   needs:
+  #     # - ci_integration
+  #     - ci_ms_gateway
+  #   uses: ./.github/workflows/cd-ms-gateway.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_ms_gateway.outputs.tag }}
+  #   secrets: inherit
 
-  cd_eureka:
-    name: CD - Eureka
-    needs:
-      # - ci_integration
-      - ci_eureka
-    uses: ./.github/workflows/cd-eureka-server.yml
-    with:
-      image_tag: ${{ needs.ci_eureka.outputs.tag }}
-    secrets: inherit
+  # cd_eureka:
+  #   name: CD - Eureka
+  #   needs:
+  #     # - ci_integration
+  #     - ci_eureka
+  #   uses: ./.github/workflows/cd-eureka-server.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_eureka.outputs.tag }}
+  #   secrets: inherit
 
-  cd_keycloak:
-    name: CD - Keycloak
-    needs:
-      # - ci_integration
-      - ci_keycloak
-    uses: ./.github/workflows/cd-keycloak.yml
-    with:
-      image_tag: ${{ needs.ci_keycloak.outputs.tag }}
-    secrets: inherit
+  # cd_keycloak:
+  #   name: CD - Keycloak
+  #   needs:
+  #     # - ci_integration
+  #     - ci_keycloak
+  #   uses: ./.github/workflows/cd-keycloak.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_keycloak.outputs.tag }}
+  #   secrets: inherit
 
-  cd_frontend:
-    name: CD - Frontend
-    needs:
-      # - ci_integration
-      - ci_frontend
-    uses: ./.github/workflows/cd-frontend.yml
-    secrets: inherit
+  # cd_frontend:
+  #   name: CD - Frontend
+  #   needs:
+  #     # - ci_integration
+  #     - ci_frontend
+  #   uses: ./.github/workflows/cd-frontend.yml
+  #   secrets: inherit
