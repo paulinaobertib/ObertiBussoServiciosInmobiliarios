@@ -25,7 +25,7 @@ env:
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   # App Service
-  IMAGE_NAME: machine-learning
+  IMAGE_NAME: ml-service
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_EDGE_DEV }}
   APP_PLAN_PROD: ${{ secrets.APP_PLAN_EDGE_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_ML_DEV }}
@@ -51,20 +51,11 @@ jobs:
 
       - name: Ensure App Service exists
         run: |
-          set -euo pipefail
-          if ! az webapp show \
+          az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_DEV }} \
             --name ${{ env.APP_NAME_DEV }} \
-            >/dev/null 2>&1; then
-            echo "App Service ${{ env.APP_NAME_DEV }} not found. Creating it..."
-            az webapp create \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --plan ${{ env.APP_PLAN_DEV }} \
-              --name ${{ env.APP_NAME_DEV }} \
-              --deployment-container-image-name $IMAGE
-          else
-            echo "App Service ${{ env.APP_NAME_DEV }} already exists."
-          fi
+            --deployment-container-image-name $IMAGE || true
 
       - name: Configure container
         run: |
@@ -126,20 +117,11 @@ jobs:
 
       - name: Ensure App Service exists
         run: |
-          set -euo pipefail
-          if ! az webapp show \
+          az webapp create \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --plan ${{ env.APP_PLAN_PROD }} \
             --name ${{ env.APP_NAME_PROD }} \
-            >/dev/null 2>&1; then
-            echo "App Service ${{ env.APP_NAME_PROD }} not found. Creating it..."
-            az webapp create \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --plan ${{ env.APP_PLAN_PROD }} \
-              --name ${{ env.APP_NAME_PROD }} \
-              --deployment-container-image-name $IMAGE
-          else
-            echo "App Service ${{ env.APP_NAME_PROD }} already exists."
-          fi
+            --deployment-container-image-name $IMAGE || true
 
       - name: Configure container
         run: |
