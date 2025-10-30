@@ -61,6 +61,16 @@ jobs:
     uses: ./.github/workflows/ci-integration.yml
     secrets: inherit
 
+  cd_ml:
+    name: CD - Machine Learning
+    needs:
+      - ci_integration
+      - ci_ml
+    uses: ./.github/workflows/cd-ml.yml
+    with:
+      image_tag: ${{ needs.ci_ml.outputs.tag }}
+    secrets: inherit
+
   cd_ms_properties:
     name: CD - Properties
     needs:

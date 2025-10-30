@@ -104,7 +104,7 @@ jobs:
 
       - name: Seed Keycloak test user
         run: |
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://auth.localtest.me:8080 --realm master --user admin --password admin
           USER_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username user --new-password Usuario1.
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
@@ -116,6 +116,16 @@ jobs:
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000002"]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000002"]'
+          TENANT_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username tenant --new-password Inquilino1.
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000003"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000003"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --username tenant --cclientid springboot-keycloak-client --rolename user
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --username tenant --cclientid springboot-keycloak-client --rolename tenant
+          echo "Verifying tenant roles..."
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant --format json | jq -r '.[] | .clientRoles."springboot-keycloak-client"[]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
@@ -148,6 +158,7 @@ jobs:
           EOF'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update clients/9689a5de-feda-4483-ae30-ac65599cc1eb -r obertibussoserviciosinmobiliarios-integration -f /tmp/gateway-client.json
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s sslRequired=none
 
       - name: Run Cypress suite
         working-directory: frontend

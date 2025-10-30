@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const FavoriteButton = ({ propertyId }: Props) => {
-    const { isFavorite, toggleFavorite, loading } = useFavorites();
+    const { isFavorite, toggleFavorite, loading, isToggling } = useFavorites();
 
     const handleClick = async (e: MouseEvent) => {
         e.stopPropagation();
@@ -22,7 +22,7 @@ export const FavoriteButton = ({ propertyId }: Props) => {
         <IconButton
             data-testid={`favorite-button-${propertyId}`}
             onClick={handleClick}
-            disabled={loading}
+            disabled={loading || isToggling(propertyId)}
             sx={{
                 position: 'absolute',
                 top: 5,

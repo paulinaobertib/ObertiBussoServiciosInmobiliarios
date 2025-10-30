@@ -9,6 +9,7 @@ export function useFavorites() {
   const { info, isLogged } = useAuthContext();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
   const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
@@ -72,6 +73,11 @@ export function useFavorites() {
     [favorites]
   );
 
+  const isToggling = useCallback(
+    (propertyId: number) => togglingId === propertyId,
+    [togglingId]
+  );
+
   /* ------------------- toggle favorito ------------------- */
   const toggleFavorite = useCallback(
     async (propertyId: number) => {
@@ -84,7 +90,7 @@ export function useFavorites() {
         return;
       }
 
-      setLoading(true);
+      setTogglingId(propertyId);
       try {
         if (isFavorite(propertyId)) {
           // doble confirmación antes de eliminar
@@ -105,11 +111,11 @@ export function useFavorites() {
       } catch (error) {
         handleError(error);
       } finally {
-        setLoading(false);
+        setTogglingId((current) => (current === propertyId ? null : current));
       }
     },
     [favorites, info?.id, isLogged, isFavorite, notifyInfo, notifySuccess, confirmDanger, handleError]
   );
 
-  return { favorites, loading, isFavorite, toggleFavorite };
+  return { favorites, loading, isFavorite, toggleFavorite, isToggling };
 }

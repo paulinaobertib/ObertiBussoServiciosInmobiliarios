@@ -23,6 +23,7 @@ describe('FavoriteButton', () => {
       isFavorite: () => true,
       toggleFavorite: toggleFavoriteMock,
       loading: false,
+      isToggling: () => false,
     });
 
     render(<FavoriteButton propertyId={1} />);
@@ -35,6 +36,7 @@ describe('FavoriteButton', () => {
       isFavorite: () => false,
       toggleFavorite: toggleFavoriteMock,
       loading: false,
+      isToggling: () => false,
     });
 
     render(<FavoriteButton propertyId={1} />);
@@ -47,6 +49,7 @@ describe('FavoriteButton', () => {
       isFavorite: isFavoriteMock.mockReturnValue(false),
       toggleFavorite: toggleFavoriteMock,
       loading: false,
+      isToggling: () => false,
     });
 
     render(<FavoriteButton propertyId={123} />);
@@ -60,6 +63,20 @@ describe('FavoriteButton', () => {
       isFavorite: () => false,
       toggleFavorite: toggleFavoriteMock,
       loading: true,
+      isToggling: () => false,
+    });
+
+    render(<FavoriteButton propertyId={1} />);
+
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('deshabilita el botón cuando la propiedad está en toggle', () => {
+    (useFavorites as Mock).mockReturnValue({
+      isFavorite: () => false,
+      toggleFavorite: toggleFavoriteMock,
+      loading: false,
+      isToggling: (id: number) => id === 1,
     });
 
     render(<FavoriteButton propertyId={1} />);
