@@ -74,7 +74,7 @@ jobs:
   cd_ms_properties:
     name: CD - Properties
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_ms_properties
     uses: ./.github/workflows/cd-ms-properties.yml
     with:
@@ -84,7 +84,7 @@ jobs:
   cd_ms_users:
     name: CD - Users
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_ms_users
     uses: ./.github/workflows/cd-ms-users.yml
     with:
@@ -94,7 +94,7 @@ jobs:
   cd_ms_gateway:
     name: CD - Gateway
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_ms_gateway
     uses: ./.github/workflows/cd-ms-gateway.yml
     with:
@@ -104,7 +104,7 @@ jobs:
   cd_eureka:
     name: CD - Eureka
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_eureka
     uses: ./.github/workflows/cd-eureka-server.yml
     with:
@@ -114,7 +114,7 @@ jobs:
   cd_keycloak:
     name: CD - Keycloak
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_keycloak
     uses: ./.github/workflows/cd-keycloak.yml
     with:
@@ -124,7 +124,7 @@ jobs:
   cd_frontend:
     name: CD - Frontend
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_frontend
     uses: ./.github/workflows/cd-frontend.yml
     secrets: inherit
