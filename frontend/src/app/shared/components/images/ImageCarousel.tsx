@@ -2,12 +2,17 @@ import { Box } from '@mui/material';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import carrusel1 from '../../../../assets/carrusel1.jpg'
+import carrusel1 from '../../../../assets/carrusel1.jpg';
 import carrusel2 from '../../../../assets/carrusel2.jpg';
 import carrusel3 from '../../../../assets/carrusel3.jpg';
+import carrusel4 from '../../../../assets/carrusel4.jpg';
+import carrusel5 from '../../../../assets/carrusel5.jpg';
+import carrusel6 from '../../../../assets/carrusel6.jpg';
+import carrusel7 from '../../../../assets/carrusel7.jpg';
+import carrusel8 from '../../../../assets/carrusel8.jpg';
 import logo from '../../../../assets/logoJPG.png';
 
-const carouselImages = [carrusel1, carrusel2, carrusel3];
+const carouselImages = [carrusel1, carrusel2, carrusel3, carrusel4, carrusel5, carrusel6, carrusel7, carrusel8];
 
 const sliderSettings = {
   dots: false,
