@@ -23,32 +23,38 @@ const MONTH_LABELS = [
   "diciembre",
 ];
 
-// Calcular el día siguiente (debe coincidir con los turnos generados por el admin)
-const targetDate = new Date();
-targetDate.setDate(targetDate.getDate() + 1);
-const targetDay = targetDate.getDate();
-const targetMonth = targetDate.getMonth();
-const targetMonthName = MONTH_LABELS[targetMonth];
-
 const selectFirstAvailableSlot = () => {
   cy.contains(/Seleccion.*un d[ií]a/i, { timeout: 10000 }).should("be.visible");
 
-  // Navegar al mes objetivo
-  const currentMonth = new Date().getMonth();
-  let monthsToAdvance = targetMonth - currentMonth;
-  if (monthsToAdvance < 0) monthsToAdvance += 12;
+  // Esperar que se carguen los turnos disponibles primero
+  cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
-  for (let i = 0; i < monthsToAdvance; i++) {
-    cy.get(nextMonthButtonSelector2).last().click();
-  }
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDay = tomorrow.getDate();
 
-  cy.get(".MuiPickersCalendarHeader-label", { timeout: 10000 }).should("contain.text", targetMonthName);
+  // Buscar un día habilitado >= mañana
+  cy.get("button.MuiPickersDay-root:visible:not(.Mui-disabled)", { timeout: 10000 }).then(($buttons) => {
+    let selectedButton = $buttons.first();
+    
+    for (let i = 0; i < $buttons.length; i++) {
+      const dayText = $buttons.eq(i).text().trim();
+      const day = parseInt(dayText);
+      if (day >= tomorrowDay) {
+        selectedButton = $buttons.eq(i);
+        break;
+      }
+    }
+    
+    cy.wrap(selectedButton).as("firstAvailableDay").click({ force: true });
+  });
 
-  // Seleccionar el día calculado
-  cy.contains("button", new RegExp(`^${targetDay}$`)).as("selectedDay");
-  cy.get("@selectedDay").click({ force: true });
-  cy.get("@selectedDay").should("have.class", "Mui-selected");
+  cy.get("@firstAvailableDay").should("have.class", "Mui-selected");
 
+  // Esperar que se carguen los horarios después de seleccionar el día
+  cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+
+  // Seleccionar el primer horario disponible
   cy.contains("button:enabled", /^\d{2}:\d{2}$/, { timeout: 10000 })
     .first()
     .as("slotButton");
@@ -94,9 +100,6 @@ describe("Integracion: Contacto solicita turno sin autenticacion", () => {
 
     cy.contains(/Reserv.*tu turno/i, { timeout: 10000 }).should("be.visible");
     selectFirstAvailableSlot();
-
-    // Esperar carga de slots disponibles
-    cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     cy.contains("button", /^Solicitar Turno$/)
       .scrollIntoView()
@@ -178,29 +181,35 @@ describe("Integracion: Contacto solicita turno sin autenticacion", () => {
     cy.get('.MuiDialog-root, [role="dialog"]', { timeout: 10000 }).last().should("be.visible");
 
     // Confirmar la cancelación en el diálogo (usar .last() para trabajar con el diálogo más reciente)
-    cy.get('.MuiDialog-root, [role="dialog"]').last().within(() => {
-      cy.contains("button", /^Confirmar$/i, { timeout: 10000 })
-        .should("be.visible")
-        .then(($btn) => cy.wrap($btn).click());
-    });
+    cy.get('.MuiDialog-root, [role="dialog"]')
+      .last()
+      .within(() => {
+        cy.contains("button", /^Confirmar$/i, { timeout: 10000 })
+          .should("be.visible")
+          .then(($btn) => cy.wrap($btn).click());
+      });
 
     // Segunda confirmación (doble confirmación como en eliminar propiedad)
     cy.get('.MuiDialog-root, [role="dialog"]', { timeout: 10000 }).last().should("be.visible");
-    cy.get('.MuiDialog-root, [role="dialog"]').last().within(() => {
-      cy.contains("button", /^Confirmar$/i, { timeout: 10000 })
-        .should("be.visible")
-        .then(($btn) => cy.wrap($btn).click());
-    });
+    cy.get('.MuiDialog-root, [role="dialog"]')
+      .last()
+      .within(() => {
+        cy.contains("button", /^Confirmar$/i, { timeout: 10000 })
+          .should("be.visible")
+          .then(($btn) => cy.wrap($btn).click());
+      });
 
     // Esperar que se elimine el turno
     cy.wait("@deleteAppointment", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     // Cerrar el diálogo de confirmación de eliminación exitosa
     cy.get('.MuiDialog-root, [role="dialog"]', { timeout: 10000 }).last().should("be.visible");
-    cy.get('.MuiDialog-root, [role="dialog"]').last().within(() => {
-      cy.contains("button", /^(Ok|Aceptar|Cerrar)$/i, { timeout: 10000 })
-        .should("be.visible")
-        .then(($btn) => cy.wrap($btn).click());
-    });
+    cy.get('.MuiDialog-root, [role="dialog"]')
+      .last()
+      .within(() => {
+        cy.contains("button", /^(Ok|Aceptar|Cerrar)$/i, { timeout: 10000 })
+          .should("be.visible")
+          .then(($btn) => cy.wrap($btn).click());
+      });
   });
 });

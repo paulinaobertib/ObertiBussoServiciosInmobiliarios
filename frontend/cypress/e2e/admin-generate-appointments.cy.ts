@@ -78,8 +78,9 @@ const selectCalendarDay = (day: number) => {
 
   cy.contains("button.MuiPickersDay-root", dayLabel)
     .filter(":visible")
+    .not(".Mui-disabled")
     .first()
-    .should("not.be.disabled")
+    .should("exist")
     .click({ force: true });
 };
 
@@ -92,14 +93,42 @@ const SLOT_TIMEOUT = 70000;
 const getSlotByTime = (timeLabel: RegExp) =>
   cy.contains(".MuiPaper-root", timeLabel, { timeout: SLOT_TIMEOUT }).filter(":visible").first();
 
-describe("Integración: Turnero admin genera turnos reales en diciembre", () => {
-  // Calcular dinámicamente el día siguiente
+const findFirstAvailableDay = (): Cypress.Chainable<{ day: number; month: number; year: number }> => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const targetDay = tomorrow.getDate();
-  const targetMonth = tomorrow.getMonth();
-  const targetMonthName = MONTH_LABELS[targetMonth];
-  const targetYear = tomorrow.getFullYear();
+  const tomorrowDay = tomorrow.getDate();
+
+  return cy.get(".MuiPickersCalendarHeader-label").then(($label) => {
+    const labelText = $label.text();
+    const monthMatch = MONTH_LABELS.findIndex((m) => labelText.includes(m));
+    const yearMatch = labelText.match(/\d{4}/);
+    const currentMonth = monthMatch !== -1 ? monthMatch : new Date().getMonth();
+    const currentYear = yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
+
+    return cy
+      .get("button.MuiPickersDay-root:visible:not(.Mui-disabled)")
+      .then(($buttons) => {
+        // Buscar un día >= mañana
+        for (let i = 0; i < $buttons.length; i++) {
+          const dayText = $buttons.eq(i).text().trim();
+          const day = parseInt(dayText);
+          if (day >= tomorrowDay) {
+            return cy.wrap({ day, month: currentMonth, year: currentYear });
+          }
+        }
+        // Si no encuentra, usar el primero disponible
+        const dayText = $buttons.first().text().trim();
+        const day = parseInt(dayText);
+        return cy.wrap({ day, month: currentMonth, year: currentYear });
+      });
+  });
+};
+
+describe("Integración: Turnero admin genera turnos reales en diciembre", () => {
+  let targetDay: number;
+  let targetMonth: number;
+  let targetMonthName: string;
+  let targetYear: number;
 
   before(function () {
     const requiredEnvVars = ["adminUsername", "adminPassword", "keycloakUrl", "appUrl"];
@@ -113,8 +142,6 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
       this.skip();
       return;
     }
-
-    cy.log(`Generando turnos para ${targetDay} de ${targetMonthName} de ${targetYear}`);
   });
 
   beforeEach(() => {
@@ -146,125 +173,137 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
     cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
     cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
 
-    moveCalendarTo(targetMonth, targetYear);
-    selectCalendarDay(targetDay);
+    // Buscar primer día disponible en el calendario
+    findFirstAvailableDay().then(({ day, month, year }) => {
+      targetDay = day;
+      targetMonth = month;
+      targetYear = year;
+      targetMonthName = MONTH_LABELS[month];
 
-    cy.contains("button", /^Generar turnos$/i)
-      .should("be.visible")
-      .click();
-
-    cy.get("[role='dialog']").within(() => {
-      cy.contains("Generar turnos", { timeout: 10000 }).should("be.visible");
+      cy.log(`Usando día disponible: ${day} de ${targetMonthName} de ${year}`);
 
       moveCalendarTo(targetMonth, targetYear);
       selectCalendarDay(targetDay);
 
-      setTimeInput("Desde", "09:00");
-      setTimeInput("Hasta", "10:00");
-
-      cy.contains("button", /^Generar$/i)
-        .should("be.enabled")
-        .click();
-    });
-
-    cy.contains("Turnos generados", { timeout: 30000 }).should("be.visible");
-    cy.contains("Se crearon turnos", { timeout: 30000 }).should("be.visible");
-    cy.contains("button", /^Ok$/i).click();
-    cy.wait("@createAvailability", { timeout: SLOT_TIMEOUT }).its("response.statusCode").should("be.within", 200, 299);
-    cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
-    cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
-    cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
-
-    cy.get("[role='dialog']")
-      .find("button[aria-label='cerrar modal'], button[aria-label='close']")
-      .filter(":visible")
-      .first()
-      .click({ force: true });
-    cy.get("[role='dialog']").should("not.exist");
-
-    moveCalendarTo(targetMonth, targetYear);
-    selectCalendarDay(targetDay);
-
-    cy.contains("button", /^POR DIA$/i).click();
-
-    getSlotByTime(/09:00/).should("be.visible").and("contain.text", "Libre");
-    getSlotByTime(/09:30/).should("be.visible").and("contain.text", "Libre");
-
-    const confirmDeletion = () => {
-      cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
-        .filter(":visible")
-        .first()
+      cy.contains("button", /^Generar turnos$/i)
+        .should("be.visible")
         .click();
 
-      cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
-        .filter(":visible")
-        .first()
-        .click();
+      cy.get("[role='dialog']").within(() => {
+        cy.contains("Generar turnos", { timeout: 10000 }).should("be.visible");
 
-      cy.wait("@deleteAvailability", { timeout: SLOT_TIMEOUT })
+        moveCalendarTo(targetMonth, targetYear);
+        selectCalendarDay(targetDay);
+
+        setTimeInput("Desde", "09:00");
+        setTimeInput("Hasta", "10:00");
+
+        cy.contains("button", /^Generar$/i)
+          .should("be.enabled")
+          .click();
+      });
+
+      cy.contains("Turnos generados", { timeout: 30000 }).should("be.visible");
+      cy.contains("Se crearon turnos", { timeout: 30000 }).should("be.visible");
+      cy.contains("button", /^Ok$/i).click();
+      cy.wait("@createAvailability", { timeout: SLOT_TIMEOUT })
         .its("response.statusCode")
         .should("be.within", 200, 299);
       cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
       cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
       cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
 
-      cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("be.visible");
-      cy.contains("button", /^Ok$/i, { timeout: SLOT_TIMEOUT }).click();
-      cy.get("[role='dialog']", { timeout: SLOT_TIMEOUT }).should("not.exist");
-    };
+      cy.get("[role='dialog']")
+        .find("button[aria-label='cerrar modal'], button[aria-label='close']")
+        .filter(":visible")
+        .first()
+        .click({ force: true });
+      cy.get("[role='dialog']").should("not.exist");
 
-    const openSlotDetail = (timePattern: RegExp, attempts = 3): Cypress.Chainable<JQuery<HTMLElement>> => {
-      const tryOpen = (remaining: number): Cypress.Chainable<JQuery<HTMLElement>> => {
-        return getSlotByTime(timePattern)
-          .click()
-          .then(() =>
-            cy.contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT }).filter(":visible").first()
-          )
-          .then(($dialog) => {
-            if ($dialog.length) {
-              return cy
-                .wrap($dialog)
-                .within(() => {
-                  cy.contains("button", "Eliminar", {
-                    timeout: SLOT_TIMEOUT,
-                    matchCase: false,
-                  })
-                    .should("exist")
-                    .and("be.visible")
-                    .and("be.enabled");
-                })
-                .then(() => cy.wrap($dialog));
-            }
+      moveCalendarTo(targetMonth, targetYear);
+      selectCalendarDay(targetDay);
 
-            if (remaining <= 1) {
-              throw new Error(`No se pudo abrir el detalle del turno para ${timePattern.toString()}`);
-            }
+      cy.contains("button", /^POR DIA$/i).click();
 
-            cy.log(`El detalle del turno se cerro, reintentando apertura (${remaining - 1} intentos restantes).`);
+      getSlotByTime(/09:00/).should("be.visible").and("contain.text", "Libre");
+      getSlotByTime(/09:30/).should("be.visible").and("contain.text", "Libre");
 
-            return tryOpen(remaining - 1);
-          });
+      const confirmDeletion = () => {
+        cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
+          .filter(":visible")
+          .first()
+          .click();
+
+        cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
+          .filter(":visible")
+          .first()
+          .click();
+
+        cy.wait("@deleteAvailability", { timeout: SLOT_TIMEOUT })
+          .its("response.statusCode")
+          .should("be.within", 200, 299);
+        cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
+        cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
+        cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
+
+        cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("be.visible");
+        cy.contains("button", /^Ok$/i, { timeout: SLOT_TIMEOUT }).click();
+        cy.get("[role='dialog']", { timeout: SLOT_TIMEOUT }).should("not.exist");
       };
 
-      return tryOpen(attempts);
-    };
+      const openSlotDetail = (timePattern: RegExp, attempts = 3): Cypress.Chainable<JQuery<HTMLElement>> => {
+        const tryOpen = (remaining: number): Cypress.Chainable<JQuery<HTMLElement>> => {
+          return getSlotByTime(timePattern)
+            .click()
+            .then(() =>
+              cy.contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT }).filter(":visible").first()
+            )
+            .then(($dialog) => {
+              if ($dialog.length) {
+                return cy
+                  .wrap($dialog)
+                  .within(() => {
+                    cy.contains("button", "Eliminar", {
+                      timeout: SLOT_TIMEOUT,
+                      matchCase: false,
+                    })
+                      .should("exist")
+                      .and("be.visible")
+                      .and("be.enabled");
+                  })
+                  .then(() => cy.wrap($dialog));
+              }
 
-    const deleteSlot = (timePattern: RegExp) => {
-      openSlotDetail(timePattern).within(() => {
-        cy.contains("button", "Eliminar", { timeout: SLOT_TIMEOUT, matchCase: false })
-          .should("exist")
-          .and("be.visible")
-          .and("be.enabled")
-          .click();
-      });
+              if (remaining <= 1) {
+                throw new Error(`No se pudo abrir el detalle del turno para ${timePattern.toString()}`);
+              }
 
-      confirmDeletion();
-      cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
-    };
+              cy.log(`El detalle del turno se cerro, reintentando apertura (${remaining - 1} intentos restantes).`);
 
-    deleteSlot(/09:00/);
+              return tryOpen(remaining - 1);
+            });
+        };
 
-    getSlotByTime(/09:30/).should("be.visible").and("contain.text", "Libre");
-    cy.contains(".MuiPaper-root", /09:00/, { timeout: SLOT_TIMEOUT }).should("not.exist");
+        return tryOpen(attempts);
+      };
+
+      const deleteSlot = (timePattern: RegExp) => {
+        openSlotDetail(timePattern).within(() => {
+          cy.contains("button", "Eliminar", { timeout: SLOT_TIMEOUT, matchCase: false })
+            .should("exist")
+            .and("be.visible")
+            .and("be.enabled")
+            .click();
+        });
+
+        confirmDeletion();
+        cy.contains(".MuiPaper-root", timePattern, { timeout: SLOT_TIMEOUT }).should("not.exist");
+      };
+
+      deleteSlot(/09:00/);
+
+      getSlotByTime(/09:30/).should("be.visible").and("contain.text", "Libre");
+      cy.contains(".MuiPaper-root", /09:00/, { timeout: SLOT_TIMEOUT }).should("not.exist");
+    });
   });
 });

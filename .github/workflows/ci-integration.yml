@@ -111,17 +111,21 @@ jobs:
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000001"]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000001"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --user user --cclientid springboot-keycloak-client --rolename user
           ADMIN_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=admin | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000002"]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000002"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --user admin --cclientid springboot-keycloak-client --rolename admin
           TENANT_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username tenant --new-password Inquilino1.
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000003"]'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000003"]'
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --user tenant --cclientid springboot-keycloak-client --rolename user
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --user tenant --cclientid springboot-keycloak-client --rolename tenant
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
