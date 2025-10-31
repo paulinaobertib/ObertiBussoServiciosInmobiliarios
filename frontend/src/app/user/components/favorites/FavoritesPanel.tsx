@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { useFavorites } from "../../hooks/useFavorites";
+import { useFavoritesContext } from "../../context/FavoritesContext";
 import { getPropertyById } from "../../../property/services/property.service";
 import type { Property } from "../../../property/types/property";
 import { CatalogList } from "../../../property/components/catalog/CatalogList";
@@ -10,7 +10,7 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 
 export const FavoritesPanel = () => {
   const navigate = useNavigate();
-  const { favorites, loading: favLoading } = useFavorites();
+  const { favorites, loading: favLoading } = useFavoritesContext();
   const [favoriteProps, setFavoriteProps] = useState<Property[]>([]);
   const [loadingProps, setLoadingProps] = useState(true);
 

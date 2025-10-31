@@ -3,12 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { FavoriteButton } from '../../../components/favorites/FavoriteButtom';
 
-// Mock del hook useFavorites
-vi.mock('../../../hooks/useFavorites', () => ({
-  useFavorites: vi.fn(),
+// Mock del contexto useFavoritesContext
+vi.mock('../../../context/FavoritesContext', () => ({
+  useFavoritesContext: vi.fn(),
 }));
 
-import { useFavorites } from '../../../hooks/useFavorites';
+import { useFavoritesContext } from '../../../context/FavoritesContext';
 
 describe('FavoriteButton', () => {
   const toggleFavoriteMock = vi.fn();
@@ -19,7 +19,7 @@ describe('FavoriteButton', () => {
   });
 
   it('muestra el icono lleno cuando la propiedad es favorita', () => {
-    (useFavorites as Mock).mockReturnValue({
+    (useFavoritesContext as Mock).mockReturnValue({
       isFavorite: () => true,
       toggleFavorite: toggleFavoriteMock,
       loading: false,
@@ -32,7 +32,7 @@ describe('FavoriteButton', () => {
   });
 
   it('muestra el icono vacío cuando la propiedad NO es favorita', () => {
-    (useFavorites as Mock).mockReturnValue({
+    (useFavoritesContext as Mock).mockReturnValue({
       isFavorite: () => false,
       toggleFavorite: toggleFavoriteMock,
       loading: false,
@@ -45,7 +45,7 @@ describe('FavoriteButton', () => {
   });
 
   it('llama a toggleFavorite al hacer click', () => {
-    (useFavorites as Mock).mockReturnValue({
+    (useFavoritesContext as Mock).mockReturnValue({
       isFavorite: isFavoriteMock.mockReturnValue(false),
       toggleFavorite: toggleFavoriteMock,
       loading: false,
@@ -59,7 +59,7 @@ describe('FavoriteButton', () => {
   });
 
   it('deshabilita el botón cuando loading es true', () => {
-    (useFavorites as Mock).mockReturnValue({
+    (useFavoritesContext as Mock).mockReturnValue({
       isFavorite: () => false,
       toggleFavorite: toggleFavoriteMock,
       loading: true,
@@ -72,7 +72,7 @@ describe('FavoriteButton', () => {
   });
 
   it('deshabilita el botón cuando la propiedad está en toggle', () => {
-    (useFavorites as Mock).mockReturnValue({
+    (useFavoritesContext as Mock).mockReturnValue({
       isFavorite: () => false,
       toggleFavorite: toggleFavoriteMock,
       loading: false,

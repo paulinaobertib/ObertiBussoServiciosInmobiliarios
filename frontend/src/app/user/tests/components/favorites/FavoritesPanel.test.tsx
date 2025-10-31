@@ -4,10 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { vi, type Mock } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import { FavoritesPanel } from "../../../components/favorites/FavoritesPanel";
-import { useFavorites } from "../../../hooks/useFavorites";
+import { useFavoritesContext } from "../../../context/FavoritesContext";
 
-vi.mock("../../../hooks/useFavorites", () => ({
-  useFavorites: vi.fn(),
+vi.mock("../../../context/FavoritesContext", () => ({
+  useFavoritesContext: vi.fn(),
 }));
 
 vi.mock("../../../../property/services/property.service", () => ({
@@ -43,7 +43,7 @@ vi.mock("react-router-dom", async () => {
 import { getPropertyById as _getPropertyById } from "../../../../property/services/property.service";
 
 const getPropertyById = _getPropertyById as unknown as Mock;
-const useFavoritesMock = useFavorites as unknown as Mock;
+const useFavoritesMock = useFavoritesContext as unknown as Mock;
 
 // ─────────────────── Tests ───────────────────
 
