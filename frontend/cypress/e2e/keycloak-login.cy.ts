@@ -1,4 +1,6 @@
 import { appBaseUrl } from "../support/e2e";
+import { interceptGateway } from "../support/intercepts";
+
 const keycloakUrl = Cypress.env("keycloakUrl");
 
 const keycloakOrigin = new URL(keycloakUrl).origin;
@@ -17,6 +19,18 @@ describe("Login con Keycloak", () => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
+
+    // Configurar interceptores
+    interceptGateway("GET", "/properties/amenity/getAll", "getAmenities");
+    interceptGateway("GET", "/properties/type/getAll", "getTypes");
+    interceptGateway("GET", "/properties/neighborhood/getAll", "getNeighborhoods");
+    interceptGateway("GET", "/properties/property/get", "getAvailableProperties");
+    interceptGateway("GET", "/properties/property/search**", "searchProperties");
+    interceptGateway("GET", "/users/user/me", "getCurrentUser");
+    interceptGateway("POST", "/users/user/registerRole", "registerRole");
+    interceptGateway("GET", "/users/user/role/*", "getUserRole");
+    interceptGateway("GET", "/users/preference/user/*", "getUserPreferences");
+    interceptGateway("GET", "/users/favorites/user/*", "getUserFavorites");
   });
 
   it("Rechaza login con usuario incorrecto", () => {
@@ -103,7 +117,17 @@ describe("Login con Keycloak", () => {
       }
     );
 
+    // Esperar a que regrese autenticado
     cy.location("pathname", { timeout: 30000 }).should("eq", "/");
+
+    // Esperar a que carguen los datos del usuario
+    cy.wait("@getCurrentUser", { timeout: 15000 });
+    cy.wait("@registerRole", { timeout: 15000 });
+    cy.wait("@getUserRole", { timeout: 15000 });
+    cy.wait("@getUserPreferences", { timeout: 15000 });
+    cy.wait("@getUserFavorites", { timeout: 15000 });
+
+    // Verificar elementos de la UI
     cy.get('[aria-label="profile"]', { timeout: 30000 }).should("be.visible");
     cy.get('[aria-label="logout"]').should("be.visible");
   });

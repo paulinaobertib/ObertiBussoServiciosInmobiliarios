@@ -1,4 +1,5 @@
 import { appBaseUrl } from "../support/e2e";
+import { interceptGateway } from "../support/intercepts";
 
 const CATALOG_TIMEOUT = 60000;
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -12,8 +13,8 @@ describe("Integracion: Comparar propiedades", () => {
   });
 
   it("Permite comparar propiedades y enviar una consulta por las seleccionadas", () => {
-    cy.intercept("GET", "**/properties/property/getById/*").as("getPropertyById");
-    cy.intercept("POST", "**/properties/inquiries/create").as("postInquiry");
+    interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
+    interceptGateway("POST", "/properties/inquiries/create", "postInquiry");
 
     cy.contains("button", /Iniciar Ses/i, { timeout: CATALOG_TIMEOUT }).should("be.visible");
 
@@ -105,4 +106,3 @@ describe("Integracion: Comparar propiedades", () => {
     cy.contains("h2", /Enviar consulta/i).should("not.exist");
   });
 });
-

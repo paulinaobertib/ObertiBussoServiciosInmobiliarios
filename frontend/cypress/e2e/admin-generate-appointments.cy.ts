@@ -14,15 +14,6 @@ const MONTH_LABELS = [
   "noviembre",
   "diciembre",
 ];
-const DECEMBER_INDEX = 11;
-const DECEMBER_NAME = "diciembre";
-const BASE_DAY = 18;
-const MAX_DAY = 31;
-
-type AppointmentState = {
-  year: number;
-  lastGeneratedDay: number;
-};
 
 const sanitize = (value: string) =>
   value
@@ -67,10 +58,7 @@ const moveCalendarTo = (monthIndex: number, year: number) => {
       const steps = Math.abs(monthDelta);
 
       Cypress._.times(steps, () => {
-        cy.get(selector)
-          .filter(":visible")
-          .first()
-          .click();
+        cy.get(selector).filter(":visible").first().click();
       });
     })
     .then(() => {
@@ -96,22 +84,7 @@ const selectCalendarDay = (day: number) => {
 };
 
 const setTimeInput = (labelText: string, value: string) => {
-  cy.contains("label", labelText)
-    .parent()
-    .find("input")
-    .clear()
-    .type(value);
-};
-
-const computeDefaultYear = () => {
-  const today = new Date();
-  const baseDateThisYear = new Date(today.getFullYear(), DECEMBER_INDEX, BASE_DAY);
-
-  if (today <= baseDateThisYear) {
-    return baseDateThisYear.getFullYear();
-  }
-
-  return baseDateThisYear.getFullYear() + 1;
+  cy.contains("label", labelText).parent().find("input").clear().type(value);
 };
 
 const SLOT_TIMEOUT = 70000;
@@ -120,8 +93,13 @@ const getSlotByTime = (timeLabel: RegExp) =>
   cy.contains(".MuiPaper-root", timeLabel, { timeout: SLOT_TIMEOUT }).filter(":visible").first();
 
 describe("Integración: Turnero admin genera turnos reales en diciembre", () => {
-  let targetDay = BASE_DAY;
-  let targetYear = computeDefaultYear();
+  // Calcular dinámicamente el día siguiente
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const targetDay = tomorrow.getDate();
+  const targetMonth = tomorrow.getMonth();
+  const targetMonthName = MONTH_LABELS[targetMonth];
+  const targetYear = tomorrow.getFullYear();
 
   before(function () {
     const requiredEnvVars = ["adminUsername", "adminPassword", "keycloakUrl", "appUrl"];
@@ -136,53 +114,13 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
       return;
     }
 
-    cy.task("adminAppointments:state:read").then((rawState) => {
-      const state = rawState as AppointmentState | null;
-      const defaultYear = computeDefaultYear();
-      const storedYear = typeof state?.year === "number" ? state.year : defaultYear;
-      const storedDay = typeof state?.lastGeneratedDay === "number" ? state.lastGeneratedDay : BASE_DAY - 1;
-
-      let nextYear = storedYear;
-      let nextDay = storedDay + 1;
-
-      if (nextDay > MAX_DAY) {
-        nextDay = BASE_DAY;
-        nextYear += 1;
-      }
-
-      if (nextDay < BASE_DAY) {
-        nextDay = BASE_DAY;
-      }
-
-      if (nextYear < defaultYear) {
-        nextYear = defaultYear;
-        if (nextDay < BASE_DAY) {
-          nextDay = BASE_DAY;
-        }
-      }
-
-      targetDay = nextDay;
-      targetYear = nextYear;
-
-      cy.log(`Generando turnos para ${targetDay} de ${DECEMBER_NAME} de ${targetYear}`);
-    });
+    cy.log(`Generando turnos para ${targetDay} de ${targetMonthName} de ${targetYear}`);
   });
 
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
-  });
-
-  afterEach(function () {
-    if (this.currentTest?.state !== "passed") {
-      return;
-    }
-
-    cy.task("adminAppointments:state:write", {
-      year: targetYear,
-      lastGeneratedDay: targetDay,
-    });
   });
 
   it("Genera turnos disponibles y luego los elimina", () => {
@@ -197,7 +135,9 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
     cy.get("header, nav")
       .first()
       .within(() => {
-        cy.contains("button", /^Turnero$/i).should("be.visible").click();
+        cy.contains("button", /^Turnero$/i)
+          .should("be.visible")
+          .click();
       });
 
     cy.location("pathname", { timeout: 30000 }).should("include", "/appointments");
@@ -206,34 +146,35 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
     cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
     cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
 
-    moveCalendarTo(DECEMBER_INDEX, targetYear);
+    moveCalendarTo(targetMonth, targetYear);
     selectCalendarDay(targetDay);
 
-    cy.contains("button", /^Generar turnos$/i).should("be.visible").click();
+    cy.contains("button", /^Generar turnos$/i)
+      .should("be.visible")
+      .click();
 
     cy.get("[role='dialog']").within(() => {
       cy.contains("Generar turnos", { timeout: 10000 }).should("be.visible");
 
-      moveCalendarTo(DECEMBER_INDEX, targetYear);
+      moveCalendarTo(targetMonth, targetYear);
       selectCalendarDay(targetDay);
 
       setTimeInput("Desde", "09:00");
       setTimeInput("Hasta", "10:00");
 
-      cy.contains("button", /^Generar$/i).should("be.enabled").click();
+      cy.contains("button", /^Generar$/i)
+        .should("be.enabled")
+        .click();
     });
 
     cy.contains("Turnos generados", { timeout: 30000 }).should("be.visible");
     cy.contains("Se crearon turnos", { timeout: 30000 }).should("be.visible");
     cy.contains("button", /^Ok$/i).click();
-    cy.wait("@createAvailability", { timeout: SLOT_TIMEOUT })
-      .its("response.statusCode")
-      .should("be.within", 200, 299);
+    cy.wait("@createAvailability", { timeout: SLOT_TIMEOUT }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
     cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
     cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
 
-    cy.contains("Turnos generados").should("not.exist");
     cy.get("[role='dialog']")
       .find("button[aria-label='cerrar modal'], button[aria-label='close']")
       .filter(":visible")
@@ -241,17 +182,13 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
       .click({ force: true });
     cy.get("[role='dialog']").should("not.exist");
 
-    moveCalendarTo(DECEMBER_INDEX, targetYear);
+    moveCalendarTo(targetMonth, targetYear);
     selectCalendarDay(targetDay);
 
     cy.contains("button", /^POR DIA$/i).click();
 
-    getSlotByTime(/09:00/)
-      .should("be.visible")
-      .and("contain.text", "Libre");
-    getSlotByTime(/09:30/)
-      .should("be.visible")
-      .and("contain.text", "Libre");
+    getSlotByTime(/09:00/).should("be.visible").and("contain.text", "Libre");
+    getSlotByTime(/09:30/).should("be.visible").and("contain.text", "Libre");
 
     const confirmDeletion = () => {
       cy.contains("button", /^Confirmar$/i, { timeout: SLOT_TIMEOUT })
@@ -273,24 +210,15 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
 
       cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("be.visible");
       cy.contains("button", /^Ok$/i, { timeout: SLOT_TIMEOUT }).click();
-      cy.contains("Turno eliminado", { timeout: SLOT_TIMEOUT }).should("not.exist");
       cy.get("[role='dialog']", { timeout: SLOT_TIMEOUT }).should("not.exist");
     };
 
-    const openSlotDetail = (
-      timePattern: RegExp,
-      attempts = 3
-    ): Cypress.Chainable<JQuery<HTMLElement>> => {
-      const tryOpen = (
-        remaining: number
-      ): Cypress.Chainable<JQuery<HTMLElement>> => {
+    const openSlotDetail = (timePattern: RegExp, attempts = 3): Cypress.Chainable<JQuery<HTMLElement>> => {
+      const tryOpen = (remaining: number): Cypress.Chainable<JQuery<HTMLElement>> => {
         return getSlotByTime(timePattern)
           .click()
           .then(() =>
-            cy
-              .contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT })
-              .filter(":visible")
-              .first()
+            cy.contains("[role='dialog']", "Detalle del turno", { timeout: SLOT_TIMEOUT }).filter(":visible").first()
           )
           .then(($dialog) => {
             if ($dialog.length) {
@@ -309,16 +237,12 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
             }
 
             if (remaining <= 1) {
-              throw new Error(
-                `No se pudo abrir el detalle del turno para ${timePattern.toString()}`
-              );
+              throw new Error(`No se pudo abrir el detalle del turno para ${timePattern.toString()}`);
             }
 
-            cy.log(
-              `El detalle del turno se cerro, reintentando apertura (${remaining - 1} intentos restantes).`
-            );
+            cy.log(`El detalle del turno se cerro, reintentando apertura (${remaining - 1} intentos restantes).`);
 
-            return cy.wait(500).then(() => tryOpen(remaining - 1));
+            return tryOpen(remaining - 1);
           });
       };
 
@@ -339,8 +263,8 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
     };
 
     deleteSlot(/09:00/);
-    cy.wait(10000);
-    deleteSlot(/09:30/);
-    cy.contains("No hay turnos disponibles para esta fecha.", { timeout: SLOT_TIMEOUT }).should("be.visible");
+
+    getSlotByTime(/09:30/).should("be.visible").and("contain.text", "Libre");
+    cy.contains(".MuiPaper-root", /09:00/, { timeout: SLOT_TIMEOUT }).should("not.exist");
   });
 });

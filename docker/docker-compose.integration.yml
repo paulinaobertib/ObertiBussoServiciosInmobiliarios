@@ -252,6 +252,5 @@ services:
         aliases:
           - app.localtest.me
 
-
 volumes:
   postgres-data:

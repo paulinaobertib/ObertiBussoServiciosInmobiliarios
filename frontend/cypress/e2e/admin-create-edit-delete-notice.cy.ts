@@ -1,3 +1,4 @@
+import { interceptGateway } from "../support/intercepts";
 import { appBaseUrl } from "../support/e2e";
 
 describe("Noticias: Crear, ver detalle, editar y eliminar", () => {
@@ -17,7 +18,12 @@ describe("Noticias: Crear, ver detalle, editar y eliminar", () => {
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
 
-    cy.loginAdmin(); // ya incluye el visit y espera al redirect
+    interceptGateway("GET", "/users/notices/getAll", "getNotices");
+    interceptGateway("POST", "/users/notices/create", "createNotice");
+    interceptGateway("PUT", "/users/notices/update/*", "updateNotice");
+    interceptGateway("DELETE", "/users/notices/delete/*", "deleteNotice");
+
+    cy.loginAdmin();
 
     // esperar a que aparezca el navbar
     cy.get("[data-testid='navbar-admin-panel']", { timeout: 10000 })
@@ -49,7 +55,6 @@ describe("Noticias: Crear, ver detalle, editar y eliminar", () => {
     cy.contains("button", "Volver").click();
     cy.contains(".MuiCard-root", noticia.titulo).should("exist");
 
-    // ----- EDITAR -----
     cy.contains(".MuiCard-root", noticia.titulo).within(() => {
       cy.get('button[aria-label="Editar noticia"]').click();
     });
@@ -70,20 +75,16 @@ describe("Noticias: Crear, ver detalle, editar y eliminar", () => {
       timeout: 10000,
     }).should("exist");
 
-    // ----- ELIMINAR -----
     cy.contains(".MuiCard-root", noticiaEditada.titulo).within(() => {
       cy.get('button[aria-label="Eliminar noticia"]').click();
     });
 
-    // doble confirmación
     cy.contains("button", "Confirmar").click();
     cy.contains("button", "Confirmar").click();
 
-    // alerta de éxito
     cy.contains("Aviso eliminado", { timeout: 10000 }).should("be.visible");
     cy.contains("button", "Ok").click();
 
-    // verificar que ya no esté en catálogo
     cy.contains(".MuiCard-root", noticiaEditada.titulo).should("not.exist");
   });
 });

@@ -1,4 +1,5 @@
-const appBaseUrl = Cypress.env("appUrl");
+import { interceptGateway } from "../support/intercepts";
+import { appBaseUrl } from "../support/e2e";
 
 describe("Integración: Crear y eliminar usuario siendo administrador", () => {
   const testUser = {
@@ -14,24 +15,23 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
 
-    // login como admin
+    interceptGateway("GET", "/users/user/getAll", "getAllUsers");
+    interceptGateway("POST", "/users/user/create*", "createUser");
+    interceptGateway("DELETE", "/users/user/delete/*", "deleteUser");
+
     cy.loginAdmin();
     cy.visit(appBaseUrl);
 
-    // ir al panel de administración desde el navbar
     cy.get("[data-testid='navbar-admin-panel']", { timeout: 10000 })
       .should("be.visible")
       .click();
 
-    // entrar a la sección de usuarios
     cy.contains("Usuarios").click();
 
-    // esperar a que cargue la grilla
     cy.get('[role="grid"]', { timeout: 10000 }).should("be.visible");
   });
 
   it("Crea un nuevo usuario si no existe", () => {
-    // si ya existe, lo eliminamos antes
     cy.get("body").then(($body) => {
       const exists = $body
         .find('[role="gridcell"]')
@@ -50,7 +50,6 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
       }
     });
 
-    // ----- CREAR -----
     cy.get("[data-testid='add-usuario-button']").click();
 
     cy.get("[data-testid='input-username']").type(testUser.username);
@@ -64,15 +63,12 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
     cy.contains("Usuario creado", { timeout: 10000 }).should("be.visible");
     cy.contains("button", "Volver").click();
 
-    // verificar que aparece en la grilla
     cy.contains('[role="gridcell"]', testUser.email, { timeout: 10000 }).should("exist");
   });
 
   it("Elimina un usuario existente", () => {
-    // asegurarse que existe antes de eliminar
     cy.contains("body", testUser.email).then(($el) => {
       if ($el.length === 0) {
-        // crear el usuario si no existe
         cy.get("[data-testid='add-usuario-button']").click();
 
         cy.get("[data-testid='input-username']").type(testUser.username);
@@ -87,7 +83,6 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
       }
     });
 
-    // ----- ELIMINAR -----
     cy.contains('[role="row"]', testUser.email).within(() => {
       cy.get('button[title="Eliminar"]').click();
     });
@@ -101,7 +96,6 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
     cy.contains("Usuario eliminado", { timeout: 10000 }).should("be.visible");
     cy.contains("button", "Volver").click();
 
-    // verificar que ya no está
     cy.contains('[role="gridcell"]', testUser.email).should("not.exist");
   });
 });

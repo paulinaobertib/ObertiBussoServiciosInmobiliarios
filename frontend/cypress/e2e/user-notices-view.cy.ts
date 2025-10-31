@@ -1,4 +1,5 @@
 import { appBaseUrl } from "../support/e2e";
+import { interceptGateway } from "../support/intercepts";
 
 describe("Noticias: Visualización desde usuario normal", () => {
   const noticiaEjemplo = {
@@ -10,12 +11,32 @@ describe("Noticias: Visualización desde usuario normal", () => {
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
 
+    // Interceptar todas las llamadas API
+    interceptGateway("GET", "/properties/amenity/getAll", "getAmenities");
+    interceptGateway("GET", "/properties/type/getAll", "getTypes");
+    interceptGateway("GET", "/properties/neighborhood/getAll", "getNeighborhoods");
+    interceptGateway("GET", "/properties/property/get", "getProperties");
+    interceptGateway("GET", "/properties/property/search*", "searchProperties");
+    interceptGateway("GET", "/users/user/me", "getCurrentUser");
+    interceptGateway("GET", "/users/notices/getAll", "getAllNotices");
+
     cy.visit(appBaseUrl);
   });
 
   it("Permite ver las noticias y acceder al detalle", () => {
+    // Esperar carga inicial de la página
+    cy.wait("@getAmenities", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    cy.wait("@getTypes", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
+
     // abrir sección Noticias
-    cy.get("[data-testid='navbar-news']").should("be.visible").click();
+    cy.get("[data-testid='navbar-news']")
+      .should("be.visible")
+      .then(($btn) => cy.wrap($btn).click());
+
+    // Esperar que carguen las noticias
+    cy.wait("@getAllNotices", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     // verificar que hay noticias cargadas
     cy.get(".MuiCard-root", { timeout: 10000 })
@@ -25,7 +46,10 @@ describe("Noticias: Visualización desde usuario normal", () => {
     // buscar la noticia de prueba o la primera
     cy.contains(".MuiCard-root", noticiaEjemplo.titulo)
       .should("exist")
-      .click();
+      .then(($card) => cy.wrap($card).click());
+
+    // Esperar navegación al detalle (puede llamar a getAllNotices de nuevo)
+    cy.wait("@getAllNotices", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     // verificar detalle visible
     cy.get("h4").should("be.visible");

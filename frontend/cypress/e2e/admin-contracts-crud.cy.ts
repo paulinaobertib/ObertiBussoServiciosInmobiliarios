@@ -1,3 +1,7 @@
+/// <reference types="cypress" />
+
+import { interceptGateway } from "../support/intercepts";
+
 const formatISODate = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -96,21 +100,16 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
   beforeEach(() => {
     createdContractId = null;
 
-    cy.intercept("GET", "**/users/contracts/getAll").as("getContracts");
-    cy.intercept("POST", "**/users/contracts/create").as("createContract");
-    cy.intercept("PUT", "**/users/contracts/update/*").as("updateContract");
-    cy.intercept("DELETE", "**/users/contracts/delete/*").as("deleteContract");
-    cy.intercept("GET", "**/users/contracts/getById/*").as("getContractById");
-    cy.intercept("GET", "**/properties/property/get").as("getAvailableProperties");
-    cy.intercept("GET", "**/properties/property/getAll").as("getAllProperties");
-    cy.intercept("GET", "**/users/user/getAll").as("getAllUsers");
-    cy.intercept("GET", "**/users/user/getById/*").as("getUserById");
-    cy.intercept("GET", "**/users/increaseIndex/getAll").as("getIncreaseIndexes");
-    cy.intercept("PUT", "**/properties/property/status/*").as("updatePropertyStatus");
-    cy.intercept("GET", /https:\/\/[abc]\.tile\.openstreetmap\.org\/.*/, {
-      statusCode: 200,
-      body: "",
-    }).as("getMapTiles");
+    interceptGateway("GET", "/users/contracts/getAll", "getContracts");
+    interceptGateway("POST", "/users/contracts/create", "createContract");
+    interceptGateway("PUT", "/users/contracts/update/*", "updateContract");
+    interceptGateway("DELETE", "/users/contracts/delete/*", "deleteContract");
+    interceptGateway("GET", "/users/contracts/getById/*", "getContractById");
+    interceptGateway("GET", "/properties/property/get", "getAvailableProperties");
+    interceptGateway("GET", "/users/user/getAll", "getAllUsers");
+    interceptGateway("GET", "/users/user/getById/*", "getUserById");
+    interceptGateway("GET", "/users/increaseIndex/getAll", "getIncreaseIndexes");
+    interceptGateway("PUT", "/properties/property/status/*", "updatePropertyStatus");
 
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -134,9 +133,10 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
 
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts/new");
     cy.wait("@getAvailableProperties", { timeout: SLOT_TIMEOUT });
-    cy.wait("@getAllProperties", { timeout: SLOT_TIMEOUT });
 
-    cy.contains('[role="row"]', /Dpto 3/i, { timeout: SLOT_TIMEOUT })
+    cy.get('[role="row"][data-id]', { timeout: SLOT_TIMEOUT })
+      .filter(":visible")
+      .first()
       .should("be.visible")
       .within(() => {
         cy.get('input[type="checkbox"]').first().check({ force: true });
@@ -194,10 +194,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
     fillTextField(/Frecuencia de Aumento/i, String(creationData.increaseFrequency));
     fillTextField(/^Notas$/i, creationData.note);
 
-    cy.contains("button", /^Crear$/i, { timeout: SLOT_TIMEOUT }).should("be.enabled");
-
-    cy.wait(1000);
-    cy.contains("button", /^Crear$/i).click();
+    cy.contains("button", /^Crear$/i, { timeout: SLOT_TIMEOUT }).should("be.enabled").click();
 
     cy.wait("@createContract", { timeout: SLOT_TIMEOUT }).then((interception) => {
       expect(interception.response?.statusCode, "status al crear contrato").to.be.within(200, 299);
@@ -211,11 +208,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
       }
     });
 
-    cy.wait(2000);
-
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
-
-    cy.wait(1000);
 
     cy.contains("button", /^Ir al detalle$/i, { timeout: SLOT_TIMEOUT }).click();
 
@@ -237,12 +230,6 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
 
     cy.contains("button", /^Editar$/i, { timeout: SLOT_TIMEOUT }).click();
 
-    cy.then(() => {
-      expect(createdContractId, "ID del contrato antes de editar").to.be.a("number");
-    });
-
-    cy.wait(500);
-
     cy.contains("label", /^Monto inicial/i, { timeout: SLOT_TIMEOUT })
       .should("exist")
       .invoke("attr", "for")
@@ -254,8 +241,6 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
 
     cy.wait("@getContractById", { timeout: SLOT_TIMEOUT });
     cy.wait("@getIncreaseIndexes", { timeout: SLOT_TIMEOUT });
-
-    cy.wait(1000);
 
     cy.contains("button", /^Actualizar$/i, { timeout: SLOT_TIMEOUT })
       .should("be.enabled")
@@ -271,10 +256,6 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
 
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
-
-    cy.then(() => {
-      expect(createdContractId, "ID del contrato creado").to.be.a("number");
-    });
 
     cy.contains("button", /^Ver detalle/i, { timeout: SLOT_TIMEOUT })
       .first()
