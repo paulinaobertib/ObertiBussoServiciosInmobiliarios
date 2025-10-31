@@ -1,4 +1,4 @@
-﻿import { Box, Card, Divider, IconButton, Typography } from "@mui/material";
+﻿import { Box, Divider, IconButton, Typography } from "@mui/material";
 import { BasePage } from "./BasePage";
 import { useNavigate } from "react-router-dom";
 import ReplyIcon from '@mui/icons-material/Reply';
@@ -32,6 +32,15 @@ export default function PoliciesPage() {
         }}
     >
         <Typography
+        variant="body2"
+        sx={{
+            color: "text.secondary",
+            fontFamily: "Roboto, sans-serif",
+        }}
+        >
+        Fecha de última actualización: 30 de octubre de 2025
+        </Typography>
+        <Typography
         variant="body1"
         sx={{
             fontWeight: 580,
@@ -42,16 +51,6 @@ export default function PoliciesPage() {
         </Typography>
 
         <Divider sx={{ borderColor: "rgba(135, 114, 99, 0.2)" }} />
-
-        <Typography
-        variant="body2"
-        sx={{
-            color: "text.secondary",
-            fontFamily: "Roboto, sans-serif",
-        }}
-        >
-        Fecha de última actualización: 30 de octubre de 2025
-        </Typography>
     </Box>
     );
 
@@ -84,7 +83,27 @@ export default function PoliciesPage() {
                         1.- NUESTRO COMPROMISO CON LA PRIVACIDAD
                     </Typography>
                     <Typography variant="body1" paragraph sx={justifySx}>
-                        1.1.- La presente política de privacidad (en adelante, la "Política de Privacidad") establece el modo en que Oberti Busso Servicios Inmobiliarios, con domicilio en Luis Galeano 1910 - Local 2, Villa Cabrera, Córdoba, Argentina (en adelante, "la Inmobiliaria"), en su carácter de Responsable del Tratamiento de Datos, recopila, utiliza y protege la información personal de los usuarios de su sitio web www.obertibussoserviciosinmobiliarios.com.ar (en adelante, el "Sitio Web").
+                    1.1.- La presente política de privacidad (en adelante, la "Política de Privacidad") establece el modo en que
+                    Oberti Busso Servicios Inmobiliarios, con domicilio en Luis Galeano 1910 - Local 2, Villa Cabrera, Córdoba, Argentina
+                    (en adelante, "la Inmobiliaria"), en su carácter de Responsable del Tratamiento de Datos, recopila, utiliza y protege
+                    la información personal de los usuarios de su sitio web{" "}
+                    <Box
+                        component="a"
+                        href="https://www.inmobiliariaobertibusso.com.ar/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                        color: "inherit", // mantiene color negro
+                        fontFamily: "Roboto, sans-serif",
+                        fontWeight: 600,
+                        textDecoration: "none",
+                        display: "inline",
+                        "&:hover": { color: "#ee671e", textDecoration: "underline" },
+                        }}
+                    >
+                        www.inmobiliariaobertibusso.com.ar
+                    </Box>{" "}
+                    (en adelante, el "Sitio Web").
                     </Typography>
                     <Typography variant="body1" paragraph sx={justifySx}>
                         1.2.- Esta Política de Privacidad describe la información personal que la Inmobiliaria puede recopilar a través del Sitio Web, las medidas de seguridad adoptadas para proteger dicha información, su posibilidad de acceder a la misma, y los canales de contacto disponibles para realizar consultas o ejercer derechos sobre sus datos personales.
