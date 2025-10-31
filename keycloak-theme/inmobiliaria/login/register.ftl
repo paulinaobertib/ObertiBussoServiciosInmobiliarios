@@ -106,6 +106,18 @@
             </button>
           </div>
 
+          <div class="terms-section">
+            <div class="terms-checkbox">
+              <input type="checkbox" id="acceptTerms" name="terms_and_conditions" required />
+              <label for="acceptTerms">
+                Aceptar los 
+                <a href="https://www.inmobiliariaobertibusso.com.ar/policies" target="_blank" class="terms-link">
+                  Términos y Condiciones
+                </a>
+              </label>
+            </div>
+          </div>
+          
           <div class="form-actions">
             <button type="submit" class="btn-primary">Registrarse</button>
           </div>
@@ -482,6 +494,14 @@
         return false;
       }
 
+      // Validar aceptación de Términos y Condiciones
+      const acceptTerms = document.getElementById('acceptTerms');
+      if (!acceptTerms.checked) {
+        showToast('Debes aceptar los Términos y Condiciones para registrarte.', { type: 'error' });
+        acceptTerms.focus();
+        return false;
+      }
+
       return true;
     }
 
@@ -524,10 +544,13 @@
       // Prevenir submit automático si hay errores de validación
       const form = document.getElementById('registerForm');
       form.addEventListener('submit', (e) => {
-        if (!validateRegisterForm()) {
-          e.preventDefault();
+        const isValid = validateRegisterForm();
+        if (!isValid) {
+          e.preventDefault(); // Detiene envío si hay error
           return false;
         }
+        // Si es válido, forzamos el envío manual
+        form.submit();
       });
 
       // Validación en tiempo real: mostrar feedback visual
