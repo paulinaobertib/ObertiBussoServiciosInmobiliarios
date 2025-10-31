@@ -494,6 +494,7 @@
   "webAuthnPolicyPasswordlessExtraOrigins": [],
   "users": [
     {
+      "id": "6fc306f2-a7cb-4cd3-a86c-902befa3b5a0",
       "username": "user",
       "email": "user@test.com",
       "firstName": "Usuario",
@@ -522,6 +523,7 @@
       "groups": []
     },
     {
+      "id": "3f998809-6787-4341-a981-74b78779ffc0",
       "username": "tenant",
       "email": "tenant@test.com",
       "firstName": "Usuario",
@@ -550,6 +552,7 @@
       "groups": []
     },
     {
+      "id": "5d442f09-9bb1-4c6f-b26b-5a59263730c7",
       "username": "admin",
       "email": "admin@test.com",
       "firstName": "Usuario",

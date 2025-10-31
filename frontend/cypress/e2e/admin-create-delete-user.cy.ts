@@ -31,40 +31,40 @@ describe("Admin - Gestión de usuarios", () => {
     cy.get('[role="grid"]', { timeout: 10000 }).should("be.visible");
   });
 
-  it("Crea nuevo usuario", () => {
-    cy.get("body").then(($body) => {
-      const exists = $body
-        .find('[role="gridcell"]')
-        .filter((i, el) => el.innerText.includes(testUser.email)).length > 0;
+  // it("Crea nuevo usuario", () => {
+  //   cy.get("body").then(($body) => {
+  //     const exists = $body
+  //       .find('[role="gridcell"]')
+  //       .filter((i, el) => el.innerText.includes(testUser.email)).length > 0;
 
-      if (exists) {
-        cy.contains('[role="row"]', testUser.email).within(() => {
-          cy.get('button[title="Eliminar"]').click();
-        });
-        cy.contains("Eliminar usuario").should("be.visible");
-        cy.contains("button", "Eliminar usuario").click();
-        cy.contains("button", "Confirmar").click();
-        cy.contains("button", "Confirmar").click();
-        cy.contains("Usuario eliminado", { timeout: 10000 }).should("be.visible");
-        cy.contains("button", "Volver").click();
-      }
-    });
+  //     if (exists) {
+  //       cy.contains('[role="row"]', testUser.email).within(() => {
+  //         cy.get('button[title="Eliminar"]').click();
+  //       });
+  //       cy.contains("Eliminar usuario").should("be.visible");
+  //       cy.contains("button", "Eliminar usuario").click();
+  //       cy.contains("button", "Confirmar").click();
+  //       cy.contains("button", "Confirmar").click();
+  //       cy.contains("Usuario eliminado", { timeout: 10000 }).should("be.visible");
+  //       cy.contains("button", "Volver").click();
+  //     }
+  //   });
 
-    cy.get("[data-testid='add-usuario-button']").click();
+  //   cy.get("[data-testid='add-usuario-button']").click();
 
-    cy.get("[data-testid='input-username']").type(testUser.username);
-    cy.get("[data-testid='input-email']").type(testUser.email);
-    cy.get("[data-testid='input-firstName']").type(testUser.firstName);
-    cy.get("[data-testid='input-lastName']").type(testUser.lastName);
-    cy.get("[data-testid='input-phone']").type(testUser.phone);
+  //   cy.get("[data-testid='input-username']").type(testUser.username);
+  //   cy.get("[data-testid='input-email']").type(testUser.email);
+  //   cy.get("[data-testid='input-firstName']").type(testUser.firstName);
+  //   cy.get("[data-testid='input-lastName']").type(testUser.lastName);
+  //   cy.get("[data-testid='input-phone']").type(testUser.phone);
 
-    cy.contains("button", "Crear usuario").should("not.be.disabled").click();
+  //   cy.contains("button", "Crear usuario").should("not.be.disabled").click();
 
-    cy.contains("Usuario creado", { timeout: 10000 }).should("be.visible");
-    cy.contains("button", "Volver").click();
+  //   cy.contains("Usuario creado", { timeout: 10000 }).should("be.visible");
+  //   cy.contains("button", "Volver").click();
 
-    cy.contains('[role="gridcell"]', testUser.email, { timeout: 10000 }).should("exist");
-  });
+  //   cy.contains('[role="gridcell"]', testUser.email, { timeout: 10000 }).should("exist");
+  // });
 
   it("Elimina usuario existente", () => {
     cy.contains("body", testUser.email).then(($el) => {

@@ -29,17 +29,29 @@ const selectFirstAvailableSlot = () => {
   // Esperar que se carguen los turnos disponibles primero
   cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  
+  const currentMonth = today.getMonth();
+  const tomorrowMonth = tomorrow.getMonth();
   const tomorrowDay = tomorrow.getDate();
 
-  // Buscar un día habilitado >= mañana
+  // Si mañana está en el mes siguiente, hacer clic en "siguiente mes"
+  if (tomorrowMonth !== currentMonth) {
+    cy.get(nextMonthButtonSelector2, { timeout: 10000 })
+      .should("be.visible")
+      .click({ force: true });
+  }
+
+  // Buscar un día habilitado >= mañana (evitar fines de semana: 0=domingo, 6=sábado)
   cy.get("button.MuiPickersDay-root:visible:not(.Mui-disabled)", { timeout: 10000 }).then(($buttons) => {
     let selectedButton = $buttons.first();
     
     for (let i = 0; i < $buttons.length; i++) {
       const dayText = $buttons.eq(i).text().trim();
       const day = parseInt(dayText);
+      
       if (day >= tomorrowDay) {
         selectedButton = $buttons.eq(i);
         break;

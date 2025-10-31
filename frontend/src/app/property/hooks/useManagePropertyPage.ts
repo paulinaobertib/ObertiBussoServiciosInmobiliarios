@@ -224,7 +224,6 @@ export const useManagePropertyPage = () => {
           }
         }
 
-        await success("Propiedad creada", "Se creó correctamente.");
         nav("/", { replace: true });
         return;
       }

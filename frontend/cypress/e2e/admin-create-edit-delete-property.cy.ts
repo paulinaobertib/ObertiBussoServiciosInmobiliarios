@@ -3,7 +3,7 @@ import { interceptGateway } from "../support/intercepts";
 
 const ADMIN_TIMEOUT = 60000;
 
-describe("Admin - CRUD de propiedades", () => {
+describe("Administrador: creación básica de una propiedad", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -22,7 +22,7 @@ describe("Admin - CRUD de propiedades", () => {
     interceptGateway("DELETE", "/properties/property/delete/*", "deleteProperty");
   });
 
-  it("Crea, edita y elimina propiedad", () => {
+  it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
     cy.loginAdmin();
     cy.visit(appBaseUrl);
 
@@ -184,17 +184,13 @@ describe("Admin - CRUD de propiedades", () => {
     cy.contains("button", /^Confirmar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
     cy.wait("@createProperty", { timeout: ADMIN_TIMEOUT }).its("response.statusCode").should("be.within", 200, 299);
 
-    // Esperar el modal de error y cerrarlo
-    cy.contains("button", /^Entendido$/i, { timeout: ADMIN_TIMEOUT })
+    // Wait for success modal and click "Volver" button
+    cy.contains("Propiedad creada", { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
 
-    cy.contains("button", /^Volver$/i, { timeout: ADMIN_TIMEOUT })
-      .should("be.visible")
-      .then(($btn) => {
-        cy.wrap($btn).click({ force: true });
-      });
-
+    // Verify navigation after closing modal
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
 
     cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })

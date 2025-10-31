@@ -2,10 +2,6 @@ import { appBaseUrl } from "../support/e2e";
 import { interceptGateway } from "../support/intercepts";
 
 describe("Noticias: Visualización desde usuario normal", () => {
-  const noticiaEjemplo = {
-    titulo: "noticia 1", // una que ya exista
-  };
-
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -43,17 +39,17 @@ describe("Noticias: Visualización desde usuario normal", () => {
       .should("exist")
       .and("have.length.greaterThan", 0);
 
-    // buscar la noticia de prueba o la primera
-    cy.contains(".MuiCard-root", noticiaEjemplo.titulo)
-      .should("exist")
-      .then(($card) => cy.wrap($card).click());
+    // Hacer clic en la primera noticia disponible
+    cy.get(".MuiCard-root")
+      .first()
+      .should("be.visible")
+      .click();
 
     // Esperar navegación al detalle (puede llamar a getAllNotices de nuevo)
     cy.wait("@getAllNotices", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     // verificar detalle visible
     cy.get("h4").should("be.visible");
-    cy.contains(noticiaEjemplo.titulo).should("be.visible");
     cy.get("button").contains("Volver").should("be.visible");
 
   });
