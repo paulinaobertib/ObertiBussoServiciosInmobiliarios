@@ -64,7 +64,7 @@ jobs:
   cd_ml:
     name: CD - Machine Learning
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_ml
     uses: ./.github/workflows/cd-ml.yml
     with:
