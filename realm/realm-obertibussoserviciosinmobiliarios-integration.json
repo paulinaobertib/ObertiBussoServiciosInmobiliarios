@@ -536,7 +536,7 @@
       "requiredActions": [],
       "realmRoles": ["default-roles-obertibussoserviciosinmobiliarios-integration"],
       "clientRoles": {
-        "springboot-keycloak-client": ["user", "tenant"]
+        "springboot-keycloak-client": ["tenant"]
       },
       "attributes": {
         "phoneNumber": ["+5491100000003"]
