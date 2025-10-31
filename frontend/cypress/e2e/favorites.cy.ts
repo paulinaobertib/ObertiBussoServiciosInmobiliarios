@@ -1,21 +1,21 @@
 import { appBaseUrl } from "../support/e2e";
 import { interceptGateway } from "../support/intercepts";
 
-describe("Integración: Favoritos", () => {
+describe("Favoritos - Usuario autenticado", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
   });
 
-  it("Muestra alerta si intento marcar favorito sin estar logueado", () => {
+  it("Bloquea marcar favorito sin autenticación", () => {
     cy.visit(appBaseUrl);
 
     cy.get("[data-testid^='favorite-button-']").first().click();
     cy.contains("Iniciá sesión", { timeout: 10000 }).should("be.visible");
   });
 
-  it("Permite agregar un favorito y verificarlo en el panel", () => {
+  it("Agrega favorito y verifica en panel", () => {
     interceptGateway("GET", "/properties/property/get", "getAvailableProperties");
     interceptGateway("GET", "/users/user/me", "getCurrentUser");
     interceptGateway("GET", "/users/favorites/user/*", "getUserFavorites");

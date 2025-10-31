@@ -1,7 +1,7 @@
 import { interceptGateway } from "../support/intercepts";
 import { appBaseUrl } from "../support/e2e";
 
-describe("Noticias: Crear, ver detalle, editar y eliminar", () => {
+describe("Admin - CRUD de noticias", () => {
   const noticia = {
     titulo: "Noticia Cypress",
     descripcion: "Noticia de prueba creada con Cypress",
@@ -33,7 +33,7 @@ describe("Noticias: Crear, ver detalle, editar y eliminar", () => {
     cy.contains("Noticias").click();
   });
 
-  it("crea, navega al detalle, edita y elimina la noticia", () => {
+  it("Crea, visualiza detalle, edita y elimina noticia", () => {
     // ----- CREAR -----
     cy.contains("button", "Nueva noticia").click();
 

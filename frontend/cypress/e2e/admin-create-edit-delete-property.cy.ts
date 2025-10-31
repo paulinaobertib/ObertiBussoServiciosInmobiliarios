@@ -3,7 +3,7 @@ import { interceptGateway } from "../support/intercepts";
 
 const ADMIN_TIMEOUT = 60000;
 
-describe("Administrador: creación básica de una propiedad", () => {
+describe("Admin - CRUD de propiedades", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -22,7 +22,7 @@ describe("Administrador: creación básica de una propiedad", () => {
     interceptGateway("DELETE", "/properties/property/delete/*", "deleteProperty");
   });
 
-  it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
+  it("Crea, edita y elimina propiedad", () => {
     cy.loginAdmin();
     cy.visit(appBaseUrl);
 

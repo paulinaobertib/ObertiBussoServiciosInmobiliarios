@@ -62,7 +62,7 @@ const selectFirstAvailableSlot = () => {
   cy.get("@slotButton").should("be.visible").click();
 };
 
-describe("Integracion: Contacto solicita turno sin autenticacion", () => {
+describe("Reserva de turno - Usuario no autenticado", () => {
   before(function () {
     if (!keycloakOrigin2 || !keycloakUsername2 || !keycloakPassword2) {
       cy.log("Faltan credenciales de Keycloak. Se omite la prueba de login desde contacto.");
@@ -93,7 +93,7 @@ describe("Integracion: Contacto solicita turno sin autenticacion", () => {
     cy.visit(contactUrl2);
   });
 
-  it("Solicita login si no hay sesión y permite completar la reserva tras autenticarse", () => {
+  it("Redirige a login y completa reserva tras autenticación", () => {
     // Esperar carga inicial
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);

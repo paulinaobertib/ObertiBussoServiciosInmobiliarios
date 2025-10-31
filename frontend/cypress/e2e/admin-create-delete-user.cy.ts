@@ -1,7 +1,7 @@
 import { interceptGateway } from "../support/intercepts";
 import { appBaseUrl } from "../support/e2e";
 
-describe("Integración: Crear y eliminar usuario siendo administrador", () => {
+describe("Admin - Gestión de usuarios", () => {
   const testUser = {
     username: "usuarioTest",
     email: "usuario@test.com",
@@ -31,7 +31,7 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
     cy.get('[role="grid"]', { timeout: 10000 }).should("be.visible");
   });
 
-  it("Crea un nuevo usuario si no existe", () => {
+  it("Crea nuevo usuario", () => {
     cy.get("body").then(($body) => {
       const exists = $body
         .find('[role="gridcell"]')
@@ -66,7 +66,7 @@ describe("Integración: Crear y eliminar usuario siendo administrador", () => {
     cy.contains('[role="gridcell"]', testUser.email, { timeout: 10000 }).should("exist");
   });
 
-  it("Elimina un usuario existente", () => {
+  it("Elimina usuario existente", () => {
     cy.contains("body", testUser.email).then(($el) => {
       if ($el.length === 0) {
         cy.get("[data-testid='add-usuario-button']").click();

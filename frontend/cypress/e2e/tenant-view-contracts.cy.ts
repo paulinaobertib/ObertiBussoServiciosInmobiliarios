@@ -3,7 +3,7 @@ import { interceptGateway } from "../support/intercepts";
 
 const VIEW_TIMEOUT = 60000;
 
-describe("Contratos: visualización para inquilino", () => {
+describe("Inquilino - Visualización de contratos", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();

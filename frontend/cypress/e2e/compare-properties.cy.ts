@@ -4,7 +4,7 @@ import { interceptGateway } from "../support/intercepts";
 const CATALOG_TIMEOUT = 60000;
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-describe("Integracion: Comparar propiedades", () => {
+describe("Comparador de propiedades", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -12,7 +12,7 @@ describe("Integracion: Comparar propiedades", () => {
     cy.visit(appBaseUrl);
   });
 
-  it("Permite comparar propiedades y enviar una consulta por las seleccionadas", () => {
+  it("Compara propiedades y envía consulta", () => {
     interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
     interceptGateway("POST", "/properties/inquiries/create", "postInquiry");
 

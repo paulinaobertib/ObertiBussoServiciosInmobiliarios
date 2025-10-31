@@ -1,14 +1,14 @@
 import { appBaseUrl } from "../support/e2e";
 import { interceptGateway } from "../support/intercepts";
 
-describe("Integración: Consultas", () => {
+describe("Consultas de propiedades", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.viewport(1280, 720);
   });
 
-  it("Permite enviar una consulta, cerrar confirmación y luego cerrar el formulario con la cruz", () => {
+  it("Envía consulta y cierra confirmación", () => {
     // Configurar interceptores
     interceptGateway("GET", "/properties/amenity/getAll", "getAmenities");
     interceptGateway("GET", "/properties/type/getAll", "getTypes");

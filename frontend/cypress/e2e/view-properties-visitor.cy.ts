@@ -4,7 +4,7 @@ import { interceptGateway } from "../support/intercepts";
 const CATALOG_TIMEOUT = 60000;
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-describe("Integración: Catálogo público para usuarios no autenticados", () => {
+describe("Catálogo público - Visitante no autenticado", () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -22,7 +22,7 @@ describe("Integración: Catálogo público para usuarios no autenticados", () =>
     cy.visit(appBaseUrl);
   });
 
-  it("permite ver el listado de propiedades y abrir el detalle sin iniciar sesión", () => {
+  it("Visualiza listado y abre detalle de propiedad", () => {
     // Esperar carga inicial de la página
     cy.wait("@getAmenities", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getTypes", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);

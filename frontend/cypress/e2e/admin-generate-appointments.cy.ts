@@ -153,7 +153,7 @@ const findFirstAvailableDay = (): Cypress.Chainable<{ day: number; month: number
   });
 };
 
-describe("Integración: Turnero admin genera turnos reales en diciembre", () => {
+describe("Admin - Gestión de turnos disponibles", () => {
   let targetDay: number;
   let targetMonth: number;
   let targetMonthName: string;
@@ -179,7 +179,7 @@ describe("Integración: Turnero admin genera turnos reales en diciembre", () => 
     cy.viewport(1280, 720);
   });
 
-  it("Genera turnos disponibles y luego los elimina", () => {
+  it("Crea y elimina turnos disponibles", () => {
     cy.intercept("GET", "**/users/availableAppointments/getAll").as("getAllSlots");
     cy.intercept("GET", "**/users/appointments/status?status=ESPERA").as("getPendingAppointments");
     cy.intercept("GET", "**/users/appointments/status?status=ACEPTADO").as("getAcceptedAppointments");

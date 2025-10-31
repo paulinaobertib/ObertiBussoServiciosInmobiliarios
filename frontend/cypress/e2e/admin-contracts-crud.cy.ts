@@ -12,7 +12,7 @@ const formatISODate = (date: Date) => {
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
-describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
+describe("Admin - CRUD de contratos de alquiler", () => {
   const TENANT_EMAIL = "tenant@test.com";
 
   const creationData = {
@@ -117,7 +117,7 @@ describe("Contratos: flujo completo sobre propiedad de alquiler", () => {
     cy.loginAdmin();
   });
 
-  it("permite gestionar un contrato completo", () => {
+  it("Crea, busca y elimina contrato completo", () => {
     cy.get("header, nav")
       .first()
       .within(() => {
