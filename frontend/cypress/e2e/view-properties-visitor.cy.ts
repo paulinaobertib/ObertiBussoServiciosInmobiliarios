@@ -41,8 +41,13 @@ describe("Integración: Catálogo público para usuarios no autenticados", () =>
     // Esperar la segunda carga de propiedades
     cy.wait("@getProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
+    // Esperar estabilidad del DOM antes de interactuar
+    cy.wait(5000);
+
+    // Obtener la primera tarjeta y guardar referencia
     cy.get("[data-testid='favorite-item']").first().as("firstCard");
 
+    // Obtener el título de forma segura
     cy.get("@firstCard")
       .find("[data-testid='property-card']")
       .should("be.visible")
@@ -53,7 +58,11 @@ describe("Integración: Catálogo público para usuarios no autenticados", () =>
         cy.wrap(title!.trim()).as("selectedTitle");
       });
 
-    cy.get("@firstCard").then(($card) => cy.wrap($card).click());
+    // Re-seleccionar el elemento antes del click para evitar detachment
+    cy.get("[data-testid='favorite-item']")
+      .first()
+      .should("be.visible")
+      .click();
 
     // Esperar navegación y carga del detalle
     cy.wait("@searchProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);

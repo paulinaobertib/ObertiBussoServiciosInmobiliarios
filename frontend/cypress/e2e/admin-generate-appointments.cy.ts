@@ -97,29 +97,58 @@ const findFirstAvailableDay = (): Cypress.Chainable<{ day: number; month: number
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowDay = tomorrow.getDate();
+  const tomorrowMonth = tomorrow.getMonth();
+  const tomorrowYear = tomorrow.getFullYear();
 
   return cy.get(".MuiPickersCalendarHeader-label").then(($label) => {
     const labelText = $label.text();
     const monthMatch = MONTH_LABELS.findIndex((m) => labelText.includes(m));
     const yearMatch = labelText.match(/\d{4}/);
-    const currentMonth = monthMatch !== -1 ? monthMatch : new Date().getMonth();
-    const currentYear = yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
+    const currentCalendarMonth = monthMatch !== -1 ? monthMatch : new Date().getMonth();
+    const currentCalendarYear = yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
+
+    // Si el calendario no está en el mes de mañana, navegar al mes correcto
+    if (currentCalendarMonth !== tomorrowMonth || currentCalendarYear !== tomorrowYear) {
+      const monthsToAdvance = tomorrowMonth - currentCalendarMonth + (tomorrowYear - currentCalendarYear) * 12;
+      
+      if (monthsToAdvance > 0) {
+        for (let i = 0; i < monthsToAdvance; i++) {
+          cy.get("button[aria-label='Next month'], button[aria-label='Siguiente mes']").last().click();
+        }
+      }
+      
+      // Volver a leer el calendario después de navegar
+      return cy.get(".MuiPickersCalendarHeader-label").then(() => {
+        return cy
+          .get("button.MuiPickersDay-root:visible:not(.Mui-disabled)")
+          .then(($buttons) => {
+            for (let i = 0; i < $buttons.length; i++) {
+              const dayText = $buttons.eq(i).text().trim();
+              const day = parseInt(dayText);
+              if (day >= tomorrowDay) {
+                return cy.wrap({ day, month: tomorrowMonth, year: tomorrowYear });
+              }
+            }
+            const dayText = $buttons.first().text().trim();
+            const day = parseInt(dayText);
+            return cy.wrap({ day, month: tomorrowMonth, year: tomorrowYear });
+          });
+      });
+    }
 
     return cy
       .get("button.MuiPickersDay-root:visible:not(.Mui-disabled)")
       .then(($buttons) => {
-        // Buscar un día >= mañana
         for (let i = 0; i < $buttons.length; i++) {
           const dayText = $buttons.eq(i).text().trim();
           const day = parseInt(dayText);
           if (day >= tomorrowDay) {
-            return cy.wrap({ day, month: currentMonth, year: currentYear });
+            return cy.wrap({ day, month: currentCalendarMonth, year: currentCalendarYear });
           }
         }
-        // Si no encuentra, usar el primero disponible
         const dayText = $buttons.first().text().trim();
         const day = parseInt(dayText);
-        return cy.wrap({ day, month: currentMonth, year: currentYear });
+        return cy.wrap({ day, month: currentCalendarMonth, year: currentCalendarYear });
       });
   });
 };
