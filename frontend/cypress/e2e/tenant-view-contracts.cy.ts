@@ -28,46 +28,76 @@ describe("Inquilino - Visualización de contratos", () => {
 
   it("Permite ingresar al panel de inquilino y abrir el detalle de un contrato", () => {
     cy.loginTenant();
-    // No need to visit again - loginTenant already navigates to /
     
-    // Esperar que cargue la página principal y capturar respuestas
-    cy.wait("@getCurrentUser", { timeout: 15000 }).then((interception) => {
-      cy.log("User data:", JSON.stringify(interception.response?.body));
-    });
+    // Esperar que cargue la página principal
+    cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("eq", 200);
     
+    // Esperar MÚLTIPLES intentos de obtener roles (el AuthContext hace retries)
+    // Vamos a esperar al menos uno que sea exitoso
+    let rolesReceived: string[] = [];
+    
+    // Interceptar TODOS los intentos de getRoles hasta que tengamos roles válidos
     cy.wait("@getUserRole", { timeout: 15000 }).then((interception) => {
-      cy.log("User roles:", JSON.stringify(interception.response?.body));
+      rolesReceived = interception.response?.body || [];
+      
+      // Si el primer intento no tiene roles, esperar más intentos
+      if (rolesReceived.length === 0) {
+        cy.wait("@getUserRole", { timeout: 15000 }).then((int2) => {
+          rolesReceived = int2.response?.body || rolesReceived;
+        });
+      }
     });
     
+    // Esperar otros recursos
     cy.wait("@getAmenities", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getTypes", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
-    // Debug: verificar authInfo en sessionStorage
+    // Esperar MÁS TIEMPO para que AuthContext complete todos los retries (5 intentos x 700ms = 3.5s)
+    // + tiempo de procesamiento + actualización de React state
+    cy.wait(6000);
+    
+    // Verificar que AuthContext guardó correctamente la info en sessionStorage
     cy.window().then((win) => {
-      const authInfo = win.sessionStorage.getItem('authInfo');
-      cy.log("AuthInfo from sessionStorage:", authInfo);
-      if (authInfo) {
-        const parsed = JSON.parse(authInfo);
-        cy.log("Parsed roles:", JSON.stringify(parsed.roles));
+      const authInfoStr = win.sessionStorage.getItem('authInfo');
+      
+      if (!authInfoStr) {
+        throw new Error("❌ authInfo NO existe en sessionStorage. El AuthContext no guardó la información del usuario.");
+      }
+      
+      const authInfo = JSON.parse(authInfoStr);
+      
+      if (!authInfo.roles || authInfo.roles.length === 0) {
+        throw new Error(`❌ authInfo NO tiene roles. AuthInfo completo: ${JSON.stringify(authInfo)}`);
+      }
+      
+      const rolesLower = authInfo.roles.map((r: string) => r.toLowerCase());
+      
+      if (!rolesLower.includes("tenant")) {
+        throw new Error(`❌ authInfo NO contiene el rol 'tenant'. Roles encontrados: ${JSON.stringify(authInfo.roles)}`);
+      }
+      
+      // Si llegamos aquí, todo está bien
+      cy.log(`✅ Roles correctos en sessionStorage: ${JSON.stringify(authInfo.roles)}`);
+    });
+    
+    // Buscar el botón por data-testid (más confiable que por texto)
+    // Intenta primero por testid, si falla intenta por aria-label
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="tenant-contracts-button"]').length > 0 || 
+          $body.find('[data-testid="tenant-contracts-button-desktop"]').length > 0) {
+        // Encontrado por testid
+        cy.get('[data-testid="tenant-contracts-button"], [data-testid="tenant-contracts-button-desktop"]')
+          .should("be.visible")
+          .first()
+          .click({ force: true });
+      } else {
+        // Fallback: buscar por aria-label="tenant"
+        cy.get('[aria-label="tenant"]')
+          .should("be.visible")
+          .click({ force: true });
       }
     });
-
-    // Esperar a que la página principal se renderice completamente
-    cy.wait(5000);
-    
-    // Debug: capturar el HTML del navbar para ver qué se está renderizando
-    cy.get('nav').then(($nav) => {
-      cy.log("Navbar HTML:", $nav.html());
-    });
-    
-    // Verificar que el botón esté visible antes de hacer click
-    cy.contains("button, a, span", /Soy Inquilino/i, { timeout: VIEW_TIMEOUT })
-      .should("be.visible")
-      .should("not.be.disabled")
-      .then(($btn) => {
-        cy.wrap($btn).click({ force: true });
-      });
 
     // Esperar navegación y carga de contratos
     cy.wait("@getUserContracts", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);

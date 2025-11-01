@@ -133,6 +133,7 @@ export const NavBar = () => {
                         onClick={() => navigate(ROUTES.CONTRACT)}
                         color="inherit"
                         aria-label="tenant"
+                        data-testid="tenant-contracts-button"
                       >
                         <RealEstateAgentIcon />
                       </IconButton>
@@ -302,6 +303,7 @@ export const NavBar = () => {
             {isTenant && (
               <Button
                 onClick={() => navigate(ROUTES.CONTRACT)}
+                data-testid="tenant-contracts-button-desktop"
                 sx={{
                   color: palette.common.white,
                   textTransform: 'none',
