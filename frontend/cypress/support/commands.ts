@@ -1,25 +1,30 @@
 import "cypress-file-upload";
 
-type SessionAdminOptions = {
-  redirectPath?: string;
-};
+// ============================================================================
+// CONFIGURACIÓN CENTRALIZADA - CREDENCIALES DE INTEGRACIÓN
+// ============================================================================
+// Estas credenciales coinciden EXACTAMENTE con las definidas en:
+// - realm/realm-obertibussoserviciosinmobiliarios-integration.json
+// Son datos de prueba ficticios, seguros para estar hardcodeados aquí.
 
-type SessionUserOptions = SessionAdminOptions;
-const TURNERO_PATH = "/appointments";
+const INTEGRATION_CREDENTIALS = {
+  user: {
+    username: "user",
+    password: "Usuario1.",
+  },
+  tenant: {
+    username: "tenant",
+    password: "Inquilino1.",
+  },
+  admin: {
+    username: "admin",
+    password: "Administrador1.",
+  },
+} as const;
 
-const buildRedirectUrl = (baseUrl: string, redirectPath?: string) => {
-  if (!redirectPath) {
-    return baseUrl;
-  }
-
-  if (/^https?:\/\//i.test(redirectPath)) {
-    return redirectPath;
-  }
-
-  const normalizedBase = baseUrl.replace(/\/+$/, "");
-  const normalizedPath = redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`;
-  return `${normalizedBase}${normalizedPath}`;
-};
+// ============================================================================
+// FUNCIONES AUXILIARES
+// ============================================================================
 
 const resolveAppUrl = () => {
   const envUrl = Cypress.env("appUrl") as string | undefined;
@@ -33,15 +38,20 @@ const resolveAppUrl = () => {
   return appUrl;
 };
 
+// ============================================================================
+// COMANDOS DE LOGIN
+// ============================================================================
+
+/**
+ * Login como usuario normal (rol: user)
+ */
 Cypress.Commands.add("loginKeycloak", () => {
-  const username = Cypress.env("keycloakUsername");
-  const password = Cypress.env("keycloakPassword");
+  const { username, password } = INTEGRATION_CREDENTIALS.user;
   const appUrl = resolveAppUrl();
   const keycloakUrl = Cypress.env("keycloakUrl");
   const keycloakOrigin = new URL(keycloakUrl).origin;
 
   cy.visit(appUrl);
-
   cy.contains("button", /Iniciar Ses/i).should("be.visible").click();
 
   cy.origin(
@@ -65,15 +75,16 @@ Cypress.Commands.add("loginKeycloak", () => {
   cy.location("pathname", { timeout: 30000 }).should("eq", "/");
 });
 
+/**
+ * Login como administrador (rol: admin)
+ */
 Cypress.Commands.add("loginAdmin", () => {
-  const username = Cypress.env("adminUsername");
-  const password = Cypress.env("adminPassword");
+  const { username, password } = INTEGRATION_CREDENTIALS.admin;
   const appUrl = resolveAppUrl();
   const keycloakUrl = Cypress.env("keycloakUrl");
   const keycloakOrigin = new URL(keycloakUrl).origin;
 
   cy.visit(appUrl);
-
   cy.contains("button", /Iniciar Ses/i).should("be.visible").click();
 
   cy.origin(
@@ -97,20 +108,16 @@ Cypress.Commands.add("loginAdmin", () => {
   cy.location("pathname", { timeout: 30000 }).should("eq", "/");
 });
 
-type SessionTenantOptions = SessionAdminOptions;
-
+/**
+ * Login como inquilino (roles: user + tenant)
+ */
 Cypress.Commands.add("loginTenant", () => {
-  const username = Cypress.env("tenantUsername") ?? Cypress.env("keycloakUsername");
-  const password = Cypress.env("tenantPassword") ?? Cypress.env("keycloakPassword");
-  if (!username || !password) {
-    throw new Error("Credenciales de tenant no configuradas en Cypress env");
-  }
+  const { username, password } = INTEGRATION_CREDENTIALS.tenant;
   const appUrl = resolveAppUrl();
   const keycloakUrl = Cypress.env("keycloakUrl");
   const keycloakOrigin = new URL(keycloakUrl).origin;
 
   cy.visit(appUrl);
-
   cy.contains("button", /Iniciar Ses/i).should("be.visible").click();
 
   cy.origin(

@@ -191,12 +191,6 @@ jobs:
           CYPRESS_KEYCLOAK_URL: ${{ env.CYPRESS_KEYCLOAK_URL }}
           CYPRESS_GATEWAY_URL: ${{ env.CYPRESS_GATEWAY_URL }}
           CYPRESS_API_URL: ${{ env.CYPRESS_API_URL }}
-          CYPRESS_KEYCLOAK_USERNAME: user
-          CYPRESS_KEYCLOAK_PASSWORD: Usuario1.
-          CYPRESS_TENANT_USERNAME: tenant
-          CYPRESS_TENANT_PASSWORD: Inquilino1.
-          CYPRESS_ADMIN_USERNAME: admin
-          CYPRESS_ADMIN_PASSWORD: Administrador1.
         run: npx cypress run --config baseUrl=$CYPRESS_BASE_URL,chromeWebSecurity=false
 
       - name: Collect compose logs
