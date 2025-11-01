@@ -1,75 +1,75 @@
-// import { appBaseUrl } from "../support/e2e";
-// import { interceptGateway } from "../support/intercepts";
+import { appBaseUrl } from "../support/e2e";
+import { interceptGateway } from "../support/intercepts";
 
-// describe("Consultas de propiedades", () => {
-//   beforeEach(() => {
-//     cy.clearCookies();
-//     cy.clearLocalStorage();
-//     cy.viewport(1280, 720);
-//   });
+describe("Consultas de propiedades", () => {
+  beforeEach(() => {
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    cy.viewport(1280, 720);
+  });
 
-//   it("Envía consulta y cierra confirmación", () => {
-//     // Configurar interceptores
-//     interceptGateway("GET", "/properties/amenity/getAll", "getAmenities");
-//     interceptGateway("GET", "/properties/type/getAll", "getTypes");
-//     interceptGateway("GET", "/properties/neighborhood/getAll", "getNeighborhoods");
-//     interceptGateway("GET", "/properties/property/get", "getAvailableProperties");
-//     interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
-//     interceptGateway("GET", "/properties/property/search**", "searchProperties");
-//     interceptGateway("POST", "/properties/inquiries/create", "createInquiry");
+  it("Envía consulta y cierra confirmación", () => {
+    // Configurar interceptores
+    interceptGateway("GET", "/properties/amenity/getAll", "getAmenities");
+    interceptGateway("GET", "/properties/type/getAll", "getTypes");
+    interceptGateway("GET", "/properties/neighborhood/getAll", "getNeighborhoods");
+    interceptGateway("GET", "/properties/property/get", "getAvailableProperties");
+    interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
+    interceptGateway("GET", "/properties/property/search**", "searchProperties");
+    interceptGateway("POST", "/properties/inquiries/create", "createInquiry");
 
-//     cy.visit(appBaseUrl);
+    cy.visit(appBaseUrl);
 
-//     // Esperar a que cargue el catálogo
-//     cy.wait("@getAvailableProperties", { timeout: 15000 });
+    // Esperar a que cargue el catálogo
+    cy.wait("@getAvailableProperties", { timeout: 15000 });
     
-//     // Esperar a que las propiedades se rendericen
-//     cy.wait(800);
+    // Esperar a que las propiedades se rendericen
+    cy.wait(800);
 
-//     // abrir la primera propiedad del catálogo
-//     cy.get("[data-testid='property-card']").first().click();
+    // abrir la primera propiedad del catálogo
+    cy.get("[data-testid='property-card']").first().click();
 
-//     // Esperar a que cargue el detalle de la propiedad
-//     cy.wait("@getPropertyById", { timeout: 15000 });
+    // Esperar a que cargue el detalle de la propiedad
+    cy.wait("@getPropertyById", { timeout: 15000 });
     
-//     // Esperar a que el detalle se renderice
-//     cy.wait(800);
+    // Esperar a que el detalle se renderice
+    cy.wait(800);
 
-//     // presionar el botón "Consultar por esta propiedad"
-//     cy.contains("button", "Consultar por esta propiedad", { timeout: 10000 }).click();
+    // presionar el botón "Consultar por esta propiedad"
+    cy.contains("button", "Consultar por esta propiedad", { timeout: 10000 }).click();
 
-//     // Esperar a que el modal se abra
-//     cy.wait(500);
+    // Esperar a que el modal se abra
+    cy.wait(500);
 
-//     // completar el formulario
-//     cy.get("input[name='firstName']").type("Juan");
-//     cy.get("input[name='lastName']").type("Pérez");
-//     cy.get("input[name='email']").type("juan.perez@test.com");
-//     cy.get("input[name='phone']").type("123456789");
-//     cy.get("textarea[name='description']").type(
-//       "Estoy interesado en esta propiedad, ¿podrían darme más detalles?"
-//     );
+    // completar el formulario
+    cy.get("input[name='firstName']").type("Juan");
+    cy.get("input[name='lastName']").type("Pérez");
+    cy.get("input[name='email']").type("juan.perez@test.com");
+    cy.get("input[name='phone']").type("123456789");
+    cy.get("textarea[name='description']").type(
+      "Estoy interesado en esta propiedad, ¿podrían darme más detalles?"
+    );
 
-//     // enviar la consulta
-//     cy.contains("button", "Enviar Consulta").click();
+    // enviar la consulta
+    cy.contains("button", "Enviar Consulta").click();
 
-//     // Esperar a que se complete la petición
-//     cy.wait("@createInquiry", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    // Esperar a que se complete la petición
+    cy.wait("@createInquiry", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
-//     // aparece la confirmación
-//     cy.contains("Consulta enviada", { timeout: 10000 }).should("be.visible");
+    // aparece la confirmación
+    cy.contains("Consulta enviada", { timeout: 10000 }).should("be.visible");
 
-//     // cerrar el modal de confirmación
-//     cy.contains("button", "Cerrar", { timeout: 10000 }).click();
+    // cerrar el modal de confirmación
+    cy.contains("button", "Cerrar", { timeout: 10000 }).click();
 
-//     // Esperar a que el modal de confirmación se cierre
-//     cy.wait(500);
+    // Esperar a que el modal de confirmación se cierre
+    cy.wait(500);
 
-//     // debería volver a estar visible el formulario de consulta
-//     cy.contains("Enviar consulta", { timeout: 10000 }).should("be.visible");
+    // debería volver a estar visible el formulario de consulta
+    cy.contains("Enviar consulta", { timeout: 10000 }).should("be.visible");
 
-//     // cerrar ese formulario con la cruz (X)
-//     cy.get("[data-testid='inquiry-form-close']").click();
+    // cerrar ese formulario con la cruz (X)
+    cy.get("[data-testid='inquiry-form-close']").click();
 
-//   });
-// });
+  });
+});
