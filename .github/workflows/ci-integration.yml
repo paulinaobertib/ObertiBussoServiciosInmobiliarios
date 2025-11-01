@@ -108,34 +108,19 @@ jobs:
       - name: Add 1-minute additional wait
         run: sleep 60
 
-      - name: Seed Keycloak test user
+      - name: Configure Keycloak (SSL and client settings only)
         run: |
+          # Autenticar con Keycloak admin
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://auth.localtest.me:8080 --realm master --user admin --password admin
-          USER_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=user | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username user --new-password Usuario1.
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000001"]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000001"]'
-          # Roles are already configured in realm JSON - no need to add them again
-          # docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --uusername user --cclientid springboot-keycloak-client --rolename user
-          ADMIN_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=admin | grep -o '\"id\" : \"[^\"]*' | head -n1 | sed -e 's/\"id\" : \"//')
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000002"]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$ADMIN_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000002"]'
-          # Roles are already configured in realm JSON - no need to add them again
-          # docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --uusername admin --cclientid springboot-keycloak-client --rolename admin
-          TENANT_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant --format csv --noquotes --fields id | tail -n 1 | tr -d '\r\n ')
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh set-password -r obertibussoserviciosinmobiliarios-integration --username tenant --new-password Inquilino1.
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'requiredActions=[]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s emailVerified=true
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phoneNumber=["+5491100000003"]'
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update users/$TENANT_ID -r obertibussoserviciosinmobiliarios-integration -s 'attributes.phone=["+5491100000003"]'
-          # Roles (user + tenant) are already configured in realm JSON - no need to add them again
-          # docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --uid "$TENANT_ID" --cclientid springboot-keycloak-client --rolename user || echo "Warning: Could not add user role to tenant"
-          # docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh add-roles -r obertibussoserviciosinmobiliarios-integration --uid "$TENANT_ID" --cclientid springboot-keycloak-client --rolename tenant || echo "Warning: Could not add tenant role to tenant"
+          
+          # Configurar SSL como NONE para desarrollo
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s sslRequired=none
+          
+          # Configurar frontend URL
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
+          
+          # Actualizar configuración del cliente gateway
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
             "rootUrl": "http://api.localtest.me:8090",
@@ -166,11 +151,10 @@ jobs:
           }
           EOF'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update clients/9689a5de-feda-4483-ae30-ac65599cc1eb -r obertibussoserviciosinmobiliarios-integration -f /tmp/gateway-client.json
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s sslRequired=none
 
       - name: Verify tenant user roles
         run: |
+          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://auth.localtest.me:8080 --realm master --user admin --password admin
           echo "Verifying tenant user has both 'user' and 'tenant' roles..."
           TENANT_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant --format csv --noquotes --fields id | tail -n 1 | tr -d '\r\n ')
           echo "Tenant user ID: $TENANT_ID"
