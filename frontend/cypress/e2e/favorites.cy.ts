@@ -11,6 +11,9 @@ describe("Favoritos - Usuario autenticado", () => {
   it("Bloquea marcar favorito sin autenticación", () => {
     cy.visit(appBaseUrl);
 
+    // Esperar a que la página cargue
+    cy.wait(800);
+
     cy.get("[data-testid^='favorite-button-']").first().click();
     cy.contains("Iniciá sesión", { timeout: 10000 }).should("be.visible");
   });
@@ -47,7 +50,14 @@ describe("Favoritos - Usuario autenticado", () => {
         cy.wrap($btn).click({ force: true });
       });
 
+    // Esperar a que el modal se cierre
+    cy.wait(500);
+
     cy.get("[aria-label='favorites']").click();
+    
+    // Esperar a que el panel de favoritos se renderice
+    cy.wait(500);
+    
     cy.get("[data-testid='favorite-item']", { timeout: 10000 }).should("exist");
 
     cy.visit(appBaseUrl);
@@ -55,6 +65,9 @@ describe("Favoritos - Usuario autenticado", () => {
     cy.wait("@getAvailableProperties", { timeout: 15000 });
     cy.wait("@getCurrentUser", { timeout: 15000 });
     cy.wait("@getUserFavorites", { timeout: 15000 });
+
+    // Esperar a que la página se renderice completamente
+    cy.wait(1000);
 
     cy.get("[data-testid^='favorite-button-']").first().should("be.visible").should("not.be.disabled");
 
@@ -71,7 +84,14 @@ describe("Favoritos - Usuario autenticado", () => {
     cy.contains("Eliminado de favoritos", { timeout: 10000 }).should("be.visible");
     cy.contains("button", "Ok", { timeout: 10000 }).should("be.visible").click();
 
+    // Esperar a que el modal se cierre
+    cy.wait(500);
+
     cy.get("[aria-label='favorites']").click();
+    
+    // Esperar a que el panel de favoritos se renderice
+    cy.wait(500);
+    
     cy.contains("No tienes favoritos disponibles", { timeout: 10000 }).should("be.visible");
   });
 });

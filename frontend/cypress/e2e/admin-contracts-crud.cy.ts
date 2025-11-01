@@ -118,6 +118,9 @@ describe("Admin - CRUD de contratos de alquiler", () => {
   });
 
   it("Crea, busca y elimina contrato completo", () => {
+    // Esperar a que la página inicial cargue
+    cy.wait(800);
+    
     cy.get("header, nav")
       .first()
       .within(() => {
@@ -128,11 +131,17 @@ describe("Admin - CRUD de contratos de alquiler", () => {
 
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
+    
+    // Esperar a que la lista de contratos se renderice
+    cy.wait(500);
 
     cy.contains("button", "Nuevo Contrato", { timeout: SLOT_TIMEOUT }).click();
 
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts/new");
     cy.wait("@getAvailableProperties", { timeout: SLOT_TIMEOUT });
+    
+    // Esperar a que la tabla de propiedades se renderice
+    cy.wait(800);
 
     cy.get('[role="row"][data-id]', { timeout: SLOT_TIMEOUT })
       .filter(":visible")
@@ -147,6 +156,9 @@ describe("Admin - CRUD de contratos de alquiler", () => {
       .click();
 
     cy.wait("@getAllUsers", { timeout: SLOT_TIMEOUT });
+    
+    // Esperar a que la tabla de usuarios se renderice
+    cy.wait(800);
 
     cy.contains('[role="row"]', TENANT_EMAIL, { timeout: SLOT_TIMEOUT })
       .should("be.visible")
@@ -160,6 +172,9 @@ describe("Admin - CRUD de contratos de alquiler", () => {
 
     cy.wait("@getUserById", { timeout: SLOT_TIMEOUT });
     cy.wait("@getIncreaseIndexes", { timeout: SLOT_TIMEOUT });
+    
+    // Esperar a que el formulario de contrato se renderice
+    cy.wait(800);
 
     selectOption(/Tipo/i, creationData.contractType);
     selectOption(/Estado/i, creationData.contractStatus);
@@ -212,6 +227,9 @@ describe("Admin - CRUD de contratos de alquiler", () => {
 
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
 
+    // Esperar a que la tabla de contratos se actualice
+    cy.wait(800);
+    
     // Click the first "Ir al detalle" button in the contracts table
     // (assuming the newest contract appears first or we just created it)
     cy.contains("button", /^Ir al detalle$/i, { timeout: SLOT_TIMEOUT })
@@ -227,11 +245,17 @@ describe("Admin - CRUD de contratos de alquiler", () => {
 
     cy.wait("@getContractById", { timeout: SLOT_TIMEOUT });
 
+    // Esperar a que el detalle del contrato se renderice
+    cy.wait(800);
+    
     cy.contains("Detalle de Contrato", { timeout: SLOT_TIMEOUT }).should("be.visible");
     cy.contains("Notas del Contrato").parent().should("contain.text", creationData.note);
 
     cy.contains("button", /^Editar$/i, { timeout: SLOT_TIMEOUT }).click();
 
+    // Esperar a que el formulario de edición se active
+    cy.wait(500);
+    
     cy.contains("label", /^Monto inicial/i, { timeout: SLOT_TIMEOUT })
       .should("exist")
       .invoke("attr", "for")
@@ -259,11 +283,17 @@ describe("Admin - CRUD de contratos de alquiler", () => {
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts");
     cy.wait("@getContracts", { timeout: SLOT_TIMEOUT });
 
+    // Esperar a que la tabla de contratos se actualice después de editar
+    cy.wait(800);
+    
     cy.contains("button", /^Ver detalle/i, { timeout: SLOT_TIMEOUT })
       .first()
       .click({ force: true });
 
     cy.wait("@getContractById", { timeout: SLOT_TIMEOUT });
+    
+    // Esperar a que el detalle se renderice antes de eliminar
+    cy.wait(500);
 
     cy.contains("button", /^Eliminar$/i, { timeout: SLOT_TIMEOUT }).click();
 

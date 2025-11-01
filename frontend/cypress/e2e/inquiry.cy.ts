@@ -22,15 +22,24 @@ describe("Consultas de propiedades", () => {
 
     // Esperar a que cargue el catálogo
     cy.wait("@getAvailableProperties", { timeout: 15000 });
+    
+    // Esperar a que las propiedades se rendericen
+    cy.wait(800);
 
     // abrir la primera propiedad del catálogo
     cy.get("[data-testid='property-card']").first().click();
 
     // Esperar a que cargue el detalle de la propiedad
     cy.wait("@getPropertyById", { timeout: 15000 });
+    
+    // Esperar a que el detalle se renderice
+    cy.wait(800);
 
     // presionar el botón "Consultar por esta propiedad"
     cy.contains("button", "Consultar por esta propiedad", { timeout: 10000 }).click();
+
+    // Esperar a que el modal se abra
+    cy.wait(500);
 
     // completar el formulario
     cy.get("input[name='firstName']").type("Juan");
@@ -52,6 +61,9 @@ describe("Consultas de propiedades", () => {
 
     // cerrar el modal de confirmación
     cy.contains("button", "Cerrar", { timeout: 10000 }).click();
+
+    // Esperar a que el modal de confirmación se cierre
+    cy.wait(500);
 
     // debería volver a estar visible el formulario de consulta
     cy.contains("Enviar consulta", { timeout: 10000 }).should("be.visible");

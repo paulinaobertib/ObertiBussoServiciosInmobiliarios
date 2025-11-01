@@ -188,6 +188,9 @@ describe("Admin - Gestión de turnos disponibles", () => {
 
     cy.loginAdmin();
 
+    // Esperar a que la app cargue después del login
+    cy.wait(800);
+
     cy.get("header, nav")
       .first()
       .within(() => {
@@ -201,6 +204,9 @@ describe("Admin - Gestión de turnos disponibles", () => {
     cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
     cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
     cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
+    
+    // Esperar a que la página de turnos se renderice completamente
+    cy.wait(1000);
 
     // Buscar primer día disponible en el calendario
     findFirstAvailableDay().then(({ day, month, year }) => {
@@ -214,9 +220,15 @@ describe("Admin - Gestión de turnos disponibles", () => {
       moveCalendarTo(targetMonth, targetYear);
       selectCalendarDay(targetDay);
 
+      // Esperar a que el día se seleccione
+      cy.wait(500);
+
       cy.contains("button", /^Generar turnos$/i)
         .should("be.visible")
         .click();
+
+      // Esperar a que el modal se abra
+      cy.wait(500);
 
       cy.get("[role='dialog']").within(() => {
         cy.contains("Generar turnos", { timeout: 10000 }).should("be.visible");
@@ -249,8 +261,14 @@ describe("Admin - Gestión de turnos disponibles", () => {
         .click({ force: true });
       cy.get("[role='dialog']").should("not.exist");
 
+      // Esperar a que el modal se cierre completamente
+      cy.wait(500);
+
       moveCalendarTo(targetMonth, targetYear);
       selectCalendarDay(targetDay);
+
+      // Esperar a que se carguen los turnos del día
+      cy.wait(800);
 
       cy.contains("button", /^POR DIA$/i).click();
 

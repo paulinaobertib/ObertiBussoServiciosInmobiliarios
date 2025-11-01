@@ -70,6 +70,7 @@ export default function ContractDetailPage() {
   const [loading, setLoading] = useState(true);
   const [contract, setContract] = useState<ContractGet | null>(null);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [deletingContract, setDeletingContract] = useState(false); // Loading separado para eliminar
   const [retryCount, setRetryCount] = useState(0);
 
   const { userName, propertyName } = useContractNames(contract?.userId ?? "", contract?.propertyId ?? 0);
@@ -228,7 +229,7 @@ export default function ContractDetailPage() {
     const ok = await confirmDanger("¿Eliminar contrato?");
     if (!ok) return;
 
-    setSavingStatus(true);
+    setDeletingContract(true); // Usar loading separado
     try {
       await deleteContract(contractId);
       await notifySuccess("Contrato eliminado");
@@ -244,7 +245,7 @@ export default function ContractDetailPage() {
     } catch (e) {
       handleError(e);
     } finally {
-      setSavingStatus(false);
+      setDeletingContract(false); // Resetear loading separado
     }
   };
 
@@ -337,6 +338,7 @@ export default function ContractDetailPage() {
           contract={contract}
           isAdmin={isAdmin}
           savingStatus={savingStatus}
+          deletingContract={deletingContract} // Pasar loading separado
           onEdit={onEdit}
           onDelete={onDelete}
           onToggleStatus={onToggleStatus}

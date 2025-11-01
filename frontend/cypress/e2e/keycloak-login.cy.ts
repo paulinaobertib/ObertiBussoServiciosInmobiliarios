@@ -35,6 +35,9 @@ describe("Login con Keycloak", () => {
 
   it("Rechaza login con usuario incorrecto", () => {
     cy.visit(appBaseUrl);
+    
+    // Esperar a que la página cargue completamente
+    cy.wait(500);
     cy.contains("button", /Iniciar Ses/i).click();
 
     cy.origin(
@@ -63,6 +66,9 @@ describe("Login con Keycloak", () => {
 
   it("Rechaza login con contraseña incorrecta", () => {
     cy.visit(appBaseUrl);
+    
+    // Esperar a que la página cargue completamente
+    cy.wait(500);
     cy.contains("button", /Iniciar Ses/i).click();
 
     cy.origin(
@@ -91,6 +97,8 @@ describe("Login con Keycloak", () => {
   it("Permite iniciar sesión y regresar autenticado a la aplicación", () => {
     cy.visit(appBaseUrl);
 
+    // Esperar a que la página cargue completamente
+    cy.wait(500);
     cy.contains("button", /Iniciar Ses/i)
       .should("be.visible")
       .click();
@@ -126,6 +134,9 @@ describe("Login con Keycloak", () => {
     cy.wait("@getUserRole", { timeout: 15000 });
     cy.wait("@getUserPreferences", { timeout: 15000 });
     cy.wait("@getUserFavorites", { timeout: 15000 });
+
+    // Esperar a que la UI se actualice después del login
+    cy.wait(1000);
 
     // Verificar elementos de la UI
     cy.get('[aria-label="profile"]', { timeout: 30000 }).should("be.visible");

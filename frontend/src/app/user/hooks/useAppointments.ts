@@ -244,7 +244,7 @@ export function useAppointments() {
   const [bookingSlots, setBookingSlots] = useState<AvailableAppointment[]>([]);
   const [bookingSlotId, setBookingSlotId] = useState<number | null>(null);
   const [bookingNotes, setBookingNotes] = useState("");
-  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(true); // Inicializar en true para mostrar loading inicial
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
 
   const loadBookingSlots = useCallback(

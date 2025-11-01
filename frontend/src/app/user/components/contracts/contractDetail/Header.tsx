@@ -7,6 +7,7 @@ type Props = {
   contract: ContractGet;
   isAdmin: boolean;
   savingStatus: boolean;
+  deletingContract?: boolean; // Loading separado para eliminar
   onEdit: () => void;
   onDelete: () => void;
   onToggleStatus: () => void;
@@ -14,7 +15,7 @@ type Props = {
   onIncrease: () => void;
 };
 
-export default function Header({ contract, isAdmin, savingStatus, onEdit, onDelete, onToggleStatus }: Props) {
+export default function Header({ contract, isAdmin, savingStatus, deletingContract = false, onEdit, onDelete, onToggleStatus }: Props) {
   return (
     <Box sx={{ my: 3 }}>
       <Box
@@ -77,9 +78,16 @@ export default function Header({ contract, isAdmin, savingStatus, onEdit, onDele
               >
                 {contract.contractStatus === "ACTIVO" ? "Inactivar" : "Reactivar"}
               </LoadingButton>
-              <Button size="small" variant="outlined" color="error" onClick={onDelete}>
+              <LoadingButton
+                size="small"
+                variant="outlined"
+                color="error"
+                onClick={onDelete}
+                disabled={deletingContract}
+                loading={deletingContract}
+              >
                 Eliminar 
-              </Button>
+              </LoadingButton>
             </Box>
           )}
         </Stack>

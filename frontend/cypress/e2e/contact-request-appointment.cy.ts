@@ -28,6 +28,9 @@ const selectFirstAvailableSlot = () => {
 
   // Esperar que se carguen los turnos disponibles primero
   cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+  
+  // Esperar a que el calendario se renderice completamente
+  cy.wait(800);
 
   const today = new Date();
   const tomorrow = new Date(today);
@@ -42,6 +45,9 @@ const selectFirstAvailableSlot = () => {
     cy.get(nextMonthButtonSelector2, { timeout: 10000 })
       .should("be.visible")
       .click({ force: true });
+    
+    // Esperar a que el calendario cambie de mes
+    cy.wait(500);
   }
 
   // Buscar un día habilitado >= mañana (evitar fines de semana: 0=domingo, 6=sábado)
@@ -65,6 +71,9 @@ const selectFirstAvailableSlot = () => {
 
   // Esperar que se carguen los horarios después de seleccionar el día
   cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+  
+  // Esperar a que los slots se rendericen
+  cy.wait(800);
 
   // Seleccionar el primer horario disponible
   cy.contains("button:enabled", /^\d{2}:\d{2}$/, { timeout: 10000 })
@@ -110,6 +119,8 @@ describe("Reserva de turno - Usuario no autenticado", () => {
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
 
+    // Esperar a que la página de contacto se renderice completamente
+    cy.wait(800);
     cy.contains(/Reserv.*tu turno/i, { timeout: 10000 }).should("be.visible");
     selectFirstAvailableSlot();
 
@@ -145,6 +156,9 @@ describe("Reserva de turno - Usuario no autenticado", () => {
 
     cy.get('[aria-label="profile"]', { timeout: 30000 }).should("be.visible");
 
+    // Esperar a que la app se estabilice después del login
+    cy.wait(1000);
+    
     cy.visit(contactUrl2);
 
     // Esperar carga de contacto autenticado
@@ -152,11 +166,16 @@ describe("Reserva de turno - Usuario no autenticado", () => {
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getUserFavorites", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
+    // Esperar a que la página de contacto se renderice completamente
+    cy.wait(800);
     cy.contains(/Reserv.*tu turno/i, { timeout: 10000 }).should("be.visible");
     selectFirstAvailableSlot();
 
     // Esperar segunda carga de slots
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    
+    // Esperar a que los slots se rendericen después de la segunda selección
+    cy.wait(500);
 
     cy.contains("button", /^Solicitar Turno$/)
       .scrollIntoView()
@@ -171,12 +190,18 @@ describe("Reserva de turno - Usuario no autenticado", () => {
 
     // Esperar que se cierre el diálogo
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    
+    // Esperar a que el diálogo se cierre completamente
+    cy.wait(800);
 
     // Navegar directamente a la ruta de perfil/turnos
     cy.visit(`${appBaseUrl}/profile`, { timeout: 15000 });
 
     // Esperar carga de los turnos del usuario
     cy.wait("@getUserAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    
+    // Esperar a que la página de perfil se renderice
+    cy.wait(800);
 
     // Click en el botón "Mis Turnos" para abrir la sección
     cy.contains("button, a, li", /Mis Turnos/i, { timeout: 10000 })

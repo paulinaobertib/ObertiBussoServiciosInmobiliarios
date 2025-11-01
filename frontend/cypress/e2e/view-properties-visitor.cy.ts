@@ -29,8 +29,10 @@ describe("Catálogo público - Visitante no autenticado", () => {
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
-    cy.wait("@searchProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    cy.wait("@getProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
+    // Esperar a que la página inicial se renderice completamente
+    cy.wait(800);
     cy.contains("button", /Iniciar Ses/i, { timeout: CATALOG_TIMEOUT }).should("be.visible");
 
     cy.get("[data-testid='favorite-item']", { timeout: CATALOG_TIMEOUT })
@@ -38,11 +40,8 @@ describe("Catálogo público - Visitante no autenticado", () => {
       .its("length")
       .should("be.greaterThan", 0);
 
-    // Esperar la segunda carga de propiedades
-    cy.wait("@getProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-
     // Esperar estabilidad del DOM antes de interactuar
-    cy.wait(5000);
+    cy.wait(800);
 
     // Obtener la primera tarjeta y guardar referencia
     cy.get("[data-testid='favorite-item']").first().as("firstCard");
@@ -68,6 +67,8 @@ describe("Catálogo público - Visitante no autenticado", () => {
     cy.wait("@searchProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getPropertyById", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
+    // Esperar a que el detalle se renderice
+    cy.wait(800);
     cy.location("pathname", { timeout: CATALOG_TIMEOUT }).should("match", /\/properties\/\d+$/);
 
     cy.get<string>("@selectedTitle").then((selectedTitle) => {

@@ -88,7 +88,8 @@ describe("AppointmentForm", () => {
     render(<AppointmentForm />);
     const button = screen.getByRole("button", { name: /Solicitar Turno/i });
     expect(button).toBeDisabled();
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    // Verificar que hay al menos un progressbar (puede haber más de uno)
+    expect(screen.getAllByRole("progressbar").length).toBeGreaterThan(0);
   });
 
   it("permite seleccionar un slot y actualizar comentarios", () => {

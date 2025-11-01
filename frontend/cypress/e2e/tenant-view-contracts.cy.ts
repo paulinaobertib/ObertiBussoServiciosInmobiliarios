@@ -36,13 +36,23 @@ describe("Inquilino - Visualización de contratos", () => {
     cy.wait("@getTypes", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
+    // Esperar a que la página principal se renderice completamente antes de buscar el botón
+    cy.wait(5000);
+    
+    // Verificar que el botón esté visible antes de hacer click
     cy.contains("button, a, span", /Soy Inquilino/i, { timeout: VIEW_TIMEOUT })
       .should("be.visible")
-      .then(($btn) => cy.wrap($btn).click({ force: true }));
+      .should("not.be.disabled")
+      .then(($btn) => {
+        cy.wrap($btn).click({ force: true });
+      });
 
     // Esperar navegación y carga de contratos
     cy.wait("@getUserContracts", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.location("pathname", { timeout: VIEW_TIMEOUT }).should("include", "/contract");
+    
+    // Esperar a que la lista de contratos se renderice
+    cy.wait(800);
 
     cy.contains("button", /Ver detalles/i, { timeout: VIEW_TIMEOUT })
       .should("be.visible")
@@ -52,6 +62,9 @@ describe("Inquilino - Visualización de contratos", () => {
     cy.wait("@getContractById", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getUserById", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getPropertyById", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    
+    // Esperar a que el detalle se renderice
+    cy.wait(500);
 
     cy.location("pathname", { timeout: VIEW_TIMEOUT }).should("match", /\/contracts?\/\d+$/);
     cy.contains("Detalle de Contrato", { timeout: VIEW_TIMEOUT }).should("be.visible");

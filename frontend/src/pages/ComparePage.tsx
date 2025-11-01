@@ -1,11 +1,11 @@
-import { Box, Button, IconButton } from '@mui/material';
+import { Box, Button, IconButton, CircularProgress } from '@mui/material';
 import { BasePage } from './BasePage';
 import { PropertyDetailsCompare } from '../app/property/components/propertyDetails/PropertyDetailsCompare';
 import { usePropertiesContext } from '../app/property/context/PropertiesContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Modal } from '../app/shared/components/Modal';
 import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ROUTES } from '../lib';
 import { useAuthContext } from '../app/user/context/AuthContext';
 import { PropertyDTOAI } from '../app/property/types/property';
@@ -16,7 +16,24 @@ const Compare = () => {
   const navigate = useNavigate();
   const { clearComparison, comparisonItems } = usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { isAdmin } = useAuthContext();
+
+  useEffect(() => {
+    // Simular carga inicial mínima para evitar redirect flash
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <BasePage>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress size={48} />
+        </Box>
+      </BasePage>
+    );
+  }
 
   if (comparisonItems.length === 0) {
     clearComparison();

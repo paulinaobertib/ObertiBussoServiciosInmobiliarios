@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, CircularProgress } from "@mui/material";
 import { useAppointments } from "../../../hooks/useAppointments";
 import { Calendar } from "../../Calendar";
 import { useAuthContext } from "../../../context/AuthContext";
@@ -66,7 +66,11 @@ export const AppointmentForm: React.FC = () => {
           Horarios disponibles
         </Typography>
 
-        {bookingSlots.length === 0 ? (
+        {bookingLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 310 }}>
+            <CircularProgress />
+          </Box>
+        ) : bookingSlots.length === 0 ? (
           <EmptyState title="No hay turnos disponibles" description="Probá seleccionando otra fecha del calendario." />
         ) : (
           <Box

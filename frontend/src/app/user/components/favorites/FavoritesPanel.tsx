@@ -53,11 +53,13 @@ export const FavoritesPanel = () => {
 
   if (availableFavorites.length === 0) {
     return (
-      <EmptyState
-        title={"No tienes favoritos disponibles"}
-        description="Puedes agregar los tuyos desde el catalogo."
-        minHeight={220}
-      />
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
+        <EmptyState
+          title={"No tienes favoritos disponibles"}
+          description="Puedes agregar los tuyos desde el catalogo."
+          minHeight={220}
+        />
+      </Box>
     );
   }
 

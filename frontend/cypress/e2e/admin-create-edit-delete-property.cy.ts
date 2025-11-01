@@ -26,6 +26,8 @@ describe("Administrador: creación básica de una propiedad", () => {
     cy.loginAdmin();
     cy.visit(appBaseUrl);
 
+    // Esperar a que la página principal cargue completamente
+    cy.wait(500);
     cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
@@ -47,6 +49,10 @@ describe("Administrador: creación básica de una propiedad", () => {
     openSpeedDialAction("Agregar");
 
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("include", "/properties/new");
+    
+    // Esperar a que el formulario de creación se renderice completamente
+    cy.wait(500);
+    cy.contains("button", /^Tipos$/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
 
     const clickModalButtonIfPresent = (...labels: RegExp[]) => {
       cy.get("body", { timeout: ADMIN_TIMEOUT }).then(($body) => {
@@ -91,7 +97,10 @@ describe("Administrador: creación básica de una propiedad", () => {
       .should("not.be.disabled")
       .click();
 
+    // Esperar a que el formulario de detalles se renderice completamente
+    cy.wait(800);
     cy.contains("button", /^Crear$/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("label", /^Calle/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
 
     cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
       .invoke("attr", "for")
@@ -193,6 +202,8 @@ describe("Administrador: creación básica de una propiedad", () => {
     // Verify navigation after closing modal
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
 
+    // Esperar a que la página principal cargue completamente antes de editar
+    cy.wait(800);
     cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });
@@ -211,7 +222,14 @@ describe("Administrador: creación básica de una propiedad", () => {
     cy.wait("@getOwnerByProperty", { timeout: ADMIN_TIMEOUT });
     cy.wait("@getPropertyImages", { timeout: ADMIN_TIMEOUT });
 
+    // Esperar a que el formulario de edición cargue completamente
+    cy.wait(500);
     cy.contains("button", /^Siguiente$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+
+    // Esperar a que el segundo paso del stepper se renderice
+    cy.wait(800);
+    cy.contains("button", /^Actualizar$/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.contains("label", /^Calle/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
 
     cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
       .invoke("attr", "for")
@@ -240,6 +258,8 @@ describe("Administrador: creación básica de una propiedad", () => {
 
     cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
 
+    // Esperar a que la página principal cargue completamente antes de eliminar
+    cy.wait(800);
     cy.get('button[aria-label="Acciones de Propiedad"]', { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
       .click({ force: true });

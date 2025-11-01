@@ -26,6 +26,9 @@ describe("Noticias: Visualización desde usuario normal", () => {
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
 
+    // Esperar a que la página inicial se renderice
+    cy.wait(500);
+
     // abrir sección Noticias
     cy.get("[data-testid='navbar-news']")
       .should("be.visible")
@@ -33,6 +36,9 @@ describe("Noticias: Visualización desde usuario normal", () => {
 
     // Esperar que carguen las noticias
     cy.wait("@getAllNotices", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+    
+    // Esperar a que las noticias se rendericen
+    cy.wait(800);
 
     // verificar que hay noticias cargadas
     cy.get(".MuiCard-root", { timeout: 10000 })
@@ -47,6 +53,9 @@ describe("Noticias: Visualización desde usuario normal", () => {
 
     // Esperar navegación al detalle (puede llamar a getAllNotices de nuevo)
     cy.wait("@getAllNotices", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+
+    // Esperar a que el detalle se renderice
+    cy.wait(500);
 
     // verificar detalle visible
     cy.get("h4").should("be.visible");

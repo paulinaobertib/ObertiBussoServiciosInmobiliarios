@@ -16,9 +16,15 @@ describe("Comparador de propiedades", () => {
     interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
     interceptGateway("POST", "/properties/inquiries/create", "postInquiry");
 
+    // Esperar a que la página cargue completamente
+    cy.wait(800);
+
     cy.contains("button", /Iniciar Ses/i, { timeout: CATALOG_TIMEOUT }).should("be.visible");
 
     cy.get("[data-testid='favorite-item']", { timeout: CATALOG_TIMEOUT }).should("have.length.greaterThan", 1);
+    
+    // Esperar a que las tarjetas se rendericen
+    cy.wait(500);
 
     cy.get("[data-testid='favorite-item']").eq(0).as("firstCard");
     cy.get("[data-testid='favorite-item']").eq(1).as("secondCard");
@@ -45,6 +51,9 @@ describe("Comparador de propiedades", () => {
 
     cy.contains("button", /^Comparar Propiedades$/i, { timeout: CATALOG_TIMEOUT }).click();
 
+    // Esperar a que el modo comparación se active
+    cy.wait(500);
+
     cy.contains("button", /^Ir a Comparar$/i, { timeout: CATALOG_TIMEOUT }).as("compareButton");
     cy.get("@compareButton").should("be.disabled");
 
@@ -64,9 +73,15 @@ describe("Comparador de propiedades", () => {
     cy.wait(5000);
     cy.location("pathname").should("eq", "/properties/compare");
 
+    // Esperar a que la página de comparación se renderice
+    cy.wait(800);
+
     cy.contains("button", /Consultar por estas propiedades/i, { timeout: CATALOG_TIMEOUT })
       .should("be.visible")
       .click();
+
+    // Esperar a que el modal se abra
+    cy.wait(500);
 
     cy.contains("h2", /Enviar consulta/i, { timeout: CATALOG_TIMEOUT })
       .closest("[role='dialog']")
@@ -93,6 +108,9 @@ describe("Comparador de propiedades", () => {
     cy.contains("h4", /Consulta enviada/i, { timeout: CATALOG_TIMEOUT }).should("be.visible");
     cy.contains("button", /^Cerrar$/i, { timeout: CATALOG_TIMEOUT }).click();
     cy.contains("h4", /Consulta enviada/i).should("not.exist");
+
+    // Esperar a que el modal de confirmación se cierre
+    cy.wait(500);
 
     cy.get("@inquiryModal").within(() => {
       cy.get("input[name='firstName']").should("have.value", "");
