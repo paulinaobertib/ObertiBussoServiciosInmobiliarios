@@ -28,8 +28,8 @@ describe("Inquilino - Visualización de contratos", () => {
 
   it("Permite ingresar al panel de inquilino y abrir el detalle de un contrato", () => {
     cy.loginTenant();
-    cy.visit(appBaseUrl);
-
+    // No need to visit again - loginTenant already navigates to /
+    
     // Esperar que cargue la página principal
     cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
     cy.wait("@getAmenities", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
