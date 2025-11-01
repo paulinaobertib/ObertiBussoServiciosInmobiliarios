@@ -79,8 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginBaseUrl = `${GW_URL}/oauth2/authorization/keycloak-client`;
 
   const isLogged = Boolean(info);
-  const isAdmin = info?.roles.includes("ADMIN" as Role) ?? false;
-  const isTenant = info?.roles.includes("TENANT" as Role) ?? false;
+  // Case-insensitive para soportar tanto "admin"/"ADMIN" como "tenant"/"TENANT"
+  const isAdmin = info?.roles.some(r => r.toLowerCase() === "admin") ?? false;
+  const isTenant = info?.roles.some(r => r.toLowerCase() === "tenant") ?? false;
 
   //para que aparezcan seleccionadas las caracteristicas al editar un contrato
   const clearPropertyUiState = useCallback(() => {
