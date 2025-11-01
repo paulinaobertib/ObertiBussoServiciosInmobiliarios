@@ -63,7 +63,10 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Clean previous integration environment
-        run: docker compose -f $COMPOSE_FILE down -v || true
+        run: |
+          docker compose -f $COMPOSE_FILE down -v || true
+          docker volume prune -f || true
+          docker system prune -f || true
 
       - name: Build integration images
         run: docker compose -f $COMPOSE_FILE build
@@ -165,6 +168,21 @@ jobs:
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update clients/9689a5de-feda-4483-ae30-ac65599cc1eb -r obertibussoserviciosinmobiliarios-integration -f /tmp/gateway-client.json
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s sslRequired=none
+
+      - name: Verify tenant user roles
+        run: |
+          echo "Verifying tenant user has both 'user' and 'tenant' roles..."
+          TENANT_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant --format csv --noquotes --fields id | tail -n 1 | tr -d '\r\n ')
+          echo "Tenant user ID: $TENANT_ID"
+          TENANT_ROLES=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users/$TENANT_ID/role-mappings/clients/$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get clients -r obertibussoserviciosinmobiliarios-integration -q clientId=springboot-keycloak-client --fields id --format csv --noquotes | tail -n 1 | tr -d '\r\n ') -r obertibussoserviciosinmobiliarios-integration)
+          echo "Tenant roles: $TENANT_ROLES"
+          if echo "$TENANT_ROLES" | grep -q '"name" : "user"' && echo "$TENANT_ROLES" | grep -q '"name" : "tenant"'; then
+            echo "✓ Tenant user has both required roles"
+          else
+            echo "✗ ERROR: Tenant user is missing roles!"
+            echo "$TENANT_ROLES"
+            exit 1
+          fi
 
       - name: Run Cypress suite
         working-directory: frontend
