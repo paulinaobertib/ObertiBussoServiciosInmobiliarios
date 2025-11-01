@@ -31,33 +31,13 @@ describe("Inquilino - Visualización de contratos", () => {
     // No need to visit again - loginTenant already navigates to /
     
     // Esperar que cargue la página principal
-    cy.wait("@getCurrentUser", { timeout: 15000 }).then((interception) => {
-      cy.log('getCurrentUser response:', JSON.stringify(interception.response?.body));
-      if (interception.response) {
-        expect(interception.response.statusCode).to.be.oneOf([200, 401]);
-      }
-    });
+    cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
     cy.wait("@getAmenities", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getTypes", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-    
-    // Esperar a que se obtenga el rol del usuario
-    cy.wait("@getUserRole", { timeout: 15000 }).then((interception) => {
-      cy.log('getUserRole response:', JSON.stringify(interception.response?.body));
-      if (interception.response) {
-        expect(interception.response.statusCode).to.be.within(200, 299);
-      }
-    });
 
     // Esperar a que la página principal se renderice completamente antes de buscar el botón
     cy.wait(5000);
-    
-    // Debug: verificar qué hay en el DOM
-    cy.get('body').then(($body) => {
-      cy.log('Body HTML:', $body.html());
-      const buttonTexts = $body.find('button, a, span').map((i, el) => Cypress.$(el).text()).get();
-      cy.log('All button/link/span texts:', buttonTexts.join(', '));
-    });
     
     // Verificar que el botón esté visible antes de hacer click
     cy.contains("button, a, span", /Soy Inquilino/i, { timeout: VIEW_TIMEOUT })
