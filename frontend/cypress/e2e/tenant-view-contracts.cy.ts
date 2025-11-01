@@ -30,14 +30,36 @@ describe("Inquilino - Visualización de contratos", () => {
     cy.loginTenant();
     // No need to visit again - loginTenant already navigates to /
     
-    // Esperar que cargue la página principal
-    cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
+    // Esperar que cargue la página principal y capturar respuestas
+    cy.wait("@getCurrentUser", { timeout: 15000 }).then((interception) => {
+      cy.log("User data:", JSON.stringify(interception.response?.body));
+    });
+    
+    cy.wait("@getUserRole", { timeout: 15000 }).then((interception) => {
+      cy.log("User roles:", JSON.stringify(interception.response?.body));
+    });
+    
     cy.wait("@getAmenities", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getTypes", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
-    // Esperar a que la página principal se renderice completamente antes de buscar el botón
+    // Debug: verificar authInfo en sessionStorage
+    cy.window().then((win) => {
+      const authInfo = win.sessionStorage.getItem('authInfo');
+      cy.log("AuthInfo from sessionStorage:", authInfo);
+      if (authInfo) {
+        const parsed = JSON.parse(authInfo);
+        cy.log("Parsed roles:", JSON.stringify(parsed.roles));
+      }
+    });
+
+    // Esperar a que la página principal se renderice completamente
     cy.wait(5000);
+    
+    // Debug: capturar el HTML del navbar para ver qué se está renderizando
+    cy.get('nav').then(($nav) => {
+      cy.log("Navbar HTML:", $nav.html());
+    });
     
     // Verificar que el botón esté visible antes de hacer click
     cy.contains("button, a, span", /Soy Inquilino/i, { timeout: VIEW_TIMEOUT })

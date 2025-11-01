@@ -79,9 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginBaseUrl = `${GW_URL}/oauth2/authorization/keycloak-client`;
 
   const isLogged = Boolean(info);
-  // Case-insensitive para soportar tanto "admin"/"ADMIN" como "tenant"/"TENANT"
-  const isAdmin = info?.roles.some(r => r.toLowerCase() === "admin") ?? false;
-  const isTenant = info?.roles.some(r => r.toLowerCase() === "tenant") ?? false;
+  const isAdmin = info?.roles.includes("admin") ?? false;
+  const isTenant = info?.roles.includes("tenant") ?? false;
 
   //para que aparezcan seleccionadas las caracteristicas al editar un contrato
   const clearPropertyUiState = useCallback(() => {
@@ -135,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 2) roles (pueden venir vacíos en primer login)
       const rolesResponse = await getRoles(user.id);
       let rawRoles: string[] = rolesResponse?.data ?? rolesResponse ?? [];
-      let roles = rawRoles.map((r: string) => r.toUpperCase() as Role);
+      let roles = rawRoles.map((r: string) => r.toLowerCase() as Role);
 
       // Reintenta 5 veces con 700ms entre intentos
       rawRoles = await retry(
@@ -148,12 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         { attempts: 5, delayMs: 700 }
       );
 
-      roles = rawRoles.map((r: string) => r.toUpperCase() as Role);
+      roles = rawRoles.map((r: string) => r.toLowerCase() as Role);
 
       // 4) preferencias (solo si no es admin)
 
       let preferences: UserNotificationPreference[] = [];
-      if (roles.includes("ADMIN" as Role)) {
+      if (roles.includes("admin")) {
         preferences = [];
       } else {
         preferences = await ensureDefaultPreferences(user.id);
