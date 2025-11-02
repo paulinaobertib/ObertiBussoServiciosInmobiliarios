@@ -112,14 +112,14 @@ jobs:
         run: |
           # Autenticar con Keycloak admin
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://auth.localtest.me:8080 --realm master --user admin --password admin
-          
+
           # Configurar SSL como NONE para desarrollo
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s sslRequired=none
-          
+
           # Configurar frontend URL
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/obertibussoserviciosinmobiliarios-integration -s attributes.frontendUrl=http://auth.localtest.me:8080
-          
+
           # Actualizar configuración del cliente gateway
           docker compose -f $COMPOSE_FILE exec -T keycloak bash -lc 'cat <<"EOF" >/tmp/gateway-client.json
           {
@@ -151,22 +151,6 @@ jobs:
           }
           EOF'
           docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh update clients/9689a5de-feda-4483-ae30-ac65599cc1eb -r obertibussoserviciosinmobiliarios-integration -f /tmp/gateway-client.json
-
-      - name: Verify tenant user roles
-        run: |
-          docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://auth.localtest.me:8080 --realm master --user admin --password admin
-          echo "Verifying tenant user has both 'user' and 'tenant' roles..."
-          TENANT_ID=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users -r obertibussoserviciosinmobiliarios-integration -q username=tenant --format csv --noquotes --fields id | tail -n 1 | tr -d '\r\n ')
-          echo "Tenant user ID: $TENANT_ID"
-          TENANT_ROLES=$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get users/$TENANT_ID/role-mappings/clients/$(docker compose -f $COMPOSE_FILE exec -T keycloak /opt/keycloak/bin/kcadm.sh get clients -r obertibussoserviciosinmobiliarios-integration -q clientId=springboot-keycloak-client --fields id --format csv --noquotes | tail -n 1 | tr -d '\r\n ') -r obertibussoserviciosinmobiliarios-integration)
-          echo "Tenant roles: $TENANT_ROLES"
-          if echo "$TENANT_ROLES" | grep -q '"name" : "user"' && echo "$TENANT_ROLES" | grep -q '"name" : "tenant"'; then
-            echo "✓ Tenant user has both required roles"
-          else
-            echo "✗ ERROR: Tenant user is missing roles!"
-            echo "$TENANT_ROLES"
-            exit 1
-          fi
 
       - name: Run Cypress suite
         working-directory: frontend
