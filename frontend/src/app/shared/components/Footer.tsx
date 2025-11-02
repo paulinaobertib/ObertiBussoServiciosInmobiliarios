@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box, Container, Grid, Typography, Button, IconButton } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import EmailIcon from "@mui/icons-material/Email";
@@ -5,9 +6,12 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { ROUTES } from "../../../lib";
 import { useNavigate } from "react-router-dom";
+import { Modal } from "./Modal";
+import { SuggestionForm } from "../../property/components/suggestions/SuggestionForm";
 
 const Footer = () => {
   const navigate = useNavigate();
+  const [suggestionOpen, setSuggestionOpen] = useState(false);
 
   return (
     <Box
@@ -40,6 +44,9 @@ const Footer = () => {
             </Button>
             <Button variant="text" sx={{ color: "#fff" }} onClick={() => navigate(ROUTES.CONTACT)}>
               Generar Consulta
+            </Button>
+            <Button variant="text" sx={{ color: "#fff" }} onClick={() => setSuggestionOpen(true)}>
+              Reportar Problema
             </Button>
             <Button variant="text" sx={{ color: "#fff" }} onClick={() => navigate(ROUTES.NEWS)}>
               Noticias
@@ -153,20 +160,20 @@ const Footer = () => {
             </Typography>
             <Typography variant="body2" textAlign="center">
               <a
-                  href="https://maps.google.com/?q=Luis+Galeano+1910,+Villa+Cabrera,+Córdoba,+Argentina"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "inherit", textDecoration: "none", display: "inline-block", marginBottom: "32px" }}
+                href="https://maps.google.com/?q=Luis+Galeano+1910,+Villa+Cabrera,+Córdoba,+Argentina"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", textDecoration: "none", display: "inline-block", marginBottom: "32px" }}
               >
                 Luis Galeano 1910 - Local 2<br />
                 Villa Cabrera, Córdoba, Argentina
               </a>
               <br />
               <a
-                  href="https://www.google.com/maps?q=Lisandro+de+la+Torre+299,+Local+7,+Villa+Carlos+Paz,+Córdoba,+Argentina"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "inherit", textDecoration: "none" }}
+                href="https://www.google.com/maps?q=Lisandro+de+la+Torre+299,+Local+7,+Villa+Carlos+Paz,+Córdoba,+Argentina"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", textDecoration: "none" }}
               >
                 Lisandro de la Torre 299 – Local 7<br />
                 Villa Carlos Paz, Córdoba, Argentina
@@ -198,6 +205,15 @@ const Footer = () => {
           </Typography>
         </Box>
       </Container>
+
+      {/* Modal para sugerencias */}
+      <Modal
+        open={suggestionOpen}
+        title="Enviar reporte de mejora para el sitio web"
+        onClose={() => setSuggestionOpen(false)}
+      >
+        <SuggestionForm onSuccess={() => setSuggestionOpen(false)} />
+      </Modal>
     </Box>
   );
 };

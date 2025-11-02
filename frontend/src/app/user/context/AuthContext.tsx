@@ -67,7 +67,7 @@ const ensureDefaultPreferences = async (userId: string): Promise<UserNotificatio
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const stored = sessionStorage.getItem("authInfo");
+  const stored = localStorage.getItem("authInfo");
   const hasStoredInfo = Boolean(stored);
   const [info, setInfo] = useState<AuthInfo | null>(stored ? JSON.parse(stored) : null);
   const [loading, setLoading] = useState(!stored);
@@ -110,10 +110,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     broadcastAuthEvent("session-expired");
   }, [broadcastAuthEvent, clearPropertyUiState]);
 
-  // Sincronizar con sessionStorage
+  // Sincronizar con localStorage
   useEffect(() => {
-    if (info) sessionStorage.setItem("authInfo", JSON.stringify(info));
-    else sessionStorage.removeItem("authInfo");
+    if (info) {
+      localStorage.setItem("authInfo", JSON.stringify(info));
+    } else {
+      localStorage.removeItem("authInfo");
+    }
   }, [info]);
 
   // Carga completa de info de sesión
@@ -183,13 +186,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Listener para eventos de localStorage (funciona entre pestañas)
     const handleStorage = (event: StorageEvent) => {
+      // Detectar cambios en authInfo directamente
+      if (event.key === "authInfo") {
+        if (event.newValue) {
+          try {
+            const authInfo = JSON.parse(event.newValue);
+            setInfo(authInfo);
+            setSessionExpired(false);
+            setLoading(false);
+            setReady(true);
+          } catch {
+            // Si falla el parse, no hacer nada
+          }
+        } else {
+          // Si se eliminó authInfo, cerrar sesión
+          setInfo(null);
+          setSessionExpired(false);
+          setLoading(false);
+          setReady(true);
+        }
+        return;
+      }
+      
+      // Manejar eventos de auth:event para logout y session-expired
       if (event.key !== AUTH_EVENT_STORAGE_KEY || !event.newValue) return;
       try {
         const parsed = JSON.parse(event.newValue) as { type?: string };
         const type = parsed?.type;
+        
         if (type === "logout") {
-          sessionStorage.clear();
+          localStorage.clear();
           clearPropertyUiState();
           setInfo(null);
           setSessionExpired(false);
@@ -197,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setReady(true);
         }
         if (type === "session-expired") {
-          sessionStorage.clear();
+          localStorage.clear();
           clearPropertyUiState();
           setInfo(null);
           setSessionExpired(true);
@@ -207,8 +235,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {}
     };
 
+    // Listener para eventos personalizados (funciona en la misma pestaña)
+    const handleCustomEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ type: string }>;
+      const type = customEvent.detail?.type;
+      
+      if (type === "user-loaded" || type === "logout" || type === "session-expired") {
+        // Forzar re-render leyendo de localStorage
+        const storedInfo = localStorage.getItem("authInfo");
+        if (storedInfo && type === "user-loaded") {
+          try {
+            const authInfo = JSON.parse(storedInfo);
+            setInfo(authInfo);
+            setSessionExpired(false);
+            setLoading(false);
+            setReady(true);
+          } catch {
+            // Si falla el parse, no hacer nada
+          }
+        }
+      }
+    };
+
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("auth:event", handleCustomEvent);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("auth:event", handleCustomEvent);
+    };
   }, [clearPropertyUiState]);
 
   // Al montar, siempre refrescar desde la API (aunque haya stored) para evitar estados viejos
@@ -219,12 +274,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = () => {
     const nextPath = "/";
     try {
-      sessionStorage.setItem("postLoginNext", nextPath);
+      localStorage.setItem("postLoginNext", nextPath);
     } catch {}
     setSessionExpired(false);
-    setReady(false);
-    setLoading(true);
-
+    // Don't set loading=true or ready=false here - if user clicks back instead of logging in,
+    // they get stuck in permanent loading state. Let loadUserInfo handle the loading state.
+    
     clearPropertyUiState(); // limpia selección/estado previo
     broadcastAuthEvent("login"); // por si otro contexto quiere reaccionar
 
@@ -237,7 +292,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionExpired(false);
     setReady(false);
     setLoading(true);
-    sessionStorage.clear();
+    localStorage.clear();
 
     clearPropertyUiState(); // idem
     broadcastAuthEvent("logout"); // por si querés resetear selección en otros contextos
@@ -274,7 +329,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           originalRequest._retry = true;
           try {
             const next = window.location.pathname + window.location.search;
-            sessionStorage.setItem("postLoginNext", next);
+            localStorage.setItem("postLoginNext", next);
           } catch {}
 
           markSessionExpired();
@@ -287,7 +342,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (isOnline) {
             try {
               const next = window.location.pathname + window.location.search;
-              sessionStorage.setItem("postLoginNext", next);
+              localStorage.setItem("postLoginNext", next);
             } catch {}
             markSessionExpired();
           }
@@ -303,12 +358,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || !isLogged) return;
     try {
-      const next = sessionStorage.getItem("postLoginNext");
+      const next = localStorage.getItem("postLoginNext");
       if (next && next !== window.location.pathname + window.location.search) {
-        sessionStorage.removeItem("postLoginNext");
+        localStorage.removeItem("postLoginNext");
         window.location.replace(next);
       } else if (next) {
-        sessionStorage.removeItem("postLoginNext");
+        localStorage.removeItem("postLoginNext");
       }
     } catch {}
   }, [ready, isLogged]);

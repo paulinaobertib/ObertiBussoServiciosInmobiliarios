@@ -234,12 +234,15 @@ body::before {
   cursor: pointer;
   white-space: nowrap;
   min-height: 2.5rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
   background: #000000;
   border: none;
   color: #fff;
+  --spinner-color: rgba(255, 255, 255, 0.9);
 }
 
 .btn-primary:hover {
@@ -253,6 +256,7 @@ body::before {
   border: 1px solid #ee671e;
   color: #000;
   gap: 1rem;
+  --spinner-color: #ee671e;
 }
 
 .google-btn:hover {
@@ -262,6 +266,49 @@ body::before {
 .google-btn img {
   width: 18px;
   height: 18px;
+  transition: opacity 0.2s ease;
+}
+
+.btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: opacity 0.2s ease;
+}
+
+.btn-primary.is-loading,
+.google-btn.is-loading {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.btn-primary.is-loading .btn-label,
+.google-btn.is-loading .btn-label {
+  visibility: hidden;
+}
+
+.google-btn.is-loading img {
+  visibility: hidden;
+}
+
+.btn-primary.is-loading::after,
+.google-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid var(--spinner-color);
+  border-top-color: transparent;
+  animation: button-spinner 0.8s linear infinite;
+}
+
+@keyframes button-spinner {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ==========
@@ -582,10 +629,11 @@ input[style*="border-color: rgb(76, 175, 80)"] {
 
 .terms-checkbox {
   display: flex;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
   gap: 0.3rem; 
   flex-wrap: nowrap;
-  white-space: nowrap;
+  white-space: normal;
   margin: 0; 
 }
 
@@ -599,12 +647,17 @@ input[style*="border-color: rgb(76, 175, 80)"] {
 
 .terms-checkbox label {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.25rem;
   cursor: pointer;
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.2;
+  flex: 1;
+}
+
+.terms-checkbox label span {
+  display: inline;
 }
 
 .terms-link {
@@ -618,4 +671,3 @@ input[style*="border-color: rgb(76, 175, 80)"] {
   color: #c9560f;
   text-decoration: underline;
 }
-

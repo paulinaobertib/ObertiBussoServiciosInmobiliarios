@@ -82,7 +82,7 @@ describe("AuthProvider", () => {
 
     act(() => result.current.login());
 
-    expect(sessionStorage.getItem("postLoginNext")).not.toBeNull();
+    expect(localStorage.getItem("postLoginNext")).not.toBeNull();
     expect(window.location.href).not.toBe(""); // se setea alguna URL
   });
 

@@ -34,11 +34,13 @@
           </div>
       
           <div class="form-actions">
-              <button type="submit" class="btn-primary">Iniciar sesión</button>
+              <button type="submit" class="btn-primary">
+                <span class="btn-label">Iniciar sesión</span>
+              </button>
               <div class="or-text">ó</div>
               <button type="button" class="google-btn">
                   <img src="${url.resourcesPath}/google.png" alt="Google logo"/>
-                  Iniciar sesión con Google
+                  <span class="btn-label">Iniciar sesión con Google</span>
               </button>
           </div>
         </form>
@@ -71,6 +73,31 @@
 
   <script>
     let toastTimer;
+
+    function setButtonLoading(button, loadingText) {
+      if (!button || button.classList.contains('is-loading')) return;
+      const label = button.querySelector('.btn-label');
+      if (label && !label.dataset.originalText) {
+        label.dataset.originalText = label.textContent.trim();
+      }
+      if (label && loadingText) {
+        label.textContent = loadingText;
+      }
+      button.classList.add('is-loading');
+      button.setAttribute('aria-busy', 'true');
+      button.disabled = true;
+    }
+
+    function clearButtonLoading(button) {
+      if (!button) return;
+      const label = button.querySelector('.btn-label');
+      if (label && label.dataset.originalText) {
+        label.textContent = label.dataset.originalText;
+      }
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
+      button.disabled = false;
+    }
 
     const SERVER_ERROR_MAP = {
       invalidUsernameOrPasswordMessage: 'Usuario o contraseña incorrectos.',
@@ -266,13 +293,29 @@
       }, 4000);
 
       const form = document.getElementById('loginForm');
+      const loginButton = form.querySelector('.btn-primary');
+      const googleButton = document.querySelector('.google-btn');
+
       form.addEventListener('submit', (e) => {
         if (!validateLoginForm()) {
           e.preventDefault();
           return false;
         }
+        setButtonLoading(loginButton, 'Iniciando...');
         return true;
       });
+
+      if (googleButton) {
+        googleButton.addEventListener('click', () => {
+          const googleLink = document.querySelector('a[data-provider="google"], a#social-google, a[href*="broker/google"]');
+          setButtonLoading(googleButton, 'Conectando...');
+          if (googleLink) {
+            googleLink.click();
+          } else {
+            setTimeout(() => clearButtonLoading(googleButton), 1500);
+          }
+        });
+      }
 
       const serverMessageElement = document.getElementById('serverErrorMessage');
       if (serverMessageElement) {

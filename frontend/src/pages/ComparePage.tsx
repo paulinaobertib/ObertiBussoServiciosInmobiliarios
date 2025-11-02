@@ -5,7 +5,7 @@ import { usePropertiesContext } from '../app/property/context/PropertiesContext'
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Modal } from '../app/shared/components/Modal';
 import { InquiryForm } from '../app/property/components/inquiries/InquiryForm';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ROUTES } from '../lib';
 import { useAuthContext } from '../app/user/context/AuthContext';
 import { PropertyDTOAI } from '../app/property/types/property';
@@ -14,18 +14,12 @@ import ReplyIcon from '@mui/icons-material/Reply';
 
 const Compare = () => {
   const navigate = useNavigate();
-  const { clearComparison, comparisonItems } = usePropertiesContext();
+  const { clearComparison, comparisonItems, comparisonLoading, selectedPropertyIds } = usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const { isAdmin } = useAuthContext();
 
-  useEffect(() => {
-    // Simular carga inicial mínima para evitar redirect flash
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading) {
+  // Mostrar loading mientras se cargan los datos de las propiedades
+  if (comparisonLoading) {
     return (
       <BasePage>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -35,6 +29,7 @@ const Compare = () => {
     );
   }
 
+  // Si no hay items para comparar, redirigir
   if (comparisonItems.length === 0) {
     clearComparison();
     return <Navigate to={ROUTES.HOME_APP} replace />;
@@ -44,8 +39,6 @@ const Compare = () => {
     clearComparison();
     navigate(-1);
   };
-
-  const { selectedPropertyIds } = usePropertiesContext();
 
   const comparisonDataAI: PropertyDTOAI[] = comparisonItems.map((property) => ({
     name: property.title,

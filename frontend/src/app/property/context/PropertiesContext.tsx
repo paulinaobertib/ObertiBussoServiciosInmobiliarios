@@ -44,6 +44,7 @@ interface Ctx {
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
   comparisonItems: Property[];
+  comparisonLoading: boolean;
   selectedPropertyIds: number[];
   toggleCompare: (id: number) => void;
   clearComparison: () => void;
@@ -162,13 +163,16 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   // Comparación
   const [selectedPropertyIds, setSelectedPropertyIds] = useState<number[]>([]);
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
 
   useEffect(() => {
     if (selectedPropertyIds.length === 0) {
       setComparisonItems([]);
+      setComparisonLoading(false);
       return;
     }
     (async () => {
+      setComparisonLoading(true);
       const items: Property[] = [];
       for (const id of selectedPropertyIds) {
         try {
@@ -178,6 +182,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         }
       }
       setComparisonItems(items);
+      setComparisonLoading(false);
     })();
   }, [selectedPropertyIds]);
 
@@ -192,6 +197,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const clearComparison = () => {
     setComparisonItems([]);
     setSelectedPropertyIds([]);
+    setComparisonLoading(false);
   };
 
   const disabledCompare = useMemo(
@@ -223,6 +229,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         currentProperty,
         loadProperty,
         comparisonItems,
+        comparisonLoading,
         selectedPropertyIds,
         toggleCompare,
         clearComparison,

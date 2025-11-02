@@ -110,16 +110,20 @@
             <div class="terms-checkbox">
               <input type="checkbox" id="acceptTerms" name="terms_and_conditions" required />
               <label for="acceptTerms">
-                Aceptar los 
-                <a href="https://www.inmobiliariaobertibusso.com.ar/policies" target="_blank" class="terms-link">
-                  Términos y Condiciones
-                </a>
+                <span>
+                  Aceptar los 
+                  <a href="https://www.inmobiliariaobertibusso.com.ar/policies" target="_blank" class="terms-link">
+                    Términos y Condiciones
+                  </a>
+                </span>
               </label>
             </div>
           </div>
           
           <div class="form-actions">
-            <button type="submit" class="btn-primary">Registrarse</button>
+            <button type="submit" class="btn-primary">
+              <span class="btn-label">Registrarse</span>
+            </button>
           </div>
         </form>
 
@@ -151,6 +155,20 @@
 
   <script>
     let toastTimer;
+
+    function setButtonLoading(button, loadingText) {
+      if (!button || button.classList.contains('is-loading')) return;
+      const label = button.querySelector('.btn-label');
+      if (label && !label.dataset.originalText) {
+        label.dataset.originalText = label.textContent.trim();
+      }
+      if (label && loadingText) {
+        label.textContent = loadingText;
+      }
+      button.classList.add('is-loading');
+      button.setAttribute('aria-busy', 'true');
+      button.disabled = true;
+    }
 
     const SERVER_ERROR_MAP = {
       invalidUsernameOrPasswordMessage: 'Usuario o contraseña incorrectos.',
@@ -543,14 +561,15 @@
 
       // Prevenir submit automático si hay errores de validación
       const form = document.getElementById('registerForm');
+      const submitButton = form.querySelector('.btn-primary');
+
       form.addEventListener('submit', (e) => {
         const isValid = validateRegisterForm();
         if (!isValid) {
           e.preventDefault(); // Detiene envío si hay error
           return false;
         }
-        // Si es válido, forzamos el envío manual
-        form.submit();
+        setButtonLoading(submitButton, 'Registrando...');
       });
 
       // Validación en tiempo real: mostrar feedback visual

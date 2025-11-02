@@ -10,6 +10,7 @@ import { usePropertiesContext } from "../app/property/context/PropertiesContext"
 import { ProfileSection } from "../app/user/components/users/profile/ProfileSection";
 import { UsersSection } from "../app/user/components/users/panel/UsersSection";
 import { InquiriesSection } from "../app/property/components/inquiries/InquiriesSection";
+import { SuggestionsSection } from "../app/property/components/suggestions/SuggestionsSection";
 import ReplyIcon from "@mui/icons-material/Reply";
 import { ROUTES } from "../lib";
 import { SurveysSection } from "../app/property/components/survey/SurveySection";
@@ -78,6 +79,11 @@ export default function AdministratorPage() {
           Estadisticas
         </Button>
       ),
+    },
+    {
+      key: "suggestions",
+      label: "Sugerencias",
+      content: <SuggestionsSection />,
     },
   ];
 

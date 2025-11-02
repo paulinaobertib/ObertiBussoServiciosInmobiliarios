@@ -49,7 +49,6 @@ export default function Home() {
     toggleCompare,
     clearComparison,
     disabledCompare,
-    refreshProperties,
     resetSelected,
     setPropertiesLoading,
   } = usePropertiesContext();
@@ -60,8 +59,9 @@ export default function Home() {
 
   useEffect(() => {
     resetSelected();
-    refreshProperties(isAdmin ? "all" : "available");
-  }, [resetSelected, refreshProperties, isAdmin]);
+    // Don't call refreshProperties here - usePropertyPanel hook already does it
+    // This was causing double loading on mount
+  }, [resetSelected]);
 
   const handleAction = (action: "create" | "edit" | "delete") => {
     if (action === "create") {

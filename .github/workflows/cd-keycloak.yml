@@ -178,7 +178,7 @@ jobs:
               "KC_HTTP_ENABLED=true" \
               "KC_HEALTH_ENABLED=true" \
               "KC_PROXY_HEADERS=xforwarded" \
-              "KC_HOSTNAME=${{ env.APP_NAME_PROD }}.azurewebsites.net" \
+              "KC_HOSTNAME=${{ secrets.KEYCLOAK_HOSTNAME_PROD }}" \
               "KC_HOSTNAME_STRICT=true"
 
       - name: Enforce HTTPS
