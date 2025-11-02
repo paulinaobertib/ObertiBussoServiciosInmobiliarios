@@ -29,7 +29,6 @@ describe("Catálogo público - Visitante no autenticado", () => {
     cy.wait("@getNeighborhoods", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getCurrentUser", { timeout: 15000 }).its("response.statusCode").should("be.oneOf", [200, 401]);
-    cy.wait("@getProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     // Esperar a que la página inicial se renderice completamente
     cy.wait(800);
