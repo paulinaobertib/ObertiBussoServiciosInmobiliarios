@@ -48,6 +48,13 @@
   </div>
 
   <script>
+    function setButtonLoading(button) {
+      if (!button || button.classList.contains('is-loading')) return;
+      button.classList.add('is-loading');
+      button.setAttribute('aria-busy', 'true');
+      button.disabled = true;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const phrases = [
         "Administración de tus propiedades",
@@ -64,6 +71,18 @@
         }
         idx = (idx + 1) % phrases.length;
       }, 4000);
+
+      const form = document.getElementById('resetPasswordForm');
+      const submitButton = form.querySelector('.btn-primary');
+      
+      form.addEventListener('submit', (e) => {
+        const usernameInput = document.getElementById('username');
+        if (!usernameInput.value.trim()) {
+          e.preventDefault();
+          return false;
+        }
+        setButtonLoading(submitButton);
+      });
     });
   </script>
 </@common.page>

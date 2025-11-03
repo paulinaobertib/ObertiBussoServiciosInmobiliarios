@@ -19,6 +19,14 @@
         <h2 id="formTitle" class="welcome-title">Bienvenido</h2>
 
         <!-- Login -->
+        <#assign googleLoginUrl="">
+        <#if social?? && social.providers?has_content>
+          <#list social.providers as provider>
+            <#if provider.alias == "google">
+              <#assign googleLoginUrl=provider.loginUrl>
+            </#if>
+          </#list>
+        </#if>
         <form id="loginForm" action="${url.loginAction}" method="post" class="auth-form" autocomplete="on">
           <input type="text" name="username" placeholder="Usuario o email" required />
       
@@ -38,7 +46,7 @@
                 <span class="btn-label">Iniciar sesión</span>
               </button>
               <div class="or-text">ó</div>
-              <button type="button" class="google-btn">
+                            <button type="button" class="google-btn"<#if googleLoginUrl?has_content> data-login-url="${googleLoginUrl}"</#if>>
                   <img src="${url.resourcesPath}/google.png" alt="Google logo"/>
                   <span class="btn-label">Iniciar sesión con Google</span>
               </button>
@@ -74,15 +82,8 @@
   <script>
     let toastTimer;
 
-    function setButtonLoading(button, loadingText) {
+    function setButtonLoading(button) {
       if (!button || button.classList.contains('is-loading')) return;
-      const label = button.querySelector('.btn-label');
-      if (label && !label.dataset.originalText) {
-        label.dataset.originalText = label.textContent.trim();
-      }
-      if (label && loadingText) {
-        label.textContent = loadingText;
-      }
       button.classList.add('is-loading');
       button.setAttribute('aria-busy', 'true');
       button.disabled = true;
@@ -265,12 +266,6 @@
         return false;
       }
 
-      if (password.length < 8) {
-        showToast('La contraseña debe tener al menos 8 caracteres.', { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
 
       return true;
     }
@@ -301,20 +296,22 @@
           e.preventDefault();
           return false;
         }
-        setButtonLoading(loginButton, 'Iniciando...');
+        setButtonLoading(loginButton);
         return true;
       });
 
       if (googleButton) {
-        googleButton.addEventListener('click', () => {
-          const googleLink = document.querySelector('a[data-provider="google"], a#social-google, a[href*="broker/google"]');
-          setButtonLoading(googleButton, 'Conectando...');
-          if (googleLink) {
-            googleLink.click();
-          } else {
-            setTimeout(() => clearButtonLoading(googleButton), 1500);
-          }
-        });
+        const loginUrl = googleButton.dataset.loginUrl;
+        if (!loginUrl) {
+          googleButton.disabled = true;
+          googleButton.setAttribute('aria-disabled', 'true');
+          googleButton.style.display = 'none';
+        } else {
+          googleButton.addEventListener('click', () => {
+            setButtonLoading(googleButton);
+            window.location.assign(loginUrl);
+          });
+        }
       }
 
       const serverMessageElement = document.getElementById('serverErrorMessage');

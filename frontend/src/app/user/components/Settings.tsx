@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-    Drawer,
-    IconButton,
-    Box,
-    Typography,
-    Switch,
-    Divider,
-    List,
-    ListItem,
-    useTheme,
-    useMediaQuery,
-    Stack,
-    Chip,
-} from '@mui/material';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+  Drawer,
+  IconButton,
+  Box,
+  Typography,
+  Switch,
+  Divider,
+  List,
+  ListItem,
+  useTheme,
+  useMediaQuery,
+  Stack,
+  Chip,
+} from "@mui/material";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 import { useAuthContext } from "../context/AuthContext";
 import {
@@ -53,10 +53,10 @@ function HistoryCard({ title, subtitle, right }: { title: string; subtitle: stri
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" noWrap>
+        <Typography variant="body2" noWrap sx={{ fontSize: "1rem" }}>
           {title}
         </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap>
+        <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "1rem" }}>
           {subtitle}
         </Typography>
       </Box>
@@ -90,7 +90,9 @@ function PrefRow({
         justifyContent: "space-between",
       }}
     >
-      <Typography variant="body2">{label}</Typography>
+      <Typography variant="body2" sx={{ fontSize: "1rem" }}>
+        {label}
+      </Typography>
       <Switch size="small" checked={checked} onChange={onChange} />
     </Box>
   );
@@ -181,158 +183,162 @@ export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       open={open}
       onClose={onClose}
       PaperProps={{
-          sx: {
-            width: isMobile ? "92%" : drawerWidth,
-            p: 0,
-            bgcolor: "background.default",
-            borderLeft: "1px solid",
-            borderColor: "divider",
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            zIndex: 100,
-          },
+        sx: {
+          width: isMobile ? "92%" : drawerWidth,
+          p: 0,
+          bgcolor: "background.default",
+          borderLeft: "1px solid",
+          borderColor: "divider",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          zIndex: 100,
+        },
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          position: "sticky",
+          top: 0,
+          bgcolor: "background.paper",
+          zIndex: 1,
+          borderBottom: "1px solid",
+          borderColor: "divider",
         }}
       >
-        {/* Header */}
-        <Box
-          sx={{
-            p: 2,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            position: "sticky",
-            top: 0,
-            bgcolor: "background.paper",
-            zIndex: 1,
-            borderBottom: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Typography variant="h6" sx={{ flex: 1, letterSpacing: 0.2 }}>
-            Notificaciones
-          </Typography>
-          <Chip
-            size="small"
-            variant={isAdmin ? "filled" : "outlined"}
-            color={isAdmin ? "secondary" : "default"}
-            label={isAdmin ? "Admin" : `${countToday} hoy`}
-          />
-          <IconButton onClick={onClose}>
-            <CloseRoundedIcon />
-          </IconButton>
-        </Box>
+        <Typography variant="h6" sx={{ flex: 1, letterSpacing: 0.2, fontSize: "1.3rem" }}>
+          Notificaciones
+        </Typography>
+        <Chip
+          size="small"
+          variant={isAdmin ? "filled" : "outlined"}
+          color={isAdmin ? "secondary" : "default"}
+          label={isAdmin ? "Admin" : `${countToday} hoy`}
+        />
+        <IconButton onClick={onClose}>
+          <CloseRoundedIcon />
+        </IconButton>
+      </Box>
 
-        {/* Main content: pref (no scroll) + history (con scroll) */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 0, // importante para que el hijo con overflow funcione
-          }}
-        >
-          {/* Preferencias (solo user) */}
-          {!isAdmin && (
-            <Box sx={{ p: 2, pb: 1, display: "flex", flexDirection: "column", gap: 1, flex: "0 0 auto" }}>
-              <Typography variant="subtitle2">Preferencias</Typography>
-              {loading ? (
-                <Typography variant="body2" color="text.secondary">
-                  Cargando…
-                </Typography>
-              ) : preferences.length ? (
-                preferences.map((pref) => (
-                  <PrefRow
-                    key={pref.id}
-                    label={TYPE_LABELS[pref.type]}
-                    checked={pref.enabled}
-                    onChange={handleTogglePref(pref)}
-                  />
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Sin preferencias configuradas.
-                </Typography>
-              )}
-            </Box>
-          )}
-
-          {/* Divider entre preferencias e historial */}
-          {!isAdmin && <Divider sx={{ mx: 2 }} />}
-
-          {/* Historial (scroll SOLO acá) */}
-          <Box
-            sx={{
-              p: 2,
-              pt: 1.5,
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-              flex: 1,
-              minHeight: 0,
-            }}
-          >
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Typography variant="subtitle2">Historial{isAdmin ? " (resumen)" : ""}</Typography>
-              {isAdmin && <Typography variant="subtitle2">Envíos</Typography>}
-            </Stack>
-            {error && (
-              <Typography variant="body2" color="error">
-                {error}
-              </Typography>
-            )}
-
+      {/* Main content: pref (no scroll) + history (con scroll) */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0, // importante para que el hijo con overflow funcione
+        }}
+      >
+        {/* Preferencias (solo user) */}
+        {!isAdmin && (
+          <Box sx={{ p: 2, pb: 1, display: "flex", flexDirection: "column", gap: 1, flex: "0 0 auto" }}>
+            <Typography fontSize={"1.3rem"} variant="subtitle2">
+              Preferencias
+            </Typography>
             {loading ? (
               <Typography variant="body2" color="text.secondary">
                 Cargando…
               </Typography>
+            ) : preferences.length ? (
+              preferences.map((pref) => (
+                <PrefRow
+                  key={pref.id}
+                  label={TYPE_LABELS[pref.type]}
+                  checked={pref.enabled}
+                  onChange={handleTogglePref(pref)}
+                />
+              ))
             ) : (
-              <List
-                sx={{
-                  p: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 1,
-                  overflowY: "auto", // ← scroll solo aquí
-                  flex: 1,
-                  minHeight: 0,
-                }}
-              >
-                {isAdmin ? (
-                  summary.length ? (
-                    summary.map(({ date, type, count }) => (
-                      <ListItem key={`${date}|${type}`} sx={{ p: 0 }}>
-                        <HistoryCard
-                          title={TYPE_LABELS[type]}
-                          subtitle={date}
-                          right={<Chip size="small" label={count} />}
-                        />
-                      </ListItem>
-                    ))
-                  ) : (
-                    <ListItem sx={{ p: 0 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Sin actividad.
-                      </Typography>
-                    </ListItem>
-                  )
-                ) : notifications.length ? (
-                  notifications.map((n) => (
-                    <ListItem key={n.id} sx={{ p: 0 }}>
-                      <HistoryCard title={TYPE_LABELS[n.type]} subtitle={fmtDate.format(new Date(n.date))} />
+              <Typography variant="body2" color="text.secondary">
+                Sin preferencias configuradas.
+              </Typography>
+            )}
+          </Box>
+        )}
+
+        {/* Divider entre preferencias e historial */}
+        {!isAdmin && <Divider sx={{ mx: 2 }} />}
+
+        {/* Historial (scroll SOLO acá) */}
+        <Box
+          sx={{
+            p: 2,
+            pt: 1.5,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography fontSize={"1.3rem"} variant="subtitle2">
+              Historial{isAdmin ? " (resumen)" : ""}
+            </Typography>
+            {isAdmin && <Typography variant="subtitle2">Envíos</Typography>}
+          </Stack>
+          {error && (
+            <Typography variant="body2" color="error">
+              {error}
+            </Typography>
+          )}
+
+          {loading ? (
+            <Typography variant="body2" color="text.secondary">
+              Cargando…
+            </Typography>
+          ) : (
+            <List
+              sx={{
+                p: 0,
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                overflowY: "auto", // ← scroll solo aquí
+                flex: 1,
+                minHeight: 0,
+              }}
+            >
+              {isAdmin ? (
+                summary.length ? (
+                  summary.map(({ date, type, count }) => (
+                    <ListItem key={`${date}|${type}`} sx={{ p: 0 }}>
+                      <HistoryCard
+                        title={TYPE_LABELS[type]}
+                        subtitle={date}
+                        right={<Chip size="small" label={count} />}
+                      />
                     </ListItem>
                   ))
                 ) : (
                   <ListItem sx={{ p: 0 }}>
                     <Typography variant="body2" color="text.secondary">
-                      Sin notificaciones.
+                      Sin actividad.
                     </Typography>
                   </ListItem>
-                )}
-              </List>
-            )}
-          </Box>
+                )
+              ) : notifications.length ? (
+                notifications.map((n) => (
+                  <ListItem key={n.id} sx={{ p: 0 }}>
+                    <HistoryCard title={TYPE_LABELS[n.type]} subtitle={fmtDate.format(new Date(n.date))} />
+                  </ListItem>
+                ))
+              ) : (
+                <ListItem sx={{ p: 0 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Sin notificaciones.
+                  </Typography>
+                </ListItem>
+              )}
+            </List>
+          )}
         </Box>
-      </Drawer>
+      </Box>
+    </Drawer>
   );
 }

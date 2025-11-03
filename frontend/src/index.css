@@ -3,6 +3,12 @@ html, body, #root {
     margin: 0;
   }
 
+/* Prevenir scroll cuando el loader de autenticación está activo */
+body.auth-loading {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+
 html { font-size: clamp(14px, calc(12.667px + 0.4167vw), 18px);}
 
 input[type="number"]::-webkit-outer-spin-button,

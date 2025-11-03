@@ -61,6 +61,13 @@
   </div>
 
   <script>
+    function setButtonLoading(button) {
+      if (!button || button.classList.contains('is-loading')) return;
+      button.classList.add('is-loading');
+      button.setAttribute('aria-busy', 'true');
+      button.disabled = true;
+    }
+
     function togglePassword(button) {
       const targetId = button.getAttribute('data-target');
       if (!targetId) return;
@@ -96,6 +103,26 @@
         }
         idx = (idx + 1) % phrases.length;
       }, 4000);
+
+      const form = document.getElementById('updatePasswordForm');
+      const submitButton = form.querySelector('.btn-primary');
+      
+      form.addEventListener('submit', (e) => {
+        const passwordNew = document.getElementById('password-new');
+        const passwordConfirm = document.getElementById('password-confirm');
+        
+        if (!passwordNew.value || !passwordConfirm.value) {
+          e.preventDefault();
+          return false;
+        }
+        
+        if (passwordNew.value !== passwordConfirm.value) {
+          e.preventDefault();
+          return false;
+        }
+        
+        setButtonLoading(submitButton);
+      });
     });
   </script>
 </@common.page>
