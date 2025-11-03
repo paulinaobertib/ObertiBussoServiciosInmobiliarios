@@ -8,7 +8,7 @@ from surprise.model_selection import GridSearchCV, train_test_split
 
 def get_db_url():
     user = os.getenv("DB_SQL_USERNAME", "root")
-    password = quote_plus(os.getenv("DB_SQL_PASSWORD", "lmcpauli1")) 
+    password = quote_plus(os.getenv("DB_SQL_PASSWORD", "")) 
     host = os.getenv("DB_SQL_HOST", "localhost")
     port = os.getenv("DB_SQL_PORT", "3306")
     name = os.getenv("DB_SQL_NAME_PROD", "obertibussoserviciosinmobiliarios")
