@@ -12,15 +12,14 @@ export default function NewsPage() {
       <IconButton
         size="small"
         onClick={() => navigate(-1)}
-        sx={{ position: "absolute", top: 64, left: 8, zIndex: 1300 }}
+        sx={{ position: "absolute", top: 64, left: 8, zIndex: 1300, display: { xs: "none", sm: "inline-flex" } }}
       >
         <ReplyIcon />
       </IconButton>
-
       <BasePage>
         <Container maxWidth="lg" sx={{ py: 2 }}>
           <Box>
-            <Typography variant="h5" fontWeight={700} gutterBottom>
+            <Typography variant="h5" mb={3} fontWeight={700} gutterBottom>
               Novedades y noticias
             </Typography>
           </Box>

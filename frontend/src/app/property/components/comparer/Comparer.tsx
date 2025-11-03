@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useComparerProperty } from "../../hooks/useComparer";
 import { PropertyDTOAI } from "../../types/property";
 import { Box, CircularProgress, Typography, Paper, Fade, Fab, useTheme, Tooltip } from "@mui/material";
-import houseIcon from "../../../../assets/ic_casa2.png"
+import houseIcon from "../../../../assets/ic_casa2.png";
 
 type Props = {
   data: PropertyDTOAI[];
@@ -20,15 +20,6 @@ const bubbleBase = {
     position: "absolute",
     width: 0,
     height: 0,
-
-    // Flecha
-    bottom: { xs: -20, sm: 20 },
-    left: { xs: 14, sm: -20 },
-
-    borderLeft: { xs: "10px solid transparent", sm: "10px solid transparent" },
-    borderRight: { xs: "10px solid transparent", sm: "10px solid #EE671E" },
-    borderTop: { xs: "10px solid #EE671E", sm: "10px solid transparent" },
-    borderBottom: { xs: "10px solid transparent", sm: "10px solid transparent" },
   },
 } as const;
 
@@ -52,19 +43,19 @@ export const Comparer = ({ data }: Props) => {
         gap: 2,
       }}
     >
-      <Tooltip title={'Comparación'} arrow>
-
-        <Fab onClick={() => setOpen((o) => !o)}
+      <Tooltip title={"Comparación"} arrow>
+        <Fab
+          onClick={() => setOpen((o) => !o)}
           sx={{
             bgcolor: "#EE671E",
             width: { xs: "3.5rem" },
-        height: { xs: "3.5rem" },
+            height: { xs: "3.5rem" },
             cursor: "pointer",
             userSelect: "none",
-            '&:hover': { bgcolor: theme.palette.primary.dark },
+            "&:hover": { bgcolor: theme.palette.primary.dark },
           }}
         >
-          <img src={houseIcon} alt="House" style={{ width: '2.2rem', height: '2.2rem' }} />
+          <img src={houseIcon} alt="House" style={{ width: "2.2rem", height: "2.2rem" }} />
         </Fab>
       </Tooltip>
 
@@ -79,13 +70,15 @@ export const Comparer = ({ data }: Props) => {
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <CircularProgress size={18} sx={{ color: "#FED7AA" }} />
-                <Typography sx={{ color: "#FED7AA", fontSize: { xs: "1rem", sm: "0.9rem" } }}>Estoy analizando las propiedades...</Typography>
+                <Typography sx={{ color: "#FED7AA", fontSize: { xs: "1rem", sm: "0.9rem" } }}>
+                  Estoy analizando las propiedades...
+                </Typography>
               </Box>
             </Paper>
           )}
 
           {error && (
-            <Paper sx={{ p: 2, borderRadius: 4, border: "2px solid red", backgroundColor: "#ffe5e5" }} >
+            <Paper sx={{ p: 2, borderRadius: 4, border: "2px solid red", backgroundColor: "#ffe5e5" }}>
               <Typography color="error" sx={{ fontSize: { xs: "1rem", sm: "0.9rem" } }}>
                 {error}
               </Typography>
@@ -98,11 +91,11 @@ export const Comparer = ({ data }: Props) => {
                 sx={{
                   ...bubbleBase,
                   backgroundColor: "#f5f5f5",
+                  maxHeight: "50vh",
+                  overflowY: "auto",
                 }}
               >
-                <Typography sx={{ fontSize: { xs: "1rem", sm: "0.9rem" } }}>
-                  {result}
-                </Typography>
+                <Typography sx={{ fontSize: { xs: "1rem", sm: "0.9rem" } }}>{result}</Typography>
               </Paper>
             </Fade>
           )}

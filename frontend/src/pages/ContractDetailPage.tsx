@@ -105,6 +105,8 @@ export default function ContractDetailPage() {
   const payments = (contract as any)?.payments ?? [];
   const increasesRaw = (contract as any)?.contractIncrease ?? [];
 
+  const isActive = String(contract?.contractStatus) === "ACTIVO";
+
   const paymentsSorted = useMemo(() => [...payments].sort((a, b) => getTime(b) - getTime(a)), [payments]);
   const increasesSorted = useMemo(() => [...increasesRaw].sort((a, b) => getTime(b) - getTime(a)), [increasesRaw]);
 
@@ -328,7 +330,7 @@ export default function ContractDetailPage() {
       <IconButton
         size="small"
         onClick={() => navigate(-1)}
-        sx={{ position: "absolute", top: 64, left: 8, zIndex: 3000 }}
+        sx={{ position: "absolute", top: 64, left: 8, zIndex: 3000, display: { xs: "none", sm: "inline-flex" } }}
       >
         <ReplyIcon />
       </IconButton>
@@ -381,8 +383,8 @@ export default function ContractDetailPage() {
             adjustmentIndex={contract.adjustmentIndex}
             paymentsSorted={paymentsSorted}
             increasesSorted={increasesSorted}
-            onRegisterIncrease={isAdmin ? () => setOpenIncrease(true) : undefined}
-            onRegisterRentPayment={isAdmin ? () => setOpenRent(true) : undefined}
+            onRegisterIncrease={isAdmin && isActive ? () => setOpenIncrease(true) : undefined}
+            onRegisterRentPayment={isAdmin && isActive ? () => setOpenRent(true) : undefined}
           />
 
           {/* Servicios y Expensas */}
@@ -390,12 +392,12 @@ export default function ContractDetailPage() {
             currency={contract.currency}
             utilities={utilities}
             utilityNameMap={utilityNameMap}
-            onManage={isAdmin ? () => setOpenUtilities(true) : undefined}
-            onPay={isAdmin ? (id) => setOpenServicePay(id) : undefined}
-            onIncrease={isAdmin ? (id) => setOpenServiceIncrease(id) : undefined}
-            onEdit={isAdmin ? (id) => setOpenServiceEdit(id) : undefined}
+            onManage={isAdmin && isActive ? () => setOpenUtilities(true) : undefined}
+            onPay={isAdmin && isActive ? (id) => setOpenServicePay(id) : undefined}
+            onIncrease={isAdmin && isActive ? (id) => setOpenServiceIncrease(id) : undefined}
+            onEdit={isAdmin && isActive ? (id) => setOpenServiceEdit(id) : undefined}
             onUnlink={
-              isAdmin
+              isAdmin && isActive
                 ? async (cuid) => {
                     const ok = await confirmDanger("¿Desvincular este servicio?");
                     if (!ok) return;
@@ -441,10 +443,12 @@ export default function ContractDetailPage() {
               commission={commission}
               paidCount={commissionPaidCount}
               payments={commissionPayments}
-              onAdd={() => setOpenCommissionEdit({ open: true, action: "add" })}
-              onEdit={() => setOpenCommissionEdit({ open: true, action: "edit" })}
-              onRegisterPayment={() => setOpenCommissionPay({ open: true, installment: null })}
-              onRegisterInstallment={(n: any) => setOpenCommissionPay({ open: true, installment: n })}
+              onAdd={isActive ? () => setOpenCommissionEdit({ open: true, action: "add" }) : undefined}
+              onEdit={isActive ? () => setOpenCommissionEdit({ open: true, action: "edit" }) : undefined}
+              onRegisterPayment={isActive ? () => setOpenCommissionPay({ open: true, installment: null }) : undefined}
+              onRegisterInstallment={
+                isActive ? (n: any) => setOpenCommissionPay({ open: true, installment: n }) : undefined
+              }
             />
           )}
 

@@ -201,6 +201,7 @@ export default function Home() {
           >
             {isMobile ? (
               <>
+                {/* Primera línea: Filtros + (Búsqueda si admin) o (Comparar si usuario común) */}
                 <Box
                   sx={{
                     display: "flex",
@@ -210,6 +211,7 @@ export default function Home() {
                     width: "100%",
                   }}
                 >
+                  {/* Botón de filtros siempre a la izquierda en mobile */}
                   <Button
                     variant="outlined"
                     startIcon={<FilterListIcon />}
@@ -218,17 +220,36 @@ export default function Home() {
                   >
                     Filtros
                   </Button>
-                  {renderCompareControls()}
+
+                  {/* Si es admin: búsqueda en la misma línea */}
+                  {isAdmin && (
+                    <Box sx={{ flexGrow: 1, width: "100%" }}>
+                      <SearchBar
+                        fetchAll={fetchAllProperties}
+                        fetchByText={fetchPropertiesByText}
+                        onSearch={(items) => setResults(items as Property[])}
+                        placeholder="Buscar propiedad"
+                        debounceMs={400}
+                      />
+                    </Box>
+                  )}
+
+                  {/* Si NO es admin: botón comparar en la misma línea */}
+                  {!isAdmin && renderCompareControls()}
                 </Box>
-                <Box sx={{ flexGrow: 1, width: "100%" }}>
-                  <SearchBar
-                    fetchAll={fetchAllProperties}
-                    fetchByText={fetchPropertiesByText}
-                    onSearch={(items) => setResults(items as Property[])}
-                    placeholder="Buscar propiedad"
-                    debounceMs={400}
-                  />
-                </Box>
+
+                {/* Segunda línea: Búsqueda (solo para usuario común) */}
+                {!isAdmin && (
+                  <Box sx={{ flexGrow: 1, width: "100%" }}>
+                    <SearchBar
+                      fetchAll={fetchAllProperties}
+                      fetchByText={fetchPropertiesByText}
+                      onSearch={(items) => setResults(items as Property[])}
+                      placeholder="Buscar propiedad"
+                      debounceMs={400}
+                    />
+                  </Box>
+                )}
               </>
             ) : (
               <>

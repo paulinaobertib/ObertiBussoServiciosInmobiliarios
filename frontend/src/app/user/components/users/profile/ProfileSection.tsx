@@ -107,7 +107,7 @@ export function ProfileSection() {
   // If collapsed, show small bar
   if (!open) {
     return (
-      <Box display="flex" justifyContent="center" p={1}>
+      <Box display="flex" justifyContent="center" p={1} mt={2}>
         <Button size="small" onClick={() => setOpen(true)} startIcon={<ExpandMoreIcon />}>
           Mostrar perfil
         </Button>
@@ -116,7 +116,7 @@ export function ProfileSection() {
   }
 
   return (
-    <Card>
+    <Card sx={{ mt: 2 }}>
       {/* Collapse control */}
       <Box display="flex" justifyContent="center" mt={1}>
         <Button size="small" onClick={() => setOpen(false)} startIcon={<ExpandLessIcon />}>

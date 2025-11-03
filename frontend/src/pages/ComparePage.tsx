@@ -61,7 +61,7 @@ const Compare = () => {
       <IconButton
         size="small"
         onClick={handleBack}
-        sx={{ position: 'absolute', top: 64, left: 8, zIndex: 1300 }}
+        sx={{ position: 'absolute', top: 64, left: 8, zIndex: 1300, display: { xs: 'none', sm: 'inline-flex' } }}
       >
         <ReplyIcon />
       </IconButton>
