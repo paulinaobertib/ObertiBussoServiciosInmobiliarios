@@ -11,7 +11,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import pi.ms_properties.recommendation.python.MLClient;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,8 +33,6 @@ class MLClientTest {
         ReflectionTestUtils.setField(mlClient, "mlApiUrl", "http://localhost:5000");
     }
 
-    // casos de exito
-
     @Test
     void predict_shouldReturnPrediction_whenApiCallSucceeds() {
         String userId = "user123";
@@ -44,15 +45,15 @@ class MLClientTest {
                 .queryParam("property_id", propertyId)
                 .toUriString();
 
-        when(restTemplate.getForObject(expectedUrl, Double.class)).thenReturn(expected);
+        when(restTemplate.getForObject(eq(expectedUrl), eq(Map.class)))
+                .thenReturn(Map.of("prediction", expected));
 
         double result = mlClient.predict(userId, propertyId);
 
         assertEquals(expected, result);
-        verify(restTemplate).getForObject(expectedUrl, Double.class);
+        verify(restTemplate).getForObject(expectedUrl, Map.class);
     }
 
-    // casos de error
     @Test
     void predict_shouldReturnZero_whenApiCallFails() {
         String userId = "user123";
@@ -64,12 +65,12 @@ class MLClientTest {
                 .queryParam("property_id", propertyId)
                 .toUriString();
 
-        when(restTemplate.getForObject(expectedUrl, Double.class))
+        when(restTemplate.getForObject(eq(expectedUrl), eq(Map.class)))
                 .thenThrow(new RuntimeException("ML API not reachable"));
 
         double result = mlClient.predict(userId, propertyId);
 
         assertEquals(0.0, result);
-        verify(restTemplate).getForObject(expectedUrl, Double.class);
+        verify(restTemplate).getForObject(expectedUrl, Map.class);
     }
 }
