@@ -34,6 +34,7 @@
                 id="firstName"
                 name="firstName"
                 value="${(user.firstName!'')}"
+                readonly
                 placeholder="Nombre"
                 required
               />
@@ -44,6 +45,7 @@
                 id="lastName"
                 name="lastName"
                 value="${(user.lastName!'')}"
+                readonly
                 placeholder="Apellido"
                 required
               />
@@ -73,7 +75,7 @@
           />
 
           <input
-            type="text"
+            type="hidden"
             id="username"
             name="username"
             placeholder="Usuario"
@@ -83,34 +85,6 @@
             minlength="3"
             required
           />
-
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Contraseña"
-              minlength="8"
-              title="Mínimo 8 caracteres"
-              required
-            />
-            <button type="button" class="toggle-password" onclick="togglePassword(this)">
-              <span class="material-icons">visibility</span>
-            </button>
-          </div>
-
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password-confirm"
-              name="password-confirm"
-              placeholder="Confirmar contraseña"
-              required
-            />
-            <button type="button" class="toggle-password" onclick="togglePassword(this)">
-              <span class="material-icons">visibility</span>
-            </button>
-          </div>
 
           <div class="terms-section">
             <div class="terms-checkbox">
