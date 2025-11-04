@@ -33,6 +33,7 @@
                 type="text"
                 id="firstName"
                 name="firstName"
+                value="${(register.formData.firstName!'')}"
                 placeholder="Nombre"
                 required
               />
@@ -42,6 +43,7 @@
                 type="text"
                 id="lastName"
                 name="lastName"
+                value="${(register.formData.lastName!'')}"
                 placeholder="Apellido"
                 required
               />
@@ -54,6 +56,8 @@
             name="email"
             placeholder="Correo electrónico"
             pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+            value="${(register.formData.email!'')}"
+            readonly
             title="Debe ser un email válido (incluye @ y dominio)"
             required
           />
@@ -73,6 +77,8 @@
             id="username"
             name="username"
             placeholder="Usuario"
+            value="${(register.formData.username!'')}"
+            readonly
             title="El nombre de usuario debe tener 3 dígitos como mínimo"
             minlength="3"
             required
