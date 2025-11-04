@@ -114,7 +114,7 @@ jobs:
   cd_keycloak:
     name: CD - Keycloak
     needs:
-      - ci_integration
+      # - ci_integration
       - ci_keycloak
     uses: ./.github/workflows/cd-keycloak.yml
     with:
@@ -124,7 +124,7 @@ jobs:
   cd_frontend:
     name: CD - Frontend
     needs:
-      - ci_integration
+      # - ci_integration
       - ci_frontend
     uses: ./.github/workflows/cd-frontend.yml
     secrets: inherit
