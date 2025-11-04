@@ -38,10 +38,10 @@ jobs:
     uses: ./.github/workflows/ci-keycloak.yml
     secrets: inherit
 
-  ci_frontend:
-    name: CI - Frontend
-    uses: ./.github/workflows/ci-frontend.yml
-    secrets: inherit
+  # ci_frontend:
+  #   name: CI - Frontend
+  #   uses: ./.github/workflows/ci-frontend.yml
+  #   secrets: inherit
 
   # ci_ml:
   #   name: CI - Machine Learning
@@ -121,10 +121,10 @@ jobs:
       image_tag: ${{ needs.ci_keycloak.outputs.tag }}
     secrets: inherit
 
-  cd_frontend:
-    name: CD - Frontend
-    needs:
-      # - ci_integration
-      - ci_frontend
-    uses: ./.github/workflows/cd-frontend.yml
-    secrets: inherit
+  # cd_frontend:
+  #   name: CD - Frontend
+  #   needs:
+  #     # - ci_integration
+  #     - ci_frontend
+  #   uses: ./.github/workflows/cd-frontend.yml
+  #   secrets: inherit
