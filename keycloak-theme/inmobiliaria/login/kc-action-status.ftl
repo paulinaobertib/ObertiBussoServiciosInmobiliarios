@@ -3,8 +3,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
-  <#if url.loginUrl??>
-    <meta http-equiv="refresh" content="3;url=${url.loginUrl}" />
+  <#if url.redirectUri??>
+    <meta http-equiv="refresh" content="3;url=${url.redirectUri}" />
   </#if>
 
   <div class="login-layout">
@@ -20,9 +20,9 @@
           <p class="welcome-desc">${message.detail}</p>
         </#if>
 
-        <#if url.loginUrl??>
+        <#if url.redirectUri??>
           <div class="form-actions">
-            <a class="btn-primary" href="${url.loginUrl}">
+            <a class="btn-primary" href="${url.redirectUri}">
               ${msg('backToApplication')}
             </a>
           </div>
@@ -34,11 +34,11 @@
     </div>
   </div>
 
-  <#if url.loginUrl??>
+  <#if url.redirectUri??>
     <script>
       window.addEventListener('load', () => {
         setTimeout(() => {
-          window.location.href = '${url.loginUrl?js_string}';
+          window.location.href = '${url.redirectUri?js_string}';
         }, 1500);
       });
     </script>

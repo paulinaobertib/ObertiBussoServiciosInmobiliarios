@@ -49,7 +49,7 @@
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn-primary" value="update-password">Guardar contraseña</button>
+            <button type="submit" class="btn-primary" value="update-password">Guardar contraseña e Iniciar Sesión</button>
           </div>
         </form>
       </div>
@@ -106,54 +106,22 @@
 
       const form = document.getElementById('updatePasswordForm');
       const submitButton = form.querySelector('.btn-primary');
-
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
+      
+      form.addEventListener('submit', (e) => {
         const passwordNew = document.getElementById('password-new');
         const passwordConfirm = document.getElementById('password-confirm');
-
-        if (!passwordNew.value || !passwordConfirm.value) {
-          return false;
-        }
-
-        if (passwordNew.value !== passwordConfirm.value) {
-          return false;
-        }
-
-        setButtonLoading(submitButton);
-
-        // Create a hidden iframe to submit the form
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.name = 'password-update-frame';
-        document.body.appendChild(iframe);
-
-        // Set form target to iframe
-        form.target = 'password-update-frame';
         
-        // Submit the form to the iframe (this will update the password in Keycloak)
-        form.submit();
-
-        // Wait a moment for the form to be processed, then redirect to login
-        setTimeout(() => {
-          // Store success flag
-          sessionStorage.setItem('passwordUpdated', 'true');
-          
-          // Extract the base URL and client info to create a fresh login URL
-          const loginUrl = '${url.loginUrl?js_string}';
-          const url = new URL(loginUrl);
-          
-          // Create a clean URL without session/code parameters that might have expired
-          const freshLoginUrl = url.origin + url.pathname + 
-            '?client_id=' + (url.searchParams.get('client_id') || '') +
-            '&redirect_uri=' + encodeURIComponent(url.searchParams.get('redirect_uri') || '') +
-            '&response_type=' + (url.searchParams.get('response_type') || 'code') +
-            '&scope=' + (url.searchParams.get('scope') || 'openid');
-          
-          // Redirect to fresh login page (this prevents auto-login and expired_code error)
-          window.location.href = freshLoginUrl;
-        }, 1000);
+        if (!passwordNew.value || !passwordConfirm.value) {
+          e.preventDefault();
+          return false;
+        }
+        
+        if (passwordNew.value !== passwordConfirm.value) {
+          e.preventDefault();
+          return false;
+        }
+        
+        setButtonLoading(submitButton);
       });
     });
   </script>
