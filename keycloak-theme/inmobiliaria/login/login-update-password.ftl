@@ -108,7 +108,7 @@
       const submitButton = form.querySelector('.btn-primary');
 
       form.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent default form submission
+        e.preventDefault();
 
         const passwordNew = document.getElementById('password-new');
         const passwordConfirm = document.getElementById('password-confirm');
@@ -123,25 +123,25 @@
 
         setButtonLoading(submitButton);
 
-        const formData = new FormData(form);
+        // Create a hidden iframe to submit the form
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.name = 'password-update-frame';
+        document.body.appendChild(iframe);
 
-        try {
-          // Submit the password update
-          const response = await fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            redirect: 'manual' // Don't follow redirects automatically
-          });
+        // Set form target to iframe
+        form.target = 'password-update-frame';
+        
+        // Submit the form to the iframe (this will update the password in Keycloak)
+        form.submit();
 
-          // Store a flag to show success message on login page
+        // Wait a moment for the form to be processed, then redirect to login
+        setTimeout(() => {
+          // Store success flag
           sessionStorage.setItem('passwordUpdated', 'true');
-          
-          // Redirect to login page regardless of the response
+          // Redirect to login page (this prevents auto-login)
           window.location.href = '${url.loginUrl?js_string}';
-        } catch (error) {
-          // Even on error, redirect to login page
-          window.location.href = '${url.loginUrl?js_string}';
-        }
+        }, 1000);
       });
     });
   </script>
