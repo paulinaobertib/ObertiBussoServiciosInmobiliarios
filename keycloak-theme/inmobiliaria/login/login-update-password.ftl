@@ -107,7 +107,7 @@
       const form = document.getElementById('updatePasswordForm');
       const submitButton = form.querySelector('.btn-primary');
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent default form submission
 
         const passwordNew = document.getElementById('password-new');
@@ -125,13 +125,23 @@
 
         const formData = new FormData(form);
 
-        fetch(form.action, {
-          method: 'POST',
-          body: formData,
-        }).finally(() => {
-          // Always redirect to the login page
+        try {
+          // Submit the password update
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            redirect: 'manual' // Don't follow redirects automatically
+          });
+
+          // Store a flag to show success message on login page
+          sessionStorage.setItem('passwordUpdated', 'true');
+          
+          // Redirect to login page regardless of the response
           window.location.href = '${url.loginUrl?js_string}';
-        });
+        } catch (error) {
+          // Even on error, redirect to login page
+          window.location.href = '${url.loginUrl?js_string}';
+        }
       });
     });
   </script>
