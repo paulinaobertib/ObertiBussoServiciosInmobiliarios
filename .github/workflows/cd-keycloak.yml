@@ -101,7 +101,8 @@ jobs:
               "KC_HEALTH_ENABLED=true" \
               "KC_PROXY_HEADERS=xforwarded" \
               "KC_HOSTNAME=${{ env.APP_NAME_DEV }}.azurewebsites.net" \
-              "KC_HOSTNAME_STRICT=true"
+              "KC_HOSTNAME_STRICT=true" \
+              "KC_PROXY=edge"
 
       - name: Enable container logs
         run: |
