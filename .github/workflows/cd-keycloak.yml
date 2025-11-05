@@ -179,8 +179,7 @@ jobs:
               "KC_HEALTH_ENABLED=true" \
               "KC_PROXY_HEADERS=xforwarded" \
               "KC_HOSTNAME=${{ secrets.KEYCLOAK_HOSTNAME_PROD }}" \
-              "KC_HOSTNAME_STRICT=true" \
-              "KC_PROXY=edge"
+              "KC_HOSTNAME_STRICT=true"
 
       - name: Enforce HTTPS
         run: |
