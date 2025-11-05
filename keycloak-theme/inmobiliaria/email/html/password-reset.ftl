@@ -17,7 +17,7 @@
         Si no fuiste tú, puedes ignorar este correo. De lo contrario, haz clic en el botón de abajo para elegir una nueva contraseña.
     </p>
     <p style="font-size: 16px; line-height: 1.5;">
-        Este enlace expirará en ${linkExpirationFormatter(linkExpiration)}.
+        Este enlace expirará en 5 minutos.
     </p>
 
 

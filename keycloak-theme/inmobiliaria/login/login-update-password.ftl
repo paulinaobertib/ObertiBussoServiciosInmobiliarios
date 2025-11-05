@@ -49,7 +49,7 @@
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn-primary" value="update-password">Guardar contraseña e Iniciar Sesión</button>
+            <button type="submit" class="btn-primary" value="update-password">Guardar contraseña</button>
           </div>
         </form>
       </div>

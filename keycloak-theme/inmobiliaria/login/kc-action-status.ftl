@@ -3,8 +3,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
-  <#if url.redirectUri??>
-    <meta http-equiv="refresh" content="3;url=${url.redirectUri}" />
+  <#assign nextStepUrl="">
+  <#assign redirectingToLogin=false>
+  <#if url.loginUrl?? && url.loginUrl?has_content>
+    <#assign nextStepUrl = url.loginUrl>
+    <#assign redirectingToLogin = true>
+  <#elseif url.redirectUri??>
+    <#assign nextStepUrl = url.redirectUri>
+  </#if>
+
+  <#if nextStepUrl?has_content>
+    <meta http-equiv="refresh" content="3;url=${nextStepUrl}" />
   </#if>
 
   <div class="login-layout">
@@ -20,13 +29,23 @@
           <p class="welcome-desc">${message.detail}</p>
         </#if>
 
-        <#if url.redirectUri??>
+        <#if nextStepUrl?has_content>
           <div class="form-actions">
-            <a class="btn-primary" href="${url.redirectUri}">
-              ${msg('backToApplication')}
+            <a class="btn-primary" href="${nextStepUrl}">
+              <#if redirectingToLogin>
+                ${msg('backToLogin')!msg('doLogIn')}
+              <#else>
+                ${msg('backToApplication')}
+              </#if>
             </a>
           </div>
-          <p class="help-text">Te estamos redirigiendo automáticamente.</p>
+          <p class="help-text">
+            <#if redirectingToLogin>
+              Te estamos redirigiendo al inicio de sesión.
+            <#else>
+              Te estamos redirigiendo automáticamente.
+            </#if>
+          </p>
         <#else>
           <p class="help-text">Podés cerrar esta ventana.</p>
         </#if>
@@ -34,11 +53,11 @@
     </div>
   </div>
 
-  <#if url.redirectUri??>
+  <#if nextStepUrl?has_content>
     <script>
       window.addEventListener('load', () => {
         setTimeout(() => {
-          window.location.href = '${url.redirectUri?js_string}';
+          window.location.href = '${nextStepUrl?js_string}';
         }, 1500);
       });
     </script>
