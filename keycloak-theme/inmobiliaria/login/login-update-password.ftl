@@ -106,22 +106,32 @@
 
       const form = document.getElementById('updatePasswordForm');
       const submitButton = form.querySelector('.btn-primary');
-      
+
       form.addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevent default form submission
+
         const passwordNew = document.getElementById('password-new');
         const passwordConfirm = document.getElementById('password-confirm');
-        
+
         if (!passwordNew.value || !passwordConfirm.value) {
-          e.preventDefault();
           return false;
         }
-        
+
         if (passwordNew.value !== passwordConfirm.value) {
-          e.preventDefault();
           return false;
         }
-        
+
         setButtonLoading(submitButton);
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+          method: 'POST',
+          body: formData,
+        }).finally(() => {
+          // Always redirect to the login page
+          window.location.href = '${url.loginUrl?js_string}';
+        });
       });
     });
   </script>
