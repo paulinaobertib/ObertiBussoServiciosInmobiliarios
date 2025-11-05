@@ -676,8 +676,8 @@ input[style*="border-color: rgb(76, 175, 80)"] {
   text-decoration: underline;
 }
 
-input[readonly] {
-  background-color: #eeeeee;
+.auth-form input[readonly] {
+  background-color: #eeeeee !important;
   opacity: 0.7;
   cursor: not-allowed;
 }
