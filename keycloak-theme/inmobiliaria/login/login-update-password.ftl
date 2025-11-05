@@ -139,8 +139,20 @@
         setTimeout(() => {
           // Store success flag
           sessionStorage.setItem('passwordUpdated', 'true');
-          // Redirect to login page (this prevents auto-login)
-          window.location.href = '${url.loginUrl?js_string}';
+          
+          // Extract the base URL and client info to create a fresh login URL
+          const loginUrl = '${url.loginUrl?js_string}';
+          const url = new URL(loginUrl);
+          
+          // Create a clean URL without session/code parameters that might have expired
+          const freshLoginUrl = url.origin + url.pathname + 
+            '?client_id=' + (url.searchParams.get('client_id') || '') +
+            '&redirect_uri=' + encodeURIComponent(url.searchParams.get('redirect_uri') || '') +
+            '&response_type=' + (url.searchParams.get('response_type') || 'code') +
+            '&scope=' + (url.searchParams.get('scope') || 'openid');
+          
+          // Redirect to fresh login page (this prevents auto-login and expired_code error)
+          window.location.href = freshLoginUrl;
         }, 1000);
       });
     });
