@@ -71,11 +71,6 @@
           </span>
         </div>
       </div>
-
-      <!-- Frases rotativas -->
-       <div class="phrase-box">
-        <p id="phrase-text">Buscá tu próximo hogar aquí</p>
-       </div>
     </div>
   </div>
 
@@ -273,20 +268,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       ensureToastElements();
 
-      const phrases = [
-        'Administración de tus propiedades',
-        'Servicio inmobiliario a tu alcance',
-        'Buscá tu próximo hogar aquí',
-        'Guardá como favorito para visualizarlos luego',
-        'Seguimiento personalizado'
-      ];
-      let idx = 0;
-      const phraseElement = document.getElementById('phrase-text');
-      setInterval(() => {
-        phraseElement.innerText = phrases[idx];
-        idx = (idx + 1) % phrases.length;
-      }, 4000);
-
       const form = document.getElementById('loginForm');
       const loginButton = form.querySelector('.btn-primary');
       const googleButton = document.querySelector('.google-btn');
@@ -307,9 +288,25 @@
           googleButton.setAttribute('aria-disabled', 'true');
           googleButton.style.display = 'none';
         } else {
+          let googleLoadingTimeout;
           googleButton.addEventListener('click', () => {
             setButtonLoading(googleButton);
+            
+            // Timeout de 10 segundos para el loading de Google
+            googleLoadingTimeout = setTimeout(() => {
+              clearButtonLoading(googleButton);
+              showToast('La autenticación con Google tomó demasiado tiempo. Por favor, intenta nuevamente.', { type: 'warning' });
+            }, 10000);
+            
             window.location.assign(loginUrl);
+          });
+          
+          // Limpiar el timeout si el usuario vuelve a la página
+          window.addEventListener('pageshow', () => {
+            if (googleLoadingTimeout) {
+              clearTimeout(googleLoadingTimeout);
+            }
+            clearButtonLoading(googleButton);
           });
         }
       }

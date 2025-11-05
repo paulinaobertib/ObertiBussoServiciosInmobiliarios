@@ -28,10 +28,6 @@
           </div>
         </div>
       </div>
-
-      <div class="phrase-box">
-        <p id="phrase-text">Buscá tu próximo hogar aquí</p>
-      </div>
     </div>
   </div>
 
@@ -66,24 +62,4 @@
       margin-bottom: 2rem;
     }
   </style>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const phrases = [
-        "Administración de tus propiedades",
-        "Servicio inmobiliario a tu alcance",
-        "Buscá tu próximo hogar aquí",
-        "Guardá como favorito para visualizarlos luego",
-        "Seguimiento personalizado",
-      ];
-      let idx = 0;
-      const el = document.getElementById('phrase-text');
-      setInterval(() => {
-        if (el) {
-          el.innerText = phrases[idx];
-        }
-        idx = (idx + 1) % phrases.length;
-      }, 4000);
-    });
-  </script>
 </@common.page>

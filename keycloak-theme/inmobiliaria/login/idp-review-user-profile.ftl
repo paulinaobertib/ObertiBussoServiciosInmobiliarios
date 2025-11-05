@@ -125,11 +125,6 @@
           </span>
         </div>
       </div>
-
-      <!-- Frases rotativas -->
-      <div class="phrase-box">
-        <p id="phrase-text">Buscá tu próximo hogar aquí</p>
-      </div>
     </div>
   </div>
 
@@ -523,21 +518,6 @@
           setTimeout(() => serverBanner.remove(), 500);
         }, 10000);
       }
-
-      // Rotación de frases
-      const phrases = [
-        "Administración de tus propiedades",
-        "Servicio inmobiliario a tu alcance",
-        "Buscá tu próximo hogar aquí",
-        "Guardá como favorito para visualizarlos luego",
-        "Seguimiento personalizado",
-      ];
-      let idx = 0;
-      const el = document.getElementById('phrase-text');
-      setInterval(() => {
-        el.innerText = phrases[idx];
-        idx = (idx + 1) % phrases.length;
-      }, 4000);
 
       // Prevenir submit automático si hay errores de validación
       const form = document.getElementById('registerForm');

@@ -71,11 +71,6 @@
           </span>
         </div>
       </div>
-
-      <!-- Frases rotativas -->
-       <div class="phrase-box">
-        <p id="phrase-text">Buscá tu próximo hogar aquí</p>
-       </div>
     </div>
   </div>
 
@@ -272,20 +267,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       ensureToastElements();
-
-      const phrases = [
-        'Administración de tus propiedades',
-        'Servicio inmobiliario a tu alcance',
-        'Buscá tu próximo hogar aquí',
-        'Guardá como favorito para visualizarlos luego',
-        'Seguimiento personalizado'
-      ];
-      let idx = 0;
-      const phraseElement = document.getElementById('phrase-text');
-      setInterval(() => {
-        phraseElement.innerText = phrases[idx];
-        idx = (idx + 1) % phrases.length;
-      }, 4000);
 
       const form = document.getElementById('loginForm');
       const loginButton = form.querySelector('.btn-primary');
