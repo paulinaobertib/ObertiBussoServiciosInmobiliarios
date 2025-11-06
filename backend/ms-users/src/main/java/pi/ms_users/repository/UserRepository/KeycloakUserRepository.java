@@ -13,6 +13,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import pi.ms_users.domain.NotificationType;
 import pi.ms_users.domain.User;
 import pi.ms_users.domain.UserNotificationPreference;
 import pi.ms_users.dto.email.EmailNewUserDTO;
@@ -130,6 +131,14 @@ public class KeycloakUserRepository implements IUserRepository {
                             .roles()
                             .clientLevel(clientUuid)
                             .add(List.of(userRole, tenantRole));
+
+                    for (NotificationType type : NotificationType.values()) {
+                        UserNotificationPreference preference = new UserNotificationPreference();
+                        preference.setUserId(userId);
+                        preference.setType(type);
+                        preference.setEnabled(true);
+                        userNotificationPreferenceRepository.save(preference);
+                    }
 
                     EmailNewUserDTO emailData = new EmailNewUserDTO();
                     emailData.setTo(user.getEmail());

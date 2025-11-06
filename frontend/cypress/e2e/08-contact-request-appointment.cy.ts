@@ -5,8 +5,9 @@ const contactUrl2 = `${appBaseUrl}/contact`;
 const nextMonthButtonSelector2 = "button[aria-label='Next month'], button[aria-label='Siguiente mes']";
 const keycloakUrl2 = Cypress.env("keycloakUrl");
 const keycloakOrigin2 = keycloakUrl2 ? new URL(keycloakUrl2).origin : null;
-const keycloakUsername2 = Cypress.env("keycloakUsername");
-const keycloakPassword2 = Cypress.env("keycloakPassword");
+// Credenciales del realm de integración para usuario regular
+const keycloakUsername2 = "user";
+const keycloakPassword2 = "Usuario1.";
 
 const MONTH_LABELS = [
   "enero",
@@ -28,24 +29,22 @@ const selectFirstAvailableSlot = () => {
 
   // Esperar que se carguen los turnos disponibles primero
   cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-  
+
   // Esperar a que el calendario se renderice completamente
   cy.wait(800);
 
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-  
+
   const currentMonth = today.getMonth();
   const tomorrowMonth = tomorrow.getMonth();
   const tomorrowDay = tomorrow.getDate();
 
   // Si mañana está en el mes siguiente, hacer clic en "siguiente mes"
   if (tomorrowMonth !== currentMonth) {
-    cy.get(nextMonthButtonSelector2, { timeout: 10000 })
-      .should("be.visible")
-      .click({ force: true });
-    
+    cy.get(nextMonthButtonSelector2, { timeout: 10000 }).should("be.visible").click({ force: true });
+
     // Esperar a que el calendario cambie de mes
     cy.wait(500);
   }
@@ -53,17 +52,17 @@ const selectFirstAvailableSlot = () => {
   // Buscar un día habilitado >= mañana (evitar fines de semana: 0=domingo, 6=sábado)
   cy.get("button.MuiPickersDay-root:visible:not(.Mui-disabled)", { timeout: 10000 }).then(($buttons) => {
     let selectedButton = $buttons.first();
-    
+
     for (let i = 0; i < $buttons.length; i++) {
       const dayText = $buttons.eq(i).text().trim();
       const day = parseInt(dayText);
-      
+
       if (day >= tomorrowDay) {
         selectedButton = $buttons.eq(i);
         break;
       }
     }
-    
+
     cy.wrap(selectedButton).as("firstAvailableDay").click({ force: true });
   });
 
@@ -71,7 +70,7 @@ const selectFirstAvailableSlot = () => {
 
   // Esperar que se carguen los horarios después de seleccionar el día
   cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-  
+
   // Esperar a que los slots se rendericen
   cy.wait(800);
 
@@ -85,10 +84,7 @@ const selectFirstAvailableSlot = () => {
 
 describe("Reserva de turno - Usuario no autenticado", () => {
   before(function () {
-    if (!keycloakOrigin2 || !keycloakUsername2 || !keycloakPassword2) {
-      cy.log("Faltan credenciales de Keycloak. Se omite la prueba de login desde contacto.");
-      this.skip();
-    }
+    // Ya no necesitamos verificar variables de entorno, usamos credenciales hardcoded
   });
 
   beforeEach(() => {
@@ -158,7 +154,7 @@ describe("Reserva de turno - Usuario no autenticado", () => {
 
     // Esperar a que la app se estabilice después del login
     cy.wait(1000);
-    
+
     cy.visit(contactUrl2);
 
     // Esperar carga de contacto autenticado
@@ -173,7 +169,7 @@ describe("Reserva de turno - Usuario no autenticado", () => {
 
     // Esperar segunda carga de slots
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-    
+
     // Esperar a que los slots se rendericen después de la segunda selección
     cy.wait(500);
 
@@ -190,7 +186,7 @@ describe("Reserva de turno - Usuario no autenticado", () => {
 
     // Esperar que se cierre el diálogo
     cy.wait("@getAvailableAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-    
+
     // Esperar a que el diálogo se cierre completamente
     cy.wait(800);
 
@@ -199,7 +195,7 @@ describe("Reserva de turno - Usuario no autenticado", () => {
 
     // Esperar carga de los turnos del usuario
     cy.wait("@getUserAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-    
+
     // Esperar a que la página de perfil se renderice
     cy.wait(800);
 

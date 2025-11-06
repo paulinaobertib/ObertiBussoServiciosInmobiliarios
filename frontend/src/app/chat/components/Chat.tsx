@@ -161,7 +161,11 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   const handleStart = async () => {
     try {
-      if (showForm && !guestDataComplete) return;
+      // Validar solo si el formulario está visible y no es usuario logueado
+      if (showForm && !guestDataComplete) {
+        return;
+      }
+      
       let result;
 
       if (isLogged && info) {
@@ -466,8 +470,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                       value={guestData.email}
                       onChange={e => setGuestData({ ...guestData, email: e.target.value })}
                       margin="dense"
-                      error={showForm && !emailOK}
-                      helperText={showForm && !emailOK ? "Ingresá un email válido" : ""}
+                      error={guestData.email.trim() !== '' && !emailOK}
+                      helperText={guestData.email.trim() !== '' && !emailOK ? "Ingresá un email válido" : ""}
                     />
                     <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
                   </Box>

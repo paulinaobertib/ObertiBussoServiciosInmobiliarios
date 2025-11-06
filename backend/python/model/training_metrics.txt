@@ -1,0 +1,2 @@
+RMSE=0.2201, MAE=0.1925, registros=15
+

@@ -1,57 +1,55 @@
 <#import "common.ftl" as common>
-<@common.page title="Actualizar contraseña">
+<@common.page title="Iniciar sesión">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <div class="login-layout">
+
+    <!-- Contenedor único: logo arriba, form en medio, frases abajo -->
     <div class="login-container">
+
       <div class="login-form-box">
+
+        <!-- Logo -->
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso" />
+          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso">
         </div>
 
-        <h2 class="welcome-title">Creá tu nueva contraseña</h2>
-        <p class="welcome-desc">
-          Elegí una contraseña segura para terminar de configurar tu cuenta.
-        </p>
+         <h2 id="formTitle" class="welcome-title">Bienvenido</h2>
 
-        <form id="updatePasswordForm" action="${url.loginAction}" method="post" class="auth-form">
-          <#if stateChecker??>
-            <input type="hidden" name="stateChecker" value="${stateChecker}" />
-          </#if>
+        <!-- Login -->
+        <#assign googleLoginUrl="">
+        <#if social?? && social.providers?has_content>
+          <#list social.providers as provider>
+            <#if provider.alias == "google">
+              <#assign googleLoginUrl=provider.loginUrl>
+            </#if>
+          </#list>
+        </#if>
+        <form id="loginForm" action="${url.loginAction}" method="post" class="auth-form" autocomplete="on">
+          <input type="text" name="username" placeholder="Usuario o email" required />
+      
           <div class="password-wrapper">
-            <input
-              type="password"
-              id="password-new"
-              name="password-new"
-              placeholder="Nueva contraseña"
-              autocomplete="new-password"
-              autofocus
-              required
-            />
-            <button type="button" class="toggle-password" data-target="password-new">
-              <span class="material-icons">visibility</span>
-            </button>
+              <input type="password" name="password" placeholder="Contraseña" required />
+              <button type="button" class="toggle-password" onclick="togglePassword(this)">
+                  <span class="material-icons">visibility</span>
+              </button>
           </div>
-
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password-confirm"
-              name="password-confirm"
-              placeholder="Confirmar contraseña"
-              autocomplete="new-password"
-              required
-            />
-            <button type="button" class="toggle-password" data-target="password-confirm">
-              <span class="material-icons">visibility</span>
-            </button>
+      
+          <div class="forgot-password">
+              <a href="${url.loginResetCredentialsUrl}">¿Olvidaste tu contraseña?</a>
           </div>
-
+      
           <div class="form-actions">
-            <button type="submit" class="btn-primary" value="update-password">
-              <span class="btn-label">Guardar contraseña e Iniciar Sesión</span>
-            </button>
+              <button type="submit" class="btn-primary">
+                <span class="btn-label">Iniciar sesión</span>
+              </button>
+              <div class="or-text">ó</div>
+              <button type="button" class="google-btn"<#if googleLoginUrl?has_content> data-login-url="${googleLoginUrl}"</#if>>
+                  <img src="${url.resourcesPath}/google.png" alt="Google logo"/>
+                  <span class="btn-label">Iniciar sesión con Google</span>
+              </button>
           </div>
         </form>
 
@@ -65,22 +63,20 @@
             </div>
           </div>
         </#if>
+
+        <!-- Footer toggle -->
+        <div class="url-footer">
+          <span id="urlFooter">
+            ¿No tenés cuenta? <a href="${url.registrationUrl}">Registrate</a>
+          </span>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
- 
-  <script>
     const I18N = {
       toastCloseLabel: '${msg("toastCloseLabel")?js_string}',
-      passwordRequired: '${msg("validationPasswordRequired")?js_string}',
-      passwordMinLength: '${msg("validationPasswordMinLength")?js_string}',
-      passwordUppercase: '${msg("validationPasswordUppercase")?js_string}',
-      passwordLowercase: '${msg("validationPasswordLowercase")?js_string}',
-      passwordNumber: '${msg("validationPasswordNumber")?js_string}',
-      passwordConfirmRequired: '${msg("validationPasswordConfirmRequired")?js_string}',
-      passwordsDoNotMatch: '${msg("validationPasswordsDoNotMatch")?js_string}',
       serverErrors: {
         invalidUsernameOrPasswordMessage: '${msg("invalidUsernameOrPasswordMessage")?js_string}',
         invalidUserMessage: '${msg("invalidUserMessage")?js_string}',
@@ -107,6 +103,13 @@
         invalidPasswordNotEmailMessage: '${msg("invalidPasswordNotEmailMessage")?js_string}',
         invalidPasswordHistoryMessage: '${msg("invalidPasswordHistoryMessage")?js_string}',
         invalidPasswordRegexPatternMessage: '${msg("invalidPasswordRegexPatternMessage")?js_string}'
+      },
+      validation: {
+        usernameOrEmailRequired: '${msg("validationUsernameOrEmailRequired")?js_string}',
+        emailFormatInvalid: '${msg("validationEmailFormatDetailed")?js_string}',
+        usernameMinLength: '${msg("validationUsernameMinLength")?js_string}',
+        usernameCharset: '${msg("validationUsernameCharset")?js_string}',
+        passwordRequired: '${msg("validationPasswordRequired")?js_string}'
       }
     };
     let toastTimer;
@@ -116,6 +119,17 @@
       button.classList.add('is-loading');
       button.setAttribute('aria-busy', 'true');
       button.disabled = true;
+    }
+
+    function clearButtonLoading(button) {
+      if (!button) return;
+      const label = button.querySelector('.btn-label');
+      if (label && label.dataset.originalText) {
+        label.textContent = label.dataset.originalText;
+      }
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
+      button.disabled = false;
     }
 
     const SERVER_ERROR_MAP = I18N.serverErrors;
@@ -192,6 +206,7 @@
       if (SERVER_ERROR_MAP[key]) {
         return SERVER_ERROR_MAP[key];
       }
+      // Manejar concatenaciones de claves (ej: emailExistsMessageusernameExistsMessage)
       const regex = /([a-zA-Z]+Message)/g;
       const matches = key.match(regex);
       if (matches && matches.length > 0) {
@@ -201,78 +216,64 @@
       return SERVER_ERROR_MAP[key] || fallback || key;
     }
 
-    function togglePassword(button) {
-      const targetId = button.getAttribute('data-target');
-      if (!targetId) return;
-      const input = document.getElementById(targetId);
-      if (!input) return;
+    function togglePassword(btn) {
+      const wrapper = btn.closest('.password-wrapper');
+      const input = wrapper.querySelector('input');
       if (input.type === 'password') {
         input.type = 'text';
-        button.querySelector('.material-icons').innerText = 'visibility_off';
+        btn.querySelector('.material-icons').innerText = 'visibility_off';
       } else {
         input.type = 'password';
-        button.querySelector('.material-icons').innerText = 'visibility';
+        btn.querySelector('.material-icons').innerText = 'visibility';
       }
     }
 
-    function validatePasswordForm() {
-      const passwordNew = document.getElementById('password-new');
-      const passwordConfirm = document.getElementById('password-confirm');
-      const password = passwordNew.value;
-      const confirmPassword = passwordConfirm.value;
+    function validateLoginForm() {
+      const usernameInput = document.querySelector('input[name="username"]');
+      const passwordInput = document.querySelector('input[name="password"]');
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
 
-      passwordNew.style.borderColor = '';
-      passwordConfirm.style.borderColor = '';
+      usernameInput.style.borderColor = '';
+      passwordInput.style.borderColor = '';
+
+      if (!username) {
+        showToast(I18N.validation.usernameOrEmailRequired, { type: 'error' });
+        usernameInput.style.borderColor = '#ff6b6b';
+        usernameInput.focus();
+        return false;
+      }
+
+      if (username.includes('@')) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(username)) {
+          showToast(I18N.validation.emailFormatInvalid, { type: 'error' });
+          usernameInput.style.borderColor = '#ff6b6b';
+          usernameInput.focus();
+          return false;
+        }
+      } else {
+        if (username.length < 3) {
+          showToast(I18N.validation.usernameMinLength, { type: 'error' });
+          usernameInput.style.borderColor = '#ff6b6b';
+          usernameInput.focus();
+          return false;
+        }
+        if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+          showToast(I18N.validation.usernameCharset, { type: 'error' });
+          usernameInput.style.borderColor = '#ff6b6b';
+          usernameInput.focus();
+          return false;
+        }
+      }
 
       if (!password) {
-        showToast(I18N.passwordRequired, { type: 'error' });
-        passwordNew.style.borderColor = '#ff6b6b';
-        passwordNew.focus();
+        showToast(I18N.validation.passwordRequired, { type: 'error' });
+        passwordInput.style.borderColor = '#ff6b6b';
+        passwordInput.focus();
         return false;
       }
 
-      if (password.length < 8) {
-        showToast(I18N.passwordMinLength, { type: 'error' });
-        passwordNew.style.borderColor = '#ff6b6b';
-        passwordNew.focus();
-        return false;
-      }
-
-      if (!/[A-Z]/.test(password)) {
-        showToast(I18N.passwordUppercase, { type: 'error' });
-        passwordNew.style.borderColor = '#ff6b6b';
-        passwordNew.focus();
-        return false;
-      }
-
-      if (!/[a-z]/.test(password)) {
-        showToast(I18N.passwordLowercase, { type: 'error' });
-        passwordNew.style.borderColor = '#ff6b6b';
-        passwordNew.focus();
-        return false;
-      }
-
-      if (!/\d/.test(password)) {
-        showToast(I18N.passwordNumber, { type: 'error' });
-        passwordNew.style.borderColor = '#ff6b6b';
-        passwordNew.focus();
-        return false;
-      }
-
-      if (!confirmPassword) {
-        showToast(I18N.passwordConfirmRequired, { type: 'error' });
-        passwordConfirm.style.borderColor = '#ff6b6b';
-        passwordConfirm.focus();
-        return false;
-      }
-
-      if (password !== confirmPassword) {
-        showToast(I18N.passwordsDoNotMatch, { type: 'error' });
-        passwordConfirm.style.borderColor = '#ff6b6b';
-        passwordNew.style.borderColor = '#ff6b6b';
-        passwordConfirm.focus();
-        return false;
-      }
 
       return true;
     }
@@ -280,21 +281,32 @@
     document.addEventListener('DOMContentLoaded', () => {
       ensureToastElements();
 
-      const toggles = document.querySelectorAll('.toggle-password');
-      toggles.forEach((button) => {
-        button.addEventListener('click', () => togglePassword(button));
-      });
+      const form = document.getElementById('loginForm');
+      const loginButton = form.querySelector('.btn-primary');
+      const googleButton = document.querySelector('.google-btn');
 
-      const form = document.getElementById('updatePasswordForm');
-      const submitButton = form.querySelector('.btn-primary');
-      
       form.addEventListener('submit', (e) => {
-        if (!validatePasswordForm()) {
+        if (!validateLoginForm()) {
           e.preventDefault();
           return false;
         }
-        setButtonLoading(submitButton);
+        setButtonLoading(loginButton);
+        return true;
       });
+
+      if (googleButton) {
+        const loginUrl = googleButton.dataset.loginUrl;
+        if (!loginUrl) {
+          googleButton.disabled = true;
+          googleButton.setAttribute('aria-disabled', 'true');
+          googleButton.style.display = 'none';
+        } else {
+          googleButton.addEventListener('click', () => {
+            setButtonLoading(googleButton);
+            window.location.assign(loginUrl);
+          });
+        }
+      }
 
       const serverMessageElement = document.getElementById('serverErrorMessage');
       if (serverMessageElement) {
@@ -313,22 +325,18 @@
         }
       }
 
-      const inputs = form.querySelectorAll('input[type="password"]');
+      const inputs = form.querySelectorAll('input');
       inputs.forEach((input) => {
         input.addEventListener('input', () => {
           input.style.borderColor = '';
         });
-      });
-
-      const passwordConfirmInput = document.getElementById('password-confirm');
-      passwordConfirmInput.addEventListener('blur', () => {
-        const passwordNew = document.getElementById('password-new');
-        if (passwordConfirmInput.value && passwordNew.value !== passwordConfirmInput.value) {
-          passwordConfirmInput.style.borderColor = '#ff6b6b';
-        } else if (passwordConfirmInput.value) {
-          passwordConfirmInput.style.borderColor = '#4caf50';
-        }
+        input.addEventListener('focus', () => {
+          if (input.style.borderColor) {
+            input.style.borderColor = '';
+          }
+        });
       });
     });
   </script>
+
 </@common.page>

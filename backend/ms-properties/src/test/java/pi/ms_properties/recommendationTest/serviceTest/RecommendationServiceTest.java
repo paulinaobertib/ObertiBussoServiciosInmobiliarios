@@ -65,7 +65,6 @@ class RecommendationServiceTest {
         when(contentRecommender.calculate(newProperty, favsUser2)).thenReturn(0.5);
         when(collaborativeRecommender.predictInterest("user2", newProperty.getId())).thenReturn(0.4);
 
-        when(contentRecommender.calculate(newProperty, favsUser3)).thenReturn(0.0);
         when(collaborativeRecommender.predictInterest("user3", newProperty.getId())).thenReturn(0.0);
 
         recommendationService.evaluateNewProperty(newProperty);

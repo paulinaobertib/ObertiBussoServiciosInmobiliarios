@@ -38,24 +38,11 @@ const {
   getNotificationsByUser,
 } = await import("../../services/notification.service");
 
-// --- Helper original (lo dejamos para no romper tus tests existentes) ---
-function openDrawer() {
-  // Para abrir el drawer (modo desktop) por índice - tu forma original
-  fireEvent.click(screen.getAllByLabelText("Abrir notificaciones")[1]);
-}
-
-// --- Helpers extra más robustos (desktop vs mobile) ---
-function getOpenButtons() {
-  const btns = screen.getAllByRole("button", { name: /Abrir notificaciones/i });
-  const mobileBtn = btns.find((b) => /Notificaciones/i.test(b.textContent || "")) as HTMLButtonElement;
-  const desktopBtn = btns.find((b) => !/Notificaciones/i.test(b.textContent || "")) as HTMLButtonElement;
-  return { mobileBtn, desktopBtn };
-}
-async function openDrawerDesktopSafe() {
-  const { desktopBtn } = getOpenButtons();
-  fireEvent.click(desktopBtn);
-  // Esperamos el heading del Drawer, NO texto suelto
-  await screen.findByRole("heading", { name: /Notificaciones/i });
+// --- Helper para renderizar el componente controlado ---
+function renderSettingsDrawer(open = true) {
+  const mockOnClose = vi.fn();
+  const utils = render(<SettingsDrawer open={open} onClose={mockOnClose} />);
+  return { ...utils, mockOnClose };
 }
 
 describe("SettingsDrawer", () => {
@@ -69,8 +56,7 @@ describe("SettingsDrawer", () => {
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
     (getNotificationsByUser as any).mockResolvedValue({ data: [] });
 
-    render(<SettingsDrawer />);
-    openDrawer();
+    renderSettingsDrawer();
 
     // El Drawer ya estará abierto; validamos contenido
     await screen.findByText("Sin preferencias configuradas.");
@@ -82,8 +68,7 @@ describe("SettingsDrawer", () => {
     (getUserNotificationPreferencesByUser as any).mockRejectedValue(new Error("fail"));
     (getNotificationsByUser as any).mockRejectedValue(new Error("fail"));
 
-    render(<SettingsDrawer />);
-    openDrawer();
+    renderSettingsDrawer();
 
     await screen.findByText("No pudimos cargar los datos.");
     expect(screen.getByText("Sin notificaciones.")).toBeInTheDocument();
@@ -99,8 +84,7 @@ describe("SettingsDrawer", () => {
       ],
     });
 
-    render(<SettingsDrawer />);
-    openDrawer();
+    renderSettingsDrawer();
 
     // Usamos el heading para evitar ambigüedad
     await screen.findByRole("heading", { name: /Notificaciones/i });
@@ -117,8 +101,7 @@ describe("SettingsDrawer", () => {
     (useAuthContext as any).mockReturnValue({ info: { id: "admin" }, isAdmin: true });
     (getAllNotifications as any).mockResolvedValue({ data: [] });
 
-    render(<SettingsDrawer />);
-    openDrawer();
+    renderSettingsDrawer();
 
     await screen.findByRole("heading", { name: /Notificaciones/i });
     await screen.findByText("Sin actividad.");
@@ -129,8 +112,7 @@ describe("SettingsDrawer", () => {
     (getUserNotificationPreferencesByUser as any).mockReturnValue(new Promise(() => {}));
     (getNotificationsByUser as any).mockReturnValue(new Promise(() => {}));
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
 
     // Puede aparecer en preferencias o historial; con que exista uno alcanza
     expect(screen.getAllByText("Cargando…").length).toBeGreaterThan(0);
@@ -147,11 +129,14 @@ describe("SettingsDrawer", () => {
     (getNotificationsByUser as any).mockResolvedValue({ data: [] });
     (updateUserNotificationPreference as any).mockResolvedValue(undefined);
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
+
+    // Esperar a que se carguen las preferencias
+    await waitFor(() => {
+      expect(screen.getAllByRole("checkbox")).toHaveLength(2);
+    });
 
     const checks = screen.getAllByRole("checkbox") as HTMLInputElement[];
-    expect(checks).toHaveLength(2);
     expect(checks[0].checked).toBe(false);
 
     fireEvent.click(checks[0]);
@@ -167,8 +152,12 @@ describe("SettingsDrawer", () => {
     (getNotificationsByUser as any).mockResolvedValue({ data: [] });
     (updateUserNotificationPreference as any).mockRejectedValue(new Error("fail"));
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
+
+    // Esperar a que se cargue el checkbox
+    await waitFor(() => {
+      expect(screen.getByRole("checkbox")).toBeInTheDocument();
+    });
 
     const cb = screen.getByRole("checkbox") as HTMLInputElement;
     expect(cb.checked).toBe(true);
@@ -188,8 +177,12 @@ describe("SettingsDrawer", () => {
       ],
     });
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
+
+    // Esperar a que se cargue la lista
+    await waitFor(() => {
+      expect(screen.getByRole("list")).toBeInTheDocument();
+    });
 
     // Divider presente
     expect(screen.getByRole("separator")).toBeInTheDocument();
@@ -213,10 +206,12 @@ describe("SettingsDrawer", () => {
       ],
     });
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
 
-    expect(screen.getByText(/^1 hoy$/)).toBeInTheDocument();
+    // Esperar a que se actualice el chip
+    await waitFor(() => {
+      expect(screen.getByText(/^1 hoy$/)).toBeInTheDocument();
+    });
   });
 
   it("en mobile: abre con el botón de texto y cierra con la X", async () => {
@@ -224,17 +219,13 @@ describe("SettingsDrawer", () => {
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
     (getNotificationsByUser as any).mockResolvedValue({ data: [] });
 
-    render(<SettingsDrawer />);
-
-    const { mobileBtn } = getOpenButtons();
-    fireEvent.click(mobileBtn);
-    await screen.findByRole("heading", { name: /Notificaciones/i });
+    const { mockOnClose } = renderSettingsDrawer();
 
     const header = screen.getByRole("heading", { name: /Notificaciones/i }).parentElement!;
     const closeBtn = within(header).getByRole("button");
     fireEvent.click(closeBtn);
 
-    await waitFor(() => expect(screen.queryByRole("heading", { name: /Notificaciones/i })).toBeNull());
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it("Admin: orden del resumen por fecha desc y, a igualdad, por tipo (alfabético)", async () => {
@@ -248,8 +239,12 @@ describe("SettingsDrawer", () => {
       ],
     });
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
+
+    // Esperar a que se cargue la lista
+    await waitFor(() => {
+      expect(screen.getByRole("list")).toBeInTheDocument();
+    });
 
     // Admin no muestra Divider
     expect(screen.queryByRole("separator")).toBeNull();
@@ -264,8 +259,7 @@ describe("SettingsDrawer", () => {
   it("sin userId (info null) no llama servicios de usuario y muestra vacíos", async () => {
     (useAuthContext as any).mockReturnValue({ info: null, isAdmin: false });
 
-    render(<SettingsDrawer />);
-    await openDrawerDesktopSafe();
+    renderSettingsDrawer();
 
     expect(getUserNotificationPreferencesByUser).not.toHaveBeenCalled();
     expect(getNotificationsByUser).not.toHaveBeenCalled();

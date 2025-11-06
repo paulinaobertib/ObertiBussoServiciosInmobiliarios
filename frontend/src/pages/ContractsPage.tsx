@@ -35,7 +35,7 @@ export default function ContractsPage() {
       <IconButton
         size="small"
         onClick={() => navigate(-1)}
-        sx={{ position: "absolute", top: 64, left: 8, zIndex: 3000 }}
+        sx={{ position: "absolute", top: 64, left: 8, zIndex: 3000, display: { xs: "none", sm: "inline-flex" } }}
       >
         <ReplyIcon />
       </IconButton>

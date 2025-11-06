@@ -110,46 +110,42 @@ const findFirstAvailableDay = (): Cypress.Chainable<{ day: number; month: number
     // Si el calendario no está en el mes de mañana, navegar al mes correcto
     if (currentCalendarMonth !== tomorrowMonth || currentCalendarYear !== tomorrowYear) {
       const monthsToAdvance = tomorrowMonth - currentCalendarMonth + (tomorrowYear - currentCalendarYear) * 12;
-      
+
       if (monthsToAdvance > 0) {
         for (let i = 0; i < monthsToAdvance; i++) {
           cy.get("button[aria-label='Next month'], button[aria-label='Siguiente mes']").last().click();
         }
       }
-      
+
       // Volver a leer el calendario después de navegar
       return cy.get(".MuiPickersCalendarHeader-label").then(() => {
-        return cy
-          .get("button.MuiPickersDay-root:visible:not(.Mui-disabled)")
-          .then(($buttons) => {
-            for (let i = 0; i < $buttons.length; i++) {
-              const dayText = $buttons.eq(i).text().trim();
-              const day = parseInt(dayText);
-              if (day >= tomorrowDay) {
-                return cy.wrap({ day, month: tomorrowMonth, year: tomorrowYear });
-              }
-            }
-            const dayText = $buttons.first().text().trim();
+        return cy.get("button.MuiPickersDay-root:visible:not(.Mui-disabled)").then(($buttons) => {
+          for (let i = 0; i < $buttons.length; i++) {
+            const dayText = $buttons.eq(i).text().trim();
             const day = parseInt(dayText);
-            return cy.wrap({ day, month: tomorrowMonth, year: tomorrowYear });
-          });
+            if (day >= tomorrowDay) {
+              return cy.wrap({ day, month: tomorrowMonth, year: tomorrowYear });
+            }
+          }
+          const dayText = $buttons.first().text().trim();
+          const day = parseInt(dayText);
+          return cy.wrap({ day, month: tomorrowMonth, year: tomorrowYear });
+        });
       });
     }
 
-    return cy
-      .get("button.MuiPickersDay-root:visible:not(.Mui-disabled)")
-      .then(($buttons) => {
-        for (let i = 0; i < $buttons.length; i++) {
-          const dayText = $buttons.eq(i).text().trim();
-          const day = parseInt(dayText);
-          if (day >= tomorrowDay) {
-            return cy.wrap({ day, month: currentCalendarMonth, year: currentCalendarYear });
-          }
-        }
-        const dayText = $buttons.first().text().trim();
+    return cy.get("button.MuiPickersDay-root:visible:not(.Mui-disabled)").then(($buttons) => {
+      for (let i = 0; i < $buttons.length; i++) {
+        const dayText = $buttons.eq(i).text().trim();
         const day = parseInt(dayText);
-        return cy.wrap({ day, month: currentCalendarMonth, year: currentCalendarYear });
-      });
+        if (day >= tomorrowDay) {
+          return cy.wrap({ day, month: currentCalendarMonth, year: currentCalendarYear });
+        }
+      }
+      const dayText = $buttons.first().text().trim();
+      const day = parseInt(dayText);
+      return cy.wrap({ day, month: currentCalendarMonth, year: currentCalendarYear });
+    });
   });
 };
 
@@ -159,18 +155,12 @@ describe("Admin - Gestión de turnos disponibles", () => {
   let targetMonthName: string;
   let targetYear: number;
 
-  before(function () {
-    const requiredEnvVars = ["adminUsername", "adminPassword", "keycloakUrl", "appUrl"];
-    const missing = requiredEnvVars.filter((key) => {
-      const value = Cypress.env(key);
-      return typeof value !== "string" || value.trim().length === 0;
-    });
+  // Credenciales del realm de integración para admin
+  const adminUsername = "admin";
+  const adminPassword = "Administrador1.";
 
-    if (missing.length > 0) {
-      cy.log(`Faltan variables de entorno requeridas: ${missing.join(", ")}`);
-      this.skip();
-      return;
-    }
+  before(function () {
+    // Ya no necesitamos verificar variables de entorno, usamos credenciales hardcoded
   });
 
   beforeEach(() => {
@@ -204,7 +194,7 @@ describe("Admin - Gestión de turnos disponibles", () => {
     cy.wait("@getAllSlots", { timeout: SLOT_TIMEOUT });
     cy.wait("@getPendingAppointments", { timeout: SLOT_TIMEOUT });
     cy.wait("@getAcceptedAppointments", { timeout: SLOT_TIMEOUT });
-    
+
     // Esperar a que la página de turnos se renderice completamente
     cy.wait(1000);
 

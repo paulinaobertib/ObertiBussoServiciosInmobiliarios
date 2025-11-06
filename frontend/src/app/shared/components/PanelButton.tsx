@@ -11,7 +11,7 @@ export const PanelButton = ({ label, active, onClick, }: Props) => {
     <Button
       variant={active ? 'contained' : 'outlined'}
       onClick={onClick}
-      sx={{ minWidth: 100 }}
+      sx={{ minWidth: 100, textTransform: 'none' }}
     >
       {label}
     </Button>

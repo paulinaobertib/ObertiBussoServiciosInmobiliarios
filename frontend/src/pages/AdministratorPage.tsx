@@ -92,14 +92,14 @@ export default function AdministratorPage() {
       <IconButton
         size="small"
         onClick={() => navigate(-1)}
-        sx={{ position: "relative", top: 64, left: 8, zIndex: 1300 }}
+        sx={{ position: "relative", top: 64, left: 8, zIndex: 1300, display: { xs: 'none', sm: 'inline-flex' } }}
       >
         <ReplyIcon />
       </IconButton>
 
       <BasePage>
         <ProfileSection />
-        <Box mt={5}>
+        <Box mt={2}>
           <PanelManager panels={panels} direction="row" />
         </Box>
       </BasePage>

@@ -1,6 +1,7 @@
 package pi.ms_properties.recommendation.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.dto.feign.FavoriteDTO;
@@ -34,8 +35,20 @@ public class RecommendationService {
             if (!notifiedUsers.contains(userId)) {
                 List<FavoriteDTO> favs = favoriteRepository.getFavorites(userId);
 
+                if (favs.isEmpty()) {
+                    double mlScore = collaborativeRecommender.predictInterest(userId, newProperty.getId());
+                    if (mlScore >= 0.7) {
+                        System.out.println("📬 Notificando a " + userId + " por score ML alto (" + mlScore + ")");
+                        notificationRepository.createPropertyInterest(userId, NotificationType.PROPIEDADINTERES, newProperty.getId());
+                        notifiedUsers.add(userId);
+                    }
+                    continue;
+                }
+
                 double contentScore = contentRecommender.calculate(newProperty, favs);
                 double mlScore = collaborativeRecommender.predictInterest(userId, newProperty.getId());
+
+                if (Double.isNaN(mlScore) || mlScore < 0) mlScore = 0.0;
 
                 double contentWeight = 0.6;
                 double collaborativeWeight = 0.4;

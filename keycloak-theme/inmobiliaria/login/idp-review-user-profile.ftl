@@ -33,6 +33,8 @@
                 type="text"
                 id="firstName"
                 name="firstName"
+                value="${(user.firstName!'')}"
+                readonly
                 placeholder="Nombre"
                 required
               />
@@ -42,6 +44,8 @@
                 type="text"
                 id="lastName"
                 name="lastName"
+                value="${(user.lastName!'')}"
+                readonly
                 placeholder="Apellido"
                 required
               />
@@ -54,6 +58,8 @@
             name="email"
             placeholder="Correo electrónico"
             pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+            value="${(user.email!'')}"
+            readonly
             title="Debe ser un email válido (incluye @ y dominio)"
             required
           />
@@ -62,49 +68,23 @@
             type="tel"
             id="phone"
             name="phone"
-            placeholder="Teléfono"
-            pattern="\d{10}"
+            pplaceholder="Teléfono"
+            pattern="\d{10,15}"
             title="10 dígitos numéricos"
             required
           />
 
           <input
-            type="text"
+            type="hidden"
             id="username"
             name="username"
             placeholder="Usuario"
+            value="${(user.username!'')}"
+            readonly
             title="El nombre de usuario debe tener 3 dígitos como mínimo"
             minlength="3"
             required
           />
-
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Contraseña"
-              minlength="8"
-              title="Mínimo 8 caracteres"
-              required
-            />
-            <button type="button" class="toggle-password" onclick="togglePassword(this)">
-              <span class="material-icons">visibility</span>
-            </button>
-          </div>
-
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password-confirm"
-              name="password-confirm"
-              placeholder="Confirmar contraseña"
-              required
-            />
-            <button type="button" class="toggle-password" onclick="togglePassword(this)">
-              <span class="material-icons">visibility</span>
-            </button>
-          </div>
 
           <div class="terms-section">
             <div class="terms-checkbox">
@@ -149,67 +129,6 @@
   </div>
 
   <script>
-    const I18N = {
-      toastCloseLabel: 'Cerrar aviso',
-      registerSubmitting: 'Registrando...',
-      suspiciousDomainWarning: 'Advertencia: El dominio "{domain}" parece ser de prueba.',
-      serverErrors: {
-        invalidUsernameOrPasswordMessage: '${msg("invalidUsernameOrPasswordMessage")?js_string}',
-        invalidUserMessage: '${msg("invalidUserMessage")?js_string}',
-        accountDisabledMessage: '${msg("accountDisabledMessage")?js_string}',
-        accountTemporarilyDisabledMessage: '${msg("accountTemporarilyDisabledMessage")?js_string}',
-        expiredCodeMessage: '${msg("expiredCodeMessage")?js_string}',
-        expiredActionMessage: '${msg("expiredActionMessage")?js_string}',
-        missingUsernameMessage: '${msg("missingUsernameMessage")?js_string}',
-        missingPasswordMessage: '${msg("missingPasswordMessage")?js_string}',
-        usernameExistsMessage: '${msg("usernameExistsMessage")?js_string}',
-        emailExistsMessage: '${msg("emailExistsMessage")?js_string}',
-        invalidEmailMessage: '${msg("invalidEmailMessage")?js_string}',
-        missingFirstNameMessage: '${msg("missingFirstNameMessage")?js_string}',
-        missingLastNameMessage: '${msg("missingLastNameMessage")?js_string}',
-        missingEmailMessage: '${msg("missingEmailMessage")?js_string}',
-        notMatchPasswordMessage: '${msg("notMatchPasswordMessage")?js_string}',
-        invalidPasswordMinLengthMessage: '${msg("invalidPasswordMinLengthMessage")?js_string}',
-        invalidPasswordMaxLengthMessage: '${msg("invalidPasswordMaxLengthMessage")?js_string}',
-        invalidPasswordMinDigitsMessage: '${msg("invalidPasswordMinDigitsMessage")?js_string}',
-        invalidPasswordMinLowerCaseCharsMessage: '${msg("invalidPasswordMinLowerCaseCharsMessage")?js_string}',
-        invalidPasswordMinUpperCaseCharsMessage: '${msg("invalidPasswordMinUpperCaseCharsMessage")?js_string}',
-        invalidPasswordMinSpecialCharsMessage: '${msg("invalidPasswordMinSpecialCharsMessage")?js_string}',
-        invalidPasswordNotUsernameMessage: '${msg("invalidPasswordNotUsernameMessage")?js_string}',
-        invalidPasswordNotEmailMessage: '${msg("invalidPasswordNotEmailMessage")?js_string}',
-        invalidPasswordHistoryMessage: '${msg("invalidPasswordHistoryMessage")?js_string}',
-        invalidPasswordRegexPatternMessage: '${msg("invalidPasswordRegexPatternMessage")?js_string}'
-      },
-      validation: {
-        firstNameRequired: 'Por favor ingresa tu nombre.',
-        firstNameMin: 'El nombre debe tener al menos 2 caracteres.',
-        firstNameLetters: 'El nombre solo puede contener letras.',
-        lastNameRequired: 'Por favor ingresa tu apellido.',
-        lastNameMin: 'El apellido debe tener al menos 2 caracteres.',
-        lastNameLetters: 'El apellido solo puede contener letras.',
-        emailRequired: 'Por favor ingresa tu correo electrónico.',
-        emailInvalid: 'El email no es válido. Debe incluir @ y un dominio (ej: usuario@dominio.com).',
-        phoneRequired: 'Por favor ingresa tu teléfono.',
-        phoneInvalid: 'El teléfono debe contener entre 10 y 15 dígitos numéricos. No incluyas espacios, guiones ni paréntesis.',
-        usernameRequired: 'Por favor ingresa un nombre de usuario.',
-        usernameMin: 'El nombre de usuario debe tener al menos 3 caracteres.',
-        usernameMax: 'El nombre de usuario no puede tener más de 20 caracteres.',
-        usernameCharset: 'El nombre de usuario solo puede contener letras (a-z, A-Z), números (0-9), guiones (-) y guiones bajos (_).',
-        usernameStartsWithNumber: 'El nombre de usuario no puede empezar con un número.',
-        passwordRequired: 'Por favor ingresa una contraseña.',
-        passwordMinLength: 'La contraseña debe tener al menos 8 caracteres.',
-        passwordMaxLength: 'La contraseña no puede tener más de 64 caracteres.',
-        passwordUppercase: 'La contraseña debe incluir al menos una letra MAYÚSCULA (A-Z).',
-        passwordLowercase: 'La contraseña debe incluir al menos una letra minúscula (a-z).',
-        passwordNumber: 'La contraseña debe incluir al menos un número (0-9).',
-        passwordContainsUsername: 'La contraseña no puede contener tu nombre de usuario.',
-        passwordContainsEmail: 'La contraseña no puede contener tu dirección de email.',
-        passwordSpecialCharRecommendation: 'Recomendación: Es más seguro incluir al menos un carácter especial en tu contraseña.',
-        passwordConfirmRequired: 'Por favor confirma tu contraseña.',
-        passwordsDoNotMatch: 'Las contraseñas no coinciden. Por favor verifícalas e intenta nuevamente.',
-        acceptTerms: 'Debes aceptar los Términos y Condiciones para registrarte.'
-      }
-    };
     let toastTimer;
 
     function setButtonLoading(button, loadingText) {
@@ -218,15 +137,41 @@
       if (label && !label.dataset.originalText) {
         label.dataset.originalText = label.textContent.trim();
       }
-      if (label) {
-        label.textContent = loadingText || I18N.registerSubmitting;
+      if (label && loadingText) {
+        label.textContent = loadingText;
       }
       button.classList.add('is-loading');
       button.setAttribute('aria-busy', 'true');
       button.disabled = true;
     }
 
-    const SERVER_ERROR_MAP = I18N.serverErrors;
+    const SERVER_ERROR_MAP = {
+      invalidUsernameOrPasswordMessage: 'Usuario o contraseña incorrectos.',
+      invalidUserMessage: 'Usuario inválido. Por favor verifica los datos ingresados.',
+      accountDisabledMessage: 'Tu cuenta está deshabilitada. Contacta al administrador.',
+      accountTemporarilyDisabledMessage: 'Tu cuenta está temporalmente bloqueada. Intenta más tarde.',
+      expiredCodeMessage: 'El código ha expirado. Por favor solicita uno nuevo.',
+      expiredActionMessage: 'La acción ha expirado. Por favor inicia el proceso nuevamente.',
+      missingUsernameMessage: 'Debes ingresar tu usuario o email.',
+      missingPasswordMessage: 'Debes ingresar tu contraseña.',
+      usernameExistsMessage: 'El nombre de usuario ya está en uso. Elige uno diferente.',
+      emailExistsMessage: 'El email ya está registrado. Inicia sesión o recupera tu contraseña.',
+      invalidEmailMessage: 'El formato del email no es válido.',
+      missingFirstNameMessage: 'Debes ingresar tu nombre.',
+      missingLastNameMessage: 'Debes ingresar tu apellido.',
+      missingEmailMessage: 'Debes ingresar tu email.',
+      notMatchPasswordMessage: 'Las contraseñas no coinciden.',
+      invalidPasswordMinLengthMessage: 'La contraseña es demasiado corta.',
+      invalidPasswordMaxLengthMessage: 'La contraseña es demasiado larga.',
+      invalidPasswordMinDigitsMessage: 'La contraseña debe contener más números.',
+      invalidPasswordMinLowerCaseCharsMessage: 'La contraseña necesita más letras minúsculas.',
+      invalidPasswordMinUpperCaseCharsMessage: 'La contraseña necesita más letras mayúsculas.',
+      invalidPasswordMinSpecialCharsMessage: 'Agrega caracteres especiales a tu contraseña.',
+      invalidPasswordNotUsernameMessage: 'La contraseña no puede ser igual al nombre de usuario.',
+      invalidPasswordNotEmailMessage: 'La contraseña no puede ser igual al email.',
+      invalidPasswordHistoryMessage: 'No puedes reutilizar una contraseña anterior.',
+      invalidPasswordRegexPatternMessage: 'La contraseña no cumple con el patrón requerido.'
+    };
 
     function ensureToastElements() {
       let toast = document.getElementById('toastMessage');
@@ -238,9 +183,7 @@
         toast = document.createElement('div');
         toast.id = 'toastMessage';
         toast.className = 'toast';
-        toast.innerHTML = '<span class="material-icons toast-icon">error_outline</span>' +
-          '<div class="toast-text"></div>' +
-          '<button type="button" class="toast-close" aria-label="' + I18N.toastCloseLabel + '">x</button>';
+        toast.innerHTML = '<span class="material-icons toast-icon">error_outline</span><div class="toast-text"></div><button type="button" class="toast-close" aria-label="Cerrar aviso">x</button>';
 
         container.appendChild(toast);
         document.body.appendChild(container);
@@ -348,19 +291,19 @@
 
       // Validar nombre
       if (!firstName) {
-        showToast(I18N.validation.firstNameRequired, { type: 'error' });
+        showToast('Por favor ingresa tu nombre.', { type: 'error' });
         firstNameInput.style.borderColor = '#ff6b6b';
         firstNameInput.focus();
         return false;
       }
       if (firstName.length < 2) {
-        showToast(I18N.validation.firstNameMin, { type: 'error' });
+        showToast('El nombre debe tener al menos 2 caracteres.', { type: 'error' });
         firstNameInput.style.borderColor = '#ff6b6b';
         firstNameInput.focus();
         return false;
       }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(firstName)) {
-        showToast(I18N.validation.firstNameLetters, { type: 'error' });
+        showToast('El nombre solo puede contener letras.', { type: 'error' });
         firstNameInput.style.borderColor = '#ff6b6b';
         firstNameInput.focus();
         return false;
@@ -368,19 +311,19 @@
 
       // Validar apellido
       if (!lastName) {
-        showToast(I18N.validation.lastNameRequired, { type: 'error' });
+        showToast('Por favor ingresa tu apellido.', { type: 'error' });
         lastNameInput.style.borderColor = '#ff6b6b';
         lastNameInput.focus();
         return false;
       }
       if (lastName.length < 2) {
-        showToast(I18N.validation.lastNameMin, { type: 'error' });
+        showToast('El apellido debe tener al menos 2 caracteres.', { type: 'error' });
         lastNameInput.style.borderColor = '#ff6b6b';
         lastNameInput.focus();
         return false;
       }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(lastName)) {
-        showToast(I18N.validation.lastNameLetters, { type: 'error' });
+        showToast('El apellido solo puede contener letras.', { type: 'error' });
         lastNameInput.style.borderColor = '#ff6b6b';
         lastNameInput.focus();
         return false;
@@ -388,7 +331,7 @@
 
       // Validar email
       if (!email) {
-        showToast(I18N.validation.emailRequired, { type: 'error' });
+        showToast('Por favor ingresa tu correo electrónico.', { type: 'error' });
         emailInput.style.borderColor = '#ff6b6b';
         emailInput.focus();
         return false;
@@ -396,7 +339,7 @@
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        showToast(I18N.validation.emailInvalid, { type: 'error' });
+        showToast('El email no es válido. Debe incluir @ y un dominio (ej: usuario@dominio.com).', { type: 'error' });
         emailInput.style.borderColor = '#ff6b6b';
         emailInput.focus();
         return false;
@@ -406,12 +349,12 @@
       const suspiciousDomains = ['test.com', 'example.com', 'fake.com', 'temp.com'];
       const domain = email.split('@')[1];
       if (suspiciousDomains.includes(domain)) {
-        showToast(I18N.suspiciousDomainWarning.replace('{domain}', domain), { type: 'warning', duration: 5000 });
+        showToast('Advertencia: El dominio "' + domain + '" parece ser de prueba.', { type: 'warning', duration: 5000 });
       }
 
       // Validar teléfono
       if (!phone) {
-        showToast(I18N.validation.phoneRequired, { type: 'error' });
+        showToast('Por favor ingresa tu teléfono.', { type: 'error' });
         phoneInput.style.borderColor = '#ff6b6b';
         phoneInput.focus();
         return false;
@@ -419,7 +362,7 @@
 
       const phoneRegex = /^\d{10,15}$/;
       if (!phoneRegex.test(phone)) {
-        showToast(I18N.validation.phoneInvalid, { type: 'error' });
+        showToast('El teléfono debe contener entre 10 y 15 dígitos numéricos. No incluyas espacios, guiones ni paréntesis.', { type: 'error' });
         phoneInput.style.borderColor = '#ff6b6b';
         phoneInput.focus();
         return false;
@@ -427,28 +370,28 @@
 
       // Validar usuario
       if (!username) {
-        showToast(I18N.validation.usernameRequired, { type: 'error' });
+        showToast('Por favor ingresa un nombre de usuario.', { type: 'error' });
         usernameInput.style.borderColor = '#ff6b6b';
         usernameInput.focus();
         return false;
       }
 
       if (username.length < 3) {
-        showToast(I18N.validation.usernameMin, { type: 'error' });
+        showToast('El nombre de usuario debe tener al menos 3 caracteres.', { type: 'error' });
         usernameInput.style.borderColor = '#ff6b6b';
         usernameInput.focus();
         return false;
       }
 
       if (username.length > 20) {
-        showToast(I18N.validation.usernameMax, { type: 'error' });
+        showToast('El nombre de usuario no puede tener más de 20 caracteres.', { type: 'error' });
         usernameInput.style.borderColor = '#ff6b6b';
         usernameInput.focus();
         return false;
       }
 
       if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-        showToast(I18N.validation.usernameCharset, { type: 'error' });
+        showToast('El nombre de usuario solo puede contener letras (a-z, A-Z), números (0-9), guiones (-) y guiones bajos (_).', { type: 'error' });
         usernameInput.style.borderColor = '#ff6b6b';
         usernameInput.focus();
         return false;
@@ -456,7 +399,7 @@
 
       // Validar que no empiece con número
       if (/^\d/.test(username)) {
-        showToast(I18N.validation.usernameStartsWithNumber, { type: 'error' });
+        showToast('El nombre de usuario no puede empezar con un número.', { type: 'error' });
         usernameInput.style.borderColor = '#ff6b6b';
         usernameInput.focus();
         return false;
@@ -464,21 +407,21 @@
 
       // Validar contraseña
       if (!password) {
-        showToast(I18N.validation.passwordRequired, { type: 'error' });
+        showToast('Por favor ingresa una contraseña.', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
       }
 
       if (password.length < 8) {
-        showToast(I18N.validation.passwordMinLength, { type: 'error' });
+        showToast('La contraseña debe tener al menos 8 caracteres.', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
       }
 
       if (password.length > 64) {
-        showToast(I18N.validation.passwordMaxLength, { type: 'error' });
+        showToast('La contraseña no puede tener más de 64 caracteres.', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
@@ -486,7 +429,7 @@
 
       // Validar que incluya mayúsculas
       if (!/[A-Z]/.test(password)) {
-        showToast(I18N.validation.passwordUppercase, { type: 'error' });
+        showToast('La contraseña debe incluir al menos una letra MAYÚSCULA (A-Z).', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
@@ -494,7 +437,7 @@
 
       // Validar que incluya minúsculas
       if (!/[a-z]/.test(password)) {
-        showToast(I18N.validation.passwordLowercase, { type: 'error' });
+        showToast('La contraseña debe incluir al menos una letra minúscula (a-z).', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
@@ -502,7 +445,7 @@
 
       // Validar que incluya números
       if (!/\d/.test(password)) {
-        showToast(I18N.validation.passwordNumber, { type: 'error' });
+        showToast('La contraseña debe incluir al menos un número (0-9).', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
@@ -510,14 +453,14 @@
 
       // Validar que no contenga el usuario o email
       if (password.toLowerCase().includes(username.toLowerCase())) {
-        showToast(I18N.validation.passwordContainsUsername, { type: 'error' });
+        showToast('La contraseña no puede contener tu nombre de usuario.', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
       }
 
       if (password.toLowerCase().includes(email.split('@')[0].toLowerCase())) {
-        showToast(I18N.validation.passwordContainsEmail, { type: 'error' });
+        showToast('La contraseña no puede contener tu dirección de email.', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
@@ -525,19 +468,19 @@
 
       // Validar caracteres especiales (recomendación, no bloqueante)
       if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-        showToast(I18N.validation.passwordSpecialCharRecommendation, { type: 'info', duration: 5000 });
+        showToast('Recomendación: Es más seguro incluir al menos un carácter especial en tu contraseña.', { type: 'info', duration: 5000 });
       }
 
       // Validar confirmación de contraseña
       if (!passwordConfirm) {
-        showToast(I18N.validation.passwordConfirmRequired, { type: 'error' });
+        showToast('Por favor confirma tu contraseña.', { type: 'error' });
         passwordConfirmInput.style.borderColor = '#ff6b6b';
         passwordConfirmInput.focus();
         return false;
       }
 
       if (password !== passwordConfirm) {
-        showToast(I18N.validation.passwordsDoNotMatch, { type: 'error' });
+        showToast('Las contraseñas no coinciden. Por favor verifícalas e intenta nuevamente.', { type: 'error' });
         passwordConfirmInput.style.borderColor = '#ff6b6b';
         passwordInput.style.borderColor = '#ff6b6b';
         passwordConfirmInput.focus();
@@ -547,7 +490,7 @@
       // Validar aceptación de Términos y Condiciones
       const acceptTerms = document.getElementById('acceptTerms');
       if (!acceptTerms.checked) {
-        showToast(I18N.validation.acceptTerms, { type: 'error' });
+        showToast('Debes aceptar los Términos y Condiciones para registrarte.', { type: 'error' });
         acceptTerms.focus();
         return false;
       }
@@ -586,7 +529,7 @@
           e.preventDefault(); // Detiene envío si hay error
           return false;
         }
-        setButtonLoading(submitButton, I18N.registerSubmitting);
+        setButtonLoading(submitButton, 'Registrando...');
       });
 
       // Validación en tiempo real: mostrar feedback visual

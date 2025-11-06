@@ -17,6 +17,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import LogoutIcon from '@mui/icons-material/Logout';
 import RealEstateAgentIcon from '@mui/icons-material/RealEstateAgent';
 import LoginIcon from '@mui/icons-material/Login';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import ContactMailIcon from '../../../assets/ic_consulta.svg';
 import NewspaperIcon from '../../../assets/ic_news.svg';
 import { ROUTES } from '../../../lib';
@@ -36,8 +37,15 @@ export const NavBar = () => {
   const { login, logout, isLogged, isAdmin, isTenant } = useAuthContext();
 
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [notificationDrawerOpen, setNotificationDrawerOpen] = React.useState(false);
+  
   const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
+  
+  const handleOpenNotifications = () => {
+    setNotificationDrawerOpen(true);
+    handleCloseNavMenu(); // Cierra el menú hamburguesa si está abierto
+  };
 
   const goHome = () => {
     clearComparison();
@@ -256,12 +264,12 @@ export const NavBar = () => {
                 <MenuItem key="favorites" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
                   MIS FAVORITOS
                 </MenuItem>,
-                <MenuItem key="settings">
-                  <SettingsDrawer />
+                <MenuItem key="settings" onClick={handleOpenNotifications}>
+                  NOTIFICACIONES
                 </MenuItem>
               ])}
 
-              {/* Admin: Turnero + Noticias */}
+              {/* Admin: Turnero + Noticias + Notificaciones */}
               {isAdmin && ([
                 <MenuItem key="appointments" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
                   Turnero
@@ -269,8 +277,8 @@ export const NavBar = () => {
                 <MenuItem key="news-admin" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
                   Noticias
                 </MenuItem>,
-                <MenuItem key="settings-admin">
-                  <SettingsDrawer />
+                <MenuItem key="settings-admin" onClick={handleOpenNotifications}>
+                  Notificaciones
                 </MenuItem>
               ])}
               {/* No logueado: sin menú (no renderizamos items) */}
@@ -336,7 +344,11 @@ export const NavBar = () => {
             )}
             {isLogged && (
               <>
-                <SettingsDrawer />
+                <Tooltip title="Notificaciones">
+                  <IconButton color="inherit" aria-label="notifications" onClick={() => setNotificationDrawerOpen(true)}>
+                    <NotificationsIcon />
+                  </IconButton>
+                </Tooltip>
 
                 {!isAdmin && (
                   <Tooltip title="Mis Favoritos">
@@ -362,6 +374,12 @@ export const NavBar = () => {
           </Box>
         </Toolbar>
       </Box>
+      
+      {/* Settings Drawer - renderizado fuera del AppBar */}
+      <SettingsDrawer 
+        open={notificationDrawerOpen} 
+        onClose={() => setNotificationDrawerOpen(false)} 
+      />
     </AppBar>
   );
 };

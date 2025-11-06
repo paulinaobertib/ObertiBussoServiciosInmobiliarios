@@ -336,12 +336,15 @@ export default function ViewStatsPage() {
       <Box sx={{ py: 4 }}>
         {/* Header */}
         <Box sx={{ position: "relative", mb: 3 }}>
-          <IconButton onClick={() => window.history.back()} sx={{ position: "absolute", top: 0, left: 0 }}>
+          <IconButton 
+            onClick={() => window.history.back()} 
+            sx={{ position: "absolute", top: 0, left: 0, display: { xs: 'none', sm: 'inline-flex' } }}
+          >
             <ReplyIcon />
           </IconButton>
 
-          <Typography variant="h4" align="center" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-            Dashboard de Estadísticas
+          <Typography variant="h5" align="center" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+            Panel de estadísticas
           </Typography>
         </Box>
 
@@ -360,7 +363,7 @@ export default function ViewStatsPage() {
               "& .MuiTab-root": {
                 textTransform: "none",
                 fontWeight: 600,
-                fontSize: "1.05rem",
+                fontSize: "0.875rem",
                 minWidth: "auto",
                 px: { xs: 1, sm: 2.5 },
               },
