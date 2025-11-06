@@ -1,31 +1,23 @@
-import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  AppBar,
-  Box,
-  Toolbar,
-  IconButton,
-  Menu,
-  MenuItem,
-  Button,
-  useTheme,
-  Tooltip,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import LogoutIcon from '@mui/icons-material/Logout';
-import RealEstateAgentIcon from '@mui/icons-material/RealEstateAgent';
-import LoginIcon from '@mui/icons-material/Login';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import ContactMailIcon from '../../../assets/ic_consulta.svg';
-import NewspaperIcon from '../../../assets/ic_news.svg';
-import { ROUTES } from '../../../lib';
-import logo from '../../../assets/logoJPG.png';
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { AppBar, Box, Toolbar, IconButton, Button, useTheme, Tooltip } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import LogoutIcon from "@mui/icons-material/Logout";
+import RealEstateAgentIcon from "@mui/icons-material/RealEstateAgent";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import LoginIcon from "@mui/icons-material/Login";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import ContactMailIcon from "../../../assets/ic_consulta.svg";
+import NewspaperIcon from "../../../assets/ic_news.svg";
+import { ROUTES } from "../../../lib";
+import logo from "../../../assets/logoJPG.png";
 
-import { usePropertiesContext } from '../../property/context/PropertiesContext';
-import { useAuthContext } from '../../user/context/AuthContext';
-import SettingsDrawer from '../../user/components/Settings';
+import { usePropertiesContext } from "../../property/context/PropertiesContext";
+import { useAuthContext } from "../../user/context/AuthContext";
+import SettingsDrawer from "../../user/components/Settings";
+import MobileActionsDrawer, { MobileActionItem } from "./MobileActionsDrawer";
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -34,40 +26,98 @@ export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const { clearComparison, resetSelected, pickItem } = usePropertiesContext();
-  const { login, logout, isLogged, isAdmin, isTenant } = useAuthContext();
+  const { login, logout, isLogged, isAdmin, isTenant, info } = useAuthContext();
 
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [mobileActionsOpen, setMobileActionsOpen] = React.useState(false);
   const [notificationDrawerOpen, setNotificationDrawerOpen] = React.useState(false);
-  
-  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
-  
-  const handleOpenNotifications = () => {
+
+  const openMobileActions = React.useCallback(() => setMobileActionsOpen(true), []);
+  const closeMobileActions = React.useCallback(() => setMobileActionsOpen(false), []);
+
+  const handleOpenNotifications = React.useCallback(() => {
     setNotificationDrawerOpen(true);
-    handleCloseNavMenu(); // Cierra el menú hamburguesa si está abierto
-  };
+  }, []);
+
+  const profileName = React.useMemo(() => {
+    if (!info) return undefined;
+    const parts = [info.firstName, info.lastName].filter(Boolean).join(" ").trim();
+    if (parts) return parts;
+    return info.userName || info.email;
+  }, [info]);
+
+  const profileEmail = info?.email;
 
   const goHome = () => {
     clearComparison();
     resetSelected();
-    pickItem('category', null);
+    pickItem("category", null);
     navigate(ROUTES.HOME_APP);
   };
 
-  const goToProfile = () => {
+  const goToProfile = React.useCallback(() => {
     navigate(isAdmin ? ROUTES.ADMIN_PAGE : ROUTES.USER_PROFILE);
-  };
+  }, [isAdmin, navigate]);
 
-  const openMenu = Boolean(anchorElNav);
+  const mobileActionItems = React.useMemo<MobileActionItem[]>(() => {
+    const withClose =
+      (cb: () => void): (() => void) =>
+      () => {
+        closeMobileActions();
+        cb();
+      };
+
+    const contactIcon = <Box component="img" src={ContactMailIcon} alt="Contacto" sx={{ width: 24, height: 24 }} />;
+    const newsIcon = <Box component="img" src={NewspaperIcon} alt="Noticias" sx={{ width: 24, height: 24 }} />;
+
+    if (!isLogged) {
+      return [
+        { label: "Contacto / Turnero de Citas", icon: contactIcon, onClick: withClose(() => navigate(ROUTES.CONTACT)) },
+        { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
+      ];
+    }
+
+    if (isAdmin) {
+      return [
+        { label: "Mi Perfil", icon: <AccountCircleIcon />, onClick: withClose(goToProfile) },
+        { label: "Turnero de Citas", icon: <MenuIcon />, onClick: withClose(() => navigate(ROUTES.APPOINTMENTS)) },
+        {
+          label: "Contratos de Alquiler",
+          icon: <RealEstateAgentIcon />,
+          onClick: withClose(() => navigate(ROUTES.CONTRACT)),
+        },
+        { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
+        { label: "Mis Notificaciones", icon: <NotificationsIcon />, onClick: withClose(handleOpenNotifications) },
+        { label: "Ver Estadísticas", icon: <QueryStatsIcon />, onClick: withClose(() => navigate(ROUTES.CONTRACT)) },
+      ];
+    }
+
+    const items: MobileActionItem[] = [
+      { label: "Mi Perfil", icon: <AccountCircleIcon />, onClick: withClose(goToProfile) },
+      { label: "Mis Favoritos", icon: <FavoriteIcon />, onClick: withClose(() => navigate(ROUTES.FAVORITES)) },
+      { label: "Contacto / Turnero de Citas", icon: contactIcon, onClick: withClose(() => navigate(ROUTES.CONTACT)) },
+      { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
+      { label: "Mis Notificaciones", icon: <NotificationsIcon />, onClick: withClose(handleOpenNotifications) },
+    ];
+
+    if (isTenant) {
+      items.splice(1, 0, {
+        label: "Mis Contratos de Alquiler",
+        icon: <RealEstateAgentIcon />,
+        onClick: withClose(() => navigate(ROUTES.CONTRACT)),
+      });
+    }
+
+    return items;
+  }, [closeMobileActions, goToProfile, handleOpenNotifications, isAdmin, isLogged, isTenant, navigate]);
 
   return (
     <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT }, zIndex: 2000 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Toolbar
           disableGutters
           sx={{
-            width: '90%',
-            justifyContent: { xs: 'center', sm: 'space-between' },
+            width: "90%",
+            justifyContent: { xs: "center", sm: "space-between" },
             height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
             minHeight: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT },
           }}
@@ -78,10 +128,10 @@ export const NavBar = () => {
             src={logo}
             alt="Logo"
             sx={{
-              display: { xs: 'none', sm: 'flex' },
+              display: { xs: "none", sm: "flex" },
               height: 50,
-              objectFit: 'contain',
-              cursor: 'pointer',
+              objectFit: "contain",
+              cursor: "pointer",
             }}
             onClick={goHome}
           />
@@ -89,90 +139,29 @@ export const NavBar = () => {
           {/* Mobile (xs): layout por estado */}
           <Box
             sx={{
-              display: { xs: 'flex', sm: 'none' },
-              alignItems: 'center',
-              position: 'relative',
-              width: '100%',
-              justifyContent: 'center',
+              display: { xs: "flex", sm: "none" },
+              alignItems: "center",
+              position: "relative",
+              width: "100%",
+              justifyContent: "center",
             }}
           >
             {/* IZQUIERDA (xs) */}
             <Box
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 left: 0,
-                display: 'flex',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
                 gap: 1,
               }}
             >
-              {/* NO LOGUEADO: Contacto + Noticias */}
-              {!isLogged && (
-                <>
-                  <Tooltip title="Contacto">
-                    <IconButton size="small" color="inherit" onClick={() => navigate(ROUTES.CONTACT)}>
-                        <img src={ContactMailIcon} alt="Consulta" width={24} height={24} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Noticias">
-                    <IconButton size="small" color="inherit" onClick={() => navigate(ROUTES.NEWS)}>
-                        <img src={NewspaperIcon} alt="Noticias" width={24} height={24} />
-                    </IconButton>
-                  </Tooltip>
-                </>
-              )}
-
-              {/* LOGUEADO USUARIO: Perfil + Menú + (si inquilino) Soy inquilino */}
-              {isLogged && !isAdmin && (
-                <>
-                  <IconButton
-                    size="small"
-                    onClick={handleOpenNavMenu}
-                    color="inherit"
-                    aria-label="menu"
-                  >
+              {!mobileActionsOpen && (
+                <Tooltip title="Abrir menú">
+                  <IconButton size="small" onClick={openMobileActions} color="inherit" aria-label="menu">
                     <MenuIcon />
                   </IconButton>
-
-                  {isTenant && (
-                    <Tooltip title="Soy inquilino">
-                      <IconButton
-                        size="small"
-                        onClick={() => navigate(ROUTES.CONTRACT)}
-                        color="inherit"
-                        aria-label="tenant"
-                        data-testid="tenant-contracts-button"
-                      >
-                        <RealEstateAgentIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </>
-              )}
-
-              {/* ADMIN: Menú + Contratos */}
-              {isAdmin && (
-                <>
-                  <IconButton
-                    size="small"
-                    onClick={handleOpenNavMenu}
-                    color="inherit"
-                    aria-label="menu"
-                  >
-                    <MenuIcon />
-                  </IconButton>
-
-                  <Tooltip title="Contratos">
-                    <IconButton
-                      size="small"
-                      onClick={() => navigate(ROUTES.CONTRACT)}
-                      color="inherit"
-                      aria-label="contracts"
-                    >
-                      <RealEstateAgentIcon />
-                    </IconButton>
-                  </Tooltip>
-                </>
+                </Tooltip>
               )}
             </Box>
 
@@ -184,11 +173,11 @@ export const NavBar = () => {
               data-testid="logo-mobile"
               sx={{
                 height: 40,
-                objectFit: 'contain',
-                cursor: 'pointer',
-                position: 'absolute',
-                left: '50%',
-                transform: 'translateX(-50%)',
+                objectFit: "contain",
+                cursor: "pointer",
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
               }}
               onClick={goHome}
             />
@@ -196,10 +185,10 @@ export const NavBar = () => {
             {/* DERECHA (xs) */}
             <Box
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 right: 0,
-                display: 'flex',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
                 gap: 1,
               }}
             >
@@ -214,87 +203,34 @@ export const NavBar = () => {
 
               {/* LOGUEADO USUARIO: Salir */}
               {isLogged && !isAdmin && (
-                <>
-                  <Tooltip title="Panel / Perfil">
-                    <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
-                      <AccountCircleIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Salir">
-                    <IconButton color="inherit" aria-label="logout" onClick={logout}>
-                      <LogoutIcon />
-                    </IconButton>
-                  </Tooltip>
-                </>
+                <Tooltip title="Salir">
+                  <IconButton color="inherit" aria-label="logout" onClick={logout}>
+                    <LogoutIcon />
+                  </IconButton>
+                </Tooltip>
               )}
 
-              {/* ADMIN: Perfil/Panel + Salir */}
+              {/* ADMIN: Salir */}
               {isAdmin && (
-                <>
-                  <Tooltip title="Panel / Perfil">
-                    <IconButton color="inherit" aria-label="profile" onClick={goToProfile}>
-                      <AccountCircleIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Salir">
-                    <IconButton color="inherit" aria-label="logout" onClick={logout}>
-                      <LogoutIcon />
-                    </IconButton>
-                  </Tooltip>
-                </>
+                <Tooltip title="Salir">
+                  <IconButton color="inherit" aria-label="logout" onClick={logout}>
+                    <LogoutIcon />
+                  </IconButton>
+                </Tooltip>
               )}
             </Box>
-
-            {/* MENÚ (xs) — según estado */}
-            <Menu
-              anchorEl={anchorElNav}
-              open={openMenu}
-              onClose={handleCloseNavMenu}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-            >
-              {/* Logueado usuario: Contacto, Noticias, Mis favoritos, Notificaciones */}
-              {isLogged && !isAdmin && ([
-                <MenuItem key="contact" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.CONTACT); }}>
-                  CONTACTO
-                </MenuItem>,
-                <MenuItem key="news" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
-                  NOTICIAS
-                </MenuItem>,
-                <MenuItem key="favorites" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.FAVORITES); }}>
-                  MIS FAVORITOS
-                </MenuItem>,
-                <MenuItem key="settings" onClick={handleOpenNotifications}>
-                  NOTIFICACIONES
-                </MenuItem>
-              ])}
-
-              {/* Admin: Turnero + Noticias + Notificaciones */}
-              {isAdmin && ([
-                <MenuItem key="appointments" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.APPOINTMENTS); }}>
-                  Turnero
-                </MenuItem>,
-                <MenuItem key="news-admin" onClick={() => { handleCloseNavMenu(); navigate(ROUTES.NEWS); }}>
-                  Noticias
-                </MenuItem>,
-                <MenuItem key="settings-admin" onClick={handleOpenNotifications}>
-                  Notificaciones
-                </MenuItem>
-              ])}
-              {/* No logueado: sin menú (no renderizamos items) */}
-            </Menu>
           </Box>
 
           {/* Desktop Links (sm+) — sin cambios */}
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2, ml: 4 }}>
+          <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 2, ml: 4 }}>
             <Button
               onClick={() => navigate(isAdmin ? ROUTES.APPOINTMENTS : ROUTES.CONTACT)}
               sx={{
                 color: palette.common.white,
-                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
-              {isAdmin ? 'Turnero' : 'Contacto'}
+              {isAdmin ? "Turnero" : "Contacto"}
             </Button>
 
             <Button
@@ -302,7 +238,7 @@ export const NavBar = () => {
               onClick={() => navigate(ROUTES.NEWS)}
               sx={{
                 color: palette.common.white,
-                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
               Noticias
@@ -314,8 +250,8 @@ export const NavBar = () => {
                 data-testid="tenant-contracts-button-desktop"
                 sx={{
                   color: palette.common.white,
-                  textTransform: 'none',
-                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                  textTransform: "none",
+                  "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
                 }}
               >
                 Soy Inquilino
@@ -327,7 +263,7 @@ export const NavBar = () => {
                 onClick={() => navigate(ROUTES.CONTRACT)}
                 sx={{
                   color: palette.common.white,
-                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
+                  "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
                 }}
               >
                 Contratos
@@ -336,7 +272,7 @@ export const NavBar = () => {
           </Box>
 
           {/* Desktop Actions (sm+) — sin cambios */}
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1, ml: 'auto' }}>
+          <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1, ml: "auto" }}>
             {!isLogged && (
               <Button color="inherit" onClick={login}>
                 Iniciar Sesión
@@ -345,7 +281,11 @@ export const NavBar = () => {
             {isLogged && (
               <>
                 <Tooltip title="Notificaciones">
-                  <IconButton color="inherit" aria-label="notifications" onClick={() => setNotificationDrawerOpen(true)}>
+                  <IconButton
+                    color="inherit"
+                    aria-label="notifications"
+                    onClick={() => setNotificationDrawerOpen(true)}
+                  >
                     <NotificationsIcon />
                   </IconButton>
                 </Tooltip>
@@ -358,8 +298,13 @@ export const NavBar = () => {
                   </Tooltip>
                 )}
 
-                <Tooltip title={isAdmin ? 'Panel de Administrador' : 'Perfil'}>
-                  <IconButton color="inherit" aria-label="profile" data-testid={isAdmin ? "navbar-admin-panel" : "navbar-user-profile"} onClick={goToProfile}>
+                <Tooltip title={isAdmin ? "Panel de Administrador" : "Perfil"}>
+                  <IconButton
+                    color="inherit"
+                    aria-label="profile"
+                    data-testid={isAdmin ? "navbar-admin-panel" : "navbar-user-profile"}
+                    onClick={goToProfile}
+                  >
                     <AccountCircleIcon />
                   </IconButton>
                 </Tooltip>
@@ -374,11 +319,20 @@ export const NavBar = () => {
           </Box>
         </Toolbar>
       </Box>
-      
+
       {/* Settings Drawer - renderizado fuera del AppBar */}
-      <SettingsDrawer 
-        open={notificationDrawerOpen} 
-        onClose={() => setNotificationDrawerOpen(false)} 
+      <SettingsDrawer open={notificationDrawerOpen} onClose={() => setNotificationDrawerOpen(false)} />
+      <MobileActionsDrawer
+        open={mobileActionsOpen}
+        onClose={closeMobileActions}
+        items={mobileActionItems}
+        topOffsetMobile={NAVBAR_HEIGHT_XS}
+        topOffsetDesktop={NAVBAR_HEIGHT}
+        profileName={profileName}
+        profileEmail={profileEmail}
+        isLoggedIn={isLogged}
+        onLogin={!isLogged ? login : undefined}
+        onLogout={isLogged ? logout : undefined}
       />
     </AppBar>
   );
