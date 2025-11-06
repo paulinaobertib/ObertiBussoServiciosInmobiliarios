@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="${msg('resetPasswordTitle')}">
+<@common.page title="Restablecer contraseña">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
@@ -7,12 +7,12 @@
     <div class="login-container">
       <div class="login-form-box">
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}" />
+          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso" />
         </div>
 
-        <h2 class="welcome-title">${msg('emailForgotTitle')}</h2>
+        <h2 class="welcome-title">¿Olvidaste tu contraseña?</h2>
         <p class="welcome-desc">
-          ${msg('resetPasswordSubtitle')}
+          Ingresá tu usuario o email y te enviaremos un enlace para crear una nueva contraseña.
         </p>
 
         <form id="resetPasswordForm" action="${url.loginAction}" method="post" class="auth-form">
@@ -20,14 +20,14 @@
             type="text"
             id="username"
             name="username"
-            placeholder="${msg('usernameOrEmail')}"
+            placeholder="Usuario o email"
             autofocus
             required
           />
 
           <div class="form-actions">
             <button type="submit" class="btn-primary">
-              <span class="btn-label">${msg('resetPasswordSubmit')}</span>
+              <span class="btn-label">Enviar enlace de recuperación</span>
             </button>
           </div>
         </form>
@@ -44,11 +44,21 @@
         </#if>
 
         <div class="url-footer">
-          <span>${msg('rememberPasswordQuestion')} <a href="${url.loginUrl}">${msg('backToLogin')}</a></span>
+          <span>¿Recordaste tu contraseña? <a href="${url.loginUrl}">Volver al inicio de sesión</a></span>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    let toastTimer;
+
+    function setButtonLoading(button) {
+      if (!button || button.classList.contains('is-loading')) return;
+      button.classList.add('is-loading');
+      button.setAttribute('aria-busy', 'true');
+      button.disabled = true;
+    }
 
   <script>
     const I18N = {

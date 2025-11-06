@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="${msg('loginTitle')}">
+<@common.page title="Iniciar sesión">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -13,10 +13,10 @@
 
         <!-- Logo -->
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}">
+          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso">
         </div>
 
-        <h2 id="formTitle" class="welcome-title">${msg('loginTitle')}</h2>
+        <h2 id="formTitle" class="welcome-title">Bienvenido</h2>
 
         <!-- Login -->
         <#assign googleLoginUrl="">
@@ -28,22 +28,22 @@
           </#list>
         </#if>
         <form id="loginForm" action="${url.loginAction}" method="post" class="auth-form" autocomplete="on">
-          <input type="text" name="username" placeholder="${msg('usernameOrEmail')}" required />
+          <input type="text" name="username" placeholder="Usuario o email" required />
       
           <div class="password-wrapper">
-              <input type="password" name="password" placeholder="${msg('password')}" required />
+              <input type="password" name="password" placeholder="Contraseña" required />
               <button type="button" class="toggle-password" onclick="togglePassword(this)">
                   <span class="material-icons">visibility</span>
               </button>
           </div>
       
           <div class="forgot-password">
-              <a href="${url.loginResetCredentialsUrl}">${msg('doForgotPassword')}</a>
+              <a href="${url.loginResetCredentialsUrl}">¿Olvidaste tu contraseña?</a>
           </div>
       
           <div class="form-actions">
               <button type="submit" class="btn-primary">
-                <span class="btn-label">${msg('doLogIn')}</span>
+                <span class="btn-label">Iniciar sesión</span>
               </button>
               <div class="or-text">ó</div>
                             <button type="button" class="google-btn"<#if googleLoginUrl?has_content> data-login-url="${googleLoginUrl}"</#if>>
@@ -67,7 +67,7 @@
         <!-- Footer toggle -->
         <div class="url-footer">
           <span id="urlFooter">
-            ${msg('noAccount')} <a href="${url.registrationUrl}">${msg('doRegister')}</a>
+            ¿No tenés cuenta? <a href="${url.registrationUrl}">Registrate</a>
           </span>
         </div>
       </div>

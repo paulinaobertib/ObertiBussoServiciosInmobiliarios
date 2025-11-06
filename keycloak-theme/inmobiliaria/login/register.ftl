@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="${msg('registerTitle')}">
+<@common.page title="Registrarse">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -63,8 +63,8 @@
             id="phone"
             name="phone"
             placeholder="Teléfono"
-            pattern="\d{10,15}"
-            title="10 a 15 dígitos numéricos"
+            pattern="\d{10}"
+            title="10 dígitos numéricos"
             required
           />
 

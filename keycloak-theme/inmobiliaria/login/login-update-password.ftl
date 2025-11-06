@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="${msg('updatePasswordTitle')}">
+<@common.page title="Actualizar contraseña">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
@@ -7,12 +7,12 @@
     <div class="login-container">
       <div class="login-form-box">
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}" />
+          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso" />
         </div>
 
-        <h2 class="welcome-title">${msg('updatePasswordHeading')}</h2>
+        <h2 class="welcome-title">Creá tu nueva contraseña</h2>
         <p class="welcome-desc">
-          ${msg('updatePasswordSubtitle')}
+          Elegí una contraseña segura para terminar de configurar tu cuenta.
         </p>
 
         <form id="updatePasswordForm" action="${url.loginAction}" method="post" class="auth-form">
@@ -24,7 +24,7 @@
               type="password"
               id="password-new"
               name="password-new"
-              placeholder="${msg('passwordNew')}"
+              placeholder="Nueva contraseña"
               autocomplete="new-password"
               autofocus
               required
@@ -39,7 +39,7 @@
               type="password"
               id="password-confirm"
               name="password-confirm"
-              placeholder="${msg('passwordConfirm')}"
+              placeholder="Confirmar contraseña"
               autocomplete="new-password"
               required
             />
@@ -50,7 +50,7 @@
 
           <div class="form-actions">
             <button type="submit" class="btn-primary" value="update-password">
-              <span class="btn-label">${msg('updatePasswordSubmit')}</span>
+              <span class="btn-label">Guardar contraseña e Iniciar Sesión</span>
             </button>
           </div>
         </form>
@@ -69,6 +69,8 @@
     </div>
   </div>
 
+  <script>
+ 
   <script>
     const I18N = {
       toastCloseLabel: '${msg("toastCloseLabel")?js_string}',
