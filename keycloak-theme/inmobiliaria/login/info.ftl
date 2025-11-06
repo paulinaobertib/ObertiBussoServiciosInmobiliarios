@@ -7,7 +7,7 @@
     <div class="login-container">
       <div class="login-form-box">
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso" />
+          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}" />
         </div>
 
         <div class="success-container">
@@ -15,16 +15,15 @@
             <span class="material-icons">check_circle</span>
           </div>
           
-          <h2 class="welcome-title">¡Contraseña actualizada!</h2>
+          <h2 class="welcome-title">${msg('passwordUpdateSuccessTitle')}</h2>
           
           <p class="welcome-desc">
-            Tu contraseña se ha actualizado correctamente. 
-            Ya podés iniciar sesión con tu nueva contraseña.
+            ${msg('passwordUpdateSuccessDescription')}
           </p>
 
 
           <div class="form-actions">
-            <a href="${client.baseUrl}" class="btn-primary">Volver a la aplicación</a>
+            <a href="${client.baseUrl}" class="btn-primary">${msg('backToApplication')}</a>
           </div>
         </div>
       </div>

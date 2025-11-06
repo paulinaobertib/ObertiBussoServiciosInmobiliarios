@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="Actualizar contraseña">
+<@common.page title="${msg('updatePasswordTitle')}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
@@ -7,12 +7,12 @@
     <div class="login-container">
       <div class="login-form-box">
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso" />
+          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}" />
         </div>
 
-        <h2 class="welcome-title">Creá tu nueva contraseña</h2>
+        <h2 class="welcome-title">${msg('updatePasswordHeading')}</h2>
         <p class="welcome-desc">
-          Elegí una contraseña segura para terminar de configurar tu cuenta.
+          ${msg('updatePasswordSubtitle')}
         </p>
 
         <form id="updatePasswordForm" action="${url.loginAction}" method="post" class="auth-form">
@@ -24,7 +24,7 @@
               type="password"
               id="password-new"
               name="password-new"
-              placeholder="Nueva contraseña"
+              placeholder="${msg('passwordNew')}"
               autocomplete="new-password"
               autofocus
               required
@@ -39,7 +39,7 @@
               type="password"
               id="password-confirm"
               name="password-confirm"
-              placeholder="Confirmar contraseña"
+              placeholder="${msg('passwordConfirm')}"
               autocomplete="new-password"
               required
             />
@@ -50,7 +50,7 @@
 
           <div class="form-actions">
             <button type="submit" class="btn-primary" value="update-password">
-              <span class="btn-label">Guardar contraseña e Iniciar Sesión</span>
+              <span class="btn-label">${msg('updatePasswordSubmit')}</span>
             </button>
           </div>
         </form>
@@ -70,6 +70,43 @@
   </div>
 
   <script>
+    const I18N = {
+      toastCloseLabel: '${msg("toastCloseLabel")?js_string}',
+      passwordRequired: '${msg("validationPasswordRequired")?js_string}',
+      passwordMinLength: '${msg("validationPasswordMinLength")?js_string}',
+      passwordUppercase: '${msg("validationPasswordUppercase")?js_string}',
+      passwordLowercase: '${msg("validationPasswordLowercase")?js_string}',
+      passwordNumber: '${msg("validationPasswordNumber")?js_string}',
+      passwordConfirmRequired: '${msg("validationPasswordConfirmRequired")?js_string}',
+      passwordsDoNotMatch: '${msg("validationPasswordsDoNotMatch")?js_string}',
+      serverErrors: {
+        invalidUsernameOrPasswordMessage: '${msg("invalidUsernameOrPasswordMessage")?js_string}',
+        invalidUserMessage: '${msg("invalidUserMessage")?js_string}',
+        accountDisabledMessage: '${msg("accountDisabledMessage")?js_string}',
+        accountTemporarilyDisabledMessage: '${msg("accountTemporarilyDisabledMessage")?js_string}',
+        expiredCodeMessage: '${msg("expiredCodeMessage")?js_string}',
+        expiredActionMessage: '${msg("expiredActionMessage")?js_string}',
+        missingUsernameMessage: '${msg("missingUsernameMessage")?js_string}',
+        missingPasswordMessage: '${msg("missingPasswordMessage")?js_string}',
+        usernameExistsMessage: '${msg("usernameExistsMessage")?js_string}',
+        emailExistsMessage: '${msg("emailExistsMessage")?js_string}',
+        invalidEmailMessage: '${msg("invalidEmailMessage")?js_string}',
+        missingFirstNameMessage: '${msg("missingFirstNameMessage")?js_string}',
+        missingLastNameMessage: '${msg("missingLastNameMessage")?js_string}',
+        missingEmailMessage: '${msg("missingEmailMessage")?js_string}',
+        notMatchPasswordMessage: '${msg("notMatchPasswordMessage")?js_string}',
+        invalidPasswordMinLengthMessage: '${msg("invalidPasswordMinLengthMessage")?js_string}',
+        invalidPasswordMaxLengthMessage: '${msg("invalidPasswordMaxLengthMessage")?js_string}',
+        invalidPasswordMinDigitsMessage: '${msg("invalidPasswordMinDigitsMessage")?js_string}',
+        invalidPasswordMinLowerCaseCharsMessage: '${msg("invalidPasswordMinLowerCaseCharsMessage")?js_string}',
+        invalidPasswordMinUpperCaseCharsMessage: '${msg("invalidPasswordMinUpperCaseCharsMessage")?js_string}',
+        invalidPasswordMinSpecialCharsMessage: '${msg("invalidPasswordMinSpecialCharsMessage")?js_string}',
+        invalidPasswordNotUsernameMessage: '${msg("invalidPasswordNotUsernameMessage")?js_string}',
+        invalidPasswordNotEmailMessage: '${msg("invalidPasswordNotEmailMessage")?js_string}',
+        invalidPasswordHistoryMessage: '${msg("invalidPasswordHistoryMessage")?js_string}',
+        invalidPasswordRegexPatternMessage: '${msg("invalidPasswordRegexPatternMessage")?js_string}'
+      }
+    };
     let toastTimer;
 
     function setButtonLoading(button) {
@@ -79,33 +116,7 @@
       button.disabled = true;
     }
 
-    const SERVER_ERROR_MAP = {
-      invalidUsernameOrPasswordMessage: 'Usuario o contraseña incorrectos.',
-      invalidUserMessage: 'Usuario inválido. Por favor verifica los datos ingresados.',
-      accountDisabledMessage: 'Tu cuenta está deshabilitada. Contacta al administrador.',
-      accountTemporarilyDisabledMessage: 'Tu cuenta está temporalmente bloqueada. Intenta más tarde.',
-      expiredCodeMessage: 'El código ha expirado. Por favor solicita uno nuevo.',
-      expiredActionMessage: 'La acción ha expirado. Por favor inicia el proceso nuevamente.',
-      missingUsernameMessage: 'Debes ingresar tu usuario o email.',
-      missingPasswordMessage: 'Debes ingresar tu contraseña.',
-      usernameExistsMessage: 'El nombre de usuario ya está en uso. Elige uno diferente.',
-      emailExistsMessage: 'El email ya está registrado. Inicia sesión o recupera tu contraseña.',
-      invalidEmailMessage: 'El formato del email no es válido.',
-      missingFirstNameMessage: 'Debes ingresar tu nombre.',
-      missingLastNameMessage: 'Debes ingresar tu apellido.',
-      missingEmailMessage: 'Debes ingresar tu email.',
-      notMatchPasswordMessage: 'Las contraseñas no coinciden.',
-      invalidPasswordMinLengthMessage: 'La contraseña es demasiado corta.',
-      invalidPasswordMaxLengthMessage: 'La contraseña es demasiado larga.',
-      invalidPasswordMinDigitsMessage: 'La contraseña debe contener más números.',
-      invalidPasswordMinLowerCaseCharsMessage: 'La contraseña necesita más letras minúsculas.',
-      invalidPasswordMinUpperCaseCharsMessage: 'La contraseña necesita más letras mayúsculas.',
-      invalidPasswordMinSpecialCharsMessage: 'Agrega caracteres especiales a tu contraseña.',
-      invalidPasswordNotUsernameMessage: 'La contraseña no puede ser igual al nombre de usuario.',
-      invalidPasswordNotEmailMessage: 'La contraseña no puede ser igual al email.',
-      invalidPasswordHistoryMessage: 'No puedes reutilizar una contraseña anterior.',
-      invalidPasswordRegexPatternMessage: 'La contraseña no cumple con el patrón requerido.'
-    };
+    const SERVER_ERROR_MAP = I18N.serverErrors;
 
     function ensureToastElements() {
       let toast = document.getElementById('toastMessage');
@@ -117,7 +128,9 @@
         toast = document.createElement('div');
         toast.id = 'toastMessage';
         toast.className = 'toast';
-        toast.innerHTML = '<span class="material-icons toast-icon">error_outline</span><div class="toast-text"></div><button type="button" class="toast-close" aria-label="Cerrar aviso">x</button>';
+        toast.innerHTML = '<span class="material-icons toast-icon">error_outline</span>' +
+          '<div class="toast-text"></div>' +
+          '<button type="button" class="toast-close" aria-label="' + I18N.toastCloseLabel + '">x</button>';
 
         container.appendChild(toast);
         document.body.appendChild(container);
@@ -210,49 +223,49 @@
       passwordConfirm.style.borderColor = '';
 
       if (!password) {
-        showToast('Por favor ingresa una contraseña.', { type: 'error' });
+        showToast(I18N.passwordRequired, { type: 'error' });
         passwordNew.style.borderColor = '#ff6b6b';
         passwordNew.focus();
         return false;
       }
 
       if (password.length < 8) {
-        showToast('La contraseña debe tener al menos 8 caracteres.', { type: 'error' });
+        showToast(I18N.passwordMinLength, { type: 'error' });
         passwordNew.style.borderColor = '#ff6b6b';
         passwordNew.focus();
         return false;
       }
 
       if (!/[A-Z]/.test(password)) {
-        showToast('La contraseña debe incluir al menos una letra MAYÚSCULA (A-Z).', { type: 'error' });
+        showToast(I18N.passwordUppercase, { type: 'error' });
         passwordNew.style.borderColor = '#ff6b6b';
         passwordNew.focus();
         return false;
       }
 
       if (!/[a-z]/.test(password)) {
-        showToast('La contraseña debe incluir al menos una letra minúscula (a-z).', { type: 'error' });
+        showToast(I18N.passwordLowercase, { type: 'error' });
         passwordNew.style.borderColor = '#ff6b6b';
         passwordNew.focus();
         return false;
       }
 
       if (!/\d/.test(password)) {
-        showToast('La contraseña debe incluir al menos un número (0-9).', { type: 'error' });
+        showToast(I18N.passwordNumber, { type: 'error' });
         passwordNew.style.borderColor = '#ff6b6b';
         passwordNew.focus();
         return false;
       }
 
       if (!confirmPassword) {
-        showToast('Por favor confirma tu contraseña.', { type: 'error' });
+        showToast(I18N.passwordConfirmRequired, { type: 'error' });
         passwordConfirm.style.borderColor = '#ff6b6b';
         passwordConfirm.focus();
         return false;
       }
 
       if (password !== confirmPassword) {
-        showToast('Las contraseñas no coinciden. Por favor verifícalas e intenta nuevamente.', { type: 'error' });
+        showToast(I18N.passwordsDoNotMatch, { type: 'error' });
         passwordConfirm.style.borderColor = '#ff6b6b';
         passwordNew.style.borderColor = '#ff6b6b';
         passwordConfirm.focus();

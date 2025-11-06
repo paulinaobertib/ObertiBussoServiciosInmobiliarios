@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="Iniciar sesión">
+<@common.page title="${msg('loginTitle')}">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -13,10 +13,10 @@
 
         <!-- Logo -->
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso">
+          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}">
         </div>
 
-        <h2 id="formTitle" class="welcome-title">Bienvenido</h2>
+        <h2 id="formTitle" class="welcome-title">${msg('loginWelcomeTitle')}</h2>
 
         <!-- Login -->
         <#assign googleLoginUrl="">
@@ -28,27 +28,27 @@
           </#list>
         </#if>
         <form id="loginForm" action="${url.loginAction}" method="post" class="auth-form" autocomplete="on">
-          <input type="text" name="username" placeholder="Usuario o email" required />
+          <input type="text" name="username" placeholder="${msg('usernameOrEmail')}" required />
       
           <div class="password-wrapper">
-              <input type="password" name="password" placeholder="Contraseña" required />
+              <input type="password" name="password" placeholder="${msg('password')}" required />
               <button type="button" class="toggle-password" onclick="togglePassword(this)">
                   <span class="material-icons">visibility</span>
               </button>
           </div>
       
           <div class="forgot-password">
-              <a href="${url.loginResetCredentialsUrl}">¿Olvidaste tu contraseña?</a>
+              <a href="${url.loginResetCredentialsUrl}">${msg('doForgotPassword')}</a>
           </div>
       
           <div class="form-actions">
               <button type="submit" class="btn-primary">
-                <span class="btn-label">Iniciar sesión</span>
+                <span class="btn-label">${msg('doLogIn')}</span>
               </button>
-              <div class="or-text">ó</div>
-                            <button type="button" class="google-btn"<#if googleLoginUrl?has_content> data-login-url="${googleLoginUrl}"</#if>>
-                  <img src="${url.resourcesPath}/google.png" alt="Google logo"/>
-                  <span class="btn-label">Iniciar sesión con Google</span>
+              <div class="or-text">${msg('loginDividerLabel')}</div>
+              <button type="button" class="google-btn"<#if googleLoginUrl?has_content> data-login-url="${googleLoginUrl}"</#if>>
+                  <img src="${url.resourcesPath}/google.png" alt="${msg('googleLogoAlt')}"/>
+                  <span class="btn-label">${msg('loginWithGoogle')}</span>
               </button>
           </div>
         </form>
@@ -67,7 +67,7 @@
         <!-- Footer toggle -->
         <div class="url-footer">
           <span id="urlFooter">
-            ¿No tenés cuenta? <a href="${url.registrationUrl}">Registrate</a>
+            ${msg('noAccount')} <a href="${url.registrationUrl}">${msg('doRegister')}</a>
           </span>
         </div>
       </div>
@@ -75,6 +75,43 @@
   </div>
 
   <script>
+    const I18N = {
+      toastCloseLabel: '${msg("toastCloseLabel")?js_string}',
+      serverErrors: {
+        invalidUsernameOrPasswordMessage: '${msg("invalidUsernameOrPasswordMessage")?js_string}',
+        invalidUserMessage: '${msg("invalidUserMessage")?js_string}',
+        accountDisabledMessage: '${msg("accountDisabledMessage")?js_string}',
+        accountTemporarilyDisabledMessage: '${msg("accountTemporarilyDisabledMessage")?js_string}',
+        expiredCodeMessage: '${msg("expiredCodeMessage")?js_string}',
+        expiredActionMessage: '${msg("expiredActionMessage")?js_string}',
+        missingUsernameMessage: '${msg("missingUsernameMessage")?js_string}',
+        missingPasswordMessage: '${msg("missingPasswordMessage")?js_string}',
+        usernameExistsMessage: '${msg("usernameExistsMessage")?js_string}',
+        emailExistsMessage: '${msg("emailExistsMessage")?js_string}',
+        invalidEmailMessage: '${msg("invalidEmailMessage")?js_string}',
+        missingFirstNameMessage: '${msg("missingFirstNameMessage")?js_string}',
+        missingLastNameMessage: '${msg("missingLastNameMessage")?js_string}',
+        missingEmailMessage: '${msg("missingEmailMessage")?js_string}',
+        notMatchPasswordMessage: '${msg("notMatchPasswordMessage")?js_string}',
+        invalidPasswordMinLengthMessage: '${msg("invalidPasswordMinLengthMessage")?js_string}',
+        invalidPasswordMaxLengthMessage: '${msg("invalidPasswordMaxLengthMessage")?js_string}',
+        invalidPasswordMinDigitsMessage: '${msg("invalidPasswordMinDigitsMessage")?js_string}',
+        invalidPasswordMinLowerCaseCharsMessage: '${msg("invalidPasswordMinLowerCaseCharsMessage")?js_string}',
+        invalidPasswordMinUpperCaseCharsMessage: '${msg("invalidPasswordMinUpperCaseCharsMessage")?js_string}',
+        invalidPasswordMinSpecialCharsMessage: '${msg("invalidPasswordMinSpecialCharsMessage")?js_string}',
+        invalidPasswordNotUsernameMessage: '${msg("invalidPasswordNotUsernameMessage")?js_string}',
+        invalidPasswordNotEmailMessage: '${msg("invalidPasswordNotEmailMessage")?js_string}',
+        invalidPasswordHistoryMessage: '${msg("invalidPasswordHistoryMessage")?js_string}',
+        invalidPasswordRegexPatternMessage: '${msg("invalidPasswordRegexPatternMessage")?js_string}'
+      },
+      validation: {
+        usernameOrEmailRequired: '${msg("validationUsernameOrEmailRequired")?js_string}',
+        emailFormatInvalid: '${msg("validationEmailFormatDetailed")?js_string}',
+        usernameMinLength: '${msg("validationUsernameMinLength")?js_string}',
+        usernameCharset: '${msg("validationUsernameCharset")?js_string}',
+        passwordRequired: '${msg("validationPasswordRequired")?js_string}'
+      }
+    };
     let toastTimer;
 
     function setButtonLoading(button) {
@@ -95,33 +132,7 @@
       button.disabled = false;
     }
 
-    const SERVER_ERROR_MAP = {
-      invalidUsernameOrPasswordMessage: 'Usuario o contraseña incorrectos.',
-      invalidUserMessage: 'Usuario inválido. Por favor verifica los datos ingresados.',
-      accountDisabledMessage: 'Tu cuenta está deshabilitada. Contacta al administrador.',
-      accountTemporarilyDisabledMessage: 'Tu cuenta está temporalmente bloqueada. Intenta más tarde.',
-      expiredCodeMessage: 'El código ha expirado. Por favor solicita uno nuevo.',
-      expiredActionMessage: 'La acción ha expirado. Por favor inicia el proceso nuevamente.',
-      missingUsernameMessage: 'Debes ingresar tu usuario o email.',
-      missingPasswordMessage: 'Debes ingresar tu contraseña.',
-      usernameExistsMessage: 'El nombre de usuario ya está en uso. Elige uno diferente.',
-      emailExistsMessage: 'El email ya está registrado. Inicia sesión o recupera tu contraseña.',
-      invalidEmailMessage: 'El formato del email no es válido.',
-      missingFirstNameMessage: 'Debes ingresar tu nombre.',
-      missingLastNameMessage: 'Debes ingresar tu apellido.',
-      missingEmailMessage: 'Debes ingresar tu email.',
-      notMatchPasswordMessage: 'Las contraseñas no coinciden.',
-      invalidPasswordMinLengthMessage: 'La contraseña es demasiado corta.',
-      invalidPasswordMaxLengthMessage: 'La contraseña es demasiado larga.',
-      invalidPasswordMinDigitsMessage: 'La contraseña debe contener más números.',
-      invalidPasswordMinLowerCaseCharsMessage: 'La contraseña necesita más letras minúsculas.',
-      invalidPasswordMinUpperCaseCharsMessage: 'La contraseña necesita más letras mayúsculas.',
-      invalidPasswordMinSpecialCharsMessage: 'Agrega caracteres especiales a tu contraseña.',
-      invalidPasswordNotUsernameMessage: 'La contraseña no puede ser igual al nombre de usuario.',
-      invalidPasswordNotEmailMessage: 'La contraseña no puede ser igual al email.',
-      invalidPasswordHistoryMessage: 'No puedes reutilizar una contraseña anterior.',
-      invalidPasswordRegexPatternMessage: 'La contraseña no cumple con el patrón requerido.'
-    };
+    const SERVER_ERROR_MAP = I18N.serverErrors;
 
     function ensureToastElements() {
       let toast = document.getElementById('toastMessage');
@@ -133,7 +144,9 @@
         toast = document.createElement('div');
         toast.id = 'toastMessage';
         toast.className = 'toast';
-        toast.innerHTML = '<span class="material-icons toast-icon">error_outline</span><div class="toast-text"></div><button type="button" class="toast-close" aria-label="Cerrar aviso">x</button>';
+        toast.innerHTML = '<span class="material-icons toast-icon">error_outline</span>' +
+          '<div class="toast-text"></div>' +
+          '<button type="button" class="toast-close" aria-label="' + I18N.toastCloseLabel + '">x</button>';
 
         container.appendChild(toast);
         document.body.appendChild(container);
@@ -225,7 +238,7 @@
       passwordInput.style.borderColor = '';
 
       if (!username) {
-        showToast('Por favor ingresa tu usuario o email.', { type: 'error' });
+        showToast(I18N.validation.usernameOrEmailRequired, { type: 'error' });
         usernameInput.style.borderColor = '#ff6b6b';
         usernameInput.focus();
         return false;
@@ -234,20 +247,20 @@
       if (username.includes('@')) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(username)) {
-          showToast('El formato del email es incorrecto. Debe ser algo como usuario@dominio.com.', { type: 'error' });
+          showToast(I18N.validation.emailFormatInvalid, { type: 'error' });
           usernameInput.style.borderColor = '#ff6b6b';
           usernameInput.focus();
           return false;
         }
       } else {
         if (username.length < 3) {
-          showToast('El nombre de usuario debe tener al menos 3 caracteres.', { type: 'error' });
+          showToast(I18N.validation.usernameMinLength, { type: 'error' });
           usernameInput.style.borderColor = '#ff6b6b';
           usernameInput.focus();
           return false;
         }
         if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-          showToast('El nombre de usuario solo puede contener letras, números, guiones (-) y guiones bajos (_).', { type: 'error' });
+          showToast(I18N.validation.usernameCharset, { type: 'error' });
           usernameInput.style.borderColor = '#ff6b6b';
           usernameInput.focus();
           return false;
@@ -255,7 +268,7 @@
       }
 
       if (!password) {
-        showToast('Por favor ingresa tu contraseña.', { type: 'error' });
+        showToast(I18N.validation.passwordRequired, { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;

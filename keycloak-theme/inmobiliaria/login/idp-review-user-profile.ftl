@@ -1,5 +1,5 @@
 <#import "common.ftl" as common>
-<@common.page title="Registrarse">
+<@common.page title="${msg('registerTitle')}">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -13,10 +13,10 @@
 
         <!-- Logo -->
         <div class="login-logo">
-          <img src="${url.resourcesPath}/logo.png" alt="Oberti Busso">
+          <img src="${url.resourcesPath}/logo.png" alt="${msg('logoAltText')}">
         </div>
 
-        <h2 id="formTitle" class="welcome-title">Creá tu Cuenta</h2>
+        <h2 id="formTitle" class="welcome-title">${msg('registerHeading')}</h2>
 
         <!-- Registro -->
         <form
@@ -35,7 +35,7 @@
                 name="firstName"
                 value="${(user.firstName!'')}"
                 readonly
-                placeholder="Nombre"
+                placeholder="${msg('firstName')}"
                 required
               />
             </div>
@@ -46,7 +46,7 @@
                 name="lastName"
                 value="${(user.lastName!'')}"
                 readonly
-                placeholder="Apellido"
+                placeholder="${msg('lastName')}"
                 required
               />
             </div>
@@ -56,11 +56,11 @@
             type="email"
             id="email"
             name="email"
-            placeholder="Correo electrónico"
+            placeholder="${msg('email')}"
             pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
             value="${(user.email!'')}"
             readonly
-            title="Debe ser un email válido (incluye @ y dominio)"
+            title="${msg('emailInputHint')}"
             required
           />
 
@@ -68,9 +68,9 @@
             type="tel"
             id="phone"
             name="phone"
-            placeholder="Teléfono"
-            pattern="\d{10}"
-            title="10 dígitos numéricos"
+            placeholder="${msg('phoneNumber')}"
+            pattern="\d{10,15}"
+            title="${msg('phoneInputHint')}"
             required
           />
 
@@ -78,10 +78,10 @@
             type="hidden"
             id="username"
             name="username"
-            placeholder="Usuario"
+            placeholder="${msg('username')}"
             value="${(user.username!'')}"
             readonly
-            title="El nombre de usuario debe tener 3 dígitos como mínimo"
+            title="${msg('usernameInputHint')}"
             minlength="3"
             required
           />
@@ -91,9 +91,9 @@
               <input type="checkbox" id="acceptTerms" name="terms_and_conditions" required />
               <label for="acceptTerms">
                 <span>
-                  Aceptar los 
+                  ${msg('termsAgreementPrefix')}
                   <a href="https://www.inmobiliariaobertibusso.com.ar/policies" target="_blank" class="terms-link">
-                    Términos y Condiciones
+                    ${msg('termsLinkText')}
                   </a>
                 </span>
               </label>
@@ -102,7 +102,7 @@
           
           <div class="form-actions">
             <button type="submit" class="btn-primary">
-              <span class="btn-label">Registrarse</span>
+              <span class="btn-label">${msg('doRegister')}</span>
             </button>
           </div>
         </form>
@@ -121,7 +121,7 @@
         <!-- Footer toggle -->
         <div class="url-footer">
           <span id="urlFooter">
-            ¿Ya tenés cuenta? <a href="${url.loginUrl}">Iniciar sesión</a>
+            ${msg('haveAccount')} <a href="${url.loginUrl}">${msg('doLogIn')}</a>
           </span>
         </div>
       </div>
