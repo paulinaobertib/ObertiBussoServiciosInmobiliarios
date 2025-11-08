@@ -25,6 +25,13 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const navigate = useNavigate();
   const { handleError } = useApiErrors();
 
+  const toArray = <T,>(value: any): T[] => {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(value?.data)) return value.data;
+    if (Array.isArray(value?.body)) return value.body;
+    return [];
+  };
+
   // Datos "crudos" (sin filtrar)
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [properties, setProperties] = useState<{ id: number; title: string }[]>(
@@ -49,7 +56,8 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     (async () => {
       try {
         const r = await getAllProperties();
-        setProperties(r.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title })));
+        const list = toArray<{ id: number; title: string }>(r);
+        setProperties(list.map((p) => ({ id: p.id, title: p.title })));
       } catch (e) {
         handleError(e);
         setProperties([]);
@@ -61,7 +69,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const loadChatSessions = useCallback(async () => {
     if (!isAdmin) return;
     try {
-      const sessions: ChatSessionGetDTO[] = await getAllChatSessions();
+      const sessions = toArray<ChatSessionGetDTO>(await getAllChatSessions());
       const mapped = sessions.map((s) => ({
         id: s.id,
         userId: s.userId,
@@ -107,7 +115,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
         const all: Inquiry[] = [];
         for (const pid of propertyIds) {
           const res = await getInquiriesByProperty(pid);
-          all.push(...res.data);
+          all.push(...toArray<Inquiry>(res?.data ?? res));
         }
         setInquiries(all);
         return;
@@ -118,7 +126,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
         ? await getAllInquiries()
         : await getInquiriesByUser(info.id);
 
-      setInquiries(res.data);
+      setInquiries(toArray<Inquiry>(res?.data ?? res));
     } catch (e) {
       handleError(e);
       setInquiries([]);

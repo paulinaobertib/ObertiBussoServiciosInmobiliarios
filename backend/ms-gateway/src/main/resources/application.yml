@@ -1,12 +1,15 @@
 server:
   port: ${WEBSITES_PORT}
+  forward-headers-strategy: framework
   reactive:
     session:
       timeout: PT24H # 24 horas de inactividad
       cookie:
+        name: SESSION
+        http-only: true
+        secure: true
         same-site: none
-        secure: true # requerido cuando SameSite=None y usás HTTPS
-        partitioned: true # permite cookies de terceros compartimentadas (CHIPS)
+        path: /
 
 eureka:
   instance:
@@ -61,6 +64,8 @@ spring:
               - DELETE
               - OPTIONS
             allowCredentials: true # Ver si se puede sacar
+      x-forwarded:
+        enabled: true
       default-filters:
         - TokenRelay
       routes:
@@ -124,12 +129,6 @@ spring:
             - StripPrefix=2
             - TokenRelay
 
-logging:
-  level:
-    root: INFO
-    org.springframework.security: INFO
-    org.springframework.cloud.gateway: INFO
-
 management:
   endpoints:
     web:
@@ -139,3 +138,12 @@ management:
     health:
       probes:
         enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway.filter: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.jwt: TRACE

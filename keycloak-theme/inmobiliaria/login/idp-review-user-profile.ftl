@@ -68,7 +68,7 @@
             type="tel"
             id="phone"
             name="phone"
-            pplaceholder="Teléfono"
+            placeholder="Teléfono"
             pattern="\d{10,15}"
             title="10 dígitos numéricos"
             required
