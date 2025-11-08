@@ -191,7 +191,7 @@ export const PropertyInfoCompare = ({ property }: Props) => {
           <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 2 }}>
             Descripción
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, lineHeight: 1.6 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, lineHeight: 1.6, whiteSpace: "pre-line" }}>
             {property.description}
           </Typography>
         </Box>

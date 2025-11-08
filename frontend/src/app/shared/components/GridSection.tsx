@@ -35,6 +35,7 @@ const ROW_HEIGHT = 52;
 const HEADER_HEIGHT = 56;
 const FOOTER_HEIGHT = 52;
 const GRID_MIN_HEIGHT = HEADER_HEIGHT + ROW_HEIGHT * GRID_PAGE_SIZE + FOOTER_HEIGHT;
+const resolveRowId = (row: any): GridRowId => row?.id ?? row?.ID ?? row?.Id ?? row?._id;
 
 export const GridSection = ({
   data,
@@ -66,31 +67,48 @@ export const GridSection = ({
     setInternalSelection(next);
   }, [selectedIds]);
 
+  const normalizeSelection = useCallback(
+    (model: GridRowSelectionModel): GridRowSelectionModel => {
+      if (!model) return emptySelection();
+      if (model.type === "include") {
+        return {
+          type: "include",
+          ids: model.ids instanceof Set ? model.ids : new Set<GridRowId>(),
+        };
+      }
+      const excluded = model.ids instanceof Set ? model.ids : new Set<GridRowId>();
+      const includedIds = data
+        .map((row) => resolveRowId(row))
+        .filter((id) => !excluded.has(id));
+      return {
+        type: "include",
+        ids: new Set(includedIds),
+      };
+    },
+    [data]
+  );
+
   const handleRowSelection = useCallback(
     (newModel: GridRowSelectionModel, _details: GridCallbackDetails) => {
-      const next: GridRowSelectionModel = {
-        type: newModel?.type ?? "include",
-        ids: newModel?.ids instanceof Set ? newModel.ids : new Set<GridRowId>(),
-      };
+      const normalized = normalizeSelection(newModel);
 
       if (!multiSelect) {
-        const lastSelected = Array.from(next.ids).pop();
-        next.ids = lastSelected != null ? new Set<GridRowId>([lastSelected]) : new Set<GridRowId>();
+        const lastSelected = Array.from(normalized.ids).pop();
+        normalized.ids = lastSelected != null ? new Set<GridRowId>([lastSelected]) : new Set<GridRowId>();
       }
-      setInternalSelection(next);
+      setInternalSelection(normalized);
 
       if (!toggleSelect) return;
 
-      const idsArr = Array.from(next.ids);
-      const strIds = idsArr.map((id) => String(id));
+      const idsArr = Array.from(normalized.ids);
       if (multiSelect) {
-        toggleSelect(strIds);
+        toggleSelect(idsArr);
       } else {
-        const last = strIds.length ? strIds[strIds.length - 1] : null;
+        const last = idsArr.length ? idsArr[idsArr.length - 1] : null;
         toggleSelect(last ?? null);
       }
     },
-    [toggleSelect, multiSelect]
+    [normalizeSelection, toggleSelect, multiSelect]
   );
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -122,7 +140,7 @@ export const GridSection = ({
       ) : (
         <Card sx={{ width: "100%", overflow: "hidden", minHeight: GRID_MIN_HEIGHT }}>
           <DataGrid
-            getRowId={(row) => row.id ?? row.ID ?? row.Id ?? row._id}
+            getRowId={resolveRowId}
             rows={data}
             columns={columns}
             loading={loading}

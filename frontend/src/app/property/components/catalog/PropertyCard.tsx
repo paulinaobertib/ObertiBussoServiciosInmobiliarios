@@ -227,6 +227,7 @@ export const PropertyCard = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            my: "0.5rem",
           }}
         >
           <Typography

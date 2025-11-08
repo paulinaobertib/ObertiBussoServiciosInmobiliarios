@@ -3,8 +3,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { ImageUploader } from "../../../shared/components/images/ImageUploader";
 import { usePropertyForm } from "../../hooks/usePropertyForm";
 import type { Property, PropertyCreate, PropertyUpdate } from "../../types/property";
-import { forwardRef, useEffect } from "react";
-import React from "react";
+import React, { forwardRef, useEffect, useCallback } from "react";
 import { AddressSelector } from "../propertyDetails/maps/AddressSelector";
 
 /* ─────────── ref API ─────────── */
@@ -55,6 +54,19 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
 
   /* Alias para mayor legibilidad */
   const { form, fieldErrors, num, showRooms, showBedrooms, showBathrooms, showCoveredArea, colSize } = ctrl;
+  const toggleBooleanField = useCallback(
+    (field: "credit" | "financing" | "showPrice" | "outstanding") => {
+      ctrl.setField(field, !form[field]);
+    },
+    [form, ctrl]
+  );
+
+  const handleToggleKey = (event: React.KeyboardEvent, action: () => void) => {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      action();
+    }
+  };
 
   const keyOf = (x: Img) => (x instanceof File ? `${x.name}#${x.size}#${x.lastModified}` : x);
 
@@ -145,40 +157,52 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
         {form.operation === "VENTA" && (
           <>
             <Grid size={{ xs: 6 }}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                px={1}
-                py={0.5}
-                sx={{ border: "1px solid #ccc", borderRadius: 1, "&:hover": { borderColor: "#444" } }}
-              >
-                <Checkbox
-                  checked={form.credit}
-                  onChange={(e) => ctrl.setField("credit", e.target.checked)}
-                  size="small"
-                  sx={{ p: 0.7 }}
-                  data-testid="credit-checkbox"
-                />
-                <Typography color="text.secondary"> Apto Crédito</Typography>
-              </Stack>
-            </Grid>
-            <Grid size={{ xs: 6 }}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                px={1}
-                py={0.5}
-                sx={{ border: "1px solid #ccc", borderRadius: 1, "&:hover": { borderColor: "#444" } }}
-              >
-                <Checkbox
-                  checked={form.financing}
-                  onChange={(e) => ctrl.setField("financing", e.target.checked)}
-                  size="small"
-                  sx={{ p: 0.7 }}
-                />
-                <Typography color="text.secondary">Apto Financiamiento</Typography>
-              </Stack>
-            </Grid>
+            <Stack
+              direction="row"
+              alignItems="center"
+              px={1}
+              py={0.5}
+              role="checkbox"
+              aria-checked={form.credit}
+              tabIndex={0}
+              onClick={() => toggleBooleanField("credit")}
+              onKeyDown={(event) => handleToggleKey(event, () => toggleBooleanField("credit"))}
+              sx={{ border: "1px solid #ccc", borderRadius: 1, cursor: "pointer", "&:hover": { borderColor: "#444" } }}
+            >
+              <Checkbox
+                checked={form.credit}
+                onChange={(e) => ctrl.setField("credit", e.target.checked)}
+                size="small"
+                sx={{ p: 0.7 }}
+                onClick={(e) => e.stopPropagation()}
+                data-testid="credit-checkbox"
+              />
+              <Typography color="text.secondary"> Apto Crédito</Typography>
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 6 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              px={1}
+              py={0.5}
+              role="checkbox"
+              aria-checked={form.financing}
+              tabIndex={0}
+              onClick={() => toggleBooleanField("financing")}
+              onKeyDown={(event) => handleToggleKey(event, () => toggleBooleanField("financing"))}
+              sx={{ border: "1px solid #ccc", borderRadius: 1, cursor: "pointer", "&:hover": { borderColor: "#444" } }}
+            >
+              <Checkbox
+                checked={form.financing}
+                onChange={(e) => ctrl.setField("financing", e.target.checked)}
+                size="small"
+                sx={{ p: 0.7 }}
+                onClick={(e) => e.stopPropagation()}
+              />
+              <Typography color="text.secondary">Apto Financiamiento</Typography>
+            </Stack>
+          </Grid>
           </>
         )}
 
@@ -244,13 +268,19 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             alignItems="center"
             px={1}
             py={0.5}
-            sx={{ border: "1px solid #ccc", borderRadius: 2, "&:hover": { borderColor: "#444" } }}
+            role="checkbox"
+            aria-checked={form.showPrice}
+            tabIndex={0}
+            onClick={() => toggleBooleanField("showPrice")}
+            onKeyDown={(event) => handleToggleKey(event, () => toggleBooleanField("showPrice"))}
+            sx={{ border: "1px solid #ccc", borderRadius: 2, cursor: "pointer", "&:hover": { borderColor: "#444" } }}
           >
             <Checkbox
               checked={form.showPrice}
               onChange={(e) => ctrl.setField("showPrice", e.target.checked)}
               size="small"
               sx={{ p: 0.7 }}
+              onClick={(e) => e.stopPropagation()}
             />
             <Typography noWrap color="text.secondary">
               Mostrar precio de {form.operation === "VENTA" ? "venta" : "alquiler"} y expensas
@@ -265,13 +295,19 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             alignItems="center"
             px={1}
             py={0.5}
-            sx={{ border: "1px solid #ccc", borderRadius: 2, "&:hover": { borderColor: "#444" } }}
+            role="checkbox"
+            aria-checked={form.outstanding}
+            tabIndex={0}
+            onClick={() => toggleBooleanField("outstanding")}
+            onKeyDown={(event) => handleToggleKey(event, () => toggleBooleanField("outstanding"))}
+            sx={{ border: "1px solid #ccc", borderRadius: 2, cursor: "pointer", "&:hover": { borderColor: "#444" } }}
           >
             <Checkbox
               checked={form.outstanding}
               onChange={(e) => ctrl.setField("outstanding", e.target.checked)}
               size="small"
               sx={{ p: 0.78 }}
+              onClick={(e) => e.stopPropagation()}
             />
             <Typography color="text.secondary">Destacar</Typography>
           </Stack>

@@ -195,7 +195,7 @@ it("DataGrid: getRowId soporta id/ID/Id/_id y pagina con pageSize fijo=5", () =>
   expect(props2.paginationModel).toEqual({ page: 2, pageSize: 5 });
 });
 
-it("Selección: single-select envía el último id (string); multi-select envía array de strings", () => {
+it("Selección: single-select envía el último id (mismo tipo); multi-select envía array tipado", () => {
   const toggleSelect = vi.fn();
 
   const { rerender } = render(
@@ -216,18 +216,22 @@ it("Selección: single-select envía el último id (string); multi-select envía
 
   // Single select: envía el último como string
   let props = getLastGridProps();
-  props.onRowSelectionModelChange?.(
-    { type: "include", ids: new Set([1, 2]) },
-    {} as any
-  );
-  expect(toggleSelect).toHaveBeenLastCalledWith("2");
+  act(() => {
+    props.onRowSelectionModelChange?.(
+      { type: "include", ids: new Set([1, 2]) },
+      {} as any
+    );
+  });
+  expect(toggleSelect).toHaveBeenLastCalledWith(2);
 
   // Si limpiamos selección -> null
   props = getLastGridProps();
-  props.onRowSelectionModelChange?.(
-    { type: "include", ids: new Set([]) },
-    {} as any
-  );
+  act(() => {
+    props.onRowSelectionModelChange?.(
+      { type: "include", ids: new Set([]) },
+      {} as any
+    );
+  });
   expect(toggleSelect).toHaveBeenLastCalledWith(null);
 
   // Multi select: envía array de strings
@@ -247,11 +251,43 @@ it("Selección: single-select envía el último id (string); multi-select envía
     />
   );
   props = getLastGridProps();
-  props.onRowSelectionModelChange?.(
-    { type: "include", ids: new Set([3, 4]) },
-    {} as any
+  act(() => {
+    props.onRowSelectionModelChange?.(
+      { type: "include", ids: new Set([3, 4]) },
+      {} as any
+    );
+  });
+  expect(toggleSelect).toHaveBeenLastCalledWith([3, 4]);
+});
+
+it("Selección múltiple: seleccionar todos (type=exclude) dispara todos los IDs visibles", () => {
+  const toggleSelect = vi.fn();
+  render(
+    <GridSection
+      data={data}
+      loading={false}
+      columns={columns as any}
+      onSearch={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      entityName={entityName}
+      fetchAll={vi.fn(async () => [])}
+      fetchByText={vi.fn(async () => [])}
+      toggleSelect={toggleSelect}
+      multiSelect
+    />
   );
-  expect(toggleSelect).toHaveBeenLastCalledWith(["3", "4"]);
+
+  const props = getLastGridProps();
+  act(() => {
+    props.onRowSelectionModelChange?.(
+      { type: "exclude", ids: new Set() },
+      {} as any
+    );
+  });
+
+  const allIds = data.map((row) => row.id ?? row.ID ?? row.Id ?? row._id);
+  expect(toggleSelect).toHaveBeenLastCalledWith(allIds);
 });
 
   it("selectedIds preselecciona filas en el grid; selectable=false deshabilita selección", () => {

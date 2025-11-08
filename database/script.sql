@@ -51,7 +51,7 @@ CREATE TABLE Property (
     price DECIMAL(15,2) NOT NULL,
     show_price BOOLEAN NOT NULL,
     expenses DECIMAL(15, 2),
-    description VARCHAR(2000),
+    description TEXT,
     date DATETIME NOT NULL,
     main_image VARCHAR(255),
     credit BOOLEAN NOT NULL,
