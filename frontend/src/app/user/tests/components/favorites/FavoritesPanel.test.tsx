@@ -18,11 +18,7 @@ vi.mock("../../../../property/components/catalog/CatalogList", () => ({
   CatalogList: ({ properties, onCardClick }: any) => (
     <div data-testid="catalog-list">
       {(properties ?? []).map((p: any) => (
-        <button
-          key={p.id}
-          data-testid={`property-${p.id}`}
-          onClick={() => onCardClick?.(p)}
-        >
+        <button key={p.id} data-testid={`property-${p.id}`} onClick={() => onCardClick?.(p)}>
           {p.title}
         </button>
       ))}
@@ -81,11 +77,7 @@ describe("FavoritesPanel", () => {
       </BrowserRouter>
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(/No tienes favoritos disponibles/i)
-      ).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(/No tienes favoritos disponibles/i)).toBeInTheDocument());
   });
 
   it("renderiza SOLO las propiedades con status 'disponible' (case/trim) y navega al hacer click", async () => {
@@ -143,7 +135,7 @@ describe("FavoritesPanel", () => {
     expect(screen.queryByText("INVALIDA")).not.toBeInTheDocument();
   });
 
-    it("llama getPropertyById por cada favorito y acepta respuestas con {data: ...}; oculta el spinner al terminar", async () => {
+  it("llama getPropertyById por cada favorito y acepta respuestas con {data: ...}; oculta el spinner al terminar", async () => {
     useFavoritesMock.mockReturnValue({
       favorites: [{ propertyId: 99 }, { propertyId: 100 }],
       loading: false,
@@ -218,5 +210,4 @@ describe("FavoritesPanel", () => {
     await userEvent.click(screen.getByTestId("property-20"));
     expect(mockNavigate).toHaveBeenCalledWith("/properties/20");
   });
-
 });

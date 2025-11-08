@@ -8,8 +8,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { ImageUploader } from "../../../components/images/ImageUploader";
 
 const theme = createTheme();
-const renderWithTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+const renderWithTheme = (ui: React.ReactElement) => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
 describe("<ImageUploader />", () => {
   const onSelect = vi.fn();
@@ -19,13 +18,9 @@ describe("<ImageUploader />", () => {
   });
 
   it("renderiza el label y el input file oculto", () => {
-    renderWithTheme(
-      <ImageUploader label="Subir archivos" onSelect={onSelect} />
-    );
+    renderWithTheme(<ImageUploader label="Subir archivos" onSelect={onSelect} />);
 
-    expect(
-      screen.getByText(/Subir archivos/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Subir archivos/i)).toBeInTheDocument();
 
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(input).toBeTruthy();
@@ -34,9 +29,7 @@ describe("<ImageUploader />", () => {
   });
 
   it("usa accept 'image/*,video/*' cuando imagesOnly=false (default) y 'image/*' cuando imagesOnly=true", () => {
-    const { rerender } = renderWithTheme(
-      <ImageUploader label="Label" onSelect={onSelect} />
-    );
+    const { rerender } = renderWithTheme(<ImageUploader label="Label" onSelect={onSelect} />);
     let input = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(input.accept).toBe("image/*,video/*");
 
@@ -50,9 +43,7 @@ describe("<ImageUploader />", () => {
   });
 
   it("prop multiple se refleja en el input file", () => {
-    const { rerender } = renderWithTheme(
-      <ImageUploader label="L" onSelect={onSelect} />
-    );
+    const { rerender } = renderWithTheme(<ImageUploader label="L" onSelect={onSelect} />);
     let input = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(input.multiple).toBe(false);
 
@@ -75,9 +66,7 @@ describe("<ImageUploader />", () => {
   });
 
   it("append=false & multiple=false: solo pasa el primer archivo y limpia el value", () => {
-    renderWithTheme(
-      <ImageUploader label="L" onSelect={onSelect} multiple={false} append={false} />
-    );
+    renderWithTheme(<ImageUploader label="L" onSelect={onSelect} multiple={false} append={false} />);
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     const f1 = new File(["a"], "a.jpg", { type: "image/jpeg" });
     const f2 = new File(["b"], "b.jpg", { type: "image/jpeg" });
@@ -94,9 +83,7 @@ describe("<ImageUploader />", () => {
   });
 
   it("append=false & multiple=true: pasa todos los archivos y limpia el value", () => {
-    renderWithTheme(
-      <ImageUploader label="L" onSelect={onSelect} multiple append={false} />
-    );
+    renderWithTheme(<ImageUploader label="L" onSelect={onSelect} multiple append={false} />);
 
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     const f1 = new File(["x"], "x.png", { type: "image/png" });
@@ -105,14 +92,12 @@ describe("<ImageUploader />", () => {
 
     expect(onSelect).toHaveBeenCalledTimes(1);
     const passed = onSelect.mock.calls[0][0] as File[];
-    expect(passed.map(f => f.name)).toEqual(["x.png", "y.png"]);
+    expect(passed.map((f) => f.name)).toEqual(["x.png", "y.png"]);
     expect(input.value).toBe("");
   });
 
   it("append=true (ignora slice): pasa todos los archivos aunque multiple=false", () => {
-    renderWithTheme(
-      <ImageUploader label="L" onSelect={onSelect} multiple={false} append />
-    );
+    renderWithTheme(<ImageUploader label="L" onSelect={onSelect} multiple={false} append />);
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
 
     const f1 = new File(["1"], "1.jpg", { type: "image/jpeg" });
@@ -121,7 +106,7 @@ describe("<ImageUploader />", () => {
 
     expect(onSelect).toHaveBeenCalledTimes(1);
     const passed = onSelect.mock.calls[0][0] as File[];
-    expect(passed.map(f => f.name)).toEqual(["1.jpg", "2.mp4"]);
+    expect(passed.map((f) => f.name)).toEqual(["1.jpg", "2.mp4"]);
     expect(input.value).toBe("");
   });
 

@@ -42,40 +42,25 @@ vi.mock("../../../shared/context/AlertContext", () => ({
 import * as service from "../../services/appointment.service";
 import { useAuthContext as _useAuthContext } from "../../../user/context/AuthContext";
 
-const getAllAvailabilities = service.getAllAvailabilities as MockedFunction<
-  typeof service.getAllAvailabilities
->;
+const getAllAvailabilities = service.getAllAvailabilities as MockedFunction<typeof service.getAllAvailabilities>;
 const getAvailableAppointments = service.getAvailableAppointments as MockedFunction<
   typeof service.getAvailableAppointments
 >;
 const getAppointmentsByStatus = service.getAppointmentsByStatus as MockedFunction<
   typeof service.getAppointmentsByStatus
 >;
-const getAppointmentsByUser = service.getAppointmentsByUser as MockedFunction<
-  typeof service.getAppointmentsByUser
->;
-const createAvailability = service.createAvailability as MockedFunction<
-  typeof service.createAvailability
->;
-const createAppointment = service.createAppointment as MockedFunction<
-  typeof service.createAppointment
->;
-const deleteAvailability = service.deleteAvailability as MockedFunction<
-  typeof service.deleteAvailability
->;
-const deleteAppointment = service.deleteAppointment as MockedFunction<
-  typeof service.deleteAppointment
->;
+const getAppointmentsByUser = service.getAppointmentsByUser as MockedFunction<typeof service.getAppointmentsByUser>;
+const createAvailability = service.createAvailability as MockedFunction<typeof service.createAvailability>;
+const createAppointment = service.createAppointment as MockedFunction<typeof service.createAppointment>;
+const deleteAvailability = service.deleteAvailability as MockedFunction<typeof service.deleteAvailability>;
+const deleteAppointment = service.deleteAppointment as MockedFunction<typeof service.deleteAppointment>;
 const updateAppointmentStatus = service.updateAppointmentStatus as MockedFunction<
   typeof service.updateAppointmentStatus
 >;
 
 const useAuthContext = _useAuthContext as MockedFunction<typeof _useAuthContext>;
 
-function axiosResponse<T>(
-  data: T,
-  init?: Partial<AxiosResponse<T>>
-): AxiosResponse<T> {
+function axiosResponse<T>(data: T, init?: Partial<AxiosResponse<T>>): AxiosResponse<T> {
   const config = {
     url: "/",
     method: "get",
@@ -106,18 +91,10 @@ describe("useAppointments (nuevo hook)", () => {
     useAuthContext.mockReturnValue({ info: { id: 1 }, isAdmin: true } as any);
 
     // Defaults (no "once" para poder sobreescribir por test)
-    getAllAvailabilities.mockResolvedValue(
-      axiosResponse<AvailableAppointment[]>([])
-    );
-    getAppointmentsByStatus.mockResolvedValue(
-      axiosResponse<Appointment[]>([])
-    );
-    getAppointmentsByUser.mockResolvedValue(
-      axiosResponse<Appointment[]>([])
-    );
-    getAvailableAppointments.mockResolvedValue(
-      axiosResponse<AvailableAppointment[]>([])
-    );
+    getAllAvailabilities.mockResolvedValue(axiosResponse<AvailableAppointment[]>([]));
+    getAppointmentsByStatus.mockResolvedValue(axiosResponse<Appointment[]>([]));
+    getAppointmentsByUser.mockResolvedValue(axiosResponse<Appointment[]>([]));
+    getAvailableAppointments.mockResolvedValue(axiosResponse<AvailableAppointment[]>([]));
     createAppointment.mockResolvedValue(axiosResponse({}));
     deleteAppointment.mockResolvedValue(axiosResponse({}));
     deleteAvailability.mockResolvedValue(axiosResponse({}));
@@ -131,17 +108,13 @@ describe("useAppointments (nuevo hook)", () => {
       { id: 1, date: d0, availability: true },
       { id: 2, date: d1, availability: true },
     ] as AvailableAppointment[];
-    const espera = [
-      { id: 100, status: "ESPERA", appointmentDate: d1, availableAppointment: { id: 2 } },
-    ] as any[];
-    const aceptado = [
-      { id: 101, status: "ACEPTADO", appointmentDate: d0, availableAppointment: { id: 1 } },
-    ] as any[];
+    const espera = [{ id: 100, status: "ESPERA", appointmentDate: d1, availableAppointment: { id: 2 } }] as any[];
+    const aceptado = [{ id: 101, status: "ACEPTADO", appointmentDate: d0, availableAppointment: { id: 1 } }] as any[];
 
     getAllAvailabilities.mockResolvedValueOnce(axiosResponse(all));
     getAppointmentsByStatus.mockReset();
     getAppointmentsByStatus
-      .mockResolvedValueOnce(axiosResponse(espera))   // primera llamada (ESPERA)
+      .mockResolvedValueOnce(axiosResponse(espera)) // primera llamada (ESPERA)
       .mockResolvedValueOnce(axiosResponse(aceptado)); // segunda llamada (ACEPTADO)
 
     const { result } = renderHook(() => useAppointments());
@@ -149,7 +122,11 @@ describe("useAppointments (nuevo hook)", () => {
 
     const keys = Object.keys(result.current.slotsByDate);
     expect(keys).toEqual(expect.arrayContaining([d0.slice(0, 10), d1.slice(0, 10)]));
-    expect(Object.keys(result.current.apptsBySlot).map(Number).sort((a,b)=>a-b)).toEqual([1, 2]);
+    expect(
+      Object.keys(result.current.apptsBySlot)
+        .map(Number)
+        .sort((a, b) => a - b)
+    ).toEqual([1, 2]);
   });
 
   it("DISPONIBLE: usa getAvailableAppointments, actualiza slots y limpia apptsBySlot", async () => {
@@ -203,7 +180,7 @@ describe("useAppointments (nuevo hook)", () => {
     getAppointmentsByStatus
       .mockResolvedValueOnce(axiosResponse<Appointment[]>([])) // ESPERA (fase TODOS)
       .mockResolvedValueOnce(axiosResponse<Appointment[]>([])) // ACEPTADO (fase TODOS)
-      .mockResolvedValueOnce(axiosResponse(list));             // ESPERA (al cambiar filtro)
+      .mockResolvedValueOnce(axiosResponse(list)); // ESPERA (al cambiar filtro)
 
     const { result } = renderHook(() => useAppointments());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -213,10 +190,12 @@ describe("useAppointments (nuevo hook)", () => {
     });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    const keys = Object.keys(result.current.apptsBySlot).map(Number).sort((a,b)=>a-b);
+    const keys = Object.keys(result.current.apptsBySlot)
+      .map(Number)
+      .sort((a, b) => a - b);
     expect(keys).toEqual([77, 201]);
-    expect(result.current.slotsByDate[d1.slice(0, 10)]?.some(s => s.id === 77)).toBe(true);
-    expect(result.current.slotsByDate[d2.slice(0, 10)]?.some(s => s.id === 201)).toBe(true);
+    expect(result.current.slotsByDate[d1.slice(0, 10)]?.some((s) => s.id === 77)).toBe(true);
+    expect(result.current.slotsByDate[d2.slice(0, 10)]?.some((s) => s.id === 201)).toBe(true);
   });
 
   it("acceptAppointment / rejectAppointment invocan updateAppointmentStatus y recargan admin", async () => {
@@ -237,9 +216,7 @@ describe("useAppointments (nuevo hook)", () => {
       await result.current.acceptAppointment(ap);
     });
     expect(updateAppointmentStatus).toHaveBeenCalledWith(333, "ACEPTADO");
-    await waitFor(() =>
-      expect(getAllAvailabilities.mock.calls.length).toBeGreaterThan(beforeCalls)
-    );
+    await waitFor(() => expect(getAllAvailabilities.mock.calls.length).toBeGreaterThan(beforeCalls));
 
     updateAppointmentStatus.mockRejectedValueOnce(new Error("oops"));
     await act(async () => {
@@ -265,9 +242,7 @@ describe("useAppointments (nuevo hook)", () => {
     });
 
     expect(deleteAvailability).toHaveBeenCalledWith(55);
-    await waitFor(() =>
-      expect(getAllAvailabilities.mock.calls.length).toBeGreaterThan(before)
-    );
+    await waitFor(() => expect(getAllAvailabilities.mock.calls.length).toBeGreaterThan(before));
   });
 
   /* ---------------- User ---------------- */
@@ -429,8 +404,8 @@ describe("useAppointments (nuevo hook)", () => {
 
     const { result } = renderHook(() => useAppointments());
     await waitFor(() => expect(result.current.genLoading).toBe(false));
-    expect(result.current.genSlots.map(s => s.id)).toContain(70);
-    expect(result.current.genSlots.map(s => s.id)).not.toContain(71);
+    expect(result.current.genSlots.map((s) => s.id)).toContain(70);
+    expect(result.current.genSlots.map((s) => s.id)).not.toContain(71);
 
     // próxima llamada de loadGenSlots falla
     getAllAvailabilities.mockRejectedValueOnce(new Error("falló gen"));
@@ -481,8 +456,6 @@ describe("useAppointments (nuevo hook)", () => {
     );
 
     // recarga admin ⇒ aumenta el contador de getAllAvailabilities
-    await waitFor(() =>
-      expect(getAllAvailabilities.mock.calls.length).toBeGreaterThan(before)
-    );
+    await waitFor(() => expect(getAllAvailabilities.mock.calls.length).toBeGreaterThan(before));
   });
 });

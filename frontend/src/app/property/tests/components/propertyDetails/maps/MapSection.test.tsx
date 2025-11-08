@@ -26,9 +26,7 @@ describe("MapSection", () => {
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
 
     // Espera a que desaparezca el loader
-    await waitFor(() =>
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
   });
 
   it("renderiza el mapa si encuentra coordenadas", async () => {
@@ -36,9 +34,7 @@ describe("MapSection", () => {
 
     render(<MapSection address="Calle Falsa 123" />);
 
-    await waitFor(() =>
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
 
     expect(screen.getByText("TileLayer")).toBeInTheDocument();
     expect(screen.getByText("Circle")).toBeInTheDocument();
@@ -49,14 +45,12 @@ describe("MapSection", () => {
 
     render(<MapSection address="Dirección inexistente" />);
 
-    await waitFor(() =>
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
 
     expect(screen.getByText(/Ubicación no encontrada/i)).toBeInTheDocument();
   });
 
-it("abre Google Maps al hacer click en el botón", async () => {
+  it("abre Google Maps al hacer click en el botón", async () => {
     mockedAxios.get.mockResolvedValueOnce({
       data: [{ lat: "-31.4", lon: "-64.2" }],
     });

@@ -77,9 +77,7 @@ export const GridSection = ({
         };
       }
       const excluded = model.ids instanceof Set ? model.ids : new Set<GridRowId>();
-      const includedIds = data
-        .map((row) => resolveRowId(row))
-        .filter((id) => !excluded.has(id));
+      const includedIds = data.map((row) => resolveRowId(row)).filter((id) => !excluded.has(id));
       return {
         type: "include",
         ids: new Set(includedIds),
@@ -127,7 +125,13 @@ export const GridSection = ({
           fetchByText={fetchByText}
         />
         {showCreateButton && onCreate && (
-          <Button sx={{ px: 5 }} variant="outlined" startIcon={<AddIcon />} onClick={onCreate} data-testid={`add-${entityName.toLowerCase()}-button`}>
+          <Button
+            sx={{ px: 5 }}
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={onCreate}
+            data-testid={`add-${entityName.toLowerCase()}-button`}
+          >
             {entityName}
           </Button>
         )}

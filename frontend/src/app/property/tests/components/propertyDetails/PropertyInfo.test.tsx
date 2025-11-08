@@ -75,9 +75,7 @@ describe("PropertyInfo", () => {
     expect(screen.getByText(/Buenos Aires/)).toBeInTheDocument();
     expect(screen.getByText(/\$ ?120[.,]000/)).toBeInTheDocument();
 
-    const expensasEl = screen.getByText(
-      (content) => /Expensas/.test(content) && /2[.,]000/.test(content)
-    );
+    const expensasEl = screen.getByText((content) => /Expensas/.test(content) && /2[.,]000/.test(content));
     expect(expensasEl).toBeInTheDocument();
   });
 
@@ -153,5 +151,4 @@ describe("PropertyInfo", () => {
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
-
 });

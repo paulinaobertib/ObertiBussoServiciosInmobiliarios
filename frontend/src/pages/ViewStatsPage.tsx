@@ -336,9 +336,9 @@ export default function ViewStatsPage() {
       <Box sx={{ py: 4 }}>
         {/* Header */}
         <Box sx={{ position: "relative", mb: 3 }}>
-          <IconButton 
-            onClick={() => window.history.back()} 
-            sx={{ position: "absolute", top: 0, left: 0, display: { xs: 'none', sm: 'inline-flex' } }}
+          <IconButton
+            onClick={() => window.history.back()}
+            sx={{ position: "absolute", top: 0, left: 0, display: { xs: "none", sm: "inline-flex" } }}
           >
             <ReplyIcon />
           </IconButton>

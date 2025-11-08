@@ -339,8 +339,6 @@ describe("MixedList", () => {
       />
     );
 
-    expect(screen.getByTestId("inq-1").getAttribute("data-propslen")).toBe(
-      String(properties.length)
-    );
+    expect(screen.getByTestId("inq-1").getAttribute("data-propslen")).toBe(String(properties.length));
   });
 });

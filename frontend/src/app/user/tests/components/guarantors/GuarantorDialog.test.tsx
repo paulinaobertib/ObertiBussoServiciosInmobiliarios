@@ -110,5 +110,4 @@ describe("GuarantorDialog", () => {
     screen.getByText("TriggerSuccess").click();
     expect(onSaved).toHaveBeenCalledTimes(1);
   });
-
 });

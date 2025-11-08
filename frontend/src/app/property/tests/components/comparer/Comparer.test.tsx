@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Comparer } from "../../../components/comparer/Comparer";
 import { vi } from "vitest";
 import * as useComparerModule from "../../../hooks/useComparer";
-import { PropertyDTOAI } from "../../../types/property"; 
+import { PropertyDTOAI } from "../../../types/property";
 
 describe("Comparer", () => {
   const mockCompare = vi.fn();
@@ -146,7 +146,7 @@ describe("Comparer", () => {
   });
 
   // --- NUEVOS TESTS PARA COBERTURA ---
-  
+
   it("muestra mensaje por defecto si no hay loading, result ni error", () => {
     render(<Comparer data={[]} />);
     expect(screen.getByText(/Seleccioná entre 2 y 3 propiedades para comparar/i)).toBeInTheDocument();
@@ -170,5 +170,4 @@ describe("Comparer", () => {
       expect(mockCompare).toHaveBeenCalledWith(mockData);
     });
   });
-
 });

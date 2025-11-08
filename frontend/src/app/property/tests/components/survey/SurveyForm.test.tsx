@@ -43,13 +43,9 @@ describe("Survey", () => {
 
   it("renderiza correctamente los elementos", () => {
     render(<Survey />);
-    expect(
-      screen.getByText(/¿Cómo calificarías tu nivel de satisfacción/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/¿Cómo calificarías tu nivel de satisfacción/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Comentario/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Enviar/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Enviar/i })).toBeInTheDocument();
   });
 
   it("actualiza el comentario al escribir en el textarea", () => {
@@ -68,10 +64,7 @@ describe("Survey", () => {
     fireEvent.submit(button.closest("form")!);
 
     await waitFor(() => {
-      expect(postSurveyMock).toHaveBeenCalledWith(
-        { score: 5, comment: "", inquiryId: 123 },
-        "abc"
-      );
+      expect(postSurveyMock).toHaveBeenCalledWith({ score: 5, comment: "", inquiryId: 123 }, "abc");
       expect(successMock).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "¡Muchas gracias!",

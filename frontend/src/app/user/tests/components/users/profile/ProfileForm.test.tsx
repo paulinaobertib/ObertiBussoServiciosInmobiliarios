@@ -19,13 +19,7 @@ describe("ProfileForm", () => {
   it("renderiza todos los campos con valores iniciales", () => {
     render(<ProfileForm user={mockUser} editMode={true} onChange={onChangeMock} />);
 
-    const labels = [
-      "Nombre de usuario",
-      "Nombre",
-      "Apellido",
-      "Correo electrónico",
-      "Teléfono",
-    ];
+    const labels = ["Nombre de usuario", "Nombre", "Apellido", "Correo electrónico", "Teléfono"];
 
     labels.forEach((label) => {
       const input = screen.getByLabelText(label) as HTMLInputElement;
@@ -42,13 +36,7 @@ describe("ProfileForm", () => {
   it("deshabilita campos según editMode", () => {
     render(<ProfileForm user={mockUser} editMode={false} onChange={onChangeMock} />);
 
-    const labels = [
-      "Nombre de usuario",
-      "Nombre",
-      "Apellido",
-      "Correo electrónico",
-      "Teléfono",
-    ];
+    const labels = ["Nombre de usuario", "Nombre", "Apellido", "Correo electrónico", "Teléfono"];
 
     labels.forEach((label) => {
       const input = screen.getByLabelText(label) as HTMLInputElement;

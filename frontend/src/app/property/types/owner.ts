@@ -7,4 +7,3 @@ export interface Owner {
 }
 
 export type OwnerCreate = Omit<Owner, "id">;
-

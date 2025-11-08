@@ -264,7 +264,10 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           isWithinRange(p?.date, paymentsCfg.from, paymentsCfg.to)
         );
 
-        const totalCommissionsCount = Object.values(commissionsCountByStatusResp).reduce((acc, v) => acc + Number(v ?? 0), 0);
+        const totalCommissionsCount = Object.values(commissionsCountByStatusResp).reduce(
+          (acc, v) => acc + Number(v ?? 0),
+          0
+        );
 
         // ====== Batch tolerante para comisiones (paymentType + listas por estado) ======
         const commissionsSettled = await Promise.allSettled([
@@ -306,9 +309,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
         } as Record<CommissionStatus, number>;
 
         // ====== Batch tolerante para payments (currency + sub-rangos) ======
-        const paymentsContractRange = paymentsInRange.filter(
-          (p) => !p.commissionId && !p.contractUtilityId
-        );
+        const paymentsContractRange = paymentsInRange.filter((p) => !p.commissionId && !p.contractUtilityId);
         const paymentsCommissionRange = paymentsInRange.filter((p) => Boolean(p.commissionId));
         const paymentsUtilityRange = paymentsInRange.filter((p) => Boolean(p.contractUtilityId));
 
@@ -326,13 +327,16 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
         }, {});
 
         // Conteo por moneda (derivando de paymentsInRange)
-        const paymentsCountByCurrency = paymentsInRange.reduce<Record<PaymentCurrency, number>>((acc, p) => {
-          const curr = p.paymentCurrency;
-          if (curr === PaymentCurrency.ARS || curr === PaymentCurrency.USD) {
-            acc[curr] = (acc[curr] ?? 0) + 1;
-          }
-          return acc;
-        }, { ARS: 0, USD: 0 });
+        const paymentsCountByCurrency = paymentsInRange.reduce<Record<PaymentCurrency, number>>(
+          (acc, p) => {
+            const curr = p.paymentCurrency;
+            if (curr === PaymentCurrency.ARS || curr === PaymentCurrency.USD) {
+              acc[curr] = (acc[curr] ?? 0) + 1;
+            }
+            return acc;
+          },
+          { ARS: 0, USD: 0 }
+        );
 
         // Totales mensuales (sumando montos según currency del propio pago)
         const paymentsMonthlyTotals = paymentsInRange.reduce<Record<string, number>>((acc, p) => {

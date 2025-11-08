@@ -25,7 +25,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   const navigate = useNavigate();
   const { handleError } = useApiErrors();
 
-  const toArray = <T,>(value: any): T[] => {
+  const toArray = <T>(value: any): T[] => {
     if (Array.isArray(value)) return value;
     if (Array.isArray(value?.data)) return value.data;
     if (Array.isArray(value?.body)) return value.body;
@@ -34,9 +34,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
 
   // Datos "crudos" (sin filtrar)
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [properties, setProperties] = useState<{ id: number; title: string }[]>(
-    []
-  );
+  const [properties, setProperties] = useState<{ id: number; title: string }[]>([]);
   const [chatSessions, setChatSessions] = useState<ChatSessionGetDTO[]>([]);
 
   // Loading SOLO para el bootstrap inicial / cambios reales de dataset
@@ -122,9 +120,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
       }
 
       // Admin ve todas, usuario ve las suyas
-      const res = isAdmin
-        ? await getAllInquiries()
-        : await getInquiriesByUser(info.id);
+      const res = isAdmin ? await getAllInquiries() : await getInquiriesByUser(info.id);
 
       setInquiries(toArray<Inquiry>(res?.data ?? res));
     } catch (e) {
@@ -166,8 +162,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   };
 
   // ---------- Navegar a propiedad ----------
-  const goToProperty = (propId: number) =>
-    navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
+  const goToProperty = (propId: number) => navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propId));
 
   return {
     // datasets base (sin filtrar)
@@ -176,7 +171,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     chatSessions,
 
     // estados UI
-    loading,              // ahora sólo durante el bootstrap/cambios de dataset
+    loading, // ahora sólo durante el bootstrap/cambios de dataset
     actionLoadingId,
     selected,
     setSelected,

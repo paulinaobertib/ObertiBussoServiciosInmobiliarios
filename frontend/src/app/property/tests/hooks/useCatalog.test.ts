@@ -73,9 +73,7 @@ describe("useCatalog", () => {
   it("handleClick navega a editar (modo edit)", async () => {
     const { result } = renderHook(() => useCatalog({ onFinish: mockOnFinish }));
     await act(async () => result.current.handleClick("edit", property));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      buildRoute(ROUTES.EDIT_PROPERTY, property.id)
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(buildRoute(ROUTES.EDIT_PROPERTY, property.id));
     expect(mockOnFinish).toHaveBeenCalled();
   });
 

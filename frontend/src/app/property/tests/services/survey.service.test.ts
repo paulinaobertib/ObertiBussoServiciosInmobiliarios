@@ -32,11 +32,9 @@ describe("surveyService", () => {
     (api.post as any).mockResolvedValue({ data: mockSurvey });
 
     const result = await surveyService.createSurvey(mockCreateSurvey, "mock-token");
-    expect(api.post).toHaveBeenCalledWith(
-      `/properties/survey/create?token=mock-token`,
-      mockCreateSurvey,
-      { withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith(`/properties/survey/create?token=mock-token`, mockCreateSurvey, {
+      withCredentials: true,
+    });
     expect(result).toEqual(mockSurvey);
   });
 

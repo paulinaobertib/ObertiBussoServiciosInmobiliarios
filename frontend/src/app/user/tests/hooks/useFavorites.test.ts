@@ -35,21 +35,14 @@ import { useGlobalAlert as _useGlobalAlert } from "../../../shared/context/Alert
 const getFavoritesByUser = favoriteService.getFavoritesByUser as MockedFunction<
   typeof favoriteService.getFavoritesByUser
 >;
-const createFavorite = favoriteService.createFavorite as MockedFunction<
-  typeof favoriteService.createFavorite
->;
-const deleteFavorite = favoriteService.deleteFavorite as MockedFunction<
-  typeof favoriteService.deleteFavorite
->;
+const createFavorite = favoriteService.createFavorite as MockedFunction<typeof favoriteService.createFavorite>;
+const deleteFavorite = favoriteService.deleteFavorite as MockedFunction<typeof favoriteService.deleteFavorite>;
 const useAuthContext = _useAuthContext as MockedFunction<typeof _useAuthContext>;
 const useGlobalAlert = _useGlobalAlert as MockedFunction<typeof _useGlobalAlert>;
 
 type Favorite = { id: number; propertyId: number; userId?: number };
 
-function axiosResponse<T>(
-  data: T,
-  init?: Partial<AxiosResponse<T>>
-): AxiosResponse<T> {
+function axiosResponse<T>(data: T, init?: Partial<AxiosResponse<T>>): AxiosResponse<T> {
   const config = {
     url: "/",
     method: "get",
@@ -104,9 +97,7 @@ describe("useFavorites", () => {
 
   it("isFavorite devuelve true/false según el propertyId", async () => {
     useAuthContext.mockReturnValue({ info: { id: 1 }, isLogged: true } as any);
-    getFavoritesByUser.mockResolvedValue(
-      axiosResponse<Favorite[]>([{ id: 1, propertyId: 99, userId: 1 }])
-    );
+    getFavoritesByUser.mockResolvedValue(axiosResponse<Favorite[]>([{ id: 1, propertyId: 99, userId: 1 }]));
 
     const { result } = renderHook(() => useFavorites());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -125,8 +116,7 @@ describe("useFavorites", () => {
 
     expect(info).toHaveBeenCalledWith({
       title: "Iniciá sesión",
-      description:
-        "Para guardar como favorita esta propiedad, iniciá sesión.",
+      description: "Para guardar como favorita esta propiedad, iniciá sesión.",
       primaryLabel: "Entendido",
     });
     expect(createFavorite).not.toHaveBeenCalled();
@@ -174,9 +164,7 @@ describe("useFavorites", () => {
     });
 
     expect(deleteFavorite).toHaveBeenCalledWith(200);
-    expect(result.current.favorites).toEqual([
-      { id: 201, propertyId: 88, userId: 9 },
-    ]);
+    expect(result.current.favorites).toEqual([{ id: 201, propertyId: 88, userId: 9 }]);
     expect(success).toHaveBeenCalledWith({
       title: "Eliminado de favoritos",
       description: undefined,
@@ -254,29 +242,21 @@ describe("useFavorites", () => {
     const { result, rerender } = renderHook(() => useFavorites());
     expect(result.current.favorites).toEqual([]);
 
-    getFavoritesByUser.mockResolvedValueOnce(
-      axiosResponse<Favorite[]>([{ id: 1, propertyId: 10, userId: 10 }])
-    );
+    getFavoritesByUser.mockResolvedValueOnce(axiosResponse<Favorite[]>([{ id: 1, propertyId: 10, userId: 10 }]));
     authState.isLogged = true;
     authState.info = { id: 10 };
 
     rerender();
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(getFavoritesByUser).toHaveBeenCalledWith(10);
-    expect(result.current.favorites).toEqual([
-      { id: 1, propertyId: 10, userId: 10 },
-    ]);
+    expect(result.current.favorites).toEqual([{ id: 1, propertyId: 10, userId: 10 }]);
 
-    getFavoritesByUser.mockResolvedValueOnce(
-      axiosResponse<Favorite[]>([{ id: 2, propertyId: 11, userId: 11 }])
-    );
+    getFavoritesByUser.mockResolvedValueOnce(axiosResponse<Favorite[]>([{ id: 2, propertyId: 11, userId: 11 }]));
     authState.info = { id: 11 };
     rerender();
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(getFavoritesByUser).toHaveBeenCalledWith(11);
-    expect(result.current.favorites).toEqual([
-      { id: 2, propertyId: 11, userId: 11 },
-    ]);
+    expect(result.current.favorites).toEqual([{ id: 2, propertyId: 11, userId: 11 }]);
 
     authState.isLogged = false;
     authState.info = null;

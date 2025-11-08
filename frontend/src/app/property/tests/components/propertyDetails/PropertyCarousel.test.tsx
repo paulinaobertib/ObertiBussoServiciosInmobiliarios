@@ -35,7 +35,7 @@ describe("PropertyCarousel", () => {
 
   it("cambia de imagen al hacer click en siguiente y anterior", () => {
     render(<PropertyCarousel images={images} mainImage={mainImage} title={title} />);
-    
+
     const nextButton = screen.getByLabelText("Siguiente imagen");
     const prevButton = screen.getByLabelText("Imagen anterior");
 

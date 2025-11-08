@@ -52,10 +52,7 @@ export const putAmenity = async (amenityData: Amenity) => {
 
 export const deleteAmenity = async (amenityData: Amenity) => {
   try {
-    const response = await api.delete(
-      `/properties/amenity/delete/${amenityData.id}`,
-      { withCredentials: true }
-    );
+    const response = await api.delete(`/properties/amenity/delete/${amenityData.id}`, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error deleting amenity:", error);

@@ -90,13 +90,7 @@ describe("IncreaseIndexForm", () => {
     const onDone = vi.fn();
     removeMock.mockResolvedValue(true);
 
-    render(
-      <IncreaseIndexForm
-        action="delete"
-        item={{ id: 3, code: "DEL", name: "A borrar" }}
-        onDone={onDone}
-      />
-    );
+    render(<IncreaseIndexForm action="delete" item={{ id: 3, code: "DEL", name: "A borrar" }} onDone={onDone} />);
 
     const { codigo, nombre, submitBtn } = getFields();
     expect(codigo).toBeDisabled();
@@ -115,40 +109,33 @@ describe("IncreaseIndexForm", () => {
     });
   });
 
-it("EDIT: trimmea campos, envía payload con id y muestra success", async () => {
-  const onDone = vi.fn();
-  updateMock.mockResolvedValue(true);
+  it("EDIT: trimmea campos, envía payload con id y muestra success", async () => {
+    const onDone = vi.fn();
+    updateMock.mockResolvedValue(true);
 
-  render(
-    <IncreaseIndexForm
-      action="edit"
-      item={{ id: 9, code: "OLD", name: "Viejo nombre" }}
-      onDone={onDone}
-    />
-  );
+    render(<IncreaseIndexForm action="edit" item={{ id: 9, code: "OLD", name: "Viejo nombre" }} onDone={onDone} />);
 
-  const { codigo, nombre, submitBtn } = getFields();
-  await typeInto(codigo, "  NEW-CODE  ");
-  await typeInto(nombre, "  Nuevo Nombre  ");
+    const { codigo, nombre, submitBtn } = getFields();
+    await typeInto(codigo, "  NEW-CODE  ");
+    await typeInto(nombre, "  Nuevo Nombre  ");
 
-  expect(submitBtn).toBeEnabled();
-  await userEvent.click(submitBtn);
+    expect(submitBtn).toBeEnabled();
+    await userEvent.click(submitBtn);
 
-  await waitFor(() => {
-    // el hook recibe campos trimmeados
-    expect(updateMock).toHaveBeenCalledWith({
-      id: 9,
-      code: "NEW-CODE",
-      name: "Nuevo Nombre",
-    });
+    await waitFor(() => {
+      // el hook recibe campos trimmeados
+      expect(updateMock).toHaveBeenCalledWith({
+        id: 9,
+        code: "NEW-CODE",
+        name: "Nuevo Nombre",
+      });
 
-    // onDone recibe el form sin trim, igual que el estado interno
-    expect(onDone).toHaveBeenCalledWith({
-      action: "edit",
-      form: { code: "  NEW-CODE  ", name: "  Nuevo Nombre  " },
-      saved: { id: 9, code: "  NEW-CODE  ", name: "  Nuevo Nombre  " },
+      // onDone recibe el form sin trim, igual que el estado interno
+      expect(onDone).toHaveBeenCalledWith({
+        action: "edit",
+        form: { code: "  NEW-CODE  ", name: "  Nuevo Nombre  " },
+        saved: { id: 9, code: "  NEW-CODE  ", name: "  Nuevo Nombre  " },
+      });
     });
   });
-});
-
 });

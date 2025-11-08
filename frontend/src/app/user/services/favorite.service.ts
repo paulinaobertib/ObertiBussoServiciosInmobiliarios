@@ -3,11 +3,7 @@ import { api } from "../../../api";
 /* POST /favorites/create */
 export const createFavorite = async (userId: string, propertyId: number) => {
   try {
-    const data = await api.post(
-      `/users/favorites/create`,
-      { userId, propertyId },
-      { withCredentials: true }
-    );
+    const data = await api.post(`/users/favorites/create`, { userId, propertyId }, { withCredentials: true });
     return data;
   } catch (error) {
     console.error("Error creating favorite:", error);

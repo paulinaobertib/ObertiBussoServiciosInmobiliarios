@@ -38,97 +38,74 @@ describe("<ProfileView />", () => {
   });
 
   it("muestra las iniciales en el Avatar (en mayúsculas)", () => {
-    render(
-      <ProfileView
-        user={baseUser}
-        editMode={false}
-        saving={false}
-        onToggleEdit={onToggleEdit}
-      />
-    );
+    render(<ProfileView user={baseUser} editMode={false} saving={false} onToggleEdit={onToggleEdit} />);
 
     expect(screen.getByText("JP")).toBeInTheDocument();
   });
 
-it("el botón 'Eliminar mi cuenta' dispara onDeleteProfile si se provee", () => {
-  render(
-    <ProfileView
-      user={baseUser}
-      editMode={true}   // ✅ habilitar modo edición
-      saving={false}
-      onToggleEdit={onToggleEdit}
-      onDeleteProfile={onDeleteProfile}
-    />
-  );
-
-  fireEvent.click(screen.getByRole("button", { name: /eliminar mi cuenta/i }));
-  expect(onDeleteProfile).toHaveBeenCalledTimes(1);
-});
-
-it("no rompe si no se pasa onDeleteProfile", () => {
-  render(
-    <ProfileView
-      user={baseUser}
-      editMode={true}   // ✅ habilitar modo edición
-      saving={false}
-      onToggleEdit={onToggleEdit}
-    />
-  );
-
-  const button = screen.getByRole("button", { name: /eliminar mi cuenta/i });
-  fireEvent.click(button); // no debería lanzar error aunque no haya callback
-});
-
-  it("soporta valores faltantes: sin lastName, renderiza inicial solo del firstName", () => {
-    const userSinApellido = { ...baseUser, firstName: "ana", lastName: "" };
+  it("el botón 'Eliminar mi cuenta' dispara onDeleteProfile si se provee", () => {
     render(
       <ProfileView
-        user={userSinApellido}
-        editMode={false}
+        user={baseUser}
+        editMode={true} // ✅ habilitar modo edición
+        saving={false}
+        onToggleEdit={onToggleEdit}
+        onDeleteProfile={onDeleteProfile}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /eliminar mi cuenta/i }));
+    expect(onDeleteProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it("no rompe si no se pasa onDeleteProfile", () => {
+    render(
+      <ProfileView
+        user={baseUser}
+        editMode={true} // ✅ habilitar modo edición
         saving={false}
         onToggleEdit={onToggleEdit}
       />
     );
+
+    const button = screen.getByRole("button", { name: /eliminar mi cuenta/i });
+    fireEvent.click(button); // no debería lanzar error aunque no haya callback
+  });
+
+  it("soporta valores faltantes: sin lastName, renderiza inicial solo del firstName", () => {
+    const userSinApellido = { ...baseUser, firstName: "ana", lastName: "" };
+    render(<ProfileView user={userSinApellido} editMode={false} saving={false} onToggleEdit={onToggleEdit} />);
 
     expect(screen.getByText("A")).toBeInTheDocument();
     expect(screen.getByText("ana")).toBeInTheDocument();
   });
 
   it("muestra texto 'Editar perfil' cuando editMode es false", () => {
-    render(
-      <ProfileView user={baseUser} editMode={false} saving={false} onToggleEdit={onToggleEdit} />
-    );
+    render(<ProfileView user={baseUser} editMode={false} saving={false} onToggleEdit={onToggleEdit} />);
 
     const editButton = screen.getByRole("button", { name: /editar perfil/i });
     expect(editButton).toBeInTheDocument();
   });
 
   it("muestra texto 'Guardar perfil' cuando editMode es true", () => {
-    render(
-      <ProfileView user={baseUser} editMode={true} saving={false} onToggleEdit={onToggleEdit} />
-    );
+    render(<ProfileView user={baseUser} editMode={true} saving={false} onToggleEdit={onToggleEdit} />);
 
     const saveButton = screen.getByRole("button", { name: /guardar perfil/i });
     expect(saveButton).toBeInTheDocument();
   });
 
   it("deshabilita el botón de edición cuando saving es true", () => {
-    render(
-      <ProfileView user={baseUser} editMode={false} saving={true} onToggleEdit={onToggleEdit} />
-    );
+    render(<ProfileView user={baseUser} editMode={false} saving={true} onToggleEdit={onToggleEdit} />);
 
     const editButton = screen.getByRole("button", { name: /editar perfil/i });
     expect(editButton).toBeDisabled();
   });
 
   it("llama a onToggleEdit al hacer click en el botón de edición", () => {
-    render(
-      <ProfileView user={baseUser} editMode={false} saving={false} onToggleEdit={onToggleEdit} />
-    );
+    render(<ProfileView user={baseUser} editMode={false} saving={false} onToggleEdit={onToggleEdit} />);
 
     const editButton = screen.getByRole("button", { name: /editar perfil/i });
     fireEvent.click(editButton);
     expect(onToggleEdit).toHaveBeenCalledTimes(1);
   });
-
 });

@@ -19,11 +19,7 @@ interface FavoritesProviderProps {
 export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const favoritesData = useFavorites();
 
-  return (
-    <FavoritesContext.Provider value={favoritesData}>
-      {children}
-    </FavoritesContext.Provider>
-  );
+  return <FavoritesContext.Provider value={favoritesData}>{children}</FavoritesContext.Provider>;
 }
 
 export function useFavoritesContext() {

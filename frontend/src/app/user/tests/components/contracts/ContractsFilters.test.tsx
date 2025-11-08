@@ -79,21 +79,19 @@ describe("ContractsFilters", () => {
     expect(mockSetDateTo).toHaveBeenCalledWith("2024-12-31");
   });
 
-it("pasa correctamente los valores iniciales de fecha y tipo", () => {
-  mockTypeFilter = ContractType.TEMPORAL;
-  mockDateFrom = "2024-01-10";
-  mockDateTo = "2024-02-10";
+  it("pasa correctamente los valores iniciales de fecha y tipo", () => {
+    mockTypeFilter = ContractType.TEMPORAL;
+    mockDateFrom = "2024-01-10";
+    mockDateTo = "2024-02-10";
 
-  renderFilters({ filter: ContractStatus.ACTIVO });
+    renderFilters({ filter: ContractStatus.ACTIVO });
 
-  // verificamos el texto renderizado en los combobox
-  expect(screen.getByRole("combobox", { name: "Estado" })).toHaveTextContent("Activos");
-  expect(screen.getByRole("combobox", { name: "Tipo" })).toHaveTextContent("Temporal");
+    // verificamos el texto renderizado en los combobox
+    expect(screen.getByRole("combobox", { name: "Estado" })).toHaveTextContent("Activos");
+    expect(screen.getByRole("combobox", { name: "Tipo" })).toHaveTextContent("Temporal");
 
-  // inputs de fecha sí tienen value real
-  expect(screen.getByLabelText("Desde")).toHaveValue("2024-01-10");
-  expect(screen.getByLabelText("Hasta")).toHaveValue("2024-02-10");
-});
-
-
+    // inputs de fecha sí tienen value real
+    expect(screen.getByLabelText("Desde")).toHaveValue("2024-01-10");
+    expect(screen.getByLabelText("Hasta")).toHaveValue("2024-02-10");
+  });
 });

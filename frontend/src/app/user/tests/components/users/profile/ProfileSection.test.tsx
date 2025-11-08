@@ -128,5 +128,4 @@ describe("ProfileSection", () => {
     });
   });
 */
-
 });

@@ -15,11 +15,10 @@ function makeForm(body: Partial<Notice>) {
 /* ---------- CRUD ---------- */
 export async function createNotice(data: NoticeCreate): Promise<Notice> {
   const form = makeForm(data);
-  const { data: created } = await api.post<Notice>(
-    "/users/notices/create",
-    form,
-    { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
-  );
+  const { data: created } = await api.post<Notice>("/users/notices/create", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true,
+  });
   return created;
 }
 
@@ -46,11 +45,10 @@ export async function updateNotice(n: Notice): Promise<Notice> {
     date: new Date().toISOString(),
     mainImage: n.mainImage, // solo File si cambió
   });
-  const { data } = await api.put<Notice>(
-    `/users/notices/update/${n.id}`,
-    form,
-    { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
-  );
+  const { data } = await api.put<Notice>(`/users/notices/update/${n.id}`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    withCredentials: true,
+  });
   return data;
 }
 

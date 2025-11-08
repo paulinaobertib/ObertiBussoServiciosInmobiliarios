@@ -25,18 +25,12 @@ export const getNeighborhoodById = async (id: number) => {
   }
 };
 
-export const postNeighborhood = async (
-  neighborhoodData: NeighborhoodCreate
-) => {
+export const postNeighborhood = async (neighborhoodData: NeighborhoodCreate) => {
   try {
-    const response = await api.post(
-      `/properties/neighborhood/create`,
-      neighborhoodData,
-      {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      }
-    );
+    const response = await api.post(`/properties/neighborhood/create`, neighborhoodData, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating neighborhood:", error);
@@ -46,14 +40,10 @@ export const postNeighborhood = async (
 
 export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
   try {
-    const response = await api.put(
-      `/properties/neighborhood/update/${neighborhoodData.id}`,
-      neighborhoodData,
-      {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      }
-    );
+    const response = await api.put(`/properties/neighborhood/update/${neighborhoodData.id}`, neighborhoodData, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error saving neighborhood:", error);
@@ -63,10 +53,9 @@ export const putNeighborhood = async (neighborhoodData: Neighborhood) => {
 
 export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
   try {
-    const response = await api.delete(
-      `/properties/neighborhood/delete/${neighborhoodData.id}`,
-      { withCredentials: true }
-    );
+    const response = await api.delete(`/properties/neighborhood/delete/${neighborhoodData.id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error deleting neighborhood:", error);
@@ -76,13 +65,10 @@ export const deleteNeighborhood = async (neighborhoodData: Neighborhood) => {
 
 export const getNeighborhoodByText = async (search: string) => {
   try {
-    const { data } = await api.get<Neighborhood[]>(
-      `/properties/neighborhood/search`,
-      {
-        params: { search },
-        withCredentials: true,
-      }
-    );
+    const { data } = await api.get<Neighborhood[]>(`/properties/neighborhood/search`, {
+      params: { search },
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error("Error searching by text:", error);

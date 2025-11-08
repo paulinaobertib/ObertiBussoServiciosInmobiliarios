@@ -5,9 +5,7 @@ import DepositCard from "../../../../components/contracts/contractDetail/Deposit
 describe("DepositCard", () => {
   it("muestra mensaje cuando no hay depósito", () => {
     render(<DepositCard hasDeposit={false} />);
-    expect(
-      screen.getByText("No hay depósitos registrados.")
-    ).toBeInTheDocument();
+    expect(screen.getByText("No hay depósitos registrados.")).toBeInTheDocument();
   });
 
   it("muestra monto cuando hay depósito sin nota", () => {
@@ -19,14 +17,7 @@ describe("DepositCard", () => {
   });
 
   it("muestra monto y nota cuando hay depósito con nota", () => {
-    render(
-      <DepositCard
-        hasDeposit={true}
-        depositAmount={2000}
-        currency="USD"
-        depositNote="Nota de prueba"
-      />
-    );
+    render(<DepositCard hasDeposit={true} depositAmount={2000} currency="USD" depositNote="Nota de prueba" />);
     expect(screen.getByText("Monto del Depósito")).toBeInTheDocument();
     expect(screen.getByText("USD $ 2.000")).toBeInTheDocument();
     expect(screen.getByText("Nota del Depósito")).toBeInTheDocument();

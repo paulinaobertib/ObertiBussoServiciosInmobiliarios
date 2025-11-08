@@ -49,13 +49,7 @@ describe("<AmenityForm />", () => {
       loading: false,
     });
 
-    render(
-      <AmenityForm
-        action="delete"
-        item={{ id: 5, name: "Parrilla" } as any}
-        onDone={() => {}}
-      />
-    );
+    render(<AmenityForm action="delete" item={{ id: 5, name: "Parrilla" } as any} onDone={() => {}} />);
 
     const input = screen.getByLabelText(/Nombre/i);
     expect(input).toBeDisabled();

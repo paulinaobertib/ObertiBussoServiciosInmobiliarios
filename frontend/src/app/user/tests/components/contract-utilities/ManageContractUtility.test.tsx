@@ -72,9 +72,7 @@ describe("ContractUtilityDialog", () => {
     (getContractUtilityById as any).mockResolvedValue({ id: 5, utilityId: 1 });
     renderDialog({ mode: "edit", contractUtilityId: 5 });
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(getContractUtilityById).toHaveBeenCalledWith(5)
-    );
+    await waitFor(() => expect(getContractUtilityById).toHaveBeenCalledWith(5));
   });
 
   it("guardar en modo add llama postContractUtility y onSaved/onClose", async () => {

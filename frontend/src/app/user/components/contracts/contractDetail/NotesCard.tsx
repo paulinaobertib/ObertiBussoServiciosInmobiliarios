@@ -41,9 +41,7 @@ export default function NotesCard({ note, half = false, isAdmin = false }: Notes
         {hasNote ? (
           <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "#000" }}>{note}</Typography>
         ) : (
-          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "#000" }}>
-            No hay notas registradas.
-          </Typography>
+          <Typography sx={{ fontSize: "1rem", lineHeight: 1.6, color: "#000" }}>No hay notas registradas.</Typography>
         )}
       </Card>
     </Grid>

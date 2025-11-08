@@ -52,8 +52,7 @@ vi.mock("react-chartjs-2", () => ({
 import ChartCard from "../../../components/view/ChartCard";
 
 const theme = createTheme();
-const renderWithTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+const renderWithTheme = (ui: React.ReactElement) => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
 describe("<ChartCard />", () => {
   const data = { Ene: 10, Feb: 20, Mar: 15 };

@@ -40,41 +40,40 @@ describe("useCategorySection", () => {
     vi.clearAllMocks();
   });
 
-it("inicializa correctamente con categoría owner", async () => {
-  const category: Category = "owner";
-  const { result } = renderHook(() => useCategorySection(category));
+  it("inicializa correctamente con categoría owner", async () => {
+    const category: Category = "owner";
+    const { result } = renderHook(() => useCategorySection(category));
 
-  // loading inicial
-  expect(result.current.loading).toBe(true);
+    // loading inicial
+    expect(result.current.loading).toBe(true);
 
-  // Ejecutar refresh
-  await act(async () => {
-    await result.current.refresh();
+    // Ejecutar refresh
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // refreshOwners se llama y loading queda false
+    expect(refreshOwnersMock).toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+
+    // tableData mapea fullName para owner
+    expect(result.current.data[0].fullName).toBe("John Doe");
+
+    // isSelected funciona
+    expect(result.current.isSelected(1)).toBe(true);
+    expect(result.current.isSelected(999)).toBe(false);
+
+    // toggleSelect llama al contexto
+    result.current.toggleSelect(1);
+    expect(toggleSelectMock).toHaveBeenCalledWith("owner", 1);
   });
-
-  // refreshOwners se llama y loading queda false
-  expect(refreshOwnersMock).toHaveBeenCalled();
-  expect(result.current.loading).toBe(false);
-
-  // tableData mapea fullName para owner
-  expect(result.current.data[0].fullName).toBe("John Doe");
-
-  // isSelected funciona
-  expect(result.current.isSelected(1)).toBe(true);
-  expect(result.current.isSelected(999)).toBe(false);
-
-  // toggleSelect llama al contexto
-  result.current.toggleSelect(1);
-  expect(toggleSelectMock).toHaveBeenCalledWith("owner", 1);
-});
 
   it("cambia category y actualiza data y searchResults", () => {
     type HookProps = { cat: Category };
 
-    const { result, rerender } = renderHook(
-      ({ cat }: HookProps) => useCategorySection(cat),
-      { initialProps: { cat: "owner" } }
-    );
+    const { result, rerender } = renderHook(({ cat }: HookProps) => useCategorySection(cat), {
+      initialProps: { cat: "owner" },
+    });
 
     expect(result.current.data[0].fullName).toBe("John Doe");
 

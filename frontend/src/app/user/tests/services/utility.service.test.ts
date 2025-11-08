@@ -44,11 +44,7 @@ describe("utility.service", () => {
     (api.post as any).mockResolvedValueOnce(resp("CREATED"));
 
     const r = await postUtility(body);
-    expect(api.post).toHaveBeenCalledWith(
-      "/users/utilities/create",
-      body,
-      cred
-    );
+    expect(api.post).toHaveBeenCalledWith("/users/utilities/create", body, cred);
     expect(r).toBe("CREATED");
   });
 
@@ -66,11 +62,7 @@ describe("utility.service", () => {
     (api.put as any).mockResolvedValueOnce(resp("UPDATED"));
 
     const r = await putUtility(body);
-    expect(api.put).toHaveBeenCalledWith(
-      "/users/utilities/update",
-      body,
-      cred
-    );
+    expect(api.put).toHaveBeenCalledWith("/users/utilities/update", body, cred);
     expect(r).toBe("UPDATED");
   });
 
@@ -87,10 +79,7 @@ describe("utility.service", () => {
     (api.delete as any).mockResolvedValueOnce(resp("DELETED"));
 
     const r = await deleteUtility(77);
-    expect(api.delete).toHaveBeenCalledWith(
-      "/users/utilities/delete/77",
-      cred
-    );
+    expect(api.delete).toHaveBeenCalledWith("/users/utilities/delete/77", cred);
     expect(r).toBe("DELETED");
   });
 
@@ -107,10 +96,7 @@ describe("utility.service", () => {
     (api.get as any).mockResolvedValueOnce(resp({ id: 9, name: "Gas" }));
 
     const r = await getUtilityById(9);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/utilities/getById/9",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/utilities/getById/9", cred);
     expect(r).toEqual({ id: 9, name: "Gas" });
   });
 
@@ -119,10 +105,7 @@ describe("utility.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getUtilityById(999)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching utility with ID 999:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching utility with ID 999:", boom);
   });
 
   /* -------------------------- getAllUtilities ------------------------ */
@@ -130,10 +113,7 @@ describe("utility.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }, { id: 2 }]));
 
     const r = await getAllUtilities();
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/utilities/getAll",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/utilities/getAll", cred);
     expect(r).toEqual([{ id: 1 }, { id: 2 }]);
   });
 
@@ -150,10 +130,10 @@ describe("utility.service", () => {
     (api.get as any).mockResolvedValueOnce(resp({ id: 3, name: "Internet" }));
 
     const r = await getUtilityByName("Internet");
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/utilities/getByName",
-      { params: { name: "Internet" }, withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/utilities/getByName", {
+      params: { name: "Internet" },
+      withCredentials: true,
+    });
     expect(r).toEqual({ id: 3, name: "Internet" });
   });
 
@@ -162,10 +142,7 @@ describe("utility.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getUtilityByName("X")).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching utility by name:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching utility by name:", boom);
   });
 
   /* ----------------------- getContractsByUtility --------------------- */
@@ -173,10 +150,7 @@ describe("utility.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 10 }]));
 
     const r = await getContractsByUtility(4);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/utilities/contracts/4",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/utilities/contracts/4", cred);
     expect(r).toEqual([{ id: 10 }]);
   });
 
@@ -185,10 +159,7 @@ describe("utility.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getContractsByUtility(4)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching contracts by utility:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching contracts by utility:", boom);
   });
 
   /* --------------------- getUtilitiesByContract ---------------------- */
@@ -196,10 +167,7 @@ describe("utility.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 8 }]));
 
     const r = await getUtilitiesByContract(25);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/utilities/getByContract/25",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/utilities/getByContract/25", cred);
     expect(r).toEqual([{ id: 8 }]);
   });
 
@@ -208,9 +176,6 @@ describe("utility.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getUtilitiesByContract(25)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching utilities for contract 25:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching utilities for contract 25:", boom);
   });
 });

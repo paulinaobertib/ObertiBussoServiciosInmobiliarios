@@ -29,14 +29,12 @@ vi.mock("../../../components/increases/IncreaseForm", () => {
       setLocal(initialValues ?? {});
     }, [initialValues]);
 
-    const setField =
-      (f: string) =>
-      (e: any) => {
-        const raw = e?.target?.value ?? "";
-        const next = { ...local, [f]: raw };
-        setLocal(next);
-        onChange(next);
-      };
+    const setField = (f: string) => (e: any) => {
+      const raw = e?.target?.value ?? "";
+      const next = { ...local, [f]: raw };
+      setLocal(next);
+      onChange(next);
+    };
 
     const toggleCurrency = () => {
       const next = {
@@ -51,22 +49,12 @@ vi.mock("../../../components/increases/IncreaseForm", () => {
       <div>
         <label>
           Fecha
-          <input
-            aria-label="Fecha"
-            type="date"
-            value={local.date ?? ""}
-            onChange={setField("date")}
-          />
+          <input aria-label="Fecha" type="date" value={local.date ?? ""} onChange={setField("date")} />
         </label>
 
         <label>
           Monto
-          <input
-            aria-label="Monto"
-            type="number"
-            value={local.amount ?? ""}
-            onChange={setField("amount")}
-          />
+          <input aria-label="Monto" type="number" value={local.amount ?? ""} onChange={setField("amount")} />
         </label>
 
         <label>
@@ -78,21 +66,12 @@ vi.mock("../../../components/increases/IncreaseForm", () => {
 
         <label>
           Ajuste
-          <input
-            aria-label="Ajuste"
-            type="number"
-            value={local.adjustment ?? ""}
-            onChange={setField("adjustment")}
-          />
+          <input aria-label="Ajuste" type="number" value={local.adjustment ?? ""} onChange={setField("adjustment")} />
         </label>
 
         <label>
           Nota
-          <textarea
-            aria-label="Nota"
-            value={local.note ?? ""}
-            onChange={setField("note")}
-          />
+          <textarea aria-label="Nota" value={local.note ?? ""} onChange={setField("note")} />
         </label>
       </div>
     );
@@ -130,8 +109,7 @@ const fillForm = async (overrides?: {
   }
   if (overrides?.adjustment !== undefined) {
     await user.clear(adjustment);
-    if (overrides.adjustment !== "")
-      await user.type(adjustment, overrides.adjustment);
+    if (overrides.adjustment !== "") await user.type(adjustment, overrides.adjustment);
   }
   if (overrides?.note !== undefined) {
     await user.clear(note);
@@ -162,14 +140,7 @@ describe("IncreaseDialog", () => {
     const onClose = vi.fn();
     const onSaved = vi.fn();
 
-    render(
-      <IncreaseDialog
-        open={true}
-        contract={null}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
+    render(<IncreaseDialog open={true} contract={null} onClose={onClose} onSaved={onSaved} />);
 
     expect(screen.getByRole("button", { name: /^guardar$/i })).toBeDisabled();
     expect(postContractIncrease).not.toHaveBeenCalled();
@@ -182,18 +153,9 @@ describe("IncreaseDialog", () => {
     const onSaved = vi.fn();
 
     let resolveFn: (v?: unknown) => void = () => {};
-    (postContractIncrease as any).mockImplementation(
-      () => new Promise((res) => (resolveFn = res))
-    );
+    (postContractIncrease as any).mockImplementation(() => new Promise((res) => (resolveFn = res)));
 
-    render(
-      <IncreaseDialog
-        open={true}
-        contract={contractA}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
+    render(<IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />);
 
     await fillForm({
       date: "2025-08-30",
@@ -246,32 +208,30 @@ describe("IncreaseDialog", () => {
     expect(screen.getByRole("button", { name: /cancelar/i })).toBeEnabled();
   });
 
-it("resetea valores cuando cambia el contract", async () => {
-  const onClose = vi.fn();
-  const onSaved = vi.fn();
+  it("resetea valores cuando cambia el contract", async () => {
+    const onClose = vi.fn();
+    const onSaved = vi.fn();
 
-  const { rerender } = render(
-    <IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
-  );
+    const { rerender } = render(
+      <IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
+    );
 
-  await fillForm({
-    date: "2025-09-01",
-    amount: "42",
-    currency: "USD",
-    adjustment: "10",
-    note: "Hola",
+    await fillForm({
+      date: "2025-09-01",
+      amount: "42",
+      currency: "USD",
+      adjustment: "10",
+      note: "Hola",
+    });
+
+    rerender(<IncreaseDialog open={true} contract={contractB} onClose={onClose} onSaved={onSaved} />);
+
+    expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2025-09-01");
+    expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("42");
+    expect(screen.getByLabelText("Moneda").textContent).toBe("USD");
+    expect((screen.getByLabelText("Ajuste") as HTMLInputElement).value).toBe("10");
+    expect((screen.getByLabelText("Nota") as HTMLTextAreaElement).value).toBe("Hola");
   });
-
-  rerender(
-    <IncreaseDialog open={true} contract={contractB} onClose={onClose} onSaved={onSaved} />
-  );
-
-  expect((screen.getByLabelText("Fecha") as HTMLInputElement).value).toBe("2025-09-01");
-  expect((screen.getByLabelText("Monto") as HTMLInputElement).value).toBe("42");
-  expect(screen.getByLabelText("Moneda").textContent).toBe("USD");
-  expect((screen.getByLabelText("Ajuste") as HTMLInputElement).value).toBe("10");
-  expect((screen.getByLabelText("Nota") as HTMLTextAreaElement).value).toBe("Hola");
-});
 
   it("usa adjustment = undefined cuando el campo está vacío", async () => {
     const onSaved = vi.fn();
@@ -283,9 +243,7 @@ it("resetea valores cuando cambia el contract", async () => {
     await clickSave();
 
     await waitFor(() => {
-      expect(postContractIncrease).toHaveBeenCalledWith(
-        expect.objectContaining({ adjustment: undefined })
-      );
+      expect(postContractIncrease).toHaveBeenCalledWith(expect.objectContaining({ adjustment: undefined }));
     });
   });
 
@@ -308,9 +266,7 @@ it("resetea valores cuando cambia el contract", async () => {
     const onSaved = vi.fn();
 
     let resolveFn: (v?: unknown) => void = () => {};
-    (postContractIncrease as any).mockImplementation(
-      () => new Promise((res) => (resolveFn = res))
-    );
+    (postContractIncrease as any).mockImplementation(() => new Promise((res) => (resolveFn = res)));
 
     render(<IncreaseDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />);
     await user.click(screen.getByRole("button", { name: /cancelar/i }));
@@ -362,9 +318,7 @@ it("resetea valores cuando cambia el contract", async () => {
     await clickSave();
 
     await waitFor(() => {
-      expect(postContractIncrease).toHaveBeenCalledWith(
-        expect.objectContaining({ adjustment: undefined })
-      );
+      expect(postContractIncrease).toHaveBeenCalledWith(expect.objectContaining({ adjustment: undefined }));
     });
   });
 
@@ -380,5 +334,4 @@ it("resetea valores cuando cambia el contract", async () => {
       expect(mockShowAlert).toHaveBeenCalledWith("Ocurrió un error que no supimos identificar", "error");
     });
   });
-
 });

@@ -6,9 +6,9 @@ import {
   CircularProgress,
   Autocomplete,
   IconButton,
-  InputAdornment
+  InputAdornment,
 } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import RemoveIcon from "@mui/icons-material/RemoveRounded";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUpRounded";
@@ -45,21 +45,21 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const [showOptions, setShowOptions] = useState(false);
 
   // si hay una sesion previa, la cargo para que pueda seguir abierta cuando cambia de page
-  const [sessionId, setSessionId] = useState<number | null>(
-    Number(localStorage.getItem("chatSessionId")) || null
-  );
+  const [sessionId, setSessionId] = useState<number | null>(Number(localStorage.getItem("chatSessionId")) || null);
 
   const [property, setProperty] = useState<Property | null>(null);
 
   // esto es para no pedir muchas veces los mismos datos si quieren consultar una propiedad diferente
   const [guestData, setGuestData] = useState(() => {
     const stored = localStorage.getItem("guestInfo");
-    return stored ? JSON.parse(stored) : {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: ""
-    };
+    return stored
+      ? JSON.parse(stored)
+      : {
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+        };
   });
 
   const emailOK = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(guestData.email);
@@ -105,7 +105,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // si la propiedad viene desde una card
   useEffect(() => {
     if (initialPropertyId) {
-      const found = propertiesList?.find(p => p.id === initialPropertyId);
+      const found = propertiesList?.find((p) => p.id === initialPropertyId);
       if (found) {
         setProperty(found);
       } else {
@@ -165,7 +165,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
       if (showForm && !guestDataComplete) {
         return;
       }
-      
+
       let result;
 
       if (isLogged && info) {
@@ -173,7 +173,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
       } else {
         const dto: ChatSessionDTO = {
           ...guestData,
-          propertyId: property!.id
+          propertyId: property!.id,
         };
         result = await startSessionGuest(dto);
         localStorage.setItem("guestInfo", JSON.stringify(guestData));
@@ -198,7 +198,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const handlePropertySearch = async (value: string) => {
     setSearchText(value);
     const result = await getPropertiesByText(searchText);
-    const filtered = result.filter((p: { status: string; }) => p.status?.toLowerCase() === 'disponible' || !p.status);
+    const filtered = result.filter((p: { status: string }) => p.status?.toLowerCase() === "disponible" || !p.status);
     setPropertyOptions(filtered);
   };
 
@@ -222,7 +222,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   const handleClose = async () => {
     const lastMsg = messages[messages.length - 1];
-    if (sessionId && property && lastMsg.content != "La conversación ha finalizado. Gracias por contactarnos." && lastMsg.content != "Tu consulta ha sido derivada a un asesor. Pronto te atenderán.") {
+    if (
+      sessionId &&
+      property &&
+      lastMsg.content != "La conversación ha finalizado. Gracias por contactarnos." &&
+      lastMsg.content != "Tu consulta ha sido derivada a un asesor. Pronto te atenderán."
+    ) {
       try {
         await sendMessage("CERRAR", property.id, sessionId);
         setCollapsed(true);
@@ -333,7 +338,9 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
               borderTopRightRadius: 8,
             }}
           >
-            <Typography variant="body2" fontWeight="bold">Sistema</Typography>
+            <Typography variant="body2" fontWeight="bold">
+              Sistema
+            </Typography>
             <Typography>¡Bienvenido! ¿Cómo puedo ayudarte?</Typography>
           </Box>
         </Box>
@@ -393,7 +400,9 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
               borderTopRightRadius: 8,
             }}
           >
-            <Typography variant="body2" fontWeight="bold">Sistema</Typography>
+            <Typography variant="body2" fontWeight="bold">
+              Sistema
+            </Typography>
             <Typography sx={{ mt: 1 }}>
               Por favor, seleccioná una de las siguientes opciones escribiendo el número correspondiente:
             </Typography>
@@ -428,12 +437,13 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         flexDirection: "column",
         zIndex: 10,
         backgroundColor: "#fff",
-        transition: "max-height 0.2s ease"
+        transition: "max-height 0.2s ease",
       }}
     >
-
       <Box sx={{ p: 2, borderBottom: "1px solid #eee", position: "relative", bgcolor: "#EB7333", color: "#fff" }}>
-        <Typography variant="h6" fontWeight="bold">Asistente Virtual</Typography>
+        <Typography variant="h6" fontWeight="bold">
+          Asistente Virtual
+        </Typography>
 
         <IconButton
           aria-label={collapsed ? "Restaurar chat" : "Minimizar chat"}
@@ -454,7 +464,19 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
       {!collapsed && (
         <>
-          <Box sx={{ p: 2, flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto", '&::-webkit-scrollbar': { width: '8px', }, '&::-webkit-scrollbar-track': { backgroundColor: '#f1f1f1' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#FED7AA' } }}>
+          <Box
+            sx={{
+              p: 2,
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              overflowY: "auto",
+              "&::-webkit-scrollbar": { width: "8px" },
+              "&::-webkit-scrollbar-track": { backgroundColor: "#f1f1f1" },
+              "&::-webkit-scrollbar-thumb": { backgroundColor: "#FED7AA" },
+            }}
+          >
             {step === "greeting" && (
               <Box>
                 <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
@@ -462,18 +484,36 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                 {showForm && (
                   <Box mt={2}>
                     <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
-                    <TextField fullWidth label="Nombre" value={guestData.firstName} onChange={e => setGuestData({ ...guestData, firstName: e.target.value })} margin="dense" />
-                    <TextField fullWidth label="Apellido" value={guestData.lastName} onChange={e => setGuestData({ ...guestData, lastName: e.target.value })} margin="dense" />
+                    <TextField
+                      fullWidth
+                      label="Nombre"
+                      value={guestData.firstName}
+                      onChange={(e) => setGuestData({ ...guestData, firstName: e.target.value })}
+                      margin="dense"
+                    />
+                    <TextField
+                      fullWidth
+                      label="Apellido"
+                      value={guestData.lastName}
+                      onChange={(e) => setGuestData({ ...guestData, lastName: e.target.value })}
+                      margin="dense"
+                    />
                     <TextField
                       fullWidth
                       label="Email"
                       value={guestData.email}
-                      onChange={e => setGuestData({ ...guestData, email: e.target.value })}
+                      onChange={(e) => setGuestData({ ...guestData, email: e.target.value })}
                       margin="dense"
-                      error={guestData.email.trim() !== '' && !emailOK}
-                      helperText={guestData.email.trim() !== '' && !emailOK ? "Ingresá un email válido" : ""}
+                      error={guestData.email.trim() !== "" && !emailOK}
+                      helperText={guestData.email.trim() !== "" && !emailOK ? "Ingresá un email válido" : ""}
                     />
-                    <TextField fullWidth label="Teléfono" value={guestData.phone} onChange={e => setGuestData({ ...guestData, phone: e.target.value })} margin="dense" />
+                    <TextField
+                      fullWidth
+                      label="Teléfono"
+                      value={guestData.phone}
+                      onChange={(e) => setGuestData({ ...guestData, phone: e.target.value })}
+                      margin="dense"
+                    />
                   </Box>
                 )}
 
@@ -481,8 +521,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                   {initialPropertyId ? (
                     <>
                       <Typography>¿Querés consultar sobre esta propiedad?</Typography>
-                      <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>Sí</Button>
-                      <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>No, buscar otra</Button>
+                      <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>
+                        Sí
+                      </Button>
+                      <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>
+                        No, buscar otra
+                      </Button>
                     </>
                   ) : (
                     <Button
@@ -523,19 +567,11 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
             {step === "chat" && (
               <>
                 {property && (
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}
-                  >
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}>
                     Propiedad en consulta: {property?.title || `#${property?.id}`}
                   </Typography>
                 )}
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={handleChangeProperty}
-                  sx={{ mb: 1 }}
-                >
+                <Button variant="outlined" color="secondary" onClick={handleChangeProperty} sx={{ mb: 1 }}>
                   Consultar por otra propiedad
                 </Button>
                 {renderMessages()}
@@ -559,10 +595,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        onClick={sendCurrentInput}
-                        disabled={!inputValue.trim()}
-                      >
+                      <IconButton onClick={sendCurrentInput} disabled={!inputValue.trim()}>
                         <SendIcon />
                       </IconButton>
                     </InputAdornment>
@@ -574,9 +607,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         </>
       )}
 
-      {(sessionLoading || loading) && (
-        <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />
-      )}
+      {(sessionLoading || loading) && <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />}
     </Box>
   );
-}
+};

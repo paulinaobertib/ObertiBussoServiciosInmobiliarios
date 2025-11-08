@@ -63,10 +63,7 @@ describe("AppointmentForm", () => {
     const button = screen.getByRole("button", { name: /Solicitar Turno/i });
     fireEvent.click(button);
 
-    expect(showAlert).toHaveBeenCalledWith(
-      "Debes iniciar sesión para solicitar un turno",
-      "warning"
-    );
+    expect(showAlert).toHaveBeenCalledWith("Debes iniciar sesión para solicitar un turno", "warning");
   });
 
   it("deshabilita botón si no hay slot seleccionado o está cargando", () => {
@@ -140,11 +137,7 @@ describe("AppointmentForm", () => {
 
     render(<AppointmentForm />);
 
-    expect(
-      screen.getByText(/No hay turnos disponibles/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Probá seleccionando otra fecha/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No hay turnos disponibles/i)).toBeInTheDocument();
+    expect(screen.getByText(/Probá seleccionando otra fecha/i)).toBeInTheDocument();
   });
 });

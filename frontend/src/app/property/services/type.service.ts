@@ -52,12 +52,9 @@ export const putType = async (typeData: Type) => {
 
 export const deleteType = async (typeData: Type) => {
   try {
-    const response = await api.delete(
-      `/properties/type/delete/${typeData.id}`,
-      {
-        withCredentials: true,
-      }
-    );
+    const response = await api.delete(`/properties/type/delete/${typeData.id}`, {
+      withCredentials: true,
+    });
     return response.data;
   } catch (error) {
     console.error("Error deleting type:", error);

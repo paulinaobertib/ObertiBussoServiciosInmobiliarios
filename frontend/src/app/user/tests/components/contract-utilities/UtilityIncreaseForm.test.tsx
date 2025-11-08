@@ -11,10 +11,7 @@ describe("UtilityIncreaseForm", () => {
 
   it("renderiza con initialValues y llama a onChange al montar", () => {
     render(
-      <UtilityIncreaseForm
-        initialValues={{ adjustmentDate: "2025-01-01", amount: 50 }}
-        onChange={mockOnChange}
-      />
+      <UtilityIncreaseForm initialValues={{ adjustmentDate: "2025-01-01", amount: 50 }} onChange={mockOnChange} />
     );
 
     expect(screen.getByLabelText("Fecha desde que regirá")).toHaveValue("2025-01-01");
@@ -58,7 +55,7 @@ describe("UtilityIncreaseForm", () => {
 
     fireEvent.change(amountInput, { target: { value: "" } });
 
-    expect(amountInput).toHaveValue(null); 
+    expect(amountInput).toHaveValue(null);
     expect(mockOnChange).toHaveBeenLastCalledWith({
       adjustmentDate: "",
       amount: "",

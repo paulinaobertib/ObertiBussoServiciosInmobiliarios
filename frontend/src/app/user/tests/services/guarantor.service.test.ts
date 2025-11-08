@@ -118,10 +118,7 @@ describe("guarantor.service", () => {
     const boom = new Error("by contract fail");
     (api.get as any).mockRejectedValueOnce(boom);
     await expect(getGuarantorsByContract(8)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching guarantors for contract 8:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching guarantors for contract 8:", boom);
   });
 
   it("getContractsByGuarantor: GET /users/guarantors/getContracts/{gid}", async () => {
@@ -135,10 +132,7 @@ describe("guarantor.service", () => {
     const boom = new Error("by guarantor fail");
     (api.get as any).mockRejectedValueOnce(boom);
     await expect(getContractsByGuarantor(5)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching contracts for guarantor 5:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching contracts for guarantor 5:", boom);
   });
 
   it("getGuarantorByEmail: GET con params {email}", async () => {
@@ -195,11 +189,7 @@ describe("guarantor.service", () => {
   it("addGuarantorToContract: POST /users/guarantors/addContracts/{gid}/{cid} con body null", async () => {
     (api.post as any).mockResolvedValueOnce(resp("ok"));
     const r = await addGuarantorToContract(2, 99);
-    expect(api.post).toHaveBeenCalledWith(
-      "/users/guarantors/addContracts/2/99",
-      null,
-      cred
-    );
+    expect(api.post).toHaveBeenCalledWith("/users/guarantors/addContracts/2/99", null, cred);
     expect(r).toBe("ok");
   });
 
@@ -213,10 +203,7 @@ describe("guarantor.service", () => {
   it("removeGuarantorFromContract: DELETE /users/guarantors/removeContracts/{gid}/{cid}", async () => {
     (api.delete as any).mockResolvedValueOnce(resp("ok"));
     const r = await removeGuarantorFromContract(2, 99);
-    expect(api.delete).toHaveBeenCalledWith(
-      "/users/guarantors/removeContracts/2/99",
-      cred
-    );
+    expect(api.delete).toHaveBeenCalledWith("/users/guarantors/removeContracts/2/99", cred);
     expect(r).toBe("ok");
   });
 

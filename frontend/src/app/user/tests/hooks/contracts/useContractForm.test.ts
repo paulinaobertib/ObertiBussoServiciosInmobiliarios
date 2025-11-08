@@ -48,9 +48,7 @@ describe("useContractForm", () => {
       guarantors: [{ id: 5 }],
     } as any;
 
-    const { result } = renderHook(() =>
-      useContractForm(0, "x", initialData)
-    );
+    const { result } = renderHook(() => useContractForm(0, "x", initialData));
 
     expect(result.current.values.propertyId).toBe(2);
     expect(result.current.values.userId).toBe("u2");
@@ -86,9 +84,7 @@ describe("useContractForm", () => {
 
   it("valida y devuelve errores cuando campos inválidos", async () => {
     const onValidity = vi.fn();
-    const { result } = renderHook(() =>
-      useContractForm(1, "u1", undefined, onValidity)
-    );
+    const { result } = renderHook(() => useContractForm(1, "u1", undefined, onValidity));
 
     await waitFor(() => {
       expect(onValidity).toHaveBeenCalledWith(false);
@@ -118,9 +114,7 @@ describe("useContractForm", () => {
       currency: "ARS",
     } as any;
 
-    const { result } = renderHook(() =>
-      useContractForm(1, "u1", validData)
-    );
+    const { result } = renderHook(() => useContractForm(1, "u1", validData));
 
     let output: any;
     await act(async () => {
@@ -176,38 +170,35 @@ describe("useContractForm", () => {
     expect(result.current.values.guarantorsIds).toEqual([1, 2]);
   });
 
-it("getCreateData retorna DTO transformado", () => {
-  const validData = {
-    propertyId: 1,
-    userId: "u1",
-    contractType: ContractType.VIVIENDA,
-    contractStatus: ContractStatus.INACTIVO,
-    startDate: "2025-01-01",
-    endDate: "2025-02-01",
-    adjustmentFrequencyMonths: 6,
-    initialAmount: 1000,
-    currency: "ARS",
-    hasDeposit: true,
-    depositAmount: 200,
-    depositNote: "d",
-    adjustmentIndexId: "5",
-    guarantors: [{ id: 10 }],
-  } as any;
+  it("getCreateData retorna DTO transformado", () => {
+    const validData = {
+      propertyId: 1,
+      userId: "u1",
+      contractType: ContractType.VIVIENDA,
+      contractStatus: ContractStatus.INACTIVO,
+      startDate: "2025-01-01",
+      endDate: "2025-02-01",
+      adjustmentFrequencyMonths: 6,
+      initialAmount: 1000,
+      currency: "ARS",
+      hasDeposit: true,
+      depositAmount: 200,
+      depositNote: "d",
+      adjustmentIndexId: "5",
+      guarantors: [{ id: 10 }],
+    } as any;
 
-  const { result } = renderHook(() =>
-    useContractForm(1, "u1", validData)
-  );
+    const { result } = renderHook(() => useContractForm(1, "u1", validData));
 
-  const dto = result.current.getCreateData();
-  expect(dto).toMatchObject({
-    propertyId: 1,
-    userId: "u1",
-    contractType: ContractType.VIVIENDA,
-    contractStatus: ContractStatus.INACTIVO,
-    depositAmount: 200,
-    adjustmentIndexId: 5,
-    guarantorsIds: [10],
+    const dto = result.current.getCreateData();
+    expect(dto).toMatchObject({
+      propertyId: 1,
+      userId: "u1",
+      contractType: ContractType.VIVIENDA,
+      contractStatus: ContractStatus.INACTIVO,
+      depositAmount: 200,
+      adjustmentIndexId: 5,
+      guarantorsIds: [10],
+    });
   });
-});
-
 });

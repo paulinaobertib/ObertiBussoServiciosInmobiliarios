@@ -27,10 +27,7 @@ vi.mock("../../../../../shared/components/Modal", () => ({
 vi.mock("../../../../../user/components/appointments/admin/../../Calendar", () => ({
   Calendar: ({ onSelectDate }: { onSelectDate: (d: any) => void }) => (
     <div data-testid="calendar">
-      <button
-        data-testid="pick-date"
-        onClick={() => onSelectDate(require("dayjs")("2025-06-15"))}
-      >
+      <button data-testid="pick-date" onClick={() => onSelectDate(require("dayjs")("2025-06-15"))}>
         pick
       </button>
     </div>
@@ -38,8 +35,7 @@ vi.mock("../../../../../user/components/appointments/admin/../../Calendar", () =
 }));
 
 const theme = createTheme();
-const renderWithTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+const renderWithTheme = (ui: React.ReactElement) => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
 describe("GenerateSlotsDialog", () => {
   const genDate = dayjs("2025-06-12");
@@ -142,9 +138,7 @@ describe("GenerateSlotsDialog", () => {
 
   it("recalcula la cantidad de turnos al re-render (09:00–12:00 → 6)", () => {
     mockHook({ genStartTime: "09:00", genEndTime: "10:30" });
-    const { rerender } = renderWithTheme(
-      <GenerateSlotsDialog open={true} onClose={vi.fn()} />
-    );
+    const { rerender } = renderWithTheme(<GenerateSlotsDialog open={true} onClose={vi.fn()} />);
 
     // primero: 09:00..10:30 → 3
     let alert = screen.getByRole("alert");
@@ -172,7 +166,7 @@ describe("GenerateSlotsDialog", () => {
 
   it("mientras generateSlots está pendiente, el botón 'Generar' queda deshabilitado", async () => {
     let resolve!: () => void;
-    generateSlots = vi.fn(() => new Promise<void>(r => (resolve = r)));
+    generateSlots = vi.fn(() => new Promise<void>((r) => (resolve = r)));
     mockHook({ generateSlots });
 
     renderDlg();
@@ -205,6 +199,4 @@ describe("GenerateSlotsDialog", () => {
     renderWithTheme(<GenerateSlotsDialog open={false} onClose={vi.fn()} />);
     expect(screen.queryByTestId("modal")).toBeNull();
   });
-
-
 });

@@ -87,30 +87,27 @@ describe("usePaymentDialog", () => {
     vi.clearAllMocks();
   });
 
-it("resetea estado al cambiar contrato", async () => {
-  const contractSinCommission = { ...contract, commission: null, payments: [] };
+  it("resetea estado al cambiar contrato", async () => {
+    const contractSinCommission = { ...contract, commission: null, payments: [] };
 
-  const { result, rerender } = renderHook(
-    (props: UsePaymentDialogOptions) => usePaymentDialog(props),
-    { initialProps: { open: true, contract: contractSinCommission, onSaved: vi.fn(), onClose: vi.fn() } }
-  );
+    const { result, rerender } = renderHook((props: UsePaymentDialogOptions) => usePaymentDialog(props), {
+      initialProps: { open: true, contract: contractSinCommission, onSaved: vi.fn(), onClose: vi.fn() },
+    });
 
-  act(() => {
-    result.current.setVals((prev) => ({ ...prev, description: "test" }));
+    act(() => {
+      result.current.setVals((prev) => ({ ...prev, description: "test" }));
+    });
+
+    rerender({ open: true, contract: { ...contractSinCommission, id: 2 }, onSaved: vi.fn(), onClose: vi.fn() });
+
+    await waitFor(() => {
+      expect(result.current.vals.description).toBe("");
+      expect(result.current.commission).toBeNull();
+    });
   });
-
-  rerender({ open: true, contract: { ...contractSinCommission, id: 2 }, onSaved: vi.fn(), onClose: vi.fn() });
-
-  await waitFor(() => {
-    expect(result.current.vals.description).toBe("");
-    expect(result.current.commission).toBeNull();
-  });
-});
 
   it("prefija importe y moneda si concepto es COMISION", () => {
-    const { result } = renderHook(() =>
-      usePaymentDialog({ open: true, contract, onSaved: vi.fn(), onClose: vi.fn() })
-    );
+    const { result } = renderHook(() => usePaymentDialog({ open: true, contract, onSaved: vi.fn(), onClose: vi.fn() }));
 
     act(() => {
       result.current.setConcept(PaymentConcept.COMISION);
@@ -121,9 +118,7 @@ it("resetea estado al cambiar contrato", async () => {
   });
 
   it("isValid chequea condiciones por concepto", () => {
-    const { result } = renderHook(() =>
-      usePaymentDialog({ open: true, contract, onSaved: vi.fn(), onClose: vi.fn() })
-    );
+    const { result } = renderHook(() => usePaymentDialog({ open: true, contract, onSaved: vi.fn(), onClose: vi.fn() }));
 
     expect(result.current.isValid).toBe(false);
 
@@ -147,9 +142,7 @@ it("resetea estado al cambiar contrato", async () => {
 
     const onSaved = vi.fn();
     const onClose = vi.fn();
-    const { result } = renderHook(() =>
-      usePaymentDialog({ open: true, contract, onSaved, onClose })
-    );
+    const { result } = renderHook(() => usePaymentDialog({ open: true, contract, onSaved, onClose }));
 
     act(() => {
       result.current.setConcept(PaymentConcept.COMISION);
@@ -176,9 +169,7 @@ it("resetea estado al cambiar contrato", async () => {
   it("handleSave maneja error en postPayment", async () => {
     (paymentService.postPayment as any).mockRejectedValue({ message: "fail" });
 
-    const { result } = renderHook(() =>
-      usePaymentDialog({ open: true, contract, onSaved: vi.fn(), onClose: vi.fn() })
-    );
+    const { result } = renderHook(() => usePaymentDialog({ open: true, contract, onSaved: vi.fn(), onClose: vi.fn() }));
 
     act(() => {
       result.current.setConcept(PaymentConcept.ALQUILER);

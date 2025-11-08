@@ -4,10 +4,7 @@ import { forwardRef } from "react";
 import { UtilitiesPickerDialog } from "../../../components/contract-utilities/SelectUtilitiesDialog";
 import { useUtilities } from "../../../hooks/useUtilities";
 import { useGlobalAlert } from "../../../../shared/context/AlertContext";
-import {
-  getContractUtilitiesByContract,
-  postContractUtility,
-} from "../../../services/contractUtility.service";
+import { getContractUtilitiesByContract, postContractUtility } from "../../../services/contractUtility.service";
 
 vi.mock("../../../hooks/useUtilities", () => ({
   useUtilities: vi.fn(),
@@ -63,28 +60,18 @@ describe("UtilitiesPickerDialog", () => {
 
   const renderDialog = (props: any = {}) =>
     render(
-      <UtilitiesPickerDialog
-        open={true}
-        contractId={77}
-        onClose={mockOnClose}
-        onUpdated={mockOnUpdated}
-        {...props}
-      />
+      <UtilitiesPickerDialog open={true} contractId={77} onClose={mockOnClose} onUpdated={mockOnUpdated} {...props} />
     );
 
   it("carga contract utilities al abrir", async () => {
     renderDialog();
-    await waitFor(() =>
-      expect(getContractUtilitiesByContract).toHaveBeenCalledWith(77)
-    );
+    await waitFor(() => expect(getContractUtilitiesByContract).toHaveBeenCalledWith(77));
   });
 
   it("selecciona utilidad y renderiza formulario", async () => {
     renderDialog();
     fireEvent.click(screen.getByText("SelectUtility"));
-    await waitFor(() =>
-      expect(mockFetchById).toHaveBeenCalledWith(1)
-    );
+    await waitFor(() => expect(mockFetchById).toHaveBeenCalledWith(1));
     expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument();
   });
 
@@ -94,34 +81,32 @@ describe("UtilitiesPickerDialog", () => {
     expect(screen.queryByTestId("contract-utility-form")).not.toBeInTheDocument();
   });
 
-it("muestra alerta si se selecciona un servicio duplicado", async () => {
-  const mockWarning = vi.fn();
-  (useGlobalAlert as any).mockReturnValue({ warning: mockWarning });
-  (getContractUtilitiesByContract as any).mockResolvedValue([{ utilityId: 999 }]);
+  it("muestra alerta si se selecciona un servicio duplicado", async () => {
+    const mockWarning = vi.fn();
+    (useGlobalAlert as any).mockReturnValue({ warning: mockWarning });
+    (getContractUtilitiesByContract as any).mockResolvedValue([{ utilityId: 999 }]);
 
-  renderDialog();
+    renderDialog();
 
-  await waitFor(() => expect(getContractUtilitiesByContract).toHaveBeenCalled());
+    await waitFor(() => expect(getContractUtilitiesByContract).toHaveBeenCalled());
 
-  fireEvent.click(screen.getByText("SelectDuplicate"));
+    fireEvent.click(screen.getByText("SelectDuplicate"));
 
-  await waitFor(() =>
-    expect(mockWarning).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Servicio ya vinculado",
-        description: "Ese servicio ya está asociado a este contrato.",
-      })
-    )
-  );
-});
+    await waitFor(() =>
+      expect(mockWarning).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Servicio ya vinculado",
+          description: "Ese servicio ya está asociado a este contrato.",
+        })
+      )
+    );
+  });
 
   it("guarda correctamente cuando initialAmount > 0", async () => {
     (postContractUtility as any).mockResolvedValue({});
     renderDialog();
     fireEvent.click(screen.getByText("SelectUtility"));
-    await waitFor(() =>
-      expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument());
 
     fireEvent.click(screen.getByText("Guardar"));
     await waitFor(() => {
@@ -141,9 +126,7 @@ it("muestra alerta si se selecciona un servicio duplicado", async () => {
     mockGetData.mockReturnValue({ initialAmount: 0, utilityId: 1, contractId: 77 });
     renderDialog();
     fireEvent.click(screen.getByText("SelectUtility"));
-    await waitFor(() =>
-      expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument());
     fireEvent.click(screen.getByText("Guardar"));
     await waitFor(() => expect(postContractUtility).not.toHaveBeenCalled());
   });
@@ -151,9 +134,7 @@ it("muestra alerta si se selecciona un servicio duplicado", async () => {
   it("botón Cancelar limpia selección", async () => {
     renderDialog();
     fireEvent.click(screen.getByText("SelectUtility"));
-    await waitFor(() =>
-      expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByTestId("contract-utility-form")).toBeInTheDocument());
     fireEvent.click(screen.getByText("Cancelar"));
     expect(screen.queryByTestId("contract-utility-form")).not.toBeInTheDocument();
   });

@@ -19,9 +19,7 @@ vi.mock("../../../user/context/AuthContext", () => ({
 }));
 
 /* --------- Mock de useApiErrors --------- */
-const handleErrorMock = vi.fn((e: any) =>
-  e instanceof Error ? e.message : String(e)
-);
+const handleErrorMock = vi.fn((e: any) => (e instanceof Error ? e.message : String(e)));
 vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: handleErrorMock }),
 }));
@@ -39,21 +37,11 @@ vi.mock("../../../shared/context/AlertContext", () => ({
 import * as service from "../../services/notice.service";
 import { useAuthContext as _useAuthContext } from "../../../user/context/AuthContext";
 
-const getAllNotices = service.getAllNotices as MockedFunction<
-  typeof service.getAllNotices
->;
-const searchNoticesByText = service.searchNoticesByText as MockedFunction<
-  typeof service.searchNoticesByText
->;
-const createNotice = service.createNotice as MockedFunction<
-  typeof service.createNotice
->;
-const updateNotice = service.updateNotice as MockedFunction<
-  typeof service.updateNotice
->;
-const deleteNotice = service.deleteNotice as MockedFunction<
-  typeof service.deleteNotice
->;
+const getAllNotices = service.getAllNotices as MockedFunction<typeof service.getAllNotices>;
+const searchNoticesByText = service.searchNoticesByText as MockedFunction<typeof service.searchNoticesByText>;
+const createNotice = service.createNotice as MockedFunction<typeof service.createNotice>;
+const updateNotice = service.updateNotice as MockedFunction<typeof service.updateNotice>;
+const deleteNotice = service.deleteNotice as MockedFunction<typeof service.deleteNotice>;
 const useAuthContext = _useAuthContext as MockedFunction<typeof _useAuthContext>;
 
 /* --------- Datos base --------- */

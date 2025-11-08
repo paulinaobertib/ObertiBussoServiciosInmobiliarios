@@ -95,10 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent("auth:event", { detail: { type } }));
     } catch {}
     try {
-      localStorage.setItem(
-        AUTH_EVENT_STORAGE_KEY,
-        JSON.stringify({ type, ts: Date.now() })
-      );
+      localStorage.setItem(AUTH_EVENT_STORAGE_KEY, JSON.stringify({ type, ts: Date.now() }));
     } catch {}
   }, []);
 
@@ -209,13 +206,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return;
       }
-      
+
       // Manejar eventos de auth:event para logout y session-expired
       if (event.key !== AUTH_EVENT_STORAGE_KEY || !event.newValue) return;
       try {
         const parsed = JSON.parse(event.newValue) as { type?: string };
         const type = parsed?.type;
-        
+
         if (type === "logout") {
           localStorage.clear();
           clearPropertyUiState();
@@ -239,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleCustomEvent = (event: Event) => {
       const customEvent = event as CustomEvent<{ type: string }>;
       const type = customEvent.detail?.type;
-      
+
       if (type === "user-loaded" || type === "logout" || type === "session-expired") {
         // Forzar re-render leyendo de localStorage
         const storedInfo = localStorage.getItem("authInfo");
@@ -259,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("storage", handleStorage);
     window.addEventListener("auth:event", handleCustomEvent);
-    
+
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("auth:event", handleCustomEvent);
@@ -279,7 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionExpired(false);
     // Don't set loading=true or ready=false here - if user clicks back instead of logging in,
     // they get stuck in permanent loading state. Let loadUserInfo handle the loading state.
-    
+
     clearPropertyUiState(); // limpia selección/estado previo
     broadcastAuthEvent("login"); // por si otro contexto quiere reaccionar
 

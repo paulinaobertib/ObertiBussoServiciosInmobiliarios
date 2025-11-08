@@ -24,9 +24,7 @@ vi.mock("../../services/property.service", () => ({
 
 function renderContext() {
   return renderHook(() => usePropertiesContext(), {
-    wrapper: ({ children }: { children: ReactNode }) => (
-      <PropertyCrudProvider>{children}</PropertyCrudProvider>
-    ),
+    wrapper: ({ children }: { children: ReactNode }) => <PropertyCrudProvider>{children}</PropertyCrudProvider>,
   });
 }
 
@@ -43,9 +41,7 @@ describe("PropertyCrudContext", () => {
         return e.message;
       }
     });
-    expect(result.current).toBe(
-      "usePropertiesContext debe usarse dentro de PropertyCrudProvider"
-    );
+    expect(result.current).toBe("usePropertiesContext debe usarse dentro de PropertyCrudProvider");
   });
 
   it("puede refrescar amenities", async () => {

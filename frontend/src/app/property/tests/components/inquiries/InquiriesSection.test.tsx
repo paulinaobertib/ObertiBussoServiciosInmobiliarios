@@ -14,7 +14,6 @@ const h = vi.hoisted(() => {
   };
 });
 
-
 vi.mock("../../../components/inquiries/InquiriesList", () => ({
   MixedList: (props: any) => {
     h.lastMixedProps = props;
@@ -119,8 +118,8 @@ describe("<InquiriesSection />", () => {
 
     expect(useInquiriesMock).toHaveBeenCalledWith({ propertyIds: [10, 20] });
     expect(screen.getByTestId("filter")).toBeInTheDocument();
-    expect(screen.getByTestId("f-status").textContent).toBe(""); 
-    expect(screen.getByTestId("f-prop").textContent).toBe("101"); 
+    expect(screen.getByTestId("f-status").textContent).toBe("");
+    expect(screen.getByTestId("f-prop").textContent).toBe("101");
     expect(screen.getByTestId("f-type").textContent).toBe("");
 
     fireEvent.click(screen.getByText("set-status-cerrada"));

@@ -16,9 +16,7 @@ vi.mock("../../context/AuthContext", () => ({
   useAuthContext: vi.fn(),
 }));
 
-const handleErrorMock = vi.fn((e: any) =>
-  e instanceof Error ? e.message : String(e)
-);
+const handleErrorMock = vi.fn((e: any) => (e instanceof Error ? e.message : String(e)));
 vi.mock("../../../shared/hooks/useErrors", () => ({
   useApiErrors: () => ({ handleError: handleErrorMock }),
 }));
@@ -32,10 +30,7 @@ const putUser = svc.putUser as MockedFunction<typeof svc.putUser>;
 const useAuthContext = _useAuthContext as MockedFunction<typeof _useAuthContext>;
 
 /* Helper para AxiosResponse válido */
-function axiosResponse<T>(
-  data: T,
-  init?: Partial<AxiosResponse<T>>
-): AxiosResponse<T> {
+function axiosResponse<T>(data: T, init?: Partial<AxiosResponse<T>>): AxiosResponse<T> {
   const config = {
     url: "/",
     method: "get",

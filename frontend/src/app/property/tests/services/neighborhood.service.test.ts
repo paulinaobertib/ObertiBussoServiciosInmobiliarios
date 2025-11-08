@@ -36,10 +36,7 @@ describe("neighborhoodService", () => {
 
     const result = await neighborhoodService.getNeighborhoodById(1);
 
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/neighborhood/getById/1",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/neighborhood/getById/1", { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -47,18 +44,17 @@ describe("neighborhoodService", () => {
     const data: NeighborhoodCreate = {
       name: "Barrio Nuevo",
       city: "Ciudad",
-      type: NeighborhoodType.ABIERTO, 
+      type: NeighborhoodType.ABIERTO,
     };
     const mockResponse = { data: { id: 2, ...data } };
     (api.post as any).mockResolvedValue(mockResponse);
 
     const result = await neighborhoodService.postNeighborhood(data);
 
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/neighborhood/create",
-      data,
-      { headers: { "Content-Type": "application/json" }, withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/neighborhood/create", data, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -74,11 +70,10 @@ describe("neighborhoodService", () => {
 
     const result = await neighborhoodService.putNeighborhood(data);
 
-    expect(api.put).toHaveBeenCalledWith(
-      "/properties/neighborhood/update/1",
-      data,
-      { headers: { "Content-Type": "application/json" }, withCredentials: true }
-    );
+    expect(api.put).toHaveBeenCalledWith("/properties/neighborhood/update/1", data, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -94,10 +89,7 @@ describe("neighborhoodService", () => {
 
     const result = await neighborhoodService.deleteNeighborhood(data);
 
-    expect(api.delete).toHaveBeenCalledWith(
-      "/properties/neighborhood/delete/1",
-      { withCredentials: true }
-    );
+    expect(api.delete).toHaveBeenCalledWith("/properties/neighborhood/delete/1", { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -114,7 +106,7 @@ describe("neighborhoodService", () => {
     expect(result).toEqual(mockResponse.data);
   });
 
-    it("lanza error si api.get falla en getAllNeighborhoods", async () => {
+  it("lanza error si api.get falla en getAllNeighborhoods", async () => {
     (api.get as any).mockRejectedValue(new Error("Network error"));
     await expect(neighborhoodService.getAllNeighborhoods()).rejects.toThrow("Network error");
   });

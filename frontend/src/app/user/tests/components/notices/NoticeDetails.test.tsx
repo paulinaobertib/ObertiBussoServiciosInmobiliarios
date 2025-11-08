@@ -70,9 +70,7 @@ describe("NoticeDetails", () => {
 
     render(<NoticeDetails />);
 
-    expect(
-      screen.getByText(/No encontramos esta noticia/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No encontramos esta noticia/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByText(/Volver/i));
     expect(navigateMock).toHaveBeenCalledWith(-1);

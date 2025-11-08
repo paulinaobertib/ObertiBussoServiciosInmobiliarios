@@ -54,8 +54,6 @@ describe("comparerProperty", () => {
   it("lanza un error si la API falla", async () => {
     (api.post as any).mockRejectedValue(new Error("Network error"));
 
-    await expect(comparerProperty(mockProperties)).rejects.toThrow(
-      "Network error"
-    );
+    await expect(comparerProperty(mockProperties)).rejects.toThrow("Network error");
   });
 });

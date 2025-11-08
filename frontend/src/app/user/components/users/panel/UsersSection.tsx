@@ -21,7 +21,10 @@ const ROLE_TRANSLATE: Record<Role, string> = {
 const translateRoles = (raw: unknown): string => {
   if (!Array.isArray(raw) || raw.length === 0) return "—";
   const names = raw.map((r: any) => (typeof r === "string" ? r : r?.name ?? ""));
-  return names.filter(Boolean).map((n) => ROLE_TRANSLATE[n as Role]).join(", ");
+  return names
+    .filter(Boolean)
+    .map((n) => ROLE_TRANSLATE[n as Role])
+    .join(", ");
 };
 
 export function UsersSection({

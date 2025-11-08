@@ -28,33 +28,31 @@ describe("viewService", () => {
     vi.clearAllMocks();
   });
 
-    const mockUserView: UserViewDTO = {
-    userId: "1",      
-    property: { id: 1 } 
-    };
+  const mockUserView: UserViewDTO = {
+    userId: "1",
+    property: { id: 1 },
+  };
 
-    const mockViewsByProperty: ViewsByProperty = { "1": 10 }; 
-    const mockViewsByPropertyType: ViewsByPropertyType = { "House": 15 };
-    const mockViewsByDay: ViewsByDay = { "2025-08-21": 5 };
-    const mockViewsByMonth: ViewsByMonth = { "2025-08": 20 };
-    const mockViewsByNeighborhood: ViewsByNeighborhood = { "Centro": 8 };
-    const mockViewsByNeighborhoodType: ViewsByNeighborhoodType = { "ABIERTO": 12 };
-    const mockViewsByStatus: ViewsByStatus = { "ACTIVE": 18 };
-    const mockViewsByStatusAndType: ViewsByStatusAndType = { ACTIVE: { House: 10 } };
-    const mockViewsByOperation: ViewsByOperation = { "SALE": 22 };
-    const mockViewsByRooms: ViewsByRooms = { "2": 5 };
-    const mockViewsByAmenity: ViewsByAmenity = { "Pool": 7 };
-
+  const mockViewsByProperty: ViewsByProperty = { "1": 10 };
+  const mockViewsByPropertyType: ViewsByPropertyType = { House: 15 };
+  const mockViewsByDay: ViewsByDay = { "2025-08-21": 5 };
+  const mockViewsByMonth: ViewsByMonth = { "2025-08": 20 };
+  const mockViewsByNeighborhood: ViewsByNeighborhood = { Centro: 8 };
+  const mockViewsByNeighborhoodType: ViewsByNeighborhoodType = { ABIERTO: 12 };
+  const mockViewsByStatus: ViewsByStatus = { ACTIVE: 18 };
+  const mockViewsByStatusAndType: ViewsByStatusAndType = { ACTIVE: { House: 10 } };
+  const mockViewsByOperation: ViewsByOperation = { SALE: 22 };
+  const mockViewsByRooms: ViewsByRooms = { "2": 5 };
+  const mockViewsByAmenity: ViewsByAmenity = { Pool: 7 };
 
   it("createUserView llama a api.post correctamente", async () => {
     (api.post as any).mockResolvedValue({});
 
     await viewService.createUserView(mockUserView);
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/userViews/create",
-      mockUserView,
-      { withCredentials: true, headers: { "Content-Type": "application/json" } }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/userViews/create", mockUserView, {
+      withCredentials: true,
+      headers: { "Content-Type": "application/json" },
+    });
   });
 
   it("getViewsByProperty devuelve datos correctamente", async () => {

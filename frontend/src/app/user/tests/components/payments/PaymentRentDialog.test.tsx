@@ -28,14 +28,7 @@ describe("PaymentRentDialog", () => {
     const onSaved = vi.fn();
     const contract = { id: 123 } as any;
 
-    render(
-      <PaymentRentDialog
-        open={true}
-        contract={contract}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
+    render(<PaymentRentDialog open={true} contract={contract} onClose={onClose} onSaved={onSaved} />);
 
     // Se renderizó nuestro mock del PaymentDialog
     expect(screen.getByTestId("payment-dialog-mock")).toBeInTheDocument();
@@ -58,12 +51,7 @@ describe("PaymentRentDialog", () => {
     const contractB = { id: 2 } as any;
 
     const { rerender } = render(
-      <PaymentRentDialog
-        open={true}
-        contract={contractA}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
+      <PaymentRentDialog open={true} contract={contractA} onClose={onClose} onSaved={onSaved} />
     );
 
     // Primer render
@@ -71,14 +59,7 @@ describe("PaymentRentDialog", () => {
     expect(h.lastProps.open).toBe(true);
 
     // Rerender con otros props
-    rerender(
-      <PaymentRentDialog
-        open={false}
-        contract={contractB}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
+    rerender(<PaymentRentDialog open={false} contract={contractB} onClose={onClose} onSaved={onSaved} />);
 
     expect(h.lastProps.contract).toBe(contractB);
     expect(h.lastProps.open).toBe(false);

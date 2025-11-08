@@ -1,5 +1,5 @@
 import { Box, Fab, Tooltip } from "@mui/material";
-import ChatIconUrl from '../assets/ic_chat.png';
+import ChatIconUrl from "../assets/ic_chat.png";
 import { useState } from "react";
 import { Chat } from "../app/chat/components/Chat";
 import { useAuthContext } from "../app/user/context/AuthContext";
@@ -9,7 +9,7 @@ export function ChatAlways() {
   const [open, setOpen] = useState(false);
   const initialId = Number(localStorage.getItem("selectedPropertyId") || "");
   const { isAdmin } = useAuthContext();
-  const fabSize = '3.5rem';
+  const fabSize = "3.5rem";
 
   if (isAdmin) return null;
 
@@ -21,21 +21,19 @@ export function ChatAlways() {
             <Fab
               onClick={() => setOpen(true)}
               sx={{
-                width: fabSize, height: fabSize,
+                width: fabSize,
+                height: fabSize,
                 bgcolor: (t) => t.palette.primary.main,
-                '&:hover': { bgcolor: (t) => t.palette.primary.dark },
-                color: '#fff',
+                "&:hover": { bgcolor: (t) => t.palette.primary.dark },
+                color: "#fff",
               }}
             >
-              <img src={ChatIconUrl} alt="Chat" style={{ width: '2.2rem', height: '2.2rem' }} />
+              <img src={ChatIconUrl} alt="Chat" style={{ width: "2.2rem", height: "2.2rem" }} />
             </Fab>
           </Tooltip>
         </Box>
       ) : (
-        <Chat
-          initialPropertyId={initialId > 0 ? initialId : undefined}
-          onClose={() => setOpen(false)}
-        />
+        <Chat initialPropertyId={initialId > 0 ? initialId : undefined} onClose={() => setOpen(false)} />
       )}
     </>
   );

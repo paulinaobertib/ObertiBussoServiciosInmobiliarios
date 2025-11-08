@@ -5,9 +5,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 vi.mock("../../../../user/components/favorites/FavoriteButtom", () => ({
-  FavoriteButton: ({ propertyId }: { propertyId: number }) => (
-    <div data-testid="fav-btn">fav-{propertyId}</div>
-  ),
+  FavoriteButton: ({ propertyId }: { propertyId: number }) => <div data-testid="fav-btn">fav-{propertyId}</div>,
 }));
 
 vi.mock("../../../../user/context/AuthContext", () => ({
@@ -86,13 +84,9 @@ describe("<PropertyCard />", () => {
 
   it("renderiza imagen y título; hace onClick cuando selectionMode=false", () => {
     const onClick = vi.fn();
-    renderWithTheme(
-      <PropertyCard property={baseProp as any} onClick={onClick} />
-    );
+    renderWithTheme(<PropertyCard property={baseProp as any} onClick={onClick} />);
 
-    expect(
-      screen.getByRole("img", { name: /casa con patio/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /casa con patio/i })).toBeInTheDocument();
     fireEvent.click(screen.getByText(/casa con patio/i));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
@@ -148,33 +142,29 @@ describe("<PropertyCard />", () => {
 
   it("selectionMode=true: ni el card ni la imagen disparan onClick", () => {
     const onClick = vi.fn();
-    renderWithTheme(
-      <PropertyCard property={baseProp as any} selectionMode onClick={onClick} />
-    );
+    renderWithTheme(<PropertyCard property={baseProp as any} selectionMode onClick={onClick} />);
     fireEvent.click(screen.getByText(/casa con patio/i));
     const img = screen.getByRole("img", { name: /casa con patio/i });
     fireEvent.click(img);
     expect(onClick).not.toHaveBeenCalled();
   });
 
-it("muestra badge DESTACADA si outstanding=true (estructura + animación presente)", () => {
-  renderWithTheme(
-    <PropertyCard property={{ ...baseProp, outstanding: true } as any} />
-  );
+  it("muestra badge DESTACADA si outstanding=true (estructura + animación presente)", () => {
+    renderWithTheme(<PropertyCard property={{ ...baseProp, outstanding: true } as any} />);
 
-  // El texto "DESTACADA" está dentro de un Box, cuyo padre es el contenedor con el gradiente
-  const label = screen.getByText(/DESTACADA/i);
-  expect(label).toBeInTheDocument();
+    // El texto "DESTACADA" está dentro de un Box, cuyo padre es el contenedor con el gradiente
+    const label = screen.getByText(/DESTACADA/i);
+    expect(label).toBeInTheDocument();
 
-  // El contenedor del gradiente es el abuelo del texto (ver JSX del componente)
-  const badge = label.parentElement?.parentElement as HTMLElement;
-  expect(badge).toBeTruthy();
+    // El contenedor del gradiente es el abuelo del texto (ver JSX del componente)
+    const badge = label.parentElement?.parentElement as HTMLElement;
+    expect(badge).toBeTruthy();
 
-  // El badge incluye un <style> con la animación shineSlide → confirma el render del bloque extendido
-  const styleTag = badge.querySelector("style");
-  expect(styleTag).toBeTruthy();
-  expect(styleTag!.textContent).toMatch(/@keyframes\s+shineSlide/);
-});
+    // El badge incluye un <style> con la animación shineSlide → confirma el render del bloque extendido
+    const styleTag = badge.querySelector("style");
+    expect(styleTag).toBeTruthy();
+    expect(styleTag!.textContent).toMatch(/@keyframes\s+shineSlide/);
+  });
 
   it("chip NUEVA aparece si la fecha es reciente y NO si es vieja", () => {
     const { unmount } = renderWithTheme(
@@ -184,9 +174,7 @@ it("muestra badge DESTACADA si outstanding=true (estructura + animación present
     unmount();
 
     const oldDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
-    renderWithTheme(
-      <PropertyCard property={{ ...baseProp, date: oldDate } as any} />
-    );
+    renderWithTheme(<PropertyCard property={{ ...baseProp, date: oldDate } as any} />);
     expect(screen.queryByText(/NUEVA/i)).toBeNull();
   });
 
@@ -197,16 +185,12 @@ it("muestra badge DESTACADA si outstanding=true (estructura + animación present
     expect(screen.getByText(/DISPONIBLE - VENTA/i)).toBeInTheDocument();
     unmount();
 
-    renderWithTheme(
-      <PropertyCard property={{ ...baseProp, status: "", operation: "" } as any} />
-    );
+    renderWithTheme(<PropertyCard property={{ ...baseProp, status: "", operation: "" } as any} />);
     expect(screen.getByText(/Sin Estado/i)).toBeInTheDocument();
   });
 
   it("cuando status NO es 'DISPONIBLE', el chip muestra solo el status (sin operación)", () => {
-    renderWithTheme(
-      <PropertyCard property={{ ...baseProp, status: "RESERVADA", operation: "ALQUILER" } as any} />
-    );
+    renderWithTheme(<PropertyCard property={{ ...baseProp, status: "RESERVADA", operation: "ALQUILER" } as any} />);
     expect(screen.getByText(/^RESERVADA$/i)).toBeInTheDocument();
     expect(screen.queryByText(/ALQUILER/i)).toBeNull();
   });
@@ -221,16 +205,12 @@ it("muestra badge DESTACADA si outstanding=true (estructura + animación present
     expect(screen.getByText(/ARS \$5000/)).toBeInTheDocument();
     unmount();
 
-    renderWithTheme(
-      <PropertyCard property={{ ...baseProp, showPrice: true, expenses: 0 } as any} />
-    );
+    renderWithTheme(<PropertyCard property={{ ...baseProp, showPrice: true, expenses: 0 } as any} />);
     expect(screen.getByText(/^No$/)).toBeInTheDocument();
   });
 
   it("showPrice=false: muestra 'Consultar'", () => {
-    renderWithTheme(
-      <PropertyCard property={{ ...baseProp, showPrice: false } as any} />
-    );
+    renderWithTheme(<PropertyCard property={{ ...baseProp, showPrice: false } as any} />);
     expect(screen.getByText(/Precio - Expensas/i)).toBeInTheDocument();
     expect(screen.getByText(/Consultar/i)).toBeInTheDocument();
   });
@@ -248,13 +228,7 @@ it("muestra badge DESTACADA si outstanding=true (estructura + animación present
 
   it("checkbox aparece desmarcado si isSelected devuelve false", () => {
     const isSelected = vi.fn(() => false);
-    renderWithTheme(
-      <PropertyCard
-        property={baseProp as any}
-        selectionMode
-        isSelected={isSelected}
-      />
-    );
+    renderWithTheme(<PropertyCard property={baseProp as any} selectionMode isSelected={isSelected} />);
     const cb = screen.getByRole("checkbox");
     expect(cb).not.toBeChecked();
   });

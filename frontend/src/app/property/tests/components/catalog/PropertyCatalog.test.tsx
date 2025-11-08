@@ -1,16 +1,16 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { PropertyCatalog } from '../../../components/catalog/PropertyCatalog';
-import { useCatalog } from '../../../hooks/useCatalog';
-import { vi } from 'vitest';
-import type { Property } from '../../../types/property';
+import { render, screen, fireEvent } from "@testing-library/react";
+import { PropertyCatalog } from "../../../components/catalog/PropertyCatalog";
+import { useCatalog } from "../../../hooks/useCatalog";
+import { vi } from "vitest";
+import type { Property } from "../../../types/property";
 
 // Mock del hook useCatalog
-vi.mock('../../../hooks/useCatalog', () => ({
+vi.mock("../../../hooks/useCatalog", () => ({
   useCatalog: vi.fn(),
 }));
 
 // Mock del componente CatalogList (sencillo, renderiza títulos clickeables)
-vi.mock('../../../components/catalog/CatalogList', () => ({
+vi.mock("../../../components/catalog/CatalogList", () => ({
   CatalogList: ({ properties, onCardClick }: any) => (
     <div data-testid="catalog-list">
       {properties.map((p: Property) => (
@@ -22,23 +22,23 @@ vi.mock('../../../components/catalog/CatalogList', () => ({
   ),
 }));
 
-describe('PropertyCatalog', () => {
+describe("PropertyCatalog", () => {
   const mockProperties: Property[] = [
     {
       id: 1,
-      title: 'Propiedad 1',
-      status: 'DISPONIBLE',
-      operation: 'Venta',
+      title: "Propiedad 1",
+      status: "DISPONIBLE",
+      operation: "Venta",
       outstanding: false,
       date: new Date().toISOString(),
       owner: {} as any,
       neighborhood: {} as any,
       type: {} as any,
       amenities: [],
-      street: 'Calle 1',
-      number: '123',
-      description: '',
-      currency: 'USD',
+      street: "Calle 1",
+      number: "123",
+      description: "",
+      currency: "USD",
       rooms: 2,
       bathrooms: 1,
       bedrooms: 2,
@@ -49,24 +49,24 @@ describe('PropertyCatalog', () => {
       showPrice: true,
       credit: false,
       financing: false,
-      mainImage: '',
+      mainImage: "",
       images: [],
     },
     {
       id: 2,
-      title: 'Propiedad 2',
-      status: 'VENDIDO',
-      operation: 'Alquiler',
+      title: "Propiedad 2",
+      status: "VENDIDO",
+      operation: "Alquiler",
       outstanding: false,
       date: new Date().toISOString(),
       owner: {} as any,
       neighborhood: {} as any,
       type: {} as any,
       amenities: [],
-      street: 'Calle 2',
-      number: '456',
-      description: '',
-      currency: 'USD',
+      street: "Calle 2",
+      number: "456",
+      description: "",
+      currency: "USD",
       rooms: 3,
       bathrooms: 2,
       bedrooms: 3,
@@ -77,7 +77,7 @@ describe('PropertyCatalog', () => {
       showPrice: true,
       credit: false,
       financing: false,
-      mainImage: '',
+      mainImage: "",
       images: [],
     },
   ];
@@ -99,13 +99,13 @@ describe('PropertyCatalog', () => {
     });
   });
 
-  it('llama handleClick al hacer click en una propiedad', () => {
+  it("llama handleClick al hacer click en una propiedad", () => {
     render(<PropertyCatalog properties={mockProperties} mode="edit" onFinishAction={vi.fn()} />);
-    fireEvent.click(screen.getByText('Propiedad 1'));
-    expect(handleClickMock).toHaveBeenCalledWith('edit', mockProperties[0]);
+    fireEvent.click(screen.getByText("Propiedad 1"));
+    expect(handleClickMock).toHaveBeenCalledWith("edit", mockProperties[0]);
   });
 
-  it('pasa correctamente selectionMode, toggleSelection e isSelected a CatalogList', () => {
+  it("pasa correctamente selectionMode, toggleSelection e isSelected a CatalogList", () => {
     const toggleSelection = vi.fn();
     const isSelected = vi.fn().mockReturnValue(true);
 
@@ -120,11 +120,11 @@ describe('PropertyCatalog', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Propiedad 2'));
-    expect(handleClickMock).toHaveBeenCalledWith('normal', mockProperties[1]);
+    fireEvent.click(screen.getByText("Propiedad 2"));
+    expect(handleClickMock).toHaveBeenCalledWith("normal", mockProperties[1]);
   });
 
-  it('llama useCatalog con los parámetros correctos (onFinish y externalProperties)', () => {
+  it("llama useCatalog con los parámetros correctos (onFinish y externalProperties)", () => {
     const onFinishAction = vi.fn();
     render(<PropertyCatalog properties={mockProperties} mode="normal" onFinishAction={onFinishAction} />);
 
@@ -139,24 +139,22 @@ describe('PropertyCatalog', () => {
   });
 
   it('actualiza el callback cuando cambia "mode" entre renders', () => {
-    const { rerender } = render(
-      <PropertyCatalog properties={mockProperties} mode="normal" onFinishAction={vi.fn()} />
-    );
+    const { rerender } = render(<PropertyCatalog properties={mockProperties} mode="normal" onFinishAction={vi.fn()} />);
 
     // Click con mode="normal"
-    fireEvent.click(screen.getByText('Propiedad 1'));
-    expect(handleClickMock).toHaveBeenLastCalledWith('normal', mockProperties[0]);
+    fireEvent.click(screen.getByText("Propiedad 1"));
+    expect(handleClickMock).toHaveBeenLastCalledWith("normal", mockProperties[0]);
 
     // Limpiamos para el segundo paso
     handleClickMock.mockClear();
 
     // Cambiamos a mode="delete" y clickeamos la otra card
     rerender(<PropertyCatalog properties={mockProperties} mode="delete" onFinishAction={vi.fn()} />);
-    fireEvent.click(screen.getByText('Propiedad 2'));
-    expect(handleClickMock).toHaveBeenCalledWith('delete', mockProperties[1]);
+    fireEvent.click(screen.getByText("Propiedad 2"));
+    expect(handleClickMock).toHaveBeenCalledWith("delete", mockProperties[1]);
   });
 
-  it('usa el nuevo handleClick si el hook lo cambia entre renders', () => {
+  it("usa el nuevo handleClick si el hook lo cambia entre renders", () => {
     const handleClick1 = vi.fn();
     const handleClick2 = vi.fn();
 
@@ -182,15 +180,13 @@ describe('PropertyCatalog', () => {
         isAdmin: false,
       }));
 
-    const { rerender } = render(
-      <PropertyCatalog properties={mockProperties} mode="edit" onFinishAction={vi.fn()} />
-    );
-    fireEvent.click(screen.getByText('Propiedad 1'));
-    expect(handleClick1).toHaveBeenCalledWith('edit', mockProperties[0]);
+    const { rerender } = render(<PropertyCatalog properties={mockProperties} mode="edit" onFinishAction={vi.fn()} />);
+    fireEvent.click(screen.getByText("Propiedad 1"));
+    expect(handleClick1).toHaveBeenCalledWith("edit", mockProperties[0]);
 
     // Rerender fuerza nueva llamada al hook y nuevo handleClick
     rerender(<PropertyCatalog properties={mockProperties} mode="edit" onFinishAction={vi.fn()} />);
-    fireEvent.click(screen.getByText('Propiedad 2'));
-    expect(handleClick2).toHaveBeenCalledWith('edit', mockProperties[1]);
+    fireEvent.click(screen.getByText("Propiedad 2"));
+    expect(handleClick2).toHaveBeenCalledWith("edit", mockProperties[1]);
   });
 });

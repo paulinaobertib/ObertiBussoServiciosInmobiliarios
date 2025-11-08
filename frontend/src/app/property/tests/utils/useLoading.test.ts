@@ -11,9 +11,7 @@ describe("useLoading", () => {
   });
 
   it("debe establecer loading en true durante la ejecución", async () => {
-    const mockFn = vi.fn().mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve("success"), 50))
-    );
+    const mockFn = vi.fn().mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve("success"), 50)));
     const { result } = renderHook(() => useLoading(mockFn));
 
     let loadingDuringExecution = false;

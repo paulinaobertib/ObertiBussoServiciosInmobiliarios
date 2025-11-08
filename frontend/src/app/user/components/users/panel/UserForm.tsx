@@ -87,7 +87,7 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         title,
         description: description ?? "Acción ejecutada con éxito",
         primaryLabel: "Volver",
-        primaryProps: { "data-testid": "btn-volver" }, 
+        primaryProps: { "data-testid": "btn-volver" },
       });
     } else if (alertApi?.showAlert) {
       alertApi.showAlert(description ?? title, "success");
@@ -175,7 +175,7 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
         <Grid size={{ xs: 12 }}>
           <TextField
             label="Nombre de usuario"
-            name="username" 
+            name="username"
             value={form.userName}
             onChange={handleChange("userName")}
             fullWidth

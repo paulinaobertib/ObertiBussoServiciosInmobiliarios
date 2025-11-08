@@ -216,8 +216,7 @@ export const useManagePropertyPage = () => {
         const galleryFiles = img.gallery.filter((g): g is File => g instanceof File);
         if (galleryFiles.length) {
           const rawId = created?.id ?? (created as any)?.data?.id;
-          const propertyId =
-            typeof rawId === "number" ? rawId : typeof rawId === "string" ? Number(rawId) : undefined;
+          const propertyId = typeof rawId === "number" ? rawId : typeof rawId === "string" ? Number(rawId) : undefined;
 
           if (typeof propertyId === "number" && Number.isFinite(propertyId)) {
             await Promise.all(galleryFiles.map((f) => postImage(f, propertyId)));

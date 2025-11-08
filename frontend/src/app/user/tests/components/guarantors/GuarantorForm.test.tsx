@@ -100,9 +100,7 @@ describe("GuarantorForm", () => {
   });
 
   it("deshabilita botón mientras saving", async () => {
-    mockCreate.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(true), 100))
-    );
+    mockCreate.mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve(true), 100)));
 
     render(<GuarantorForm action="add" {...baseProps} />);
 

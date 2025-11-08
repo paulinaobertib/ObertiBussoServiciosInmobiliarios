@@ -16,9 +16,7 @@ const h = vi.hoisted(() => {
 
     // servicios
     getAllMock: vi.fn(async () => [{ id: 10, title: "A", operation: "VENTA" }]),
-    getByTextMock: vi.fn(async (_: string) => [
-      { id: 20, title: "B", operation: "ALQUILER" },
-    ]),
+    getByTextMock: vi.fn(async (_: string) => [{ id: 20, title: "B", operation: "ALQUILER" }]),
     delPropMock: vi.fn(),
 
     // row actions
@@ -52,10 +50,7 @@ vi.mock("../../../../shared/components/GridSection", () => ({
         <button data-testid="toggle-1" onClick={() => props.toggleSelect?.("7")}>
           toggle-1
         </button>
-        <button
-          data-testid="toggle-2"
-          onClick={() => props.toggleSelect?.(["2", "9"])}
-        >
+        <button data-testid="toggle-2" onClick={() => props.toggleSelect?.(["2", "9"])}>
           toggle-2
         </button>
         <button data-testid="isSel" onClick={() => props.isSelected?.("42")}>
@@ -63,9 +58,7 @@ vi.mock("../../../../shared/components/GridSection", () => ({
         </button>
         {/* Render de la celda “price” para validar renderCell */}
         <div data-testid="cell-price">
-          {props.columns
-            ?.find((c: any) => c.field === "price")
-            ?.renderCell?.({ row: props.data?.[0] ?? {} })}
+          {props.columns?.find((c: any) => c.field === "price")?.renderCell?.({ row: props.data?.[0] ?? {} })}
         </div>
       </div>
     );
@@ -134,9 +127,8 @@ vi.mock("../../../context/PropertiesContext", () => ({
 // ---- SUT ----
 import { PropertySection } from "../../../components/properties/PropertySection";
 
-const renderSUT = (
-  props: Partial<React.ComponentProps<typeof PropertySection>> = {}
-) => render(<PropertySection {...props} />);
+const renderSUT = (props: Partial<React.ComponentProps<typeof PropertySection>> = {}) =>
+  render(<PropertySection {...props} />);
 
 describe("<PropertySection />", () => {
   beforeEach(() => {
@@ -161,9 +153,7 @@ describe("<PropertySection />", () => {
   it("pasa datos al Grid y filtra disponibles cuando filterAvailable=true", () => {
     renderSUT({ filterAvailable: true });
     expect(h.lastGridProps).toBeTruthy();
-    expect(h.lastGridProps.data).toEqual([
-      expect.objectContaining({ id: 1, status: "DISPONIBLE" }),
-    ]);
+    expect(h.lastGridProps.data).toEqual([expect.objectContaining({ id: 1, status: "DISPONIBLE" })]);
   });
 
   it("columnas incluyen Precio con renderCell correcto", () => {
@@ -224,11 +214,10 @@ describe("<PropertySection />", () => {
     expect(h.navigateMock).toHaveBeenCalledWith("/properties/1/edit");
   });
 
-it("GridSection recibe props clave: entityName, showActions=false, multiSelect=false", () => {
-  renderSUT({ showActions: false }); 
-  expect(h.lastGridProps.entityName).toBe("Propiedad");
-  expect(h.lastGridProps.showActions).toBe(false);
-  expect(h.lastGridProps.multiSelect).toBe(false);
-});
-
+  it("GridSection recibe props clave: entityName, showActions=false, multiSelect=false", () => {
+    renderSUT({ showActions: false });
+    expect(h.lastGridProps.entityName).toBe("Propiedad");
+    expect(h.lastGridProps.showActions).toBe(false);
+    expect(h.lastGridProps.multiSelect).toBe(false);
+  });
 });

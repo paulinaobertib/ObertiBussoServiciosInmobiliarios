@@ -51,9 +51,7 @@ describe("Componente Chat", () => {
 
   it("muestra el saludo inicial", () => {
     render(<Chat />);
-    expect(
-      screen.getByText(/Hola, soy tu asistente virtual/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Hola, soy tu asistente virtual/i)).toBeInTheDocument();
   });
 
   it("inicia sesión para usuario logueado", async () => {
@@ -61,9 +59,7 @@ describe("Componente Chat", () => {
     render(<Chat initialPropertyId={1} />);
     const btn = await screen.findByText("Sí");
     await act(async () => fireEvent.click(btn));
-    await waitFor(() =>
-      expect(mockStartSessionUser).toHaveBeenCalledWith(1, 1)
-    );
+    await waitFor(() => expect(mockStartSessionUser).toHaveBeenCalledWith(1, 1));
     expect(localStorage.getItem("chatSessionId")).toBe("100");
   });
 
@@ -80,15 +76,9 @@ describe("Componente Chat", () => {
     await act(async () => fireEvent.click(btnNo));
 
     const input = await screen.findByLabelText(/Buscar propiedad/i);
-    await act(async () =>
-      fireEvent.change(input, { target: { value: "Propiedad" } })
-    );
+    await act(async () => fireEvent.change(input, { target: { value: "Propiedad" } }));
 
-    await waitFor(() =>
-      expect(propertyService.getPropertiesByText).toHaveBeenCalledWith(
-        "Propiedad"
-      )
-    );
+    await waitFor(() => expect(propertyService.getPropertiesByText).toHaveBeenCalledWith("Propiedad"));
   });
 
   it("cierra chat correctamente", async () => {
@@ -121,9 +111,7 @@ describe("Componente Chat", () => {
     act(() => {
       fireEvent.change(emailInput, { target: { value: "invalido@" } });
     });
-    expect(
-      screen.getByText(/Ingresá un email válido/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Ingresá un email válido/i)).toBeInTheDocument();
   });
 
   it("en chat: enviar número fuera de rango agrega mensaje de 'Opción inválida'", async () => {
@@ -137,9 +125,7 @@ describe("Componente Chat", () => {
     await act(async () => fireEvent.click(btnSend));
 
     expect(mockAddUserMessage).toHaveBeenCalledWith("999");
-    expect(mockAddSystemMessage).toHaveBeenCalledWith(
-      "Opción inválida. Por favor seleccioná un número de la lista."
-    );
+    expect(mockAddSystemMessage).toHaveBeenCalledWith("Opción inválida. Por favor seleccioná un número de la lista.");
   });
 
   it("en chat: enviar texto no numérico agrega 'Entrada inválida'", async () => {

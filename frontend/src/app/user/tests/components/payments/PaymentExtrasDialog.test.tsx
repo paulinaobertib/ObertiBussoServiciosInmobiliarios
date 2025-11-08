@@ -29,13 +29,7 @@ describe("PaymentExtrasDialog", () => {
     const contract = { id: 7 } as any;
 
     render(
-      <PaymentExtrasDialog
-        open={true}
-        contract={contract}
-        contractUtilityId={42}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
+      <PaymentExtrasDialog open={true} contract={contract} contractUtilityId={42} onClose={onClose} onSaved={onSaved} />
     );
 
     // Se renderiza el mock del PaymentDialog
@@ -70,15 +64,8 @@ describe("PaymentExtrasDialog", () => {
     expect(h.lastProps.open).toBe(false);
     expect(h.lastProps.presetUtilityId).toBeUndefined();
     expect(h.lastProps.fixedConcept).toBe(PaymentConcept.EXTRA);
-    
-    rerender(
-      <PaymentExtrasDialog
-        open={true}
-        contract={contract}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
+
+    rerender(<PaymentExtrasDialog open={true} contract={contract} onClose={onClose} onSaved={onSaved} />);
     expect(h.lastProps.open).toBe(true);
     expect(h.lastProps.presetUtilityId).toBeUndefined();
     expect(h.lastProps.fixedConcept).toBe(PaymentConcept.EXTRA);
@@ -91,13 +78,7 @@ describe("PaymentExtrasDialog", () => {
     const contractB = { id: 2 } as any;
 
     const { rerender } = render(
-      <PaymentExtrasDialog
-        open={true}
-        contract={contractA}
-        contractUtilityId={5}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
+      <PaymentExtrasDialog open={true} contract={contractA} contractUtilityId={5} onClose={onClose} onSaved={onSaved} />
     );
     expect(h.lastProps.contract).toBe(contractA);
     expect(h.lastProps.presetUtilityId).toBe(5);

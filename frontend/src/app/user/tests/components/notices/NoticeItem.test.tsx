@@ -120,18 +120,9 @@ describe("<NoticeItem />", () => {
   it("cuando isAdmin=true muestra los icon buttons; 'Eliminar' llama onDeleteClick y NO navega", () => {
     const notice = makeNotice({ id: 55 });
     const onDeleteClick = vi.fn();
-    render(
-      <NoticeItem
-        notice={notice}
-        isAdmin
-        onUpdate={vi.fn()}
-        onDeleteClick={onDeleteClick}
-      />
-    );
+    render(<NoticeItem notice={notice} isAdmin onUpdate={vi.fn()} onDeleteClick={onDeleteClick} />);
 
-    const iconButtons = screen
-      .getAllByRole("button")
-      .filter((b) => b.querySelector("svg"));
+    const iconButtons = screen.getAllByRole("button").filter((b) => b.querySelector("svg"));
 
     expect(iconButtons.length).toBeGreaterThanOrEqual(2);
 
@@ -158,9 +149,7 @@ describe("<NoticeItem />", () => {
     fireEvent.click(saveBtn);
 
     await vi.waitFor(() =>
-      expect(onUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ id: notice.id, userId: notice.userId })
-      )
+      expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: notice.id, userId: notice.userId }))
     );
     expect(screen.queryByTestId("modal")).toBeNull();
   });

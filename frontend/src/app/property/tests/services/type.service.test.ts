@@ -54,11 +54,10 @@ describe("typeService", () => {
     (api.post as any).mockResolvedValue({ data: mockType });
 
     const result = await typeService.postType(mockTypeCreate);
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/type/create",
-      mockTypeCreate,
-      { headers: { "Content-Type": "application/json" }, withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/type/create", mockTypeCreate, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
     expect(result).toEqual(mockType);
   });
 
@@ -82,7 +81,10 @@ describe("typeService", () => {
     (api.get as any).mockResolvedValue({ data: [mockType] });
 
     const result = await typeService.getTypesByText("House");
-    expect(api.get).toHaveBeenCalledWith("/properties/type/search", { params: { search: "House" }, withCredentials: true });
+    expect(api.get).toHaveBeenCalledWith("/properties/type/search", {
+      params: { search: "House" },
+      withCredentials: true,
+    });
     expect(result).toEqual([mockType]);
   });
 

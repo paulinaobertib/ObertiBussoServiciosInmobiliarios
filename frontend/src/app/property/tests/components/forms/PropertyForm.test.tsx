@@ -13,10 +13,7 @@ const h = vi.hoisted(() => {
   const getUpdateData = vi.fn(() => ({ update: true }));
 
   // este num imita tu hook real (convierte a número)
-  const num =
-    (key: string) =>
-    (e: any) =>
-      setField(key as any, Number(e.target.value || 0));
+  const num = (key: string) => (e: any) => setField(key as any, Number(e.target.value || 0));
 
   const form = {
     title: "",
@@ -94,10 +91,7 @@ vi.mock("../../../../shared/components/images/ImageUploader", () => ({
 // AddressSelector
 vi.mock("../../../components/propertyDetails/maps/AddressSelector", () => ({
   AddressSelector: (props: any) => (
-    <button
-      data-testid="address-selector"
-      onClick={() => props.onChange?.({ street: "Calle Falsa", number: "123" })}
-    >
+    <button data-testid="address-selector" onClick={() => props.onChange?.({ street: "Calle Falsa", number: "123" })}>
       AddressSelector
     </button>
   ),
@@ -171,7 +165,7 @@ describe("<PropertyForm />", () => {
     const expInput = getInputByLabel("Expensas");
     // adornment está en el mismo contenedor del input
     const root = expInput.closest("div")!;
-    const clearBtn = root.querySelector('button');
+    const clearBtn = root.querySelector("button");
     expect(clearBtn).toBeTruthy();
     fireEvent.click(clearBtn!);
     expect(h.ctrl.setField).toHaveBeenCalledWith("expenses", 0);

@@ -19,10 +19,7 @@ describe("useImages", () => {
     const { result } = renderHook(() => useImages(main, gallery));
 
     expect(result.current.mainImage).toBe(main);
-    expect(result.current.gallery).toEqual([
-      "https://cdn/test/other1.jpg",
-      "https://cdn/test/other2.jpg",
-    ]);
+    expect(result.current.gallery).toEqual(["https://cdn/test/other1.jpg", "https://cdn/test/other2.jpg"]);
   });
 
   it("setMain: mueve imagen desde la gallery a main y la quita de la gallery", () => {

@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery, Dialog } from '@mui/material';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { getFullImageUrl } from '../../utils/getFullImageUrl';
+import { useState, useEffect } from "react";
+import { Box, IconButton, Paper, Chip, Typography, useTheme, useMediaQuery, Dialog } from "@mui/material";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { getFullImageUrl } from "../../utils/getFullImageUrl";
 
-interface Image { id: number; url: string }
+interface Image {
+  id: number;
+  url: string;
+}
 interface Props {
   images: Image[];
   mainImage: string;
@@ -15,11 +18,11 @@ interface Props {
 // Carrusel que soporta imágenes y vídeos
 export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
   const theme = useTheme();
-  const mobile = useMediaQuery(theme.breakpoints.down('md'));
-  const tablet = useMediaQuery(theme.breakpoints.down('lg'));
+  const mobile = useMediaQuery(theme.breakpoints.down("md"));
+  const tablet = useMediaQuery(theme.breakpoints.down("lg"));
 
   // evita duplicados
-  const all = [mainImage, ...images.map(i => i.url)]
+  const all = [mainImage, ...images.map((i) => i.url)]
     .filter((v, i, arr) => arr.indexOf(v) === i)
     .map((url, id) => ({ id, url }));
 
@@ -40,47 +43,68 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
 
   useEffect(() => {
     if (all.length > 1) {
-      const t = setInterval(() => setIdx(i => (i + 1) % all.length), 3500);
+      const t = setInterval(() => setIdx((i) => (i + 1) % all.length), 3500);
       return () => clearInterval(t);
     }
   }, [all.length]);
 
-  const isVideo = (url: string) =>
-    /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
+  const isVideo = (url: string) => /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: "100%" }}>
       {/* Slide */}
       {all.length > 0 && (
-        <Paper elevation={3}
+        <Paper
+          elevation={3}
           sx={{
-            borderRadius: 2, overflow: 'hidden',
-            height: mobile ? 300 : 450, position: 'relative',
-            cursor: 'zoom-in',
+            borderRadius: 2,
+            overflow: "hidden",
+            height: mobile ? 300 : 450,
+            position: "relative",
+            cursor: "zoom-in",
           }}
           onClick={() => openLightbox(idx)}
         >
           {all.map((img, i) => (
-            <Box key={img.id} sx={{
-              position: 'absolute', inset: 0,
-              opacity: i === idx ? 1 : 0, transition: 'opacity .5s'
-            }}>
+            <Box
+              key={img.id}
+              sx={{
+                position: "absolute",
+                inset: 0,
+                opacity: i === idx ? 1 : 0,
+                transition: "opacity .5s",
+              }}
+            >
               {isVideo(img.url) ? (
-                <video src={getFullImageUrl(img.url)}
-                  muted autoPlay loop playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <video
+                  src={getFullImageUrl(img.url)}
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               ) : (
-                <img src={getFullImageUrl(img.url) || '/placeholder.svg'}
+                <img
+                  src={getFullImageUrl(img.url) || "/placeholder.svg"}
                   alt={`Imagen ${i + 1} de ${title}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               )}
             </Box>
           ))}
-          <Chip label={`${idx + 1}/${all.length}`} size="small"
+          <Chip
+            label={`${idx + 1}/${all.length}`}
+            size="small"
             sx={{
-              position: 'absolute', bottom: 16, right: 16,
-              bgcolor: 'rgba(5,5,5,.6)', color: '#fff', fontWeight: 'bold'
-            }} />
+              position: "absolute",
+              bottom: 16,
+              right: 16,
+              bgcolor: "rgba(5,5,5,.6)",
+              color: "#fff",
+              fontWeight: "bold",
+            }}
+          />
           {all.length > 1 && (
             <>
               <IconButton
@@ -90,20 +114,20 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                   prev();
                 }}
                 sx={{
-                  position: 'absolute',
-                  top: '50%',
+                  position: "absolute",
+                  top: "50%",
                   left: 16,
-                  transform: 'translateY(-50%)',
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,1)',
+                  transform: "translateY(-50%)",
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,1)",
                   },
                   boxShadow: 2,
                   zIndex: 1,
                 }}
-                size={mobile ? 'small' : 'medium'}
+                size={mobile ? "small" : "medium"}
               >
-                <ArrowBackIosNewIcon fontSize={mobile ? 'small' : 'medium'} />
+                <ArrowBackIosNewIcon fontSize={mobile ? "small" : "medium"} />
               </IconButton>
               <IconButton
                 aria-label="Siguiente imagen"
@@ -112,20 +136,20 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                   next();
                 }}
                 sx={{
-                  position: 'absolute',
-                  top: '50%',
+                  position: "absolute",
+                  top: "50%",
                   right: 16,
-                  transform: 'translateY(-50%)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  '&:hover': {
-                    backgroundColor: 'rgb(246, 246, 246)',
+                  transform: "translateY(-50%)",
+                  backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  "&:hover": {
+                    backgroundColor: "rgb(246, 246, 246)",
                   },
                   boxShadow: 2,
                   zIndex: 1,
                 }}
-                size={mobile ? 'small' : 'medium'}
+                size={mobile ? "small" : "medium"}
               >
-                <ArrowForwardIosIcon fontSize={mobile ? 'small' : 'medium'} />
+                <ArrowForwardIosIcon fontSize={mobile ? "small" : "medium"} />
               </IconButton>
             </>
           )}
@@ -133,39 +157,66 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
       )}
 
       {/* Miniaturas */}
-      <Box sx={{
-        mt: 2, display: 'flex', gap: 1, overflowX: 'auto',
-        minHeight: mobile ? 60 : 80
-      }}>
+      <Box
+        sx={{
+          mt: 2,
+          display: "flex",
+          gap: 1,
+          overflowX: "auto",
+          minHeight: mobile ? 60 : 80,
+        }}
+      >
         {(showAll ? all : all.slice(0, thumbs)).map((img, i) => (
-          <Box key={img.id} onClick={() => setIdx(i)}
+          <Box
+            key={img.id}
+            onClick={() => setIdx(i)}
             sx={{
-              width: mobile ? 60 : 80, height: mobile ? 60 : 80, borderRadius: 1,
-              overflow: 'hidden', cursor: 'pointer', flexShrink: 0,
-              border: i === idx ? `2px solid ${theme.palette.primary.main}`
-                : '2px solid transparent',
-              opacity: i === idx ? 1 : .7, transition: 'all .2s',
-              '&:hover': { opacity: 1 }
-            }}>
+              width: mobile ? 60 : 80,
+              height: mobile ? 60 : 80,
+              borderRadius: 1,
+              overflow: "hidden",
+              cursor: "pointer",
+              flexShrink: 0,
+              border: i === idx ? `2px solid ${theme.palette.primary.main}` : "2px solid transparent",
+              opacity: i === idx ? 1 : 0.7,
+              transition: "all .2s",
+              "&:hover": { opacity: 1 },
+            }}
+          >
             {isVideo(img.url) ? (
-              <video src={getFullImageUrl(img.url)}
-                muted autoPlay loop playsInline
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <video
+                src={getFullImageUrl(img.url)}
+                muted
+                autoPlay
+                loop
+                playsInline
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
             ) : (
-              <img src={getFullImageUrl(img.url) || '/placeholder.svg'}
+              <img
+                src={getFullImageUrl(img.url) || "/placeholder.svg"}
                 alt={`Miniatura ${i + 1}`}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
             )}
           </Box>
         ))}
         {all.length > thumbs && !showAll && (
-          <Box onClick={() => setShowAll(true)}
+          <Box
+            onClick={() => setShowAll(true)}
             sx={{
-              width: mobile ? 60 : 80, height: mobile ? 60 : 80, borderRadius: 1,
-              bgcolor: 'rgba(0,0,0,.1)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0,0,0,.2)' }, flexShrink: 0
-            }}>
+              width: mobile ? 60 : 80,
+              height: mobile ? 60 : 80,
+              borderRadius: 1,
+              bgcolor: "rgba(0,0,0,.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              "&:hover": { bgcolor: "rgba(0,0,0,.2)" },
+              flexShrink: 0,
+            }}
+          >
             <Typography variant="body2" fontWeight="bold">
               +{all.length - thumbs}
             </Typography>
@@ -180,31 +231,31 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: 'rgba(0,0,0,0.85)',
-            boxShadow: 'none',
+            backgroundColor: "rgba(0,0,0,0.85)",
+            boxShadow: "none",
             borderRadius: 0,
           },
         }}
       >
         <Box
           sx={{
-            position: 'relative',
-            width: { xs: '90vw', md: '70vw' },
-            maxHeight: '90vh',
-            mx: 'auto',
+            position: "relative",
+            width: { xs: "90vw", md: "70vw" },
+            maxHeight: "90vh",
+            mx: "auto",
           }}
         >
           <IconButton
             aria-label="Cerrar galería"
             onClick={closeLightbox}
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: 8,
               right: 8,
-              color: '#fff',
+              color: "#fff",
               zIndex: 2,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+              backgroundColor: "rgba(0,0,0,0.4)",
+              "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
             }}
           >
             <CancelIcon />
@@ -219,13 +270,13 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                   lightboxPrev();
                 }}
                 sx={{
-                  position: 'absolute',
-                  top: '50%',
+                  position: "absolute",
+                  top: "50%",
                   left: 16,
-                  transform: 'translateY(-50%)',
-                  color: '#fff',
-                  backgroundColor: 'rgba(0,0,0,0.4)',
-                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+                  transform: "translateY(-50%)",
+                  color: "#fff",
+                  backgroundColor: "rgba(0,0,0,0.4)",
+                  "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
                   zIndex: 2,
                 }}
               >
@@ -238,13 +289,13 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                   lightboxNext();
                 }}
                 sx={{
-                  position: 'absolute',
-                  top: '50%',
+                  position: "absolute",
+                  top: "50%",
                   right: 16,
-                  transform: 'translateY(-50%)',
-                  color: '#fff',
-                  backgroundColor: 'rgba(0,0,0,0.4)',
-                  '&:hover': { backgroundColor: 'rgba(0,0,0,0.6)' },
+                  transform: "translateY(-50%)",
+                  color: "#fff",
+                  backgroundColor: "rgba(0,0,0,0.4)",
+                  "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
                   zIndex: 2,
                 }}
               >
@@ -254,7 +305,7 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
           )}
 
           {all[lightboxIdx] && (
-            <Box sx={{ width: '100%', height: '100%', textAlign: 'center' }}>
+            <Box sx={{ width: "100%", height: "100%", textAlign: "center" }}>
               {isVideo(all[lightboxIdx].url) ? (
                 <video
                   src={getFullImageUrl(all[lightboxIdx].url)}
@@ -262,24 +313,24 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                   controls
                   playsInline
                   style={{
-                    width: '100%',
-                    height: '100%',
-                    maxHeight: '90vh',
-                    objectFit: 'contain',
+                    width: "100%",
+                    height: "100%",
+                    maxHeight: "90vh",
+                    objectFit: "contain",
                   }}
                   onContextMenu={(e) => e.preventDefault()}
                 />
               ) : (
                 <Box
                   component="img"
-                  src={getFullImageUrl(all[lightboxIdx].url) || '/placeholder.svg'}
+                  src={getFullImageUrl(all[lightboxIdx].url) || "/placeholder.svg"}
                   alt={`Imagen ampliada ${lightboxIdx + 1} de ${title}`}
                   sx={{
-                    display: 'block',
-                    maxHeight: '90vh',
-                    width: '100%',
-                    height: 'auto',
-                    objectFit: 'contain',
+                    display: "block",
+                    maxHeight: "90vh",
+                    width: "100%",
+                    height: "auto",
+                    objectFit: "contain",
                   }}
                 />
               )}
@@ -290,12 +341,12 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
             label={`${lightboxIdx + 1}/${all.length}`}
             size="small"
             sx={{
-              position: 'absolute',
+              position: "absolute",
               bottom: 16,
               right: 16,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              color: '#fff',
-              fontWeight: 'bold',
+              bgcolor: "rgba(0,0,0,0.6)",
+              color: "#fff",
+              fontWeight: "bold",
             }}
           />
         </Box>

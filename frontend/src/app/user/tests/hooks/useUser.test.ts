@@ -20,10 +20,7 @@ import { getUserById as _getUserById } from "../../services/user.service";
 const getUserById = _getUserById as MockedFunction<typeof _getUserById>;
 
 /* Helper AxiosResponse */
-function axiosResponse<T>(
-  data: T,
-  init?: Partial<AxiosResponse<T>>
-): AxiosResponse<T> {
+function axiosResponse<T>(data: T, init?: Partial<AxiosResponse<T>>): AxiosResponse<T> {
   const config = {
     url: "/",
     method: "get",
@@ -123,10 +120,7 @@ describe("useUser", () => {
     const bob: User = { id: "B", name: "Bob" } as any;
 
     getUserById.mockResolvedValueOnce(axiosResponse(alice));
-    const { result, rerender } = renderHook(
-      ({ id }) => useUser(id),
-      { initialProps: { id: "A" } }
-    );
+    const { result, rerender } = renderHook(({ id }) => useUser(id), { initialProps: { id: "A" } });
 
     await waitFor(() => expect(result.current.loading).toBe(true));
     await waitFor(() => expect(result.current.loading).toBe(false));

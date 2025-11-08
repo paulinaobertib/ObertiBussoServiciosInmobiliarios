@@ -29,13 +29,7 @@ describe("PaymentCommissionDialog", () => {
 
   it("renderiza PaymentDialog con props correctas y fixedConcept COMISION", () => {
     render(
-      <PaymentCommissionDialog
-        open={true}
-        contract={contract}
-        installment={2}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
+      <PaymentCommissionDialog open={true} contract={contract} installment={2} onClose={onClose} onSaved={onSaved} />
     );
 
     // Verificamos que PaymentDialog se llamó una vez
@@ -52,14 +46,7 @@ describe("PaymentCommissionDialog", () => {
   });
 
   it("pasa null a presetInstallment si no se proporciona", () => {
-    render(
-      <PaymentCommissionDialog
-        open={true}
-        contract={contract}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
-    );
+    render(<PaymentCommissionDialog open={true} contract={contract} onClose={onClose} onSaved={onSaved} />);
 
     const props = (PaymentDialog as any).mock.calls[0][0];
     expect(props.presetInstallment).toBeNull();

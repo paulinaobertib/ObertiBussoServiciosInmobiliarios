@@ -40,19 +40,11 @@ describe("inquiryService", () => {
 
     const resultAuth = await inquiryService.postInquiry(authInquiry);
     expect(resultAuth).toEqual(mockResponse);
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/inquiries/create",
-      authInquiry,
-      { withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/inquiries/create", authInquiry, { withCredentials: true });
 
     const resultAnon = await inquiryService.postInquiry(anonInquiry);
     expect(resultAnon).toEqual(mockResponse);
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/inquiries/create",
-      anonInquiry,
-      { withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/inquiries/create", anonInquiry, { withCredentials: true });
   });
 
   it("lanza error si postInquiry falla", async () => {
@@ -64,11 +56,7 @@ describe("inquiryService", () => {
     (api.put as any).mockResolvedValue(mockResponse);
     const result = await inquiryService.updateInquiry(5);
     expect(result).toEqual(mockResponse);
-    expect(api.put).toHaveBeenCalledWith(
-      "/properties/inquiries/status/5",
-      null,
-      { withCredentials: true }
-    );
+    expect(api.put).toHaveBeenCalledWith("/properties/inquiries/status/5", null, { withCredentials: true });
   });
 
   it("lanza error si updateInquiry falla", async () => {
@@ -80,50 +68,38 @@ describe("inquiryService", () => {
     (api.get as any).mockResolvedValue(mockResponse);
     const result = await inquiryService.getInquiryById(1);
     expect(result).toEqual(mockResponse);
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/inquiries/getById/1",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/inquiries/getById/1", { withCredentials: true });
   });
 
   it("getAllInquiries llama a api.get correctamente", async () => {
     (api.get as any).mockResolvedValue(mockResponse);
     const result = await inquiryService.getAllInquiries();
     expect(result).toEqual(mockResponse);
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/inquiries/getAll",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/inquiries/getAll", { withCredentials: true });
   });
 
   it("getInquiriesByUser llama a api.get correctamente", async () => {
     (api.get as any).mockResolvedValue(mockResponse);
     const result = await inquiryService.getInquiriesByUser("user1");
     expect(result).toEqual(mockResponse);
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/inquiries/user/user1",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/inquiries/user/user1", { withCredentials: true });
   });
 
   it("getInquiriesByProperty llama a api.get correctamente", async () => {
     (api.get as any).mockResolvedValue(mockResponse);
     const result = await inquiryService.getInquiriesByProperty(10);
     expect(result).toEqual(mockResponse);
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/inquiries/property/10",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/inquiries/property/10", { withCredentials: true });
   });
 
   it("getInquiriesByStatus llama a api.get correctamente", async () => {
     (api.get as any).mockResolvedValue(mockResponse);
     const result = await inquiryService.getInquiriesByStatus("ABIERTA" as InquiryStatus);
     expect(result).toEqual(mockResponse);
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/inquiries/getByStatus",
-      { params: { status: "ABIERTA" }, withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/inquiries/getByStatus", {
+      params: { status: "ABIERTA" },
+      withCredentials: true,
+    });
   });
 
   it("estadísticas llaman a api.get correctamente", async () => {

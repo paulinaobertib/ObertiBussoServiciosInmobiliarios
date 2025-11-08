@@ -198,7 +198,7 @@ describe("NavBar", () => {
   });
 
   // ===== Móvil (xs) comportamiento menú =====
-  it('móvil (no logueado): menú muestra acciones públicas y login funciona', async () => {
+  it("móvil (no logueado): menú muestra acciones públicas y login funciona", async () => {
     renderNavBar();
 
     const loginBtn = screen.getByLabelText(/login/i);
@@ -209,20 +209,20 @@ describe("NavBar", () => {
 
     await screen.findByText(/Inicia sesión para gestionar tus consultas y favoritos/i);
 
-    const contactAction = await screen.findByRole('button', { name: /Contacto \/ Turnero de Citas/i });
+    const contactAction = await screen.findByRole("button", { name: /Contacto \/ Turnero de Citas/i });
     fireEvent.click(contactAction);
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTACT);
 
-    const newsAction = await screen.findByRole('button', { name: /Noticias/i });
+    const newsAction = await screen.findByRole("button", { name: /Noticias/i });
     fireEvent.click(newsAction);
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEWS);
   });
 
-    it('móvil (usuario no admin): menú incluye acciones de perfil y favoritos', async () => {
+  it("móvil (usuario no admin): menú incluye acciones de perfil y favoritos", async () => {
     setAuthMock({
       isLogged: true,
       isAdmin: false,
-      info: { firstName: 'Ada', lastName: 'Lovelace', userName: 'ada', email: 'ada@dev.com' },
+      info: { firstName: "Ada", lastName: "Lovelace", userName: "ada", email: "ada@dev.com" },
     });
     renderNavBar();
 
@@ -230,12 +230,12 @@ describe("NavBar", () => {
 
     await screen.findByText(/Ada Lovelace/i);
 
-    const profileAction = await screen.findByRole('button', { name: /Mi Perfil/i });
+    const profileAction = await screen.findByRole("button", { name: /Mi Perfil/i });
     fireEvent.click(profileAction);
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.USER_PROFILE);
 
     fireEvent.click(screen.getByLabelText(/menu/i));
-    const favoritesAction = await screen.findByRole('button', { name: /Mis Favoritos/i });
+    const favoritesAction = await screen.findByRole("button", { name: /Mis Favoritos/i });
     fireEvent.click(favoritesAction);
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES);
   });

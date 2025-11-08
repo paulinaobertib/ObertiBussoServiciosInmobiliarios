@@ -36,7 +36,10 @@ describe("useChatSession", () => {
     // Promesa diferida para controlar el momento de resolución
     let resolveFn!: (v: any) => void;
     (createChatSessionMock as Mock).mockImplementationOnce(
-      () => new Promise((resolve) => { resolveFn = resolve; })
+      () =>
+        new Promise((resolve) => {
+          resolveFn = resolve;
+        })
     );
 
     const { result } = renderHook(() => useChatSession());

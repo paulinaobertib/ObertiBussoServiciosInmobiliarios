@@ -59,7 +59,10 @@ const setSelectedMock = vi.fn((next: any) => {
 
 // Listas “catálogo”
 const typesListMock = ["Casa", "Depto"];
-const amenitiesListMock = [{ id: 1, name: "Ascensor" }, { id: 2, name: "Pileta" }];
+const amenitiesListMock = [
+  { id: 1, name: "Ascensor" },
+  { id: 2, name: "Pileta" },
+];
 const neighborhoodsListMock = ["Centro", "Norte"];
 
 vi.mock("../../../property/context/PropertiesContext", () => ({

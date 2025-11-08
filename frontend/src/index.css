@@ -1,7 +1,9 @@
-html, body, #root {
-    height: 100%;
-    margin: 0;
-  }
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
 
 /* Prevenir scroll cuando el loader de autenticación está activo */
 body.auth-loading {
@@ -9,7 +11,9 @@ body.auth-loading {
   height: 100vh !important;
 }
 
-html { font-size: clamp(14px, calc(12.667px + 0.4167vw), 18px);}
+html {
+  font-size: clamp(14px, calc(12.667px + 0.4167vw), 18px);
+}
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

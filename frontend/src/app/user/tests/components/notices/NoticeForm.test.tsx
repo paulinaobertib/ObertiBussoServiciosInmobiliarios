@@ -138,5 +138,4 @@ describe("NoticeForm", () => {
     form.dispatchEvent(evt);
     expect(evt.defaultPrevented).toBe(true);
   });
-
 });

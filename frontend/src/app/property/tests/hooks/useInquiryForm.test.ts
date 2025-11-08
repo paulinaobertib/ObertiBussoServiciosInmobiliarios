@@ -92,14 +92,16 @@ describe("useInquiryForm", () => {
       await result.current.handleSubmit({ preventDefault: () => {} } as FormEvent<HTMLFormElement>);
     });
 
-    expect(postInquiry).toHaveBeenCalledWith(expect.objectContaining({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      title: "Consulta General",
-      description: "",
-    }));
+    expect(postInquiry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        title: "Consulta General",
+        description: "",
+      })
+    );
     expect(mockSuccess).toHaveBeenCalled();
     expect(result.current.formLoading).toBe(false);
   });

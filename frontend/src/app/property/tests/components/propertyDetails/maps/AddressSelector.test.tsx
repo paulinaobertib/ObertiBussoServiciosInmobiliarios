@@ -111,11 +111,7 @@ describe("AddressSelector", () => {
     const localOnChange = vi.fn();
 
     render(
-      <AddressSelector
-        {...defaultProps}
-        value={{ street: "Belgrano", number: "123" }}
-        onChange={localOnChange}
-      />
+      <AddressSelector {...defaultProps} value={{ street: "Belgrano", number: "123" }} onChange={localOnChange} />
     );
 
     const calle = await screen.findByLabelText(/Calle/i);
@@ -131,21 +127,14 @@ describe("AddressSelector", () => {
     const successMessages = await screen.findAllByText("Dirección válida dentro del barrio.");
     expect(successMessages.length).toBeGreaterThan(0);
 
-    expect(fetchMock).toHaveBeenLastCalledWith(
-      expect.stringContaining("Belgrano+123%2C+Centro")
-    );
+    expect(fetchMock).toHaveBeenLastCalledWith(expect.stringContaining("Belgrano+123%2C+Centro"));
   });
 
   it("muestra mensaje de error cuando la dirección queda fuera del barrio", async () => {
     fetchMock.mockResolvedValueOnce({ json: async () => [{ geojson: polygon }] });
     fetchMock.mockResolvedValueOnce({ json: async () => [] });
 
-    render(
-      <AddressSelector
-        {...defaultProps}
-        value={{ street: "Falsa", number: "123" }}
-      />
-    );
+    render(<AddressSelector {...defaultProps} value={{ street: "Falsa", number: "123" }} />);
 
     await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
     const buttons = screen.getAllByRole("button");
@@ -156,12 +145,7 @@ describe("AddressSelector", () => {
   });
 
   it("permite setear número S/N desde el adornment", async () => {
-    render(
-      <AddressSelector
-        {...defaultProps}
-        value={{ street: "", number: "" }}
-      />
-    );
+    render(<AddressSelector {...defaultProps} value={{ street: "", number: "" }} />);
 
     const numero = await screen.findByLabelText(/Número/i);
     const container = numero.closest("div");
@@ -170,5 +154,4 @@ describe("AddressSelector", () => {
 
     expect(defaultProps.onChange).toHaveBeenLastCalledWith({ street: "", number: "S/N" });
   });
-
 });

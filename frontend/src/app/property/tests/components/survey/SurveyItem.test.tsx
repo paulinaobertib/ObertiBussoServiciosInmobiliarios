@@ -27,7 +27,7 @@ describe("SurveyItem", () => {
   it("muestra el color correcto según si hay comentario", () => {
     const { rerender } = render(<SurveyItem score={5} comment="Excelente" />);
     const textWithComment = screen.getByText("Excelente");
-    expect(textWithComment).toHaveClass("MuiTypography-root"); 
+    expect(textWithComment).toHaveClass("MuiTypography-root");
 
     rerender(<SurveyItem score={5} comment="" />);
     const textWithoutComment = screen.getByText("Sin comentario");

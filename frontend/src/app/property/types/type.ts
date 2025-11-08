@@ -7,4 +7,3 @@ export interface Type {
   hasCoveredArea: boolean;
 }
 export type TypeCreate = Omit<Type, "id">;
-

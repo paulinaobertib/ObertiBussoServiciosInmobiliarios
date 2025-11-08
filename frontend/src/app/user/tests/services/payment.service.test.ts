@@ -50,11 +50,7 @@ describe("payment.service", () => {
     (api.post as any).mockResolvedValueOnce(resp({ id: 10 }));
 
     const r = await postPayment(body);
-    expect(api.post).toHaveBeenCalledWith(
-      "/users/payments/create",
-      body,
-      cred
-    );
+    expect(api.post).toHaveBeenCalledWith("/users/payments/create", body, cred);
     expect(r).toEqual({ id: 10 });
   });
 
@@ -72,11 +68,7 @@ describe("payment.service", () => {
     (api.put as any).mockResolvedValueOnce(resp({ ok: true }));
 
     const r = await putPayment(body);
-    expect(api.put).toHaveBeenCalledWith(
-      "/users/payments/update",
-      body,
-      cred
-    );
+    expect(api.put).toHaveBeenCalledWith("/users/payments/update", body, cred);
     expect(r).toEqual({ ok: true });
   });
 
@@ -93,10 +85,7 @@ describe("payment.service", () => {
     (api.delete as any).mockResolvedValueOnce(resp({ ok: true }));
 
     const r = await deletePayment({ id: 33 } as any);
-    expect(api.delete).toHaveBeenCalledWith(
-      "/users/payments/delete/33",
-      cred
-    );
+    expect(api.delete).toHaveBeenCalledWith("/users/payments/delete/33", cred);
     expect(r).toEqual({ ok: true });
   });
 
@@ -113,10 +102,7 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp({ id: 5 }));
 
     const r = await getPaymentById(5);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/getById/5",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getById/5", cred);
     expect(r).toEqual({ id: 5 });
   });
 
@@ -125,10 +111,7 @@ describe("payment.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getPaymentById(999)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payment with ID 999:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payment with ID 999:", boom);
   });
 
   /* ----------------------- getPaymentsByContractId ----------------------- */
@@ -136,10 +119,7 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }]));
 
     const r = await getPaymentsByContractId(22);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/getByContract/22",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getByContract/22", cred);
     expect(r).toEqual([{ id: 1 }]);
   });
 
@@ -148,10 +128,7 @@ describe("payment.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getPaymentsByContractId(22)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments for contract 22:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments for contract 22:", boom);
   });
 
   /* ---------------------- getPaymentsByCommissionId ---------------------- */
@@ -159,10 +136,7 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 2 }]));
 
     const r = await getPaymentsByCommissionId(7);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/getByCommission/7",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getByCommission/7", cred);
     expect(r).toEqual([{ id: 2 }]);
   });
 
@@ -171,10 +145,7 @@ describe("payment.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getPaymentsByCommissionId(7)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments for commission 7:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments for commission 7:", boom);
   });
 
   /* --------------------------- getAllPayments --------------------------- */
@@ -209,13 +180,10 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }]));
 
     const r = await getPaymentsByDateRange(from, to);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/getByRange",
-      {
-        params: { from: `${from}T00:00:00`, to: `${to}T23:59:59` },
-        withCredentials: true,
-      }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getByRange", {
+      params: { from: `${from}T00:00:00`, to: `${to}T23:59:59` },
+      withCredentials: true,
+    });
     expect(r).toEqual([{ id: 1 }]);
   });
 
@@ -225,10 +193,7 @@ describe("payment.service", () => {
 
     const r = await getPaymentsByDateRange("2024-01-01", "2024-01-31");
     expect(r).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments by date range:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments by date range:", boom);
   });
 
   /* --------------------- getPaymentsByContractRange ---------------------- */
@@ -238,13 +203,10 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 2 }]));
 
     const r = await getPaymentsByContractRange(from, to);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/contractRange",
-      {
-        params: { from, to },
-        withCredentials: true,
-      }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/contractRange", {
+      params: { from, to },
+      withCredentials: true,
+    });
     expect(r).toEqual([{ id: 2 }]);
   });
 
@@ -254,10 +216,7 @@ describe("payment.service", () => {
 
     const r = await getPaymentsByContractRange("2024-02-01", "2024-02-29");
     expect(r).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments by contract range:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments by contract range:", boom);
   });
 
   /* ------------------- getPaymentsByCommissionRange --------------------- */
@@ -267,13 +226,10 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 3 }]));
 
     const r = await getPaymentsByCommissionRange(from, to);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/commissionRange",
-      {
-        params: { from, to },
-        withCredentials: true,
-      }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/commissionRange", {
+      params: { from, to },
+      withCredentials: true,
+    });
     expect(r).toEqual([{ id: 3 }]);
   });
 
@@ -283,10 +239,7 @@ describe("payment.service", () => {
 
     const r = await getPaymentsByCommissionRange("2024-03-01", "2024-03-31");
     expect(r).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments by commission range:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments by commission range:", boom);
   });
 
   /* --------------------- getPaymentsByUtilityRange ---------------------- */
@@ -296,13 +249,10 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 4 }]));
 
     const r = await getPaymentsByUtilityRange(from, to);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/utilityRange",
-      {
-        params: { from, to },
-        withCredentials: true,
-      }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/utilityRange", {
+      params: { from, to },
+      withCredentials: true,
+    });
     expect(r).toEqual([{ id: 4 }]);
   });
 
@@ -312,10 +262,7 @@ describe("payment.service", () => {
 
     const r = await getPaymentsByUtilityRange("2024-04-01", "2024-04-30");
     expect(r).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments by utility range:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments by utility range:", boom);
   });
 
   /* ------------------------- getPaymentsByConcept ------------------------ */
@@ -323,13 +270,10 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 5 }]));
 
     const r = await getPaymentsByConcept("ALQUILER" as any);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/getByConcept",
-      {
-        params: { concept: "ALQUILER" },
-        withCredentials: true,
-      }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getByConcept", {
+      params: { concept: "ALQUILER" },
+      withCredentials: true,
+    });
     expect(r).toEqual([{ id: 5 }]);
   });
 
@@ -339,10 +283,7 @@ describe("payment.service", () => {
 
     const r = await getPaymentsByConcept("ALQUILER" as any);
     expect(r).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments by concept:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments by concept:", boom);
   });
 
   /* ------------------------- getPaymentsByCurrency ----------------------- */
@@ -350,13 +291,10 @@ describe("payment.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 6 }]));
 
     const r = await getPaymentsByCurrency("ARS" as any);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/getByCurrency",
-      {
-        params: { currency: "ARS" },
-        withCredentials: true,
-      }
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/payments/getByCurrency", {
+      params: { currency: "ARS" },
+      withCredentials: true,
+    });
     expect(r).toEqual([{ id: 6 }]);
   });
 
@@ -366,10 +304,7 @@ describe("payment.service", () => {
 
     const r = await getPaymentsByCurrency("ARS" as any);
     expect(r).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments by currency:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments by currency:", boom);
   });
 
   /* ----------------------- getPaymentsMonthlyTotals ---------------------- */
@@ -377,18 +312,11 @@ describe("payment.service", () => {
     const responseData = { "2024-01": 5000 };
     (api.get as any).mockResolvedValueOnce(resp(responseData));
 
-    const r = await getPaymentsMonthlyTotals(
-      "2024-01-01",
-      "2024-03-31",
-      "ARS" as any
-    );
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/payments/monthlyTotals",
-      {
-        params: { from: "2024-01-01", to: "2024-03-31", currency: "ARS" },
-        withCredentials: true,
-      }
-    );
+    const r = await getPaymentsMonthlyTotals("2024-01-01", "2024-03-31", "ARS" as any);
+    expect(api.get).toHaveBeenCalledWith("/users/payments/monthlyTotals", {
+      params: { from: "2024-01-01", to: "2024-03-31", currency: "ARS" },
+      withCredentials: true,
+    });
     expect(r).toEqual(responseData);
   });
 
@@ -396,12 +324,7 @@ describe("payment.service", () => {
     const boom = new Error("monthly totals fail");
     (api.get as any).mockRejectedValueOnce(boom);
 
-    await expect(
-      getPaymentsMonthlyTotals("2024-01-01", "2024-03-31", "ARS" as any)
-    ).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching payments monthly totals:",
-      boom
-    );
+    await expect(getPaymentsMonthlyTotals("2024-01-01", "2024-03-31", "ARS" as any)).rejects.toBe(boom);
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching payments monthly totals:", boom);
   });
 });

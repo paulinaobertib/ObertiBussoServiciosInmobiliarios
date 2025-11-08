@@ -195,7 +195,12 @@ export const NavBar = () => {
               {/* NO LOGUEADO: Iniciar sesión */}
               {!isLogged && (
                 <Tooltip title="Iniciar sesión">
-                  <IconButton color="inherit" aria-label="login" onClick={login} sx={{ p: 0.5, transform: "rotateY(180deg)" }}>
+                  <IconButton
+                    color="inherit"
+                    aria-label="login"
+                    onClick={login}
+                    sx={{ p: 0.5, transform: "rotateY(180deg)" }}
+                  >
                     <LoginIcon />
                   </IconButton>
                 </Tooltip>

@@ -82,9 +82,9 @@ export const getAllPayments = async () => {
 export const getPaymentsByDateRange = async (from: string, to: string) => {
   try {
     // Convertir YYYY-MM-DD a YYYY-MM-DDTHH:mm:ss si es necesario
-    const fromDateTime = from.includes('T') ? from : `${from}T00:00:00`;
-    const toDateTime = to.includes('T') ? to : `${to}T23:59:59`;
-    
+    const fromDateTime = from.includes("T") ? from : `${from}T00:00:00`;
+    const toDateTime = to.includes("T") ? to : `${to}T23:59:59`;
+
     const response = await api.get(`/users/payments/getByRange`, {
       params: { from: fromDateTime, to: toDateTime },
       withCredentials: true,
@@ -167,11 +167,7 @@ export const getPaymentsByCurrency = async (currency: PaymentCurrency) => {
 };
 
 /** GET /users/payments/monthlyTotals?from=...&to=...&currency=ARS|USD */
-export const getPaymentsMonthlyTotals = async (
-  from: string,
-  to: string,
-  currency: PaymentCurrency
-) => {
+export const getPaymentsMonthlyTotals = async (from: string, to: string, currency: PaymentCurrency) => {
   try {
     const response = await api.get(`/users/payments/monthlyTotals`, {
       params: { from, to, currency },

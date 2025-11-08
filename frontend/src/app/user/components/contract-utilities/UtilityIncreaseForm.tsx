@@ -41,16 +41,9 @@ export function UtilityIncreaseForm({ initialValues, onChange }: Props) {
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            type="number"
-            fullWidth
-            label="Nuevo monto"
-            value={vals.amount}
-            onChange={handle("amount")}
-          />
+          <TextField type="number" fullWidth label="Nuevo monto" value={vals.amount} onChange={handle("amount")} />
         </Grid>
       </Grid>
     </Box>
   );
 }
-

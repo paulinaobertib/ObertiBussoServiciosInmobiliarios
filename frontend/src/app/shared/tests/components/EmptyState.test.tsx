@@ -10,9 +10,7 @@ describe("EmptyState", () => {
     render(<EmptyState title="Sin datos" />);
     expect(screen.getByText("Sin datos")).toBeInTheDocument();
     // fallback neutral
-    expect(
-      screen.getByText("Mantente atento a nuevas actualizaciones.")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Mantente atento a nuevas actualizaciones.")).toBeInTheDocument();
   });
 
   it("renderiza con descripción personalizada", () => {
@@ -22,42 +20,25 @@ describe("EmptyState", () => {
 
   it("usa fallback de error cuando tone=error", () => {
     render(<EmptyState title="Error" tone="error" />);
-    expect(
-      screen.getByText(
-        "No pudimos cargar la información. Intenta nuevamente más tarde."
-      )
-    ).toBeInTheDocument();
-    const desc = screen.getByText(
-      /No pudimos cargar la información/i
-    );
+    expect(screen.getByText("No pudimos cargar la información. Intenta nuevamente más tarde.")).toBeInTheDocument();
+    const desc = screen.getByText(/No pudimos cargar la información/i);
     expect(desc).toHaveStyle("color: rgb(211, 47, 47)"); // error.main
   });
 
   it("renderiza icono y acción", () => {
     render(
-      <EmptyState
-        title="Con extras"
-        icon={<Box data-testid="icon">icon</Box>}
-        action={<Button>Reintentar</Button>}
-      />
+      <EmptyState title="Con extras" icon={<Box data-testid="icon">icon</Box>} action={<Button>Reintentar</Button>} />
     );
     expect(screen.getByTestId("icon")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
   });
 
-    it("aplica sx extra y minHeight personalizado", () => {
-    const { container } = render(
-        <EmptyState
-        title="Con estilo"
-        minHeight={123}
-        sx={{ backgroundColor: "red" }}
-        />
-    );
+  it("aplica sx extra y minHeight personalizado", () => {
+    const { container } = render(<EmptyState title="Con estilo" minHeight={123} sx={{ backgroundColor: "red" }} />);
 
     const box = container.querySelector(".MuiBox-root");
     expect(box).toHaveStyle("min-height: 123px");
     // MUI convierte "red" en rgb(255, 0, 0)
     expect(box).toHaveStyle("background-color: rgb(255, 0, 0)");
-    });
-
+  });
 });

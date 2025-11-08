@@ -13,18 +13,10 @@ vi.mock("../../../hooks/contracts/useContractUtilityIncreases", () => ({
 vi.mock("../../../components/contract-utilities/UtilityIncreaseForm", () => ({
   UtilityIncreaseForm: ({ onChange }: any) => (
     <div>
-      <button
-        data-testid="set-valid"
-        onClick={() =>
-          onChange({ adjustmentDate: "2025-01-01", amount: "100" })
-        }
-      >
+      <button data-testid="set-valid" onClick={() => onChange({ adjustmentDate: "2025-01-01", amount: "100" })}>
         Set Valid
       </button>
-      <button
-        data-testid="set-invalid"
-        onClick={() => onChange({ adjustmentDate: "", amount: "" })}
-      >
+      <button data-testid="set-invalid" onClick={() => onChange({ adjustmentDate: "", amount: "" })}>
         Set Invalid
       </button>
     </div>
@@ -57,9 +49,7 @@ describe("ContractUtilityIncreaseDialog", () => {
 
   it("renderiza título y botones", () => {
     renderDialog();
-    expect(
-      screen.getByText("Nuevo Aumento de Servicio")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Nuevo Aumento de Servicio")).toBeInTheDocument();
     expect(screen.getByText("Cancelar")).toBeInTheDocument();
     expect(screen.getByText("Confirmar")).toBeInTheDocument();
   });
@@ -67,12 +57,7 @@ describe("ContractUtilityIncreaseDialog", () => {
   it("resetea valores cuando se abre", () => {
     const { rerender } = renderDialog({ open: false });
     rerender(
-      <ContractUtilityIncreaseDialog
-        open={true}
-        contractUtilityId={1}
-        onClose={mockOnClose}
-        onSaved={mockOnSaved}
-      />
+      <ContractUtilityIncreaseDialog open={true} contractUtilityId={1} onClose={mockOnClose} onSaved={mockOnSaved} />
     );
     expect(screen.getByText("Confirmar")).toBeDisabled();
   });
@@ -120,12 +105,7 @@ describe("ContractUtilityIncreaseDialog", () => {
 
   it("no intenta guardar si contractUtilityId es null", () => {
     render(
-      <ContractUtilityIncreaseDialog
-        open={true}
-        contractUtilityId={null}
-        onClose={mockOnClose}
-        onSaved={mockOnSaved}
-      />
+      <ContractUtilityIncreaseDialog open={true} contractUtilityId={null} onClose={mockOnClose} onSaved={mockOnSaved} />
     );
     fireEvent.click(screen.getByTestId("set-valid"));
     fireEvent.click(screen.getByText("Confirmar"));

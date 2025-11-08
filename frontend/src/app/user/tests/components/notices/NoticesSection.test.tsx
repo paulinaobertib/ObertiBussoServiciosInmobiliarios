@@ -151,9 +151,9 @@ describe("NoticesSection", () => {
     );
 
     expect(screen.getByText("No hay novedades disponibles.")).toBeInTheDocument();
-    expect(
-      screen.queryAllByRole("button").some((b) => b.querySelector("svg[data-testid='ChevronLeftIcon']"))
-    ).toBe(false);
+    expect(screen.queryAllByRole("button").some((b) => b.querySelector("svg[data-testid='ChevronLeftIcon']"))).toBe(
+      false
+    );
   });
 
   it("resetea el índice cuando cambia la lista de notices (de 6 a 2 items)", () => {

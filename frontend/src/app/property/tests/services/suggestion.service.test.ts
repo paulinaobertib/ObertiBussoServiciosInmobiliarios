@@ -17,10 +17,7 @@ describe("suggestion.service", () => {
       const data = { description: "Test suggestion" };
       const result = await postSuggestion(data);
 
-      expect(api.post).toHaveBeenCalledWith(
-        "/properties/suggestions/create",
-        expect.any(FormData)
-      );
+      expect(api.post).toHaveBeenCalledWith("/properties/suggestions/create", expect.any(FormData));
       expect(result).toEqual(mockResponse);
     });
 

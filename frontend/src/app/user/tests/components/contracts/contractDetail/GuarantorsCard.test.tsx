@@ -7,7 +7,6 @@ describe("GuarantorsCard", () => {
     expect(screen.getByText("Sin garantes.")).toBeInTheDocument();
   });
 
-
   it("muestra botón de agregar cuando se pasa onManage", () => {
     const onManage = vi.fn();
     render(<GuarantorsCard guarantors={[]} onManage={onManage} />);

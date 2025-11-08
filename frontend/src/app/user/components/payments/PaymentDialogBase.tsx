@@ -78,8 +78,7 @@ export const PaymentDialog = ({
     fixedConcept,
   });
 
-  const hasDetailColumn =
-    !fixedConcept || concept === PaymentConcept.EXTRA || concept === PaymentConcept.COMISION;
+  const hasDetailColumn = !fixedConcept || concept === PaymentConcept.EXTRA || concept === PaymentConcept.COMISION;
 
   const conceptSelector = !fixedConcept ? (
     <Box display="flex" justifyContent="center">
@@ -197,9 +196,7 @@ export const PaymentDialog = ({
                     <Chip
                       size="small"
                       color={paid ? "success" : "default"}
-                      label={
-                        paid && paymentDateLabel ? `Pagada ${paymentDateLabel}` : paid ? "Pagada" : "Pendiente"
-                      }
+                      label={paid && paymentDateLabel ? `Pagada ${paymentDateLabel}` : paid ? "Pagada" : "Pendiente"}
                       sx={{ fontWeight: 600 }}
                     />
                   </Stack>
@@ -286,9 +283,7 @@ export const PaymentDialog = ({
                   <Chip
                     size="small"
                     color={paid ? "success" : "default"}
-                    label={
-                      paid && paymentDateLabel ? `Pagada ${paymentDateLabel}` : paid ? "Pagada" : "Pendiente"
-                    }
+                    label={paid && paymentDateLabel ? `Pagada ${paymentDateLabel}` : paid ? "Pagada" : "Pendiente"}
                     sx={{ fontWeight: 600 }}
                   />
                 </Stack>

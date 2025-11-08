@@ -67,15 +67,8 @@ describe("<StatusForm />", () => {
     expect(save).toBeEnabled();
     fireEvent.click(save);
 
-    await waitFor(() =>
-      expect(putPropertyStatusMock).toHaveBeenCalledWith(77, "RESERVADA")
-    );
-    await waitFor(() =>
-      expect(showAlertMock).toHaveBeenCalledWith(
-        "Estado actualizado con éxito",
-        "success"
-      )
-    );
+    await waitFor(() => expect(putPropertyStatusMock).toHaveBeenCalledWith(77, "RESERVADA"));
+    await waitFor(() => expect(showAlertMock).toHaveBeenCalledWith("Estado actualizado con éxito", "success"));
     await waitFor(() => expect(loadPropertyMock).toHaveBeenCalledWith(77));
     await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
   });
@@ -94,23 +87,17 @@ describe("<StatusForm />", () => {
     const save = screen.getByRole("button", { name: /Guardar/i });
     fireEvent.click(save);
 
-    await waitFor(() =>
-      expect(putPropertyStatusMock).toHaveBeenCalledWith(77, "VENDIDA")
-    );
-    await waitFor(() =>
-      expect(showAlertMock).toHaveBeenCalledWith("Fallo al actualizar", "error")
-    );
+    await waitFor(() => expect(putPropertyStatusMock).toHaveBeenCalledWith(77, "VENDIDA"));
+    await waitFor(() => expect(showAlertMock).toHaveBeenCalledWith("Fallo al actualizar", "error"));
     expect(loadPropertyMock).not.toHaveBeenCalled();
     expect(onDone).not.toHaveBeenCalled();
   });
 
   it("cuando loading=true, muestra estado de carga y deshabilita 'Guardar'", () => {
-    (useLoadingModule.useLoading as unknown as Mock).mockImplementationOnce(
-      (_fn: any) => ({
-        loading: true,
-        run: vi.fn(),
-      })
-    );
+    (useLoadingModule.useLoading as unknown as Mock).mockImplementationOnce((_fn: any) => ({
+      loading: true,
+      run: vi.fn(),
+    }));
 
     render(<StatusForm item={baseItem} onDone={onDone} />);
 
@@ -123,9 +110,7 @@ describe("<StatusForm />", () => {
 
     let { button, listbox } = openSelectByLabel();
     ["DISPONIBLE", "RESERVADA", "ALQUILADA", "VENDIDA"].forEach((label) => {
-      expect(
-        within(listbox).getByRole("option", { name: new RegExp(label, "i") })
-      ).toBeInTheDocument();
+      expect(within(listbox).getByRole("option", { name: new RegExp(label, "i") })).toBeInTheDocument();
     });
 
     // Seleccionar una, volver a abrir y seleccionar otra

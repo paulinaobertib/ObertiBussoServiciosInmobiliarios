@@ -172,9 +172,6 @@ describe("increaseIndex.service", () => {
     const boom = new Error("by contract fail");
     (api.get as any).mockRejectedValueOnce(boom);
     await expect(getIncreaseIndexByContract(77)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching increase index for contract 77:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching increase index for contract 77:", boom);
   });
 });

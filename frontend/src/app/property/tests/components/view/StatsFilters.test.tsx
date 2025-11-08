@@ -5,8 +5,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { describe, it, expect, vi } from "vitest";
 import StatsFilters from "../../../components/view/StatsFilters";
 
-const renderWithTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>);
+const renderWithTheme = (ui: React.ReactElement) => render(<ThemeProvider theme={createTheme()}>{ui}</ThemeProvider>);
 
 describe("<StatsFilters />", () => {
   it("renderiza título y los 3 chips", () => {
@@ -21,9 +20,7 @@ describe("<StatsFilters />", () => {
 
   it("agrega categorías al hacer click cuando no están seleccionadas", () => {
     const onChange = vi.fn();
-    const { rerender } = renderWithTheme(
-      <StatsFilters selected={[]} onChange={onChange} />
-    );
+    const { rerender } = renderWithTheme(<StatsFilters selected={[]} onChange={onChange} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Vistas/i }));
     expect(onChange).toHaveBeenLastCalledWith(["views"]);
@@ -41,9 +38,7 @@ describe("<StatsFilters />", () => {
 
   it("quita categorías al hacer click cuando ya están seleccionadas", () => {
     const onChange = vi.fn();
-    const { rerender } = renderWithTheme(
-      <StatsFilters selected={["views", "inquiry"] as any} onChange={onChange} />
-    );
+    const { rerender } = renderWithTheme(<StatsFilters selected={["views", "inquiry"] as any} onChange={onChange} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Consultas/i }));
     expect(onChange).toHaveBeenLastCalledWith(["views"]);
@@ -61,9 +56,7 @@ describe("<StatsFilters />", () => {
 
   it("permite seleccionar las tres categorías y respeta el orden de selección", () => {
     const onChange = vi.fn();
-    const { rerender } = renderWithTheme(
-      <StatsFilters selected={[]} onChange={onChange} />
-    );
+    const { rerender } = renderWithTheme(<StatsFilters selected={[]} onChange={onChange} />);
 
     fireEvent.click(screen.getByRole("button", { name: /Vistas/i }));
     expect(onChange).toHaveBeenLastCalledWith(["views"]);

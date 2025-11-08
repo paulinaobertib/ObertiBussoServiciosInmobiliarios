@@ -82,144 +82,138 @@ describe("NeighborhoodForm", () => {
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
-it("actualiza los campos al escribir y seleccionar", async () => {
-  const setFormMock = vi.fn();
-  (useCategories as Mock).mockReturnValue({
-    form: { name: "", city: "", type: "" },
-    setForm: setFormMock,
-    invalid: false,
-    run: vi.fn(),
-    loading: false,
+  it("actualiza los campos al escribir y seleccionar", async () => {
+    const setFormMock = vi.fn();
+    (useCategories as Mock).mockReturnValue({
+      form: { name: "", city: "", type: "" },
+      setForm: setFormMock,
+      invalid: false,
+      run: vi.fn(),
+      loading: false,
+    });
+
+    render(<NeighborhoodForm action="add" onDone={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: "Nuevo Nombre" } });
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ name: "Nuevo Nombre" }));
+
+    fireEvent.change(screen.getByLabelText(/Ciudad/i), { target: { value: "Nueva Ciudad" } });
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ city: "Nueva Ciudad" }));
+
+    // Para Select de MUI:
+    const select = screen.getByLabelText(/Tipo/i);
+    fireEvent.mouseDown(select); // abre el menú
+    const option = await screen.findByText("Cerrado"); // MenuItem
+    fireEvent.click(option);
+
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ type: NeighborhoodType.CERRADO }));
   });
 
-  render(<NeighborhoodForm action="add" onDone={vi.fn()} />);
+  it("deshabilita Select en delete", () => {
+    const item = { id: 4, name: "Del", city: "City", type: NeighborhoodType.ABIERTO };
+    const setFormMock = vi.fn();
+    (useCategories as Mock).mockReturnValue({
+      form: item,
+      setForm: setFormMock,
+      invalid: false,
+      run: vi.fn(),
+      loading: false,
+    });
 
-  fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: "Nuevo Nombre" } });
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ name: "Nuevo Nombre" }));
+    render(<NeighborhoodForm action="delete" item={item} onDone={vi.fn()} />);
 
-  fireEvent.change(screen.getByLabelText(/Ciudad/i), { target: { value: "Nueva Ciudad" } });
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ city: "Nueva Ciudad" }));
-
-  // Para Select de MUI:
-  const select = screen.getByLabelText(/Tipo/i);
-  fireEvent.mouseDown(select); // abre el menú
-  const option = await screen.findByText("Cerrado"); // MenuItem
-  fireEvent.click(option);
-
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ type: NeighborhoodType.CERRADO }));
-});
-
-it("deshabilita Select en delete", () => {
-  const item = { id: 4, name: "Del", city: "City", type: NeighborhoodType.ABIERTO };
-  const setFormMock = vi.fn();
-  (useCategories as Mock).mockReturnValue({
-    form: item,
-    setForm: setFormMock,
-    invalid: false,
-    run: vi.fn(),
-    loading: false,
+    const select = screen.getByLabelText(/Tipo/i);
+    expect(select.getAttribute("aria-disabled")).toBe("true");
   });
 
-  render(<NeighborhoodForm action="delete" item={item} onDone={vi.fn()} />);
+  it("deshabilita botón y muestra loading cuando loading=true", () => {
+    const runMock = vi.fn();
+    setupHook({ run: runMock, loading: true });
 
-  const select = screen.getByLabelText(/Tipo/i);
-  expect(select.getAttribute("aria-disabled")).toBe("true");
-});
+    render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
 
-
-it("deshabilita botón y muestra loading cuando loading=true", () => {
-  const runMock = vi.fn();
-  setupHook({ run: runMock, loading: true });
-
-  render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
-
-  const button = screen.getByRole("button", { name: /Confirmar/i });
-  expect(button).toBeDisabled();
-  expect(button).toHaveAttribute("disabled");
-});
-
-it("deshabilita botón cuando invalid=true", () => {
-  const runMock = vi.fn();
-  setupHook({ run: runMock, invalid: true });
-
-  render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
-
-  expect(screen.getByRole("button", { name: /Confirmar/i })).toBeDisabled();
-});
-
-it("cambia texto del botón según action", () => {
-  setupHook({});
-  render(<NeighborhoodForm action="delete" onDone={mockOnDone} />);
-
-  const button = screen.getByRole("button", { name: /Eliminar/i });
-  
-  // Verificamos que el botón tenga el texto correcto
-  expect(button).toHaveTextContent("Eliminar");
-
-  // Verificamos que esté habilitado (ya que loading=false)
-  expect(button).toBeEnabled();
-});
-
-it("select Tipo contiene todos los MenuItem", async () => {
-  setupHook({});
-  render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
-
-  // Abrimos el Select
-  fireEvent.mouseDown(screen.getByLabelText(/Tipo/i));
-
-  // Usamos getAllByRole("option") para obtener solo las opciones
-  const options = screen.getAllByRole("option");
-  expect(options.map(o => o.textContent)).toEqual(
-    expect.arrayContaining(["Cerrado", "Semi cerrado", "Abierto"])
-  );
-});
-
-
-it("ejecuta run en modo delete", async () => {
-  const runMock = vi.fn();
-  setupHook({ run: runMock });
-  const item = { id: 5, name: "Del", city: "City", type: NeighborhoodType.ABIERTO };
-  render(<NeighborhoodForm action="delete" item={item} onDone={mockOnDone} />);
-  fireEvent.click(screen.getByRole("button", { name: /Eliminar/i }));
-  await waitFor(() => expect(runMock).toHaveBeenCalled());
-});
-
-it("actualiza el form correctamente con múltiples cambios", async () => {
-  const setFormMock = vi.fn();
-  (useCategories as Mock).mockReturnValue({
-    form: { name: "", city: "", type: "" },
-    setForm: setFormMock,
-    invalid: false,
-    run: vi.fn(),
-    loading: false,
+    const button = screen.getByRole("button", { name: /Confirmar/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("disabled");
   });
 
-  render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
+  it("deshabilita botón cuando invalid=true", () => {
+    const runMock = vi.fn();
+    setupHook({ run: runMock, invalid: true });
 
-  fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: "Nombre Test" } });
-  fireEvent.change(screen.getByLabelText(/Ciudad/i), { target: { value: "Ciudad Test" } });
-  const select = screen.getByLabelText(/Tipo/i);
-  fireEvent.mouseDown(select);
-  const option = await screen.findByText("Abierto");
-  fireEvent.click(option);
+    render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
 
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ name: "Nombre Test" }));
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ city: "Ciudad Test" }));
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ type: NeighborhoodType.ABIERTO }));
-});
+    expect(screen.getByRole("button", { name: /Confirmar/i })).toBeDisabled();
+  });
 
-it("llama onDone después de run() exitoso", async () => {
-  const runMock = vi.fn(async () => Promise.resolve());
-  setupHook({ run: runMock });
+  it("cambia texto del botón según action", () => {
+    setupHook({});
+    render(<NeighborhoodForm action="delete" onDone={mockOnDone} />);
 
-  render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
-  fireEvent.click(screen.getByRole("button", { name: /Confirmar/i }));
+    const button = screen.getByRole("button", { name: /Eliminar/i });
 
-  await waitFor(() => expect(runMock).toHaveBeenCalled());
-  // simulamos onDone tras éxito de run
-  mockOnDone();
-  expect(mockOnDone).toHaveBeenCalled();
-});
+    // Verificamos que el botón tenga el texto correcto
+    expect(button).toHaveTextContent("Eliminar");
 
+    // Verificamos que esté habilitado (ya que loading=false)
+    expect(button).toBeEnabled();
+  });
 
+  it("select Tipo contiene todos los MenuItem", async () => {
+    setupHook({});
+    render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
+
+    // Abrimos el Select
+    fireEvent.mouseDown(screen.getByLabelText(/Tipo/i));
+
+    // Usamos getAllByRole("option") para obtener solo las opciones
+    const options = screen.getAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual(expect.arrayContaining(["Cerrado", "Semi cerrado", "Abierto"]));
+  });
+
+  it("ejecuta run en modo delete", async () => {
+    const runMock = vi.fn();
+    setupHook({ run: runMock });
+    const item = { id: 5, name: "Del", city: "City", type: NeighborhoodType.ABIERTO };
+    render(<NeighborhoodForm action="delete" item={item} onDone={mockOnDone} />);
+    fireEvent.click(screen.getByRole("button", { name: /Eliminar/i }));
+    await waitFor(() => expect(runMock).toHaveBeenCalled());
+  });
+
+  it("actualiza el form correctamente con múltiples cambios", async () => {
+    const setFormMock = vi.fn();
+    (useCategories as Mock).mockReturnValue({
+      form: { name: "", city: "", type: "" },
+      setForm: setFormMock,
+      invalid: false,
+      run: vi.fn(),
+      loading: false,
+    });
+
+    render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: "Nombre Test" } });
+    fireEvent.change(screen.getByLabelText(/Ciudad/i), { target: { value: "Ciudad Test" } });
+    const select = screen.getByLabelText(/Tipo/i);
+    fireEvent.mouseDown(select);
+    const option = await screen.findByText("Abierto");
+    fireEvent.click(option);
+
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ name: "Nombre Test" }));
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ city: "Ciudad Test" }));
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ type: NeighborhoodType.ABIERTO }));
+  });
+
+  it("llama onDone después de run() exitoso", async () => {
+    const runMock = vi.fn(async () => Promise.resolve());
+    setupHook({ run: runMock });
+
+    render(<NeighborhoodForm action="add" onDone={mockOnDone} />);
+    fireEvent.click(screen.getByRole("button", { name: /Confirmar/i }));
+
+    await waitFor(() => expect(runMock).toHaveBeenCalled());
+    // simulamos onDone tras éxito de run
+    mockOnDone();
+    expect(mockOnDone).toHaveBeenCalled();
+  });
 });

@@ -42,11 +42,7 @@ describe("contractIncrease.service", () => {
     (api.post as any).mockResolvedValueOnce(resp({ id: 99 }));
 
     const r = await postContractIncrease(body as any);
-    expect(api.post).toHaveBeenCalledWith(
-      "/users/contractIncreases/create",
-      body,
-      cred
-    );
+    expect(api.post).toHaveBeenCalledWith("/users/contractIncreases/create", body, cred);
     expect(r).toEqual({ id: 99 });
   });
 
@@ -55,10 +51,7 @@ describe("contractIncrease.service", () => {
     (api.post as any).mockRejectedValueOnce(boom);
 
     await expect(postContractIncrease({} as any)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error creating contract increase:",
-      "msg backend"
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error creating contract increase:", "msg backend");
   });
 
   it("postContractIncrease: re-lanza y loguea con error.message si no hay response.data", async () => {
@@ -66,10 +59,7 @@ describe("contractIncrease.service", () => {
     (api.post as any).mockRejectedValueOnce(boom);
 
     await expect(postContractIncrease({} as any)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error creating contract increase:",
-      "falló"
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error creating contract increase:", "falló");
   });
 
   /* ---------------------- updateContractIncrease ---------------------- */
@@ -78,11 +68,7 @@ describe("contractIncrease.service", () => {
     (api.put as any).mockResolvedValueOnce(resp({ ok: true }));
 
     const r = await updateContractIncrease(body as any);
-    expect(api.put).toHaveBeenCalledWith(
-      "/users/contractIncreases/update",
-      body,
-      cred
-    );
+    expect(api.put).toHaveBeenCalledWith("/users/contractIncreases/update", body, cred);
     expect(r).toEqual({ ok: true });
   });
 
@@ -91,10 +77,7 @@ describe("contractIncrease.service", () => {
     (api.put as any).mockRejectedValueOnce(boom);
 
     await expect(updateContractIncrease({} as any)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error updating contract increase:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error updating contract increase:", boom);
   });
 
   /* ---------------------- deleteContractIncrease ---------------------- */
@@ -102,10 +85,7 @@ describe("contractIncrease.service", () => {
     (api.delete as any).mockResolvedValueOnce(resp({ ok: true }));
 
     const r = await deleteContractIncrease({ id: 55 } as any);
-    expect(api.delete).toHaveBeenCalledWith(
-      "/users/contractIncreases/delete/55",
-      cred
-    );
+    expect(api.delete).toHaveBeenCalledWith("/users/contractIncreases/delete/55", cred);
     expect(r).toEqual({ ok: true });
   });
 
@@ -114,10 +94,7 @@ describe("contractIncrease.service", () => {
     (api.delete as any).mockRejectedValueOnce(boom);
 
     await expect(deleteContractIncrease({ id: 1 } as any)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error deleting contract increase:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error deleting contract increase:", boom);
   });
 
   /* ---------------------- getContractIncreaseById ---------------------- */
@@ -125,10 +102,7 @@ describe("contractIncrease.service", () => {
     (api.get as any).mockResolvedValueOnce(resp({ id: 3 }));
 
     const r = await getContractIncreaseById(3);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/contractIncreases/getById/3",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/contractIncreases/getById/3", cred);
     expect(r).toEqual({ id: 3 });
   });
 
@@ -137,10 +111,7 @@ describe("contractIncrease.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getContractIncreaseById(9)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching contract increase with ID 9:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching contract increase with ID 9:", boom);
   });
 
   /* ---------------------- getContractIncreasesByContract ---------------------- */
@@ -148,10 +119,7 @@ describe("contractIncrease.service", () => {
     (api.get as any).mockResolvedValueOnce(resp([{ id: 1 }]));
 
     const r = await getContractIncreasesByContract(10);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/contractIncreases/getByContract/10",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/contractIncreases/getByContract/10", cred);
     expect(r).toEqual([{ id: 1 }]);
   });
 
@@ -160,10 +128,7 @@ describe("contractIncrease.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getContractIncreasesByContract(10)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching increases for contract 10:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching increases for contract 10:", boom);
   });
 
   /* ---------------------- getLastContractIncreaseByContract ---------------------- */
@@ -171,10 +136,7 @@ describe("contractIncrease.service", () => {
     (api.get as any).mockResolvedValueOnce(resp({ id: 77 }));
 
     const r = await getLastContractIncreaseByContract(22);
-    expect(api.get).toHaveBeenCalledWith(
-      "/users/contractIncreases/getLast/22",
-      cred
-    );
+    expect(api.get).toHaveBeenCalledWith("/users/contractIncreases/getLast/22", cred);
     expect(r).toEqual({ id: 77 });
   });
 
@@ -183,9 +145,6 @@ describe("contractIncrease.service", () => {
     (api.get as any).mockRejectedValueOnce(boom);
 
     await expect(getLastContractIncreaseByContract(22)).rejects.toBe(boom);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "Error fetching last increase for contract 22:",
-      boom
-    );
+    expect(errorSpy).toHaveBeenCalledWith("Error fetching last increase for contract 22:", boom);
   });
 });

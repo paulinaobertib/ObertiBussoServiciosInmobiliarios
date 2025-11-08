@@ -82,9 +82,7 @@ describe("ChatSessionItem", () => {
   });
 
   it("si no se pasa propertyTitle, el chip muestra 'ID: <propertyId>'", () => {
-    renderWithTheme(
-      <ChatSessionItem session={{ ...baseSession, propertyId: 99 }} loading={false} onClose={vi.fn()} />
-    );
+    renderWithTheme(<ChatSessionItem session={{ ...baseSession, propertyId: 99 }} loading={false} onClose={vi.fn()} />);
 
     const chip = screen.getByRole("button", { name: /ID: 99/i });
     fireEvent.click(chip);
@@ -109,9 +107,7 @@ describe("ChatSessionItem", () => {
   });
 
   it("oculta teléfono cuando no existe", () => {
-    renderWithTheme(
-      <ChatSessionItem session={{ ...baseSession, phone: "" }} loading={false} onClose={vi.fn()} />
-    );
+    renderWithTheme(<ChatSessionItem session={{ ...baseSession, phone: "" }} loading={false} onClose={vi.fn()} />);
     expect(screen.queryByText(/Teléfono:/i)).not.toBeInTheDocument();
   });
 
@@ -126,9 +122,7 @@ describe("ChatSessionItem", () => {
   it("muestra la fecha de consulta con formato en español (usando dayjs como el SUT)", () => {
     renderWithTheme(<ChatSessionItem session={baseSession} loading={false} onClose={vi.fn()} />);
 
-    const expectedDatePart = dayjs(baseSession.date)
-      .locale("es")
-      .format("D [de] MMM YYYY");
+    const expectedDatePart = dayjs(baseSession.date).locale("es").format("D [de] MMM YYYY");
 
     // Tomamos la última coincidencia dentro de este render para evitar colisiones
     const labels = screen.getAllByText(/Fecha de consulta:/i);

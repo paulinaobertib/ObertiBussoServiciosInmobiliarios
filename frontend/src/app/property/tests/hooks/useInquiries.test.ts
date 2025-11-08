@@ -78,7 +78,7 @@ describe("useInquiries", () => {
     await act(async () => result.current.markResolved(1));
 
     expect(result.current.actionLoadingId).toBeNull();
-    expect(result.current.inquiries.find(i => i.id === 1)?.status).toBe("CERRADA");
+    expect(result.current.inquiries.find((i) => i.id === 1)?.status).toBe("CERRADA");
   });
 
   it("navega a propiedad correctamente", () => {

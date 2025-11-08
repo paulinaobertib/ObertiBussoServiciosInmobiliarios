@@ -47,12 +47,7 @@ const useConfirmDialogMock = useConfirmDialog as unknown as Mock;
 function makeSlot(id: number, date: string, availability: boolean) {
   return { id, date, availability };
 }
-function makeAppt(
-  slotId: number,
-  status: "ESPERA" | "ACEPTADO" | "RECHAZADO",
-  userId?: number,
-  comment?: string
-) {
+function makeAppt(slotId: number, status: "ESPERA" | "ACEPTADO" | "RECHAZADO", userId?: number, comment?: string) {
   return { id: slotId * 100, slotId, status, userId, comment };
 }
 
@@ -304,7 +299,6 @@ describe("<AppointmentDetailsDialog />", () => {
     const commentNode = screen.getByText((content) => content.includes("Línea 1"));
     expect(commentNode).toBeInTheDocument();
     expect(commentNode).toHaveTextContent(/Línea 2/);
-
   });
 
   it("Eliminar (slot disponible): ask → onDelete(slot.id) → reloadAdmin → onClose", async () => {

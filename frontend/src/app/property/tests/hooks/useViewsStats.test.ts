@@ -173,14 +173,14 @@ describe("useViewStats", () => {
     inquiryService.getInquiriesPerMonth.mockResolvedValueOnce({ data: {} });
     inquiryService.getMostConsultedProperties.mockResolvedValueOnce({ data: {} });
 
-  commissionService.countCommissionsByStatus.mockResolvedValueOnce({ PAGADA: 1, PARCIAL: 0, PENDIENTE: 0 });
+    commissionService.countCommissionsByStatus.mockResolvedValueOnce({ PAGADA: 1, PARCIAL: 0, PENDIENTE: 0 });
     commissionService.getTotalAmountByStatus.mockResolvedValueOnce(100); // PAGADA
     commissionService.getTotalAmountByStatus.mockResolvedValueOnce(50); // PARCIAL
     commissionService.getTotalAmountByStatus.mockResolvedValueOnce(25); // PENDIENTE
     commissionService.getDateTotals.mockResolvedValueOnce(175);
     commissionService.getYearMonthlyTotals.mockResolvedValueOnce({ "2024-02": 80 });
 
-  commissionService.getCommissionsByPaymentType.mockResolvedValueOnce([{ id: "c-completo" } as any]);
+    commissionService.getCommissionsByPaymentType.mockResolvedValueOnce([{ id: "c-completo" } as any]);
     commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-pag" } as any]);
     commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-par" } as any]);
     commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-pen" } as any]);

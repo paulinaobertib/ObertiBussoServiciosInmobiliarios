@@ -52,10 +52,7 @@ export const putComment = async (commentData: Comment) => {
 
 export const deleteComment = async (commentData: Comment) => {
   try {
-    const response = await api.delete(
-      `/properties/comment/delete/${commentData.id}`,
-      { withCredentials: true }
-    );
+    const response = await api.delete(`/properties/comment/delete/${commentData.id}`, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error deleting comment:", error);

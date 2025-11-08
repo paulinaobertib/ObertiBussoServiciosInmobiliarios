@@ -19,11 +19,7 @@ describe("FloatingButtons", () => {
     mockUseAuthContext.mockReturnValue({ isAdmin: false });
 
     render(
-      <FloatingButtons
-        onAction={mockOnAction}
-        selectionMode={false}
-        toggleSelectionMode={mockToggleSelectionMode}
-      />,
+      <FloatingButtons onAction={mockOnAction} selectionMode={false} toggleSelectionMode={mockToggleSelectionMode} />
     );
 
     expect(screen.queryByLabelText(/Acciones de Propiedad/i)).not.toBeInTheDocument();
@@ -33,11 +29,7 @@ describe("FloatingButtons", () => {
     mockUseAuthContext.mockReturnValue({ isAdmin: true });
 
     render(
-      <FloatingButtons
-        onAction={mockOnAction}
-        selectionMode={false}
-        toggleSelectionMode={mockToggleSelectionMode}
-      />,
+      <FloatingButtons onAction={mockOnAction} selectionMode={false} toggleSelectionMode={mockToggleSelectionMode} />
     );
 
     expect(screen.getByLabelText(/Acciones de Propiedad/i)).toBeInTheDocument();
@@ -47,11 +39,7 @@ describe("FloatingButtons", () => {
     mockUseAuthContext.mockReturnValue({ isAdmin: true });
 
     render(
-      <FloatingButtons
-        onAction={mockOnAction}
-        selectionMode={true}
-        toggleSelectionMode={mockToggleSelectionMode}
-      />,
+      <FloatingButtons onAction={mockOnAction} selectionMode={true} toggleSelectionMode={mockToggleSelectionMode} />
     );
 
     fireEvent.click(screen.getByLabelText(/Acciones de Propiedad/i));
@@ -70,11 +58,7 @@ describe("FloatingButtons", () => {
     mockUseAuthContext.mockReturnValue({ isAdmin: true });
 
     render(
-      <FloatingButtons
-        onAction={mockOnAction}
-        selectionMode={true}
-        toggleSelectionMode={mockToggleSelectionMode}
-      />,
+      <FloatingButtons onAction={mockOnAction} selectionMode={true} toggleSelectionMode={mockToggleSelectionMode} />
     );
 
     fireEvent.click(screen.getByLabelText(/Acciones de Propiedad/i));
@@ -87,11 +71,7 @@ describe("FloatingButtons", () => {
     mockUseAuthContext.mockReturnValue({ isAdmin: true });
 
     render(
-      <FloatingButtons
-        onAction={mockOnAction}
-        selectionMode={false}
-        toggleSelectionMode={mockToggleSelectionMode}
-      />,
+      <FloatingButtons onAction={mockOnAction} selectionMode={false} toggleSelectionMode={mockToggleSelectionMode} />
     );
 
     fireEvent.click(screen.getByLabelText(/Acciones de Propiedad/i));

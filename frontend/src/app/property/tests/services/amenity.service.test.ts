@@ -49,11 +49,10 @@ describe("amenity.service", () => {
     (api.post as any).mockResolvedValue({ data: { id: 2, ...amenity } });
 
     const result = await postAmenity(amenity);
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/amenity/create",
-      null,
-      { params: { name: "Garage" }, withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/amenity/create", null, {
+      params: { name: "Garage" },
+      withCredentials: true,
+    });
     expect(result).toEqual({ id: 2, name: "Garage" });
   });
 
@@ -62,11 +61,7 @@ describe("amenity.service", () => {
     (api.put as any).mockResolvedValue({ data: amenity });
 
     const result = await putAmenity(amenity);
-    expect(api.put).toHaveBeenCalledWith(
-      "/properties/amenity/update",
-      amenity,
-      { withCredentials: true }
-    );
+    expect(api.put).toHaveBeenCalledWith("/properties/amenity/update", amenity, { withCredentials: true });
     expect(result).toEqual(amenity);
   });
 
@@ -75,10 +70,7 @@ describe("amenity.service", () => {
     (api.delete as any).mockResolvedValue({ data: "deleted" });
 
     const result = await deleteAmenity(amenity);
-    expect(api.delete).toHaveBeenCalledWith(
-      "/properties/amenity/delete/10",
-      { withCredentials: true }
-    );
+    expect(api.delete).toHaveBeenCalledWith("/properties/amenity/delete/10", { withCredentials: true });
     expect(result).toBe("deleted");
   });
 

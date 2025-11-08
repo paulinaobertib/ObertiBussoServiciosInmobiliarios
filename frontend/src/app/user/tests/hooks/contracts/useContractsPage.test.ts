@@ -34,16 +34,16 @@ describe("useContractsPage", () => {
   const confirm = vi.fn();
   const success = vi.fn();
 
-    beforeEach(() => {
+  beforeEach(() => {
     vi.clearAllMocks();
     (useNavigate as any).mockReturnValue(navigate);
     (useLocation as any).mockReturnValue({ pathname: "/contracts", state: {}, key: "1" });
     (useGlobalAlert as any).mockReturnValue({
-        showAlert: vi.fn(), 
-        confirm,
-        success,
+      showAlert: vi.fn(),
+      confirm,
+      success,
     });
-    });
+  });
 
   it("carga contratos como admin", async () => {
     (useAuthContext as any).mockReturnValue({ info: { id: 1 }, isAdmin: true });
@@ -112,8 +112,10 @@ describe("useContractsPage", () => {
 
     act(() => {
       result.current.setStatusFilter(ContractStatus.INACTIVO);
-      result.current.handleSearch([{
-          id: 1, contractStatus: ContractStatus.ACTIVO,
+      result.current.handleSearch([
+        {
+          id: 1,
+          contractStatus: ContractStatus.ACTIVO,
           userId: "",
           propertyId: 0,
           contractType: ContractType.TEMPORAL,
@@ -128,8 +130,9 @@ describe("useContractsPage", () => {
           hasDeposit: false,
           depositAmount: null,
           depositNote: null,
-          adjustmentIndexId: null
-      }]);
+          adjustmentIndexId: null,
+        },
+      ]);
     });
 
     expect(result.current.filtered).toEqual([]);

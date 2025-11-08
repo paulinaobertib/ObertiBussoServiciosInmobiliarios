@@ -42,9 +42,7 @@ describe("useContractUtilityIncreases", () => {
   it("carga increases en reload()", async () => {
     mockGet.mockResolvedValueOnce([{ id: 1, value: 10 }]);
 
-    const { result } = renderHook(() =>
-      useContractUtilityIncreases(123, 0)
-    );
+    const { result } = renderHook(() => useContractUtilityIncreases(123, 0));
 
     // esperar al efecto inicial
     await act(async () => {});
@@ -58,9 +56,7 @@ describe("useContractUtilityIncreases", () => {
     mockGet.mockRejectedValueOnce(new Error("fail"));
     mockHandleError.mockReturnValue("err");
 
-    const { result } = renderHook(() =>
-      useContractUtilityIncreases(123, 0)
-    );
+    const { result } = renderHook(() => useContractUtilityIncreases(123, 0));
 
     await act(async () => {});
 
@@ -72,9 +68,7 @@ describe("useContractUtilityIncreases", () => {
     mockPost.mockResolvedValueOnce({ id: 10 });
     mockGet.mockResolvedValueOnce([]); // reload después
 
-    const { result } = renderHook(() =>
-      useContractUtilityIncreases(123, 0)
-    );
+    const { result } = renderHook(() => useContractUtilityIncreases(123, 0));
 
     await act(async () => {
       const created = await result.current.createIncrease({
@@ -89,9 +83,7 @@ describe("useContractUtilityIncreases", () => {
   });
 
   it("no crea increase si falta contractUtilityId", async () => {
-    const { result } = renderHook(() =>
-      useContractUtilityIncreases(null, 0)
-    );
+    const { result } = renderHook(() => useContractUtilityIncreases(null, 0));
 
     await act(async () => {
       const created = await result.current.createIncrease({ value: 50 } as any);
@@ -106,9 +98,7 @@ describe("useContractUtilityIncreases", () => {
     mockPut.mockResolvedValueOnce(true);
     mockGet.mockResolvedValueOnce([]);
 
-    const { result } = renderHook(() =>
-      useContractUtilityIncreases(123, 0)
-    );
+    const { result } = renderHook(() => useContractUtilityIncreases(123, 0));
 
     await act(async () => {
       const ok = await result.current.updateIncrease({ id: 1, value: 99 } as any);
@@ -119,31 +109,27 @@ describe("useContractUtilityIncreases", () => {
     expect(mockAlert.success).toHaveBeenCalled();
   });
 
-it("elimina increase con confirmación", async () => {
-  mockDelete.mockResolvedValueOnce(true);
-  mockGet.mockResolvedValueOnce([]);
-  mockAlert.doubleConfirm.mockResolvedValueOnce(true); // 👈 clave
+  it("elimina increase con confirmación", async () => {
+    mockDelete.mockResolvedValueOnce(true);
+    mockGet.mockResolvedValueOnce([]);
+    mockAlert.doubleConfirm.mockResolvedValueOnce(true); // 👈 clave
 
-  const { result } = renderHook(() =>
-    useContractUtilityIncreases(123, 0)
-  );
+    const { result } = renderHook(() => useContractUtilityIncreases(123, 0));
 
-  await act(async () => {
-    const ok = await result.current.removeIncrease(55, { confirm: true });
-    expect(ok).toBe(true);
+    await act(async () => {
+      const ok = await result.current.removeIncrease(55, { confirm: true });
+      expect(ok).toBe(true);
+    });
+
+    expect(mockAlert.doubleConfirm).toHaveBeenCalled();
+    expect(mockDelete).toHaveBeenCalledWith(55);
+    expect(mockAlert.success).toHaveBeenCalled();
   });
-
-  expect(mockAlert.doubleConfirm).toHaveBeenCalled();
-  expect(mockDelete).toHaveBeenCalledWith(55);
-  expect(mockAlert.success).toHaveBeenCalled();
-});
 
   it("no elimina si confirmación rechazada", async () => {
     mockAlert.confirm.mockResolvedValueOnce(false);
 
-    const { result } = renderHook(() =>
-      useContractUtilityIncreases(123, 0)
-    );
+    const { result } = renderHook(() => useContractUtilityIncreases(123, 0));
 
     await act(async () => {
       const ok = await result.current.removeIncrease(55, { confirm: true });

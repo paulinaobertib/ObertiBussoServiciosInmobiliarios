@@ -28,8 +28,7 @@ vi.mock("../../../../../user/components/appointments/admin/AppointmentItem", () 
 });
 
 const theme = createTheme();
-const renderWithTheme = (ui: React.ReactElement) =>
-  render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+const renderWithTheme = (ui: React.ReactElement) => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
 const slots = [
   { id: 3, date: "2025-06-12T15:00:00", availability: false },
@@ -61,41 +60,23 @@ describe("AppointmentsList", () => {
   });
 
   it("cuando slots está vacío, muestra el mensaje de vacío", () => {
-    renderWithTheme(
-      <AppointmentsList slots={[]} apptsBySlot={{}} onSelect={vi.fn()} />
-    );
-    expect(
-      screen.getByText(/No hay turnos disponibles para esta fecha\./i)
-    ).toBeInTheDocument();
+    renderWithTheme(<AppointmentsList slots={[]} apptsBySlot={{}} onSelect={vi.fn()} />);
+    expect(screen.getByText(/No hay turnos disponibles para esta fecha\./i)).toBeInTheDocument();
   });
 
   it("ordena los slots por fecha ascendente y renderiza un item por slot", () => {
-    renderWithTheme(
-      <AppointmentsList
-        slots={slots as any}
-        apptsBySlot={{}}
-        onSelect={vi.fn()}
-      />
-    );
+    renderWithTheme(<AppointmentsList slots={slots as any} apptsBySlot={{}} onSelect={vi.fn()} />);
 
     const rows = screen.getAllByTestId(/row-/);
     expect(rows).toHaveLength(4);
 
-    const order = rows.map((row) =>
-      within(row).getByTestId("slot-id").textContent
-    );
+    const order = rows.map((row) => within(row).getByTestId("slot-id").textContent);
     expect(order).toEqual(["1", "2", "3", "4"]);
   });
 
   it("propaga onSelect(slotId) cuando se hace click en el item", () => {
     const onSelect = vi.fn();
-    renderWithTheme(
-      <AppointmentsList
-        slots={slots as any}
-        apptsBySlot={{}}
-        onSelect={onSelect}
-      />
-    );
+    renderWithTheme(<AppointmentsList slots={slots as any} apptsBySlot={{}} onSelect={onSelect} />);
 
     const firstRow = screen.getAllByTestId(/row-/)[0];
     fireEvent.click(within(firstRow).getByTestId("btn"));
@@ -104,13 +85,7 @@ describe("AppointmentsList", () => {
   });
 
   it("pasa el appt correspondiente al AppointmentItem (solo para slots con turno)", () => {
-    renderWithTheme(
-      <AppointmentsList
-        slots={slots as any}
-        apptsBySlot={apptsBySlotFull as any}
-        onSelect={vi.fn()}
-      />
-    );
+    renderWithTheme(<AppointmentsList slots={slots as any} apptsBySlot={apptsBySlotFull as any} onSelect={vi.fn()} />);
 
     const rows = screen.getAllByTestId(/row-/);
 

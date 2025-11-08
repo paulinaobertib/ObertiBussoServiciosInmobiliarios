@@ -22,9 +22,7 @@ function baseState() {
       description: "",
     },
     formLoading: false,
-    handleChange: vi.fn(
-      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => e
-    ),
+    handleChange: vi.fn((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => e),
     handleSubmit: vi.fn((e: React.FormEvent) => {
       e?.preventDefault?.();
     }),
@@ -53,12 +51,8 @@ describe("<InquiryForm />", () => {
     expect(screen.getByLabelText(/Apellido/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Teléfono/i)).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/Descripción de la consulta/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Enviar Consulta/i })
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Descripción de la consulta/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Enviar Consulta/i })).toBeInTheDocument();
   });
 
   it("propaga onChange de cada campo (verifica name + llamada)", () => {
@@ -120,8 +114,6 @@ describe("<InquiryForm />", () => {
     expect(screen.getByLabelText(/Apellido/i)).toHaveValue("García");
     expect(screen.getByLabelText(/Email/i)).toHaveValue("luis@test.com");
     expect(screen.getByLabelText(/Teléfono/i)).toHaveValue("555-123");
-    expect(screen.getByLabelText(/Descripción de la consulta/i)).toHaveValue(
-      "Consulta previa"
-    );
+    expect(screen.getByLabelText(/Descripción de la consulta/i)).toHaveValue("Consulta previa");
   });
 });

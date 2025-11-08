@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { Box } from '@mui/material';
+import { useState } from "react";
+import dayjs, { Dayjs } from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
+import { Box } from "@mui/material";
 
 export interface Props {
   onSelectDate: (date: Dayjs) => void;
@@ -21,7 +21,7 @@ export const Calendar = ({ onSelectDate, initialDate = dayjs() }: Props) => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ width: '100%', display: 'grid', placeItems: 'center' }}>
+      <Box sx={{ width: "100%", display: "grid", placeItems: "center" }}>
         <DateCalendar
           value={selectedDate}
           onChange={handleDayChange}
@@ -29,9 +29,9 @@ export const Calendar = ({ onSelectDate, initialDate = dayjs() }: Props) => {
           shouldDisableDate={(d) => d.day() === 0 || d.day() === 6}
           // Responsivo y centrado
           sx={{
-            width: '100%',
+            width: "100%",
             maxWidth: 360,
-            mx: 'auto',
+            mx: "auto",
           }}
         />
       </Box>

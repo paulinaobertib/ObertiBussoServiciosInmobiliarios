@@ -29,11 +29,7 @@ describe("ownerService", () => {
 
     const result = await ownerService.postOwner(data);
 
-    expect(api.post).toHaveBeenCalledWith(
-      "/properties/owner/create",
-      data,
-      { withCredentials: true }
-    );
+    expect(api.post).toHaveBeenCalledWith("/properties/owner/create", data, { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -50,11 +46,7 @@ describe("ownerService", () => {
 
     const result = await ownerService.putOwner(data);
 
-    expect(api.put).toHaveBeenCalledWith(
-      "/properties/owner/update",
-      data,
-      { withCredentials: true }
-    );
+    expect(api.put).toHaveBeenCalledWith("/properties/owner/update", data, { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -71,10 +63,7 @@ describe("ownerService", () => {
 
     const result = await ownerService.deleteOwner(data);
 
-    expect(api.delete).toHaveBeenCalledWith(
-      "/properties/owner/delete/1",
-      { withCredentials: true }
-    );
+    expect(api.delete).toHaveBeenCalledWith("/properties/owner/delete/1", { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
@@ -91,45 +80,45 @@ describe("ownerService", () => {
   });
 
   it("getOwnerById llama a api.get con id", async () => {
-    const mockResponse = { data: { id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", phone: "123456789" } };
+    const mockResponse = {
+      data: { id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", phone: "123456789" },
+    };
     (api.get as any).mockResolvedValue(mockResponse);
 
     const result = await ownerService.getOwnerById(1);
 
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/owner/getById/1",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/owner/getById/1", { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
   it("getOwnerByPropertyId llama a api.get con propertyId", async () => {
-    const mockResponse = { data: { id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", phone: "123456789" } };
+    const mockResponse = {
+      data: { id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", phone: "123456789" },
+    };
     (api.get as any).mockResolvedValue(mockResponse);
 
     const result = await ownerService.getOwnerByPropertyId(5);
 
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/owner/getByProperty/5",
-      { withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/owner/getByProperty/5", { withCredentials: true });
     expect(result).toEqual(mockResponse.data);
   });
 
   it("getOwnersByText llama a api.get con search", async () => {
-    const mockResponse = { data: [{ id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", phone: "123456789" }] };
+    const mockResponse = {
+      data: [{ id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", phone: "123456789" }],
+    };
     (api.get as any).mockResolvedValue(mockResponse);
 
     const result = await ownerService.getOwnersByText("John");
 
-    expect(api.get).toHaveBeenCalledWith(
-      "/properties/owner/search",
-      { params: { search: "John" }, withCredentials: true }
-    );
+    expect(api.get).toHaveBeenCalledWith("/properties/owner/search", {
+      params: { search: "John" },
+      withCredentials: true,
+    });
     expect(result).toEqual(mockResponse.data);
   });
 
-    it("lanza error si api.post falla en postOwner", async () => {
+  it("lanza error si api.post falla en postOwner", async () => {
     const data: OwnerCreate = {
       firstName: "Jane",
       lastName: "Doe",

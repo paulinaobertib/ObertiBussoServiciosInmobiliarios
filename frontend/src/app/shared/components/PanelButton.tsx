@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button } from "@mui/material";
 
 interface Props {
   label: string;
@@ -6,14 +6,10 @@ interface Props {
   onClick: () => void;
 }
 
-export const PanelButton = ({ label, active, onClick, }: Props) => {
+export const PanelButton = ({ label, active, onClick }: Props) => {
   return (
-    <Button
-      variant={active ? 'contained' : 'outlined'}
-      onClick={onClick}
-      sx={{ minWidth: 100, textTransform: 'none' }}
-    >
+    <Button variant={active ? "contained" : "outlined"} onClick={onClick} sx={{ minWidth: 100, textTransform: "none" }}>
       {label}
     </Button>
   );
-}
+};

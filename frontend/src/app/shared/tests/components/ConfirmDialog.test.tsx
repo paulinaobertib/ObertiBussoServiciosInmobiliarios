@@ -34,43 +34,34 @@ describe("useConfirmDialog", () => {
 
     fireEvent.click(screen.getByText("Cancelar"));
 
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
-it("ejecuta la función confirmación al hacer clic en 'Confirmar'", async () => {
-  const confirmFn = vi.fn().mockResolvedValue(undefined);
+  it("ejecuta la función confirmación al hacer clic en 'Confirmar'", async () => {
+    const confirmFn = vi.fn().mockResolvedValue(undefined);
 
-  function CustomWrapper() {
-    const { ask } = useConfirmDialog();
-    return (
-      <ThemeProvider theme={createTheme()}>
-        <button
-          onClick={() =>
-            ask("¿Confirmar acción?", confirmFn, { double: false })
-          }
-        >
-          Abrir
-        </button>
-      </ThemeProvider>
+    function CustomWrapper() {
+      const { ask } = useConfirmDialog();
+      return (
+        <ThemeProvider theme={createTheme()}>
+          <button onClick={() => ask("¿Confirmar acción?", confirmFn, { double: false })}>Abrir</button>
+        </ThemeProvider>
+      );
+    }
+
+    render(
+      <AlertProvider>
+        <CustomWrapper />
+      </AlertProvider>
     );
-  }
 
-  render(
-    <AlertProvider>
-      <CustomWrapper />
-    </AlertProvider>
-  );
+    fireEvent.click(screen.getByText("Abrir"));
 
-  fireEvent.click(screen.getByText("Abrir"));
+    // ahora sí va a existir el botón "Confirmar"
+    fireEvent.click(await screen.findByText("Confirmar"));
 
-  // ahora sí va a existir el botón "Confirmar"
-  fireEvent.click(await screen.findByText("Confirmar"));
-
-  await waitFor(() => {
-    expect(confirmFn).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(confirmFn).toHaveBeenCalled();
+    });
   });
-});
-
 });

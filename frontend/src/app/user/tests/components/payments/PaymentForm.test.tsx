@@ -21,9 +21,7 @@ vi.mock("../../../services/commission.service", () => ({
   getCommissionByContractId: vi.fn(),
 }));
 
-import {
-  getContractUtilitiesByContract,
-} from "../../../services/contractUtility.service";
+import { getContractUtilitiesByContract } from "../../../services/contractUtility.service";
 import { getUtilityById } from "../../../services/utility.service";
 import { getCommissionByContractId } from "../../../services/commission.service";
 
@@ -34,9 +32,7 @@ const lastOnChange = (mock: any) => {
 };
 
 const typeInto = async (label: RegExp, value: string) => {
-  const input =
-    screen.queryByLabelText(label) ??
-    screen.getByRole("textbox", { name: label });
+  const input = screen.queryByLabelText(label) ?? screen.getByRole("textbox", { name: label });
   // limpiar y escribir (maneja inputs number/text)
   await userEvent.clear(input as HTMLElement);
   if (value) {
@@ -136,17 +132,9 @@ describe("PaymentForm", () => {
       // (MUI Select suele ser 'combobox'; a veces 'button' según la variante)
       let serviceTrigger: HTMLElement;
       try {
-        serviceTrigger = await screen.findByRole(
-          "combobox",
-          { name: /Servicio del contrato/i },
-          { timeout: 8000 }
-        );
+        serviceTrigger = await screen.findByRole("combobox", { name: /Servicio del contrato/i }, { timeout: 8000 });
       } catch {
-        serviceTrigger = await screen.findByRole(
-          "button",
-          { name: /Servicio del contrato/i },
-          { timeout: 8000 }
-        );
+        serviceTrigger = await screen.findByRole("button", { name: /Servicio del contrato/i }, { timeout: 8000 });
       }
       expect(serviceTrigger).toBeInTheDocument();
 
@@ -181,18 +169,10 @@ describe("PaymentForm", () => {
     (getContractUtilitiesByContract as any).mockResolvedValue([]);
     (getCommissionByContractId as any).mockResolvedValue({ id: 11 });
 
-    const { rerender } = render(
-      <PaymentForm contractId={10} onChange={onChange} />
-    );
+    const { rerender } = render(<PaymentForm contractId={10} onChange={onChange} />);
 
     // Aplico concept externo
-    rerender(
-      <PaymentForm
-        contractId={10}
-        onChange={onChange}
-        externalConcept={PaymentConcept.EXTRA}
-      />
-    );
+    rerender(<PaymentForm contractId={10} onChange={onChange} externalConcept={PaymentConcept.EXTRA} />);
     await waitFor(() => {
       expect(lastOnChange(onChange).concept).toBe(PaymentConcept.EXTRA);
     });
@@ -238,16 +218,12 @@ describe("PaymentForm", () => {
     // concept -> COMISION: debe mostrar mensaje (no hay comisión)
     await openSelect(/Concepto/i);
     await chooseOption(/comision/i);
-    expect(
-      await screen.findByText(/No hay comisión asociada a este contrato\./i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/No hay comisión asociada a este contrato\./i)).toBeInTheDocument();
 
     // concept -> EXTRA: aparece selector de servicio aunque no haya opciones (lista vacía)
     await openSelect(/Concepto/i);
     await chooseOption(/extra/i);
-    expect(
-      await screen.findByRole("combobox", { name: /Servicio del contrato/i })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("combobox", { name: /Servicio del contrato/i })).toBeInTheDocument();
 
     // Además, al elegir EXTRA, commissionId debe limpiarse
     expect(lastOnChange(onChange).commissionId).toBe("");

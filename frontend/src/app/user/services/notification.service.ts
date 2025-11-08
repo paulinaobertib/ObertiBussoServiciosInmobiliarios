@@ -1,15 +1,8 @@
 import { api } from "../../../api";
-import {
-  NotificationCreate,
-  NotificationType,
-  UserNotificationPreferenceCreate,
-} from "../types/notification";
+import { NotificationCreate, NotificationType, UserNotificationPreferenceCreate } from "../types/notification";
 
 /** `/notifications/create/property` */
-export const createPropertyNotification = async (
-  body: NotificationCreate,
-  propertyId: number
-) => {
+export const createPropertyNotification = async (body: NotificationCreate, propertyId: number) => {
   try {
     const data = await api.post(`/users/notifications/create/property`, body, {
       params: { propertyId },
@@ -23,20 +16,12 @@ export const createPropertyNotification = async (
 };
 
 /** `/notifications/create/interestProperty` */
-export const createInterestNotification = async (
-  userId: string,
-  type: NotificationType,
-  propertyId: number
-) => {
+export const createInterestNotification = async (userId: string, type: NotificationType, propertyId: number) => {
   try {
-    const data = await api.post(
-      `/users/notifications/create/interestProperty`,
-      null,
-      {
-        params: { userId, type, propertyId },
-        withCredentials: true,
-      }
-    );
+    const data = await api.post(`/users/notifications/create/interestProperty`, null, {
+      params: { userId, type, propertyId },
+      withCredentials: true,
+    });
     return data;
   } catch (error) {
     console.error("Error creating interest notification:", error);
@@ -84,9 +69,7 @@ export const getNotificationsByUser = async (userId: string) => {
 };
 
 /** `/preference/create` */
-export const createUserNotificationPreference = async (
-  body: UserNotificationPreferenceCreate
-) => {
+export const createUserNotificationPreference = async (body: UserNotificationPreferenceCreate) => {
   try {
     const data = await api.post(`/users/preference/create`, body, {
       withCredentials: true,
@@ -99,10 +82,7 @@ export const createUserNotificationPreference = async (
 };
 
 /** `/preference/update/{id}` */
-export const updateUserNotificationPreference = async (
-  id: number,
-  enabled: boolean
-) => {
+export const updateUserNotificationPreference = async (id: number, enabled: boolean) => {
   try {
     const data = await api.put(`/users/preference/update/${id}`, null, {
       params: { enabled },
@@ -136,18 +116,13 @@ export const getUserNotificationPreferencesByUser = async (userId: string) => {
     });
     return data;
   } catch (error) {
-    console.error(
-      "Error fetching user notification preferences by user:",
-      error
-    );
+    console.error("Error fetching user notification preferences by user:", error);
     throw error;
   }
 };
 
 /** `/preference/active?type={NotificationType}` */
-export const getActiveUsersByPreferenceType = async (
-  type: NotificationType
-) => {
+export const getActiveUsersByPreferenceType = async (type: NotificationType) => {
   try {
     const data = await api.get(`/users/preference/active`, {
       params: { type },

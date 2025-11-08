@@ -29,13 +29,7 @@ describe("FinancialCard", () => {
   });
 
   it("muestra 'Sin registros' cuando no hay último pago", () => {
-    render(
-      <FinancialCard
-        {...baseProps}
-        lastPaidAmount={null}
-        lastPaidDate={null}
-      />
-    );
+    render(<FinancialCard {...baseProps} lastPaidAmount={null} lastPaidDate={null} />);
     expect(screen.getByText("Sin registros")).toBeInTheDocument();
     expect(screen.getByText("-")).toBeInTheDocument();
   });

@@ -1,9 +1,6 @@
-export const IMAGE_BASE_URL =
-  "https://storageimages.blob.core.windows.net/images/";
+export const IMAGE_BASE_URL = "https://storageimages.blob.core.windows.net/images/";
 
-export function toImageUrl(
-  image: string | File | { url: string } | null | undefined
-): string {
+export function toImageUrl(image: string | File | { url: string } | null | undefined): string {
   if (!image) return "";
 
   if (typeof image === "string") {
@@ -15,11 +12,7 @@ export function toImageUrl(
 
   if (image instanceof File) return URL.createObjectURL(image);
 
-  if (
-    typeof image === "object" &&
-    "url" in image &&
-    typeof image.url === "string"
-  ) {
+  if (typeof image === "object" && "url" in image && typeof image.url === "string") {
     return image.url;
   }
 

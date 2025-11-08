@@ -38,9 +38,7 @@ describe("useChat", () => {
 
     expect(createChatMock).toHaveBeenCalledWith("CUALQUIERA", 99, 3);
     expect(handleErrorMock).toHaveBeenCalledWith(boom);
-    expect(result.current.messages).toEqual([
-      { from: "user", content: "CUALQUIERA" },
-    ]);
+    expect(result.current.messages).toEqual([{ from: "user", content: "CUALQUIERA" }]);
     expect(result.current.loading).toBe(false);
   });
 
@@ -66,15 +64,13 @@ describe("useChat", () => {
 
     await act(async () => {
       const p = result.current.sendMessage("CUALQUIERA", 99, 3);
-      await Promise.resolve(); 
+      await Promise.resolve();
       await p.catch(() => {});
     });
 
     expect(createChatMock).toHaveBeenCalledWith("CUALQUIERA", 99, 3);
     expect(handleErrorMock).toHaveBeenCalledWith(boom);
-    expect(result.current.messages).toEqual([
-      { from: "user", content: "CUALQUIERA" },
-    ]);
+    expect(result.current.messages).toEqual([{ from: "user", content: "CUALQUIERA" }]);
     expect(result.current.loading).toBe(false);
   });
 

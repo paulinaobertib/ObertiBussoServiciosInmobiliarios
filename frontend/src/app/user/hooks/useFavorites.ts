@@ -73,10 +73,7 @@ export function useFavorites() {
     [favorites]
   );
 
-  const isToggling = useCallback(
-    (propertyId: number) => togglingId === propertyId,
-    [togglingId]
-  );
+  const isToggling = useCallback((propertyId: number) => togglingId === propertyId, [togglingId]);
 
   /* ------------------- toggle favorito ------------------- */
   const toggleFavorite = useCallback(

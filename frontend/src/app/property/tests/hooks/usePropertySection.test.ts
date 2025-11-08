@@ -87,10 +87,7 @@ describe("usePropertyPanel", () => {
     const { result, rerender } = renderHook(() => usePropertyPanel());
 
     // Cambiamos la lista "desde el contexto" y forzamos un rerender
-    currentList = [
-      { id: 10, title: "X" } as any,
-      { id: 11, title: "Y" } as any,
-    ];
+    currentList = [{ id: 10, title: "X" } as any, { id: 11, title: "Y" } as any];
     rerender();
 
     expect(result.current.data).toEqual([

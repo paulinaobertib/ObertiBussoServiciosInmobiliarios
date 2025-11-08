@@ -23,11 +23,7 @@ function makeSlot(id: number, date: string, availability: boolean) {
   return { id, date, availability };
 }
 
-function makeAppt(
-  slotId: number,
-  status: "ESPERA" | "ACEPTADO" | "RECHAZADO",
-  userId?: number
-) {
+function makeAppt(slotId: number, status: "ESPERA" | "ACEPTADO" | "RECHAZADO", userId?: number) {
   return { id: slotId * 100, slotId, status, userId };
 }
 
@@ -41,17 +37,11 @@ describe("<AppointmentItem />", () => {
     const slot = makeSlot(1, date, true);
     const onClick = vi.fn();
 
-    const { container } = renderWithTheme(
-      <AppointmentItem slot={slot as any} onClick={onClick} />
-    );
+    const { container } = renderWithTheme(<AppointmentItem slot={slot as any} onClick={onClick} />);
 
     // hora y fecha
-    expect(
-      screen.getByText(dayjs(date).format("HH:mm"))
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(dayjs(date).format("DD/MM"))
-    ).toBeInTheDocument();
+    expect(screen.getByText(dayjs(date).format("HH:mm"))).toBeInTheDocument();
+    expect(screen.getByText(dayjs(date).format("DD/MM"))).toBeInTheDocument();
 
     // estado + libre
     expect(screen.getByText("Disponible")).toBeInTheDocument();
@@ -71,9 +61,7 @@ describe("<AppointmentItem />", () => {
       data: { firstName: "Ana", lastName: "García", email: "ana@correo.com" },
     });
 
-    renderWithTheme(
-      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
-    );
+    renderWithTheme(<AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />);
 
     expect(screen.getByText("Pendiente")).toBeInTheDocument();
     // Mientras carga
@@ -89,9 +77,7 @@ describe("<AppointmentItem />", () => {
 
     getUserByIdMock.mockRejectedValueOnce(new Error("boom"));
 
-    renderWithTheme(
-      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
-    );
+    renderWithTheme(<AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />);
 
     expect(screen.getByText("Confirmado")).toBeInTheDocument();
 
@@ -106,9 +92,7 @@ describe("<AppointmentItem />", () => {
     const slot = makeSlot(4, date, false);
     const appt = makeAppt(4, "RECHAZADO"); // sin userId
 
-    renderWithTheme(
-      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
-    );
+    renderWithTheme(<AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />);
 
     expect(screen.getByText("Rechazado")).toBeInTheDocument();
     expect(screen.getByText("Cliente")).toBeInTheDocument();
@@ -119,9 +103,7 @@ describe("<AppointmentItem />", () => {
     const slot = makeSlot(5, date, false);
     const appt = makeAppt(5, "ESPERA"); // sin userId
 
-    renderWithTheme(
-      <AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />
-    );
+    renderWithTheme(<AppointmentItem slot={slot as any} appt={appt as any} onClick={vi.fn()} />);
 
     expect(screen.getByText("Pendiente")).toBeInTheDocument();
     expect(screen.getByText("Cliente")).toBeInTheDocument();

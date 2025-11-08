@@ -35,8 +35,7 @@ describe("PropertyInfoCompare", () => {
     date: new Date().toISOString(),
   };
 
-  const renderWithProvider = (ui: React.ReactNode) =>
-    render(<PropertyCrudProvider>{ui}</PropertyCrudProvider>);
+  const renderWithProvider = (ui: React.ReactNode) => render(<PropertyCrudProvider>{ui}</PropertyCrudProvider>);
 
   it("muestra título, ubicación y precio con expensas", () => {
     renderWithProvider(<PropertyInfoCompare property={mockProperty} />);
@@ -72,22 +71,25 @@ describe("PropertyInfoCompare", () => {
     expect(screen.getByText(/2 dormitorios/)).toBeInTheDocument();
   });
 
-it("muestra amenities correctamente", () => {
-  const prop = { 
-    ...mockProperty, 
-    amenities: [{ id: 1, name: "Pileta" }, { id: 3, name: "Gimnasio" }] 
-  };
-  renderWithProvider(<PropertyInfoCompare property={prop} />);
-  expect(screen.getByText(/Pileta/i)).toBeInTheDocument();
-  expect(screen.getByText(/Gimnasio/i)).toBeInTheDocument();
-});
+  it("muestra amenities correctamente", () => {
+    const prop = {
+      ...mockProperty,
+      amenities: [
+        { id: 1, name: "Pileta" },
+        { id: 3, name: "Gimnasio" },
+      ],
+    };
+    renderWithProvider(<PropertyInfoCompare property={prop} />);
+    expect(screen.getByText(/Pileta/i)).toBeInTheDocument();
+    expect(screen.getByText(/Gimnasio/i)).toBeInTheDocument();
+  });
 
   it("muestra '-' cuando feature es 0 o null", () => {
     const prop = { ...mockProperty, bedrooms: 0, bathrooms: 0, rooms: 0, area: 0, coveredArea: 0 };
     renderWithProvider(<PropertyInfoCompare property={prop} />);
-    expect(screen.getAllByText('-').length).toBeGreaterThan(0);
-    expect(screen.getByText('- m²')).toBeInTheDocument();
-    expect(screen.getByText('- m² cubiertos')).toBeInTheDocument();
+    expect(screen.getAllByText("-").length).toBeGreaterThan(0);
+    expect(screen.getByText("- m²")).toBeInTheDocument();
+    expect(screen.getByText("- m² cubiertos")).toBeInTheDocument();
   });
 
   it("muestra 'Ubicación desconocida' si no hay street ni neighborhood (otra vez)", () => {

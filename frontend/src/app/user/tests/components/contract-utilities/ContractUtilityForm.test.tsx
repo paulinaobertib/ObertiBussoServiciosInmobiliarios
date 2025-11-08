@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
-import { ContractUtilityForm, type ContractUtilityFormHandle } from "../../../components/contract-utilities/ContractUtilityForm";
+import {
+  ContractUtilityForm,
+  type ContractUtilityFormHandle,
+} from "../../../components/contract-utilities/ContractUtilityForm";
 import { UtilityPeriodicityPayment } from "../../../types/contractUtility";
 import React from "react";
 
@@ -14,43 +17,40 @@ describe("ContractUtilityForm", () => {
     ref = React.createRef<ContractUtilityFormHandle>();
   });
 
-it("renderiza con valores iniciales por defecto", () => {
-  render(<ContractUtilityForm ref={ref} utility={utility} contractId={contractId} />);
-  // buscar el input oculto que contiene el valor
-  expect(screen.getByDisplayValue(UtilityPeriodicityPayment.MENSUAL))
-    .toBeInTheDocument();
+  it("renderiza con valores iniciales por defecto", () => {
+    render(<ContractUtilityForm ref={ref} utility={utility} contractId={contractId} />);
+    // buscar el input oculto que contiene el valor
+    expect(screen.getByDisplayValue(UtilityPeriodicityPayment.MENSUAL)).toBeInTheDocument();
 
-  expect(screen.getByLabelText("Monto inicial")).toHaveValue(0);
-  expect(screen.getByLabelText("Notas")).toHaveValue("");
-});
+    expect(screen.getByLabelText("Monto inicial")).toHaveValue(0);
+    expect(screen.getByLabelText("Notas")).toHaveValue("");
+  });
 
-it("renderiza con valores iniciales dados", () => {
-  render(
-    <ContractUtilityForm
-      ref={ref}
-      utility={utility}
-      contractId={contractId}
-      initial={{ periodicity: UtilityPeriodicityPayment.ANUAL, initialAmount: 123, notes: "abc" }}
-    />
-  );
+  it("renderiza con valores iniciales dados", () => {
+    render(
+      <ContractUtilityForm
+        ref={ref}
+        utility={utility}
+        contractId={contractId}
+        initial={{ periodicity: UtilityPeriodicityPayment.ANUAL, initialAmount: 123, notes: "abc" }}
+      />
+    );
 
-  expect(screen.getByDisplayValue(UtilityPeriodicityPayment.ANUAL))
-    .toBeInTheDocument();
+    expect(screen.getByDisplayValue(UtilityPeriodicityPayment.ANUAL)).toBeInTheDocument();
 
-  expect(screen.getByLabelText("Monto inicial")).toHaveValue(123);
-  expect(screen.getByLabelText("Notas")).toHaveValue("abc");
-});
+    expect(screen.getByLabelText("Monto inicial")).toHaveValue(123);
+    expect(screen.getByLabelText("Notas")).toHaveValue("abc");
+  });
 
-it("cambia la periodicidad", () => {
-  render(<ContractUtilityForm ref={ref} utility={utility} contractId={contractId} />);
-  const select = screen.getByRole("combobox", { name: "Periodicidad" });
+  it("cambia la periodicidad", () => {
+    render(<ContractUtilityForm ref={ref} utility={utility} contractId={contractId} />);
+    const select = screen.getByRole("combobox", { name: "Periodicidad" });
 
-  fireEvent.mouseDown(select);
-  fireEvent.click(screen.getByRole("option", { name: /Trimestral/i }));
+    fireEvent.mouseDown(select);
+    fireEvent.click(screen.getByRole("option", { name: /Trimestral/i }));
 
-  expect(screen.getByDisplayValue(UtilityPeriodicityPayment.TRIMESTRAL))
-    .toBeInTheDocument();
-});
+    expect(screen.getByDisplayValue(UtilityPeriodicityPayment.TRIMESTRAL)).toBeInTheDocument();
+  });
 
   it("cambia el monto inicial", () => {
     render(<ContractUtilityForm ref={ref} utility={utility} contractId={contractId} />);

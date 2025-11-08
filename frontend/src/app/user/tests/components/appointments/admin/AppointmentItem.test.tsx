@@ -15,8 +15,7 @@ import { getUserById } from "../../../../../user/services/user.service";
 describe("AppointmentItem", () => {
   const theme = createTheme();
 
-  const renderWithTheme = (ui: React.ReactElement) =>
-    render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+  const renderWithTheme = (ui: React.ReactElement) => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
   const baseSlot = {
     id: 1,

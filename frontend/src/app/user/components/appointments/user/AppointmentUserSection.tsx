@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
-import { useAuthContext } from '../../../../user/context/AuthContext';
-import { useAppointments } from '../../../hooks/useAppointments';
-import { AppointmentUserList } from './AppointmentUserList';
+import { useEffect } from "react";
+import { Box, CircularProgress } from "@mui/material";
+import { useAuthContext } from "../../../../user/context/AuthContext";
+import { useAppointments } from "../../../hooks/useAppointments";
+import { AppointmentUserList } from "./AppointmentUserList";
 
 export const AppointmentUserSection = () => {
   const { info } = useAuthContext();
@@ -26,13 +26,12 @@ export const AppointmentUserSection = () => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
+        display: "flex",
+        flexDirection: "column",
         gap: 2,
         p: { xs: 2, sm: 3 },
       }}
     >
-
       {/* Lista */}
       <AppointmentUserList
         appointments={userAppointments}

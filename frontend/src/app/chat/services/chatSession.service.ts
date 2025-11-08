@@ -12,17 +12,17 @@ export const createChatSession = async (body: ChatSessionDTO) => {
 };
 
 export const createChatSessionWithUser = async (userId: string, propertyId: number) => {
-    try {
-        const response = await api.post(`/properties/chatSession/createUser`, null, {
-            params: { userId, propertyId },
-            withCredentials: true,
-        })
-        return response.data;
-    } catch (error) {
-        console.error("Error creating chat session for user:", error);
-        throw error;
-    }
-}
+  try {
+    const response = await api.post(`/properties/chatSession/createUser`, null, {
+      params: { userId, propertyId },
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating chat session for user:", error);
+    throw error;
+  }
+};
 
 export const getChatSessionById = async (id: number) => {
   try {

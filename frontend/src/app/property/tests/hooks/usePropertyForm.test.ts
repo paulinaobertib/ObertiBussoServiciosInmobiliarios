@@ -113,7 +113,7 @@ describe("usePropertyForm", () => {
       expect(result.current.form.owner.id).toBe(1);
       expect(result.current.form.neighborhood.id).toBe(10);
       expect(result.current.form.type.id).toBe(100);
-      expect(result.current.form.amenities.map(a => a.id)).toEqual([900, 902]);
+      expect(result.current.form.amenities.map((a) => a.id)).toEqual([900, 902]);
     });
 
     // Cambiamos a otros ids
@@ -129,7 +129,7 @@ describe("usePropertyForm", () => {
       expect(result.current.form.owner.id).toBe(2);
       expect(result.current.form.neighborhood.id).toBe(11);
       expect(result.current.form.type.id).toBe(101);
-      expect(result.current.form.amenities.map(a => a.id)).toEqual([901]);
+      expect(result.current.form.amenities.map((a) => a.id)).toEqual([901]);
     });
   });
 

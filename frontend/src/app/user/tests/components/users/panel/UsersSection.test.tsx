@@ -218,130 +218,123 @@ describe("UsersSection", () => {
   });
 
   it("columna Roles: traduce correctamente arrays de strings y de objetos; vacío → '—'", () => {
-  // 1) strings minúscula
-  (useUsers as unknown as Mock).mockReturnValueOnce({
-    users: [
-      { ...sampleUsers[0], roles: ["admin", "tenant"] },
-    ],
-    loading: false,
-    load: loadMock,
-    fetchAll: fetchAllMock,
-    fetchByText: fetchByTextMock,
+    // 1) strings minúscula
+    (useUsers as unknown as Mock).mockReturnValueOnce({
+      users: [{ ...sampleUsers[0], roles: ["admin", "tenant"] }],
+      loading: false,
+      load: loadMock,
+      fetchAll: fetchAllMock,
+      fetchByText: fetchByTextMock,
+    });
+
+    render(<UsersSection />);
+
+    // Tomamos la definición de columnas que se pasó al GridSection
+    const props = GridSectionMock.mock.calls[0][0];
+    const rolesCol = props.columns.find((c: any) => c.field === "roles");
+
+    // Render de la celda con strings
+    const { getByText, rerender } = render(<div>{rolesCol.renderCell({ row: { roles: ["admin", "tenant"] } })}</div>);
+    // Debe traducir con ROLE_TRANSLATE
+    expect(getByText(/Administrador/)).toBeInTheDocument();
+    expect(getByText(/Inquilino/)).toBeInTheDocument();
+
+    // 2) objetos { name }
+    rerender(<div>{rolesCol.renderCell({ row: { roles: [{ name: "user" }] } })}</div>);
+    expect(getByText(/Usuario/)).toBeInTheDocument();
+
+    // 3) vacío → "—"
+    rerender(<div>{rolesCol.renderCell({ row: { roles: [] } })}</div>);
+    expect(getByText("—")).toBeInTheDocument();
   });
 
-  render(<UsersSection />);
+  it("columna Acciones: los íconos disparan los modales correspondientes", async () => {
+    render(<UsersSection />);
 
-  // Tomamos la definición de columnas que se pasó al GridSection
-  const props = GridSectionMock.mock.calls[0][0];
-  const rolesCol = props.columns.find((c: any) => c.field === "roles");
+    const props = GridSectionMock.mock.calls[0][0];
+    const actionsCol = props.columns.find((c: any) => c.field === "actions");
 
-  // Render de la celda con strings
-  const { getByText, rerender } = render(
-    <div>{rolesCol.renderCell({ row: { roles: ["admin", "tenant"] } })}</div>
-  );
-  // Debe traducir con ROLE_TRANSLATE
-  expect(getByText(/Administrador/)).toBeInTheDocument();
-  expect(getByText(/Inquilino/)).toBeInTheDocument();
+    // Renderizamos el contenido de la celda de acciones para el primer usuario
+    const { getByTitle } = render(<div>{actionsCol.renderCell({ row: sampleUsers[0] })}</div>);
 
-  // 2) objetos { name }
-  rerender(<div>{rolesCol.renderCell({ row: { roles: [{ name: "user" }] } })}</div>);
-  expect(getByText(/Usuario/)).toBeInTheDocument();
+    // Editar
+    fireEvent.click(getByTitle("Editar"));
+    expect(await screen.findByTestId("modal")).toBeInTheDocument();
+    expect(screen.getByTestId("modal-title")).toHaveTextContent("Editar usuario");
+    // Cerrar para seguir probando
+    fireEvent.click(screen.getByTestId("modal-close"));
+    await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
 
-  // 3) vacío → "—"
-  rerender(<div>{rolesCol.renderCell({ row: { roles: [] } })}</div>);
-  expect(getByText("—")).toBeInTheDocument();
-});
+    // Eliminar
+    fireEvent.click(getByTitle("Eliminar"));
+    expect(await screen.findByTestId("modal")).toBeInTheDocument();
+    expect(screen.getByTestId("modal-title")).toHaveTextContent("Eliminar usuario");
+    fireEvent.click(screen.getByTestId("modal-close"));
+    await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
 
-it("columna Acciones: los íconos disparan los modales correspondientes", async () => {
-  render(<UsersSection />);
+    // Roles
+    (getRoles as unknown as Mock).mockResolvedValueOnce({ data: ["USER"] });
+    fireEvent.click(getByTitle("Roles"));
+    expect(await screen.findByTestId("modal")).toBeInTheDocument();
+    // El loader se reemplaza por el RoleForm; verificamos que llegó
+    await screen.findByTestId("roleform");
+    expect(screen.getByTestId("role-user")).toHaveTextContent("u1");
+  });
 
-  const props = GridSectionMock.mock.calls[0][0];
-  const actionsCol = props.columns.find((c: any) => c.field === "actions");
+  it("Roles: muestra loader mientras getRoles está pendiente (promesa sin resolver)", async () => {
+    let resolvePromise: (v?: unknown) => void;
+    const pending = new Promise((res) => (resolvePromise = res));
 
-  // Renderizamos el contenido de la celda de acciones para el primer usuario
-  const { getByTitle } = render(
-    <div>{actionsCol.renderCell({ row: sampleUsers[0] })}</div>
-  );
+    (getRoles as unknown as Mock).mockReturnValueOnce(pending);
 
-  // Editar
-  fireEvent.click(getByTitle("Editar"));
-  expect(await screen.findByTestId("modal")).toBeInTheDocument();
-  expect(screen.getByTestId("modal-title")).toHaveTextContent("Editar usuario");
-  // Cerrar para seguir probando
-  fireEvent.click(screen.getByTestId("modal-close"));
-  await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
+    render(<UsersSection />);
 
-  // Eliminar
-  fireEvent.click(getByTitle("Eliminar"));
-  expect(await screen.findByTestId("modal")).toBeInTheDocument();
-  expect(screen.getByTestId("modal-title")).toHaveTextContent("Eliminar usuario");
-  fireEvent.click(screen.getByTestId("modal-close"));
-  await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
+    // Disparamos Roles desde el grid
+    fireEvent.click(screen.getByText("grid-roles"));
 
-  // Roles
-  (getRoles as unknown as Mock).mockResolvedValueOnce({ data: ["USER"] });
-  fireEvent.click(getByTitle("Roles"));
-  expect(await screen.findByTestId("modal")).toBeInTheDocument();
-  // El loader se reemplaza por el RoleForm; verificamos que llegó
-  await screen.findByTestId("roleform");
-  expect(screen.getByTestId("role-user")).toHaveTextContent("u1");
-});
+    // En primera instancia debe verse el CircularProgress dentro del Modal
+    const modal = await screen.findByTestId("modal");
+    // Nuestro Modal mock no añade rol, pero el CircularProgress sí (progressbar)
+    expect(within(modal).getByRole("progressbar")).toBeInTheDocument();
 
-it("Roles: muestra loader mientras getRoles está pendiente (promesa sin resolver)", async () => {
-  let resolvePromise: (v?: unknown) => void;
-  const pending = new Promise((res) => (resolvePromise = res));
+    // Ahora resolvemos la promesa para que aparezca el RoleForm
+    resolvePromise!({ data: ["ADMIN"] });
+    await screen.findByTestId("roleform");
+  });
 
-  (getRoles as unknown as Mock).mockReturnValueOnce(pending);
+  it("Modal: el botón de cierre del mock cierra la ventana", async () => {
+    render(<UsersSection />);
 
-  render(<UsersSection />);
+    fireEvent.click(screen.getByText("grid-create"));
+    const modal = await screen.findByTestId("modal");
+    expect(modal).toBeInTheDocument();
 
-  // Disparamos Roles desde el grid
-  fireEvent.click(screen.getByText("grid-roles"));
+    fireEvent.click(screen.getByTestId("modal-close"));
+    await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
+  });
 
-  // En primera instancia debe verse el CircularProgress dentro del Modal
-  const modal = await screen.findByTestId("modal");
-  // Nuestro Modal mock no añade rol, pero el CircularProgress sí (progressbar)
-  expect(within(modal).getByRole("progressbar")).toBeInTheDocument();
+  it("gridToggleSelect: cuando recibe null, llama toggleSelect(null)", () => {
+    const toggleSelect = vi.fn();
+    render(<UsersSection toggleSelect={toggleSelect} />);
 
-  // Ahora resolvemos la promesa para que aparezca el RoleForm
-  resolvePromise!({ data: ["ADMIN"] });
-  await screen.findByTestId("roleform");
-});
+    // Obtenemos la función que el componente pasó al Grid
+    const props = GridSectionMock.mock.calls[0][0];
+    props.toggleSelect(null);
 
-it("Modal: el botón de cierre del mock cierra la ventana", async () => {
-  render(<UsersSection />);
+    expect(toggleSelect).toHaveBeenCalledWith(null);
+  });
 
-  fireEvent.click(screen.getByText("grid-create"));
-  const modal = await screen.findByTestId("modal");
-  expect(modal).toBeInTheDocument();
+  it("pasa correctamente selectable y multiSelect al GridSection", () => {
+    // Caso por defecto (selectable=true, multiSelect=false)
+    render(<UsersSection />);
+    let props = GridSectionMock.mock.calls[0][0];
+    expect(props.selectable).toBe(true);
+    expect(props.multiSelect).toBe(false);
 
-  fireEvent.click(screen.getByTestId("modal-close"));
-  await waitFor(() => expect(screen.queryByTestId("modal")).not.toBeInTheDocument());
-});
-
-it("gridToggleSelect: cuando recibe null, llama toggleSelect(null)", () => {
-  const toggleSelect = vi.fn();
-  render(<UsersSection toggleSelect={toggleSelect} />);
-
-  // Obtenemos la función que el componente pasó al Grid
-  const props = GridSectionMock.mock.calls[0][0];
-  props.toggleSelect(null);
-
-  expect(toggleSelect).toHaveBeenCalledWith(null);
-});
-
-it("pasa correctamente selectable y multiSelect al GridSection", () => {
-  // Caso por defecto (selectable=true, multiSelect=false)
-  render(<UsersSection />);
-  let props = GridSectionMock.mock.calls[0][0];
-  expect(props.selectable).toBe(true);
-  expect(props.multiSelect).toBe(false);
-
-  // Caso selectable=false
-  render(<UsersSection selectable={false} />);
-  props = GridSectionMock.mock.calls[1][0];
-  expect(props.selectable).toBe(false);
-  expect(props.multiSelect).toBe(false);
-});
-
+    // Caso selectable=false
+    render(<UsersSection selectable={false} />);
+    props = GridSectionMock.mock.calls[1][0];
+    expect(props.selectable).toBe(false);
+    expect(props.multiSelect).toBe(false);
+  });
 });

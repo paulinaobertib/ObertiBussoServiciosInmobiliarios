@@ -18,8 +18,20 @@ describe("MaintenanceList", () => {
   const mockOnDeleteItem = vi.fn();
 
   const items: Props["items"] = [
-    { id: 1, title: "Filtro", description: "Cambio de filtro", date: new Date("2025-08-25").toISOString(), propertyId: 1 },
-    { id: 2, title: "Aceite", description: "Cambio de aceite", date: new Date("2025-08-27").toISOString(), propertyId: 1 },
+    {
+      id: 1,
+      title: "Filtro",
+      description: "Cambio de filtro",
+      date: new Date("2025-08-25").toISOString(),
+      propertyId: 1,
+    },
+    {
+      id: 2,
+      title: "Aceite",
+      description: "Cambio de aceite",
+      date: new Date("2025-08-27").toISOString(),
+      propertyId: 1,
+    },
   ];
 
   beforeEach(() => {
@@ -34,7 +46,7 @@ describe("MaintenanceList", () => {
 
   it("ordena los items por fecha descendente", () => {
     render(<MaintenanceList items={items} onEditItem={mockOnEditItem} onDeleteItem={mockOnDeleteItem} />);
-    const titles = screen.getAllByText(/Filtro|Aceite/).map(el => el.textContent);
+    const titles = screen.getAllByText(/Filtro|Aceite/).map((el) => el.textContent);
     expect(titles).toEqual(["Aceite", "Filtro"]); // Aceite es más reciente
   });
 

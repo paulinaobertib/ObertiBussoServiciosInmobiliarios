@@ -1,20 +1,12 @@
-import {
-  Box,
-  Card,
-  Typography,
-  Chip,
-  Divider,
-  useTheme,
-  useMediaQuery,
-} from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-import dayjs from 'dayjs';
-import 'dayjs/locale/es';
-import type { Inquiry } from '../../types/inquiry';
-import { useAuthContext } from '../../../user/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { buildRoute, ROUTES } from '../../../../lib';
-import { findPropertyIdByTitle } from '../../utils/findPropertyIdByTitle';
+import { Box, Card, Typography, Chip, Divider, useTheme, useMediaQuery } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+import type { Inquiry } from "../../types/inquiry";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { buildRoute, ROUTES } from "../../../../lib";
+import { findPropertyIdByTitle } from "../../utils/findPropertyIdByTitle";
 
 interface Props {
   inquiry: Inquiry;
@@ -24,20 +16,20 @@ interface Props {
 }
 
 const statusMap: Record<string, { label: string }> = {
-  ABIERTA: { label: 'Abierta' },
-  CERRADA: { label: 'Cerrada' },
+  ABIERTA: { label: "Abierta" },
+  CERRADA: { label: "Cerrada" },
 };
 
 export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const created = dayjs(inquiry.date).locale('es');
-  const closed = inquiry.dateClose ? dayjs(inquiry.dateClose).locale('es') : null;
+  const created = dayjs(inquiry.date).locale("es");
+  const closed = inquiry.dateClose ? dayjs(inquiry.dateClose).locale("es") : null;
   const status = statusMap[inquiry.status] || { label: inquiry.status };
-  const isClosed = inquiry.status === 'CERRADA';
+  const isClosed = inquiry.status === "CERRADA";
 
   const ContactInfo = (
     <Box display="flex" flexWrap="wrap" gap={2} mt={1}>
@@ -57,7 +49,7 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
 
   const PropertyInfo = (
     <Box display="flex" alignItems="center" flexWrap="wrap" gap={2} mb={1}>
-      <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
+      <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
         <strong>Título:</strong> {inquiry.title}
       </Typography>
       <Divider orientation="vertical" flexItem sx={{ bgcolor: theme.palette.grey[300] }} />
@@ -67,8 +59,11 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
         </Typography>
       ) : (
         <Box display="flex" alignItems="center" flexWrap="wrap" gap={1}>
-          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
-            <strong>Propiedad{inquiry.propertyTitles.length > 1 ? 'es' : ''} consultada{inquiry.propertyTitles.length > 1 ? 's' : ''}:</strong>
+          <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
+            <strong>
+              Propiedad{inquiry.propertyTitles.length > 1 ? "es" : ""} consultada
+              {inquiry.propertyTitles.length > 1 ? "s" : ""}:
+            </strong>
           </Typography>
           {inquiry.propertyTitles.map((title, idx) => {
             const propertyId = findPropertyIdByTitle(title, properties);
@@ -79,7 +74,7 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
                 size="small"
                 clickable={!!propertyId}
                 onClick={() => propertyId && navigate(buildRoute(ROUTES.PROPERTY_DETAILS, propertyId))}
-                sx={{ cursor: propertyId ? 'pointer' : 'default' }}
+                sx={{ cursor: propertyId ? "pointer" : "default" }}
               />
             );
           })}
@@ -90,13 +85,13 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
 
   const CreatedBox = (
     <Typography variant="body2">
-      <strong>Fecha de envío:</strong> {created.format('D [de] MMM YYYY, HH:mm')}
+      <strong>Fecha de envío:</strong> {created.format("D [de] MMM YYYY, HH:mm")}
     </Typography>
   );
 
   const ClosedBox = (
     <Typography variant="body2">
-      <strong>Fecha de cierre:</strong> {closed ? closed.format('D [de] MMM YYYY, HH:mm') : '-'}
+      <strong>Fecha de cierre:</strong> {closed ? closed.format("D [de] MMM YYYY, HH:mm") : "-"}
     </Typography>
   );
 
@@ -111,9 +106,7 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
     </Box>
   );
 
-  const StatusChip = (
-    <Chip label={status.label} size="small" color="primary" variant="outlined" />
-  );
+  const StatusChip = <Chip label={status.label} size="small" color="primary" variant="outlined" />;
 
   const ActionButton = isClosed ? (
     <LoadingButton size="small" variant="outlined" disabled>
@@ -137,11 +130,15 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
             {DescriptionSection}
             {!isAdmin && StatusChip}
           </Box>
-          {isAdmin && <Box display="flex" justifyContent="flex-end">{ActionButton}</Box>}
+          {isAdmin && (
+            <Box display="flex" justifyContent="flex-end">
+              {ActionButton}
+            </Box>
+          )}
         </Box>
       ) : (
         <Box display="flex" alignItems="center">
-          <Box sx={{ minWidth: 200, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ minWidth: 200, display: "flex", flexDirection: "column", gap: 1 }}>
             {CreatedBox}
             {ClosedBox}
           </Box>

@@ -42,9 +42,7 @@ describe("SessionExpiredDialog", () => {
     // Spinner de MUI
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
     // Mensaje real
-    expect(
-      screen.getByText(/tu sesión finalizó/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/tu sesión finalizó/i)).toBeInTheDocument();
   });
 
   it("llama a login después de 5 segundos si sessionExpired = true", () => {

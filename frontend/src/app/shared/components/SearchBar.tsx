@@ -36,12 +36,11 @@ export const SearchBar = ({
           } else {
             // LOCAL, sólo por los campos indicados
             const lower = q.trim().toLowerCase();
-            const filtered = data.filter(item =>
-              (localFilterFields.length > 0
-                ? localFilterFields
-                : Object.keys(item)
-              ).some(key =>
-                String(item[key] ?? "").toLowerCase().includes(lower)
+            const filtered = data.filter((item) =>
+              (localFilterFields.length > 0 ? localFilterFields : Object.keys(item)).some((key) =>
+                String(item[key] ?? "")
+                  .toLowerCase()
+                  .includes(lower)
               )
             );
             onSearch(filtered);
@@ -75,7 +74,7 @@ export const SearchBar = ({
         value={q}
         onChange={(e) => setQ(e.target.value)}
         sx={{
-          '& .MuiOutlinedInput-root': {
+          "& .MuiOutlinedInput-root": {
             borderRadius: 2,
           },
         }}
@@ -87,10 +86,7 @@ export const SearchBar = ({
           ),
           endAdornment: (
             <InputAdornment position="end">
-              <CircularProgress
-                size={18}
-                sx={{ visibility: loading ? "visible" : "hidden" }}
-              />
+              <CircularProgress size={18} sx={{ visibility: loading ? "visible" : "hidden" }} />
             </InputAdornment>
           ),
         }}

@@ -75,16 +75,12 @@ describe("TypeForm", () => {
 
   it("muestra botón Confirmar en add/edit", () => {
     render(<TypeForm action="add" onDone={mockOnDone} />);
-    expect(
-      screen.getByRole("button", { name: /Confirmar/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Confirmar/i })).toBeInTheDocument();
   });
 
   it("muestra botón Eliminar en delete", () => {
     render(<TypeForm action="delete" item={baseForm} onDone={mockOnDone} />);
-    expect(
-      screen.getByRole("button", { name: /Eliminar/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Eliminar/i })).toBeInTheDocument();
   });
 
   it("ejecuta run al hacer clic en el botón", () => {

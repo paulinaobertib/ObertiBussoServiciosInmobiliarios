@@ -44,14 +44,8 @@ export default function Home() {
     if (typeof alertApi?.showAlert === "function") return alertApi.showAlert(description ?? title, "warning");
   };
 
-  const {
-    selectedPropertyIds,
-    toggleCompare,
-    clearComparison,
-    disabledCompare,
-    resetSelected,
-    setPropertiesLoading,
-  } = usePropertiesContext();
+  const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, resetSelected, setPropertiesLoading } =
+    usePropertiesContext();
 
   const [mode, setMode] = useState<"normal" | "edit" | "delete">("normal");
   const [selectionMode, setSelectionMode] = useState(false);

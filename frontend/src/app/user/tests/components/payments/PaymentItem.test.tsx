@@ -4,11 +4,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { PaymentItem } from "../../../components/payments/PaymentItem";
 import { useAuthContext } from "../../../context/AuthContext";
-import {
-  Payment,
-  PaymentCurrency,
-  PaymentConcept,
-} from "../../../types/payment";
+import { Payment, PaymentCurrency, PaymentConcept } from "../../../types/payment";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // --- Mock AuthContext ---
@@ -25,8 +21,7 @@ const customTheme = createTheme({
   } as any, // forzamos porque quaternary no está tipado en MUI
 });
 
-const renderWithTheme = (ui: React.ReactNode) =>
-  render(<ThemeProvider theme={customTheme}>{ui}</ThemeProvider>);
+const renderWithTheme = (ui: React.ReactNode) => render(<ThemeProvider theme={customTheme}>{ui}</ThemeProvider>);
 
 describe("PaymentItem", () => {
   const basePayment: Payment = {
@@ -49,16 +44,10 @@ describe("PaymentItem", () => {
     renderWithTheme(<PaymentItem payment={basePayment} />);
 
     expect(screen.getByText("2025-09-01 - $1000 ARS")).toBeInTheDocument();
-    expect(
-      screen.getByText(`Descripción: ${basePayment.description}`)
-    ).toBeInTheDocument();
+    expect(screen.getByText(`Descripción: ${basePayment.description}`)).toBeInTheDocument();
 
-    expect(
-      screen.queryByRole("button", { name: /Editar pago/i })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Eliminar pago/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Editar pago/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Eliminar pago/i })).not.toBeInTheDocument();
   });
 
   it("si es admin pero no hay handlers no muestra botones", () => {
@@ -66,12 +55,8 @@ describe("PaymentItem", () => {
 
     renderWithTheme(<PaymentItem payment={basePayment} />);
 
-    expect(
-      screen.queryByRole("button", { name: /Editar pago/i })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Eliminar pago/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Editar pago/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Eliminar pago/i })).not.toBeInTheDocument();
   });
 
   it("permite editar y guardar sin cambios (no llama a onEdit)", () => {
@@ -82,9 +67,7 @@ describe("PaymentItem", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Editar pago/i }));
 
-    expect(screen.getByLabelText("Descripción")).toHaveValue(
-      basePayment.description
-    );
+    expect(screen.getByLabelText("Descripción")).toHaveValue(basePayment.description);
     expect(screen.getByLabelText("Monto")).toHaveValue(basePayment.amount);
 
     fireEvent.click(screen.getByRole("button", { name: /Guardar cambios/i }));
@@ -107,9 +90,7 @@ describe("PaymentItem", () => {
     });
 
     // Cambiamos el valor de la moneda usando el input nativo de MUI
-    const currencyInput = document.querySelector(
-      'input.MuiSelect-nativeInput'
-    ) as HTMLInputElement;
+    const currencyInput = document.querySelector("input.MuiSelect-nativeInput") as HTMLInputElement;
     fireEvent.change(currencyInput, { target: { value: PaymentCurrency.USD } });
 
     fireEvent.change(screen.getByLabelText("Fecha"), {

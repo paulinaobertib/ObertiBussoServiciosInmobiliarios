@@ -8,14 +8,14 @@ export default function SessionExpiredDialog() {
   useEffect(() => {
     if (!sessionExpired) return;
     const t = setTimeout(() => {
-      try { login(); } catch {}
+      try {
+        login();
+      } catch {}
     }, 5000);
     return () => clearTimeout(t);
   }, [sessionExpired, login]);
 
   if (!sessionExpired) return null;
 
-  return (
-    <Loading message="Tu sesión finalizó. Redirigiendo a la pagina de Inicio de Sesión." />
-  );
+  return <Loading message="Tu sesión finalizó. Redirigiendo a la pagina de Inicio de Sesión." />;
 }

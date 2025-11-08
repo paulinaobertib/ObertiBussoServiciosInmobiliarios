@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createChatSession, createChatSessionWithUser, getChatSessionById, getAllChatSessions } from "../../services/chatSession.service";
+import {
+  createChatSession,
+  createChatSessionWithUser,
+  getChatSessionById,
+  getAllChatSessions,
+} from "../../services/chatSession.service";
 import { api } from "../../../../api";
 import { ChatSessionDTO } from "../../types/chatSession";
 
@@ -15,13 +20,13 @@ describe("chatSessionService", () => {
     vi.clearAllMocks();
   });
 
-    it("createChatSession - debería enviar una solicitud POST y devolver data", async () => {
+  it("createChatSession - debería enviar una solicitud POST y devolver data", async () => {
     const mockBody: ChatSessionDTO = {
-        propertyId: 1,
-        phone: "1234567890",
-        email: "test@example.com",
-        firstName: "John",
-        lastName: "Doe",
+      propertyId: 1,
+      phone: "1234567890",
+      email: "test@example.com",
+      firstName: "John",
+      lastName: "Doe",
     };
 
     const mockData = { id: 123 };
@@ -31,7 +36,7 @@ describe("chatSessionService", () => {
 
     expect(api.post).toHaveBeenCalledWith("/properties/chatSession/create", mockBody);
     expect(result).toEqual(mockData);
-    });
+  });
 
   it("createChatSessionWithUser - debería enviar POST con params y devolver data", async () => {
     const mockData = { id: 456 };
@@ -70,7 +75,7 @@ describe("chatSessionService", () => {
     expect(result).toEqual(mockData);
   });
 
-    it("createChatSession - debería lanzar error si falla la solicitud POST", async () => {
+  it("createChatSession - debería lanzar error si falla la solicitud POST", async () => {
     const mockBody: ChatSessionDTO = {
       propertyId: 1,
       phone: "1234567890",
@@ -109,5 +114,4 @@ describe("chatSessionService", () => {
     await expect(getAllChatSessions()).rejects.toThrow("GET all failed");
     expect(api.get).toHaveBeenCalled();
   });
-
 });

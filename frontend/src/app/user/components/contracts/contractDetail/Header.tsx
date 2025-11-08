@@ -15,7 +15,15 @@ type Props = {
   onIncrease: () => void;
 };
 
-export default function Header({ contract, isAdmin, savingStatus, deletingContract = false, onEdit, onDelete, onToggleStatus }: Props) {
+export default function Header({
+  contract,
+  isAdmin,
+  savingStatus,
+  deletingContract = false,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+}: Props) {
   return (
     <Box sx={{ my: 3 }}>
       <Box
@@ -86,7 +94,7 @@ export default function Header({ contract, isAdmin, savingStatus, deletingContra
                 disabled={deletingContract}
                 loading={deletingContract}
               >
-                Eliminar 
+                Eliminar
               </LoadingButton>
             </Box>
           )}

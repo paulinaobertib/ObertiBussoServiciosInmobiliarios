@@ -1,16 +1,16 @@
-import { Box } from '@mui/material';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import carrusel1 from '../../../../assets/carrusel1.jpg';
-import carrusel2 from '../../../../assets/carrusel2.jpg';
-import carrusel3 from '../../../../assets/carrusel3.jpg';
-import carrusel4 from '../../../../assets/carrusel4.jpg';
-import carrusel5 from '../../../../assets/carrusel5.jpg';
-import carrusel6 from '../../../../assets/carrusel6.jpg';
-import carrusel7 from '../../../../assets/carrusel7.jpg';
-import carrusel8 from '../../../../assets/carrusel8.jpg';
-import logo from '../../../../assets/logoJPG.png';
+import { Box } from "@mui/material";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import carrusel1 from "../../../../assets/carrusel1.jpg";
+import carrusel2 from "../../../../assets/carrusel2.jpg";
+import carrusel3 from "../../../../assets/carrusel3.jpg";
+import carrusel4 from "../../../../assets/carrusel4.jpg";
+import carrusel5 from "../../../../assets/carrusel5.jpg";
+import carrusel6 from "../../../../assets/carrusel6.jpg";
+import carrusel7 from "../../../../assets/carrusel7.jpg";
+import carrusel8 from "../../../../assets/carrusel8.jpg";
+import logo from "../../../../assets/logoJPG.png";
 
 const carouselImages = [carrusel1, carrusel2, carrusel3, carrusel4, carrusel5, carrusel6, carrusel7, carrusel8];
 
@@ -27,59 +27,55 @@ const sliderSettings = {
 
 export const ImageCarousel = () => {
   return (
-    <Box sx={{ position: 'relative', height: '350px', mb: 4 }}>
+    <Box sx={{ position: "relative", height: "350px", mb: 4 }}>
       <Slider {...sliderSettings}>
         {carouselImages.map((img, idx) => (
           <Box
             key={idx}
             sx={{
-              position: 'relative',
-              height: '350px',
-              borderRadius: '12px',
-              overflow: 'hidden',
+              position: "relative",
+              height: "350px",
+              borderRadius: "12px",
+              overflow: "hidden",
             }}
           >
-            <img
-              src={img}
-              alt={`Slide ${idx + 1}`}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            <img src={img} alt={`Slide ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </Box>
         ))}
       </Slider>
 
       <Box
         sx={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(200, 200, 200, 0.5)',
-          pointerEvents: 'none',
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(200, 200, 200, 0.5)",
+          pointerEvents: "none",
         }}
       />
 
       <Box
         sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '50%',
-          '@media (max-width: 1200px)': { width: '90%' },
-          '@media (max-width: 900px)': { width: '80%' },
-          '@media (max-width: 600px)': { width: '70%' },
-          pointerEvents: 'none',
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "50%",
+          "@media (max-width: 1200px)": { width: "90%" },
+          "@media (max-width: 900px)": { width: "80%" },
+          "@media (max-width: 600px)": { width: "70%" },
+          pointerEvents: "none",
         }}
       >
         <img
           src={logo}
           alt="Logo"
           style={{
-            width: '100%',
-            height: 'auto',
-            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.6))',
+            width: "100%",
+            height: "auto",
+            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.6))",
           }}
         />
       </Box>

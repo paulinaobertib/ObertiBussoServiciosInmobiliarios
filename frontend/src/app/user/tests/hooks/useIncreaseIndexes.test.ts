@@ -86,9 +86,7 @@ describe("useIncreaseIndexes", () => {
 
     const { result } = renderHook(() => useIncreaseIndexes());
 
-    (service.getAllIncreaseIndexes as any).mockResolvedValue([
-      { id: 1, code: "AAA", name: "Nombre" },
-    ]);
+    (service.getAllIncreaseIndexes as any).mockResolvedValue([{ id: 1, code: "AAA", name: "Nombre" }]);
     await result.current.loadAll();
 
     await waitFor(() => {
@@ -121,9 +119,7 @@ describe("useIncreaseIndexes", () => {
 
   it("create retorna index creado si coincide code+name", async () => {
     (service.postIncreaseIndex as any).mockResolvedValue({});
-    (service.getAllIncreaseIndexes as any).mockResolvedValue([
-      { id: 1, code: "C1", name: "N1" },
-    ]);
+    (service.getAllIncreaseIndexes as any).mockResolvedValue([{ id: 1, code: "C1", name: "N1" }]);
 
     const { result } = renderHook(() => useIncreaseIndexes());
 

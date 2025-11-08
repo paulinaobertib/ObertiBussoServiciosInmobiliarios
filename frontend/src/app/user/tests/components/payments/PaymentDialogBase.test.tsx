@@ -34,9 +34,7 @@ vi.mock("../../../components/payments/PaymentForm", () => ({
         data-disable-currency={String(Boolean(props.disableCurrency))}
         data-external-concept={props.externalConcept ?? ""}
         data-external-utility={props.externalContractUtilityId ?? ""}
-        onChange={(e) =>
-          onChange?.({ date: (e.target as HTMLInputElement).value } as any)
-        }
+        onChange={(e) => onChange?.({ date: (e.target as HTMLInputElement).value } as any)}
       />
     );
   },
@@ -44,7 +42,7 @@ vi.mock("../../../components/payments/PaymentForm", () => ({
 
 /* ──────────────── Importes del módulo bajo prueba y AlertProvider ──────────────── */
 import { PaymentDialog } from "../../../components/payments/PaymentDialogBase";
-import { AlertProvider} from "../../../../shared/context/AlertContext";
+import { AlertProvider } from "../../../../shared/context/AlertContext";
 
 /* ──────────────── Fixtures ──────────────── */
 const contract = {
@@ -183,7 +181,7 @@ describe("PaymentDialog", () => {
           periodicity: "MENSUAL",
           lastPaidDate: "2024-01-10",
           lastPaidAmount: 1250,
-          utilityId: 0
+          utilityId: 0,
         },
       ],
     });
@@ -234,9 +232,7 @@ describe("PaymentDialog", () => {
       </AlertProvider>
     );
 
-    expect(
-      screen.getByText("No hay servicios vinculados al contrato.")
-    ).toBeInTheDocument();
+    expect(screen.getByText("No hay servicios vinculados al contrato.")).toBeInTheDocument();
   });
 
   it("permite seleccionar un servicio extra", async () => {

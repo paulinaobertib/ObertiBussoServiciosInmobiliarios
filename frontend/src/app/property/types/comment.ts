@@ -6,4 +6,4 @@ export interface Comment {
   propertyId: number;
 }
 
-export type CommentCreate = Omit<Comment, 'id' | 'date'>;
+export type CommentCreate = Omit<Comment, "id" | "date">;

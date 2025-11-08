@@ -10,9 +10,7 @@ let lastDateCalendarProps: any = null;
 vi.mock("@mui/x-date-pickers/LocalizationProvider", () => {
   // Un wrapper mínimo que solo renderiza children
   return {
-    LocalizationProvider: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="lp">{children}</div>
-    ),
+    LocalizationProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="lp">{children}</div>,
   };
 });
 
@@ -93,9 +91,7 @@ describe("<Calendar />", () => {
     expect(calledArg.toISOString()).toBe(picked.toISOString());
 
     // el componente debe re-renderizar con el nuevo value (estado interno actualizado)
-    await waitFor(() =>
-      expect(screen.getByTestId("value-string").textContent).toContain(picked.toISOString())
-    );
+    await waitFor(() => expect(screen.getByTestId("value-string").textContent).toContain(picked.toISOString()));
   });
 
   it("si onChange recibe null no llama onSelectDate ni cambia el value", async () => {
@@ -122,7 +118,7 @@ describe("<Calendar />", () => {
     expect(dayjs.isDayjs(lastDateCalendarProps.value)).toBe(true);
   });
 
-    it("renderiza dentro de LocalizationProvider (mockeado) y expone el contenido", () => {
+  it("renderiza dentro de LocalizationProvider (mockeado) y expone el contenido", () => {
     const onSelectDate = vi.fn();
     render(<Calendar onSelectDate={onSelectDate} />);
     expect(screen.getByTestId("lp")).toBeInTheDocument(); // wrapper del provider

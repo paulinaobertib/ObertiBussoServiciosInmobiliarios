@@ -12,16 +12,10 @@ vi.mock("../../../components/notices/NoticeItem", () => {
       capturedItems.push(props);
       return (
         <div data-testid={`notice-item-${props.notice.id}`}>
-          <button
-            data-testid={`update-${props.notice.id}`}
-            onClick={() => props.onUpdate(props.notice)}
-          >
+          <button data-testid={`update-${props.notice.id}`} onClick={() => props.onUpdate(props.notice)}>
             update
           </button>
-          <button
-            data-testid={`delete-${props.notice.id}`}
-            onClick={() => props.onDeleteClick(props.notice.id)}
-          >
+          <button data-testid={`delete-${props.notice.id}`} onClick={() => props.onDeleteClick(props.notice.id)}>
             delete
           </button>
         </div>
@@ -103,17 +97,10 @@ describe("<NoticesList />", () => {
 
   it("usa 3 columnas cuando visibleCount=3", () => {
     render(
-      <NoticesList
-        notices={notices}
-        isAdmin={false}
-        visibleCount={3}
-        onUpdate={vi.fn()}
-        onDeleteClick={() => {}}
-      />
+      <NoticesList notices={notices} isAdmin={false} visibleCount={3} onUpdate={vi.fn()} onDeleteClick={() => {}} />
     );
 
-    const container = screen.getByTestId("notice-item-1").parentElement!
-      .parentElement as HTMLElement;
+    const container = screen.getByTestId("notice-item-1").parentElement!.parentElement as HTMLElement;
 
     const cs = getComputedStyle(container);
     expect(cs.gridTemplateColumns).toContain("repeat(3");
@@ -121,17 +108,10 @@ describe("<NoticesList />", () => {
 
   it("usa 3 columnas (layout md) aunque visibleCount=4", () => {
     render(
-      <NoticesList
-        notices={notices}
-        isAdmin={false}
-        visibleCount={4}
-        onUpdate={vi.fn()}
-        onDeleteClick={() => {}}
-      />
+      <NoticesList notices={notices} isAdmin={false} visibleCount={4} onUpdate={vi.fn()} onDeleteClick={() => {}} />
     );
 
-    const container = screen.getByTestId("notice-item-2").parentElement!
-      .parentElement as HTMLElement;
+    const container = screen.getByTestId("notice-item-2").parentElement!.parentElement as HTMLElement;
 
     const cs = getComputedStyle(container);
     expect(cs.gridTemplateColumns).toContain("repeat(3");

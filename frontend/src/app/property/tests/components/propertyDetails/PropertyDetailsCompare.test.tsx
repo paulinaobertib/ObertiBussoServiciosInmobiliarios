@@ -7,9 +7,7 @@ import { NeighborhoodType } from "../../../types/neighborhood";
 
 // Mock de subcomponentes
 vi.mock("../../../components/propertyDetails/PropertyPanel", () => ({
-  PropertyPanel: ({ property }: any) => (
-    <div data-testid="property-panel">{property.title}</div>
-  ),
+  PropertyPanel: ({ property }: any) => <div data-testid="property-panel">{property.title}</div>,
 }));
 vi.mock("../../../components/propertyDetails/PropertyInfoCompare", () => ({
   default: () => <div data-testid="property-info-compare" />,
@@ -66,21 +64,17 @@ describe("PropertyDetailsCompare", () => {
     date: new Date().toISOString(),
   });
 
-it("muestra mensaje si hay menos de 2 propiedades", () => {
-  render(<PropertyDetailsCompare comparisonItems={[mockProperty(1, "P1")]} />);
+  it("muestra mensaje si hay menos de 2 propiedades", () => {
+    render(<PropertyDetailsCompare comparisonItems={[mockProperty(1, "P1")]} />);
 
-  // Verificamos el título
-  expect(
-    screen.getByText("No hay suficientes propiedades para comparar.")
-  ).toBeInTheDocument();
+    // Verificamos el título
+    expect(screen.getByText("No hay suficientes propiedades para comparar.")).toBeInTheDocument();
 
-  // Verificamos la descripción
-  expect(
-    screen.getByText(
-      "Selecciona entre dos y tres propiedades del catálogo para ver la comparación."
-    )
-  ).toBeInTheDocument();
-});
+    // Verificamos la descripción
+    expect(
+      screen.getByText("Selecciona entre dos y tres propiedades del catálogo para ver la comparación.")
+    ).toBeInTheDocument();
+  });
 
   it("renderiza correctamente 2 propiedades", () => {
     const items = [mockProperty(1, "P1"), mockProperty(2, "P2")];
@@ -96,9 +90,7 @@ it("muestra mensaje si hay menos de 2 propiedades", () => {
       expect(panel).toHaveTextContent(items[i].title);
     });
     maps.forEach((map, i) => {
-      expect(map).toHaveTextContent(
-        `${items[i].street}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}`
-      );
+      expect(map).toHaveTextContent(`${items[i].street}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}`);
     });
   });
 
@@ -116,9 +108,7 @@ it("muestra mensaje si hay menos de 2 propiedades", () => {
       expect(panel).toHaveTextContent(items[i].title);
     });
     maps.forEach((map, i) => {
-      expect(map).toHaveTextContent(
-        `${items[i].street}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}`
-      );
+      expect(map).toHaveTextContent(`${items[i].street}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}`);
     });
   });
 });

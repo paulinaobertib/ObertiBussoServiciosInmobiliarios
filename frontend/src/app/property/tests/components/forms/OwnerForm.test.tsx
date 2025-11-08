@@ -91,72 +91,71 @@ describe("OwnerForm", () => {
     expect(deleteOwner).toHaveBeenCalled();
   });
 
-it("muestra overlay de carga cuando loading=true", () => {
-  (useCategories as Mock).mockReturnValue({
-    form: baseForm,
-    setForm: mockSetForm,
-    invalid: false,
-    run: mockRun,
-    loading: true,
+  it("muestra overlay de carga cuando loading=true", () => {
+    (useCategories as Mock).mockReturnValue({
+      form: baseForm,
+      setForm: mockSetForm,
+      invalid: false,
+      run: mockRun,
+      loading: true,
+    });
+
+    render(<OwnerForm action="add" onDone={mockOnDone} />);
+
+    const overlay = screen.getByTestId("overlay");
+    expect(overlay).toBeInTheDocument();
   });
 
-  render(<OwnerForm action="add" onDone={mockOnDone} />);
-  
-  const overlay = screen.getByTestId("overlay");
-  expect(overlay).toBeInTheDocument();
-});
+  it("deshabilita botón cuando loading=true", () => {
+    (useCategories as Mock).mockReturnValue({
+      form: baseForm,
+      setForm: mockSetForm,
+      invalid: false,
+      run: mockRun,
+      loading: true,
+    });
 
-it("deshabilita botón cuando loading=true", () => {
-  (useCategories as Mock).mockReturnValue({
-    form: baseForm,
-    setForm: mockSetForm,
-    invalid: false,
-    run: mockRun,
-    loading: true,
+    render(<OwnerForm action="add" onDone={mockOnDone} />);
+
+    const button = screen.getByRole("button", { name: /Confirmar/i });
+    expect(button).toBeDisabled();
   });
 
-  render(<OwnerForm action="add" onDone={mockOnDone} />);
-  
-  const button = screen.getByRole("button", { name: /Confirmar/i });
-  expect(button).toBeDisabled();
-});
+  it("deshabilita botón cuando invalid=true", () => {
+    (useCategories as Mock).mockReturnValue({
+      form: baseForm,
+      setForm: mockSetForm,
+      invalid: true,
+      run: mockRun,
+      loading: false,
+    });
 
-it("deshabilita botón cuando invalid=true", () => {
-  (useCategories as Mock).mockReturnValue({
-    form: baseForm,
-    setForm: mockSetForm,
-    invalid: true,
-    run: mockRun,
-    loading: false,
+    render(<OwnerForm action="add" onDone={mockOnDone} />);
+
+    const button = screen.getByRole("button", { name: /Confirmar/i });
+    expect(button).toBeDisabled();
   });
 
-  render(<OwnerForm action="add" onDone={mockOnDone} />);
-  
-  const button = screen.getByRole("button", { name: /Confirmar/i });
-  expect(button).toBeDisabled();
-});
+  it("actualiza todos los campos correctamente al escribir", () => {
+    const setFormMock = vi.fn();
+    (useCategories as Mock).mockReturnValue({
+      form: { ...baseForm },
+      setForm: setFormMock,
+      invalid: false,
+      run: mockRun,
+      loading: false,
+    });
 
-it("actualiza todos los campos correctamente al escribir", () => {
-  const setFormMock = vi.fn();
-  (useCategories as Mock).mockReturnValue({
-    form: { ...baseForm },
-    setForm: setFormMock,
-    invalid: false,
-    run: mockRun,
-    loading: false,
+    render(<OwnerForm action="edit" item={baseForm} onDone={mockOnDone} />);
+
+    fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Jane" } });
+    fireEvent.change(screen.getByLabelText("Apellido"), { target: { value: "Smith" } });
+    fireEvent.change(screen.getByLabelText("Mail"), { target: { value: "jane@example.com" } });
+    fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "67890" } });
+
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ firstName: "Jane" }));
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ lastName: "Smith" }));
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ email: "jane@example.com" }));
+    expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ phone: "67890" }));
   });
-
-  render(<OwnerForm action="edit" item={baseForm} onDone={mockOnDone} />);
-
-  fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "Jane" } });
-  fireEvent.change(screen.getByLabelText("Apellido"), { target: { value: "Smith" } });
-  fireEvent.change(screen.getByLabelText("Mail"), { target: { value: "jane@example.com" } });
-  fireEvent.change(screen.getByLabelText("Teléfono"), { target: { value: "67890" } });
-
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ firstName: "Jane" }));
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ lastName: "Smith" }));
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ email: "jane@example.com" }));
-  expect(setFormMock).toHaveBeenCalledWith(expect.objectContaining({ phone: "67890" }));
-});
-
 });

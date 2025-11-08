@@ -51,7 +51,10 @@ describe("useComparerProperty", () => {
   it("cambia el estado de loading mientras compara", async () => {
     let resolveFn: any;
     (comparerProperty as Mock).mockImplementation(
-      () => new Promise((res) => { resolveFn = res; })
+      () =>
+        new Promise((res) => {
+          resolveFn = res;
+        })
     );
 
     const { result } = renderHook(() => useComparerProperty());

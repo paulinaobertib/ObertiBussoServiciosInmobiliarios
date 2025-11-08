@@ -26,21 +26,43 @@ vi.mock("../../../../shared/components/GridSection", () => ({
   }: any) => (
     <div>
       <div data-testid="grid">{entityName}</div>
-      {onCreate && <button onClick={onCreate} data-testid="create">Create</button>}
-      {onEdit && <button onClick={() => onEdit({ id: 1, name: "editU" })} data-testid="edit">Edit</button>}
-      {onDelete && <button onClick={() => onDelete({ id: 2, name: "delU" })} data-testid="delete">Delete</button>}
+      {onCreate && (
+        <button onClick={onCreate} data-testid="create">
+          Create
+        </button>
+      )}
+      {onEdit && (
+        <button onClick={() => onEdit({ id: 1, name: "editU" })} data-testid="edit">
+          Edit
+        </button>
+      )}
+      {onDelete && (
+        <button onClick={() => onDelete({ id: 2, name: "delU" })} data-testid="delete">
+          Delete
+        </button>
+      )}
 
-      <button data-testid="search" onClick={() => {
-        onSearch([{ id: 99, name: "searched" }]);
-      }}>
+      <button
+        data-testid="search"
+        onClick={() => {
+          onSearch([{ id: 99, name: "searched" }]);
+        }}
+      >
         Search
       </button>
-      <button data-testid="fetchAll" onClick={async () => await fetchAll()}>FetchAll</button>
-      <button data-testid="fetchByText" onClick={async () => await fetchByText("q")}>FetchByText</button>
+      <button data-testid="fetchAll" onClick={async () => await fetchAll()}>
+        FetchAll
+      </button>
+      <button data-testid="fetchByText" onClick={async () => await fetchByText("q")}>
+        FetchByText
+      </button>
 
-      <button data-testid="toggleSelect" onClick={() => {
-        toggleSelect && toggleSelect([1, "2"]);
-      }}>
+      <button
+        data-testid="toggleSelect"
+        onClick={() => {
+          toggleSelect && toggleSelect([1, "2"]);
+        }}
+      >
         ToggleSelect
       </button>
       <button data-testid="isSelectedTrue">{isSelected && String(isSelected(5))}</button>

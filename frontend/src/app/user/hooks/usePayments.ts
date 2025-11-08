@@ -114,14 +114,14 @@ export function usePaymentDialog({
         (p: any) => p?.concept === "COMISION" && Number(p?.commissionId) === Number(c.id)
       ).length;
       setCommissionPaidCount(count);
-      const next = c.paymentType === CommissionPaymentType.CUOTAS ? Math.max(Math.min(c.installments || 1, count + 1), 1) : 1;
+      const next =
+        c.paymentType === CommissionPaymentType.CUOTAS ? Math.max(Math.min(c.installments || 1, count + 1), 1) : 1;
       const desired = presetInstallment ?? next;
       setSelectedInstallment(Math.min(desired, next));
 
       const targetConcept = (fixedConcept ?? concept ?? "") as PaymentConcept | "";
       if (targetConcept === PaymentConcept.COMISION) {
-        const installmentsRaw =
-          c.paymentType === CommissionPaymentType.CUOTAS ? Number(c.installments) || 1 : 1;
+        const installmentsRaw = c.paymentType === CommissionPaymentType.CUOTAS ? Number(c.installments) || 1 : 1;
         const installments = Math.max(1, installmentsRaw);
         const totalAmount = Number(c.totalAmount ?? 0);
         const perInstallment = installments > 0 ? totalAmount / installments : totalAmount;

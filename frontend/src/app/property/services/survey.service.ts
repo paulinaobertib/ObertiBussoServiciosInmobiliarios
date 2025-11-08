@@ -3,11 +3,7 @@ import { CreateSurveyDTO } from "../types/survey";
 
 export const createSurvey = async (data: CreateSurveyDTO, token: string) => {
   try {
-    const response = await api.post(
-      `/properties/survey/create?token=${token}`,
-      data,
-      { withCredentials: true }
-    );
+    const response = await api.post(`/properties/survey/create?token=${token}`, data, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error creating Survey", error);
@@ -29,10 +25,7 @@ export const getAllSurveys = async () => {
 
 export const getAverageScore = async () => {
   try {
-    const response = await api.get(
-      `/properties/survey/statistics/averageScore`,
-      { withCredentials: true }
-    );
+    const response = await api.get(`/properties/survey/statistics/averageScore`, { withCredentials: true });
     return response.data;
   } catch (error) {
     console.error("Error fetching average score", error);

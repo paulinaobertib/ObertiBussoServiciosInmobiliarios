@@ -32,14 +32,7 @@ describe("<MaintenanceForm />", () => {
       invalid: false,
     });
 
-    render(
-      <MaintenanceForm
-        propertyId={7}
-        action="add"
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    render(<MaintenanceForm propertyId={7} action="add" refresh={refresh} onDone={onDone} />);
 
     const title = screen.getByLabelText(/Título/i) as HTMLInputElement;
     const date = screen.getByLabelText(/Fecha/i) as HTMLInputElement;
@@ -51,21 +44,15 @@ describe("<MaintenanceForm />", () => {
 
     // tras cambiar título
     fireEvent.change(title, { target: { value: "Cambiar llave" } });
-    expect(setForm).toHaveBeenCalledWith(
-    expect.objectContaining({ title: "Cambiar llave" })
-    );
+    expect(setForm).toHaveBeenCalledWith(expect.objectContaining({ title: "Cambiar llave" }));
 
     // tras cambiar fecha
     fireEvent.change(date, { target: { value: "2025-02-01T10:30" } });
-    expect(setForm).toHaveBeenCalledWith(
-    expect.objectContaining({ date: "2025-02-01T10:30" })
-    );
+    expect(setForm).toHaveBeenCalledWith(expect.objectContaining({ date: "2025-02-01T10:30" }));
 
     // tras cambiar descripción
     fireEvent.change(desc, { target: { value: "Reemplazo de cerradura" } });
-    expect(setForm).toHaveBeenCalledWith(
-    expect.objectContaining({ description: "Reemplazo de cerradura" })
-    );
+    expect(setForm).toHaveBeenCalledWith(expect.objectContaining({ description: "Reemplazo de cerradura" }));
 
     const confirm = screen.getByRole("button", { name: /Confirmar/i });
     expect(confirm).toBeEnabled();
@@ -73,21 +60,20 @@ describe("<MaintenanceForm />", () => {
     fireEvent.click(confirm);
 
     await waitFor(() => {
-    expect(run).toHaveBeenCalledTimes(1);
+      expect(run).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
-    expect(setForm).toHaveBeenLastCalledWith(
+      expect(setForm).toHaveBeenLastCalledWith(
         expect.objectContaining({
-        id: 0,
-        propertyId: 7,
-        title: "",
-        description: "",
-        date: "",
+          id: 0,
+          propertyId: 7,
+          title: "",
+          description: "",
+          date: "",
         })
-    );
+      );
     });
-
   });
 
   it("EDIT: setea el form con item (useEffect). 'Cancelar' resetea al initialPayload y llama onDone (isDirty=true habilita el botón)", async () => {
@@ -117,15 +103,7 @@ describe("<MaintenanceForm />", () => {
       invalid: false,
     });
 
-    render(
-      <MaintenanceForm
-        propertyId={9}
-        action="edit"
-        item={item as any}
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    render(<MaintenanceForm propertyId={9} action="edit" item={item as any} refresh={refresh} onDone={onDone} />);
 
     // useEffect debería setear el form con los valores del item/initialPayload
     expect(setForm).toHaveBeenCalledWith({
@@ -143,15 +121,15 @@ describe("<MaintenanceForm />", () => {
 
     // Reset a initialPayload (coincide con item en edit)
     await waitFor(() =>
-    expect(setForm).toHaveBeenCalledWith(
+      expect(setForm).toHaveBeenCalledWith(
         expect.objectContaining({
-        id: 15,
-        propertyId: 9,
-        title: "Pintura",
-        description: "Pintar el frente",
-        date: "2024-11-10T09:00",
+          id: 15,
+          propertyId: 9,
+          title: "Pintura",
+          description: "Pintar el frente",
+          date: "2024-11-10T09:00",
         })
-    )
+      )
     );
     expect(onDone).toHaveBeenCalledTimes(1);
   });
@@ -181,15 +159,7 @@ describe("<MaintenanceForm />", () => {
       invalid: false,
     });
 
-    render(
-      <MaintenanceForm
-        propertyId={3}
-        action="delete"
-        item={item as any}
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    render(<MaintenanceForm propertyId={3} action="delete" item={item as any} refresh={refresh} onDone={onDone} />);
 
     expect(screen.getByLabelText(/Título/i)).toBeDisabled();
     expect(screen.getByLabelText(/Fecha/i)).toBeDisabled();
@@ -202,15 +172,15 @@ describe("<MaintenanceForm />", () => {
 
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
     await waitFor(() =>
-    expect(setForm).toHaveBeenCalledWith(
+      expect(setForm).toHaveBeenCalledWith(
         expect.objectContaining({
-        id: 77,
-        propertyId: 3,
-        title: "Luz",
-        description: "Cambiar lámparas",
-        date: "2024-12-01T19:30",
+          id: 77,
+          propertyId: 3,
+          title: "Luz",
+          description: "Cambiar lámparas",
+          date: "2024-12-01T19:30",
         })
-    )
+      )
     );
   });
 
@@ -225,14 +195,7 @@ describe("<MaintenanceForm />", () => {
       loading: false,
       invalid: true,
     });
-    const { rerender } = render(
-      <MaintenanceForm
-        propertyId={1}
-        action="add"
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    const { rerender } = render(<MaintenanceForm propertyId={1} action="add" refresh={refresh} onDone={onDone} />);
     expect(screen.getByRole("button", { name: /Confirmar/i })).toBeDisabled();
 
     // Confirmar disabled por loading=true
@@ -243,14 +206,7 @@ describe("<MaintenanceForm />", () => {
       loading: true,
       invalid: false,
     });
-    rerender(
-      <MaintenanceForm
-        propertyId={1}
-        action="add"
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    rerender(<MaintenanceForm propertyId={1} action="add" refresh={refresh} onDone={onDone} />);
     expect(screen.getByRole("button", { name: /Confirmar/i })).toBeDisabled();
 
     // Cancelar disabled por !isDirty (form igual a initialPayload); usamos EDIT
@@ -268,15 +224,7 @@ describe("<MaintenanceForm />", () => {
       loading: false,
       invalid: false,
     });
-    rerender(
-      <MaintenanceForm
-        propertyId={2}
-        action="edit"
-        item={item as any}
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    rerender(<MaintenanceForm propertyId={2} action="edit" item={item as any} refresh={refresh} onDone={onDone} />);
     const cancel1 = screen.getByRole("button", { name: /Cancelar/i });
     expect(cancel1).toBeDisabled();
 
@@ -288,15 +236,7 @@ describe("<MaintenanceForm />", () => {
       loading: true,
       invalid: false,
     });
-    rerender(
-      <MaintenanceForm
-        propertyId={2}
-        action="edit"
-        item={item as any}
-        refresh={refresh}
-        onDone={onDone}
-      />
-    );
+    rerender(<MaintenanceForm propertyId={2} action="edit" item={item as any} refresh={refresh} onDone={onDone} />);
     const cancel2 = screen.getByRole("button", { name: /Cancelar/i });
     expect(cancel2).toBeDisabled();
   });

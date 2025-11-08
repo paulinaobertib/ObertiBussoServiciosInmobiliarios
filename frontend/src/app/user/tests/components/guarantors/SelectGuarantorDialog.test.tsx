@@ -19,10 +19,7 @@ vi.mock("../../../../shared/components/Modal", () => ({
 vi.mock("../../../components/guarantors/GuarantorsSection", () => ({
   GuarantorsSection: (props: any) => (
     <div data-testid="guarantors-section">
-      <button
-        data-testid="toggle-select"
-        onClick={() => props.toggleSelect?.([1, 2])} 
-      >
+      <button data-testid="toggle-select" onClick={() => props.toggleSelect?.([1, 2])}>
         toggle
       </button>
     </div>
@@ -32,45 +29,33 @@ vi.mock("../../../components/guarantors/GuarantorsSection", () => ({
 // mock del service
 const addGuarantorToContractMock = vi.fn().mockResolvedValue(undefined);
 vi.mock("../../../services/guarantor.service", () => ({
-  addGuarantorToContract: (...args: any[]) =>
-    addGuarantorToContractMock(...args),
+  addGuarantorToContract: (...args: any[]) => addGuarantorToContractMock(...args),
 }));
 
 describe("GuarantorPickerDialog", () => {
   it("renderiza el título correctamente cuando open=true", () => {
-    render(
-      <GuarantorPickerDialog open={true} contractId={1} onClose={() => {}} />
-    );
+    render(<GuarantorPickerDialog open={true} contractId={1} onClose={() => {}} />);
     expect(screen.getByText("Seleccionar garantes")).toBeInTheDocument();
     expect(screen.getByTestId("modal")).toHaveAttribute("data-open", "true");
   });
 
   it("no abre el modal cuando open=false", () => {
-    render(
-      <GuarantorPickerDialog open={false} contractId={1} onClose={() => {}} />
-    );
+    render(<GuarantorPickerDialog open={false} contractId={1} onClose={() => {}} />);
     expect(screen.getByTestId("modal")).toHaveAttribute("data-open", "false");
   });
 
-it("llama a addGuarantorToContract y onClose al seleccionar", async () => {
-  const onClose = vi.fn();
-  addGuarantorToContractMock.mockClear();
+  it("llama a addGuarantorToContract y onClose al seleccionar", async () => {
+    const onClose = vi.fn();
+    addGuarantorToContractMock.mockClear();
 
-  render(
-    <GuarantorPickerDialog
-      open={true}
-      contractId={55}
-      onClose={onClose}
-    />
-  );
+    render(<GuarantorPickerDialog open={true} contractId={55} onClose={onClose} />);
 
-  fireEvent.click(screen.getByTestId("toggle-select"));
+    fireEvent.click(screen.getByTestId("toggle-select"));
 
-  await waitFor(() => {
-    expect(addGuarantorToContractMock).toHaveBeenCalledWith(1, 55);
-    expect(addGuarantorToContractMock).toHaveBeenCalledWith(2, 55);
-    expect(onClose).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(addGuarantorToContractMock).toHaveBeenCalledWith(1, 55);
+      expect(addGuarantorToContractMock).toHaveBeenCalledWith(2, 55);
+      expect(onClose).toHaveBeenCalled();
+    });
   });
-});
-
 });

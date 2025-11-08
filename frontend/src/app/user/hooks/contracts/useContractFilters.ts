@@ -1,19 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  getAllContracts,
-  getContractsByDateRange,
-  getContractsByType,
-} from "../../services/contract.service";
-import type {
-  Contract,
-  ContractType,
-  ContractStatus,
-} from "../../types/contract";
+import { getAllContracts, getContractsByDateRange, getContractsByType } from "../../services/contract.service";
+import type { Contract, ContractType, ContractStatus } from "../../types/contract";
 
-export function useContractFilters(
-  globalStatus: "ALL" | ContractStatus,
-  onFiltered: (contracts: Contract[]) => void
-) {
+export function useContractFilters(globalStatus: "ALL" | ContractStatus, onFiltered: (contracts: Contract[]) => void) {
   const [typeFilter, setTypeFilter] = useState<"ALL" | ContractType>("ALL");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");

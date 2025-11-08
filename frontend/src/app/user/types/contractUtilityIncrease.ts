@@ -5,5 +5,4 @@ export interface ContractUtilityIncrease {
   amount: number;
 }
 
-export type ContractUtilityIncreaseCreate = Omit<ContractUtilityIncrease, 'id'>;
-
+export type ContractUtilityIncreaseCreate = Omit<ContractUtilityIncrease, "id">;

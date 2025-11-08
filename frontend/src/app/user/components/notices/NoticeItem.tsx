@@ -88,7 +88,7 @@ export const NoticeItem = ({ notice, isAdmin = false, onUpdate, onDeleteClick }:
           overflow: "hidden",
           cursor: "pointer",
           transition: "transform 0.15s ease",
-          height: '100%',
+          height: "100%",
           boxShadow: "0px 20px 40px rgba(15,23,42,0.08)",
           "&:hover": {
             transform: "scale(1.01)",

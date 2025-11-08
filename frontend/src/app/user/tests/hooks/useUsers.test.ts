@@ -13,12 +13,7 @@ vi.mock("../../services/user.service", () => ({
   getRoles: vi.fn(),
 }));
 
-import {
-  getAllUsers,
-  getTenants,
-  searchUsersByText,
-  getRoles,
-} from "../../services/user.service";
+import { getAllUsers, getTenants, searchUsersByText, getRoles } from "../../services/user.service";
 
 type AnyUser = { id: string; name?: string };
 
@@ -26,22 +21,16 @@ const U1: AnyUser = { id: "1", name: "Ana" };
 const U2: AnyUser = { id: "2", name: "Beto" };
 const U3: AnyUser = { id: "3", name: "Teo" };
 
-const ok = <T,>(v: T) => Promise.resolve(v);
+const ok = <T>(v: T) => Promise.resolve(v);
 
 beforeEach(() => {
   vi.clearAllMocks();
   // valores por defecto (se pueden sobrescribir por test con mockResolvedValueOnce/mockRejectedValueOnce)
   (getAllUsers as any).mockResolvedValue({ data: [U1, U2] });
   (getTenants as any).mockResolvedValue({ data: [U3] });
-  (searchUsersByText as any).mockImplementation((txt: string) =>
-    ok<AnyUser[]>([{ id: "4", name: `res-${txt}` }])
-  );
+  (searchUsersByText as any).mockImplementation((txt: string) => ok<AnyUser[]>([{ id: "4", name: `res-${txt}` }]));
   (getRoles as any).mockImplementation((userId: string) =>
-    userId === "1"
-      ? ok({ data: ["user"] })
-      : userId === "2"
-      ? ok({ data: ["admin"] })
-      : ok({ data: [] })
+    userId === "1" ? ok({ data: ["user"] }) : userId === "2" ? ok({ data: ["admin"] }) : ok({ data: [] })
   );
 });
 

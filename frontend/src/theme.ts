@@ -66,7 +66,7 @@ let theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          '& fieldset': {
+          "& fieldset": {
             borderRadius: 8,
           },
         },

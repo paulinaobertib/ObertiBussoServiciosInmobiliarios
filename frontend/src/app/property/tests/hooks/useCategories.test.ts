@@ -24,16 +24,14 @@ describe("useCategories", () => {
   const refresh = vi.fn();
   const onDone = vi.fn();
 
-    beforeEach(() => {
+  beforeEach(() => {
     vi.clearAllMocks();
     (useGlobalAlert as Mock).mockReturnValue({ showAlert });
-    });
+  });
 
   it("ejecuta correctamente la acción 'add' quitando el id", async () => {
     const initial = { id: 1, name: "cat 1" };
-    const { result } = renderHook(() =>
-      useCategories({ initial, action: "add", save, refresh, onDone })
-    );
+    const { result } = renderHook(() => useCategories({ initial, action: "add", save, refresh, onDone }));
 
     await act(async () => {
       await result.current.run();
@@ -47,9 +45,7 @@ describe("useCategories", () => {
 
   it("ejecuta correctamente la acción 'edit'", async () => {
     const initial = { id: 1, name: "cat 1" };
-    const { result } = renderHook(() =>
-      useCategories({ initial, action: "edit", save, refresh, onDone })
-    );
+    const { result } = renderHook(() => useCategories({ initial, action: "edit", save, refresh, onDone }));
 
     await act(async () => {
       await result.current.run();
@@ -66,9 +62,7 @@ describe("useCategories", () => {
     save.mockRejectedValueOnce(error);
 
     const initial = { id: 1, name: "cat 1" };
-    const { result } = renderHook(() =>
-      useCategories({ initial, action: "edit", save, refresh, onDone })
-    );
+    const { result } = renderHook(() => useCategories({ initial, action: "edit", save, refresh, onDone }));
 
     await act(async () => {
       await result.current.run();
@@ -79,18 +73,14 @@ describe("useCategories", () => {
 
   it("marca invalid si algún campo string está vacío", () => {
     const initial = { id: 1, name: "" };
-    const { result } = renderHook(() =>
-      useCategories({ initial, action: "edit", save, refresh, onDone })
-    );
+    const { result } = renderHook(() => useCategories({ initial, action: "edit", save, refresh, onDone }));
 
     expect(result.current.invalid).toBe(true);
   });
 
   it("no marca invalid si la acción es delete", () => {
     const initial = { id: 1, name: "" };
-    const { result } = renderHook(() =>
-      useCategories({ initial, action: "delete", save, refresh, onDone })
-    );
+    const { result } = renderHook(() => useCategories({ initial, action: "delete", save, refresh, onDone }));
 
     expect(result.current.invalid).toBe(false);
   });

@@ -19,7 +19,4 @@ export interface UserNotificationPreference {
   enabled: boolean;
 }
 
-export type UserNotificationPreferenceCreate = Omit<
-  UserNotificationPreference,
-  "id"
->;
+export type UserNotificationPreferenceCreate = Omit<UserNotificationPreference, "id">;

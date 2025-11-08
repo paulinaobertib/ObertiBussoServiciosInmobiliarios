@@ -7,9 +7,7 @@ import { NeighborhoodType } from "../../../types/neighborhood";
 
 // Mock de subcomponentes
 vi.mock("../../../components/propertyDetails/PropertyPanel", () => ({
-  PropertyPanel: ({ property }: any) => (
-    <div data-testid="property-panel">{property.title}</div>
-  ),
+  PropertyPanel: ({ property }: any) => <div data-testid="property-panel">{property.title}</div>,
 }));
 vi.mock("../../../components/propertyDetails/PropertyInfo", () => ({
   PropertyInfo: () => <div data-testid="property-info" />,
@@ -19,7 +17,7 @@ vi.mock("../../../components/propertyDetails/maps/MapSection", () => ({
 }));
 
 describe("PropertyDetails", () => {
-    const mockProperty: Property = {
+  const mockProperty: Property = {
     id: 1,
     title: "Departamento Test",
     street: "Calle Falsa 123",
@@ -40,31 +38,31 @@ describe("PropertyDetails", () => {
     financing: false,
     outstanding: false,
     owner: {
-        id: 1,
-        firstName: "Juan",
-        lastName: "Perez",
-        email: "juan@example.com",
-        phone: "123456789",
+      id: 1,
+      firstName: "Juan",
+      lastName: "Perez",
+      email: "juan@example.com",
+      phone: "123456789",
     },
     neighborhood: {
-        id: 1,
-        name: "Palermo",
-        city: "Buenos Aires",
-        type: NeighborhoodType.ABIERTO,
+      id: 1,
+      name: "Palermo",
+      city: "Buenos Aires",
+      type: NeighborhoodType.ABIERTO,
     },
     type: {
-        id: 1,
-        name: "Departamento",
-        hasBedrooms: true,
-        hasBathrooms: true,
-        hasRooms: true,
-        hasCoveredArea: true, 
+      id: 1,
+      name: "Departamento",
+      hasBedrooms: true,
+      hasBathrooms: true,
+      hasRooms: true,
+      hasCoveredArea: true,
     },
     amenities: [],
     mainImage: "main.jpg",
     images: [],
     date: new Date().toISOString(),
-    };
+  };
 
   it("renderiza PropertyPanel y MapSection", () => {
     render(<PropertyDetails property={mockProperty} />);
@@ -77,13 +75,11 @@ describe("PropertyDetails", () => {
 
   it("usa dirección por defecto si no hay barrio", () => {
     const propertyNoNeighborhood = {
-    ...mockProperty,
-    neighborhood: undefined, 
+      ...mockProperty,
+      neighborhood: undefined,
     } as unknown as Property;
 
     render(<PropertyDetails property={propertyNoNeighborhood} />);
-    expect(screen.getByTestId("map-section")).toHaveTextContent(
-    `${mockProperty.street}, Buenos Aires, Argentina`
-    );
+    expect(screen.getByTestId("map-section")).toHaveTextContent(`${mockProperty.street}, Buenos Aires, Argentina`);
   });
 });

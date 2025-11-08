@@ -71,9 +71,7 @@ describe("useManagePropertyPage", () => {
 
   it("removeImage con string marca para borrado y actualiza galería", () => {
     const dto = { id: 99, url: "img.jpg" };
-    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue([
-      dto,
-    ]);
+    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue([dto]);
     const { result } = renderHook(() => useManagePropertyPage());
     act(() => {
       result.current.img.remove("img.jpg");
@@ -102,15 +100,9 @@ describe("useManagePropertyPage", () => {
 
   it("title cambia según property", async () => {
     const fakeProp = { id: 1, type: { id: 2, name: "Casa" }, mainImage: "" };
-    (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(
-      fakeProp
-    );
-    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue(
-      { id: 1 }
-    );
-    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(
-      []
-    );
+    (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(fakeProp);
+    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue({ id: 1 });
+    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue([]);
 
     const { result } = renderHook(() => useManagePropertyPage());
 
@@ -166,15 +158,9 @@ describe("useManagePropertyPage", () => {
     const fakeOwner = { id: 10 };
     const fakeImages = [{ id: 5, url: "img1.jpg" }];
 
-    (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(
-      fakeProp
-    );
-    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue(
-      fakeOwner
-    );
-    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(
-      fakeImages
-    );
+    (propertyService.getPropertyById as unknown as Mock).mockResolvedValue(fakeProp);
+    (ownerService.getOwnerByPropertyId as unknown as Mock).mockResolvedValue(fakeOwner);
+    (imageService.getImagesByPropertyId as unknown as Mock).mockResolvedValue(fakeImages);
 
     const { result } = renderHook(() => useManagePropertyPage());
 
@@ -189,32 +175,28 @@ describe("useManagePropertyPage", () => {
     expect(mockAddToGallery).toHaveBeenCalledWith(["img1.jpg"]);
   });
 
-it("save con form inválido muestra alerta y no llama servicios", async () => {
-  const fakeForm = {
-    submit: vi.fn().mockResolvedValue(false),
-    getCreateData: vi.fn(),
-    setField: vi.fn(),
-  };
-  const { result } = renderHook(() => useManagePropertyPage());
-  result.current.formRef.current = fakeForm;
+  it("save con form inválido muestra alerta y no llama servicios", async () => {
+    const fakeForm = {
+      submit: vi.fn().mockResolvedValue(false),
+      getCreateData: vi.fn(),
+      setField: vi.fn(),
+    };
+    const { result } = renderHook(() => useManagePropertyPage());
+    result.current.formRef.current = fakeForm;
 
-  await act(async () => {
-    await result.current.save();
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(mockShowAlert).toHaveBeenCalledWith("Formulario inválido, faltan datos", "warning");
+    expect(propertyService.postProperty).not.toHaveBeenCalled();
   });
 
-  expect(mockShowAlert).toHaveBeenCalledWith(
-    "Formulario inválido, faltan datos",
-    "warning" 
-  );
-  expect(propertyService.postProperty).not.toHaveBeenCalled();
-});
-
-it("cancel pregunta confirmación y navega", async () => {
-  const { result } = renderHook(() => useManagePropertyPage());
-  await act(async () => {
-    await result.current.cancel();
+  it("cancel pregunta confirmación y navega", async () => {
+    const { result } = renderHook(() => useManagePropertyPage());
+    await act(async () => {
+      await result.current.cancel();
+    });
+    expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
   });
-  expect(mockNavigate).toHaveBeenCalledWith("/", { replace: true });
-});
-
 });

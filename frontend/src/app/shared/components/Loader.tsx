@@ -23,10 +23,10 @@ export const Loading = ({ message = "Espera, estamos preparando tu experiencia..
       overflow: "hidden",
       touchAction: "none",
       // Evitar scroll en toda la página cuando el loader está visible
-      '& ~ *': {
-        overflow: 'hidden !important',
-        height: '100vh !important',
-      }
+      "& ~ *": {
+        overflow: "hidden !important",
+        height: "100vh !important",
+      },
     })}
   >
     <Box display="flex" flexDirection="column" alignItems="center" gap={2}>

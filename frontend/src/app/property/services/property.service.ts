@@ -2,25 +2,17 @@ import { Property, PropertyUpdate, PropertyCreate } from "../types/property";
 import { SearchParams } from "../types/searchParams";
 import { api } from "../../../api";
 
-
 export const postProperty = async (data: PropertyCreate) => {
   const form = new FormData();
   const { mainImage, images, ...plainFields } = data;
 
-  form.append(
-    "data",
-    new Blob([JSON.stringify(plainFields)], { type: "application/json" })
-  );
+  form.append("data", new Blob([JSON.stringify(plainFields)], { type: "application/json" }));
 
   if (mainImage) form.append("mainImage", mainImage);
   images.forEach((img) => form.append("images", img));
 
   try {
-    const response = await api.post(
-      `/properties/property/create`,
-      form,
-      { withCredentials: true }
-    );
+    const response = await api.post(`/properties/property/create`, form, { withCredentials: true });
     return {
       data: (response as any)?.data ?? response.data,
       status: response.status,
@@ -35,24 +27,17 @@ export const putProperty = async (data: PropertyUpdate) => {
   const { id, mainImage, ...plainFields } = data;
   const form = new FormData();
 
-  form.append(
-    "data",
-    new Blob([JSON.stringify(plainFields)], { type: "application/json" })
-  );
+  form.append("data", new Blob([JSON.stringify(plainFields)], { type: "application/json" }));
 
   if (mainImage instanceof File) {
     form.append("mainImage", mainImage);
   }
 
   try {
-    const response = await api.put(
-      `/properties/property/update/${id}`,
-      form,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      }
-    );
+    const response = await api.put(`/properties/property/update/${id}`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
+    });
     return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error updating property:", error);
@@ -62,10 +47,7 @@ export const putProperty = async (data: PropertyUpdate) => {
 
 export const deleteProperty = async (data: Property) => {
   try {
-    const response = await api.delete(
-      `/properties/property/delete/${data.id}`,
-      { withCredentials: true }
-    );
+    const response = await api.delete(`/properties/property/delete/${data.id}`, { withCredentials: true });
     return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error deleting property:", error);
@@ -109,9 +91,7 @@ export const getPropertyById = async (id: number) => {
   }
 };
 
-export const getPropertiesByFilters = async (
-  params: SearchParams
-): Promise<Property[]> => {
+export const getPropertiesByFilters = async (params: SearchParams): Promise<Property[]> => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (Array.isArray(value)) {
@@ -122,10 +102,9 @@ export const getPropertiesByFilters = async (
   });
 
   try {
-    const response = await api.get<Property[]>(
-      `/properties/property/search?${searchParams.toString()}`,
-      { withCredentials: true }
-    );
+    const response = await api.get<Property[]>(`/properties/property/search?${searchParams.toString()}`, {
+      withCredentials: true,
+    });
     return (response as any)?.data ?? response;
   } catch (error) {
     console.error("Error searching properties:", error);

@@ -38,18 +38,17 @@ export const getViewsByProperty = async (): Promise<ViewsByProperty> => {
   }
 };
 
-export const getViewsByPropertyType =
-  async (): Promise<ViewsByPropertyType> => {
-    try {
-      const resp = await api.get<ViewsByPropertyType>("/properties/view/propertyType", {
-        withCredentials: true,
-      });
-      return resp.data;
-    } catch (error) {
-      console.error("Error fetching views by property type:", error);
-      throw error;
-    }
-  };
+export const getViewsByPropertyType = async (): Promise<ViewsByPropertyType> => {
+  try {
+    const resp = await api.get<ViewsByPropertyType>("/properties/view/propertyType", {
+      withCredentials: true,
+    });
+    return resp.data;
+  } catch (error) {
+    console.error("Error fetching views by property type:", error);
+    throw error;
+  }
+};
 
 export const getViewsByDay = async (): Promise<ViewsByDay> => {
   try {
@@ -75,34 +74,29 @@ export const getViewsByMonth = async (): Promise<ViewsByMonth> => {
   }
 };
 
-export const getViewsByNeighborhood =
-  async (): Promise<ViewsByNeighborhood> => {
-    try {
-      const resp = await api.get<ViewsByNeighborhood>("/properties/view/neighborhood", {
-        withCredentials: true,
-      });
-      return resp.data;
-    } catch (error) {
-      console.error("Error fetching views by neighborhood:", error);
-      throw error;
-    }
-  };
+export const getViewsByNeighborhood = async (): Promise<ViewsByNeighborhood> => {
+  try {
+    const resp = await api.get<ViewsByNeighborhood>("/properties/view/neighborhood", {
+      withCredentials: true,
+    });
+    return resp.data;
+  } catch (error) {
+    console.error("Error fetching views by neighborhood:", error);
+    throw error;
+  }
+};
 
-export const getViewsByNeighborhoodType =
-  async (): Promise<ViewsByNeighborhoodType> => {
-    try {
-      const resp = await api.get<ViewsByNeighborhoodType>(
-        "/properties/view/neighborhoodType",
-        {
-          withCredentials: true,
-        }
-      );
-      return resp.data;
-    } catch (error) {
-      console.error("Error fetching views by neighborhood type:", error);
-      throw error;
-    }
-  };
+export const getViewsByNeighborhoodType = async (): Promise<ViewsByNeighborhoodType> => {
+  try {
+    const resp = await api.get<ViewsByNeighborhoodType>("/properties/view/neighborhoodType", {
+      withCredentials: true,
+    });
+    return resp.data;
+  } catch (error) {
+    console.error("Error fetching views by neighborhood type:", error);
+    throw error;
+  }
+};
 
 export const getViewsByStatus = async (): Promise<ViewsByStatus> => {
   try {
@@ -116,18 +110,17 @@ export const getViewsByStatus = async (): Promise<ViewsByStatus> => {
   }
 };
 
-export const getViewsByStatusAndType =
-  async (): Promise<ViewsByStatusAndType> => {
-    try {
-      const resp = await api.get<ViewsByStatusAndType>("/properties/view/statusAndType", {
-        withCredentials: true,
-      });
-      return resp.data;
-    } catch (error) {
-      console.error("Error fetching views by status and type:", error);
-      throw error;
-    }
-  };
+export const getViewsByStatusAndType = async (): Promise<ViewsByStatusAndType> => {
+  try {
+    const resp = await api.get<ViewsByStatusAndType>("/properties/view/statusAndType", {
+      withCredentials: true,
+    });
+    return resp.data;
+  } catch (error) {
+    console.error("Error fetching views by status and type:", error);
+    throw error;
+  }
+};
 
 export const getViewsByOperation = async (): Promise<ViewsByOperation> => {
   try {

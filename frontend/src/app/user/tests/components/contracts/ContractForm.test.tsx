@@ -22,8 +22,8 @@ vi.mock("../../../shared/components/Modal", () => ({
 }));
 
 vi.mock("../../../components/increases/IncreaseIndexForm", () => ({
-  __esModule: true,           
-  default: (props: any) => ( 
+  __esModule: true,
+  default: (props: any) => (
     <div data-testid="increase-form" data-action={props.action}>
       <button
         data-testid="increase-done"
@@ -76,10 +76,7 @@ vi.mock("../../../hooks/useIncreaseIndexes", () => ({
   }),
 }));
 
-import {
-  ContractForm,
-  ContractFormHandle,
-} from "../../../components/contracts/ContractForm";
+import { ContractForm, ContractFormHandle } from "../../../components/contracts/ContractForm";
 
 beforeEach(() => {
   indexes = [{ id: 1, code: "IDX", name: "IndiceX" }];
@@ -162,7 +159,8 @@ describe("ContractForm", () => {
     const user = userEvent.setup();
     const newIndex = { id: 99, code: "IDX", name: "IndiceX" };
     indexes = [];
-    loadAllMock.mockImplementationOnce(async () => [])
+    loadAllMock
+      .mockImplementationOnce(async () => [])
       .mockImplementationOnce(async () => [newIndex])
       .mockImplementation(async () => [newIndex]);
 
@@ -223,5 +221,4 @@ describe("ContractForm", () => {
     await user.click(within(increaseForm).getByTestId("increase-done"));
     expect(loadAllMock).toHaveBeenCalled();
   });
-
 });

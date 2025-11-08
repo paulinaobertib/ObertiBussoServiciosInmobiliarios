@@ -10,11 +10,7 @@ vi.mock("../../../services/contract.service", () => ({
   getContractsByType: vi.fn(),
 }));
 
-import {
-  getAllContracts,
-  getContractsByDateRange,
-  getContractsByType,
-} from "../../../services/contract.service";
+import { getAllContracts, getContractsByDateRange, getContractsByType } from "../../../services/contract.service";
 import { ContractStatus } from "../../../types/contract";
 
 describe("useContractFilters", () => {
@@ -66,16 +62,16 @@ describe("useContractFilters", () => {
     });
   });
 
-it("filtra por globalStatus cuando no es ALL", async () => {
-  (getAllContracts as Mock).mockResolvedValue([
-    { id: 1, contractStatus: ContractStatus.ACTIVO },
-    { id: 2, contractStatus: ContractStatus.INACTIVO },
-  ]);
+  it("filtra por globalStatus cuando no es ALL", async () => {
+    (getAllContracts as Mock).mockResolvedValue([
+      { id: 1, contractStatus: ContractStatus.ACTIVO },
+      { id: 2, contractStatus: ContractStatus.INACTIVO },
+    ]);
 
-  renderHook(() => useContractFilters(ContractStatus.ACTIVO, onFiltered));
+    renderHook(() => useContractFilters(ContractStatus.ACTIVO, onFiltered));
 
-  await waitFor(() => {
-    expect(onFiltered).toHaveBeenCalledWith([{ id: 1, contractStatus: ContractStatus.ACTIVO }]);
+    await waitFor(() => {
+      expect(onFiltered).toHaveBeenCalledWith([{ id: 1, contractStatus: ContractStatus.ACTIVO }]);
+    });
   });
-});
 });
