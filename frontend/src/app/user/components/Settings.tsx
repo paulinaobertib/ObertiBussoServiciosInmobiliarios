@@ -250,7 +250,7 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
                   Cargando…
                 </Typography>
               ) : preferences.length ? (
-                <Stack>
+                <Stack spacing={1}>
                   {preferences.map((pref) => (
                     <PrefRow
                       key={pref.id}
