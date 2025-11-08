@@ -81,9 +81,9 @@ describe("PropertyInfo", () => {
     expect(expensasEl).toBeInTheDocument();
   });
 
-  it("muestra descripción", () => {
+  it("no muestra la descripción (se renderiza en otro componente)", () => {
     render(<PropertyInfo property={baseProperty} />);
-    expect(screen.getByText(/Hermoso departamento/)).toBeInTheDocument();
+    expect(screen.queryByText(/Hermoso departamento/)).not.toBeInTheDocument();
   });
 
   it("muestra 'Consultar precio' cuando showPrice es false", () => {
@@ -97,12 +97,6 @@ describe("PropertyInfo", () => {
     const prop = { ...baseProperty, street: "", neighborhood: undefined as any };
     render(<PropertyInfo property={prop} />);
     expect(screen.getByText(/Ubicación desconocida/)).toBeInTheDocument();
-  });
-
-  it("no muestra sección de descripción si property.description no existe", () => {
-    const prop = { ...baseProperty, description: "" };
-    render(<PropertyInfo property={prop} />);
-    expect(screen.queryByText(/Descripción/)).not.toBeInTheDocument();
   });
 
   it("no muestra especificaciones ni características si no hay features ni amenities", () => {
@@ -147,7 +141,7 @@ describe("PropertyInfo", () => {
     expect(screen.getByText(/Ubicación desconocida/i)).toBeInTheDocument();
   });
 
-  it("no renderiza descripción si está vacía", () => {
+  it("no renderiza descripción aunque esté vacía (control en otro componente)", () => {
     const prop = { ...baseProperty, description: "" };
     render(<PropertyInfo property={prop} />);
     expect(screen.queryByText(/Descripción/i)).not.toBeInTheDocument();

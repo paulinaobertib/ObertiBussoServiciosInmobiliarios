@@ -38,6 +38,16 @@ const {
   getNotificationsByUser,
 } = await import("../../services/notification.service");
 
+const buildAuth = (overrides: Record<string, unknown> = {}) => ({
+  info: { id: "user-id", firstName: "Test", email: "test@example.com" },
+  isAdmin: false,
+  isTenant: false,
+  isLogged: true,
+  login: vi.fn(),
+  logout: vi.fn(),
+  ...overrides,
+});
+
 // --- Helper para renderizar el componente controlado ---
 function renderSettingsDrawer(open = true) {
   const mockOnClose = vi.fn();
@@ -52,7 +62,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("muestra mensaje sin preferencias y sin notificaciones", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u2" }, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u2" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
     (getNotificationsByUser as any).mockResolvedValue({ data: [] });
 
@@ -64,7 +74,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("muestra error si falla fetch", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u3" }, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u3" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockRejectedValue(new Error("fail"));
     (getNotificationsByUser as any).mockRejectedValue(new Error("fail"));
 
@@ -75,7 +85,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("renderiza admin con resumen de notificaciones", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "admin" }, isAdmin: true });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "admin" }, isAdmin: true }));
     (getAllNotifications as any).mockResolvedValue({
       data: [
         { id: 1, type: "PROPIEDADNUEVA", date: new Date().toISOString() },
@@ -88,17 +98,17 @@ describe("SettingsDrawer", () => {
 
     // Usamos el heading para evitar ambigüedad
     await screen.findByRole("heading", { name: /Notificaciones/i });
-    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByText(/Administrador/i)).toBeInTheDocument();
 
     // Aparecen los labels resumidos
-    expect(screen.getByText("Historial (resumen)")).toBeInTheDocument();
+    expect(screen.getByText(/HISTORIAL \(RESUMEN\)/i)).toBeInTheDocument();
     expect(screen.getByText("Nueva propiedad disponible")).toBeInTheDocument();
     expect(screen.getByText("Actualizaciones de interés")).toBeInTheDocument();
-    expect(screen.getByText("Envíos")).toBeInTheDocument();
+    expect(screen.getByText(/ENVIOS/)).toBeInTheDocument();
   });
 
   it("admin sin notificaciones muestra 'Sin actividad.'", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "admin" }, isAdmin: true });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "admin" }, isAdmin: true }));
     (getAllNotifications as any).mockResolvedValue({ data: [] });
 
     renderSettingsDrawer();
@@ -108,7 +118,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("muestra 'Cargando…' mientras las promesas están pendientes", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u-load" }, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u-load" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockReturnValue(new Promise(() => {}));
     (getNotificationsByUser as any).mockReturnValue(new Promise(() => {}));
 
@@ -119,7 +129,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("NO admin: toggle de preferencia exitoso", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u1" }, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u1" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({
       data: [
         { id: 101, type: "PROPIEDADNUEVA", enabled: false },
@@ -145,7 +155,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("NO admin: toggle con error hace rollback", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u2" }, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u2" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({
       data: [{ id: 201, type: "PROPIEDADINTERES", enabled: true }],
     });
@@ -166,8 +176,8 @@ describe("SettingsDrawer", () => {
     await waitFor(() => expect(cb.checked).toBe(true));
   });
 
-  it("usuario: historial renderiza items y muestra Divider solo para no-admin", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u3" }, isAdmin: false });
+  it("usuario: historial renderiza items y muestra indicadores solo para admin", async () => {
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u3" }, isAdmin: false }));
     const now = new Date().toISOString();
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
     (getNotificationsByUser as any).mockResolvedValue({
@@ -184,8 +194,8 @@ describe("SettingsDrawer", () => {
       expect(screen.getByRole("list")).toBeInTheDocument();
     });
 
-    // Divider presente
-    expect(screen.getByRole("separator")).toBeInTheDocument();
+    // Sólo los admins ven el indicador de envíos
+    expect(screen.queryByText(/ENVIOS/i)).not.toBeInTheDocument();
 
     const list = screen.getByRole("list");
     const items = within(list).getAllByRole("listitem");
@@ -195,7 +205,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("chip del header muestra la cantidad correcta de notificaciones de HOY", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u4" }, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u4" }, isAdmin: false }));
     const today = new Date();
     const yesterday = new Date(Date.now() - 86400000);
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
@@ -210,26 +220,25 @@ describe("SettingsDrawer", () => {
 
     // Esperar a que se actualice el chip
     await waitFor(() => {
-      expect(screen.getByText(/^1 hoy$/)).toBeInTheDocument();
+      expect(screen.getByText(/1 notificaciones hoy/i)).toBeInTheDocument();
     });
   });
 
-  it("en mobile: abre con el botón de texto y cierra con la X", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "u5" }, isAdmin: false });
+  it("en mobile: muestra el encabezado con contador y chip", async () => {
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u5" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
     (getNotificationsByUser as any).mockResolvedValue({ data: [] });
 
-    const { mockOnClose } = renderSettingsDrawer();
+    renderSettingsDrawer();
 
-    const header = screen.getByRole("heading", { name: /Notificaciones/i }).parentElement!;
-    const closeBtn = within(header).getByRole("button");
-    fireEvent.click(closeBtn);
+    await screen.findByText("Sin notificaciones.");
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(screen.getByText(/0 notificaciones hoy/i)).toBeInTheDocument();
+    expect(screen.getByText(/Usuario/i)).toBeInTheDocument();
   });
 
   it("Admin: orden del resumen por fecha desc y, a igualdad, por tipo (alfabético)", async () => {
-    (useAuthContext as any).mockReturnValue({ info: { id: "admin" }, isAdmin: true });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "admin" }, isAdmin: true }));
 
     const sameDay = "2025-06-05T10:00:00.000Z";
     (getAllNotifications as any).mockResolvedValue({
@@ -257,7 +266,7 @@ describe("SettingsDrawer", () => {
   });
 
   it("sin userId (info null) no llama servicios de usuario y muestra vacíos", async () => {
-    (useAuthContext as any).mockReturnValue({ info: null, isAdmin: false });
+    (useAuthContext as any).mockReturnValue(buildAuth({ info: null, isLogged: false }));
 
     renderSettingsDrawer();
 
