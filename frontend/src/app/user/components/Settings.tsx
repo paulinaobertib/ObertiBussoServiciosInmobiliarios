@@ -269,10 +269,25 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
           </>
         )}
 
-        <Box sx={{ px: 3, py: 1, bgcolor: "background.paper" }}>
+        <Box
+          sx={{
+            px: 3,
+            py: 1,
+            bgcolor: "background.paper",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+          }}
+        >
           <Typography variant="overline" sx={{ letterSpacing: 2, color: "text.secondary" }}>
             {`HISTORIAL${isAdmin ? " (RESUMEN)" : ""}`}
           </Typography>
+          {isAdmin && (
+            <Typography variant="overline" sx={{ letterSpacing: 2, color: "text.secondary" }}>
+              ENVIOS
+            </Typography>
+          )}
         </Box>
 
         <Box
@@ -280,6 +295,8 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
             flex: 1,
             overflowY: "auto",
             px: 3,
+            pt: 1,
+            pb: 3,
             display: "flex",
             flexDirection: "column",
             gap: 0,
