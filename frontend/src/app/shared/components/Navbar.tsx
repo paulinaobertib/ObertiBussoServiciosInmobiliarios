@@ -195,7 +195,7 @@ export const NavBar = () => {
               {/* NO LOGUEADO: Iniciar sesión */}
               {!isLogged && (
                 <Tooltip title="Iniciar sesión">
-                  <IconButton color="inherit" aria-label="login" onClick={login} sx={{ p: 0.5 }}>
+                  <IconButton color="inherit" aria-label="login" onClick={login} sx={{ p: 0.5, transform: "rotateY(180deg)" }}>
                     <LoginIcon />
                   </IconButton>
                 </Tooltip>
@@ -321,7 +321,12 @@ export const NavBar = () => {
       </Box>
 
       {/* Settings Drawer - renderizado fuera del AppBar */}
-      <SettingsDrawer open={notificationDrawerOpen} onClose={() => setNotificationDrawerOpen(false)} />
+      <SettingsDrawer
+        open={notificationDrawerOpen}
+        onClose={() => setNotificationDrawerOpen(false)}
+        topOffsetMobile={NAVBAR_HEIGHT_XS}
+        topOffsetDesktop={NAVBAR_HEIGHT}
+      />
       <MobileActionsDrawer
         open={mobileActionsOpen}
         onClose={closeMobileActions}

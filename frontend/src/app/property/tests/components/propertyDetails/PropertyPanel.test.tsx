@@ -47,7 +47,7 @@ describe('PropertyPanel', () => {
     date: new Date().toISOString(),
   };
 
-  const MockInfo = ({ property }: { property: Property }) => (
+  const MockInfo = ({ property }: { property: Property; hideDescription?: boolean }) => (
     <div data-testid="info">{property.title}</div>
   );
 
@@ -69,5 +69,12 @@ describe('PropertyPanel', () => {
     // Verifica que el Box principal tenga flexDirection column (vertical)
     const mainBox = container.firstChild as HTMLElement;
     expect(mainBox).toHaveStyle('flex-direction: column');
+  });
+
+  it('muestra la descripción debajo cuando showDescriptionBelow es true', () => {
+    render(<PropertyPanel property={mockProperty} InfoComponent={MockInfo} showDescriptionBelow />);
+
+    expect(screen.getByText('Descripción')).toBeInTheDocument();
+    expect(screen.getByText(mockProperty.description)).toBeInTheDocument();
   });
 });

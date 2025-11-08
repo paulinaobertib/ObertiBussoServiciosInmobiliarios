@@ -1,19 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  Drawer,
-  IconButton,
-  Box,
-  Typography,
-  Switch,
-  Divider,
-  List,
-  ListItem,
-  useTheme,
-  useMediaQuery,
-  Stack,
-  Chip,
-} from "@mui/material";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { Drawer, Box, Typography, Switch, List, ListItem, useTheme, useMediaQuery, Stack, Chip } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 
 import { useAuthContext } from "../context/AuthContext";
 import {
@@ -32,7 +19,7 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   PROPIEDADINTERES: "Actualizaciones de interés",
 };
 
-const drawerWidth = 380;
+const drawerWidth = 400;
 
 /** Card visual unificado (sin hover) para historial (usuario/admin) */
 function HistoryCard({ title, subtitle, right }: { title: string; subtitle: string; right?: React.ReactNode }) {
@@ -41,22 +28,21 @@ function HistoryCard({ title, subtitle, right }: { title: string; subtitle: stri
     <Box
       sx={{
         width: "100%",
-        p: 1.25,
+        height: 64,
+        px: 2,
+        py: 0,
+        columnGap: 1.5,
         borderRadius: 2,
-        bgcolor: "background.paper",
-        boxShadow: theme.shadows[1],
-        border: "1px solid",
-        borderColor: "divider",
+        boxShadow: theme.shadows[2],
         display: "flex",
         alignItems: "center",
-        gap: 1,
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" noWrap sx={{ fontSize: "1rem" }}>
+        <Typography variant="body2" noWrap sx={{ fontSize: "0.95rem", fontWeight: 600 }}>
           {title}
         </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "1rem" }}>
+        <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.85rem" }}>
           {subtitle}
         </Typography>
       </Box>
@@ -79,18 +65,21 @@ function PrefRow({
   return (
     <Box
       sx={{
-        p: 1,
+        height: 64,
+        px: 2,
+        py: 0,
         borderRadius: 2,
-        bgcolor: "background.paper",
-        boxShadow: theme.shadows[1],
+        bgcolor: alpha(theme.palette.primary.main, 0.04),
+        boxShadow: theme.shadows[2],
         border: "1px solid",
-        borderColor: "divider",
+        borderColor: alpha(theme.palette.primary.main, 0.12),
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
+        columnGap: 1.5,
       }}
     >
-      <Typography variant="body2" sx={{ fontSize: "1rem" }}>
+      <Typography variant="body2" sx={{ fontSize: "0.95rem", fontWeight: 600 }}>
         {label}
       </Typography>
       <Switch size="small" checked={checked} onChange={onChange} />
@@ -98,15 +87,40 @@ function PrefRow({
   );
 }
 
+const SectionHeader = ({ title, secondary }: { title: string; secondary?: React.ReactNode }) => (
+  <Box
+    sx={{
+      px: 3,
+      pt: 1,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 1,
+    }}
+  >
+    <Typography variant="overline" sx={{ letterSpacing: 2, color: "text.secondary" }}>
+      {title}
+    </Typography>
+    {secondary}
+  </Box>
+);
+
+const SectionBody = ({ children }: { children: React.ReactNode }) => <Box sx={{ px: 3, pb: 2 }}>{children}</Box>;
+
 interface SettingsDrawerProps {
   open: boolean;
   onClose: () => void;
+  topOffsetMobile?: number;
+  topOffsetDesktop?: number;
 }
 
-export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
+export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, topOffsetDesktop }: SettingsDrawerProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { info, isAdmin } = useAuthContext();
+  const resolvedTopOffsetDesktop = topOffsetDesktop ?? topOffsetMobile;
+  const appliedTopOffset = isMobile ? topOffsetMobile : resolvedTopOffsetDesktop;
+
+  const { info, isAdmin, isTenant } = useAuthContext();
   const userId = info?.id || "";
 
   const [loading, setLoading] = useState(false);
@@ -131,6 +145,11 @@ export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       return db.getTime() - da.getTime() || a.type.localeCompare(b.type);
     });
   }, [notifications]);
+
+  const sortedNotifications = useMemo(
+    () => [...notifications].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [notifications]
+  );
 
   const refresh = useCallback(async () => {
     setError(null);
@@ -174,8 +193,8 @@ export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
 
   const countToday = useMemo(() => {
     const today = new Date().toLocaleDateString();
-    return notifications.filter((n) => new Date(n.date).toLocaleDateString() === today).length;
-  }, [notifications]);
+    return sortedNotifications.filter((n) => new Date(n.date).toLocaleDateString() === today).length;
+  }, [sortedNotifications]);
 
   return (
     <Drawer
@@ -184,104 +203,89 @@ export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: isMobile ? "92%" : drawerWidth,
-          p: 0,
-          bgcolor: "background.default",
-          borderLeft: "1px solid",
-          borderColor: "divider",
+          width: isMobile ? "90%" : drawerWidth,
           display: "flex",
           flexDirection: "column",
-          height: "100%",
-          zIndex: 100,
+          top: appliedTopOffset,
+          height: `calc(100% - ${appliedTopOffset}px)`,
+          overflow: "hidden",
         },
       }}
     >
-      {/* Header */}
       <Box
         sx={{
-          p: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          position: "sticky",
-          top: 0,
-          bgcolor: "background.paper",
-          zIndex: 1,
-          borderBottom: "1px solid",
-          borderColor: "divider",
+          pt: 1,
+          pb: 3,
+          textAlign: "center",
+          color: "black",
+          bgcolor: alpha(theme.palette.primary.main, 0.3),
         }}
       >
-        <Typography variant="h6" sx={{ flex: 1, letterSpacing: 0.2, fontSize: "1.3rem" }}>
-          Notificaciones
-        </Typography>
-        <Chip
-          size="small"
-          variant={isAdmin ? "filled" : "outlined"}
-          color={isAdmin ? "secondary" : "default"}
-          label={isAdmin ? "Admin" : `${countToday} hoy`}
-        />
-        <IconButton onClick={onClose}>
-          <CloseRoundedIcon />
-        </IconButton>
+        <Stack spacing={1.5} alignItems="center" sx={{ mt: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontSize: "1.6rem", fontWeight: 600, letterSpacing: 0.3 }}>
+            Notificaciones
+          </Typography>
+
+          <Typography variant="body2" sx={{ opacity: 0.85 }}>
+            {isAdmin ? "Visualizando actividad global" : `${countToday} notificaciones hoy`}
+          </Typography>
+
+          <Chip
+            size="small"
+            variant={"filled"}
+            color={"secondary"}
+            label={isAdmin ? "Administrador" : isTenant ? "Inquilino" : "Usuario"}
+            clickable={false}
+          />
+        </Stack>
       </Box>
 
-      {/* Main content: pref (no scroll) + history (con scroll) */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0, // importante para que el hijo con overflow funcione
-        }}
-      >
-        {/* Preferencias (solo user) */}
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto" }}>
         {!isAdmin && (
-          <Box sx={{ p: 2, pb: 1, display: "flex", flexDirection: "column", gap: 1, flex: "0 0 auto" }}>
-            <Typography fontSize={"1.3rem"} variant="subtitle2">
-              Preferencias
-            </Typography>
-            {loading ? (
-              <Typography variant="body2" color="text.secondary">
-                Cargando…
-              </Typography>
-            ) : preferences.length ? (
-              preferences.map((pref) => (
-                <PrefRow
-                  key={pref.id}
-                  label={TYPE_LABELS[pref.type]}
-                  checked={pref.enabled}
-                  onChange={handleTogglePref(pref)}
-                />
-              ))
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                Sin preferencias configuradas.
-              </Typography>
-            )}
-          </Box>
+          <>
+            <SectionHeader title="PREFERENCIAS" />
+            <SectionBody>
+              {loading ? (
+                <Typography variant="body2" color="text.secondary">
+                  Cargando…
+                </Typography>
+              ) : preferences.length ? (
+                <Stack>
+                  {preferences.map((pref) => (
+                    <PrefRow
+                      key={pref.id}
+                      label={TYPE_LABELS[pref.type]}
+                      checked={pref.enabled}
+                      onChange={handleTogglePref(pref)}
+                    />
+                  ))}
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Sin preferencias configuradas.
+                </Typography>
+              )}
+            </SectionBody>
+          </>
         )}
 
-        {/* Divider entre preferencias e historial */}
-        {!isAdmin && <Divider sx={{ mx: 2 }} />}
+        <Box sx={{ px: 3, py: 1, bgcolor: "background.paper" }}>
+          <Typography variant="overline" sx={{ letterSpacing: 2, color: "text.secondary" }}>
+            {`HISTORIAL${isAdmin ? " (RESUMEN)" : ""}`}
+          </Typography>
+        </Box>
 
-        {/* Historial (scroll SOLO acá) */}
         <Box
           sx={{
-            p: 2,
-            pt: 1.5,
+            flex: 1,
+            overflowY: "auto",
+            px: 3,
             display: "flex",
             flexDirection: "column",
-            gap: 1,
-            flex: 1,
-            minHeight: 0,
+            gap: 0,
+            bgcolor: "background.default",
           }}
         >
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Typography fontSize={"1.3rem"} variant="subtitle2">
-              Historial{isAdmin ? " (resumen)" : ""}
-            </Typography>
-            {isAdmin && <Typography variant="subtitle2">Envíos</Typography>}
-          </Stack>
           {error && (
             <Typography variant="body2" color="error">
               {error}
@@ -299,9 +303,6 @@ export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,
-                overflowY: "auto", // ← scroll solo aquí
-                flex: 1,
-                minHeight: 0,
               }}
             >
               {isAdmin ? (
@@ -322,8 +323,8 @@ export default function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
                     </Typography>
                   </ListItem>
                 )
-              ) : notifications.length ? (
-                notifications.map((n) => (
+              ) : sortedNotifications.length ? (
+                sortedNotifications.map((n) => (
                   <ListItem key={n.id} sx={{ p: 0 }}>
                     <HistoryCard title={TYPE_LABELS[n.type]} subtitle={fmtDate.format(new Date(n.date))} />
                   </ListItem>

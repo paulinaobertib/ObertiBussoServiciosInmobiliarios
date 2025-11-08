@@ -60,6 +60,17 @@ const MobileActionsDrawer: React.FC<MobileActionsDrawerProps> = ({
     }
   };
 
+  const cardStyles = {
+    width: "100%",
+    height: 64,
+    px: 2,
+    py: 0,
+    columnGap: 1.5,
+    borderRadius: 2,
+    boxShadow: theme.shadows[2],
+    alignItems: "center",
+  };
+
   return (
     <Drawer
       anchor="left"
@@ -81,15 +92,14 @@ const MobileActionsDrawer: React.FC<MobileActionsDrawerProps> = ({
           pt: 1,
           pb: 3,
           textAlign: "center",
-          // borderBottom: `2px solid ${alpha(theme.palette.primary.main, 1)}`,
           color: "black",
           bgcolor: alpha(theme.palette.primary.main, 0.3),
         }}
       >
         <Stack spacing={1.5} alignItems="center" sx={{ mt: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: 0.6 }}>
-            Bienvenido/a
-          </Typography>
+          {/* <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: 0.6 }}>
+            Bienvenido
+          </Typography> */}
 
           {isLoggedIn ? (
             <>
@@ -139,13 +149,7 @@ const MobileActionsDrawer: React.FC<MobileActionsDrawerProps> = ({
                 key={label}
                 onClick={onClick}
                 sx={{
-                  width: "100%",
-                  maxHeight: 64,
-                  px: 2,
-                  columnGap: 1.5,
-                  borderRadius: 2,
-                  boxShadow: theme.shadows[2],
-                  alignItems: "center",
+                  ...cardStyles,
                 }}
               >
                 <ListItemIcon
