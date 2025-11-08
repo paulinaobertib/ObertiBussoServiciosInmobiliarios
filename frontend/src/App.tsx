@@ -15,11 +15,11 @@ import AuthLoaderOverlay from "./app/user/context/AuthLoader";
 import AuthExpired from "./app/user/context/AuthExpired";
 
 function App() {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // const apiUrl = import.meta.env.VITE_API_URL;
+  // const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  console.log("API URL en App:", apiUrl);
-  console.log("BASE URL en App:", baseUrl);
+  // console.log("API URL en App:", apiUrl);
+  // console.log("BASE URL en App:", baseUrl);
 
   return (
     <React.StrictMode>

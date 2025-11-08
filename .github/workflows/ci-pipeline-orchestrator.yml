@@ -23,20 +23,20 @@ jobs:
   #     checks: write
   #   secrets: inherit
 
-  ci_ms_gateway:
-    name: CI - Gateway
-    uses: ./.github/workflows/ci-ms-gateway.yml
-    secrets: inherit
+  # ci_ms_gateway:
+  #   name: CI - Gateway
+  #   uses: ./.github/workflows/ci-ms-gateway.yml
+  #   secrets: inherit
 
   # ci_eureka:
   #   name: CI - Eureka
   #   uses: ./.github/workflows/ci-eureka-server.yml
   #   secrets: inherit
 
-  ci_keycloak:
-    name: CI - Keycloak
-    uses: ./.github/workflows/ci-keycloak.yml
-    secrets: inherit
+  # ci_keycloak:
+  #   name: CI - Keycloak
+  #   uses: ./.github/workflows/ci-keycloak.yml
+  #   secrets: inherit
 
   ci_frontend:
     name: CI - Frontend
@@ -91,15 +91,15 @@ jobs:
   #     image_tag: ${{ needs.ci_ms_users.outputs.tag }}
   #   secrets: inherit
 
-  cd_ms_gateway:
-    name: CD - Gateway
-    needs:
-      # - ci_integration
-      - ci_ms_gateway
-    uses: ./.github/workflows/cd-ms-gateway.yml
-    with:
-      image_tag: ${{ needs.ci_ms_gateway.outputs.tag }}
-    secrets: inherit
+  # cd_ms_gateway:
+  #   name: CD - Gateway
+  #   needs:
+  #     # - ci_integration
+  #     - ci_ms_gateway
+  #   uses: ./.github/workflows/cd-ms-gateway.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_ms_gateway.outputs.tag }}
+  #   secrets: inherit
 
   # cd_eureka:
   #   name: CD - Eureka
@@ -111,15 +111,15 @@ jobs:
   #     image_tag: ${{ needs.ci_eureka.outputs.tag }}
   #   secrets: inherit
 
-  cd_keycloak:
-    name: CD - Keycloak
-    needs:
-      # - ci_integration
-      - ci_keycloak
-    uses: ./.github/workflows/cd-keycloak.yml
-    with:
-      image_tag: ${{ needs.ci_keycloak.outputs.tag }}
-    secrets: inherit
+  # cd_keycloak:
+  #   name: CD - Keycloak
+  #   needs:
+  #     # - ci_integration
+  #     - ci_keycloak
+  #   uses: ./.github/workflows/cd-keycloak.yml
+  #   with:
+  #     image_tag: ${{ needs.ci_keycloak.outputs.tag }}
+  #   secrets: inherit
 
   cd_frontend:
     name: CD - Frontend

@@ -77,7 +77,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
 
   useEffect(() => {
     if (!DEBUG) return;
-    console.log("[FORM] change → form:", form);
+    // console.log("[FORM] change → form:", form);
   }, [form]);
 
   /* ───────────────────── RENDER ───────────────────── */

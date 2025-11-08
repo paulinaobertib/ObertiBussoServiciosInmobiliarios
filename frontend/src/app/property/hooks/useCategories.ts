@@ -6,7 +6,7 @@ import { useApiErrors } from "../../shared/hooks/useErrors";
 interface Props<T extends {}> {
   initial: T;
   action: "add" | "edit" | "delete";
-  save: (payload: T) => Promise<string>;
+  save: (payload: T) => Promise<unknown>;
   refresh: () => Promise<void>;
   onDone: () => void;
 }
@@ -52,7 +52,7 @@ export const useCategories = <T extends {}>({ initial, action, save, refresh, on
       // ---------------------------------------------
 
       // En "add" ignoramos id si vino en initial
-      let message;
+      let message: unknown;
       if (action === "add") {
         const { id, ...formWithoutId } = (form as any) ?? {};
         message = await save(formWithoutId as T); // 👈 el backend devuelve el texto
@@ -68,7 +68,13 @@ export const useCategories = <T extends {}>({ initial, action, save, refresh, on
       }
 
       onDone();
-      await notifySuccess(successTitle, message);
+      const description =
+        typeof message === "string"
+          ? message
+          : typeof (message as any)?.message === "string"
+          ? (message as any).message
+          : undefined;
+      await notifySuccess(successTitle, description);
     } catch (e) {
       handleError(e);
     }

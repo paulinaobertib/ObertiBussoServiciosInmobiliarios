@@ -7,7 +7,7 @@ export const postIncreaseIndex = async (data: IncreaseIndexCreate) => {
     const response = await api.post(`/users/increaseIndex/create`, data, {
       withCredentials: true,
     });
-    console.log(response);
+    // console.log(response);
     return response.data as string;
   } catch (error) {
     console.error("Error creating increase index:", error);
