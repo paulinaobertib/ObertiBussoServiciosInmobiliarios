@@ -212,9 +212,12 @@ export const usePropertyForm = (
 
   /* ---------- helper num() ---------- */
   const num = useCallback(
-    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (k: keyof typeof form, opts?: { allowNull?: boolean }) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
-      if (val === "") return setField(k, "" as any);
+      if (val === "") {
+        setField(k, (opts?.allowNull ? (null as any) : ("" as any)));
+        return;
+      }
       const n = parseInt(val, 10);
       if (!isNaN(n)) setField(k, n as any);
     },
@@ -226,6 +229,8 @@ export const usePropertyForm = (
     const f = form;
 
     // validación base (siempre visibles)
+    const expensesValid = form.expenses == null || form.expenses >= 0;
+
     const baseValid =
       !!f.title &&
       !!f.street &&
@@ -240,7 +245,7 @@ export const usePropertyForm = (
       f.neighborhood.id > 0 &&
       f.type.id > 0 &&
       !!f.mainImage &&
-      (form.expenses ?? 0) >= 0;
+      expensesValid;
 
     // validación de campos dinámicos: sólo si están visibles, deben ser >0
     const dynamicValid =
@@ -275,8 +280,8 @@ export const usePropertyForm = (
     if (!form.mainImage) e.mainImage = "Carga la imagen principal";
 
     // Expensas: debe existir (>= 0)
-    if (form.expenses == null || form.expenses < 0) {
-      e.expenses = "Campo obligatorio";
+    if (form.expenses != null && form.expenses < 0) {
+      e.expenses = "No puede ser negativo";
     }
     // Campos dinámicos: sólo validar si están visibles
     if (showRooms && form.rooms <= 0) {

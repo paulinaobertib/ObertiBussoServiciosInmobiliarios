@@ -48,6 +48,7 @@ export const PropertyCard = ({
     property.status === "DISPONIBLE" ? `${property.status} - ${property.operation}` : property.status || "Sin Estado";
 
   const badgeConfig = getExtendingBadgeConfig();
+  const showExpenses = typeof property.expenses === "number" && property.expenses >= 1;
 
   return (
     <Card
@@ -251,9 +252,9 @@ export const PropertyCard = ({
           {property.showPrice ? (
             <Box
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "0.5rem",
+                display: showExpenses ? "grid" : "block",
+                gridTemplateColumns: showExpenses ? "repeat(2, minmax(0,1fr))" : undefined,
+                gap: showExpenses ? "0.5rem" : 0,
               }}
             >
               <Box
@@ -271,21 +272,23 @@ export const PropertyCard = ({
                   {`${property.currency} $${property.price}`}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  flex: 1,
-                  p: 0.5,
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 0.5,
-                }}
-              >
-                <Typography variant="caption" color="text.secondary" fontSize={"0.75rem"}>
-                  Expensas
-                </Typography>
-                <Typography variant="subtitle2" noWrap sx={{ whiteSpace: "nowrap" }} fontSize={"0.85rem"}>
-                  {property?.expenses ?? 0 > 0 ? `ARS $${property.expenses}` : "No"}
-                </Typography>
-              </Box>
+              {showExpenses && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    p: 0.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 0.5,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary" fontSize={"0.75rem"}>
+                    Expensas
+                  </Typography>
+                  <Typography variant="subtitle2" noWrap sx={{ whiteSpace: "nowrap" }} fontSize={"0.85rem"}>
+                    {`ARS $${property.expenses}`}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           ) : (
             <Box

@@ -254,15 +254,14 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             fullWidth
             label="Expensas"
             value={form.expenses ?? ""}
-            onChange={num("expenses")}
-            required
+            onChange={num("expenses", { allowNull: true })}
             error={!!fieldErrors.expenses}
             inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
             size="small"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton size="small" onClick={() => ctrl.setField("expenses", 0 as any)}>
+                  <IconButton size="small" onClick={() => ctrl.setField("expenses", null as any)}>
                     <CloseIcon fontSize="small" />
                   </IconButton>
                 </InputAdornment>

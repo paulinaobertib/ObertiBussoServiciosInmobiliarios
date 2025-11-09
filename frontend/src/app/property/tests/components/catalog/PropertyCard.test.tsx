@@ -195,18 +195,28 @@ describe("<PropertyCard />", () => {
     expect(screen.queryByText(/ALQUILER/i)).toBeNull();
   });
 
-  it("showPrice=true: muestra Precio y Expensas; con expensas 0 muestra 'No'", () => {
-    const { unmount } = renderWithTheme(
+  it("showPrice=true: muestra Expensas sólo cuando el valor es >= 1", () => {
+    const { rerender } = renderWithTheme(
       <PropertyCard property={{ ...baseProp, showPrice: true, expenses: 5000 } as any} />
     );
     expect(screen.getByText(/Precio/i)).toBeInTheDocument();
     expect(screen.getByText(/Expensas/i)).toBeInTheDocument();
     expect(screen.getByText(/ARS \$123456/)).toBeInTheDocument();
     expect(screen.getByText(/ARS \$5000/)).toBeInTheDocument();
-    unmount();
 
-    renderWithTheme(<PropertyCard property={{ ...baseProp, showPrice: true, expenses: 0 } as any} />);
-    expect(screen.getByText(/^No$/)).toBeInTheDocument();
+    rerender(
+      <ThemeProvider theme={theme}>
+        <PropertyCard property={{ ...baseProp, showPrice: true, expenses: 0 } as any} />
+      </ThemeProvider>
+    );
+    expect(screen.queryByText(/Expensas/i)).toBeNull();
+
+    rerender(
+      <ThemeProvider theme={theme}>
+        <PropertyCard property={{ ...baseProp, showPrice: true, expenses: null } as any} />
+      </ThemeProvider>
+    );
+    expect(screen.queryByText(/Expensas/i)).toBeNull();
   });
 
   it("showPrice=false: muestra 'Consultar'", () => {

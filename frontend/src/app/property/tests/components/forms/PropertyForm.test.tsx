@@ -102,7 +102,8 @@ import { PropertyForm } from "../../../components/forms/PropertyForm";
 
 // helpers sólidos para inputs y selects MUI
 const getInputByLabel = (labelText: string): HTMLInputElement => {
-  const label = screen.getByText(labelText);
+  const matches = screen.getAllByText(labelText);
+  const label = matches.find((el) => el.tagName === "LABEL") ?? matches[0];
   const forId = (label as HTMLLabelElement).getAttribute("for");
   if (!forId) {
     // fallback: buscar input dentro del mismo contenedor
@@ -160,7 +161,7 @@ describe("<PropertyForm />", () => {
     setNum("Superficie Cubierta", "coveredArea", "55", 55);
   });
 
-  it("botón de limpiar Expensas (CloseIcon) setea expenses = 0", () => {
+  it("botón de limpiar Expensas (CloseIcon) setea expenses = null", () => {
     renderSUT();
     const expInput = getInputByLabel("Expensas");
     // adornment está en el mismo contenedor del input
@@ -168,7 +169,7 @@ describe("<PropertyForm />", () => {
     const clearBtn = root.querySelector("button");
     expect(clearBtn).toBeTruthy();
     fireEvent.click(clearBtn!);
-    expect(h.ctrl.setField).toHaveBeenCalledWith("expenses", 0);
+    expect(h.ctrl.setField).toHaveBeenCalledWith("expenses", null);
   });
 
   it("AddressSelector dispara cambios de calle y número", () => {
