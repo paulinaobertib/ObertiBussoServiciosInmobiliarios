@@ -23,8 +23,8 @@ CREATE TABLE Neighborhood (
     name VARCHAR(255) UNIQUE NOT NULL,
     type ENUM('CERRADO', 'SEMICERRADO', 'ABIERTO') NOT NULL,
     city VARCHAR(255) NOT NULL,
-    latitude DECIMAL(9,6) NOT NULL,
-    longitude DECIMAL(9,6) NOT NULL
+    latitude  DECIMAL(10,8) NOT NULL,
+	longitude DECIMAL(11,8) NOT NULL
 );
 
 CREATE TABLE Amenity (
@@ -41,8 +41,10 @@ CREATE TABLE Property (
     operation ENUM('VENTA', 'ALQUILER') NOT NULL,
 	currency ENUM('USD', 'ARS') NOT NULL,
     title VARCHAR(255) NOT NULL,
-    street VARCHAR(150) NOT NULL,
-    number VARCHAR(10) NOT NULL,
+    street VARCHAR(150),
+    number VARCHAR(10),
+    latitude DECIMAL(10,8),
+	longitude DECIMAL(11,8),
     rooms INT NOT NULL,
     bathrooms INT NOT NULL,
     bedrooms INT NOT NULL,

@@ -16,6 +16,8 @@ public class PropertyUpdateDTO {
     private String title;
     private String street;
     private String number;
+    private Double latitude;
+    private Double longitude;
     private Float rooms;
     private Float bathrooms;
     private Float bedrooms;

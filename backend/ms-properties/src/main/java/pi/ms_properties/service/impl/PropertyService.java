@@ -97,6 +97,8 @@ public class PropertyService implements IPropertyService {
         response.setTitle(property.getTitle());
         response.setStreet(property.getStreet());
         response.setNumber(property.getNumber());
+        response.setLatitude(property.getLatitude());
+        response.setLongitude(property.getLongitude());
         response.setRooms(property.getRooms());
         response.setBathrooms(property.getBathrooms());
         response.setBedrooms(property.getBedrooms());

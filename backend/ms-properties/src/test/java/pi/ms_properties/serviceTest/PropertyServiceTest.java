@@ -159,6 +159,8 @@ public class PropertyServiceTest {
         property.setTitle("Hermosa casa en venta");
         property.setStreet("Av. Siempre Viva");
         property.setNumber("742");
+        property.setLatitude(-31.4167);
+        property.setLongitude(-64.1833);
         property.setRooms(4f);
         property.setBathrooms(2f);
         property.setBedrooms(3f);
@@ -189,6 +191,8 @@ public class PropertyServiceTest {
         propertyDTO.setTitle("Hermosa casa en venta");
         propertyDTO.setStreet("Av. Siempre Viva");
         propertyDTO.setNumber("742");
+        propertyDTO.setLatitude(-31.4167);
+        propertyDTO.setLongitude(-64.1833);
         propertyDTO.setRooms(4f);
         propertyDTO.setBathrooms(2f);
         propertyDTO.setBedrooms(3f);
@@ -214,6 +218,8 @@ public class PropertyServiceTest {
         propertySaveDTO.setTitle("Hermosa casa en venta");
         propertySaveDTO.setStreet("Av. Siempre Viva");
         propertySaveDTO.setNumber("742");
+        propertySaveDTO.setLatitude(-31.4167);
+        propertySaveDTO.setLongitude(-64.1833);
         propertySaveDTO.setRooms(4f);
         propertySaveDTO.setBathrooms(2f);
         propertySaveDTO.setBedrooms(3f);
@@ -268,6 +274,8 @@ public class PropertyServiceTest {
         propertyUpdateDTO.setTitle("Casa renovada en venta");
         propertyUpdateDTO.setStreet("Av. Siempre Viva");
         propertyUpdateDTO.setNumber("742");
+        propertyUpdateDTO.setLatitude(-31.4167);
+        propertyUpdateDTO.setLongitude(-64.1833);
         propertyUpdateDTO.setRooms(5f);
         propertyUpdateDTO.setBathrooms(3f);
         propertyUpdateDTO.setBedrooms(4f);

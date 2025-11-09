@@ -23,11 +23,17 @@ public class Property {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "street", nullable = false)
+    @Column(name = "street", nullable = true)
     private String street;
 
-    @Column(name = "number", nullable = false)
+    @Column(name = "number", nullable = true)
     private String number;
+
+    @Column(name = "latitude", columnDefinition = "DECIMAL(10,8)")
+    private Double latitude;
+
+    @Column(name = "longitude", columnDefinition = "DECIMAL(11,8)")
+    private Double longitude;
 
     @Column(name = "rooms", nullable = false)
     private Float rooms;

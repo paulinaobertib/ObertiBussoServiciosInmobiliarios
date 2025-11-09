@@ -17,6 +17,8 @@ public class PropertySaveDTO {
     private String street;
     private String number;
     private Float rooms;
+    private Double latitude;
+    private Double longitude;
     private Float bathrooms;
     private Float bedrooms;
     private Float area;
