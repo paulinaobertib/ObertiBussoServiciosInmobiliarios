@@ -4,29 +4,30 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/details-front
+      - main
+      - develop
 
 jobs:
-  # ci_ms_properties:
-  #   name: CI - Properties
-  #   uses: ./.github/workflows/ci-ms-properties.yml
-  #   permissions:
-  #     contents: read
-  #     checks: write
-  #   secrets: inherit
+  ci_ms_properties:
+    name: CI - Properties
+    uses: ./.github/workflows/ci-ms-properties.yml
+    permissions:
+      contents: read
+      checks: write
+    secrets: inherit
 
-  # ci_ms_users:
-  #   name: CI - Users
-  #   uses: ./.github/workflows/ci-ms-users.yml
-  #   permissions:
-  #     contents: read
-  #     checks: write
-  #   secrets: inherit
+  ci_ms_users:
+    name: CI - Users
+    uses: ./.github/workflows/ci-ms-users.yml
+    permissions:
+      contents: read
+      checks: write
+    secrets: inherit
 
-  # ci_ms_gateway:
-  #   name: CI - Gateway
-  #   uses: ./.github/workflows/ci-ms-gateway.yml
-  #   secrets: inherit
+  ci_ms_gateway:
+    name: CI - Gateway
+    uses: ./.github/workflows/ci-ms-gateway.yml
+    secrets: inherit
 
   # ci_eureka:
   #   name: CI - Eureka
@@ -43,63 +44,63 @@ jobs:
     uses: ./.github/workflows/ci-frontend.yml
     secrets: inherit
 
-  # ci_ml:
-  #   name: CI - Machine Learning
-  #   uses: ./.github/workflows/ci-ml-python.yml
-  #   secrets: inherit
+  ci_ml:
+    name: CI - Machine Learning
+    uses: ./.github/workflows/ci-ml-python.yml
+    secrets: inherit
 
-  # ci_integration:
-  #   name: CI - Integration Tests
-  #   needs:
-  #     # - ci_ms_properties
-  #     # - ci_ms_users
-  #     - ci_ms_gateway
-  #     # - ci_eureka
-  #     - ci_keycloak
-  #     - ci_frontend
-  #     # - ci_ml
-  #   uses: ./.github/workflows/ci-integration.yml
-  #   secrets: inherit
+  ci_integration:
+    name: CI - Integration Tests
+    needs:
+      - ci_ms_properties
+      - ci_ms_users
+      - ci_ms_gateway
+      # - ci_eureka
+      # - ci_keycloak
+      - ci_frontend
+      - ci_ml
+    uses: ./.github/workflows/ci-integration.yml
+    secrets: inherit
 
-  # cd_ml:
-  #   name: CD - Machine Learning
-  #   needs:
-  #     - ci_integration
-  #     - ci_ml
-  #   uses: ./.github/workflows/cd-ml.yml
-  #   with:
-  #     image_tag: ${{ needs.ci_ml.outputs.tag }}
-  #   secrets: inherit
+  cd_ml:
+    name: CD - Machine Learning
+    needs:
+      - ci_integration
+      - ci_ml
+    uses: ./.github/workflows/cd-ml.yml
+    with:
+      image_tag: ${{ needs.ci_ml.outputs.tag }}
+    secrets: inherit
 
-  # cd_ms_properties:
-  #   name: CD - Properties
-  #   needs:
-  #     - ci_integration
-  #     - ci_ms_properties
-  #   uses: ./.github/workflows/cd-ms-properties.yml
-  #   with:
-  #     image_tag: ${{ needs.ci_ms_properties.outputs.tag }}
-  #   secrets: inherit
+  cd_ms_properties:
+    name: CD - Properties
+    needs:
+      - ci_integration
+      - ci_ms_properties
+    uses: ./.github/workflows/cd-ms-properties.yml
+    with:
+      image_tag: ${{ needs.ci_ms_properties.outputs.tag }}
+    secrets: inherit
 
-  # cd_ms_users:
-  #   name: CD - Users
-  #   needs:
-  #     - ci_integration
-  #     - ci_ms_users
-  #   uses: ./.github/workflows/cd-ms-users.yml
-  #   with:
-  #     image_tag: ${{ needs.ci_ms_users.outputs.tag }}
-  #   secrets: inherit
+  cd_ms_users:
+    name: CD - Users
+    needs:
+      - ci_integration
+      - ci_ms_users
+    uses: ./.github/workflows/cd-ms-users.yml
+    with:
+      image_tag: ${{ needs.ci_ms_users.outputs.tag }}
+    secrets: inherit
 
-  # cd_ms_gateway:
-  #   name: CD - Gateway
-  #   needs:
-  #     # - ci_integration
-  #     - ci_ms_gateway
-  #   uses: ./.github/workflows/cd-ms-gateway.yml
-  #   with:
-  #     image_tag: ${{ needs.ci_ms_gateway.outputs.tag }}
-  #   secrets: inherit
+  cd_ms_gateway:
+    name: CD - Gateway
+    needs:
+      # - ci_integration
+      - ci_ms_gateway
+    uses: ./.github/workflows/cd-ms-gateway.yml
+    with:
+      image_tag: ${{ needs.ci_ms_gateway.outputs.tag }}
+    secrets: inherit
 
   # cd_eureka:
   #   name: CD - Eureka
