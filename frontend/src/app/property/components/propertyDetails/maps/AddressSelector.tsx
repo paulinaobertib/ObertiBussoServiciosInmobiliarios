@@ -12,6 +12,8 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
+  Paper,
+  Popper,
   Stack,
   TextField,
   Typography,
@@ -106,6 +108,7 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
   const markerRef = useRef<any | null>(null);
   const mapListenerRef = useRef<any | null>(null);
   const autocompleteAbortRef = useRef<AbortController | null>(null);
+  const streetInputRef = useRef<HTMLDivElement | null>(null);
 
   const disabled = neighborhoodId <= 0;
   const showSuggestions = streetFocused && suggestions.length > 0;
@@ -407,8 +410,7 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
   };
 
   return (
-  <Card>
-    <Box>
+    <Card sx={{ p: 2 }}>
       <Box
         sx={{
           display: "grid",
@@ -420,6 +422,7 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
       >
         <Box sx={{ gridColumn: { xs: "span 12", md: "span 7" }, position: "relative" }}>
           <TextField
+            ref={streetInputRef}
             label="Calle"
             value={safeValue.street}
             onChange={(e) => handleStreetChange(e.target.value)}
@@ -439,18 +442,24 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
               ) : undefined,
             }}
           />
-          {showSuggestions && (
-            <Box
+          <Popper
+            open={showSuggestions}
+            anchorEl={streetInputRef.current}
+            placement="bottom-start"
+            style={{ zIndex: 1500 }}
+            modifiers={[
+              {
+                name: "offset",
+                options: {
+                  offset: [0, 4],
+                },
+              },
+            ]}
+          >
+            <Paper
+              elevation={3}
               sx={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 1,
-                zIndex: 5,
+                width: streetInputRef.current?.offsetWidth || "auto",
                 maxHeight: 220,
                 overflowY: "auto",
               }}
@@ -473,8 +482,8 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
                   </Stack>
                 </MenuItem>
               ))}
-            </Box>
-          )}
+            </Paper>
+          </Popper>
         </Box>
 
         <Box sx={{ gridColumn: { xs: "span 7", md: "span 3" } }}>
@@ -561,7 +570,6 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
           <Button onClick={handleCloseMap}>Cerrar</Button>
         </DialogActions>
       </Dialog>
-    </Box>
-  </Card>
+    </Card>
   );
 };
