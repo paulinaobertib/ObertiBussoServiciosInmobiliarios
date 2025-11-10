@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.springframework.mail.javamail.JavaMailSender;
@@ -31,13 +33,22 @@ public class EmailService implements IEmailService {
     private final TemplateEngine templateEngine;
 
     private String formatDateTime(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", Locale.forLanguageTag("es-AR"));
-        return date.format(formatter);
+        if (date == null) return "";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                "dd 'de' MMMM 'de' yyyy 'a las' HH:mm",
+                Locale.forLanguageTag("es-AR")
+        );
+
+        ZonedDateTime argentinaTime = date.atZone(ZoneId.of("America/Argentina/Buenos_Aires"));
+        return argentinaTime.format(formatter);
     }
 
     private String formatDate(LocalDate date) {
         if (date == null) return "";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es-AR"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                "dd 'de' MMMM 'de' yyyy",
+                Locale.forLanguageTag("es-AR")
+        );
         return date.format(formatter);
     }
 

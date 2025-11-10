@@ -24,6 +24,8 @@ import pi.ms_users.service.interf.INotificationService;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
@@ -47,12 +49,13 @@ public class NotificationService implements INotificationService {
     private EmailPropertyDTO getEmailPropertyDTO(NotificationDTO notificationDTO, User user, PropertyDTO propertyDTO) {
         EmailPropertyDTO dto = new EmailPropertyDTO();
         dto.setTo(user.getEmail());
-        dto.setDate(notificationDTO.getDate());
+        ZonedDateTime argentinaDateTime = notificationDTO.getDate()
+                .atZone(ZoneId.of("UTC"))
+                .withZoneSameInstant(ZoneId.of("America/Argentina/Buenos_Aires"));
+        dto.setDate(argentinaDateTime.toLocalDateTime());
         dto.setPropertyImageUrl(propertyDTO.getMainImage());
         dto.setPropertyTitle(propertyDTO.getTitle());
         dto.setPropertyLocation(propertyDTO.getNeighborhood());
-        NumberFormat price = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"));
-        dto.setPropertyPrice(price.format(propertyDTO.getPrice()));
         dto.setPropertyPrice(propertyDTO.getPrice().toString());
         dto.setPropertyDescription(propertyDTO.getDescription());
         dto.setPropertyId(propertyDTO.getId());
@@ -120,7 +123,7 @@ public class NotificationService implements INotificationService {
 
         EmailPropertyDTO dto = new EmailPropertyDTO();
         dto.setTo(user.getEmail());
-        dto.setDate(LocalDateTime.now());
+        dto.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         dto.setPropertyTitle(propertyDTO.getTitle());
         dto.setPropertyLocation(propertyDTO.getNeighborhood());
         NumberFormat price = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"));

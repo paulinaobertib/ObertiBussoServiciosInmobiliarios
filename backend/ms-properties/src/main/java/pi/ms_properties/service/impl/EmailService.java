@@ -17,6 +17,8 @@ import pi.ms_properties.service.interf.IChatMessageService;
 import pi.ms_properties.service.interf.IEmailService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -34,8 +36,14 @@ public class EmailService implements IEmailService {
     private final IChatMessageService chatMessageService;
 
     private String formatDate(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy 'a las' HH:mm", Locale.forLanguageTag("es-ES"));
-        return date.format(formatter);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                "dd 'de' MMMM 'de' yyyy 'a las' HH:mm",
+                Locale.of("es", "ES")
+        );
+
+        ZonedDateTime argentinaTime = date.atZone(ZoneId.of("America/Argentina/Buenos_Aires"));
+
+        return argentinaTime.format(formatter);
     }
 
     private EmailChatDTO buildEmailChatDTO(ChatSession chatSession, boolean derived, String agentName) {
