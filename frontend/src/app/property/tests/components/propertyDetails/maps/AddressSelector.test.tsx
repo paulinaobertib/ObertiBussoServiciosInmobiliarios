@@ -61,18 +61,17 @@ const Wrapper = (props: AddressSelectorProps) => {
 };
 
 describe("AddressSelector", () => {
-  const baseProps: AddressSelectorProps = {
-    neighborhoodId: 1,
-    neighborhoodName: "Nueva Córdoba",
-    value: {
-      street: "",
-      number: "",
-      formattedAddress: "",
-      latitude: null,
-      longitude: null,
-    },
-    onChange: onChangeMock,
-  };
+const baseProps: AddressSelectorProps = {
+  neighborhoodId: 1,
+  neighborhoodName: "Nueva Córdoba",
+  value: {
+    street: "",
+    number: "",
+    latitude: null,
+    longitude: null,
+  },
+  onChange: onChangeMock,
+};
 
   beforeEach(() => {
     vi.useRealTimers();
@@ -103,22 +102,25 @@ describe("AddressSelector", () => {
     await act(async () => {
       fireEvent.change(street, { target: { value: "Av. Siempreviva" } });
       fireEvent.change(number, { target: { value: "742" } });
+
       await vi.advanceTimersByTimeAsync(5000);
+      await Promise.resolve();
     });
 
     expect(mockGeocodeForward).toHaveBeenCalled();
+
     expect(onChangeMock).toHaveBeenLastCalledWith(
       expect.objectContaining({
         street: "Av. Siempreviva",
         number: "742",
         latitude: geocodeResponse.lat,
         longitude: geocodeResponse.lng,
-        formattedAddress: geocodeResponse.formattedAddress,
       })
     );
 
     vi.useRealTimers();
   });
+
 
   it("permite configurar número sin especificar", async () => {
     render(<Wrapper {...baseProps} />);

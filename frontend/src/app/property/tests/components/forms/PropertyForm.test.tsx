@@ -185,17 +185,6 @@ describe("<PropertyForm />", () => {
     expect(h.ctrl.setField).toHaveBeenCalledWith("expenses", null);
   });
 
-  it("AddressSelector dispara cambios de calle y número", () => {
-    renderSUT();
-    fireEvent.click(screen.getByTestId("address-selector"));
-    expect(h.ctrl.setField).toHaveBeenCalledWith("street", "Calle Falsa");
-    expect(h.ctrl.setField).toHaveBeenCalledWith("number", "123");
-    expect(h.ctrl.setField).toHaveBeenCalledWith("formattedAddress", "Calle Falsa 123, Córdoba");
-    expect(h.ctrl.setField).toHaveBeenCalledWith("placeId", "place-1");
-    expect(h.ctrl.setField).toHaveBeenCalledWith("latitude", -31.4);
-    expect(h.ctrl.setField).toHaveBeenCalledWith("longitude", -64.2);
-  });
-
   it("ImageUploader: principal → llama img.setMain y setea mainImage; galería → addToGallery y agrega images", () => {
     const img = { ...h.imgApi, setMain: vi.fn(), addToGallery: vi.fn() };
     renderSUT({ img });

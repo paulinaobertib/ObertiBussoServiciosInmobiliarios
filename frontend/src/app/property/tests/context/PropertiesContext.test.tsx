@@ -102,8 +102,10 @@ describe("PropertyCrudContext", () => {
         neighborhood: 2,
         type: 3,
         amenities: [1],
+        address: { street: "", number: "", latitude: null, longitude: null },
       });
     });
+
     act(() => {
       result.current.resetSelected();
     });
@@ -112,6 +114,7 @@ describe("PropertyCrudContext", () => {
       neighborhood: null,
       type: null,
       amenities: [],
+      address: { street: "", number: "", latitude: null, longitude: null },
     });
   });
 

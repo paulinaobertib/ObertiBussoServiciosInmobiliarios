@@ -5,6 +5,19 @@ import type { Property } from "../../../types/property";
 import { PropertyCrudProvider } from "../../../context/PropertiesContext";
 import PropertyInfoCompare from "../../../components/propertyDetails/PropertyInfoCompare";
 
+vi.mock("../../../utils/formatPrice", () => ({
+  formatPrice: (value: number, currency: string) =>
+    currency === "ARS" ? `$${value.toLocaleString("es-AR")}` : `$${value.toLocaleString("en-US")}`,
+}));
+
+vi.mock("../../../utils/propertyLocation", () => ({
+  formatPropertyAddress: (property: any) => {
+    if (!property.street && !property.neighborhood) return "";
+    if (!property.neighborhood) return `${property.street}, ${property.number}, Córdoba, Argentina`;
+    return `${property.street}, ${property.number}, ${property.neighborhood.name}, ${property.neighborhood.city}, Córdoba, Argentina`;
+  },
+}));
+
 describe("PropertyInfoCompare", () => {
   const mockProperty: Property = {
     id: 1,

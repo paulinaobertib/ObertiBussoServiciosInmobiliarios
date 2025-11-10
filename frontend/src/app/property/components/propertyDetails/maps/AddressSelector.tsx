@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Card,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -406,6 +407,7 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
   };
 
   return (
+  <Card>
     <Box>
       <Box
         sx={{
@@ -560,5 +562,6 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
         </DialogActions>
       </Dialog>
     </Box>
+  </Card>
   );
 };

@@ -1,41 +1,59 @@
-import { render, screen } from "@testing-library/react";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
-
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MapSection } from "../../../../components/propertyDetails/maps/MapSection";
 
+// ✅ Mock dentro del callback (no usa variables externas)
+vi.mock("../../../../utils/googleMapsLoader", () => {
+  const mockMap = vi.fn(() => ({
+    setCenter: vi.fn(),
+    setZoom: vi.fn(),
+  }));
+  const mockCircle = vi.fn(() => ({
+    setMap: vi.fn(),
+  }));
+
+  return {
+    loadGoogleMapsSdk: vi.fn().mockResolvedValue({
+      maps: {
+        Map: mockMap,
+        Circle: mockCircle,
+      },
+    }),
+  };
+});
+
 describe("MapSection", () => {
-  const originalKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
   beforeEach(() => {
-    import.meta.env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
+    vi.clearAllMocks();
   });
 
-  afterAll(() => {
-    import.meta.env.VITE_GOOGLE_MAPS_API_KEY = originalKey;
-  });
-
-  it("renderiza iframe cuando hay placeId", () => {
-    render(<MapSection placeId="abc123" />);
-    const iframe = screen.getByTitle(/Mapa de la propiedad/i) as HTMLIFrameElement;
-    expect(iframe).toBeInTheDocument();
-    expect(iframe.src).toContain("place_id:abc123");
-    expect(iframe.src).toContain("test-key");
-  });
-
-  it("usa coordenadas cuando no hay placeId", () => {
-    render(<MapSection latitude={-31.4} longitude={-64.2} />);
-    const iframe = screen.getByTitle(/Mapa de la propiedad/i) as HTMLIFrameElement;
-    expect(iframe.src).toContain("view?key=test-key&center=-31.4,-64.2");
-  });
-
-  it("muestra mensaje si no hay clave", () => {
-    import.meta.env.VITE_GOOGLE_MAPS_API_KEY = "";
-    render(<MapSection formattedAddress="Córdoba" />);
-    expect(screen.getByText(/Falta configurar/i)).toBeInTheDocument();
-  });
-
-  it("muestra mensaje si no hay datos de ubicación", () => {
+  it("Muestra mensaje si no hay coordenadas", () => {
     render(<MapSection />);
+    expect(screen.getByText(/Ubicación no disponible/i)).toBeInTheDocument();
+  });
+
+  it("Muestra overlay de carga y luego lo quita cuando se resuelve el loader", async () => {
+    render(<MapSection latitude={-31.4} longitude={-64.2} />);
+    expect(screen.getByText(/Cargando mapa/i)).toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(screen.queryByText(/Cargando mapa/i)).not.toBeInTheDocument()
+    );
+  });
+
+  it("Muestra mensaje de error si el loader falla", async () => {
+    const { loadGoogleMapsSdk } = await import("../../../../utils/googleMapsLoader");
+    vi.mocked(loadGoogleMapsSdk).mockRejectedValueOnce(new Error("SDK error"));
+
+    render(<MapSection latitude={-31.4} longitude={-64.2} />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/Ubicación no disponible/i)).toBeInTheDocument()
+    );
+  });
+
+  it("Vuelve a mostrar 'Ubicación no disponible' si faltan lat/lng incluso con placeId", async () => {
+    render(<MapSection placeId="abc123" />);
     expect(screen.getByText(/Ubicación no disponible/i)).toBeInTheDocument();
   });
 });

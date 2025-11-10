@@ -5,7 +5,23 @@ import { PropertyDetails } from "../../../components/propertyDetails/PropertyDet
 import type { Property } from "../../../types/property";
 import { NeighborhoodType } from "../../../types/neighborhood";
 
-// Mock de subcomponentes
+vi.mock("../../../utils/propertyLocation", () => ({
+  getMapLocation: (prop: any) => {
+    if (!prop.neighborhood) {
+      return {
+        formattedAddress: `${prop.street}, ${prop.number}, Córdoba, Argentina`,
+        latitude: -31.4,
+        longitude: -64.2,
+      };
+    }
+    return {
+      formattedAddress: `${prop.street}, ${prop.number}, ${prop.neighborhood.name}, ${prop.neighborhood.city}, Córdoba, Argentina`,
+      latitude: -31.4,
+      longitude: -64.2,
+    };
+  },
+}));
+
 vi.mock("../../../components/propertyDetails/PropertyPanel", () => ({
   PropertyPanel: ({ property }: any) => <div data-testid="property-panel">{property.title}</div>,
 }));

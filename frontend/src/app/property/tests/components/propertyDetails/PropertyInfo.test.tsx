@@ -3,9 +3,22 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import type { Property } from "../../../types/property";
 
+vi.mock("../../../utils/formatPrice", () => ({
+  formatPrice: (value: number, currency: string) =>
+    currency === "ARS" ? `$${value.toLocaleString("es-AR")}` : `$${value.toLocaleString("en-US")}`,
+}));
+
+vi.mock("../../../utils/propertyLocation", () => ({
+  formatPropertyAddress: (property: any) => {
+    if (!property.street && !property.neighborhood) return "";
+    if (!property.neighborhood)
+      return `${property.street}, ${property.number}, Córdoba, Argentina`;
+    return `${property.street}, ${property.number}, ${property.neighborhood.name}, ${property.neighborhood.city}, Córdoba, Argentina`;
+  },
+}));
+
 const mockPutPropertyOutstanding = vi.fn(() => Promise.resolve());
 
-// mockeamos antes del import
 vi.mock("../../../../user/context/AuthContext", () => ({
   useAuthContext: vi.fn(() => ({ isAdmin: true })),
 }));
