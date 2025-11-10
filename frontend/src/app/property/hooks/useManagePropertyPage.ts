@@ -110,6 +110,12 @@ export const useManagePropertyPage = () => {
           type: prop.type?.id ?? null,
           neighborhood: prop.neighborhood?.id ?? null,
           amenities: prop.amenities?.map((a: { id: number }) => a.id) ?? [],
+          address: {
+            street: prop.street || "",
+            number: prop.number || "",
+            latitude: prop.latitude ?? null,
+            longitude: prop.longitude ?? null,
+          },
         });
 
         // 3) Imágenes: guardamos DTOs para mapear y borrado

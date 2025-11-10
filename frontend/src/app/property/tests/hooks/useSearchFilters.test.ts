@@ -41,6 +41,12 @@ let selectedState = {
   neighborhood: null as any,
   type: null as any,
   amenities: [] as number[],
+  address: {
+    street: "",
+    number: "",
+    latitude: null,
+    longitude: null,
+  },
 };
 
 // espías de funciones del contexto
@@ -103,7 +109,18 @@ const sampleProps: Property[] = [
 beforeEach(() => {
   vi.clearAllMocks();
   currentPropsList = sampleProps;
-  selectedState = { owner: null, neighborhood: null, type: null, amenities: [] };
+  selectedState = {
+    owner: null,
+    neighborhood: null,
+    type: null,
+    amenities: [],
+    address: {
+      street: "",
+      number: "",
+      latitude: null,
+      longitude: null,
+    },
+  };
   isAdmin = true; // default
   setPropertiesLoadingMock.mockImplementation(() => {});
 });
@@ -245,6 +262,12 @@ describe("useSearchFilters", () => {
       neighborhood: null,
       type: null,
       amenities: [],
+      address: {
+        street: "",
+        number: "",
+        latitude: null,
+        longitude: null,
+      },
     });
     expect(getByFiltersMock).toHaveBeenCalled();
   });

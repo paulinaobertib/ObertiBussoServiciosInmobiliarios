@@ -208,7 +208,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void) => {
       coveredRange: [0, dynLimits.surface.max] as [number, number],
     };
     setParams(cleared);
-    setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
+    setSelected({ owner: null, neighborhood: null, type: null, amenities: [], address: { street: "", number: "", latitude: null, longitude: null } });
     await apply(cleared as any);
   }
 

@@ -170,6 +170,12 @@ describe("useManagePropertyPage", () => {
       type: 2,
       neighborhood: 3,
       amenities: [4],
+      address: {
+        street: "",
+        number: "",
+        latitude: null,
+        longitude: null,
+      },
     });
     expect(mockSetMain).toHaveBeenCalledWith("main.jpg");
     expect(mockAddToGallery).toHaveBeenCalledWith(["img1.jpg"]);
