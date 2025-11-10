@@ -1,157 +1,133 @@
-/// <reference types="vitest" />
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi, describe, it, beforeEach, expect, Mock } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
+
 import { AddressSelector, AddressSelectorProps } from "../../../../components/propertyDetails/maps/AddressSelector";
-import * as neighborhoodService from "../../../../services/neighborhood.service";
+
+const onChangeMock = vi.fn();
 
 vi.mock("../../../../services/neighborhood.service", () => ({
-  getNeighborhoodById: vi.fn(),
+  getNeighborhoodById: vi.fn().mockResolvedValue({ latitude: -31.4, longitude: -64.2 }),
 }));
 
-global.fetch = vi.fn();
+const geocodeResponse = {
+  formattedAddress: "Av. Siempreviva 742, Córdoba",
+  placeId: "place-123",
+  lat: -31.401,
+  lng: -64.228,
+  components: {
+    route: "Av. Siempreviva",
+    street_number: "742",
+    locality: "Córdoba",
+    administrative_area_level_1: "Córdoba",
+    postal_code: "5000",
+  },
+  types: ["street_address"],
+};
 
-vi.mock("react-leaflet", () => ({
-  MapContainer: ({ children }: any) => <div>{children}</div>,
-  TileLayer: () => <div>TileLayer</div>,
-  Circle: () => <div>Circle</div>,
-  GeoJSON: () => <div>GeoJSON</div>,
-  useMapEvents: () => ({}),
+const mockFetchSuggestions = vi.fn().mockResolvedValue([]);
+const mockGeocodeForward = vi.fn().mockResolvedValue(geocodeResponse);
+
+vi.mock("../../../../services/googleMaps.service", () => ({
+  fetchPlaceSuggestions: (...args: any[]) => mockFetchSuggestions(...args),
+  geocodeForward: (...args: any[]) => mockGeocodeForward(...args),
+  reverseGeocode: vi.fn(),
+  parseAddressComponents: (map: Record<string, string>) => ({
+    route: map.route,
+    streetNumber: map.street_number,
+    locality: map.locality,
+    neighborhood: map.neighborhood,
+    administrativeArea: map.administrative_area_level_1,
+    postalCode: map.postal_code,
+  }),
 }));
+
+vi.mock("../../../../utils/googleMapsLoader", () => ({
+  loadGoogleMapsSdk: vi.fn().mockRejectedValue(new Error("not needed in tests")),
+}));
+
+const Wrapper = (props: AddressSelectorProps) => {
+  const [value, setValue] = useState(props.value);
+  return (
+    <AddressSelector
+      {...props}
+      value={value}
+      onChange={(next) => {
+        setValue(next);
+        props.onChange(next);
+      }}
+    />
+  );
+};
 
 describe("AddressSelector", () => {
-  const defaultProps: AddressSelectorProps = {
+  const baseProps: AddressSelectorProps = {
     neighborhoodId: 1,
-    neighborhoodName: "Centro",
-    value: { street: "", number: "" },
-    onChange: vi.fn(),
-  };
-  const fetchMock = fetch as unknown as Mock;
-
-  const polygon = {
-    type: "Polygon",
-    coordinates: [
-      [
-        [0, 0],
-        [0, 1],
-        [1, 1],
-        [1, 0],
-        [0, 0],
-      ],
-    ],
-  };
-
-  const createDeferred = <T,>() => {
-    let resolve!: (value: T | PromiseLike<T>) => void;
-    let reject!: (reason?: unknown) => void;
-    const promise = new Promise<T>((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
-    return { promise, resolve, reject };
+    neighborhoodName: "Nueva Córdoba",
+    value: {
+      street: "",
+      number: "",
+      formattedAddress: "",
+      latitude: null,
+      longitude: null,
+    },
+    onChange: onChangeMock,
   };
 
   beforeEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
+  });
 
-    fetchMock.mockReset();
-    // Mock de getNeighborhoodById
-    (neighborhoodService.getNeighborhoodById as any).mockResolvedValue({
-      latitude: 0.5,
-      longitude: 0.5,
+  it("renderiza inputs y propaga cambios manuales", async () => {
+    render(<Wrapper {...baseProps} />);
+
+    const street = await screen.findByLabelText(/Calle/i);
+    const number = await screen.findByLabelText(/Número/i);
+
+    fireEvent.change(street, { target: { value: "Obispo Salguero" } });
+    fireEvent.change(number, { target: { value: "1200" } });
+
+    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ street: "Obispo Salguero" }));
+    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ number: "1200" }));
+  });
+
+  it("programa geocode y actualiza coordenadas luego del debounce", async () => {
+    render(<Wrapper {...baseProps} />);
+
+    const street = await screen.findByLabelText(/Calle/i);
+    const number = await screen.findByLabelText(/Número/i);
+
+    vi.useFakeTimers();
+
+    await act(async () => {
+      fireEvent.change(street, { target: { value: "Av. Siempreviva" } });
+      fireEvent.change(number, { target: { value: "742" } });
+      await vi.advanceTimersByTimeAsync(5000);
     });
 
-    // Mock de fetch para Nominatim
-    fetchMock.mockResolvedValue({
-      json: async () => [{ geojson: polygon }],
-    });
-  });
-
-  it("renderiza los campos de calle y número", async () => {
-    render(<AddressSelector {...defaultProps} />);
-    expect(await screen.findByLabelText(/Calle/i)).toBeInTheDocument();
-    expect(await screen.findByLabelText(/Número/i)).toBeInTheDocument();
-  });
-
-  it("permite escribir en los campos", async () => {
-    render(<AddressSelector {...defaultProps} />);
-    const calle = await screen.findByLabelText(/Calle/i);
-
-    fireEvent.change(calle, { target: { value: "Belgrano" } });
-    expect(defaultProps.onChange).toHaveBeenCalledWith({ street: "Belgrano", number: "" });
-
-    const numero = screen.getByLabelText(/Número/i);
-    fireEvent.change(numero, { target: { value: "123" } });
-    expect(defaultProps.onChange).toHaveBeenCalledWith({ street: "", number: "123" });
-  });
-
-  it("muestra un loader mientras obtiene datos iniciales", async () => {
-    const neighborhoodDeferred = createDeferred<any>();
-    const fetchDeferred = createDeferred<any>();
-
-    (neighborhoodService.getNeighborhoodById as any).mockReturnValueOnce(neighborhoodDeferred.promise);
-    fetchMock.mockReturnValueOnce(fetchDeferred.promise);
-
-    render(<AddressSelector {...defaultProps} />);
-
-    expect(await screen.findByRole("progressbar")).toBeInTheDocument();
-
-    neighborhoodDeferred.resolve({ latitude: 0.5, longitude: 0.5 });
-    fetchDeferred.resolve({ json: async () => [{ geojson: polygon }] });
-
-    await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
-    expect(await screen.findByLabelText(/Calle/i)).toBeInTheDocument();
-  });
-
-  it("abre el mapa, deshabilita la calle y valida dentro del barrio", async () => {
-    fetchMock.mockResolvedValueOnce({ json: async () => [{ geojson: polygon }] });
-    fetchMock.mockResolvedValueOnce({
-      json: async () => [{ lat: "0.5", lon: "0.5" }],
-    });
-
-    const localOnChange = vi.fn();
-
-    render(
-      <AddressSelector {...defaultProps} value={{ street: "Belgrano", number: "123" }} onChange={localOnChange} />
+    expect(mockGeocodeForward).toHaveBeenCalled();
+    expect(onChangeMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        street: "Av. Siempreviva",
+        number: "742",
+        latitude: geocodeResponse.lat,
+        longitude: geocodeResponse.lng,
+        formattedAddress: geocodeResponse.formattedAddress,
+      })
     );
 
-    const calle = await screen.findByLabelText(/Calle/i);
-    expect(calle).not.toBeDisabled();
-
-    const buttons = screen.getAllByRole("button");
-    const mapButton = buttons[buttons.length - 1];
-    fireEvent.click(mapButton);
-
-    const calleFields = screen.getAllByLabelText(/Calle/i);
-    expect(calleFields[0]).toBeDisabled();
-
-    const successMessages = await screen.findAllByText("Dirección válida dentro del barrio.");
-    expect(successMessages.length).toBeGreaterThan(0);
-
-    expect(fetchMock).toHaveBeenLastCalledWith(expect.stringContaining("Belgrano+123%2C+Centro"));
+    vi.useRealTimers();
   });
 
-  it("muestra mensaje de error cuando la dirección queda fuera del barrio", async () => {
-    fetchMock.mockResolvedValueOnce({ json: async () => [{ geojson: polygon }] });
-    fetchMock.mockResolvedValueOnce({ json: async () => [] });
+  it("permite configurar número sin especificar", async () => {
+    render(<Wrapper {...baseProps} />);
 
-    render(<AddressSelector {...defaultProps} value={{ street: "Falsa", number: "123" }} />);
+    const number = await screen.findByLabelText(/Número/i);
+    const clearButton = number.closest("div")?.querySelector("button");
+    expect(clearButton).toBeTruthy();
+    fireEvent.click(clearButton!);
 
-    await waitFor(() => expect(screen.queryByRole("progressbar")).not.toBeInTheDocument());
-    const buttons = screen.getAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 1]);
-
-    const errorMessages = await screen.findAllByText("La dirección no está dentro del barrio.");
-    expect(errorMessages.length).toBeGreaterThan(0);
-  });
-
-  it("permite setear número S/N desde el adornment", async () => {
-    render(<AddressSelector {...defaultProps} value={{ street: "", number: "" }} />);
-
-    const numero = await screen.findByLabelText(/Número/i);
-    const container = numero.closest("div");
-    const clearButton = container?.querySelector("button");
-    fireEvent.click(clearButton as HTMLButtonElement);
-
-    expect(defaultProps.onChange).toHaveBeenLastCalledWith({ street: "", number: "S/N" });
+    expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ number: "S/N" }));
   });
 });

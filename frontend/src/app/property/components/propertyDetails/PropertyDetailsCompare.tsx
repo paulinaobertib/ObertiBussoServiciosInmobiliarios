@@ -4,6 +4,7 @@ import { PropertyPanel } from "./PropertyPanel";
 import PropertyInfoCompare from "./PropertyInfoCompare";
 import { MapSection } from "./maps/MapSection";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { getMapLocation } from "../../utils/propertyLocation";
 
 interface Props {
   comparisonItems: Property[];
@@ -34,14 +35,12 @@ export const PropertyDetailsCompare = ({ comparisonItems }: Props) => {
         }}
       >
         {comparisonItems.map((prop) => {
-          const address = prop.neighborhood
-            ? `${prop.street}, ${prop.neighborhood.name}, ${prop.neighborhood.city}`
-            : `${prop.street}, Buenos Aires, Argentina`;
+          const location = getMapLocation(prop);
 
           return (
             <Box key={prop.id} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <PropertyPanel property={prop} InfoComponent={PropertyInfoCompare} vertical />
-              <MapSection address={address} />
+              <MapSection {...location} />
             </Box>
           );
         })}

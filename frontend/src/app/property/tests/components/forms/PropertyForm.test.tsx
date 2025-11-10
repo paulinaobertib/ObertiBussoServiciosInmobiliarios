@@ -91,7 +91,20 @@ vi.mock("../../../../shared/components/images/ImageUploader", () => ({
 // AddressSelector
 vi.mock("../../../components/propertyDetails/maps/AddressSelector", () => ({
   AddressSelector: (props: any) => (
-    <button data-testid="address-selector" onClick={() => props.onChange?.({ street: "Calle Falsa", number: "123" })}>
+    <button
+      data-testid="address-selector"
+      onClick={() =>
+        props.onChange?.({
+          ...props.value,
+          street: "Calle Falsa",
+          number: "123",
+          latitude: -31.4,
+          longitude: -64.2,
+          formattedAddress: "Calle Falsa 123, Córdoba",
+          placeId: "place-1",
+        })
+      }
+    >
       AddressSelector
     </button>
   ),
@@ -177,6 +190,10 @@ describe("<PropertyForm />", () => {
     fireEvent.click(screen.getByTestId("address-selector"));
     expect(h.ctrl.setField).toHaveBeenCalledWith("street", "Calle Falsa");
     expect(h.ctrl.setField).toHaveBeenCalledWith("number", "123");
+    expect(h.ctrl.setField).toHaveBeenCalledWith("formattedAddress", "Calle Falsa 123, Córdoba");
+    expect(h.ctrl.setField).toHaveBeenCalledWith("placeId", "place-1");
+    expect(h.ctrl.setField).toHaveBeenCalledWith("latitude", -31.4);
+    expect(h.ctrl.setField).toHaveBeenCalledWith("longitude", -64.2);
   });
 
   it("ImageUploader: principal → llama img.setMain y setea mainImage; galería → addToGallery y agrega images", () => {

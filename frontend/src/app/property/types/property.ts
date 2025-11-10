@@ -8,6 +8,8 @@ export interface Property {
   title: string;
   street: string;
   number: string;
+  latitude?: number | null;
+  longitude?: number | null;
   description: string;
   status: string;
   operation: string;
@@ -36,6 +38,8 @@ export interface PropertyCreate {
   title: string;
   street: string;
   number: string;
+  latitude?: number | null;
+  longitude?: number | null;
   description: string;
   status: string;
   operation: string;
@@ -64,6 +68,8 @@ export interface PropertyUpdate {
   title: string;
   street: string;
   number: string;
+  latitude?: number | null;
+  longitude?: number | null;
   description: string;
   status: string;
   operation: string;

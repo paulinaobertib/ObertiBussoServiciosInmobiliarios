@@ -13,7 +13,7 @@ vi.mock("../../../components/propertyDetails/PropertyInfoCompare", () => ({
   default: () => <div data-testid="property-info-compare" />,
 }));
 vi.mock("../../../components/propertyDetails/maps/MapSection", () => ({
-  MapSection: ({ address }: any) => <div data-testid="map-section">{address}</div>,
+  MapSection: ({ formattedAddress }: any) => <div data-testid="map-section">{formattedAddress}</div>,
 }));
 
 describe("PropertyDetailsCompare", () => {
@@ -90,7 +90,9 @@ describe("PropertyDetailsCompare", () => {
       expect(panel).toHaveTextContent(items[i].title);
     });
     maps.forEach((map, i) => {
-      expect(map).toHaveTextContent(`${items[i].street}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}`);
+      expect(map).toHaveTextContent(
+        `${items[i].street}, ${items[i].number}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}, Córdoba, Argentina`
+      );
     });
   });
 
@@ -108,7 +110,9 @@ describe("PropertyDetailsCompare", () => {
       expect(panel).toHaveTextContent(items[i].title);
     });
     maps.forEach((map, i) => {
-      expect(map).toHaveTextContent(`${items[i].street}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}`);
+      expect(map).toHaveTextContent(
+        `${items[i].street}, ${items[i].number}, ${items[i].neighborhood.name}, ${items[i].neighborhood.city}, Córdoba, Argentina`
+      );
     });
   });
 });

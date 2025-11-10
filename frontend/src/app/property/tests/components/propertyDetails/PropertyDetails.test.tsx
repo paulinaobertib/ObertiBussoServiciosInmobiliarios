@@ -13,7 +13,7 @@ vi.mock("../../../components/propertyDetails/PropertyInfo", () => ({
   PropertyInfo: () => <div data-testid="property-info" />,
 }));
 vi.mock("../../../components/propertyDetails/maps/MapSection", () => ({
-  MapSection: ({ address }: any) => <div data-testid="map-section">{address}</div>,
+  MapSection: ({ formattedAddress }: any) => <div data-testid="map-section">{formattedAddress}</div>,
 }));
 
 describe("PropertyDetails", () => {
@@ -69,7 +69,7 @@ describe("PropertyDetails", () => {
 
     expect(screen.getByTestId("property-panel")).toHaveTextContent(mockProperty.title);
     expect(screen.getByTestId("map-section")).toHaveTextContent(
-      `${mockProperty.street}, ${mockProperty.neighborhood.name}, ${mockProperty.neighborhood.city}`
+      `${mockProperty.street}, ${mockProperty.number}, ${mockProperty.neighborhood.name}, ${mockProperty.neighborhood.city}, Córdoba, Argentina`
     );
   });
 
@@ -80,6 +80,6 @@ describe("PropertyDetails", () => {
     } as unknown as Property;
 
     render(<PropertyDetails property={propertyNoNeighborhood} />);
-    expect(screen.getByTestId("map-section")).toHaveTextContent(`${mockProperty.street}, Buenos Aires, Argentina`);
+    expect(screen.getByTestId("map-section")).toHaveTextContent(`${mockProperty.street}, ${mockProperty.number}, Córdoba, Argentina`);
   });
 });

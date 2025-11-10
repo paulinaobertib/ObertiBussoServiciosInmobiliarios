@@ -15,6 +15,7 @@ import { ModalItem, Info } from "../categories/CategoryModal";
 import { StatusForm } from "../forms/StatusForm";
 // Importa tu servicio de actualización si lo tienes
 import { putPropertyOutstanding } from "../../services/property.service";
+import { formatPropertyAddress } from "../../utils/propertyLocation";
 
 interface Props {
   property: Property;
@@ -68,9 +69,7 @@ export const PropertyInfo = ({ property }: Props) => {
   const rawAmenities: Amenity[] = property.amenities ?? [];
   const amenities = rawAmenities.map(labelOfAmenity).filter(Boolean);
 
-  const address = property.neighborhood
-    ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
-    : property.street ?? "";
+  const address = formatPropertyAddress(property);
 
   return (
     <Stack spacing={2}>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 
 import { usePropertiesContext } from "../context/PropertiesContext";
 
@@ -58,6 +58,8 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
 
     street: raw?.street ?? "",
     number: raw?.number ?? "",
+    latitude: raw?.latitude ?? null,
+    longitude: raw?.longitude ?? null,
 
     /* ---------- relaciones ---------- */
     owner: raw?.owner ?? emptyOwner,
@@ -85,6 +87,9 @@ export const usePropertyForm = (
   /* ---------- estado base ---------- */
   const [form, setForm] = useState<Property>(makeSafeProperty(initialData));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  
+  // Ref para rastrear si es la primera carga (para no limpiar campos al cargar una propiedad existente)
+  const isInitialMount = useRef(true);
 
   /* evita asignar undefined/null en claves críticas */
   const setField = <K extends keyof Property>(k: K, v: Property[K]) => {
@@ -159,8 +164,26 @@ export const usePropertyForm = (
 
   useEffect(() => {
     const n = neighborhoodsList.find((n) => n.id === selected.neighborhood);
-    if (n && form.neighborhood.id !== n.id) setField("neighborhood", n);
+    if (n && form.neighborhood.id !== n.id) {
+      setField("neighborhood", n);
+    }
   }, [selected.neighborhood, neighborhoodsList]);
+
+  // Sincronizar dirección desde el contexto - solo si realmente cambió
+  useEffect(() => {
+    const addressChanged =
+      selected.address.street !== form.street ||
+      selected.address.number !== form.number ||
+      selected.address.latitude !== form.latitude ||
+      selected.address.longitude !== form.longitude;
+
+    if (addressChanged) {
+      setField("street", selected.address.street);
+      setField("number", selected.address.number);
+      setField("latitude", selected.address.latitude);
+      setField("longitude", selected.address.longitude);
+    }
+  }, [selected.address, form.street, form.number, form.latitude, form.longitude]);
 
   useEffect(() => {
     const t = typesList.find((t) => t.id === selected.type);
@@ -183,8 +206,15 @@ export const usePropertyForm = (
   const visibleRoomFields = [showRooms, showBedrooms, showBathrooms].filter(Boolean).length;
   const colSize = visibleRoomFields === 1 ? 12 : visibleRoomFields === 2 ? 6 : 4;
 
-  /* limpiar campos ocultos */
+  /* limpiar campos ocultos - SOLO cuando cambia el tipo, no en carga inicial */
   useEffect(() => {
+    // En el primer render, marcar como ya montado y no hacer nada
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    // Solo limpiar si el campo no debería estar visible
     if (!showRooms && form.rooms !== 0) setField("rooms", 0 as any);
     if (!showBedrooms && form.bedrooms !== 0) setField("bedrooms", 0 as any);
     if (!showBathrooms && form.bathrooms !== 0) setField("bathrooms", 0 as any);
@@ -195,10 +225,7 @@ export const usePropertyForm = (
     showBedrooms,
     showBathrooms,
     showCoveredArea,
-    form.rooms,
-    form.bedrooms,
-    form.bathrooms,
-    form.coveredArea,
+    // NO incluir form.rooms, form.bedrooms, etc. para evitar loops
   ]);
 
   /* reset credit/financing si operación → ALQUILER */
@@ -231,10 +258,13 @@ export const usePropertyForm = (
     // validación base (siempre visibles)
     const expensesValid = form.expenses == null || form.expenses >= 0;
 
+    const hasCoordinates = typeof f.latitude === "number" && !isNaN(f.latitude) && typeof f.longitude === "number" && !isNaN(f.longitude);
+
+    // El número NO es obligatorio (se pondrá S/N automáticamente al guardar)
     const baseValid =
       !!f.title &&
       !!f.street &&
-      !!f.number &&
+      hasCoordinates &&
       f.area > 0 &&
       f.price > 0 &&
       !!f.description &&
@@ -267,7 +297,8 @@ export const usePropertyForm = (
     // Validaciones siempre visibles
     if (!form.title) e.title = "Campo obligatorio";
     if (!form.street) e.street = "Campo obligatorio";
-    if (!form.number) e.number = "Campo obligatorio";
+    // El número NO es obligatorio, se pondrá "S/N" automáticamente si está vacío
+    if (form.latitude == null || form.longitude == null) e.location = "Validá la dirección para obtener coordenadas";
     if (form.area <= 0) e.area = "Debe ser > 0";
     if (form.price <= 0) e.price = "Debe ser > 0";
     if (!form.description) e.description = "Campo obligatorio";
@@ -308,6 +339,7 @@ export const usePropertyForm = (
     const { owner, neighborhood, type, amenities, ...rest } = form;
     return {
       ...rest,
+      number: form.number.trim() || "S/N", // Auto-populate "S/N" if empty
       ownerId: owner.id,
       neighborhoodId: neighborhood.id,
       typeId: type.id,
@@ -322,6 +354,7 @@ export const usePropertyForm = (
     return {
       id,
       ...rest,
+      number: form.number.trim() || "S/N", // Auto-populate "S/N" if empty
       ownerId: owner.id,
       neighborhoodId: neighborhood.id,
       typeId: type.id,

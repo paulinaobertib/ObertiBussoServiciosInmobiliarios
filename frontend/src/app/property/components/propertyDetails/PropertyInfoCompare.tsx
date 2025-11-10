@@ -8,6 +8,7 @@ import SquareFootIcon from "@mui/icons-material/SquareFoot";
 import FoundationIcon from "@mui/icons-material/Foundation";
 import { Property } from "../../types/property";
 import { formatPrice } from "../../utils/formatPrice";
+import { formatPropertyAddress } from "../../utils/propertyLocation";
 import { usePropertiesContext } from "../../context/PropertiesContext";
 
 interface Props {
@@ -68,9 +69,7 @@ export const PropertyInfoCompare = ({ property }: Props) => {
   const amenities = rawAmenities.map(labelOfAmenity).filter(Boolean);
 
   // Address
-  const address = property.neighborhood
-    ? `${property.street}, ${property.neighborhood.name}, ${property.neighborhood.city}`
-    : property.street ?? "";
+  const address = formatPropertyAddress(property);
 
   return (
     <Stack spacing={2} sx={{ maxWidth: { xs: "100%", md: 600 }, mx: "auto", width: "100%" }}>

@@ -11,6 +11,7 @@ import { useAuthContext } from "../app/user/context/AuthContext";
 import { PropertyDTOAI } from "../app/property/types/property";
 import { Comparer } from "../app/property/components/comparer/Comparer";
 import ReplyIcon from "@mui/icons-material/Reply";
+import { formatPropertyAddress } from "../app/property/utils/propertyLocation";
 
 const Compare = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const Compare = () => {
 
   const comparisonDataAI: PropertyDTOAI[] = comparisonItems.map((property) => ({
     name: property.title,
-    address: `${property.street} ${property.number}, ${property.neighborhood.name}, ${property.neighborhood.city}, Argentina`,
+    address: formatPropertyAddress(property),
     latitude: 0,
     longitude: 0,
     rooms: property.rooms,

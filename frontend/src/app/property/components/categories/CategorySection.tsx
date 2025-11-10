@@ -20,6 +20,7 @@ import type { Owner as OwnerT } from "../../types/owner";
 
 // Modal ya existente en tu proyecto (mismo folder)
 import { OwnerPropertiesModal } from "./OwnerPropertiesModal";
+import { AddressSelector } from "../propertyDetails/maps/AddressSelector";
 
 // Helpers para parsear IDs del DataGrid (string | number)
 const toNum = (v: GridRowId): number | null =>
@@ -43,7 +44,7 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
   } = useCategorySection(category);
 
   // Selección global (sembrada desde la Property)
-  const { selected: globalSelected } = usePropertiesContext();
+  const { selected: globalSelected, setAddress, neighborhoodsList } = usePropertiesContext();
 
   // Estado mínimo para el modal de propiedades del dueño
   const [ownerModalOpen, setOwnerModalOpen] = useState(false);
@@ -265,6 +266,25 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
         selectable={selectable}
         selectedIds={selectedIds}
       />
+
+      {/* AddressSelector para barrios - solo se muestra si hay un barrio seleccionado */}
+      {category === "neighborhood" && globalSelected.neighborhood && (
+        <Box sx={{ mt: 3 }}>
+          <AddressSelector
+            neighborhoodId={globalSelected.neighborhood}
+            neighborhoodName={neighborhoodsList.find((n) => n.id === globalSelected.neighborhood)?.name ?? ""}
+            value={globalSelected.address}
+            onChange={(address) => {
+              setAddress({
+                street: address.street,
+                number: address.number,
+                latitude: address.latitude ?? null,
+                longitude: address.longitude ?? null,
+              });
+            }}
+          />
+        </Box>
+      )}
 
       {/* Modal CRUD existente */}
       <ModalItem info={modal} close={() => setModal(null)} />

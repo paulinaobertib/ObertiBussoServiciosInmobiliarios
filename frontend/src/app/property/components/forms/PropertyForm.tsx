@@ -4,7 +4,6 @@ import { ImageUploader } from "../../../shared/components/images/ImageUploader";
 import { usePropertyForm } from "../../hooks/usePropertyForm";
 import type { Property, PropertyCreate, PropertyUpdate } from "../../types/property";
 import React, { forwardRef, useEffect, useCallback } from "react";
-import { AddressSelector } from "../propertyDetails/maps/AddressSelector";
 
 /* ─────────── ref API ─────────── */
 export type PropertyFormHandle = {
@@ -335,19 +334,6 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             error={!!fieldErrors.description}
             size="small"
             inputProps={{ "data-testid": "input-descripcion" }}
-          />
-        </Grid>
-
-        {/* ---------- DIRECCIÓN ---------- */}
-        <Grid size={{ xs: 12 }}>
-          <AddressSelector
-            neighborhoodId={form.neighborhood.id}
-            neighborhoodName={form.neighborhood.name}
-            value={{ street: form.street, number: form.number }}
-            onChange={({ street, number }) => {
-              ctrl.setField("street", street);
-              ctrl.setField("number", number);
-            }}
           />
         </Grid>
 

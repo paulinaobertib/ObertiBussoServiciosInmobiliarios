@@ -20,6 +20,12 @@ interface SelectedIds {
   neighborhood: number | null;
   type: number | null;
   amenities: number[];
+  address: {
+    street: string;
+    number: string;
+    latitude: number | null;
+    longitude: number | null;
+  };
 }
 
 interface Ctx {
@@ -34,6 +40,7 @@ interface Ctx {
   selected: SelectedIds;
   setSelected: (n: SelectedIds) => void;
   toggleSelect: (category: Category, id: number) => void;
+  setAddress: (address: SelectedIds["address"]) => void;
   resetSelected: () => void;
   refreshAmenities: () => Promise<void>;
   refreshOwners: () => Promise<void>;
@@ -107,10 +114,28 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     neighborhood: null,
     type: null,
     amenities: [],
+    address: {
+      street: "",
+      number: "",
+      latitude: null,
+      longitude: null,
+    },
   });
 
   const resetSelected = useCallback(
-    () => setSelected({ owner: null, neighborhood: null, type: null, amenities: [] }),
+    () =>
+      setSelected({
+        owner: null,
+        neighborhood: null,
+        type: null,
+        amenities: [],
+        address: {
+          street: "",
+          number: "",
+          latitude: null,
+          longitude: null,
+        },
+      }),
     []
   );
 
@@ -120,6 +145,18 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         ...prev,
         amenities: prev.amenities.includes(id) ? prev.amenities.filter((x) => x !== id) : [...prev.amenities, id],
       }));
+    } else if (category === "neighborhood") {
+      // Al cambiar de barrio, resetear la dirección
+      setSelected((prev) => ({
+        ...prev,
+        neighborhood: prev.neighborhood === id ? null : id,
+        address: {
+          street: "",
+          number: "",
+          latitude: null,
+          longitude: null,
+        },
+      }));
     } else {
       setSelected((prev) => ({
         ...prev,
@@ -128,11 +165,26 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setAddress = useCallback((address: SelectedIds["address"]) => {
+    setSelected((prev) => ({ ...prev, address }));
+  }, []);
+
   //Items seleccionados
   const seedSelectionsFromProperty = useCallback((p: Property | null) => {
     if (!p) {
       // limpia selección
-      setSelected({ owner: null, neighborhood: null, type: null, amenities: [] });
+      setSelected({
+        owner: null,
+        neighborhood: null,
+        type: null,
+        amenities: [],
+        address: {
+          street: "",
+          number: "",
+          latitude: null,
+          longitude: null,
+        },
+      });
       return;
     }
     setSelected({
@@ -140,6 +192,12 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       neighborhood: p.neighborhood?.id ?? null,
       type: p.type?.id ?? null,
       amenities: Array.isArray(p.amenities) ? p.amenities.map((a) => a.id) : [],
+      address: {
+        street: p.street ?? "",
+        number: p.number ?? "",
+        latitude: p.latitude ?? null,
+        longitude: p.longitude ?? null,
+      },
     });
   }, []);
 
@@ -219,6 +277,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         selected,
         setSelected,
         toggleSelect,
+        setAddress,
         resetSelected,
         refreshAmenities,
         refreshOwners,
