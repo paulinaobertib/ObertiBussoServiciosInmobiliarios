@@ -1,7 +1,44 @@
-import { appBaseUrl } from "../support/e2e";
+import { appBaseUrl} from "../support/e2e";
 import { interceptGateway } from "../support/intercepts";
 
 const ADMIN_TIMEOUT = 60000;
+
+const getAdminCredentials = () => {
+  const username = Cypress.env("adminUsername") ?? "admin";
+  const password = Cypress.env("adminPassword") ?? "Administrador1.";
+  return { username, password };
+};
+
+const loginAsAdmin = () => {
+  const { username, password } = getAdminCredentials();
+  const keycloakUrl = Cypress.env("keycloakUrl");
+  if (!keycloakUrl) {
+    throw new Error("Falta configurar keycloakUrl para Cypress");
+  }
+
+  const keycloakOrigin = new URL(keycloakUrl).origin;
+
+  cy.visit(appBaseUrl);
+  cy.contains("button", /Iniciar Ses/i).should("be.visible").click();
+
+  cy.location("origin", { timeout: ADMIN_TIMEOUT }).then((currentOrigin) => {
+    const authOrigin = currentOrigin?.startsWith("http") ? currentOrigin : keycloakOrigin;
+
+    cy.origin(
+      authOrigin,
+      { args: { username, password, timeout: ADMIN_TIMEOUT } },
+      ({ username, password, timeout }) => {
+        cy.get("form:visible", { timeout }).within(() => {
+          cy.get("input#username, input[name='username']").first().clear().type(username, { log: false });
+          cy.get("input#password, input[name='password']").first().clear().type(password, { log: false });
+          cy.get("input#kc-login, button[type='submit']").first().click();
+        });
+      }
+    );
+  });
+
+  cy.location("pathname", { timeout: ADMIN_TIMEOUT }).should("eq", "/");
+};
 
 describe("Administrador: creación básica de una propiedad", () => {
   beforeEach(() => {
@@ -23,7 +60,7 @@ describe("Administrador: creación básica de una propiedad", () => {
   });
 
   it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
-    cy.loginAdmin();
+    loginAsAdmin();
     cy.visit(appBaseUrl);
 
     // Esperar a que la página principal cargue completamente
@@ -68,30 +105,56 @@ describe("Administrador: creación básica de una propiedad", () => {
     };
 
     cy.contains("button", /^Tipos$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
-    cy.wait("@getTypes", { timeout: ADMIN_TIMEOUT });
+    //cy.wait("@getTypes", { timeout: ADMIN_TIMEOUT });
 
-    cy.get('[role="grid"] [role="row"]', { timeout: ADMIN_TIMEOUT })
-      .should("have.length.greaterThan", 1)
-      .eq(1)
-      .find('input[type="checkbox"], [role="checkbox"]')
+    cy.get('[role="grid"] [role="row"][data-rowindex]', { timeout: ADMIN_TIMEOUT })
       .first()
-      .check({ force: true });
+      .within(() => {
+        cy.get('input[type="checkbox"], [role="checkbox"]')
+          .first()
+          .click({ force: true });
+      });
 
-    const selectPanel = (label: RegExp, waitAlias: string) => {
+    const selectPanel = (label: RegExp, rowMatcher?: RegExp) => {
       cy.contains("button", label, { timeout: ADMIN_TIMEOUT }).click({ force: true });
-      cy.wait(waitAlias, { timeout: ADMIN_TIMEOUT });
 
-      cy.get('[role="grid"] [role="row"]', { timeout: ADMIN_TIMEOUT })
-        .should("have.length.greaterThan", 1)
-        .eq(1)
-        .find('input[type="checkbox"], [role="checkbox"]')
+      if (rowMatcher) {
+        cy.contains('[role="row"][data-rowindex]', rowMatcher, { timeout: ADMIN_TIMEOUT }).within(() => {
+          cy.get('input[type="checkbox"], [role="checkbox"]').first().click({ force: true });
+        });
+        return;
+      }
+
+      cy.get('[role="grid"] [role="row"][data-rowindex]', { timeout: ADMIN_TIMEOUT })
         .first()
-        .check({ force: true });
+        .within(() => {
+          cy.get('input[type="checkbox"], [role="checkbox"]')
+            .first()
+            .click({ force: true });
+        });
     };
 
-    selectPanel(/^Barrios$/i, "@getNeighborhoods");
-    selectPanel(/^Propietarios$/i, "@getOwners");
-    selectPanel(/Caracter/i, "@getAmenities");
+    const fillTextFieldByLabel = (label: RegExp, value: string) => {
+      cy.contains("label", label, { timeout: ADMIN_TIMEOUT })
+        .should("be.visible")
+        .invoke("attr", "for")
+        .then((id) => {
+          cy.get(`#${id}`).clear().type(value);
+        });
+    };
+
+    selectPanel(/^Barrios$/i);
+    cy.contains("button", /^Mapa$/i, { timeout: ADMIN_TIMEOUT })
+      .scrollIntoView()
+      .should("be.enabled")
+      .click({ force: true });
+    cy.get('[role="dialog"]', { timeout: ADMIN_TIMEOUT }).should("be.visible");
+    cy.get('[data-testid="address-map-test-overlay"]', { timeout: ADMIN_TIMEOUT })
+      .filter(":visible")
+      .click("center", { force: true });
+    cy.contains("button", /^Cerrar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+    selectPanel(/^Propietarios$/i);
+    selectPanel(/Caracter/i);
 
     cy.contains("button", /^Siguiente$/i, { timeout: ADMIN_TIMEOUT })
       .should("not.be.disabled")
@@ -100,7 +163,6 @@ describe("Administrador: creación básica de una propiedad", () => {
     // Esperar a que el formulario de detalles se renderice completamente
     cy.wait(800);
     cy.contains("button", /^Crear$/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
-    cy.contains("label", /^Calle/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
 
     cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
       .invoke("attr", "for")
@@ -142,18 +204,6 @@ describe("Administrador: creación básica de una propiedad", () => {
       .invoke("attr", "for")
       .then((id) => {
         cy.get(`#${id}`).clear().type("Descripción de prueba generada por Cypress.");
-      });
-
-    cy.contains("label", /^Calle/i)
-      .invoke("attr", "for")
-      .then((id) => {
-        cy.get(`#${id}`).clear().type("Derqui");
-      });
-
-    cy.contains("label", /^Número/i)
-      .invoke("attr", "for")
-      .then((id) => {
-        cy.get(`#${id}`).clear().type("33");
       });
 
     cy.contains("label", /^Ambientes/i)
