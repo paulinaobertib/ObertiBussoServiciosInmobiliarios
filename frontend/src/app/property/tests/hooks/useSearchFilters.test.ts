@@ -83,6 +83,15 @@ vi.mock("../../../property/context/PropertiesContext", () => ({
 
     propertiesList: currentPropsList,
 
+    dynamicLimits: {
+      price: {
+        USD: { min: 20000, max: 75000 },
+        ARS: { min: 2000000, max: 2000000 },
+      },
+      area: { min: 60, max: 120, step: 10 },
+      covered: { min: 55, max: 100, step: 1 },
+    },
+
     refreshAmenities: refreshAmenitiesMock,
     refreshTypes: refreshTypesMock,
     refreshNeighborhoods: refreshNeighborhoodsMock,
@@ -145,20 +154,21 @@ describe("useSearchFilters", () => {
     const { result } = renderHook(() => useSearchFilters(vi.fn()));
     await waitFor(() => {
       const d = result.current.dynLimits;
-      expect(d.surface.max).toBeGreaterThan(0);
+      expect(d.area.max).toBeGreaterThan(0);
+      expect(d.covered.max).toBeGreaterThan(0);
       expect(d.price.USD.min).toBeLessThanOrEqual(d.price.USD.max);
       expect(d.price.ARS.min).toBeLessThanOrEqual(d.price.ARS.max);
     });
   });
 
-  it("estado inicial de params usa dynLimits.surface.max para area/covered", async () => {
+  it("estado inicial de params usa dynLimits.area.max y dynLimits.covered.max", async () => {
     const { result } = renderHook(() => useSearchFilters(vi.fn()));
     await waitFor(() => {
-      expect(result.current.dynLimits.surface.max).toBeGreaterThan(0);
+      expect(result.current.dynLimits.area.max).toBeGreaterThan(0);
+      expect(result.current.dynLimits.covered.max).toBeGreaterThan(0);
     });
-    const max = result.current.dynLimits.surface.max;
-    expect(result.current.params.areaRange[1]).toBe(max);
-    expect(result.current.params.coveredRange[1]).toBe(max);
+    expect(result.current.params.areaRange[1]).toBe(result.current.dynLimits.area.max);
+    expect(result.current.params.coveredRange[1]).toBe(result.current.dynLimits.covered.max);
   });
 
   it("toggleParam funciona para arrays y escalares", async () => {
@@ -198,12 +208,18 @@ describe("useSearchFilters", () => {
     const onSearch = vi.fn();
     getByFiltersMock.mockResolvedValueOnce(sampleProps);
 
-    const { result } = renderHook(() => useSearchFilters(onSearch));
+    const { result, rerender } = renderHook(() => useSearchFilters(onSearch));
+    
     act(() => result.current.toggleAmenity(1));
+    
     expect(setSelectedMock).toHaveBeenCalledWith({
       ...selectedState,
       amenities: [1],
     });
+    
+    // Forzar re-render para que el hook detecte el cambio en selectedState
+    rerender();
+    
     await waitFor(() => {
       expect(getByFiltersMock).toHaveBeenCalled();
     });
@@ -287,7 +303,7 @@ describe("useSearchFilters", () => {
     act(() => result.current.toggleParam("rooms", 2));
     act(() => result.current.toggleAmenity(1));
     act(() =>
-      result.current.setParams((p) => ({
+      result.current.setParams((p: any) => ({
         ...p,
         areaRange: [10, p.areaRange[1] - 1],
       }))

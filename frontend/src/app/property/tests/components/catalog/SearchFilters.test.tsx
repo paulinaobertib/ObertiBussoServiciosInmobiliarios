@@ -47,10 +47,11 @@ describe("<SearchFilters />", () => {
     },
     dynLimits: {
       price: {
-        USD: { min: 0, max: 200000, step: 1000 },
-        ARS: { min: 0, max: 100000000, step: 50000 },
+        USD: { min: 0, max: 200000 },
+        ARS: { min: 0, max: 100000000 },
       },
-      surface: { min: 0, max: 500, step: 10 },
+      area: { min: 0, max: 500, step: 10 },
+      covered: { min: 0, max: 500, step: 10 },
     },
     typesList: [{ name: "Casa" }, { name: "Departamento" }],
     amenitiesList: [

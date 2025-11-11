@@ -144,15 +144,9 @@ describe("Administrador: creación básica de una propiedad", () => {
     };
 
     selectPanel(/^Barrios$/i);
-    cy.contains("button", /^Mapa$/i, { timeout: ADMIN_TIMEOUT })
-      .scrollIntoView()
-      .should("be.enabled")
-      .click({ force: true });
-    cy.get('[role="dialog"]', { timeout: ADMIN_TIMEOUT }).should("be.visible");
-    cy.get('[data-testid="address-map-test-overlay"]', { timeout: ADMIN_TIMEOUT })
-      .filter(":visible")
-      .click("center", { force: true });
-    cy.contains("button", /^Cerrar$/i, { timeout: ADMIN_TIMEOUT }).click({ force: true });
+    fillTextFieldByLabel(/^Calle$/i, "Italia");
+    fillTextFieldByLabel(/^Número$/i, "2889");
+    cy.contains(/Dirección validada|Ubicación validada/, { timeout: 10000 }).should("be.visible");
     selectPanel(/^Propietarios$/i);
     selectPanel(/Caracter/i);
 
@@ -279,7 +273,6 @@ describe("Administrador: creación básica de una propiedad", () => {
     // Esperar a que el segundo paso del stepper se renderice
     cy.wait(800);
     cy.contains("button", /^Actualizar$/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
-    cy.contains("label", /^Calle/i, { timeout: ADMIN_TIMEOUT }).should("be.visible");
 
     cy.contains("label", /^Título/i, { timeout: ADMIN_TIMEOUT })
       .invoke("attr", "for")

@@ -36,6 +36,11 @@ interface Ctx {
   propertiesList: Property[] | null;
   propertiesLoading: boolean;
   setPropertiesLoading: (loading: boolean) => void;
+  dynamicLimits: {
+    price: { USD: { min: number; max: number; step: number; }; ARS: { min: number; max: number; step: number; }; };
+    area: { min: number; max: number; step: number; };
+    covered: { min: number; max: number; step: number; };
+  };
   pickItem: (type: Picked["type"], value: any) => void;
   selected: SelectedIds;
   setSelected: (n: SelectedIds) => void;
@@ -107,6 +112,51 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       setPropertiesLoading(false);
     }
   }, []);
+
+  // Límites dinámicos calculados a partir de propertiesList
+  const dynamicLimits = useMemo(() => {
+    const list = propertiesList ?? [];
+
+    const niceStep = (rough: number) => {
+      const exp = Math.pow(10, Math.floor(Math.log10(rough)));
+      const f = rough / exp;
+      const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+      return nice * exp;
+    };
+
+    const buildRange = (rawMin: number, rawMax: number) => {
+      if (rawMin === rawMax) rawMax = rawMin + 1;
+      const step = niceStep((rawMax - rawMin) / 10);
+      const min = Math.floor(rawMin / step) * step;
+      const max = min + step * 10;
+      return { min, max: Math.max(max, rawMax), step };
+    };
+
+    const usd = list.filter((p) => p.currency === "USD").map((p) => p.price);
+    const ars = list.filter((p) => p.currency === "ARS").map((p) => p.price);
+
+    const usdRange = buildRange(
+      usd.length ? Math.min(...usd) : 0,
+      usd.length ? Math.max(...usd) : 1_000_000
+    );
+    const arsRange = buildRange(
+      ars.length ? Math.min(...ars) : 0,
+      ars.length ? Math.max(...ars) : 50_000_000
+    );
+
+    const areaValues = list.map((p) => p.area ?? 0);
+    const coveredValues = list.map((p) => p.coveredArea ?? 0);
+    const areaMax = areaValues.length ? Math.max(...areaValues) : 2000;
+    const coveredMax = coveredValues.length ? Math.max(...coveredValues) : 2000;
+    const areaRange = buildRange(0, areaMax);
+    const coveredRange = buildRange(0, coveredMax);
+
+    return {
+      price: { USD: usdRange, ARS: arsRange },
+      area: areaRange,
+      covered: coveredRange,
+    };
+  }, [propertiesList]);
 
   // Selección de items
   const [selected, setSelected] = useState<SelectedIds>({
@@ -273,6 +323,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         propertiesList,
         propertiesLoading,
         setPropertiesLoading,
+        dynamicLimits,
         pickItem,
         selected,
         setSelected,

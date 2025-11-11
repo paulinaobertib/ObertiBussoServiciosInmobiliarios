@@ -2,7 +2,14 @@ server:
   port: 8090
   reactive:
     session:
-      timeout: PT24H
+      timeout: PT24H # 24 horas de inactividad
+      cookie:
+        name: SESSION
+        http-only: true
+        secure: false # En integración corremos sobre HTTP, así que la cookie debe permitirse sin HTTPS
+        same-site: lax
+        path: /
+
 eureka:
   instance:
     hostname: api.localtest.me

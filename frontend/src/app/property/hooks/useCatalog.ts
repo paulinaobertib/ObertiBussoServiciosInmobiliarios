@@ -6,6 +6,7 @@ import { Property } from "../types/property";
 import { buildRoute, ROUTES } from "../../../lib";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useEffect } from "react";
 
 interface Props {
   onFinish: () => void;
@@ -20,6 +21,13 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
   const { propertiesList, refreshProperties, selectedPropertyIds, toggleCompare, propertiesLoading } =
     usePropertiesContext();
   const { isAdmin } = useAuthContext();
+
+  // Cargar propiedades si no están cargadas
+  useEffect(() => {
+    if (propertiesList === null) {
+      refreshProperties();
+    }
+  }, [propertiesList, refreshProperties]);
 
   const refreshMode = isAdmin ? "all" : "available";
   const list = externalProperties ?? propertiesList ?? [];

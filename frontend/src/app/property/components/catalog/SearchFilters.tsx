@@ -276,15 +276,15 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             value={params.areaRange}
             onChange={(_, v) => setParams({ ...params, areaRange: v as [number, number] })}
             onChangeCommitted={() => apply()}
-            min={dynLimits.surface.min}
-            max={dynLimits.surface.max}
-            step={dynLimits.surface.step}
+            min={dynLimits.area.min}
+            max={dynLimits.area.max}
+            step={dynLimits.area.step}
             valueLabelDisplay="auto"
             marks={[
-              { value: dynLimits.surface.min, label: "0" },
+              { value: dynLimits.area.min, label: "0" },
               {
-                value: dynLimits.surface.max,
-                label: dynLimits.surface.max.toLocaleString(),
+                value: dynLimits.area.max,
+                label: dynLimits.area.max.toLocaleString(),
               },
             ]}
             size="small"
@@ -298,15 +298,15 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             value={params.coveredRange}
             onChange={(_, v) => setParams({ ...params, coveredRange: v as [number, number] })}
             onChangeCommitted={() => apply()}
-            min={dynLimits.surface.min}
-            max={dynLimits.surface.max}
-            step={dynLimits.surface.step}
+            min={dynLimits.covered.min}
+            max={dynLimits.covered.max}
+            step={dynLimits.covered.step}
             valueLabelDisplay="auto"
             marks={[
-              { value: dynLimits.surface.min, label: "0" },
+              { value: dynLimits.covered.min, label: "0" },
               {
-                value: dynLimits.surface.max,
-                label: dynLimits.surface.max.toLocaleString(),
+                value: dynLimits.covered.max,
+                label: dynLimits.covered.max.toLocaleString(),
               },
             ]}
             size="small"
