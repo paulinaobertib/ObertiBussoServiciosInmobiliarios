@@ -95,7 +95,7 @@ jobs:
   cd_ms_gateway:
     name: CD - Gateway
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_ms_gateway
     uses: ./.github/workflows/cd-ms-gateway.yml
     with:
@@ -125,7 +125,7 @@ jobs:
   cd_frontend:
     name: CD - Frontend
     needs:
-      # - ci_integration
+      - ci_integration
       - ci_frontend
     uses: ./.github/workflows/cd-frontend.yml
     secrets: inherit
