@@ -25,6 +25,7 @@ export default defineConfig({
       appUrl: baseUrl,
       gatewayUrl,
       keycloakUrl,
+      VITE_GOOGLE_API_KEY: "AIza-dummy-key-for-cypress-tests",
       ...(apiUrl ? { apiUrl } : {}),
     },
 
