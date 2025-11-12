@@ -58,8 +58,17 @@ describe("Administrador: creación básica de una propiedad", () => {
     interceptGateway("PUT", "/properties/property/update/*", "updateProperty");
     interceptGateway("DELETE", "/properties/property/delete/*", "deleteProperty");
 
-    // Interceptar la petición de geocoding de Google Maps
-    cy.intercept('GET', 'https://maps.googleapis.com/maps/api/geocode/json*').as('geocode');
+    // Interceptar la petición de geocoding de Google Maps con mock
+    cy.intercept('GET', 'https://maps.googleapis.com/maps/api/geocode/json*', {
+      statusCode: 200,
+      body: {
+        results: [{
+          formatted_address: "Italia 2889, Villa Cabrera, Córdoba, Argentina",
+          geometry: { location: { lat: -31.4, lng: -64.2 } }
+        }],
+        status: 'OK'
+      }
+    }).as('geocode');
   });
 
   it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
