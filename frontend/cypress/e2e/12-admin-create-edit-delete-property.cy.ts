@@ -58,17 +58,8 @@ describe("Administrador: creación básica de una propiedad", () => {
     interceptGateway("PUT", "/properties/property/update/*", "updateProperty");
     interceptGateway("DELETE", "/properties/property/delete/*", "deleteProperty");
 
-    // Interceptar la petición de geocoding de Google Maps con mock
-    cy.intercept('GET', 'https://maps.googleapis.com/maps/api/geocode/json*', {
-      statusCode: 200,
-      body: {
-        results: [{
-          formatted_address: "Italia 2889, Villa Cabrera, Córdoba, Argentina",
-          geometry: { location: { lat: -31.4, lng: -64.2 } }
-        }],
-        status: 'OK'
-      }
-    }).as('geocode');
+    // Interceptar la petición de geocoding de Google Maps (sin mock, para validar realmente)
+    cy.intercept('GET', 'https://maps.googleapis.com/maps/api/geocode/json*').as('geocode');
   });
 
   it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
@@ -158,7 +149,11 @@ describe("Administrador: creación básica de una propiedad", () => {
     selectPanel(/^Barrios$/i);
     fillTextFieldByLabel(/^Calle$/i, "Italia");
     fillTextFieldByLabel(/^Número$/i, "2889");
-    cy.wait(2000); // Esperar que se procese la validación (petición mockeada si ocurre)
+    // Disparar blur para activar la validación de dirección
+    cy.contains("label", /^Número$/i).invoke("attr", "for").then((id) => {
+      cy.get(`#${id}`).blur();
+    });
+    cy.wait('@geocode', { timeout: 10000 }); // Esperar la petición real de geocoding
     cy.contains(/Dirección validada|Ubicación validada/, { timeout: 15000 }).should("be.visible");
     cy.wait(500); // Esperar después de la validación para procesamiento
     selectPanel(/^Propietarios$/i);
