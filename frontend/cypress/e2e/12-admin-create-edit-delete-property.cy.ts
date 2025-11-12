@@ -57,6 +57,9 @@ describe("Administrador: creación básica de una propiedad", () => {
     interceptGateway("POST", "/properties/property/create", "createProperty");
     interceptGateway("PUT", "/properties/property/update/*", "updateProperty");
     interceptGateway("DELETE", "/properties/property/delete/*", "deleteProperty");
+
+    // Interceptar la petición de geocoding de Google Maps
+    cy.intercept('GET', 'https://maps.googleapis.com/maps/api/geocode/json*').as('geocode');
   });
 
   it("Permite crear una propiedad, editarla y luego eliminarla.", () => {
@@ -146,7 +149,9 @@ describe("Administrador: creación básica de una propiedad", () => {
     selectPanel(/^Barrios$/i);
     fillTextFieldByLabel(/^Calle$/i, "Italia");
     fillTextFieldByLabel(/^Número$/i, "2889");
-    cy.contains(/Dirección validada|Ubicación validada/, { timeout: 10000 }).should("be.visible");
+    cy.wait('@geocode', { timeout: 10000 }); // Esperar la petición de geocoding de Google Maps
+    cy.contains(/Dirección validada|Ubicación validada/, { timeout: 15000 }).should("be.visible");
+    cy.wait(500); // Esperar después de la validación para procesamiento
     selectPanel(/^Propietarios$/i);
     selectPanel(/Caracter/i);
 
