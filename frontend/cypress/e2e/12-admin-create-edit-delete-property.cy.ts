@@ -158,6 +158,7 @@ describe("Administrador: creación básica de una propiedad", () => {
     selectPanel(/^Barrios$/i);
     fillTextFieldByLabel(/^Calle$/i, "Italia");
     fillTextFieldByLabel(/^Número$/i, "2889");
+    cy.wait(200);
     cy.wait('@geocode', { timeout: 10000 }); // Esperar la petición de geocoding de Google Maps
     cy.contains(/Dirección validada|Ubicación validada/, { timeout: 15000 }).should("be.visible");
     cy.wait(500); // Esperar después de la validación para procesamiento
