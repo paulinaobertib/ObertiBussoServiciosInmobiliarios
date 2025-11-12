@@ -69,7 +69,7 @@ export const PropertyInfo = ({ property }: Props) => {
   const rawAmenities: Amenity[] = property.amenities ?? [];
   const amenities = rawAmenities.map(labelOfAmenity).filter(Boolean);
 
-  const address = formatPropertyAddress(property);
+  const address = isAdmin ? formatPropertyAddress(property) : formatPropertyAddress({ ...property, street: "", number: "" });
 
   return (
     <Stack spacing={2}>
