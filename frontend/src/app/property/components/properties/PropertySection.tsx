@@ -33,6 +33,7 @@ interface Props {
   selectedIds?: number[];
   showCreateButton?: boolean;
   availableOnly?: boolean;
+  operationFilter?: string; // Nuevo: filtrar por operación (e.g., "ALQUILER")
 }
 
 export const PropertySection = ({
@@ -44,6 +45,7 @@ export const PropertySection = ({
   selectedIds,
   showCreateButton = true,
   availableOnly = false,
+  operationFilter,
 }: Props) => {
   const navigate = useNavigate();
   const alertApi: any = useGlobalAlert();
@@ -87,20 +89,27 @@ export const PropertySection = ({
 
   const fetchAll = useCallback(async () => {
     const res = await (availableOnly ? getAvailableProperties() : getAllProperties());
-    onSearch(res);
-    return res;
-  }, [availableOnly, onSearch]);
+    let normalized = res ?? [];
+    if (operationFilter) {
+      normalized = normalized.filter((p: any) => String(p?.operation ?? "").toUpperCase() === operationFilter.toUpperCase());
+    }
+    onSearch(normalized);
+    return normalized;
+  }, [availableOnly, operationFilter, onSearch]);
 
   const fetchByText = useCallback(
     async (term: string) => {
       const list = await getPropertiesByText(term);
-      const normalized = availableOnly
+      let normalized = availableOnly
         ? (list ?? []).filter((p: any) => String(p?.status ?? "").toLowerCase() === "disponible")
-        : list;
+        : list ?? [];
+      if (operationFilter) {
+        normalized = normalized.filter((p: any) => String(p?.operation ?? "").toUpperCase() === operationFilter.toUpperCase());
+      }
       onSearch(normalized);
       return normalized;
     },
-    [availableOnly, onSearch]
+    [availableOnly, operationFilter, onSearch]
   );
 
   // id seleccionado para forzar inclusión aunque no esté “disponible”
@@ -111,13 +120,19 @@ export const PropertySection = ({
 
   // Filtrado opcional (incluye siempre la fila seleccionada)
   const filteredRows = useMemo(() => {
-    if (!filterAvailable) return rows;
-    return rows.filter((p) => {
-      const isAvailable = !p.status || String(p.status).toLowerCase() === "disponible";
-      const isSelectedRow = selectedIdNum != null && p.id === selectedIdNum;
-      return isAvailable || isSelectedRow;
-    });
-  }, [rows, filterAvailable, selectedIdNum]);
+    let filtered = rows;
+    if (filterAvailable) {
+      filtered = filtered.filter((p) => {
+        const isAvailable = !p.status || String(p.status).toLowerCase() === "disponible";
+        const isSelectedRow = selectedIdNum != null && p.id === selectedIdNum;
+        return isAvailable || isSelectedRow;
+      });
+    }
+    if (operationFilter) {
+      filtered = filtered.filter((p) => String(p.operation).toUpperCase() === operationFilter.toUpperCase());
+    }
+    return filtered;
+  }, [rows, filterAvailable, selectedIdNum, operationFilter]);
 
   // Navegaciones
   const openCreate = () => navigate("/properties/new");

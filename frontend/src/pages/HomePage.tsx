@@ -11,11 +11,7 @@ import { useGlobalAlert } from "../app/shared/context/AlertContext";
 import { Property } from "../app/property/types/property";
 import { BasePage } from "./BasePage";
 import { usePropertiesContext } from "../app/property/context/PropertiesContext";
-import {
-  getAllProperties,
-  getAvailableProperties,
-  getPropertiesByText,
-} from "../app/property/services/property.service";
+import { getPropertiesByText } from "../app/property/services/property.service";
 import { useCallback, useEffect, useState } from "react";
 import { useAuthContext } from "../app/user/context/AuthContext";
 import { Snackbar, Alert } from "@mui/material";
@@ -97,16 +93,6 @@ export default function Home() {
     navigate("/properties/compare", { state: { ids: selectedPropertyIds } });
     setSelectionMode(false);
   };
-
-  const fetchAllProperties = useCallback(async () => {
-    setPropertiesLoading(true);
-    try {
-      const fetcher = isAdmin ? getAllProperties : getAvailableProperties;
-      return await fetcher();
-    } finally {
-      setPropertiesLoading(false);
-    }
-  }, [isAdmin, setPropertiesLoading]);
 
   const fetchPropertiesByText = useCallback(
     async (value: string) => {
@@ -219,7 +205,6 @@ export default function Home() {
                   {isAdmin && (
                     <Box sx={{ flexGrow: 1, width: "100%" }}>
                       <SearchBar
-                        fetchAll={fetchAllProperties}
                         fetchByText={fetchPropertiesByText}
                         onSearch={(items) => setResults(items as Property[])}
                         placeholder="Buscar propiedad"
@@ -236,7 +221,6 @@ export default function Home() {
                 {!isAdmin && (
                   <Box sx={{ flexGrow: 1, width: "100%" }}>
                     <SearchBar
-                      fetchAll={fetchAllProperties}
                       fetchByText={fetchPropertiesByText}
                       onSearch={(items) => setResults(items as Property[])}
                       placeholder="Buscar propiedad"
@@ -249,7 +233,6 @@ export default function Home() {
               <>
                 <Box sx={{ flexGrow: 1 }}>
                   <SearchBar
-                    fetchAll={fetchAllProperties}
                     fetchByText={fetchPropertiesByText}
                     onSearch={(items) => setResults(items as Property[])}
                     placeholder="Buscar propiedad"

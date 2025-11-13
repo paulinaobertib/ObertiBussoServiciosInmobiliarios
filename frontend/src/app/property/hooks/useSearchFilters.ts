@@ -140,6 +140,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
 
   /* ───────── llamada al backend ───────── */
   async function apply(local = params) {
+    hasUserInteracted.current = true;
     setPropertiesLoading(true);
     try {
       const base: Partial<SearchParams> = {
@@ -200,10 +201,17 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
 
   /* ───────── disparar búsqueda ante cambios ───────── */
   const prev = useRef<{ params: any; amenities: number[] } | null>(null);
+  const hasUserInteracted = useRef(false);
   
   useEffect(() => {
     // En el primer render, no hacer nada (solo guardar el estado inicial)
     if (prev.current === null) {
+      prev.current = { params, amenities: selected.amenities };
+      return;
+    }
+    
+    // Solo buscar si el usuario ha interactuado
+    if (!hasUserInteracted.current) {
       prev.current = { params, amenities: selected.amenities };
       return;
     }
@@ -223,6 +231,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     K extends keyof typeof params,
     V extends (typeof params)[K] extends Array<infer U> ? U : (typeof params)[K]
   >(key: K, value: V) {
+    hasUserInteracted.current = true;
     setParams((p) => {
       const cur = p[key] as any;
       if (Array.isArray(cur))
@@ -235,6 +244,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
   }
 
   function toggleAmenity(id: number) {
+    hasUserInteracted.current = true;
     const next = selected.amenities.includes(id)
       ? selected.amenities.filter((a) => a !== id)
       : [...selected.amenities, id];

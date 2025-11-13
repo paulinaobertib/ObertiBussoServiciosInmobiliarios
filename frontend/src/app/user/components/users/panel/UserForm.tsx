@@ -69,14 +69,14 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
   };
 
   // -------- Validaciones simples --------
-  const userNameValid = form.userName.trim().length >= 3;
+  const userNameValid = !isAdd || form.userName.trim().length >= 3;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
   const phoneDigits = form.phone.replace(/\D+/g, "");
   const phoneValid = phoneDigits.length >= 10 && phoneDigits.length <= 15;
 
   const requiredOk =
-    (isDelete ? true : form.userName.trim() !== "" && form.email.trim() !== "") &&
-    (isDelete ? true : userNameValid && emailValid && phoneValid);
+    (isDelete ? true : (!isAdd || form.userName.trim() === "" || userNameValid) && form.email.trim() !== "") &&
+    (isDelete ? true : emailValid && phoneValid);
 
   const formValid = requiredOk;
 
@@ -106,7 +106,7 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
   const handleSubmit = async () => {
     // Validaciones para creación/edición
     if (!isDelete) {
-      if (!userNameValid) {
+      if (!isAdd && !userNameValid) {
         await warn("Username debe tener al menos 3 caracteres");
         return;
       }
@@ -136,12 +136,14 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
     try {
       if (isAdd) {
         const body: UserCreate = {
-          userName: form.userName,
-          email: form.email,
           firstName: form.firstName,
           lastName: form.lastName,
+          email: form.email,
           phone: form.phone,
         };
+        if (form.userName.trim()) {
+          body.userName = form.userName;
+        }
         await postUser(body);
         await notifySuccess("Usuario creado");
       } else if (isDelete && form.id != null) {
@@ -171,19 +173,21 @@ export const UserForm = ({ action = "add", item, onSuccess, onClose }: UserFormP
     >
       {/* Campos del formulario */}
       <Grid container spacing={2}>
-        {/* Username */}
-        <Grid size={{ xs: 12 }}>
-          <TextField
-            label="Nombre de usuario"
-            name="username"
-            value={form.userName}
-            onChange={handleChange("userName")}
-            fullWidth
-            disabled={isDelete || isEdit}
-            error={!isDelete && form.userName !== "" && !userNameValid}
-            inputProps={{ "data-testid": "input-username" }}
-          />
-        </Grid>
+        {/* Username - solo para edición */}
+        {!isAdd && (
+          <Grid size={{ xs: 12 }}>
+            <TextField
+              label="Nombre de usuario"
+              name="username"
+              value={form.userName}
+              onChange={handleChange("userName")}
+              fullWidth
+              disabled={isDelete || isEdit}
+              error={!isDelete && form.userName !== "" && !userNameValid}
+              inputProps={{ "data-testid": "input-username" }}
+            />
+          </Grid>
+        )}
 
         {/* Email */}
         <Grid size={{ xs: 12, sm: 6 }}>
