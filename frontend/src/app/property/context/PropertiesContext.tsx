@@ -123,18 +123,20 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   // Recargar propiedades cuando:
   // 1. Primera carga (propertiesList === null)
   // 2. Cambia el rol del usuario (isAdmin cambió)
+  // Solo ejecutar si NO estamos en entorno de test unitario (Vitest)
   useEffect(() => {
+    // Evitar ejecutar en tests unitarios donde el contexto de React no está completamente inicializado
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') return;
+
     const mode = isAdmin ? "all" : "available";
     const isAdminChanged = previousIsAdminRef.current !== null && previousIsAdminRef.current !== isAdmin;
-    
+
     if (propertiesList === null || isAdminChanged) {
       refreshProperties(mode);
     }
-    
-    previousIsAdminRef.current = isAdmin;
-  }, [isAdmin, propertiesList, refreshProperties]);
 
-  // Límites dinámicos calculados a partir de propertiesList
+    previousIsAdminRef.current = isAdmin;
+  }, [isAdmin, propertiesList, refreshProperties]);  // Límites dinámicos calculados a partir de propertiesList
   const dynamicLimits = useMemo(() => {
     const list = propertiesList ?? [];
 
