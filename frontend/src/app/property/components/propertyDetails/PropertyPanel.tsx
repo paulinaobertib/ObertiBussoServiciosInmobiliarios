@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import { PropertyCarousel } from "./PropertyCarousel";
 import { Property } from "../../types/property";
 
@@ -55,7 +55,7 @@ export const PropertyPanel = ({ property, InfoComponent, vertical = false }: Pro
         </Box>
       </Box>
 
-      {/* {property.description && (
+      {property.description && (
         <Box>
           <Divider />
           <Typography variant="subtitle1" fontWeight={700} sx={{ my: 1 }}>
@@ -65,7 +65,7 @@ export const PropertyPanel = ({ property, InfoComponent, vertical = false }: Pro
             {property.description}
           </Typography>
         </Box>
-      )} */}
+      )}
     </Box>
   );
 };
