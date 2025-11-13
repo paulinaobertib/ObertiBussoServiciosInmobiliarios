@@ -79,7 +79,7 @@ export const useCategorySection = (category: Category) => {
   }, [category, data]);
 
   // 5) Callback genérico para resultados de búsqueda
-  const onSearch = useCallback((items: any[]) => {
+  const onSearch = useCallback((items: any[] | null) => {
     setSearchResults(items);
   }, []);
 

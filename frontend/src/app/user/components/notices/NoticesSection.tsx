@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Box, Button, IconButton, useMediaQuery, useTheme, Typography } from "@mui/material";
+import { Box, Button, IconButton, useMediaQuery, useTheme, Typography, CircularProgress } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { SearchBar } from "../../../shared/components/SearchBar";
@@ -84,9 +84,13 @@ export default function NoticesSection() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          minHeight: "200px",
         }}
       >
-        {hasNotices ? (
+        {loading ? (
+          // Mostrar spinner mientras carga
+          <CircularProgress size={48} />
+        ) : hasNotices ? (
           <Box
             sx={{
               display: "flex",

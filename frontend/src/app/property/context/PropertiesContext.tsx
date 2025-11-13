@@ -4,6 +4,7 @@ import { getAllOwners } from "../services/owner.service";
 import { getAllNeighborhoods } from "../services/neighborhood.service";
 import { getAllTypes } from "../services/type.service";
 import { getAllProperties, getAvailableProperties, getPropertyById } from "../services/property.service";
+import { useAuthContext } from "../../user/context/AuthContext";
 
 import { Amenity } from "../types/amenity";
 import { Owner } from "../types/owner";
@@ -67,6 +68,9 @@ interface Ctx {
 const Context = createContext<Ctx | null>(null);
 
 export function PropertyCrudProvider({ children }: { children: ReactNode }) {
+  // Acceder al estado de autenticación
+  const { isAdmin } = useAuthContext();
+
   // Listados de items
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
   const [ownersList, setOwnersList] = useState<Owner[]>([]);
@@ -102,6 +106,9 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setTypesList(Array.isArray(list) ? list : []);
   }, []);
 
+  // Track del rol anterior para detectar cambios
+  const previousIsAdminRef = useRef<boolean | null>(null);
+
   const refreshProperties = useCallback(async (mode: "all" | "available" = "all") => {
     setPropertiesLoading(true);
     try {
@@ -112,6 +119,20 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
       setPropertiesLoading(false);
     }
   }, []);
+
+  // Recargar propiedades cuando:
+  // 1. Primera carga (propertiesList === null)
+  // 2. Cambia el rol del usuario (isAdmin cambió)
+  useEffect(() => {
+    const mode = isAdmin ? "all" : "available";
+    const isAdminChanged = previousIsAdminRef.current !== null && previousIsAdminRef.current !== isAdmin;
+    
+    if (propertiesList === null || isAdminChanged) {
+      refreshProperties(mode);
+    }
+    
+    previousIsAdminRef.current = isAdmin;
+  }, [isAdmin, propertiesList, refreshProperties]);
 
   // Límites dinámicos calculados a partir de propertiesList
   const dynamicLimits = useMemo(() => {

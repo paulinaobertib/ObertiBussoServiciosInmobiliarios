@@ -3,7 +3,6 @@ import { appBaseUrl } from "../support/e2e";
 
 describe("Admin - Gestión de usuarios", () => {
   const testUser = {
-    username: "usuarioTest",
     email: "usuario@test.com",
     firstName: "Juan",
     lastName: "Pérez",
@@ -58,7 +57,6 @@ describe("Admin - Gestión de usuarios", () => {
 
     cy.get("[data-testid='add-usuario-button']").click();
 
-    cy.get("[data-testid='input-username']").type(testUser.username);
     cy.get("[data-testid='input-email']").type(testUser.email);
     cy.get("[data-testid='input-firstName']").type(testUser.firstName);
     cy.get("[data-testid='input-lastName']").type(testUser.lastName);
@@ -80,7 +78,6 @@ describe("Admin - Gestión de usuarios", () => {
         // Esperar a que el formulario se abra
         cy.wait(500);
 
-        cy.get("[data-testid='input-username']").type(testUser.username);
         cy.get("[data-testid='input-email']").type(testUser.email);
         cy.get("[data-testid='input-firstName']").type(testUser.firstName);
         cy.get("[data-testid='input-lastName']").type(testUser.lastName);

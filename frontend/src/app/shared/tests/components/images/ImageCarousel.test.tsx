@@ -42,7 +42,7 @@ describe("<ImageCarousel />", () => {
 
     // Validaciones de estilo (solo verificamos el primero para evitar redundancia)
     expect(slides[0]).toHaveAttribute("style", expect.stringContaining("object-fit: cover"));
-    expect(logo).toHaveAttribute("style", expect.stringContaining("drop-shadow(2px 2px 4px rgba(0,0,0,0.6))"));
+    expect(logo).toHaveAttribute("style", expect.stringContaining("drop-shadow(2px 2px 4px rgba(128,128,128,0.6))"));
   });
 
   it("pasa los settings correctos al <Slider />", () => {

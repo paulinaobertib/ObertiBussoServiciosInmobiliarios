@@ -22,14 +22,16 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
     usePropertiesContext();
   const { isAdmin } = useAuthContext();
 
-  // Cargar propiedades si no están cargadas
+  // Calcular el modo correcto basado en el rol del usuario
+  const refreshMode = isAdmin ? "all" : "available";
+
+  // Cargar propiedades si no están cargadas, usando el modo correcto
   useEffect(() => {
     if (propertiesList === null) {
-      refreshProperties();
+      refreshProperties(refreshMode);
     }
-  }, [propertiesList, refreshProperties]);
+  }, [propertiesList, refreshProperties, refreshMode]);
 
-  const refreshMode = isAdmin ? "all" : "available";
   const list = externalProperties ?? propertiesList ?? [];
 
   /* --------------------------------------------------------------------- */

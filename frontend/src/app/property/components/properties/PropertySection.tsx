@@ -3,6 +3,7 @@ import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { GridSection } from "../../../shared/components/GridSection";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
+import { useAuthContext } from "../../../user/context/AuthContext";
 import { usePropertyPanel as usePropertySection } from "../../hooks/usePropertySection"; // ← tu hook
 import {
   getAllProperties,
@@ -51,15 +52,19 @@ export const PropertySection = ({
   const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
   const { pickItem } = usePropertiesContext();
+  const { isAdmin } = useAuthContext();
 
   // Tu hook (lo tenías como usePropertySection)
+  // El mode debe basarse en isAdmin para usar el endpoint correcto:
+  // - Si es admin: "all" (usa /getAll)
+  // - Si NO es admin: "available" (usa /get)
   const {
     data: properties = [],
     loading,
     onSearch,
     toggleSelect: internalToggle,
     isSelected: internalIsSelected,
-  } = usePropertySection(availableOnly ? "available" : "all");
+  } = usePropertySection(isAdmin ? "all" : "available");
 
   const rows = useMemo(
     () => properties.map((p) => ({ ...p, id: Number((p as any).id ?? (p as any).propertyId) })),
@@ -88,14 +93,16 @@ export const PropertySection = ({
   );
 
   const fetchAll = useCallback(async () => {
-    const res = await (availableOnly ? getAvailableProperties() : getAllProperties());
+    // Si es admin (true): usar getAllProperties (endpoint /getAll)
+    // Si NO es admin (false o undefined): usar getAvailableProperties (endpoint /get)
+    const res = await (isAdmin === true ? getAllProperties() : getAvailableProperties());
     let normalized = res ?? [];
     if (operationFilter) {
       normalized = normalized.filter((p: any) => String(p?.operation ?? "").toUpperCase() === operationFilter.toUpperCase());
     }
     onSearch(normalized);
     return normalized;
-  }, [availableOnly, operationFilter, onSearch]);
+  }, [isAdmin, operationFilter, onSearch]);
 
   const fetchByText = useCallback(
     async (term: string) => {
