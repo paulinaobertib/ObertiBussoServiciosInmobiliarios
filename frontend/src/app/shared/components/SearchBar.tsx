@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Box, TextField, InputAdornment, CircularProgress } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -6,7 +6,7 @@ type SearchBarProps = {
   data?: any[];
   fetchAll?: () => Promise<any[]>;
   fetchByText?: (q: string) => Promise<any[]>;
-  onSearch: (results: any[]) => void;
+  onSearch: (results: any[] | null) => void;
   placeholder?: string;
   debounceMs?: number;
   localFilterFields?: string[]; // NUEVO: para filtrar localmente por campos específicos
@@ -14,7 +14,6 @@ type SearchBarProps = {
 
 export const SearchBar = ({
   data = [],
-  fetchAll,
   fetchByText,
   onSearch,
   placeholder = "Buscar...",
@@ -23,6 +22,7 @@ export const SearchBar = ({
 }: SearchBarProps) => {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
+  const isInitial = useRef(true);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -46,18 +46,16 @@ export const SearchBar = ({
             onSearch(filtered);
           }
         } else {
-          // Vacío: traigo todo
-          if (fetchAll) {
-            const results = await fetchAll();
-            onSearch(results);
-          } else {
-            onSearch(data);
+          // Vacío: si es inicial, no hacer nada, dejar que cargue el componente padre
+          if (!isInitial.current) {
+            onSearch(null);
           }
         }
       } catch {
         onSearch([]);
       } finally {
         setLoading(false);
+        isInitial.current = false;
       }
     }, debounceMs);
 

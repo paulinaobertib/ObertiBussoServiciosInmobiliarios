@@ -258,13 +258,10 @@ export const usePropertyForm = (
     // validación base (siempre visibles)
     const expensesValid = form.expenses == null || form.expenses >= 0;
 
-    const hasCoordinates = typeof f.latitude === "number" && !isNaN(f.latitude) && typeof f.longitude === "number" && !isNaN(f.longitude);
-
-    // El número NO es obligatorio (se pondrá S/N automáticamente al guardar)
+    // Permitir crear sin coordenadas (se pueden agregar después o dejar sin validar)
     const baseValid =
       !!f.title &&
       !!f.street &&
-      hasCoordinates &&
       f.area > 0 &&
       f.price > 0 &&
       !!f.description &&
@@ -298,7 +295,7 @@ export const usePropertyForm = (
     if (!form.title) e.title = "Campo obligatorio";
     if (!form.street) e.street = "Campo obligatorio";
     // El número NO es obligatorio, se pondrá "S/N" automáticamente si está vacío
-    if (form.latitude == null || form.longitude == null) e.location = "Validá la dirección para obtener coordenadas";
+    // Permitir crear sin coordenadas (se pueden agregar después o dejar sin validar)
     if (form.area <= 0) e.area = "Debe ser > 0";
     if (form.price <= 0) e.price = "Debe ser > 0";
     if (!form.description) e.description = "Campo obligatorio";

@@ -25,7 +25,7 @@ describe("SearchBar", () => {
     expect(input).toBeInTheDocument();
   });
 
-  it("llama a fetchAll cuando el input está vacío", async () => {
+  it("NO llama a fetchAll al montar (evita doble carga)", () => {
     const mockResults = [{ id: 1, title: "Propiedad A" }];
     mockFetchAll.mockResolvedValueOnce(mockResults);
 
@@ -33,11 +33,9 @@ describe("SearchBar", () => {
       <SearchBar fetchAll={mockFetchAll} fetchByText={mockFetchByText} onSearch={mockOnSearch} debounceMs={100} />
     );
 
-    // Espera a que se dispare useEffect inicial
-    await waitFor(() => {
-      expect(mockFetchAll).toHaveBeenCalled();
-      expect(mockOnSearch).toHaveBeenCalledWith(mockResults);
-    });
+    // SearchBar NO hace búsqueda inicial con input vacío
+    expect(mockFetchAll).not.toHaveBeenCalled();
+    expect(mockOnSearch).not.toHaveBeenCalled();
   });
 
   it("llama a fetchByText cuando el input tiene texto", async () => {

@@ -78,9 +78,13 @@ export const usePropertyPanel = (mode: "all" | "available" = "all") => {
   }, [propertiesList]);
 
   // 3) búsqueda (SearchBar.onSearch)
-  const onSearch = useCallback((results: Property[]) => {
-    setData(results);
-  }, []);
+  const onSearch = useCallback((results: Property[] | null) => {
+    if (results === null) {
+      setData(propertiesList ?? []);
+    } else {
+      setData(results);
+    }
+  }, [propertiesList]);
 
   // 4) selección
   const toggleSelect = useCallback((id: number) => {

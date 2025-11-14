@@ -143,9 +143,8 @@ describe("Admin - CRUD de contratos de alquiler", () => {
     // Esperar a que la tabla de propiedades se renderice
     cy.wait(800);
 
-    cy.get('[role="row"][data-id]', { timeout: SLOT_TIMEOUT })
-      .filter(":visible")
-      .first()
+    // Buscar la fila que contiene "Propiedad A" y seleccionar su checkbox
+    cy.contains('[role="row"]', /Propiedad A/i, { timeout: SLOT_TIMEOUT })
       .should("be.visible")
       .within(() => {
         cy.get('input[type="checkbox"]').first().check({ force: true });

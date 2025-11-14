@@ -27,7 +27,7 @@ const sliderSettings = {
 
 export const ImageCarousel = () => {
   return (
-    <Box sx={{ position: "relative", height: "350px", mb: 4 }}>
+    <Box sx={{ position: "relative", height: "350px", mb: 4, borderRadius: "12px", overflow: "hidden" }}>
       <Slider {...sliderSettings}>
         {carouselImages.map((img, idx) => (
           <Box
@@ -39,7 +39,17 @@ export const ImageCarousel = () => {
               overflow: "hidden",
             }}
           >
-            <img src={img} alt={`Slide ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img
+              src={img}
+              alt={`Slide ${idx + 1}`}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                filter: "opacity(0.5)",
+                borderRadius: "12px",
+              }}
+            />
           </Box>
         ))}
       </Slider>
@@ -51,7 +61,8 @@ export const ImageCarousel = () => {
           left: 0,
           width: "100%",
           height: "100%",
-          backgroundColor: "rgba(200, 200, 200, 0.5)",
+          // backgroundColor: "rgba(200, 200, 200, 0.5)",
+          // borderRadius: "12px",
           pointerEvents: "none",
         }}
       />
@@ -75,7 +86,7 @@ export const ImageCarousel = () => {
           style={{
             width: "100%",
             height: "auto",
-            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.6))",
+            filter: "drop-shadow(2px 2px 4px rgba(128,128,128,0.6))",
           }}
         />
       </Box>

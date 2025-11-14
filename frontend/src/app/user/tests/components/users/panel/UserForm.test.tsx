@@ -40,7 +40,7 @@ describe("<UserForm />", () => {
 
   it("renderiza todos los campos del formulario", () => {
     render(<UserForm {...baseProps} />);
-    expect(screen.getByLabelText(/Nombre de usuario/i)).toBeInTheDocument();
+    // En acción "add", el campo de username NO se muestra
     expect(screen.getByLabelText(/^Nombre$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Apellido/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
@@ -61,8 +61,10 @@ describe("<UserForm />", () => {
 
     render(<UserForm {...baseProps} />);
 
-    fireEvent.change(screen.getByLabelText(/Nombre de usuario/i), { target: { value: "usuario1" } });
+    // En acción "add", NO hay campo username, solo email, nombre, apellido, teléfono
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: "test@example.com" } });
+    fireEvent.change(screen.getByLabelText(/^Nombre$/i), { target: { value: "Nombre" } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: "Apellido" } });
     fireEvent.change(screen.getByLabelText(/Teléfono/i), { target: { value: "1234567890" } });
 
     fireEvent.click(screen.getByRole("button", { name: /Crear usuario/i }));
@@ -70,9 +72,10 @@ describe("<UserForm />", () => {
     await waitFor(() => {
       expect(postUser).toHaveBeenCalledWith(
         expect.objectContaining({
-          userName: "usuario1",
           email: "test@example.com",
           phone: "1234567890",
+          firstName: "Nombre",
+          lastName: "Apellido",
         })
       );
       // Ajustado al texto real
@@ -165,8 +168,9 @@ it("edita usuario correctamente", async () => {
     (postUser as any).mockRejectedValue({ response: { data: "Error de prueba" } });
 
     render(<UserForm {...baseProps} />);
-    fireEvent.change(screen.getByLabelText(/Nombre de usuario/i), { target: { value: "usuario1" } });
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: "test@example.com" } });
+    fireEvent.change(screen.getByLabelText(/^Nombre$/i), { target: { value: "Nombre" } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: "Apellido" } });
     fireEvent.change(screen.getByLabelText(/Teléfono/i), { target: { value: "1234567890" } });
     fireEvent.click(screen.getByRole("button", { name: /Crear usuario/i }));
 
@@ -177,8 +181,9 @@ it("edita usuario correctamente", async () => {
 
   it("habilita botón de crear si todos los campos son válidos", () => {
     render(<UserForm {...baseProps} />);
-    fireEvent.change(screen.getByLabelText(/Nombre de usuario/i), { target: { value: "usuario1" } });
     fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: "test@example.com" } });
+    fireEvent.change(screen.getByLabelText(/^Nombre$/i), { target: { value: "Nombre" } });
+    fireEvent.change(screen.getByLabelText(/Apellido/i), { target: { value: "Apellido" } });
     fireEvent.change(screen.getByLabelText(/Teléfono/i), { target: { value: "1234567890" } });
 
     const btn = screen.getByRole("button", { name: /Crear usuario/i });

@@ -159,7 +159,7 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
       {/* Miniaturas */}
       <Box
         sx={{
-          mt: 2,
+          mt: 1,
           display: "flex",
           gap: 1,
           overflowX: "auto",

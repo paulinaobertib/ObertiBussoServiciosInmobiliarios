@@ -121,7 +121,6 @@ export function GuarantorsSection({ toggleSelect, isSelected, showActions = true
         isSelected={gridIsSelected}
         entityName="Garante"
         showActions={showActions}
-        fetchAll={loadAll}
         fetchByText={fetchByText}
         multiSelect
         selectable

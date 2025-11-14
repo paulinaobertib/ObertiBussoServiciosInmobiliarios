@@ -36,7 +36,7 @@ export const useManagePropertyPage = () => {
   const [activeStep, setActiveStep] = useState<0 | 1>(0);
   const [formReady, setFormReady] = useState(false);
 
-  const { setSelected, resetSelected, selected } = usePropertiesContext();
+  const { setSelected, resetSelected, selected, refreshProperties } = usePropertiesContext();
 
   // Helpers de UI (confirmaciones / avisos)
   const confirmAction = useCallback(
@@ -229,6 +229,9 @@ export const useManagePropertyPage = () => {
           }
         }
 
+        // Refrescar el catálogo de propiedades después de crear
+        await refreshProperties();
+        
         nav("/", { replace: true });
         return;
       }
@@ -252,6 +255,10 @@ export const useManagePropertyPage = () => {
       }
 
       await success("Propiedad actualizada", "Se guardaron los cambios.");
+      
+      // Refrescar el catálogo de propiedades antes de navegar
+      await refreshProperties();
+      
       nav("/", { replace: true });
     } catch (e) {
       handleError(e);

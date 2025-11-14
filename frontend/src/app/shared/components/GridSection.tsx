@@ -10,7 +10,7 @@ interface GridSectionProps {
   data: any[];
   loading: boolean;
   columns: GridColDef[];
-  onSearch: (results: any[]) => void;
+  onSearch: (results: any[] | null) => void;
   onCreate?: () => void;
   onEdit: (item: any) => void;
   onDelete: (item: any) => void;
@@ -20,7 +20,7 @@ interface GridSectionProps {
   isSelected?: (id: GridRowId) => boolean;
   entityName: string;
   showActions?: boolean;
-  fetchAll: () => Promise<any[]>;
+  fetchAll?: () => Promise<any[]>;
   fetchByText: (searchTerm: string) => Promise<any[]>;
   multiSelect?: boolean;
   /** los preseleccionados también aceptan number o string */

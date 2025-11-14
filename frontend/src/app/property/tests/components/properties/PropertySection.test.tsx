@@ -76,6 +76,10 @@ vi.mock("../../../../shared/context/AlertContext", () => ({
   useGlobalAlert: vi.fn(() => ({ showAlert: h.showAlertMock })),
 }));
 
+vi.mock("../../../user/context/AuthContext", () => ({
+  useAuthContext: vi.fn(() => ({ isAdmin: false, info: null })),
+}));
+
 vi.mock("react-router-dom", () => ({
   useNavigate: vi.fn(() => h.navigateMock),
 }));
@@ -109,6 +113,7 @@ vi.mock("../../../hooks/usePropertySection", () => ({
 
 vi.mock("../../../services/property.service", () => ({
   getAllProperties: h.getAllMock,
+  getAvailableProperties: h.getAllMock,
   getPropertiesByText: h.getByTextMock,
   deleteProperty: h.delPropMock,
 }));

@@ -157,6 +157,7 @@ export default function ManageContractPage() {
             showActions={false}
             showCreateButton={false}
             availableOnly
+            operationFilter="ALQUILER"
             // mantener seleccionado (number[])
             selectedIds={ctrl.selectedPropertyId != null ? [ctrl.selectedPropertyId] : []}
           />

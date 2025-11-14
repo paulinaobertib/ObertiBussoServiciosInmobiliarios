@@ -84,13 +84,6 @@ export const PropertyInfoCompare = ({ property }: Props) => {
         <Typography variant="body2" color="text.secondary">
           {address || "Ubicación desconocida"}
         </Typography>
-        {property.showPrice && (
-          <Typography variant="subtitle1" color="text.secondary" fontWeight={600}>
-            {property.expenses && property.expenses > 0
-              ? `Expensas: ${formatPrice(property.expenses, "ARS")}`
-              : "Sin expensas"}
-          </Typography>
-        )}
       </Box>
 
       {/* Price & Expenses */}
@@ -182,19 +175,6 @@ export const PropertyInfoCompare = ({ property }: Props) => {
               </Box>
             </Stack>
           </Box>
-        </Box>
-      )}
-
-      {/* Description */}
-      {property.description && (
-        <Box>
-          <Divider />
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 2 }}>
-            Descripción
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, lineHeight: 1.6, whiteSpace: "pre-line" }}>
-            {property.description}
-          </Typography>
         </Box>
       )}
     </Stack>

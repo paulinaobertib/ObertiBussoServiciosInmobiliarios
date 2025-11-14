@@ -15,6 +15,7 @@ jobs:
       CYPRESS_GATEWAY_URL: http://api.localtest.me:8090
       CYPRESS_KEYCLOAK_URL: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration
       CYPRESS_API_URL: http://api.localtest.me:8090/api
+      VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
       INTEGRATION_DB_URL: ${{ secrets.DB_SQL_URL_QA }}
       INTEGRATION_DB_USERNAME: ${{ secrets.DB_SQL_USERNAME }}
       INTEGRATION_DB_PASSWORD: ${{ secrets.DB_SQL_PASSWORD }}

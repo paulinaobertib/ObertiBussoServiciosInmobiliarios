@@ -60,14 +60,18 @@ jobs:
           BASE_URL: ${{ env.URL_FRONTEND_DEV }}
           GATEWAY_URL: https://${{ env.GATEWAY_HOSTNAME_DEV }}
           API_URL: https://${{ env.GATEWAY_HOSTNAME_DEV }}/api
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
           echo "BASE_URL=$BASE_URL"
           GATEWAY_ESCAPED=${GATEWAY_URL//\/\\/}
           API_ESCAPED=${API_URL//\/\\/}
           BASE_ESCAPED=${BASE_URL//\/\\/}
+          GOOGLE_SCAPED=${GOOGLE_API_KEY//\\/}
+
           find frontend/dist -type f -name '*.js' -exec sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
           find frontend/dist -type f -name '*.js' -exec sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
           find frontend/dist -type f -name '*.js' -exec sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__GOOGLE_MAPS_API_KEY_PLACEHOLDER__#$GOOGLE_SCAPED#g" {} \;
 
       - name: Install SWA CLI
         run: npm install -g @azure/static-web-apps-cli@latest
@@ -123,14 +127,18 @@ jobs:
           BASE_URL: ${{ env.URL_FRONTEND_PROD }}
           GATEWAY_URL: https://${{ env.GATEWAY_HOSTNAME_PROD }}
           API_URL: https://${{ env.GATEWAY_HOSTNAME_PROD }}/api
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
           echo "BASE_URL=$BASE_URL"
           GATEWAY_ESCAPED=${GATEWAY_URL//\/\\/}
           API_ESCAPED=${API_URL//\/\\/}
           BASE_ESCAPED=${BASE_URL//\/\\/}
+          GOOGLE_SCAPED=${GOOGLE_API_KEY//\\/}
+
           find frontend/dist -type f -name '*.js' -exec sed -i "s#__GATEWAY_URL_PLACEHOLDER__#$GATEWAY_ESCAPED#g" {} \;
           find frontend/dist -type f -name '*.js' -exec sed -i "s#__API_URL_PLACEHOLDER__#$API_ESCAPED#g" {} \;
           find frontend/dist -type f -name '*.js' -exec sed -i "s#__BASE_URL_PLACEHOLDER__#$BASE_ESCAPED#g" {} \;
+          find frontend/dist -type f -name '*.js' -exec sed -i "s#__GOOGLE_MAPS_API_KEY_PLACEHOLDER__#$GOOGLE_SCAPED#g" {} \;
 
       - name: Install SWA CLI
         run: npm install -g @azure/static-web-apps-cli@latest

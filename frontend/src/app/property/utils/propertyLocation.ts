@@ -4,8 +4,6 @@ const clean = (value?: string | null) => (value ?? "").trim();
 
 export const formatPropertyAddress = (property: Property) => {
   const parts = [
-    clean(property.street),
-    clean(property.number),
     clean(property.neighborhood?.name ?? ""),
     clean(property.neighborhood?.city ?? ""),
     "Argentina",

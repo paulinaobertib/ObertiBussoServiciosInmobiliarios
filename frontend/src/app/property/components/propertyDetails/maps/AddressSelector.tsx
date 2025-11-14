@@ -32,7 +32,7 @@ import {
 } from "../../../services/googleMaps.service";
 import { loadGoogleMapsSdk } from "../../../utils/googleMapsLoader";
 
-const GEOCODE_DELAY_MS = 5000;
+const GEOCODE_DELAY_MS = (window as any).Cypress ? 100 : 5000;
 const AUTOCOMPLETE_DEBOUNCE_MS = 500; // Aumentado de 350ms a 500ms
 const MIN_CHARS_FOR_AUTOCOMPLETE = 3; // Mínimo de caracteres antes de buscar
 
