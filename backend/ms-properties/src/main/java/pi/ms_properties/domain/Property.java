@@ -59,7 +59,7 @@ public class Property {
     @Column(name = "expenses", nullable = true)
     private BigDecimal expenses;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
     @Column(name = "date", nullable = false)

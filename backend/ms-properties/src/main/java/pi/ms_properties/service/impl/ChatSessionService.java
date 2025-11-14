@@ -15,6 +15,7 @@ import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.interf.IChatSessionService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,7 @@ public class ChatSessionService implements IChatSessionService {
         chatSession.setFirstName(userDTO.getFirstName());
         chatSession.setLastName(userDTO.getLastName());
         chatSession.setPhone(userDTO.getPhone());
-        chatSession.setDate(LocalDateTime.now());
+        chatSession.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         chatSession.setDerived(Boolean.FALSE);
 
         Property property = propertyRepository.findById(propertyId)
@@ -78,7 +79,7 @@ public class ChatSessionService implements IChatSessionService {
         }
 
         ChatSession chatSession = objectMapper.convertValue(dto, ChatSession.class);
-        chatSession.setDate(LocalDateTime.now());
+        chatSession.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         chatSession.setDerived(Boolean.FALSE);
 
         Property property = propertyRepository.findById(dto.getPropertyId())

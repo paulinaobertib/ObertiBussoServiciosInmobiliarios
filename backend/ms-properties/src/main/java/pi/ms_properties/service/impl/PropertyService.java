@@ -27,6 +27,7 @@ import pi.ms_properties.specification.PropertySpecification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -131,7 +132,7 @@ public class PropertyService implements IPropertyService {
     public ResponseEntity<String> createProperty(PropertySaveDTO propertyDTO) {
         PropertyUpdateDTO propertyUpdateDTO = mapper.convertValue(propertyDTO, PropertyUpdateDTO.class);
         Property property = SaveProperty(propertyUpdateDTO);
-        property.setDate(LocalDateTime.now());
+        property.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         propertyRepository.save(property);
 
@@ -278,7 +279,7 @@ public class PropertyService implements IPropertyService {
         Property property = propertyRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Propiedad no encontrada"));
 
-        viewService.createView(property, LocalDateTime.now());
+        viewService.createView(property, LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         return ResponseEntity.ok(toDTO(property));
     }
@@ -365,4 +366,45 @@ public class PropertyService implements IPropertyService {
         return ResponseEntity.ok(dto);
     }
 
+    @Override
+    public ResponseEntity<List<PropertySimpleDTO>> getPropertiesByIAResult(List<Map<String, Object>> iaResult) {
+        if (iaResult == null || iaResult.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Long> idsOrdered = iaResult.stream()
+                .map(m -> Long.valueOf(m.get("id").toString()))
+                .toList();
+
+        List<Property> properties = propertyRepository.findAllById(idsOrdered);
+
+        Map<Long, PropertySimpleDTO> dtoMap = properties.stream()
+                .collect(Collectors.toMap(
+                        Property::getId,
+                        this::toSimpleDTO
+                ));
+
+        List<PropertySimpleDTO> ordered = idsOrdered.stream()
+                .map(dtoMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        return ResponseEntity.ok(ordered);
+    }
+
+    private PropertySimpleDTO toSimpleDTO(Property property) {
+        PropertySimpleDTO dto = new PropertySimpleDTO();
+        dto.setId(property.getId());
+        dto.setTitle(property.getTitle());
+        dto.setPrice(property.getPrice());
+        dto.setDescription(property.getDescription());
+        dto.setDate(property.getDate());
+        dto.setStatus(property.getStatus().name());
+        dto.setOperation(property.getOperation().name());
+        dto.setCurrency(property.getCurrency().name());
+        dto.setNeighborhood(property.getNeighborhood().getName());
+        dto.setType(property.getType().getName());
+        dto.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
+        return dto;
+    }
 }

@@ -159,12 +159,16 @@ class AvailableAppointmentServiceTest {
         AvailableAppointment a1 = new AvailableAppointment();
         AvailableAppointment a2 = new AvailableAppointment();
 
-        when(availableAppointmentRepository.findAll()).thenReturn(List.of(a1, a2));
+        when(availableAppointmentRepository.findAllFromNow(any(LocalDateTime.class)))
+                .thenReturn(List.of(a1, a2));
 
-        ResponseEntity<List<AvailableAppointment>> response = availableAppointmentService.getAll();
+        ResponseEntity<List<AvailableAppointment>> response =
+                availableAppointmentService.getAll();
 
+        assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
     }
+
 
     @Test
     void availableAppointments_shouldReturnEnabledList() {

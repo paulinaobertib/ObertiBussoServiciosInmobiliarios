@@ -12,10 +12,13 @@ import pi.ms_properties.comparer.controller.ComparisonController;
 import pi.ms_properties.comparer.dto.PropertyDTOAI;
 import pi.ms_properties.comparer.service.AzureOpenAIService;
 import pi.ms_properties.comparer.service.GeolocationService;
+import pi.ms_properties.dto.PropertyDTO;
+import pi.ms_properties.dto.PropertySimpleDTO;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +60,20 @@ class ComparisonControllerTest {
         assertEquals("Comparación realizada correctamente", response.getBody());
     }
 
+    @Test
+    void shouldReturnSearchResult_whenQueryIsValid() {
+        List<PropertySimpleDTO> mockList = List.of(new PropertySimpleDTO(), new PropertySimpleDTO());
+
+        when(azureOpenAIService.searchAndReturnProperties("casa con pileta"))
+                .thenReturn(ResponseEntity.ok(mockList));
+
+        ResponseEntity<List<PropertySimpleDTO>> response =
+                controller.searchFull("casa con pileta");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+    }
+
     // casos de error
 
     @Test
@@ -73,5 +90,25 @@ class ComparisonControllerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Debe enviar 2 o 3 propiedades.", response.getBody());
+    }
+
+    @Test
+    void shouldPropagateError_whenSearchFails() {
+        when(azureOpenAIService.searchAndReturnProperties(any()))
+                .thenThrow(new RuntimeException("IA error"));
+
+        assertThrows(RuntimeException.class,
+                () -> controller.searchFull("algo"));
+    }
+
+    @Test
+    void shouldReturnOk_whenSearchReturnsEmptyList() {
+        when(azureOpenAIService.searchAndReturnProperties(any()))
+                .thenReturn(ResponseEntity.ok(List.of()));
+
+        ResponseEntity<List<PropertySimpleDTO>> response = controller.searchFull("dep");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
     }
 }

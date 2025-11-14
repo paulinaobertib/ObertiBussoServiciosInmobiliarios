@@ -624,6 +624,51 @@ public class PropertyServiceTest {
         verify(propertyRepository).delete(property);
     }
 
+    @Test
+    void testGetPropertiesByIAResult_success() {
+        List<Map<String, Object>> iaResult = List.of(
+                Map.of("id", 1L, "score", 0.95)
+        );
+
+        Property property = new Property();
+        property.setId(1L);
+        property.setTitle("Casa linda");
+        property.setPrice(BigDecimal.valueOf(50000));
+        property.setDescription("Hermosa casa");
+        property.setDate(LocalDateTime.now());
+        property.setMainImage("main.jpg");
+        property.setStatus(Status.DISPONIBLE);
+        property.setOperation(Operation.VENTA);
+        property.setCurrency(Currency.USD);
+
+        Neighborhood n = new Neighborhood();
+        n.setName("General Paz");
+        property.setNeighborhood(n);
+
+        Type t = new Type();
+        t.setName("Casa");
+        property.setType(t);
+
+        when(propertyRepository.findAllById(List.of(1L)))
+                .thenReturn(List.of(property));
+
+        when(azureBlobStorage.getImageUrl("main.jpg"))
+                .thenReturn("https://example.com/mainImage.jpg");
+
+        ResponseEntity<List<PropertySimpleDTO>> response =
+                propertyService.getPropertiesByIAResult(iaResult);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+
+        PropertySimpleDTO dto = response.getBody().getFirst();
+
+        assertEquals(1L, dto.getId());
+        assertEquals("Casa linda", dto.getTitle());
+        assertEquals("https://example.com/mainImage.jpg", dto.getMainImage());
+    }
+
     // casos de error
 
     @Test
@@ -890,5 +935,37 @@ public class PropertyServiceTest {
 
         verifyNoInteractions(chatSessionRepository, chatMessageRepository, chatDerivationRepository);
         verify(propertyRepository, never()).delete((Property) any());
+    }
+
+    @Test
+    void testGetPropertiesByIAResult_emptyIAResult() {
+        ResponseEntity<List<PropertySimpleDTO>> response =
+                propertyService.getPropertiesByIAResult(List.of());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+
+        verify(propertyRepository, never()).findAllById(anyList());
+    }
+
+    @Test
+    void testGetPropertiesByIAResult_propertyNotFound_isIgnored() {
+        List<Map<String, Object>> iaResult = List.of(
+                Map.of("id", 1L, "score", 1.0),
+                Map.of("id", 2L, "score", 0.8)
+        );
+
+        when(propertyRepository.findAllById(anyList()))
+                .thenReturn(List.of(property));
+
+        when(azureBlobStorage.getImageUrl(property.getMainImage()))
+                .thenReturn("https://example.com/mainImage.jpg");
+
+        ResponseEntity<List<PropertySimpleDTO>> response =
+                propertyService.getPropertiesByIAResult(iaResult);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
 }
