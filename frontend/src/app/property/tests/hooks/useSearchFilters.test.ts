@@ -209,17 +209,17 @@ describe("useSearchFilters", () => {
     getByFiltersMock.mockResolvedValueOnce(sampleProps);
 
     const { result, rerender } = renderHook(() => useSearchFilters(onSearch));
-    
+
     act(() => result.current.toggleAmenity(1));
-    
+
     expect(setSelectedMock).toHaveBeenCalledWith({
       ...selectedState,
       amenities: [1],
     });
-    
+
     // Forzar re-render para que el hook detecte el cambio en selectedState
     rerender();
-    
+
     await waitFor(() => {
       expect(getByFiltersMock).toHaveBeenCalled();
     });

@@ -107,3 +107,17 @@ export interface PropertyDTOAI {
   type: string;
   amenities: Set<string>;
 }
+
+export interface PropertySimple {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  date: string;
+  mainImage: string;
+  status: string;
+  operation: string;
+  currency: string;
+  neighborhood: string;
+  type: string;
+}

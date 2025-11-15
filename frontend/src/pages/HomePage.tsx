@@ -1,11 +1,11 @@
 import { Box, useTheme, useMediaQuery, Button } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import TuneIcon from "@mui/icons-material/Tune";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import { ImageCarousel } from "../app/shared/components/images/ImageCarousel";
-import { SearchBar } from "../app/shared/components/SearchBar";
 import { SearchFilters } from "../app/property/components/catalog/SearchFilters";
 import { PropertyCatalog } from "../app/property/components/catalog/PropertyCatalog";
+import { AISearch } from "../app/property/components/search/AISearch";
 import { FloatingButtons } from "../app/property/components/catalog/FloatingButtons";
 import { useGlobalAlert } from "../app/shared/context/AlertContext";
 import { Property } from "../app/property/types/property";
@@ -116,7 +116,7 @@ export default function Home() {
         sx={{
           display: "flex",
           alignItems: "stretch",
-          gap: 1,
+          gap: 1.5,
           flexGrow: { xs: 1, sm: 0 },
           ...sxOverrides,
         }}
@@ -127,10 +127,11 @@ export default function Home() {
           disabled={selectionMode && disabledCompare}
           sx={{
             flexGrow: 1,
-            flexBasis: { xs: 0, sm: "auto" },
-            minWidth: selectionMode ? 160 : undefined,
-            whiteSpace: { xs: "normal", sm: "nowrap" },
-            px: { xs: 1.5, sm: 2 },
+            flexBasis: 0,
+            minWidth: 0,
+            // whiteSpace: "nowrap",
+            px: { xs: 1, sm: 2 },
+            fontSize: { xs: "inherit", sm: "0.875rem" },
           }}
         >
           {selectionMode ? "Ir a Comparar" : "Comparar Propiedades"}
@@ -142,8 +143,8 @@ export default function Home() {
             onClick={toggleSelectionMode}
             sx={{
               flexShrink: 0,
-              minWidth: 48,
-              px: { xs: 1.5, sm: 2 },
+              minWidth: "auto",
+              px: 1.5,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -155,6 +156,32 @@ export default function Home() {
       </Box>
     );
   };
+
+  const compareSlot = renderCompareControls({
+    width: "100%",
+    height: "100%",
+    justifyContent: { xs: "stretch", md: "flex-end" },
+  });
+
+  const filterSlot = (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={() => setFiltersOpen(true)}
+      sx={{
+        minWidth: "auto",
+        px: 1.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        fontSize: "inherit",
+      }}
+    >
+      <TuneIcon fontSize="small" />
+      {/* Filtros */}
+    </Button>
+  );
 
   return (
     <BasePage maxWidth={false}>
@@ -171,77 +198,17 @@ export default function Home() {
         >
           <Box
             sx={{
-              width: isMobile ? "100%" : "40rem",
-              display: "flex",
-              flexDirection: isMobile ? "column" : "row",
-              gap: 1,
-              alignItems: isMobile ? "stretch" : "center",
-              justifyContent: "center",
+              width: isMobile ? "100%" : "60rem",
             }}
           >
-            {isMobile ? (
-              <>
-                {/* Primera línea: Filtros + (Búsqueda si admin) o (Comparar si usuario común) */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 1,
-                    flexWrap: "nowrap",
-                    alignItems: "stretch",
-                    width: "100%",
-                  }}
-                >
-                  {/* Botón de filtros siempre a la izquierda en mobile */}
-                  <Button
-                    variant="outlined"
-                    startIcon={<FilterListIcon />}
-                    onClick={() => setFiltersOpen(true)}
-                    sx={{ flexShrink: 0 }}
-                  >
-                    Filtros
-                  </Button>
-
-                  {/* Si es admin: búsqueda en la misma línea */}
-                  {isAdmin && (
-                    <Box sx={{ flexGrow: 1, width: "100%" }}>
-                      <SearchBar
-                        fetchByText={fetchPropertiesByText}
-                        onSearch={(items) => setResults(items as Property[])}
-                        placeholder="Buscar propiedad"
-                        debounceMs={400}
-                      />
-                    </Box>
-                  )}
-
-                  {/* Si NO es admin: botón comparar en la misma línea */}
-                  {!isAdmin && renderCompareControls()}
-                </Box>
-
-                {/* Segunda línea: Búsqueda (solo para usuario común) */}
-                {!isAdmin && (
-                  <Box sx={{ flexGrow: 1, width: "100%" }}>
-                    <SearchBar
-                      fetchByText={fetchPropertiesByText}
-                      onSearch={(items) => setResults(items as Property[])}
-                      placeholder="Buscar propiedad"
-                      debounceMs={400}
-                    />
-                  </Box>
-                )}
-              </>
-            ) : (
-              <>
-                <Box sx={{ flexGrow: 1 }}>
-                  <SearchBar
-                    fetchByText={fetchPropertiesByText}
-                    onSearch={(items) => setResults(items as Property[])}
-                    placeholder="Buscar propiedad"
-                    debounceMs={400}
-                  />
-                </Box>
-                {renderCompareControls()}
-              </>
-            )}
+            <AISearch
+              fetchByText={fetchPropertiesByText}
+              onSearch={setResults}
+              placeholder="Buscar propiedad"
+              debounceMs={2000}
+              compareSlot={compareSlot || undefined}
+              filterSlot={filterSlot}
+            />
           </Box>
         </Box>
 
