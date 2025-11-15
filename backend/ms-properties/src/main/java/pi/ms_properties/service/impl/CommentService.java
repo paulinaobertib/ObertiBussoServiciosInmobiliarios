@@ -14,6 +14,7 @@ import pi.ms_properties.repository.feign.UserRepository;
 import pi.ms_properties.service.interf.ICommentService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -39,7 +40,7 @@ public class CommentService implements ICommentService {
         Comment comment = new Comment();
         comment.setUserId(userDTO.getId());
         comment.setDescription(commentDTO.getDescription());
-        comment.setDate(LocalDateTime.now());
+        comment.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         comment.setProperty(property);
         commentRepository.save(comment);
 

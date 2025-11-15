@@ -29,7 +29,7 @@
               autofocus
               required
             />
-            <button type="button" class="toggle-password" data-target="password-new">
+            <button type="button" class="toggle-password" onclick="togglePassword(this)">
               <span class="material-icons">visibility</span>
             </button>
           </div>
@@ -43,7 +43,7 @@
               autocomplete="new-password"
               required
             />
-            <button type="button" class="toggle-password" data-target="password-confirm">
+            <button type="button" class="toggle-password" onclick="togglePassword(this)">
               <span class="material-icons">visibility</span>
             </button>
           </div>
@@ -69,8 +69,6 @@
     </div>
   </div>
 
-  <script>
- 
   <script>
     const I18N = {
       toastCloseLabel: '${msg("toastCloseLabel")?js_string}',
@@ -201,17 +199,15 @@
       return SERVER_ERROR_MAP[key] || fallback || key;
     }
 
-    function togglePassword(button) {
-      const targetId = button.getAttribute('data-target');
-      if (!targetId) return;
-      const input = document.getElementById(targetId);
-      if (!input) return;
+    function togglePassword(btn) {
+      const wrapper = btn.closest('.password-wrapper');
+      const input = wrapper.querySelector('input');
       if (input.type === 'password') {
         input.type = 'text';
-        button.querySelector('.material-icons').innerText = 'visibility_off';
+        btn.querySelector('.material-icons').innerText = 'visibility_off';
       } else {
         input.type = 'password';
-        button.querySelector('.material-icons').innerText = 'visibility';
+        btn.querySelector('.material-icons').innerText = 'visibility';
       }
     }
 
@@ -279,11 +275,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       ensureToastElements();
-
-      const toggles = document.querySelectorAll('.toggle-password');
-      toggles.forEach((button) => {
-        button.addEventListener('click', () => togglePassword(button));
-      });
 
       const form = document.getElementById('updatePasswordForm');
       const submitButton = form.querySelector('.btn-primary');

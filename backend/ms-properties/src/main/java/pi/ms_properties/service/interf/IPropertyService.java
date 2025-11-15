@@ -10,6 +10,7 @@ import pi.ms_properties.dto.PropertyUpdateDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public interface IPropertyService {
     ResponseEntity<String> createProperty(PropertySaveDTO propertyDTO);
@@ -33,6 +34,8 @@ public interface IPropertyService {
     ResponseEntity<List<PropertyDTO>> findBy(BigDecimal priceFrom, BigDecimal priceTo, float areaFrom, float areaTo, float coveredAreaFrom, float coveredAreaTo, List<Float> rooms, String operation, List<String> types, List<String> amenities, List<String> cities, List<String> neighborhoods, List<String> neighborhoodTypes, Boolean credit, Boolean financing, Currency currency);
 
     ResponseEntity<List<PropertyDTO>> findByTitleDescription(String value);
+
+    ResponseEntity<List<PropertySimpleDTO>> getPropertiesByIAResult(List<Map<String, Object>> iaResult);
 
     // feign
     ResponseEntity<PropertySimpleDTO> getSimpleById(Long id);

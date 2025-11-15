@@ -262,8 +262,10 @@ describe("Administrador: creación básica de una propiedad", () => {
 
     clickModalButtonIfPresent(/^ok$/i, /^aceptar$/i, /^entendido$/i);
 
-    cy.contains('[data-testid="favorite-item"]', "Propiedad Cypress", { timeout: ADMIN_TIMEOUT })
+    // Verificar que encontramos la propiedad creada (no "Propiedad A")
+    cy.contains('[data-testid="favorite-item"]', /Propiedad Cypress/, { timeout: ADMIN_TIMEOUT })
       .should("be.visible")
+      .and("contain", "Propiedad Cypress")
       .click({ force: true });
 
     cy.wait("@getPropertyById", { timeout: ADMIN_TIMEOUT });

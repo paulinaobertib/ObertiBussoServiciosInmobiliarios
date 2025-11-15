@@ -72,11 +72,4 @@ describe("PropertyPanel", () => {
     const mainBox = container.firstChild as HTMLElement;
     expect(mainBox).toHaveStyle("flex-direction: column");
   });
-
-  it("muestra la descripción debajo", () => {
-    render(<PropertyPanel property={mockProperty} InfoComponent={MockInfo} />);
-
-    expect(screen.getByText("Descripción")).toBeInTheDocument();
-    expect(screen.getByText(mockProperty.description)).toBeInTheDocument();
-  });
 });

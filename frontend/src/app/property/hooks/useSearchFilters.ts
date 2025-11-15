@@ -38,6 +38,7 @@ interface UseSearchFiltersReturn {
   chips: any[];
   setParams: any;
   apply: any;
+  isApplying: boolean;
 }
 
 export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFiltersReturn => {
@@ -138,8 +139,17 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     }
   }, [params.currency, dynamicLimits]);
 
-  /* ───────── llamada al backend ───────── */
+  const [isApplying, setIsApplying] = useState(false);
+
+  const selectedInitial = useRef(true);
+  useEffect(() => {
+    if (!selectedInitial.current) {
+      apply();
+    }
+    selectedInitial.current = false;
+  }, [selected]);
   async function apply(local = params) {
+    setIsApplying(true);
     setPropertiesLoading(true);
     try {
       const base: Partial<SearchParams> = {
@@ -195,28 +205,9 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
       return [];
     } finally {
       setPropertiesLoading(false);
+      setIsApplying(false);
     }
   }
-
-  /* ───────── disparar búsqueda ante cambios ───────── */
-  const prev = useRef<{ params: any; amenities: number[] } | null>(null);
-  
-  useEffect(() => {
-    // En el primer render, no hacer nada (solo guardar el estado inicial)
-    if (prev.current === null) {
-      prev.current = { params, amenities: selected.amenities };
-      return;
-    }
-    
-    // Comparación profunda para evitar búsquedas innecesarias
-    const paramsChanged = JSON.stringify(prev.current.params) !== JSON.stringify(params);
-    const amenitiesChanged = JSON.stringify(prev.current.amenities) !== JSON.stringify(selected.amenities);
-    
-    if (paramsChanged || amenitiesChanged) {
-      apply();
-      prev.current = { params, amenities: selected.amenities };
-    }
-  }, [params, selected.amenities]);
 
   /* ───────── toggles ───────── */
   function toggleParam<
@@ -323,5 +314,6 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     chips,
     setParams,
     apply,
+    isApplying,
   };
 };

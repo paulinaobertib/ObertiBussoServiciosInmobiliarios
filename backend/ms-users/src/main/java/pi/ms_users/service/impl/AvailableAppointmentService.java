@@ -11,6 +11,7 @@ import pi.ms_users.service.interf.IAvailableAppointmentService;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class AvailableAppointmentService implements IAvailableAppointmentService
     public ResponseEntity<String> create(AvailableAppointmentDTO availableAppointmentDTO) {
         LocalDateTime appointmentDateTime = LocalDateTime.of(availableAppointmentDTO.getDate(), availableAppointmentDTO.getStartTime());
 
-        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
+        if (appointmentDateTime.isBefore(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")))) {
             return ResponseEntity.badRequest().body("La fecha y hora del turno no puede ser anterior a la fecha y hora actual.");
         }
 
@@ -114,8 +115,12 @@ public class AvailableAppointmentService implements IAvailableAppointmentService
 
     @Override
     public ResponseEntity<List<AvailableAppointment>> getAll() {
-        return ResponseEntity.ok(availableAppointmentRepository.findAll());
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires"));
+        return ResponseEntity.ok(
+                availableAppointmentRepository.findAllFromNow(now)
+        );
     }
+
 
     @Override
     public ResponseEntity<List<AvailableAppointment>> noAvailableAppointments() {

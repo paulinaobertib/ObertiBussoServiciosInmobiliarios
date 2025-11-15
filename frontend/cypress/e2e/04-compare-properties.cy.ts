@@ -49,12 +49,20 @@ describe("Comparador de propiedades", () => {
         cy.wrap(title.trim()).as("secondTitle");
       });
 
-    cy.contains("button", /^Comparar Propiedades$/i, { timeout: CATALOG_TIMEOUT }).click();
+    cy.get("button", { timeout: CATALOG_TIMEOUT })
+      .filter((_, el) => /Comparar Propiedades/i.test(el.textContent ?? ""))
+      .filter(":visible")
+      .first()
+      .click();
 
     // Esperar a que el modo comparación se active
     cy.wait(500);
 
-    cy.contains("button", /^Ir a Comparar$/i, { timeout: CATALOG_TIMEOUT }).as("compareButton");
+    cy.get("button", { timeout: CATALOG_TIMEOUT })
+      .filter((_, el) => /^Ir a Comparar$/i.test(el.textContent ?? ""))
+      .filter(":visible")
+      .first()
+      .as("compareButton");
     cy.get("@compareButton").should("be.disabled");
 
     cy.get("@firstCard").find("input[type='checkbox']").check({ force: true });

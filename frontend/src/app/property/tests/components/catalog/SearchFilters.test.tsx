@@ -70,6 +70,7 @@ describe("<SearchFilters />", () => {
     chips: [] as Array<{ label: string; onClear: () => void }>,
     toggleAmenity: vi.fn(),
     selected: { amenities: [] as number[] },
+    isApplying: false,
   };
 
   beforeEach(() => {
@@ -173,38 +174,21 @@ describe("<SearchFilters />", () => {
     expect(toggleParam).toHaveBeenCalledWith("rooms", 3);
   });
 
-  it("superficie total/cubierta: onChangeCommitted llama apply", () => {
-    const setParams = vi.fn();
+  it("ejecuta filtros solo al presionar 'Buscar propiedades'", () => {
     const apply = vi.fn();
-
     (useSearchFilters as any).mockReturnValue({
       ...baseHook,
-      setParams,
       apply,
-      params: {
-        ...baseHook.params,
-        areaRange: [0, 100],
-        coveredRange: [0, 50],
-      },
     });
 
-    const view = renderWithTheme(<SearchFilters onSearch={onSearch} />);
-    fireEvent.click(view.getByRole("button", { name: /Superficie \(Total \/ Cubierta\)/i }));
+    renderWithTheme(<SearchFilters onSearch={onSearch} />);
+    fireEvent.click(screen.getByRole("button", { name: /Operación/i }));
+    fireEvent.click(screen.getByLabelText(/Venta/i));
 
-    const sliders = view.getAllByRole("slider");
-    // Slider de Total
-    sliders[0].focus();
-    fireEvent.keyDown(sliders[0], { key: "ArrowRight" });
-    fireEvent.keyUp(sliders[0], { key: "ArrowRight" });
+    expect(apply).not.toHaveBeenCalled();
 
-    // Slider de Cubierta
-    sliders[1].focus();
-    fireEvent.keyDown(sliders[1], { key: "ArrowRight" });
-    fireEvent.keyUp(sliders[1], { key: "ArrowRight" });
-
-    expect(apply).toHaveBeenCalledTimes(2);
-
-    view.unmount();
+    fireEvent.click(screen.getByTestId("filters-search-button"));
+    expect(apply).toHaveBeenCalledTimes(1);
   });
 
   it("amenities: marca/ desmarca llamando toggleAmenity", () => {
@@ -356,7 +340,7 @@ describe("<SearchFilters />", () => {
     expect(toggleParam).toHaveBeenCalledWith("rooms", 3);
   });
 
-  it("superficie total/cubierta: onChangeCommitted llama apply", () => {
+  it("permite modificar superficies sin disparar búsqueda automática", () => {
     const setParams = vi.fn();
     const apply = vi.fn();
 
@@ -371,23 +355,18 @@ describe("<SearchFilters />", () => {
       },
     });
 
-    const view = renderWithTheme(<SearchFilters onSearch={onSearch} />);
-    fireEvent.click(view.getByRole("button", { name: /Superficie \(Total \/ Cubierta\)/i }));
+    renderWithTheme(<SearchFilters onSearch={onSearch} />);
+    fireEvent.click(screen.getByRole("button", { name: /Superficie \(Total \/ Cubierta\)/i }));
 
-    const sliders = view.getAllByRole("slider");
-    // Slider de Total
+    const sliders = screen.getAllByRole("slider");
     sliders[0].focus();
     fireEvent.keyDown(sliders[0], { key: "ArrowRight" });
     fireEvent.keyUp(sliders[0], { key: "ArrowRight" });
 
-    // Slider de Cubierta
-    sliders[1].focus();
-    fireEvent.keyDown(sliders[1], { key: "ArrowRight" });
-    fireEvent.keyUp(sliders[1], { key: "ArrowRight" });
+    expect(apply).not.toHaveBeenCalled();
 
-    expect(apply).toHaveBeenCalledTimes(2);
-
-    view.unmount();
+    fireEvent.click(screen.getByTestId("filters-search-button"));
+    expect(apply).toHaveBeenCalledTimes(1);
   });
 
   it("Precio: seleccionar moneda llama toggleParam('currency', ...) y el slider queda habilitado", () => {

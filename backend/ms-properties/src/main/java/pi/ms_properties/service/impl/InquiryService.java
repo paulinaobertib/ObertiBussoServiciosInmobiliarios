@@ -48,7 +48,7 @@ public class InquiryService implements IInquiryService {
 
     private Inquiry saveInquiry(InquirySaveDTO inquirySaveDTO) {
         Inquiry inquiry = new Inquiry();
-        inquiry.setDate(LocalDateTime.now());
+        inquiry.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         inquiry.setTitle(inquirySaveDTO.getTitle());
         inquiry.setDescription(inquirySaveDTO.getDescription());
         inquiry.setStatus(InquiryStatus.ABIERTA);
@@ -148,7 +148,7 @@ public class InquiryService implements IInquiryService {
                 .orElseThrow(() -> new EntityNotFoundException("No se ha encontrado la consulta"));
 
         inquiry.setStatus(InquiryStatus.CERRADA);
-        inquiry.setDateClose(LocalDateTime.now());
+        inquiry.setDateClose(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         inquiryRepository.save(inquiry);
         String token = surveyTokenService.create(inquiry);
         surveyService.sendSurvey(inquiry.getEmail(), inquiry.getId(), token);

@@ -125,6 +125,7 @@ export const CategorySection = ({ category, selectable = true }: { category: Cat
     async (term: string) => {
       const lower = term.trim().toLowerCase();
       if (!lower) {
+        // Sin filtro, devolver todos los datos
         onSearch(data);
         return data;
       }

@@ -51,19 +51,20 @@ export default function FavoritesPage() {
               </Stack>
 
               <Stack
-                direction={{ xs: "column", sm: "row" }}
+                direction="row"
                 spacing={2}
-                alignItems={{ xs: "stretch", sm: "center" }}
+                alignItems="center"
                 justifyContent="space-between"
+                flexWrap="wrap"
                 sx={{ mt: { xs: 3, md: 4 } }}
               >
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 0 }}>
                   ¿Te interesan más opciones? Explorá el catálogo completo para sumar nuevas propiedades a tu lista.
                 </Typography>
                 <Button
                   variant="contained"
                   onClick={() => navigate(ROUTES.HOME_APP)}
-                  sx={{ alignSelf: { xs: "stretch", sm: "center" } }}
+                  sx={{ flexShrink: 0 }}
                 >
                   Ver catálogo
                 </Button>

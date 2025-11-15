@@ -8,6 +8,7 @@ import pi.ms_properties.repository.ISurveyTokenRepository;
 import pi.ms_properties.service.interf.ISurveyTokenService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -21,7 +22,7 @@ public class SurveyTokenService implements ISurveyTokenService {
         SurveyToken surveyToken = new SurveyToken();
         surveyToken.setUsed(false);
         surveyToken.setInquiry(inquiry);
-        surveyToken.setExpiration(LocalDateTime.now().plusDays(5));
+        surveyToken.setExpiration(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")).plusDays(5));
         surveyToken.setToken(UUID.randomUUID().toString());
         surveyTokenRepository.save(surveyToken);
         return surveyToken.getToken();
@@ -44,6 +45,6 @@ public class SurveyTokenService implements ISurveyTokenService {
         return surveyToken != null
                 && !surveyToken.isUsed()
                 && surveyToken.getExpiration() != null
-                && !surveyToken.getExpiration().isBefore(LocalDateTime.now());
+                && !surveyToken.getExpiration().isBefore(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
     }
 }

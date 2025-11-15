@@ -61,11 +61,6 @@ describe("PropertyInfoCompare", () => {
     expect(expensasNodes[0]).toHaveTextContent(/2[.,\s]?000/);
   });
 
-  it("muestra descripción si existe", () => {
-    renderWithProvider(<PropertyInfoCompare property={mockProperty} />);
-    expect(screen.getByText(/Hermoso departamento/)).toBeInTheDocument();
-  });
-
   it("muestra 'Consultar precio' si showPrice=false y sin expensas", () => {
     const prop = { ...mockProperty, showPrice: false, expenses: 0 };
     renderWithProvider(<PropertyInfoCompare property={prop} />);

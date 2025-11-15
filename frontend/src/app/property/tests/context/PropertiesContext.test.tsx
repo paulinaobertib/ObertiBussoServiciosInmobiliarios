@@ -4,6 +4,11 @@ import { renderHook, act } from "@testing-library/react";
 import { PropertyCrudProvider, usePropertiesContext } from "../../context/PropertiesContext";
 import { ReactNode } from "react";
 
+// Mock de AuthContext
+vi.mock("../../../user/context/AuthContext", () => ({
+  useAuthContext: vi.fn().mockReturnValue({ isAdmin: false, info: null }),
+}));
+
 // Mock de los servicios
 vi.mock("../../services/amenity.service", () => ({
   getAllAmenities: vi.fn().mockResolvedValue([{ id: 1, name: "Piscina" }]),
@@ -19,6 +24,7 @@ vi.mock("../../services/type.service", () => ({
 }));
 vi.mock("../../services/property.service", () => ({
   getAllProperties: vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]),
+  getAvailableProperties: vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]),
   getPropertyById: vi.fn().mockResolvedValue({ id: 99, title: "Propiedad Test" }),
 }));
 

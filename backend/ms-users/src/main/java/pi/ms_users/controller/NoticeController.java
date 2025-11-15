@@ -12,6 +12,7 @@ import pi.ms_users.dto.NoticeGetDTO;
 import pi.ms_users.service.interf.INoticeService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -24,7 +25,7 @@ public class NoticeController {
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> create(@RequestParam("userId") String userId, @RequestParam("title") String title, @RequestParam("mainImage") MultipartFile mainImage, @RequestParam("description") String description) {
-        NoticeDTO noticeDTO = new NoticeDTO(null, userId, LocalDateTime.now(), title, mainImage, description);
+        NoticeDTO noticeDTO = new NoticeDTO(null, userId, LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")), title, mainImage, description);
         return noticeService.create(noticeDTO);
     }
 

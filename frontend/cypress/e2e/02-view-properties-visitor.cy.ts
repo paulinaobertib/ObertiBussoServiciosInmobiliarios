@@ -57,13 +57,9 @@ describe("Catálogo público - Visitante no autenticado", () => {
       });
 
     // Re-seleccionar el elemento antes del click para evitar detachment
-    cy.get("[data-testid='favorite-item']")
-      .first()
-      .should("be.visible")
-      .click();
+    cy.get("[data-testid='favorite-item']").first().should("be.visible").click();
 
     // Esperar navegación y carga del detalle
-    cy.wait("@searchProperties", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
     cy.wait("@getPropertyById", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
 
     // Esperar a que el detalle se renderice

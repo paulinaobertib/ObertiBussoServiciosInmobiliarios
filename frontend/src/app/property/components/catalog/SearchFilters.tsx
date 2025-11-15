@@ -84,6 +84,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
     chips,
     toggleAmenity,
     selected,
+    isApplying,
   } = useSearchFilters(onSearch);
 
   const cities = useMemo(
@@ -235,7 +236,6 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             disabled={!params.currency}
             value={params.priceRange}
             onChange={(_, v) => setParams({ ...params, priceRange: v as [number, number] })}
-            onChangeCommitted={() => apply()}
             min={priceCfg.min}
             max={priceCfg.max}
             step={priceCfg.step}
@@ -275,7 +275,6 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             sx={{ mx: 3, mb: 2 }}
             value={params.areaRange}
             onChange={(_, v) => setParams({ ...params, areaRange: v as [number, number] })}
-            onChangeCommitted={() => apply()}
             min={dynLimits.area.min}
             max={dynLimits.area.max}
             step={dynLimits.area.step}
@@ -297,7 +296,6 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             sx={{ mx: 3 }}
             value={params.coveredRange}
             onChange={(_, v) => setParams({ ...params, coveredRange: v as [number, number] })}
-            onChangeCommitted={() => apply()}
             min={dynLimits.covered.min}
             max={dynLimits.covered.max}
             step={dynLimits.covered.step}
@@ -394,9 +392,33 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         </Box>
       )}
 
-      <LoadingButton fullWidth variant="outlined" onClick={reset} sx={{ mt: 2, fontSize: ".75rem", py: 0.5 }}>
-        Limpiar filtros
-      </LoadingButton>
+      <Box
+        sx={{
+          mt: 2,
+          display: "flex",
+          gap: 1,
+          alignItems: "stretch",
+          "& > *": { flex: 1 },
+        }}
+      >
+        <LoadingButton
+          variant="outlined"
+          onClick={reset}
+          sx={{ fontSize: ".75rem", py: 0.5 }}
+          data-testid="filters-reset-button"
+        >
+          Limpiar filtros
+        </LoadingButton>
+        <LoadingButton
+          variant="contained"
+          onClick={() => apply()}
+          loading={isApplying}
+          sx={{ fontSize: ".75rem", py: 0.5 }}
+          data-testid="filters-search-button"
+        >
+          Filtrar
+        </LoadingButton>
+      </Box>
     </Box>
   );
 

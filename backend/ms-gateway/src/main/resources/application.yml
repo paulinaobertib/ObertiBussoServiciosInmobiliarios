@@ -93,6 +93,7 @@ spring:
             - Path=/api/properties/chat/message
             - Path=/api/properties/chatSession/create
             - Path=/api/properties/suggestions/create
+            - Path=/api/properties/compare/search
           filters:
             - StripPrefix=2
             - name: RemoveRequestHeader

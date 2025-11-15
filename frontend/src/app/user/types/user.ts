@@ -13,7 +13,7 @@ export interface User {
 export interface UserCreate {
   firstName: string;
   lastName: string;
-  userName: string;
+  userName?: string;
   email: string;
   phone: string;
 }

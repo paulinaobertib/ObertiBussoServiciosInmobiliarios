@@ -18,6 +18,7 @@ import pi.ms_users.service.interf.INoticeService;
 import pi.ms_users.specification.NoticeSpecification;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -57,7 +58,7 @@ public class NoticeService implements INoticeService {
         }
 
         Notice notice = objectMapper.convertValue(noticeDTO, Notice.class);
-        notice.setDate(LocalDateTime.now());
+        notice.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         if (noticeDTO.getMainImage() != null && !noticeDTO.getMainImage().isEmpty()) {
             String image = imageRepository.uploadImage(noticeDTO.getMainImage());
@@ -83,7 +84,7 @@ public class NoticeService implements INoticeService {
         }
 
         Notice notice = objectMapper.convertValue(noticeDTO, Notice.class);
-        notice.setDate(LocalDateTime.now());
+        notice.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         if (noticeDTO.getMainImage() != null && !noticeDTO.getMainImage().isEmpty()) {
             String image = imageRepository.uploadImage(noticeDTO.getMainImage());

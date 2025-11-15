@@ -8,6 +8,7 @@ import pi.ms_properties.repository.ISuggestionRepository;
 import pi.ms_properties.service.interf.ISuggestionService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -20,7 +21,7 @@ public class SuggestionService implements ISuggestionService {
     public ResponseEntity<String> createSuggestion(String description) {
         Suggestion suggestion = new Suggestion();
         suggestion.setDescription(description);
-        suggestion.setDate(LocalDateTime.now());
+        suggestion.setDate(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
 
         suggestionRepository.save(suggestion);
 

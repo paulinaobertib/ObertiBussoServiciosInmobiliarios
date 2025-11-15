@@ -13,6 +13,7 @@ import pi.ms_properties.service.interf.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -158,7 +159,7 @@ public class ChatService implements IChatService {
         chatDerivationService.create(chatDerivation);
 
         chatSession.setDerived(Boolean.TRUE);
-        chatSession.setDateClose(LocalDateTime.now());
+        chatSession.setDateClose(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         chatSessionRepository.save(chatSession);
 
         agentAssignService.create(next.getUserId());
@@ -170,7 +171,7 @@ public class ChatService implements IChatService {
 
     private void closeRequest(ChatSession chatSession) {
         chatSession.setDerived(Boolean.FALSE);
-        chatSession.setDateClose(LocalDateTime.now());
+        chatSession.setDateClose(LocalDateTime.now(ZoneId.of("America/Argentina/Buenos_Aires")));
         chatSessionRepository.save(chatSession);
         emailService.sendChatSummaryEmail(chatSession, false, null);
     }

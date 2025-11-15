@@ -41,6 +41,7 @@ public class WebSecurityConfig {
                                 "/neighborhood/getById/**",
                                 "/type/getAll",
                                 "/type/getById/**",
+                                "/compare/search",
                                 "/actuator/health",
                                 "/actuator/health/**"
                         ).permitAll()
