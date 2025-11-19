@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,6 +67,10 @@ public class PropertyService implements IPropertyService {
     private final ContractRepository contractRepository;
 
     private final IViewRepository viewRepository;
+
+    private final PropertyJsonMapper propertyJsonMapper;
+
+    private final AzureBlobPropertiesStorage azureBlobPropertiesStorage;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
@@ -148,6 +153,14 @@ public class PropertyService implements IPropertyService {
 
         propertyRepository.save(property);
 
+        CompletableFuture.runAsync(() -> {
+            Property full = propertyRepository.findFullById(property.getId())
+                    .orElseThrow(() -> new RuntimeException("No se encontró la propiedad completa"));
+
+            String json = propertyJsonMapper.toJson(full);
+            azureBlobPropertiesStorage.uploadPropertyJson(property.getId(), json);
+        });
+
         boolean notificationFailed = false;
         boolean recommendationFailed = false;
 
@@ -199,6 +212,10 @@ public class PropertyService implements IPropertyService {
         chatSessionRepository.deleteAllByPropertyId(id);
         propertyRepository.delete(property);
 
+        CompletableFuture.runAsync(() -> {
+            azureBlobPropertiesStorage.deletePropertyJson(id);
+        });
+
         return ResponseEntity.ok("Se ha eliminado la propiedad");
     }
 
@@ -223,6 +240,14 @@ public class PropertyService implements IPropertyService {
         updated.setImages(current.getImages());
         propertyRepository.save(updated);
 
+        CompletableFuture.runAsync(() -> {
+            Property full = propertyRepository.findFullById(id)
+                    .orElseThrow(() -> new RuntimeException("No se encontró la propiedad completa"));
+
+            String json = propertyJsonMapper.toJson(full);
+            azureBlobPropertiesStorage.uploadPropertyJson(id, json);
+        });
+
         return ResponseEntity.ok(toDTO(updated));
     }
 
@@ -234,6 +259,14 @@ public class PropertyService implements IPropertyService {
         property.setStatus(status);
         propertyRepository.save(property);
 
+        CompletableFuture.runAsync(() -> {
+            Property full = propertyRepository.findFullById(id)
+                    .orElseThrow(() -> new RuntimeException("No se encontró la propiedad completa"));
+
+            String json = propertyJsonMapper.toJson(full);
+            azureBlobPropertiesStorage.uploadPropertyJson(id, json);
+        });
+
         return ResponseEntity.ok(property.getStatus().toString());
     }
 
@@ -244,6 +277,14 @@ public class PropertyService implements IPropertyService {
 
         property.setOutstanding(outstanding);
         propertyRepository.save(property);
+
+        CompletableFuture.runAsync(() -> {
+            Property full = propertyRepository.findFullById(id)
+                    .orElseThrow(() -> new RuntimeException("No se encontró la propiedad completa"));
+
+            String json = propertyJsonMapper.toJson(full);
+            azureBlobPropertiesStorage.uploadPropertyJson(id, json);
+        });
 
         return ResponseEntity.ok("Se ha actualizado la prioridad de la propiedad.");
     }

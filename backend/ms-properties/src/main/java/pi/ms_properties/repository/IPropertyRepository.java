@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.Status;
@@ -61,4 +60,7 @@ public interface IPropertyRepository extends JpaRepository<Property, Long>, JpaS
     GROUP BY p.id
     """, nativeQuery = true)
     List<Map<String, Object>> getPropertiesForAI();
+
+    @Query("select p from Property p left join fetch p.neighborhood left join fetch p.type left join fetch p.amenities where p.id=?1")
+    Optional<Property> findFullById(Long id);
 }

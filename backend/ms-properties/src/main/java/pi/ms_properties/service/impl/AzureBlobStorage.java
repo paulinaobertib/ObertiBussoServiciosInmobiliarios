@@ -5,7 +5,8 @@ import com.azure.storage.blob.BlobContainerClient;
 
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.models.BlobStorageException;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import pi.ms_properties.domain.Storage;
 import pi.ms_properties.service.interf.IAzureBlobStorage;
@@ -14,10 +15,13 @@ import pi.ms_properties.service.interf.IAzureBlobStorage;
 // el servicio de image se va a comunicar con este
 // guarda la logica para interacturar con blob
 @Service
-@RequiredArgsConstructor
 public class AzureBlobStorage implements IAzureBlobStorage {
 
     private final BlobContainerClient blobContainerClient;
+
+    public AzureBlobStorage(@Qualifier("images") BlobContainerClient blobContainerClient) {
+        this.blobContainerClient = blobContainerClient;
+    }
 
     private static final String STORAGE_BASE_URL = "https://storageimages.blob.core.windows.net/images/";
 

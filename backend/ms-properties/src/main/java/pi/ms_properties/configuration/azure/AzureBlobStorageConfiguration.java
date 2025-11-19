@@ -18,6 +18,9 @@ public class AzureBlobStorageConfiguration {
     @Value("${azure.blob-storage.connection-string}")
     private String connectionString;
 
+    @Value("${azure.blob-storage.property-ai}")
+    private String propertyAI;
+
     // para interacturar con blob y gestionar contenedores
     @Bean
     public BlobServiceClient getBlobServiceClient() {
@@ -26,10 +29,14 @@ public class AzureBlobStorageConfiguration {
                 .buildClient();
     }
 
-    // para interactuar y gestionar un contenedor en particular
-    @Bean
-    public BlobContainerClient getBlobContainerClient(BlobServiceClient blobServiceClient) {
-        return blobServiceClient.getBlobContainerClient(containerName);
+    @Bean(name = "images")
+    public BlobContainerClient imagesContainerClient(BlobServiceClient client) {
+        return client.getBlobContainerClient(containerName);
+    }
+
+    @Bean(name = "property")
+    public BlobContainerClient propertyJsonContainerClient(BlobServiceClient client) {
+        return client.getBlobContainerClient(propertyAI);
     }
 }
 

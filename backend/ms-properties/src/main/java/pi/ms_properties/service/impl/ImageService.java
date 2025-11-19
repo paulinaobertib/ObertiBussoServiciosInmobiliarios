@@ -4,6 +4,7 @@ import com.azure.storage.blob.*;
 import com.azure.storage.blob.models.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,7 +30,12 @@ public class ImageService implements IImageService {
 
     private final IPropertyRepository propertyRepository;
 
-    private final BlobContainerClient blobContainerClient;
+    private BlobContainerClient blobContainerClient;
+
+    @Qualifier("images")
+    public void setBlobContainerClient(BlobContainerClient blobContainerClient) {
+        this.blobContainerClient = blobContainerClient;
+    }
 
     // como lo guardamos con un nombre random a la imagen, necesito que guarde la extension del archivo
     private String getExtension(String filename) {
