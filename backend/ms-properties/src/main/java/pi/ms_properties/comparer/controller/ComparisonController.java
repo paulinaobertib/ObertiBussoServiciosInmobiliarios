@@ -27,7 +27,12 @@ public class ComparisonController {
         }
 
         List<PropertyDTOAI> geolocated = properties.stream()
-                .map(geoService::geolocation)
+                .map(p -> {
+                    if (p.getLatitude() == null || p.getLongitude() == null) {
+                        return geoService.geolocation(p);
+                    }
+                    return p;
+                })
                 .toList();
 
         String result = azureOpenAIService.compareProperties(geolocated);

@@ -1,5 +1,6 @@
 package pi.ms_properties.comparer.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -9,14 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import pi.ms_properties.comparer.dto.PropertyDTOAI;
-import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.service.impl.AzureBlobPropertiesStorage;
 import pi.ms_properties.service.interf.IPropertyService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,23 +38,49 @@ public class AzureOpenAIService {
 
     private final IPropertyService propertyService;
 
+    private final AzureBlobPropertiesStorage azureBlobPropertiesStorage;
+
     private final WebClient webClient = WebClient.builder()
             .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
             .build();
 
     public String compareProperties(List<PropertyDTOAI> properties) {
-        String prompt = generatePrompt(properties);
 
+        // 1) Obtener IDs de las propiedades enviadas
+        List<Long> ids = properties.stream()
+                .map(PropertyDTOAI::getId)
+                .toList();
+
+        // 2) Obtener URLs de JSON en Blob
+        List<String> urls = ids.stream()
+                .map(azureBlobPropertiesStorage::getPropertyUrl)
+                .toList();
+
+        // 3) Construir el prompt
         Map<String, Object> body = Map.of(
                 "messages", List.of(
-                        Map.of("role", "system", "content",
-                                "Sos un asesor inmobiliario en Córdoba, Argentina. Respondé con texto natural en español, como si hablaras con un cliente."),
-                        Map.of("role", "user", "content", prompt)
+                        Map.of(
+                                "role", "system",
+                                "content", """
+                    Sos un asesor inmobiliario en Córdoba, Argentina.
+                    Te paso URLs de propiedades en formato JSON almacenadas en Azure Blob Storage.
+                    Tu tarea es LEER esos archivos JSON y compararlas. Nombra que propiedad estas comparando, con el nombre simplificado.
+                    Redactá un solo texto breve que compare las propiedades de forma natural, sin usar listas ni viñetas.
+                    Usa un tono profesional.
+                    Hacelo en tono cálido y profesional, como si se lo explicaras a un cliente de manera simple y cercana.
+                    Mencioná de forma general las diferencias de ubicación, entorno, seguridad, tránsito y estilo de vida.
+                    Si una está en zona céntrica y otra en una más residencial, destacá esa diferencia.
+                    Podés referirte a comercios, espacios verdes o lugares conocidos de la zona, pero sin usar direcciones exactas.
+                    No hables de negociar precios ni incluyas números de ningún tipo.
+                    Limitá la respuesta a un texto mediano — como mucho 15 oraciones que sean fáciles de leer.
+                    """
+                        ),
+                        Map.of(
+                                "role", "user",
+                                "content", "URLs de propiedades: " + urls
+                        )
                 ),
-                "max_completion_tokens", 2000,
-                "top_p", 1,
-                "frequency_penalty", 0,
-                "presence_penalty", 0
+                "max_completion_tokens", 2000
         );
 
         String url = String.format(
@@ -73,65 +99,12 @@ public class AzureOpenAIService {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            String result = response.at("/choices/0/message/content").asText();
-            return result.isEmpty() ? "Azure no devolvió contenido" : result;
+            String content = response.at("/choices/0/message/content").asText();
+            return content.isEmpty() ? "Azure no devolvió contenido." : content;
 
         } catch (Exception e) {
             return "Error al comunicarse con Azure: " + e.getMessage();
         }
-    }
-
-    private String generatePrompt(List<PropertyDTOAI> properties) {
-        StringBuilder sb = new StringBuilder(
-                "Sos un asesor inmobiliario en Córdoba, Argentina. Compará estas propiedades en base a ubicación, precio, superficie, comodidades y características generales:\n\n"
-        );
-
-        for (PropertyDTOAI p : properties) {
-            sb.append("Propiedad: ").append(p.getName() != null ? p.getName() : "Sin nombre").append("\n");
-            sb.append(" - Dirección: ").append(p.getAddress() != null ? p.getAddress() : "N/A").append("\n");
-
-            if (p.getLatitude() != null && p.getLongitude() != null) {
-                sb.append(" - Coordenadas: Latitud ").append(p.getLatitude())
-                        .append(", Longitud ").append(p.getLongitude()).append("\n");
-            }
-
-            sb.append(" - Ambientes: ").append(p.getRooms() != null ? p.getRooms() : "N/A").append("\n");
-            sb.append(" - Dormitorios: ").append(p.getBedrooms() != null ? p.getBedrooms() : "N/A").append("\n");
-            sb.append(" - Baños: ").append(p.getBathrooms() != null ? p.getBathrooms() : "N/A").append("\n");
-            sb.append(" - Superficie total: ").append(p.getArea() != null ? p.getArea() + " m²" : "N/A").append("\n");
-            sb.append(" - Superficie cubierta: ").append(p.getCoveredArea() != null ? p.getCoveredArea() + " m²" : "N/A").append("\n");
-            sb.append(" - Precio: ").append(p.getPrice() != null ? "$" + p.getPrice() : "N/D").append("\n");
-            sb.append(" - Operación: ").append(p.getOperation() != null ? p.getOperation() : "N/A").append("\n");
-            sb.append(" - Tipo: ").append(p.getType() != null ? p.getType() : "N/A").append("\n");
-
-            if (p.getAmenities() != null && !p.getAmenities().isEmpty()) {
-                sb.append(" - Amenidades: ");
-                String amenitiesStr = p.getAmenities().stream()
-                        .map(Object::toString)
-                        .collect(Collectors.joining(", "));
-                sb.append(amenitiesStr).append("\n");
-            } else {
-                sb.append(" - Amenidades: Ninguna\n");
-            }
-
-            sb.append("\n");
-        }
-
-        sb.append("""
-            Redactá un solo texto breve que compare las propiedades de forma natural, sin usar listas ni viñetas.
-            Usa un tono profesional.
-            Hacelo en tono cálido y profesional, como si se lo explicaras a un cliente de manera simple y cercana.
-            Mencioná de forma general las diferencias de ubicación, entorno, seguridad, tránsito y estilo de vida.
-            Si una está en zona céntrica y otra en una más residencial, destacá esa diferencia.
-            Podés referirte a comercios, espacios verdes o lugares conocidos de la zona, pero sin usar direcciones exactas.
-            No hables de negociar precios ni incluyas números de ningún tipo.
-            Limitá la respuesta a un texto mediano — como mucho 15 oraciones que sean fáciles de leer.
-            """
-        );
-
-        sb.append("\nRespondé de forma completa y detallada según las instrucciones anteriores.");
-
-        return sb.toString();
     }
 
     public ResponseEntity<List<PropertySimpleDTO>> searchAndReturnProperties(String userQuery) {
@@ -139,7 +112,8 @@ public class AzureOpenAIService {
             String iaResponse = searchProperties(userQuery);
 
             ObjectMapper mapper = new ObjectMapper();
-            List<Map<String, Object>> iaResult = mapper.readValue(iaResponse, List.class);
+
+            List<Map<String, Object>> iaResult = mapper.readValue(iaResponse, new TypeReference<List<Map<String, Object>>>() {});
 
             return propertyService.getPropertiesByIAResult(iaResult);
 

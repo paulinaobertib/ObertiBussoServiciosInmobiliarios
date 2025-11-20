@@ -23,7 +23,7 @@ public class PropertyController {
 
     private final IPropertyService propertyService;
 
-    @PreAuthorize("hasRole('admin')")
+    //@PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public ResponseEntity<String> createProperty(@RequestPart("data") PropertySaveDTO propertySaveDTO, @RequestPart("mainImage") MultipartFile mainImage, @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         propertySaveDTO.setMainImage(mainImage);

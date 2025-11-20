@@ -43,6 +43,8 @@ public class AzureBlobPropertiesStorage {
     }
 
     public String getPropertyUrl(Long id) {
-        return blobContainerClient.getBlobClient("property_" + id + ".json").getBlobUrl();
+        return blobContainerClient
+                .getBlobClient("property_" + id + ".json")
+                .getBlobUrl();
     }
 }
