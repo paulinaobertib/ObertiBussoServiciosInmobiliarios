@@ -24,9 +24,9 @@ interface UseSearchFiltersReturn {
     coveredRange: [number, number];
   };
   dynLimits: {
-    price: { USD: { min: number; max: number; step: number; }; ARS: { min: number; max: number; step: number; }; };
-    area: { min: number; max: number; step: number; };
-    covered: { min: number; max: number; step: number; };
+    price: { USD: { min: number; max: number; step: number }; ARS: { min: number; max: number; step: number } };
+    area: { min: number; max: number; step: number };
+    covered: { min: number; max: number; step: number };
   };
   selected: any;
   typesList: any[];
@@ -92,7 +92,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
   // Solo actualizar rangos si el usuario no los ha modificado manualmente
   const initialAreaMaxRef = useRef<number | null>(null);
   const initialCoveredMaxRef = useRef<number | null>(null);
-  
+
   useEffect(() => {
     // Guardar el valor inicial
     if (initialAreaMaxRef.current === null) {
@@ -101,30 +101,30 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     if (initialCoveredMaxRef.current === null) {
       initialCoveredMaxRef.current = dynamicLimits.covered.max;
     }
-    
+
     // Solo actualizar si los rangos están en sus valores por defecto
     setParams((p) => {
       const shouldUpdateArea = p.areaRange[0] === 0 && p.areaRange[1] === (initialAreaMaxRef.current ?? 0);
       const shouldUpdateCovered = p.coveredRange[0] === 0 && p.coveredRange[1] === (initialCoveredMaxRef.current ?? 0);
-      
+
       if (!shouldUpdateArea && !shouldUpdateCovered) {
         return p; // No cambiar nada si el usuario ya modificó los rangos
       }
-      
+
       return {
         ...p,
         ...(shouldUpdateArea ? { areaRange: [0, dynamicLimits.area.max] as [number, number] } : {}),
         ...(shouldUpdateCovered ? { coveredRange: [0, dynamicLimits.covered.max] as [number, number] } : {}),
       };
     });
-    
+
     // Actualizar las referencias
     initialAreaMaxRef.current = dynamicLimits.area.max;
     initialCoveredMaxRef.current = dynamicLimits.covered.max;
   }, [dynamicLimits.area.max, dynamicLimits.covered.max]);
 
   const prevCurrencyRef = useRef<string>("");
-  
+
   useEffect(() => {
     if (params.currency === "USD" || params.currency === "ARS") {
       // Solo actualizar si cambió la moneda (no en cada render)
@@ -141,13 +141,6 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
 
   const [isApplying, setIsApplying] = useState(false);
 
-  const selectedInitial = useRef(true);
-  useEffect(() => {
-    if (!selectedInitial.current) {
-      apply();
-    }
-    selectedInitial.current = false;
-  }, [selected]);
   async function apply(local = params) {
     setIsApplying(true);
     setPropertiesLoading(true);
@@ -158,27 +151,27 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
         credit: local.operation === "VENTA" ? local.credit || undefined : undefined,
         financing: local.operation === "VENTA" ? local.financing || undefined : undefined,
       };
-      
+
       // Solo incluir precio si hay moneda seleccionada
       if (local.currency) {
         base.priceFrom = local.priceRange[0];
         base.priceTo = local.priceRange[1];
       }
-      
+
       // Solo incluir área si NO está en el valor máximo (es decir, si el usuario la modificó)
       const isAreaAtMax = local.areaRange[0] === 0 && local.areaRange[1] === dynamicLimits.area.max;
       if (!isAreaAtMax) {
         base.areaFrom = local.areaRange[0];
         base.areaTo = local.areaRange[1];
       }
-      
+
       // Solo incluir área cubierta si NO está en el valor máximo
       const isCoveredAtMax = local.coveredRange[0] === 0 && local.coveredRange[1] === dynamicLimits.covered.max;
       if (!isCoveredAtMax) {
         base.coveredAreaFrom = local.coveredRange[0];
         base.coveredAreaTo = local.coveredRange[1];
       }
-      
+
       delete base.rooms;
       if (!local.currency) {
         delete (base as any).currency;
@@ -249,7 +242,13 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
       coveredRange: [0, dynamicLimits.covered.max] as [number, number],
     };
     setParams(cleared);
-    setSelected({ owner: null, neighborhood: null, type: null, amenities: [], address: { street: "", number: "", latitude: null, longitude: null } });
+    setSelected({
+      owner: null,
+      neighborhood: null,
+      type: null,
+      amenities: [],
+      address: { street: "", number: "", latitude: null, longitude: null },
+    });
     await apply(cleared as any);
   }
 
@@ -272,18 +271,17 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     // Mostrar chip de precio si hay moneda seleccionada y el rango no está en el valor por defecto
     if (params.currency) {
       const currencyLimits = dynamicLimits.price[params.currency as "USD" | "ARS"];
-      const isPriceAtDefault = 
-        params.priceRange[0] === currencyLimits.min && 
-        params.priceRange[1] === currencyLimits.max;
-      
+      const isPriceAtDefault =
+        params.priceRange[0] === currencyLimits.min && params.priceRange[1] === currencyLimits.max;
+
       if (!isPriceAtDefault) {
-        out.push({ 
-          label: `Precio ${params.priceRange[0].toLocaleString()}-${params.priceRange[1].toLocaleString()}`, 
-          onClear: reset 
+        out.push({
+          label: `Precio ${params.priceRange[0].toLocaleString()}-${params.priceRange[1].toLocaleString()}`,
+          onClear: reset,
         });
       }
     }
-    
+
     if (params.areaRange[0] > 0 || params.areaRange[1] < dynamicLimits.area.max)
       out.push({ label: `Sup ${params.areaRange[0]}-${params.areaRange[1]}`, onClear: reset });
 

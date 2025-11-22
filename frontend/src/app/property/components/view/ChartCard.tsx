@@ -83,7 +83,7 @@ export default function ChartCard({ title, data, type = "bar" }: ChartCardProps)
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: type !== "bar", // ocultamos leyenda en barras
+        display: type !== "bar",
         position: "bottom" as const,
       },
       title: {

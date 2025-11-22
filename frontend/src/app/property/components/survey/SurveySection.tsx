@@ -5,6 +5,7 @@ import { getAllSurveys } from "../../services/survey.service";
 import { SurveysList } from "./SurveyList";
 
 interface Survey {
+  id?: number;
   score: number;
   comment: string;
 }
@@ -17,14 +18,17 @@ export const SurveysSection = () => {
   useEffect(() => {
     setLoading(true);
     getAllSurveys()
-      .then((data) => setSurveys(data))
+      .then((data) => {
+        const sorted = [...data].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+        setSurveys(sorted);
+      })
       .catch(() => setError("No se pudieron cargar las encuestas"))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+      <Box display="flex" justifyContent="center" alignItems="center" height="200px" mt={2}>
         <CircularProgress size={40} />
       </Box>
     );
@@ -32,11 +36,15 @@ export const SurveysSection = () => {
 
   if (error) {
     return (
-      <Box>
+      <Box mt={2}>
         <EmptyState title="No pudimos cargar las valoraciones." tone="error" />
       </Box>
     );
   }
 
-  return <SurveysList surveys={surveys} />;
+  return (
+    <Box mt={2}>
+      <SurveysList surveys={surveys} />
+    </Box>
+  );
 };

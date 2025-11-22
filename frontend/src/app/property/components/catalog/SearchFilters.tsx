@@ -55,6 +55,18 @@ const accordionSx = {
   "&:before": { display: "none" },
 };
 
+const scrollableDetailsSx = {
+  px: 1,
+  mx: 1,
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 0.2,
+  maxHeight: 150,
+  overflowY: "scroll",
+  scrollbarGutter: "stable",
+  pr: 1,
+};
+
 export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMobileTrigger }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -93,6 +105,28 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
   );
 
   const priceCfg = dynLimits.price[(params.currency || "USD") as "USD" | "ARS"] ?? dynLimits.price.USD;
+
+  const sortedTypes = useMemo(
+    () => [...typesList].sort((a, b) => a.name.localeCompare(b.name)),
+    [typesList]
+  );
+
+  const sortedAmenities = useMemo(
+    () => [...amenitiesList].sort((a, b) => a.name.localeCompare(b.name)),
+    [amenitiesList]
+  );
+
+  const sortedCities = useMemo(() => cities.slice().sort((a, b) => a.localeCompare(b)), [cities]);
+
+  const sortedNeighborhoods = useMemo(
+    () =>
+      [...neighborhoodsList].sort((a, b) => {
+        const nameCompare = a.name.localeCompare(b.name);
+        if (nameCompare !== 0) return nameCompare;
+        return (a.city ?? "").localeCompare(b.city ?? "");
+      }),
+    [neighborhoodsList]
+  );
 
   /* ═════════ Panel completo ═════════ */
   const Panel = (
@@ -171,8 +205,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Tipos de Propiedad</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {typesList.map((tp) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedTypes.map((tp) => (
             <FormControlLabel
               key={tp.name}
               control={
@@ -194,7 +228,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Números de Ambientes</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+        <AccordionDetails sx={scrollableDetailsSx}>
           {[1, 2, 3].map((n) => (
             <FormControlLabel
               key={n}
@@ -318,8 +352,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           <Typography variant="body2">Características</Typography>
         </AccordionSummary>
 
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {amenitiesList.map((am) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedAmenities.map((am) => (
             <FormControlLabel
               key={am.id}
               control={
@@ -341,8 +375,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Ciudades</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {cities.map((city) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedCities.map((city) => (
             <FormControlLabel
               key={city}
               control={
@@ -364,8 +398,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Barrios</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {neighborhoodsList.map((nb) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedNeighborhoods.map((nb) => (
             <FormControlLabel
               key={nb.name}
               control={
@@ -450,7 +484,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           }),
         }}
       >
-        <Box sx={{ height: "100%", overflowY: "auto" }}>{Panel}</Box>
+        <Box sx={{ height: "100%", overflowY: "scroll", scrollbarGutter: "stable" }}>{Panel}</Box>
       </Drawer>
     </>
   ) : (

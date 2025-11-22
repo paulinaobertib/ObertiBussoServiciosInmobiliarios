@@ -70,8 +70,8 @@ export const AISearch = ({
           variant={isAIEnabled ? "contained" : "outlined"}
           size="small"
           sx={{
-            flex: "0 0 auto",
-            minWidth: "auto",
+            flex: hasCompareSlot ? "0 0 auto" : 1,
+            minWidth: hasCompareSlot ? "auto" : 0,
             px: 0.75,
             fontWeight: 600,
             textTransform: "none",
