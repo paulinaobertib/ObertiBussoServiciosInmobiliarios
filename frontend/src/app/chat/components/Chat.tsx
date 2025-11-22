@@ -582,15 +582,25 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           {step === "chat" && chatActive && (
             <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
               <TextField
+                type="number"
                 fullWidth
                 placeholder="Escribí el número de una opción"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d{0,2}$/.test(value)) {
+                    setInputValue(value);
+                  }
+                }}
                 onKeyDown={async (e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     await sendCurrentInput();
                   }
+                }}
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "[0-9]*",
                 }}
                 InputProps={{
                   endAdornment: (
