@@ -308,7 +308,7 @@ public class AzureOpenAIService {
         String systemPrompt = """
         Devolvé un JSON con coincidencias entre la consulta del usuario y la lista de propiedades.
         Cada propiedad tiene: id, type, neighborhood, address, rooms, bedrooms, bathrooms,
-        operation, currency, price, amenities. 
+        operation, currency, price, amenities.
         Respondé así:
         [
           { "id": number, "score": number }
