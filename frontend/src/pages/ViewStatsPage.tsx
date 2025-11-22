@@ -206,7 +206,7 @@ export default function ViewStatsPage() {
   const viewCharts = [
     { title: "Vistas por día", data: stats.day, type: "bar" as const },
     { title: "Vistas por mes", data: stats.month, type: "doughnut" as const },
-    { title: "Propiedades con más vistas", data: topViewsByProperty, type: "bar" as const },
+    { title: "Propiedades con más vistas", data: topViewsByProperty, type: "pie" as const },
     { title: "Vistas por tipo de propiedad", data: topViewsByPropertyType, type: "pie" as const },
     { title: "Vistas por barrio", data: topViewsByNeighborhood, type: "pie" as const },
     { title: "Vistas por tipo de barrio", data: topViewsByNeighborhoodType, type: "doughnut" as const },
@@ -214,7 +214,7 @@ export default function ViewStatsPage() {
     { title: "Vistas por estado y tipo", data: topViewsByStatusAndType, type: "bar" as const },
     { title: "Vistas por tipo de operación", data: topViewsByOperation, type: "pie" as const },
     { title: "Vistas por ambientes", data: topViewsByRooms, type: "bar" as const },
-    { title: "Amenidades más consultadas", data: topViewsByAmenity, type: "bar" as const },
+    { title: "Características más consultadas", data: topViewsByAmenity, type: "bar" as const },
   ] as const;
 
   // --- CONSULTAS ---
