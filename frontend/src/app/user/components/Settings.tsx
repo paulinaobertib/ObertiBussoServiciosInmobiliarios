@@ -10,13 +10,25 @@ import {
   getNotificationsByUser,
 } from "../services/notification.service";
 import { NotificationType } from "../../user/types/notification";
+import { InfoIconWithDialog } from "../../shared/components/InfoIconWithDialog";
 
 type Preference = { id: number; type: NotificationType; enabled: boolean };
 type NotificationItem = { id: number; type: NotificationType; date: string };
 
 const TYPE_LABELS: Record<NotificationType, string> = {
   PROPIEDADNUEVA: "Nueva propiedad disponible",
-  PROPIEDADINTERES: "Actualizaciones de interés",
+  PROPIEDADINTERES: "Nueva propiedad de interés",
+};
+
+const TYPE_INFO: Record<NotificationType, { title: string; description: string }> = {
+  PROPIEDADNUEVA: {
+    title: "Nueva propiedad disponible",
+    description: "Cada vez que se carga una propiedad al sistema, te avisamos para que estés al tanto de todas las novedades del mercado. Si es nueva, te llega el aviso.",
+  },
+  PROPIEDADINTERES: {
+    title: "Nueva propiedad de interés",
+    description: "Estas son propiedades que podrían gustarte según lo que estuviste mirando o guardaste como favorito. Te avisamos cuando aparece algo que coincide con tus preferencias o tu estilo de búsqueda.",
+  },
 };
 
 const drawerWidth = 400;
@@ -51,17 +63,20 @@ function HistoryCard({ title, subtitle, right }: { title: string; subtitle: stri
   );
 }
 
-/** Preferencia con estilo “card” (sin hover) */
 function PrefRow({
   label,
   checked,
   onChange,
+  notificationType,
 }: {
   label: string;
   checked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>, c: boolean) => void;
+  notificationType?: NotificationType;
 }) {
   const theme = useTheme();
+  const showInfoIcon = notificationType && TYPE_INFO[notificationType];
+  
   return (
     <Box
       sx={{
@@ -79,9 +94,18 @@ function PrefRow({
         columnGap: 1.5,
       }}
     >
-      <Typography variant="body2" sx={{ fontSize: "0.95rem", fontWeight: 600 }}>
-        {label}
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {showInfoIcon && (
+          <InfoIconWithDialog
+            title={TYPE_INFO[notificationType].title}
+            description={TYPE_INFO[notificationType].description}
+            size={18}
+          />
+        )}
+        <Typography variant="body2" sx={{ fontSize: notificationType ? "0.90rem" : "0.95rem", fontWeight: 600 }}>
+          {label}
+        </Typography>
+      </Box>
       <Switch size="small" checked={checked} onChange={onChange} />
     </Box>
   );
@@ -257,6 +281,7 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
                       label={TYPE_LABELS[pref.type]}
                       checked={pref.enabled}
                       onChange={handleTogglePref(pref)}
+                      notificationType={pref.type}
                     />
                   ))}
                 </Stack>
