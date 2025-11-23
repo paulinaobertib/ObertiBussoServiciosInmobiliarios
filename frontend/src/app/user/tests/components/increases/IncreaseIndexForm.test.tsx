@@ -60,31 +60,43 @@ describe("IncreaseIndexForm", () => {
     expect(submitBtn).toBeEnabled();
   });
 
-  it("ADD: envía payload sin id y llama onDone", async () => {
-    const onDone = vi.fn();
-    createMock.mockResolvedValue({ id: 1, code: "CPI", name: "Coeficiente de Precios al Inquilino" });
+it("ADD: envía payload sin id y llama onDone", async () => {
+  const onDone = vi.fn();
+  createMock.mockResolvedValue({
+    id: 1,
+    code: "CPI",
+    name: "Coeficiente de Precios al Inquilino",
+  });
 
-    render(<IncreaseIndexForm action="add" onDone={onDone} />);
-    const { codigo, nombre, submitBtn } = getFields();
+  render(<IncreaseIndexForm action="add" onDone={onDone} />);
 
-    await typeInto(codigo, "CPI");
-    await typeInto(nombre, "Coeficiente de Precios al Inquilino");
+  const { codigo, nombre, submitBtn } = getFields();
 
-    expect(submitBtn).toBeEnabled();
-    await userEvent.click(submitBtn);
+  await typeInto(codigo, "CPI");
+  await typeInto(nombre, "Coeficiente de Precios al Inquilino");
 
-    await waitFor(() => {
-      expect(createMock).toHaveBeenCalledWith({
+  // 🔥 asegurarnos del re-render antes de click
+  await waitFor(() => expect(submitBtn).toBeEnabled());
+
+  await userEvent.click(submitBtn);
+
+  await waitFor(() => {
+    expect(createMock).toHaveBeenCalledWith({
+      code: "CPI",
+      name: "Coeficiente de Precios al Inquilino",
+    });
+
+    expect(onDone).toHaveBeenCalledWith({
+      action: "add",
+      form: { code: "CPI", name: "Coeficiente de Precios al Inquilino" },
+      saved: {
+        id: 1,
         code: "CPI",
         name: "Coeficiente de Precios al Inquilino",
-      });
-      expect(onDone).toHaveBeenCalledWith({
-        action: "add",
-        form: { code: "CPI", name: "Coeficiente de Precios al Inquilino" },
-        saved: { id: 1, code: "CPI", name: "Coeficiente de Precios al Inquilino" },
-      });
+      },
     });
   });
+});
 
   it("DELETE: deshabilita inputs, botón dice 'Eliminar', llama remove y onDone", async () => {
     const onDone = vi.fn();

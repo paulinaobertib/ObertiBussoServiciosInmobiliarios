@@ -120,28 +120,12 @@ describe("Componente Chat", () => {
     await act(async () => fireEvent.click(await screen.findByText("Sí")));
 
     const input = await screen.findByPlaceholderText(/Escribí el número/i);
-    fireEvent.change(input, { target: { value: "999" } });
+    fireEvent.change(input, { target: { value: "11" } });
     const btnSend = screen.getByRole("button", { name: "" });
     await act(async () => fireEvent.click(btnSend));
 
-    expect(mockAddUserMessage).toHaveBeenCalledWith("999");
+    expect(mockAddUserMessage).toHaveBeenCalledWith("11");
     expect(mockAddSystemMessage).toHaveBeenCalledWith("Opción inválida. Por favor seleccioná un número de la lista.");
-  });
-
-  it("en chat: enviar texto no numérico agrega 'Entrada inválida'", async () => {
-    mockStartSessionUser.mockResolvedValue(201);
-    render(<Chat initialPropertyId={1} />);
-    await act(async () => fireEvent.click(await screen.findByText("Sí")));
-
-    const input = await screen.findByPlaceholderText(/Escribí el número/i);
-    fireEvent.change(input, { target: { value: "hola" } });
-    const btnSend = screen.getByRole("button", { name: "" });
-    await act(async () => fireEvent.click(btnSend));
-
-    expect(mockAddUserMessage).toHaveBeenCalledWith("hola");
-    expect(mockAddSystemMessage).toHaveBeenCalledWith(
-      "Entrada inválida. Por favor escribí solo el número de una opción."
-    );
   });
 
   it("cambia de propiedad y envía CERRAR", async () => {

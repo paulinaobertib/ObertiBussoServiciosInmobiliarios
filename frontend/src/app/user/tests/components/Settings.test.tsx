@@ -103,7 +103,7 @@ describe("SettingsDrawer", () => {
     // Aparecen los labels resumidos
     expect(screen.getByText(/HISTORIAL \(RESUMEN\)/i)).toBeInTheDocument();
     expect(screen.getByText("Nueva propiedad disponible")).toBeInTheDocument();
-    expect(screen.getByText("Actualizaciones de interés")).toBeInTheDocument();
+    expect(screen.getByText("Nueva propiedad de interés")).toBeInTheDocument();
     expect(screen.getByText(/ENVIOS/)).toBeInTheDocument();
   });
 
@@ -201,7 +201,7 @@ describe("SettingsDrawer", () => {
     const items = within(list).getAllByRole("listitem");
     expect(items.length).toBe(2);
     expect(within(items[0]).getByText("Nueva propiedad disponible")).toBeInTheDocument();
-    expect(within(items[1]).getByText("Actualizaciones de interés")).toBeInTheDocument();
+    expect(within(items[1]).getByText("Nueva propiedad de interés")).toBeInTheDocument();
   });
 
   it("chip del header muestra la cantidad correcta de notificaciones de HOY", async () => {
@@ -261,7 +261,7 @@ describe("SettingsDrawer", () => {
     const list = screen.getByRole("list");
     const items = within(list).getAllByRole("listitem");
     // Por orden alfabético del tipo (I antes que N) en fecha igual
-    expect(within(items[0]).getByText("Actualizaciones de interés")).toBeInTheDocument();
+    expect(within(items[0]).getByText("Nueva propiedad de interés")).toBeInTheDocument();
     expect(within(items[1]).getByText("Nueva propiedad disponible")).toBeInTheDocument();
   });
 
