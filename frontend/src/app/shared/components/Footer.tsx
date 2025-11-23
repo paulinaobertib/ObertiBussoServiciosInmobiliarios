@@ -160,7 +160,7 @@ const Footer = () => {
             </Typography>
             <Typography variant="body2" textAlign="center">
               <a
-                href="https://maps.google.com/?q=Luis+Galeano+1910,+Villa+Cabrera,+Córdoba,+Argentina"
+                href="https://maps.app.goo.gl/tVk5ifyrLzq7egjH9?g_st=ipc"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "inherit", textDecoration: "none", display: "inline-block", marginBottom: "32px" }}

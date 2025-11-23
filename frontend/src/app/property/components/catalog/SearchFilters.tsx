@@ -25,6 +25,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { LoadingButton } from "@mui/lab";
 import { useSearchFilters } from "../../hooks/useSearchFilters";
 import type { Property } from "../../types/property";
+import { formatAmount } from "../../../shared/utils/numberFormat";
 
 interface Props {
   onSearch(results: Property[]): void;
@@ -62,8 +63,7 @@ const scrollableDetailsSx = {
   flexWrap: "wrap",
   gap: 0.2,
   maxHeight: 150,
-  overflowY: "scroll",
-  scrollbarGutter: "stable",
+  overflowY: "auto",
   pr: 1,
 };
 
@@ -106,10 +106,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
 
   const priceCfg = dynLimits.price[(params.currency || "USD") as "USD" | "ARS"] ?? dynLimits.price.USD;
 
-  const sortedTypes = useMemo(
-    () => [...typesList].sort((a, b) => a.name.localeCompare(b.name)),
-    [typesList]
-  );
+  const sortedTypes = useMemo(() => [...typesList].sort((a, b) => a.name.localeCompare(b.name)), [typesList]);
 
   const sortedAmenities = useMemo(
     () => [...amenitiesList].sort((a, b) => a.name.localeCompare(b.name)),
@@ -274,13 +271,14 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             max={priceCfg.max}
             step={priceCfg.step}
             valueLabelDisplay="auto"
+            valueLabelFormat={(value) => formatAmount(value as number)}
             marks={
               params.currency
                 ? [
                     { value: priceCfg.min, label: "0" },
                     {
                       value: priceCfg.max,
-                      label: priceCfg.max.toLocaleString(),
+                      label: formatAmount(priceCfg.max),
                     },
                   ]
                 : false
@@ -313,11 +311,12 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             max={dynLimits.area.max}
             step={dynLimits.area.step}
             valueLabelDisplay="auto"
+            valueLabelFormat={(value) => formatAmount(value)}
             marks={[
               { value: dynLimits.area.min, label: "0" },
               {
                 value: dynLimits.area.max,
-                label: dynLimits.area.max.toLocaleString(),
+                label: formatAmount(dynLimits.area.max),
               },
             ]}
             size="small"
@@ -334,11 +333,12 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             max={dynLimits.covered.max}
             step={dynLimits.covered.step}
             valueLabelDisplay="auto"
+            valueLabelFormat={(value) => formatAmount(value)}
             marks={[
               { value: dynLimits.covered.min, label: "0" },
               {
                 value: dynLimits.covered.max,
-                label: dynLimits.covered.max.toLocaleString(),
+                label: formatAmount(dynLimits.covered.max),
               },
             ]}
             size="small"

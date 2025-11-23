@@ -14,6 +14,7 @@ type SearchBarProps = {
 
 export const SearchBar = ({
   data = [],
+  fetchAll,
   fetchByText,
   onSearch,
   placeholder = "Buscar...",
@@ -48,7 +49,12 @@ export const SearchBar = ({
         } else {
           // Vacío: si es inicial, no hacer nada, dejar que cargue el componente padre
           if (!isInitial.current) {
-            onSearch(null);
+            if (fetchAll) {
+              const results = await fetchAll();
+              onSearch(results);
+            } else {
+              onSearch(null);
+            }
           }
         }
       } catch {

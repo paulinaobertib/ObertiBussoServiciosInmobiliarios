@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 
 import { SearchParams } from "../types/searchParams";
 import { Property } from "../types/property";
@@ -6,6 +6,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import { getPropertiesByFilters } from "../services/property.service";
 import { LIMITS } from "../utils/filterLimits";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { formatAmount } from "../../shared/utils/numberFormat";
 import { useAuthContext } from "../../user/context/AuthContext";
 
 interface UseSearchFiltersReturn {
@@ -141,66 +142,80 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
 
   const [isApplying, setIsApplying] = useState(false);
 
-  async function apply(local = params) {
-    setIsApplying(true);
-    setPropertiesLoading(true);
-    try {
-      const base: Partial<SearchParams> = {
-        ...local,
-        amenities: selected.amenities.map(String),
-        credit: local.operation === "VENTA" ? local.credit || undefined : undefined,
-        financing: local.operation === "VENTA" ? local.financing || undefined : undefined,
-      };
+  const apply = useCallback(
+    async (local = params) => {
+      setIsApplying(true);
+      setPropertiesLoading(true);
+      try {
+        const base: Partial<SearchParams> = {
+          ...local,
+          amenities: selected.amenities.map(String),
+          credit: local.operation === "VENTA" ? local.credit || undefined : undefined,
+          financing: local.operation === "VENTA" ? local.financing || undefined : undefined,
+        };
 
-      // Solo incluir precio si hay moneda seleccionada
-      if (local.currency) {
-        base.priceFrom = local.priceRange[0];
-        base.priceTo = local.priceRange[1];
+        if (local.currency) {
+          base.priceFrom = local.priceRange[0];
+          base.priceTo = local.priceRange[1];
+        }
+
+        const isAreaAtMax = local.areaRange[0] === 0 && local.areaRange[1] === dynamicLimits.area.max;
+        if (!isAreaAtMax) {
+          base.areaFrom = local.areaRange[0];
+          base.areaTo = local.areaRange[1];
+        }
+
+        const isCoveredAtMax = local.coveredRange[0] === 0 && local.coveredRange[1] === dynamicLimits.covered.max;
+        if (!isCoveredAtMax) {
+          base.coveredAreaFrom = local.coveredRange[0];
+          base.coveredAreaTo = local.coveredRange[1];
+        }
+
+        delete base.rooms;
+        if (!local.currency) {
+          delete (base as any).currency;
+        }
+
+        const res = await getPropertiesByFilters(buildSearchParams(base) as SearchParams);
+        const availableFiltered = isAdmin
+          ? res
+          : res.filter((p) => String(p.status ?? "").toUpperCase() === "DISPONIBLE");
+
+        const filtered = local.rooms.length
+          ? availableFiltered.filter((p) => {
+              const r = Number(p.rooms);
+              return local.rooms.some((n) => (n === 3 ? r >= 3 : r === n));
+            })
+          : availableFiltered;
+
+        onSearch(filtered);
+        return filtered;
+      } catch (e) {
+        handleError(e);
+        onSearch([]);
+        return [];
+      } finally {
+        setPropertiesLoading(false);
+        setIsApplying(false);
       }
+    },
+    [
+      params,
+      selected.amenities,
+      dynamicLimits,
+      buildSearchParams,
+      isAdmin,
+      handleError,
+      onSearch,
+      setPropertiesLoading,
+      getPropertiesByFilters,
+    ]
+  );
 
-      // Solo incluir área si NO está en el valor máximo (es decir, si el usuario la modificó)
-      const isAreaAtMax = local.areaRange[0] === 0 && local.areaRange[1] === dynamicLimits.area.max;
-      if (!isAreaAtMax) {
-        base.areaFrom = local.areaRange[0];
-        base.areaTo = local.areaRange[1];
-      }
-
-      // Solo incluir área cubierta si NO está en el valor máximo
-      const isCoveredAtMax = local.coveredRange[0] === 0 && local.coveredRange[1] === dynamicLimits.covered.max;
-      if (!isCoveredAtMax) {
-        base.coveredAreaFrom = local.coveredRange[0];
-        base.coveredAreaTo = local.coveredRange[1];
-      }
-
-      delete base.rooms;
-      if (!local.currency) {
-        delete (base as any).currency;
-      }
-
-      const res = await getPropertiesByFilters(buildSearchParams(base) as SearchParams);
-
-      const availableFiltered = isAdmin
-        ? res
-        : res.filter((p) => String(p.status ?? "").toUpperCase() === "DISPONIBLE");
-
-      const filtered = local.rooms.length
-        ? availableFiltered.filter((p) => {
-            const r = Number(p.rooms);
-            return local.rooms.some((n) => (n === 3 ? r >= 3 : r === n));
-          })
-        : availableFiltered;
-
-      onSearch(filtered);
-      return filtered;
-    } catch (e) {
-      handleError(e);
-      onSearch([]);
-      return [];
-    } finally {
-      setPropertiesLoading(false);
-      setIsApplying(false);
-    }
-  }
+  const applyRef = useRef(apply);
+  useEffect(() => {
+    applyRef.current = apply;
+  }, [apply]);
 
   /* ───────── toggles ───────── */
   function toggleParam<
@@ -224,6 +239,15 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
       : [...selected.amenities, id];
     setSelected({ ...selected, amenities: next });
   }
+
+  const skipAmenityAutoApply = useRef(true);
+  useEffect(() => {
+    if (skipAmenityAutoApply.current) {
+      skipAmenityAutoApply.current = false;
+      return;
+    }
+    applyRef.current?.();
+  }, [selected.amenities]);
 
   /* ───────── reset ───────── */
   async function reset() {
@@ -276,17 +300,23 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
 
       if (!isPriceAtDefault) {
         out.push({
-          label: `Precio ${params.priceRange[0].toLocaleString()}-${params.priceRange[1].toLocaleString()}`,
+          label: `Precio ${formatAmount(params.priceRange[0])}-${formatAmount(params.priceRange[1])}`,
           onClear: reset,
         });
       }
     }
 
     if (params.areaRange[0] > 0 || params.areaRange[1] < dynamicLimits.area.max)
-      out.push({ label: `Sup ${params.areaRange[0]}-${params.areaRange[1]}`, onClear: reset });
+      out.push({
+        label: `Sup ${formatAmount(params.areaRange[0])}-${formatAmount(params.areaRange[1])}`,
+        onClear: reset,
+      });
 
     if (params.coveredRange[0] > 0 || params.coveredRange[1] < dynamicLimits.covered.max)
-      out.push({ label: `Cub ${params.coveredRange[0]}-${params.coveredRange[1]}`, onClear: reset });
+      out.push({
+        label: `Cub ${formatAmount(params.coveredRange[0])}-${formatAmount(params.coveredRange[1])}`,
+        onClear: reset,
+      });
 
     if (selected.amenities.length)
       out.push({

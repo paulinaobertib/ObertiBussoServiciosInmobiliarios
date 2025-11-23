@@ -35,7 +35,11 @@ export const Loading = ({ message = "Espera, estamos preparando tu experiencia..
         src={logo}
         alt="Logo"
         sx={{
-          height: "8rem",
+          height: {
+            xs: '6rem', // for extra-small screens
+            sm: '8rem', // for small screens
+            md: '10rem' // for medium screens and up
+          },
           objectFit: "contain",
         }}
       />

@@ -201,8 +201,8 @@ describe("<PropertyCard />", () => {
     );
     expect(screen.getByText(/Precio/i)).toBeInTheDocument();
     expect(screen.getByText(/Expensas/i)).toBeInTheDocument();
-    expect(screen.getByText(/ARS \$123456/)).toBeInTheDocument();
-    expect(screen.getByText(/ARS \$5000/)).toBeInTheDocument();
+    expect(screen.getByText(/ARS \$123\.456/)).toBeInTheDocument();
+    expect(screen.getByText(/ARS \$5\.000/)).toBeInTheDocument();
 
     rerender(
       <ThemeProvider theme={theme}>

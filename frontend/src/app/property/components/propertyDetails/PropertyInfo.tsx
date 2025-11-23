@@ -1,3 +1,4 @@
+import { formatAmount } from "../../../shared/utils/numberFormat";
 import { useState } from "react";
 import { Box, Typography, Chip, Stack, IconButton, Divider, useTheme, Switch } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -57,11 +58,11 @@ export const PropertyInfo = ({ property }: Props) => {
       icon: <DoorFrontIcon sx={{ color: theme.palette.primary.main }} />,
     },
     {
-      label: property.area ? `${property.area} m²` : "- m²",
+      label: property.area ? `${formatAmount(property.area)} m²` : "- m²",
       icon: <SquareFootIcon sx={{ color: theme.palette.primary.main }} />,
     },
     {
-      label: property.coveredArea ? `${property.coveredArea} m² cubiertos` : "- m² cubiertos",
+      label: property.coveredArea ? `${formatAmount(property.coveredArea)} m² cubiertos` : "- m² cubiertos",
       icon: <FoundationIcon sx={{ color: theme.palette.primary.main }} />,
     },
   ].filter((f) => !f.label.startsWith("-"));

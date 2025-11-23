@@ -245,7 +245,7 @@ export const usePropertyForm = (
         setField(k, (opts?.allowNull ? (null as any) : ("" as any)));
         return;
       }
-      const n = parseInt(val, 10);
+      const n = parseInt(val.replace(/\./g, ""), 10);
       if (!isNaN(n)) setField(k, n as any);
     },
     [setField]

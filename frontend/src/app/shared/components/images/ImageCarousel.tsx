@@ -21,21 +21,23 @@ const sliderSettings = {
   slidesToShow: 1,
   slidesToScroll: 1,
   autoplay: true,
-  autoplaySpeed: 3000,
+  autoplaySpeed: 4000,
   arrows: false,
 };
 
 export const ImageCarousel = () => {
+  const responsiveHeight = { xs: '13rem', sm: '15rem' };
+
   return (
-    <Box sx={{ position: "relative", height: "350px", mb: 4, borderRadius: "12px", overflow: "hidden" }}>
+    <Box sx={{ position: "relative", height: responsiveHeight, mb: '1.9rem', borderRadius: "12px", overflow: "hidden" }}>
       <Slider {...sliderSettings}>
         {carouselImages.map((img, idx) => (
           <Box
             key={idx}
             sx={{
               position: "relative",
-              height: "350px",
-              borderRadius: "12px",
+              height: responsiveHeight,
+              // borderRadius: "12px",
               overflow: "hidden",
             }}
           >
@@ -47,7 +49,7 @@ export const ImageCarousel = () => {
                 height: "100%",
                 objectFit: "cover",
                 filter: "opacity(0.5)",
-                borderRadius: "12px",
+                // borderRadius: "12px",
               }}
             />
           </Box>
@@ -70,14 +72,12 @@ export const ImageCarousel = () => {
       <Box
         sx={{
           position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "50%",
-          "@media (max-width: 1200px)": { width: "90%" },
-          "@media (max-width: 900px)": { width: "80%" },
-          "@media (max-width: 600px)": { width: "70%" },
+          inset: 0,
           pointerEvents: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 2, sm: 4 },
         }}
       >
         <img
@@ -85,6 +85,7 @@ export const ImageCarousel = () => {
           alt="Logo"
           style={{
             width: "100%",
+            maxWidth: 750,
             height: "auto",
             filter: "drop-shadow(2px 2px 4px rgba(128,128,128,0.6))",
           }}

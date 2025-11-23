@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Box, IconButton } from "@mui/material";
 import { GridSection } from "../../../shared/components/GridSection";
 import type { Utility } from "../../types/utility";
@@ -79,6 +79,10 @@ export function UtilitiesSection({ toggleSelect, isSelected, showActions = true,
     const list = await loadAll();
     setRows(list);
   }, [loadAll]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const openEdit = (u: Utility) => {
     setModalTitle("Editar servicio");

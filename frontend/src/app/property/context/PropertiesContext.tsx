@@ -58,6 +58,7 @@ interface Ctx {
   loadProperty: (id: number) => Promise<void>;
   comparisonItems: Property[];
   comparisonLoading: boolean;
+  loadComparisonItems: (ids: number[]) => Promise<void>;
   selectedPropertyIds: number[];
   toggleCompare: (id: number) => void;
   clearComparison: () => void;
@@ -296,26 +297,23 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
-  useEffect(() => {
-    if (selectedPropertyIds.length === 0) {
+  const loadComparisonItems = useCallback(async (ids: number[]) => {
+    if (ids.length === 0) {
       setComparisonItems([]);
-      setComparisonLoading(false);
       return;
     }
-    (async () => {
-      setComparisonLoading(true);
-      const items: Property[] = [];
-      for (const id of selectedPropertyIds) {
-        try {
-          items.push(await getPropertyById(id));
-        } catch (err) {
-          console.error(`No se pudo cargar la propiedad ${id}`, err);
-        }
+    setComparisonLoading(true);
+    const items: Property[] = [];
+    for (const id of ids) {
+      try {
+        items.push(await getPropertyById(id));
+      } catch (err) {
+        console.error(`No se pudo cargar la propiedad ${id}`, err);
       }
-      setComparisonItems(items);
-      setComparisonLoading(false);
-    })();
-  }, [selectedPropertyIds]);
+    }
+    setComparisonItems(items);
+    setComparisonLoading(false);
+  }, []);
 
   const toggleCompare = useCallback(
     (id: number) =>
@@ -363,6 +361,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         loadProperty,
         comparisonItems,
         comparisonLoading,
+        loadComparisonItems,
         selectedPropertyIds,
         toggleCompare,
         clearComparison,

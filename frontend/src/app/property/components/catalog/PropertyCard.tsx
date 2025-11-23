@@ -3,6 +3,7 @@ import { Card, Box, Chip, Typography, useTheme, Checkbox } from "@mui/material";
 import { FavoriteButton } from "../../../user/components/favorites/FavoriteButtom";
 import { Property } from "../../types/property";
 import { useAuthContext } from "../../../user/context/AuthContext";
+import { formatAmount } from "../../../shared/utils/numberFormat";
 //import { Star } from 'lucide-react';
 
 export interface Props {
@@ -269,7 +270,7 @@ export const PropertyCard = ({
                   Precio
                 </Typography>
                 <Typography variant="subtitle2" noWrap sx={{ whiteSpace: "nowrap" }} fontSize={"0.85rem"}>
-                  {`${property.currency} $${property.price}`}
+                  {`${property.currency} $${formatAmount(property.price)}`}
                 </Typography>
               </Box>
               {showExpenses && (
@@ -285,7 +286,7 @@ export const PropertyCard = ({
                     Expensas
                   </Typography>
                   <Typography variant="subtitle2" noWrap sx={{ whiteSpace: "nowrap" }} fontSize={"0.85rem"}>
-                    {`ARS $${property.expenses}`}
+                    {`ARS $${formatAmount(property.expenses)}`}
                   </Typography>
                 </Box>
               )}

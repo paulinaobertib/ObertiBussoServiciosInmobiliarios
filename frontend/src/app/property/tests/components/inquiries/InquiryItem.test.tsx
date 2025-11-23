@@ -8,15 +8,19 @@ const CREATED_ISO = "2025-01-15T15:30:00";
 const CLOSED_ISO = "2025-01-20T10:10:00";
 
 vi.mock("dayjs", () => {
-  const factory = (input?: string) => ({
-    _input: input,
-    locale: vi.fn().mockReturnThis(),
-    format: vi.fn(() => {
-      if (input === CREATED_ISO) return "CREATED_FMT";
-      if (input === CLOSED_ISO) return "CLOSED_FMT";
-      return "DATE_FMT";
-    }),
-  });
+  const factory = (rawInput?: string) => {
+    const normalize = (value?: string) => value?.replace(" ", "T");
+    return {
+      _input: rawInput,
+      locale: vi.fn().mockReturnThis(),
+      format: vi.fn(() => {
+        const input = normalize(rawInput);
+        if (input === CREATED_ISO) return "CREATED_FMT";
+        if (input === CLOSED_ISO) return "CLOSED_FMT";
+        return "DATE_FMT";
+      }),
+    };
+  };
   return { default: factory };
 });
 vi.mock("dayjs/locale/es", () => ({}));
@@ -52,8 +56,8 @@ vi.mock("react-router-dom", async () => {
   };
 });
 vi.mock("../../../../lib", () => ({
-  buildRoute: (_route: string, id: number) => `/prop/${id}`,
-  ROUTES: { PROPERTY_DETAILS: "/prop/:id" },
+  buildRoute: (_route: string, id: number) => `/properties/${id}`,
+  ROUTES: { PROPERTY_DETAILS: "/properties/:id" },
 }));
 
 vi.mock("../../utils/findPropertyIdByTitle", () => ({
