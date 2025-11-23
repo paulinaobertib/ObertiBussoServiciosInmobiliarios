@@ -12,6 +12,7 @@ import pi.ms_users.dto.CommissionDTO;
 import pi.ms_users.dto.CommissionGetDTO;
 import pi.ms_users.repository.ICommissionRepository;
 import pi.ms_users.repository.IContractRepository;
+import pi.ms_users.repository.IPaymentRepository;
 import pi.ms_users.service.interf.ICommissionService;
 
 import java.math.BigDecimal;
@@ -26,6 +27,8 @@ public class CommissionService implements ICommissionService {
     private final ICommissionRepository commissionRepository;
 
     private final IContractRepository contractRepository;
+
+    private final IPaymentRepository paymentRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -241,5 +244,26 @@ public class CommissionService implements ICommissionService {
         }
 
         return ResponseEntity.ok(result);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<BigDecimal> getPartialCommissionsRemainingAmount() {
+        List<Commission> partialCommissions = commissionRepository.findByStatus(CommissionStatus.PARCIAL);
+        
+        BigDecimal totalRemaining = BigDecimal.ZERO;
+        
+        for (Commission commission : partialCommissions) {
+            List<Payment> payments = paymentRepository.findByCommissionId(commission.getId());
+            
+            BigDecimal paidAmount = payments.stream()
+                    .map(Payment::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+            BigDecimal remainingAmount = commission.getTotalAmount().subtract(paidAmount);
+            totalRemaining = totalRemaining.add(remainingAmount);
+        }
+        
+        return ResponseEntity.ok(totalRemaining);
     }
 }
