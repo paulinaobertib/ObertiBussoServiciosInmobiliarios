@@ -122,6 +122,19 @@ export const getCommissionsByDateRange = async (from: string, to: string) => {
   }
 };
 
+/** GET /commissions/partial/remainingAmount */
+export const getPartialCommissionsRemainingAmount = async () => {
+  try {
+    const response = await api.get(`/users/commissions/partial/remainingAmount`, {
+      withCredentials: true,
+    });
+    return Number(response?.data ?? 0);
+  } catch (error) {
+    console.error("Error fetching remaining amount for partial commissions:", error);
+    throw error;
+  }
+};
+
 /** GET /commissions/installments?installments=N */
 export const getCommissionsByInstallments = async (installments: number) => {
   try {

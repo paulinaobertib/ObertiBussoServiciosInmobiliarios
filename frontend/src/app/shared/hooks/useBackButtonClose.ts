@@ -9,6 +9,11 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
   const pushedRef = useRef(false);
   const scrollPositionRef = useRef({ x: 0, y: 0 });
   const restoreScrollRef = useRef<number | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const restoreScroll = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -24,7 +29,7 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
   const close = useCallback(() => {
     if (typeof window === "undefined") return;
     if (!active) {
-      onClose();
+      onCloseRef.current?.();
       return;
     }
     if (pushedRef.current) {
@@ -33,8 +38,8 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
       window.history.back();
       restoreScroll();
     }
-    onClose();
-  }, [active, onClose, restoreScroll]);
+    onCloseRef.current?.();
+  }, [active, restoreScroll]);
 
   useEffect(() => {
     if (!active || typeof window === "undefined") return;
@@ -56,7 +61,7 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
       }
       pushedRef.current = false;
       restoreScroll();
-      onClose();
+      onCloseRef.current?.();
     };
 
     window.addEventListener("popstate", handlePopState);

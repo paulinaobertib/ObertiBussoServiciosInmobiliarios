@@ -382,6 +382,11 @@ export default function ViewStatsPage() {
     [stats.commissionsTotalInDateRange, currencySymbol]
   );
 
+  const partialCommissionRemainingAmount = useMemo(
+    () => formatMoney(stats.partialCommissionsRemainingAmount || 0, currencySymbol),
+    [stats.partialCommissionsRemainingAmount, currencySymbol]
+  );
+
   const averageInquiryResponseHours = useMemo(
     () => parseDurationToHours(stats.inquiryResponseTime),
     [stats.inquiryResponseTime]
@@ -621,6 +626,15 @@ export default function ViewStatsPage() {
                     value={formatMoney(commissionTotalsByStatus["PARCIAL"] || 0, currencySymbol)}
                     infoTitle="Comisiones Parciales"
                     infoDescription="Monto total de comisiones que han sido pagadas parcialmente. Estas comisiones aún tienen un saldo pendiente por cobrar."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Saldo restante Comisiones Parciales"
+                    value={partialCommissionRemainingAmount}
+                    infoTitle="Saldo restante de comisiones parciales"
+                    infoDescription="Saldo pendiente por cobrar de las comisiones que se encuentran en estado parcial. Representa el dinero que resta percibir."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
