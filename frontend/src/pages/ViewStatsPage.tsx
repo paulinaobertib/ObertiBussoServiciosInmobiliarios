@@ -224,17 +224,83 @@ export default function ViewStatsPage() {
       }, {});
   }, [stats.day]);
   const viewCharts = [
-    { title: "Vistas por día", data: viewsByDayDescending, type: "bar" as const },
-    { title: "Vistas por mes", data: stats.month, type: "doughnut" as const },
-    { title: "Propiedades con más vistas", data: topViewsByProperty, type: "pie" as const },
-    { title: "Vistas por tipo de propiedad", data: topViewsByPropertyType, type: "pie" as const },
-    { title: "Vistas por barrio", data: topViewsByNeighborhood, type: "pie" as const },
-    { title: "Vistas por tipo de barrio", data: topViewsByNeighborhoodType, type: "doughnut" as const },
-    { title: "Vistas por estado", data: topViewsByStatus, type: "doughnut" as const },
-    { title: "Vistas por estado y tipo", data: topViewsByStatusAndType, type: "bar" as const },
-    { title: "Vistas por tipo de operación", data: topViewsByOperation, type: "pie" as const },
-    { title: "Vistas por ambientes", data: topViewsByRooms, type: "bar" as const },
-    { title: "Características más consultadas", data: topViewsByAmenity, type: "bar" as const },
+    {
+      title: "Vistas por día",
+      data: viewsByDayDescending,
+      type: "bar" as const,
+      infoTitle: "Vistas por día",
+      infoDescription: "Distribución diaria de visualizaciones de propiedades. Muestra la cantidad de vistas registradas cada día en el período analizado.",
+    },
+    {
+      title: "Vistas por mes",
+      data: stats.month,
+      type: "doughnut" as const,
+      infoTitle: "Vistas por mes",
+      infoDescription: "Distribución mensual de visualizaciones de propiedades. Permite identificar los meses con mayor actividad de visualización.",
+    },
+    {
+      title: "Propiedades con más vistas",
+      data: topViewsByProperty,
+      type: "pie" as const,
+      infoTitle: "Propiedades con más vistas",
+      infoDescription: "Ranking de las propiedades que han recibido más visualizaciones. Identifica las propiedades más populares entre los usuarios.",
+    },
+    {
+      title: "Vistas por tipo de propiedad",
+      data: topViewsByPropertyType,
+      type: "pie" as const,
+      infoTitle: "Vistas por tipo de propiedad",
+      infoDescription: "Distribución de visualizaciones según el tipo de propiedad (casa, departamento, local, etc.). Muestra qué tipos de propiedades generan más interés.",
+    },
+    {
+      title: "Vistas por barrio",
+      data: topViewsByNeighborhood,
+      type: "pie" as const,
+      infoTitle: "Vistas por barrio",
+      infoDescription: "Distribución de visualizaciones por barrio. Identifica las zonas geográficas que despiertan mayor interés entre los usuarios.",
+    },
+    {
+      title: "Vistas por tipo de barrio",
+      data: topViewsByNeighborhoodType,
+      type: "doughnut" as const,
+      infoTitle: "Vistas por tipo de barrio",
+      infoDescription: "Distribución de visualizaciones según la clasificación del barrio. Muestra las preferencias por tipo de barrio.",
+    },
+    {
+      title: "Vistas por estado",
+      data: topViewsByStatus,
+      type: "doughnut" as const,
+      infoTitle: "Vistas por estado",
+      infoDescription: "Distribución de visualizaciones según el estado de la propiedad (disponible, reservada, vendida, etc.).",
+    },
+    {
+      title: "Vistas por estado y tipo",
+      data: topViewsByStatusAndType,
+      type: "bar" as const,
+      infoTitle: "Vistas por estado y tipo",
+      infoDescription: "Análisis combinado de visualizaciones por estado y tipo de propiedad.",
+    },
+    {
+      title: "Vistas por tipo de operación",
+      data: topViewsByOperation,
+      type: "pie" as const,
+      infoTitle: "Vistas por tipo de operación",
+      infoDescription: "Distribución de visualizaciones según el tipo de operación (venta, alquiler). Muestra qué tipo de transacción genera más interés.",
+    },
+    {
+      title: "Vistas por ambientes",
+      data: topViewsByRooms,
+      type: "bar" as const,
+      infoTitle: "Vistas por ambientes",
+      infoDescription: "Distribución de visualizaciones según la cantidad de ambientes de las propiedades. Identifica las preferencias de tamaño de vivienda.",
+    },
+    {
+      title: "Características más consultadas",
+      data: topViewsByAmenity,
+      type: "bar" as const,
+      infoTitle: "Características más consultadas",
+      infoDescription: "Ranking de las características o amenities más buscadas por los usuarios (cocheras, piletas, jardines, etc.).",
+    },
   ] as const;
 
   // --- CONSULTAS ---
@@ -626,7 +692,13 @@ export default function ViewStatsPage() {
                   <Grid container spacing={3}>
                     {viewCharts.map((cfg) => (
                       <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                        <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
+                        <ChartCard
+                          title={cfg.title}
+                          data={cfg.data}
+                          type={cfg.type}
+                          infoTitle={cfg.infoTitle}
+                          infoDescription={cfg.infoDescription}
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -640,14 +712,50 @@ export default function ViewStatsPage() {
                   </Typography>
                   <Grid container spacing={3}>
                     {[
-                      { title: "Consultas por Mes", data: inquiriesPerMonth, type: "line" as const },
-                      { title: "Propiedades Más Consultadas", data: mostConsultedProperties, type: "pie" as const },
-                      { title: "Distribución por Estado", data: inquiryStatusDistribution, type: "doughnut" as const },
-                      { title: "Por Día de la Semana", data: inquiriesByDayOfWeek, type: "pie" as const },
-                      { title: "Por Franja Horaria", data: inquiriesByTimeRange, type: "bar" as const },
+                      {
+                        title: "Consultas por Mes",
+                        data: inquiriesPerMonth,
+                        type: "line" as const,
+                        infoTitle: "Consultas por Mes",
+                        infoDescription: "Evolución mensual de las consultas recibidas. Muestra la tendencia de consultas a lo largo del tiempo.",
+                      },
+                      {
+                        title: "Propiedades Más Consultadas",
+                        data: mostConsultedProperties,
+                        type: "pie" as const,
+                        infoTitle: "Propiedades Más Consultadas",
+                        infoDescription: "Ranking de las propiedades que han recibido más consultas. Identifica las propiedades que generan mayor interés entre los usuarios.",
+                      },
+                      {
+                        title: "Distribución por Estado",
+                        data: inquiryStatusDistribution,
+                        type: "doughnut" as const,
+                        infoTitle: "Distribución de Consultas por Estado",
+                        infoDescription: "Distribución de las consultas según su estado (pendiente, respondida, cerrada, etc.). Muestra el estado de gestión de las consultas.",
+                      },
+                      {
+                        title: "Por Día de la Semana",
+                        data: inquiriesByDayOfWeek,
+                        type: "pie" as const,
+                        infoTitle: "Consultas por Día de la Semana",
+                        infoDescription: "Distribución de consultas según el día de la semana. Identifica los días con mayor actividad de consultas.",
+                      },
+                      {
+                        title: "Por Franja Horaria",
+                        data: inquiriesByTimeRange,
+                        type: "bar" as const,
+                        infoTitle: "Consultas por Franja Horaria",
+                        infoDescription: "Distribución de consultas según la hora del día. Muestra en qué momentos los usuarios realizan más consultas.",
+                      },
                     ].map((cfg) => (
                       <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                        <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
+                        <ChartCard
+                          title={cfg.title}
+                          data={cfg.data}
+                          type={cfg.type}
+                          infoTitle={cfg.infoTitle}
+                          infoDescription={cfg.infoDescription}
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -661,12 +769,36 @@ export default function ViewStatsPage() {
                   </Typography>
                   <Grid container spacing={3}>
                     {[
-                      { title: "Distribución de Puntajes", data: surveyScoreDistribution, type: "bar" as const },
-                      { title: "Puntaje Promedio Diario", data: surveyDailyAverage, type: "line" as const },
-                      { title: "Puntaje Promedio Mensual", data: surveyMonthlyAverage, type: "doughnut" as const },
+                      {
+                        title: "Distribución de Puntajes",
+                        data: surveyScoreDistribution,
+                        type: "bar" as const,
+                        infoTitle: "Distribución de Puntajes",
+                        infoDescription: "Distribución de los puntajes otorgados en las encuestas de satisfacción. Muestra cómo se distribuyen las calificaciones de 1 a 5.",
+                      },
+                      {
+                        title: "Puntaje Promedio Diario",
+                        data: surveyDailyAverage,
+                        type: "line" as const,
+                        infoTitle: "Puntaje Promedio Diario",
+                        infoDescription: "Evolución diaria del puntaje promedio de las encuestas. Permite identificar tendencias en la satisfacción del cliente a lo largo del tiempo.",
+                      },
+                      {
+                        title: "Puntaje Promedio Mensual",
+                        data: surveyMonthlyAverage,
+                        type: "doughnut" as const,
+                        infoTitle: "Puntaje Promedio Mensual",
+                        infoDescription: "Puntaje promedio de satisfacción por mes. Muestra la evolución mensual de la satisfacción de los usuarios con el servicio.",
+                      },
                     ].map((cfg) => (
                       <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                        <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
+                        <ChartCard
+                          title={cfg.title}
+                          data={cfg.data}
+                          type={cfg.type}
+                          infoTitle={cfg.infoTitle}
+                          infoDescription={cfg.infoDescription}
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -687,32 +819,72 @@ export default function ViewStatsPage() {
                   <Grid container spacing={3}>
                     {/* Lo que ya tenías */}
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Contratos por estado" data={topContractsByStatus} />
+                      <ChartCard
+                        title="Contratos por estado"
+                        data={topContractsByStatus}
+                        infoTitle="Contratos por estado"
+                        infoDescription="Distribución de contratos según su estado (activo o inactivo). Muestra la situación actual de los contratos gestionados."
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Contratos por tipo" data={topContractsByType} />
+                      <ChartCard
+                        title="Contratos por tipo"
+                        data={topContractsByType}
+                        infoTitle="Contratos por tipo"
+                        infoDescription="Distribución de contratos según su tipo (alquiler, venta, etc.). Identifica qué tipos de contratos son más comunes."
+                      />
                     </Grid>
 
                     {/* Payments */}
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Pagos por concepto (rango)" data={paymentsByConcept} />
+                      <ChartCard
+                        title="Pagos por concepto (rango)"
+                        data={paymentsByConcept}
+                        infoTitle="Pagos por concepto"
+                        infoDescription="Distribución de pagos según su concepto (alquiler, comisión, servicios, etc.) en el rango de fechas seleccionado."
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Pagos por moneda (rango)" data={paymentsByCurrency} />
+                      <ChartCard
+                        title="Pagos por moneda (rango)"
+                        data={paymentsByCurrency}
+                        infoTitle="Pagos por moneda"
+                        infoDescription="Distribución de pagos según la moneda utilizada (ARS, USD, etc.) en el rango de fechas seleccionado."
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 12, md: 8 }}>
-                      <ChartCard title="Pagos por mes (rango)" data={paymentsMonthlyTotals} />
+                      <ChartCard
+                        title="Pagos por mes (rango)"
+                        data={paymentsMonthlyTotals}
+                        infoTitle="Pagos por mes"
+                        infoDescription="Evolución mensual de los pagos registrados en el rango de fechas seleccionado. Muestra la tendencia de pagos a lo largo del tiempo."
+                      />
                     </Grid>
 
-                    {/* (Opcional) Comisiones – útiles si querés ver todo “económico” en la pestaña Contratos */}
+                    {/* (Opcional) Comisiones – útiles si querés ver todo "económico" en la pestaña Contratos */}
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Comisiones por estado" data={commissionTotalsByStatus} />
+                      <ChartCard
+                        title="Comisiones por estado"
+                        data={commissionTotalsByStatus}
+                        infoTitle="Comisiones por estado"
+                        infoDescription="Distribución del monto total de comisiones según su estado (pagada, parcial, pendiente). Muestra la situación de cobro de las comisiones."
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Comisiones por mes" data={commissionYearMonthlyTotals} />
+                      <ChartCard
+                        title="Comisiones por mes"
+                        data={commissionYearMonthlyTotals}
+                        infoTitle="Comisiones por mes"
+                        infoDescription="Evolución mensual de las comisiones generadas durante el año seleccionado. Permite identificar los meses con mayor actividad de comisiones."
+                      />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title="Cantidad de comisiones por estado" data={commissionCountsByStatus} />
+                      <ChartCard
+                        title="Cantidad de comisiones por estado"
+                        data={commissionCountsByStatus}
+                        infoTitle="Cantidad de comisiones por estado"
+                        infoDescription="Cantidad de comisiones según su estado (pagada, parcial, pendiente). Muestra cuántas comisiones hay en cada estado."
+                      />
                     </Grid>
                     {/* <Grid size={{ xs: 12, sm: 6, md: 4 }}> */}
                     {/* <ChartCard title="Comisiones por Tipo de Pago" data={commissionsCountByPaymentType} />  */}
