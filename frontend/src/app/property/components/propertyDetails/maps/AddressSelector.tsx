@@ -522,10 +522,7 @@ export const AddressSelector = ({ neighborhoodId, neighborhoodName, value, onCha
 
       {loadingNeighborhood && (
         <Stack direction="row" spacing={1} alignItems="center" mt={1}>
-          <CircularProgress size={18} />
-          <Typography variant="body2" color="text.secondary">
-            Cargando datos del barrio…
-          </Typography>
+          <CircularProgress size={18} aria-label="Cargando datos del barrio" />
         </Stack>
       )}
 

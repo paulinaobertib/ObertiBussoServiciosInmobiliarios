@@ -220,11 +220,12 @@ describe("NavBar", () => {
 
     const contactAction = await screen.findByRole("button", { name: /Contacto \/ Turnero de Citas/i });
     fireEvent.click(contactAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTACT);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTACT));
+    mockNavigate.mockClear();
 
     const newsAction = await screen.findByRole("button", { name: /Noticias/i });
     fireEvent.click(newsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEWS);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEWS));
   });
 
   it("móvil (usuario no admin): menú incluye acciones de perfil y favoritos", async () => {
@@ -241,12 +242,13 @@ describe("NavBar", () => {
 
     const profileAction = await screen.findByRole("button", { name: /Mi Perfil/i });
     fireEvent.click(profileAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.USER_PROFILE);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.USER_PROFILE));
+    mockNavigate.mockClear();
 
     fireEvent.click(screen.getByLabelText(/menu/i));
     const favoritesAction = await screen.findByRole("button", { name: /Mis Favoritos/i });
     fireEvent.click(favoritesAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES));
   });
 
   it("móvil (tenant): menú agrega acceso a contratos", async () => {
@@ -262,7 +264,7 @@ describe("NavBar", () => {
 
     const contractsAction = await screen.findByRole("button", { name: /Mis Contratos de Alquiler/i });
     fireEvent.click(contractsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT));
   });
 
   it("móvil (admin): menú muestra accesos administrativos adicionales", async () => {
@@ -277,12 +279,13 @@ describe("NavBar", () => {
 
     const appointmentsAction = await screen.findByRole("button", { name: /Turnero de Citas/i });
     fireEvent.click(appointmentsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APPOINTMENTS);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APPOINTMENTS));
+    mockNavigate.mockClear();
 
     fireEvent.click(screen.getByLabelText(/menu/i));
     const statsAction = await screen.findByRole("button", { name: /Ver Estadísticas/i });
     fireEvent.click(statsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT));
   });
 
   it("móvil: encabezado muestra acceso a inicio y omite login/logout directos", () => {

@@ -103,7 +103,7 @@ describe("SettingsDrawer", () => {
     // Aparecen los labels resumidos
     expect(screen.getByText(/HISTORIAL \(RESUMEN\)/i)).toBeInTheDocument();
     expect(screen.getByText("Nueva propiedad disponible")).toBeInTheDocument();
-    expect(screen.getByText("Nueva propiedad de interés")).toBeInTheDocument();
+    expect(screen.getByText("Actualizaciones de interés")).toBeInTheDocument();
     expect(screen.getByText(/ENVIOS/)).toBeInTheDocument();
   });
 
@@ -117,15 +117,14 @@ describe("SettingsDrawer", () => {
     await screen.findByText("Sin actividad.");
   });
 
-  it("muestra 'Cargando…' mientras las promesas están pendientes", async () => {
+  it("muestra el spinner mientras las promesas están pendientes", async () => {
     (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u-load" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockReturnValue(new Promise(() => {}));
     (getNotificationsByUser as any).mockReturnValue(new Promise(() => {}));
 
     renderSettingsDrawer();
 
-    // Puede aparecer en preferencias o historial; con que exista uno alcanza
-    expect(screen.getAllByText("Cargando…").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/Cargando preferencias/i)).toBeInTheDocument();
   });
 
   it("NO admin: toggle de preferencia exitoso", async () => {
@@ -201,7 +200,7 @@ describe("SettingsDrawer", () => {
     const items = within(list).getAllByRole("listitem");
     expect(items.length).toBe(2);
     expect(within(items[0]).getByText("Nueva propiedad disponible")).toBeInTheDocument();
-    expect(within(items[1]).getByText("Nueva propiedad de interés")).toBeInTheDocument();
+    expect(within(items[1]).getByText("Actualizaciones de interés")).toBeInTheDocument();
   });
 
   it("chip del header muestra la cantidad correcta de notificaciones de HOY", async () => {
@@ -261,7 +260,7 @@ describe("SettingsDrawer", () => {
     const list = screen.getByRole("list");
     const items = within(list).getAllByRole("listitem");
     // Por orden alfabético del tipo (I antes que N) en fecha igual
-    expect(within(items[0]).getByText("Nueva propiedad de interés")).toBeInTheDocument();
+    expect(within(items[0]).getByText("Actualizaciones de interés")).toBeInTheDocument();
     expect(within(items[1]).getByText("Nueva propiedad disponible")).toBeInTheDocument();
   });
 

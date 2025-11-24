@@ -4,10 +4,8 @@ import { AppBar, Box, Toolbar, IconButton, Button, useTheme, Tooltip } from "@mu
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import LogoutIcon from "@mui/icons-material/Logout";
 import RealEstateAgentIcon from "@mui/icons-material/RealEstateAgent";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
-import LoginIcon from "@mui/icons-material/Login";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import ContactMailIcon from "../../../assets/ic_consulta.svg";
@@ -76,7 +74,12 @@ export const NavBar = () => {
       (cb: () => void): (() => void) =>
       () => {
         closeMobileActions();
-        cb();
+        // Esperamos al siguiente tick para evitar interferencias con otros drawers que usan el back button
+        if (typeof window === "undefined") {
+          cb();
+          return;
+        }
+        window.setTimeout(() => cb(), 0);
       };
 
     const contactIcon = <Box component="img" src={ContactMailIcon} alt="Contacto" sx={{ width: 24, height: 24 }} />;

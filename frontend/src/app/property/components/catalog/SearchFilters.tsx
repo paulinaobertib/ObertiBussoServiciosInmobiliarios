@@ -26,6 +26,7 @@ import { LoadingButton } from "@mui/lab";
 import { useSearchFilters } from "../../hooks/useSearchFilters";
 import type { Property } from "../../types/property";
 import { formatAmount } from "../../../shared/utils/numberFormat";
+import { useBackButtonClose } from "../../../shared/hooks/useBackButtonClose";
 
 interface Props {
   onSearch(results: Property[]): void;
@@ -77,6 +78,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
     if (onMobileOpenChange) onMobileOpenChange(v);
     else setInternalOpen(v);
   };
+  const closeWithBack = useBackButtonClose(isMobile && open, () => setOpen(false));
 
   const [expanded, setExpanded] = useState<string | false>(false);
   const toggleAcc = (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
@@ -134,7 +136,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           <Typography variant="subtitle1" fontSize={"1.2rem"} fontWeight={600}>
             Filtros de Búsqueda
           </Typography>
-          <IconButton size="small" onClick={() => setOpen(false)}>
+          <IconButton size="small" onClick={() => closeWithBack()}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -469,7 +471,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
       <Drawer
         anchor="bottom"
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={closeWithBack}
         PaperProps={{
           sx: (theme) => ({
             borderTopLeftRadius: 24,

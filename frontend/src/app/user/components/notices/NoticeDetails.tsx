@@ -1,7 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { Container, Box, Typography, IconButton, Button, Chip, CircularProgress, Card } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, Typography, Button, Chip, CircularProgress, Card } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useNotices } from "../../hooks/useNotices";
 import { useAuthContext } from "../../context/AuthContext";
@@ -24,24 +22,24 @@ export const NoticeDetails = () => {
 
   if (loading && !notice) {
     return (
-      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6 } }}>
+      <Box sx={{ py: { xs: 4, sm: 6 } }}>
         <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
           <CircularProgress size={40} />
         </Box>
-      </Container>
+      </Box>
     );
   }
 
   if (!notice) {
     return (
-      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6 } }}>
+      <Box sx={{ py: { xs: 4, sm: 6 } }}>
         <EmptyState title="No encontramos esta noticia." tone={error ? "error" : "neutral"} />
         <Box display="flex" justifyContent="center" mt={3}>
           <Button variant="outlined" onClick={() => navigate(-1)}>
             Volver
           </Button>
         </Box>
-      </Container>
+      </Box>
     );
   }
 
@@ -86,7 +84,7 @@ export const NoticeDetails = () => {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 6 } }}>
+      <Box sx={{ py: { xs: 4, sm: 6 } }}>
         <Card
           sx={{
             display: "flex",
@@ -122,34 +120,6 @@ export const NoticeDetails = () => {
               />
             )}
 
-            {isAdmin && (
-              <Box sx={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 1 }}>
-                <IconButton
-                  onClick={openEdit}
-                  size="small"
-                  aria-label="Editar noticia"
-                  sx={{
-                    bgcolor: "rgba(15, 23, 42, 0.6)",
-                    color: "common.white",
-                    "&:hover": { bgcolor: "rgba(15, 23, 42, 0.8)" },
-                  }}
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-                <IconButton
-                  onClick={handleDelete}
-                  size="small"
-                  aria-label="Eliminar noticia"
-                  sx={{
-                    bgcolor: "rgba(15, 23, 42, 0.6)",
-                    color: "common.white",
-                    "&:hover": { bgcolor: "rgba(15, 23, 42, 0.8)" },
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            )}
           </Box>
 
           <Box
@@ -161,11 +131,31 @@ export const NoticeDetails = () => {
               gap: 2,
             }}
           >
-            <Typography variant="caption" color="text.secondary">
-              {formattedDate}
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 1,
+                flexWrap: "wrap",
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {formattedDate}
+              </Typography>
+              {isAdmin && (
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Button size="small" variant="text" onClick={openEdit}>
+                    Editar Noticia
+                  </Button>
+                  <Button size="small" variant="text" color="error" onClick={handleDelete}>
+                    Eliminar Noticia
+                  </Button>
+                </Box>
+              )}
+            </Box>
 
-            <Typography variant="h4" fontWeight={700}>
+            <Typography variant="h5" fontWeight={700}>
               {notice.title}
             </Typography>
 
@@ -175,6 +165,7 @@ export const NoticeDetails = () => {
                 color: "text.primary",
                 whiteSpace: "pre-line",
                 lineHeight: 1.6,
+                fontSize: "0.85rem",
               }}
             >
               {notice.description}
@@ -187,7 +178,7 @@ export const NoticeDetails = () => {
             </Box>
           </Box>
         </Card>
-      </Container>
+      </Box>
 
       <Modal open={editOpen} title="Editar noticia" onClose={closeEdit}>
         <NoticeForm key={notice.id} ref={formRef} initialData={notice} onValidityChange={setCanSave} />

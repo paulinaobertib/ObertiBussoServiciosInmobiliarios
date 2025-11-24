@@ -86,7 +86,7 @@ describe("NoticeDetails", () => {
     removeMock.mockResolvedValueOnce(true);
 
     render(<NoticeDetails />);
-    const deleteButton = screen.getByLabelText("Eliminar noticia");
+    const deleteButton = screen.getByRole("button", { name: /^Eliminar Noticia$/i });
     fireEvent.click(deleteButton);
 
     await waitFor(() => expect(removeMock).toHaveBeenCalledWith(1));
@@ -105,7 +105,7 @@ describe("NoticeDetails", () => {
     render(<NoticeDetails />);
 
     // Abrir modal
-    fireEvent.click(screen.getByLabelText("Editar noticia"));
+    fireEvent.click(screen.getByRole("button", { name: /^Editar Noticia$/i }));
     expect(screen.getByText("Editar noticia")).toBeInTheDocument();
 
     const guardarBtn = screen.getByRole("button", { name: /guardar/i });
@@ -143,7 +143,7 @@ describe("NoticeDetails", () => {
 
   it("cierra el modal al pulsar la X", async () => {
     render(<NoticeDetails />);
-    fireEvent.click(screen.getByLabelText("Editar noticia"));
+    fireEvent.click(screen.getByRole("button", { name: /^Editar Noticia$/i }));
     expect(screen.getByText("Editar noticia")).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText(/cerrar modal/i));
@@ -157,15 +157,15 @@ describe("NoticeDetails", () => {
     (useAuthContext as any).mockReturnValue({ isAdmin: false });
     render(<NoticeDetails />);
 
-    expect(screen.queryByLabelText("Editar noticia")).toBeNull();
-    expect(screen.queryByLabelText("Eliminar noticia")).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Editar Noticia$/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Eliminar Noticia$/i })).toBeNull();
   });
 
   it("si remove devuelve false, NO navega hacia atrás", async () => {
     removeMock.mockResolvedValueOnce(false);
 
     render(<NoticeDetails />);
-    fireEvent.click(screen.getByLabelText("Eliminar noticia"));
+    fireEvent.click(screen.getByRole("button", { name: /^Eliminar Noticia$/i }));
 
     await waitFor(() => {
       expect(removeMock).toHaveBeenCalledWith(1);

@@ -30,7 +30,7 @@ describe("AppointmentUser", () => {
     });
 
     render(<AppointmentUser />);
-    expect(screen.getByText(/Cargando…/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cargando turnos/i)).toBeInTheDocument();
   });
 
   it("muestra mensaje si no hay turnos", () => {

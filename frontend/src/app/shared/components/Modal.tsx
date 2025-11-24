@@ -2,6 +2,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogTitle, IconButton, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { useBackButtonClose } from "../hooks/useBackButtonClose";
 
 export interface Props {
   open: boolean;
@@ -14,6 +15,7 @@ export interface Props {
 
 export const Modal = ({ open, title, onClose, children, maxWidth = "sm", contentSx }: Props) => {
   const theme = useTheme();
+  const handleClose = useBackButtonClose(open, onClose);
 
   return (
     <Dialog
@@ -21,7 +23,7 @@ export const Modal = ({ open, title, onClose, children, maxWidth = "sm", content
       fullWidth
       maxWidth={maxWidth}
       onClose={(_, reason) => {
-        if (reason !== "backdropClick") onClose();
+        if (reason !== "backdropClick") handleClose();
       }}
       PaperProps={{
         sx: {
@@ -45,7 +47,7 @@ export const Modal = ({ open, title, onClose, children, maxWidth = "sm", content
         {title}
         <IconButton
           data-testid="inquiry-form-close"
-          onClick={onClose}
+          onClick={handleClose}
           sx={{ color: theme.palette.primary.main }}
           aria-label="cerrar modal"
         >

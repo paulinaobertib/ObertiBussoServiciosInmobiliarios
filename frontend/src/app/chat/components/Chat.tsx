@@ -12,13 +12,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import RemoveIcon from "@mui/icons-material/RemoveRounded";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUpRounded";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { useChatSession } from "../hooks/useChatSession";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { getPropertiesByText } from "../../property/services/property.service";
 import { ChatSessionDTO } from "../types/chatSession";
 import { usePropertiesContext } from "../../property/context/PropertiesContext";
+import { useBackButtonClose } from "../../shared/hooks/useBackButtonClose";
 
 interface Property {
   id: number;
@@ -220,7 +221,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     setChatActive(true);
   };
 
-  const handleClose = async () => {
+  const handleClose = useCallback(async () => {
     const lastMsg = messages[messages.length - 1];
     if (
       sessionId &&
@@ -239,7 +240,10 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
     clearMessages();
     if (onClose) onClose();
-  };
+  }, [clearMessages, messages, onClose, property, sendMessage, sessionId, setChatActive, setCollapsed]);
+  const closeWithBack = useBackButtonClose(!collapsed, () => {
+    handleClose();
+  });
 
   const renderContent = (content: string) => {
     return optionLabels[content] || content;
@@ -455,7 +459,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
         <IconButton
           aria-label="Cerrar chat"
-          onClick={handleClose}
+          onClick={closeWithBack}
           sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
         >
           <CloseIcon />

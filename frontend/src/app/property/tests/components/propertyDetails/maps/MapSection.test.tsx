@@ -34,11 +34,9 @@ describe("MapSection", () => {
 
   it("Muestra overlay de carga y luego lo quita cuando se resuelve el loader", async () => {
     render(<MapSection latitude={-31.4} longitude={-64.2} />);
-    expect(screen.getByText(/Cargando mapa/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cargando mapa/i)).toBeInTheDocument();
 
-    await waitFor(() =>
-      expect(screen.queryByText(/Cargando mapa/i)).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.queryByLabelText(/Cargando mapa/i)).not.toBeInTheDocument());
   });
 
   it("Muestra mensaje de error si el loader falla", async () => {

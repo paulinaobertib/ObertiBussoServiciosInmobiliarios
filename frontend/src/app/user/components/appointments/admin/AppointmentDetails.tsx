@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
-import { Box, Typography, Chip, Divider, Stack, Button } from "@mui/material";
+import { Box, Typography, Chip, Divider, Stack, Button, CircularProgress } from "@mui/material";
 import { AccessTime, Person, EmailOutlined, PhoneOutlined, ChatBubbleOutline } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
 import { Modal } from "../../../../shared/components/Modal";
@@ -140,7 +140,13 @@ export const AppointmentDetailsDialog = ({ open, slotId, onClose, onAccept, onRe
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Person color="action" />
               <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
-                {loadingUser ? "Cargando..." : user ? `${user.firstName} ${user.lastName}` : "Cliente"}
+                {loadingUser ? (
+                  <CircularProgress size={16} aria-label="Cargando usuario" />
+                ) : user ? (
+                  `${user.firstName} ${user.lastName}`
+                ) : (
+                  "Cliente"
+                )}
               </Typography>
             </Box>
 

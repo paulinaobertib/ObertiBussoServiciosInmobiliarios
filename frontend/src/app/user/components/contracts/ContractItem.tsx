@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent, CardActions, Typography, Chip, Box, Button, Divider } from "@mui/material";
+import { Card, CardHeader, CardContent, CardActions, Typography, Chip, Box, Button, Divider, CircularProgress } from "@mui/material";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
@@ -112,9 +112,13 @@ export const ContractItem = ({ contract }: Props) => {
               <Typography component="span" noWrap sx={{ fontWeight: 700, fontSize: "1.125rem" }}>
                 Contrato de
               </Typography>
-              <Typography component="span" noWrap sx={{ fontWeight: 600 }}>
-                {userName || "Cargando..."}
-              </Typography>
+              {userName ? (
+                <Typography component="span" noWrap sx={{ fontWeight: 600 }}>
+                  {userName}
+                </Typography>
+              ) : (
+                <CircularProgress size={16} aria-label="Cargando usuario" />
+              )}
               <PersonOutline fontSize="small" />
             </Box>
           </Box>
@@ -129,9 +133,13 @@ export const ContractItem = ({ contract }: Props) => {
             <Typography component="span" fontWeight={600} sx={{ color: "#000", fontSize: "0.9375rem" }}>
               Propiedad:
             </Typography>
-            <Typography component="span" color="text.primary" noWrap fontSize="0.9375rem">
-              {propertyName || "Cargando..."}
-            </Typography>
+            {propertyName ? (
+              <Typography component="span" color="text.primary" noWrap fontSize="0.9375rem">
+                {propertyName}
+              </Typography>
+            ) : (
+              <CircularProgress size={16} aria-label="Cargando propiedad" />
+            )}
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, color: "#000" }}>

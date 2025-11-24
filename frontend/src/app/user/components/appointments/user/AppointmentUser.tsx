@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, CircularProgress } from "@mui/material";
 import { useAppointments } from "../../../hooks/useAppointments";
 import { AppointmentCard } from "./AppointmentCard";
 import { EmptyState } from "../../../../shared/components/EmptyState";
@@ -9,8 +9,8 @@ export const AppointmentUser = () => {
 
   if (userLoading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography>Cargando…</Typography>
+      <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+        <CircularProgress aria-label="Cargando turnos" />
       </Box>
     );
   }

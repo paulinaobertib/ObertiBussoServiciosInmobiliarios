@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Drawer, Box, Typography, Switch, List, ListItem, useTheme, useMediaQuery, Stack, Chip } from "@mui/material";
+import { Drawer, Box, Typography, Switch, List, ListItem, useTheme, useMediaQuery, Stack, Chip, CircularProgress } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
 import { useAuthContext } from "../context/AuthContext";
@@ -11,13 +11,14 @@ import {
 } from "../services/notification.service";
 import { NotificationType } from "../../user/types/notification";
 import { InfoIconWithDialog } from "../../shared/components/InfoIconWithDialog";
+import { useBackButtonClose } from "../../shared/hooks/useBackButtonClose";
 
 type Preference = { id: number; type: NotificationType; enabled: boolean };
 type NotificationItem = { id: number; type: NotificationType; date: string };
 
 const TYPE_LABELS: Record<NotificationType, string> = {
   PROPIEDADNUEVA: "Nueva propiedad disponible",
-  PROPIEDADINTERES: "Nueva propiedad de interés",
+  PROPIEDADINTERES: "Actualizaciones de interés",
 };
 
 const TYPE_INFO: Record<NotificationType, { title: string; description: string }> = {
@@ -51,10 +52,10 @@ function HistoryCard({ title, subtitle, right }: { title: string; subtitle: stri
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" noWrap sx={{ fontSize: "0.95rem", fontWeight: 600 }}>
+        <Typography variant="body2" noWrap sx={{ fontSize: "0.85rem", fontWeight: 600 }}>
           {title}
         </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.85rem" }}>
+        <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.80rem" }}>
           {subtitle}
         </Typography>
       </Box>
@@ -102,7 +103,7 @@ function PrefRow({
             size={18}
           />
         )}
-        <Typography variant="body2" sx={{ fontSize: notificationType ? "0.90rem" : "0.95rem", fontWeight: 600 }}>
+        <Typography variant="body2" sx={{ fontSize: notificationType ? "0.8rem" : "0.8rem", fontWeight: 600 }}>
           {label}
         </Typography>
       </Box>
@@ -143,6 +144,7 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const resolvedTopOffsetDesktop = topOffsetDesktop ?? topOffsetMobile;
   const appliedTopOffset = isMobile ? topOffsetMobile : resolvedTopOffsetDesktop;
+  const closeWithBack = useBackButtonClose(open, onClose);
 
   const { info, isAdmin, isTenant } = useAuthContext();
   const userId = info?.id || "";
@@ -224,7 +226,7 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
     <Drawer
       anchor="right"
       open={open}
-      onClose={onClose}
+      onClose={closeWithBack}
       PaperProps={{
         sx: {
           width: isMobile ? "90%" : drawerWidth,
@@ -270,9 +272,9 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
             <SectionHeader title="PREFERENCIAS" />
             <SectionBody>
               {loading ? (
-                <Typography variant="body2" color="text.secondary">
-                  Cargando…
-                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                  <CircularProgress size={20} aria-label="Cargando preferencias" />
+                </Box>
               ) : preferences.length ? (
                 <Stack spacing={1}>
                   {preferences.map((pref) => (
@@ -335,9 +337,9 @@ export default function SettingsDrawer({ open, onClose, topOffsetMobile = 0, top
           )}
 
           {loading ? (
-            <Typography variant="body2" color="text.secondary">
-              Cargando…
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+              <CircularProgress size={24} aria-label="Cargando historial" />
+            </Box>
           ) : (
             <List
               sx={{

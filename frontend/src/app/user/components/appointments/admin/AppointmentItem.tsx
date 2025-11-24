@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Paper, Stack, Typography, Chip, useTheme, Box } from "@mui/material";
+import { Paper, Stack, Typography, Chip, useTheme, Box, CircularProgress } from "@mui/material";
 import dayjs from "dayjs";
 import { getUserById } from "../../../services/user.service";
 import type { Appointment, AvailableAppointment } from "../../../types/appointment";
@@ -73,8 +73,14 @@ export const AppointmentItem = ({ slot, appt, onClick }: Props) => {
         {/* Nombre / Libre — ocupa el resto, con elipsis */}
         <Box sx={{ ml: "auto", minWidth: 120, flex: 1, overflow: "hidden" }}>
           {appt ? (
-            <Typography noWrap>
-              {loadingUser ? "Cargando…" : user ? `${user.firstName} ${user.lastName}` : "Cliente"}
+            <Typography noWrap sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {loadingUser ? (
+                <CircularProgress size={16} aria-label="Cargando usuario" />
+              ) : user ? (
+                `${user.firstName} ${user.lastName}`
+              ) : (
+                "Cliente"
+              )}
             </Typography>
           ) : (
             <Typography color="text.disabled" noWrap>
