@@ -28,14 +28,17 @@ import { useNavigate } from "react-router-dom";
 import ChartCard from "../app/property/components/view/ChartCard";
 import { useViewStats } from "../app/property/hooks/useViewsStats";
 import BasePage from "./BasePage";
+import { InfoIconWithDialog } from "../app/shared/components/InfoIconWithDialog";
 
 interface InfoCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
+  infoTitle?: string;
+  infoDescription?: string;
 }
 
-function InfoCard({ title, value, icon }: InfoCardProps) {
+function InfoCard({ title, value, icon, infoTitle, infoDescription }: InfoCardProps) {
   const theme = useTheme();
   const iconWrapperBg = alpha(theme.palette.primary.main, theme.palette.mode === "light" ? 0.12 : 0.24);
   return (
@@ -68,9 +71,14 @@ function InfoCard({ title, value, icon }: InfoCardProps) {
         >
           {icon}
         </Box>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.4 }}>
-          {title}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flex: 1 }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.4 }}>
+            {title}
+          </Typography>
+          {infoTitle && infoDescription && (
+            <InfoIconWithDialog title={infoTitle} description={infoDescription} size={18} />
+          )}
+        </Box>
       </Box>
 
       <Box display="flex" flexDirection="column" gap={1}>
@@ -440,6 +448,8 @@ export default function ViewStatsPage() {
                     icon={<VisibilityIcon fontSize="large" color="inherit" />}
                     title="Total de Vistas"
                     value={totalViews}
+                    infoTitle="Total de Vistas"
+                    infoDescription="Cantidad total de veces que los usuarios han visualizado las propiedades publicadas en el sistema."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 6 }}>
@@ -447,6 +457,8 @@ export default function ViewStatsPage() {
                     icon={<VisibilityIcon fontSize="large" color="inherit" />}
                     title="Vistas promedio por día"
                     value={avgViewsPerDay}
+                    infoTitle="Vistas promedio por día"
+                    infoDescription="Promedio diario de visualizaciones de propiedades. Se calcula dividiendo el total de vistas por la cantidad de días en el período."
                   />
                 </Grid>
               </>
@@ -458,6 +470,8 @@ export default function ViewStatsPage() {
                   icon={<AccessTimeIcon fontSize="large" color="inherit" />}
                   title="Tiempo promedio de respuesta"
                   value={averageInquiryResponseLabel}
+                  infoTitle="Tiempo promedio de respuesta"
+                  infoDescription="Tiempo promedio que tarda el equipo en responder a las consultas de los usuarios. Este indicador mide la eficiencia en la atención al cliente."
                 />
               </Grid>
             )}
@@ -469,6 +483,8 @@ export default function ViewStatsPage() {
                     icon={<PollIcon fontSize="large" color="inherit" />}
                     title="Total de Encuestas"
                     value={stats.surveysCount}
+                    infoTitle="Total de Encuestas"
+                    infoDescription="Cantidad total de encuestas de satisfacción completadas por los usuarios. Estas encuestas permiten evaluar la calidad del servicio brindado."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 6 }}>
@@ -476,6 +492,8 @@ export default function ViewStatsPage() {
                     icon={<PollIcon fontSize="large" color="inherit" />}
                     title="Puntaje Prom. Encuestas"
                     value={`${stats.averageSurveyScore.toFixed(2)} / 5`}
+                    infoTitle="Puntaje Promedio de Encuestas"
+                    infoDescription="Puntaje promedio obtenido en las encuestas de satisfacción, en una escala de 1 a 5. Este indicador refleja el nivel de satisfacción general de los usuarios con el servicio."
                   />
                 </Grid>
               </>
@@ -489,6 +507,8 @@ export default function ViewStatsPage() {
                     icon={<GavelIcon fontSize="large" color="inherit" />}
                     title="Total Contratos"
                     value={totalContracts}
+                    infoTitle="Total Contratos"
+                    infoDescription="Cantidad total de contratos registrados en el sistema, incluyendo tanto contratos activos como inactivos."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -496,6 +516,8 @@ export default function ViewStatsPage() {
                     icon={<GavelIcon fontSize="large" color="inherit" />}
                     title="Contratos Activos"
                     value={activeContracts}
+                    infoTitle="Contratos Activos"
+                    infoDescription="Cantidad de contratos que se encuentran actualmente en vigencia."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -503,6 +525,8 @@ export default function ViewStatsPage() {
                     icon={<GavelIcon fontSize="large" color="inherit" />}
                     title="Contratos Inactivos"
                     value={inactiveContracts}
+                    infoTitle="Contratos Inactivos"
+                    infoDescription="Cantidad de contratos que han finalizado o se encuentran inactivos. Estos contratos ya no están en vigencia."
                   />
                 </Grid>
 
@@ -511,6 +535,8 @@ export default function ViewStatsPage() {
                     icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                     title="Comisiones totales en el rango"
                     value={totalCommissionInRangeMoney}
+                    infoTitle="Comisiones totales en el rango"
+                    infoDescription="Suma total de todas las comisiones generadas en el rango de fechas seleccionado. Incluye comisiones pagadas, parciales y pendientes."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -518,6 +544,8 @@ export default function ViewStatsPage() {
                     icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                     title="Comisiones Pagadas (Total $)"
                     value={formatMoney(commissionTotalsByStatus["PAGADA"] || 0, currencySymbol)}
+                    infoTitle="Comisiones Pagadas"
+                    infoDescription="Monto total de comisiones que han sido completamente pagadas. Estas comisiones ya fueron cobradas en su totalidad."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -525,6 +553,8 @@ export default function ViewStatsPage() {
                     icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                     title="Comisiones Parciales (Total $)"
                     value={formatMoney(commissionTotalsByStatus["PARCIAL"] || 0, currencySymbol)}
+                    infoTitle="Comisiones Parciales"
+                    infoDescription="Monto total de comisiones que han sido pagadas parcialmente. Estas comisiones aún tienen un saldo pendiente por cobrar."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -532,6 +562,8 @@ export default function ViewStatsPage() {
                     icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                     title="Comisiones Pendientes (Total $)"
                     value={formatMoney(commissionTotalsByStatus["PENDIENTE"] || 0, currencySymbol)}
+                    infoTitle="Comisiones Pendientes"
+                    infoDescription="Monto total de comisiones que aún no han sido pagadas. Estas comisiones están pendientes de cobro."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -539,6 +571,8 @@ export default function ViewStatsPage() {
                     icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
                     title="Pagos totales en el rango"
                     value={paymentsTotal}
+                    infoTitle="Pagos totales en el rango"
+                    infoDescription="Suma total de todos los pagos registrados en el rango de fechas seleccionado. Incluye pagos de alquileres, comisiones y servicios."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -546,6 +580,8 @@ export default function ViewStatsPage() {
                     icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
                     title="Pagos asociados a contratos (rango)"
                     value={paymentsByContractRangeCount}
+                    infoTitle="Pagos asociados a contratos"
+                    infoDescription="Cantidad de pagos registrados que están asociados a contratos de alquiler en el rango de fechas seleccionado. Incluye pagos de alquileres y depósitos."
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -553,6 +589,8 @@ export default function ViewStatsPage() {
                     icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
                     title="Pagos asociados a comisiones (rango)"
                     value={paymentsByCommissionRangeCount}
+                    infoTitle="Pagos asociados a comisiones"
+                    infoDescription="Cantidad de pagos registrados que están asociados a todos los tipos de comisiones en el rango de fechas seleccionado."
                   />
                 </Grid>
                 {/* Si querés mostrar utilities */}
@@ -561,6 +599,8 @@ export default function ViewStatsPage() {
                     icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
                     title="Pagos de Servicios (rango)"
                     value={paymentsByUtilityRangeCount}
+                    infoTitle="Pagos de Servicios"
+                    infoDescription="Cantidad de pagos registrados correspondientes a servicios (como expensas, servicios públicos, etc.) en el rango de fechas seleccionado."
                   />
                 </Grid>
               </>

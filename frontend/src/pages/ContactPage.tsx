@@ -5,6 +5,7 @@ import { BasePage } from "./BasePage";
 import { Box, Typography, Button, useTheme, useMediaQuery, IconButton, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ReplyIcon from "@mui/icons-material/Reply";
+import { InfoIconWithDialog } from "../app/shared/components/InfoIconWithDialog";
 
 export default function ContactPage() {
   const theme = useTheme();
@@ -45,13 +46,19 @@ export default function ContactPage() {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "center",
             p: 2,
+            gap: 1,
           }}
         >
-          <Typography variant="h6" align="center" sx={{ flex: 1 }}>
+          <Typography variant="h6" align="center">
             Realizá tu consulta
           </Typography>
+          <InfoIconWithDialog
+            title="Realizá tu consulta"
+            description="Completá el formulario para enviarnos tu consulta sobre propiedades, alquileres, ventas o cualquier otra duda relacionada con nuestros servicios. Nuestro equipo se comunicará con vos a la brevedad para brindarte una respuesta personalizada."
+            size={20}
+          />
         </Box>
 
         <Typography variant="body2" align="center" sx={{ px: 2, color: "text.secondary", fontSize: "0.9rem", mb: 2 }}>
@@ -83,13 +90,19 @@ export default function ContactPage() {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "center",
             p: 2,
+            gap: 1,
           }}
         >
-          <Typography variant="h6" align="center" sx={{ flex: 1 }}>
+          <Typography variant="h6" align="center">
             Reservá tu turno
           </Typography>
+          <InfoIconWithDialog
+            title="Reservá tu turno"
+            description="Elegí la fecha y el horario que mejor se adapten a tus tiempos para atenderte personalmente en nuestras oficinas."
+            size={20}
+          />
         </Box>
 
         <Typography variant="body2" align="center" sx={{ px: 2, pb: 1, color: "text.secondary", fontSize: "0.9rem" }}>
@@ -148,7 +161,14 @@ export default function ContactPage() {
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1, px: 1 }}>
         {tab === "inquiry" ? (
           <>
-            <Typography variant="h5">Realizá tu consulta</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="h5">Realizá tu consulta</Typography>
+              <InfoIconWithDialog
+                title="Realizá tu consulta"
+                description="Completá el formulario para enviarnos tu consulta sobre propiedades, alquileres, ventas o cualquier otra inquietud relacionada con nuestros servicios inmobiliarios. Nos comunicaremos contigo a la brevedad."
+                size={20}
+              />
+            </Box>
             <Typography variant="body2" color="text.secondary">
               Completá el formulario para enviarnos tu consulta y nos comunicaremos a la brevedad.
             </Typography>
@@ -158,7 +178,14 @@ export default function ContactPage() {
           </>
         ) : (
           <>
-            <Typography variant="h5">Reservá tu turno</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="h5">Reservá tu turno</Typography>
+              <InfoIconWithDialog
+                title="Reservá tu turno"
+                description="Es para sacar un turno para visitar a la inmobiliaria. Seleccioná la fecha y horario que más te convenga para una consulta presencial en nuestras oficinas."
+                size={20}
+              />
+            </Box>
             <Typography variant="body2" color="text.secondary">
               Seleccioná fecha y horario para solicitar un turno presencial.
             </Typography>
