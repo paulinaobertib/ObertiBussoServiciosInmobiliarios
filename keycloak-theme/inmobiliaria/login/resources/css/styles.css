@@ -86,7 +86,7 @@ body::before {
   background: #fff;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .login-form-box {
@@ -95,8 +95,7 @@ body::before {
   align-items: center;
   justify-content: flex-start;
   max-height: 85vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
   scrollbar-width: thin;
   scrollbar-color: #ee671e20 transparent;
 }
@@ -225,6 +224,36 @@ body::before {
 .material-icons {
   font-size: 10px;
   color: gray;
+}
+
+.password-field {
+  position: relative;
+  overflow: visible;
+}
+
+.password-requirements {
+  position: absolute;
+  right: 100%;
+  margin-right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 240px;
+  z-index: 5;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+}
+
+.password-match-hint {
+  margin-top: 0px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.password-match-hint.ok {
+  color: #2e7d32;
+}
+
+.password-match-hint.error {
+  color: #b71c1c;
 }
 
 /* ================
@@ -452,7 +481,7 @@ body::before {
 /* ========== Banner de errores del servidor (para login/registro) ========== */
 .server-error-banner {
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   z-index: 10000;
   display: flex;
@@ -466,7 +495,7 @@ body::before {
   line-height: 1.45;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   border-left: 4px solid transparent;
-  animation: slideDown 0.4s ease-out;
+  animation: slideUp 0.4s ease-out;
 }
 
 .server-error-banner.error {
@@ -510,6 +539,17 @@ body::before {
   }
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 600px) {
   .server-error-banner {
     left: 50%;
@@ -517,11 +557,11 @@ body::before {
     transform: translateX(-50%);
     width: min(90vw, 360px);
     min-width: auto;
-    top: 12px;
+    bottom: 12px;
   }
 
   .server-error-banner.visible {
-    animation: slideDown 0.4s ease-out;
+    animation: slideUp 0.4s ease-out;
   }
 }
 
@@ -539,10 +579,12 @@ input[style*="border-color: rgb(76, 175, 80)"] {
 }
 
 /* ========== Toast notifications (mismo diseño que los banners) ========== */
-.toast-container {
+.toast-container,
+#toastContainer {
   position: fixed;
-  top: 20px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   right: 20px;
+  left: auto;
   z-index: 10000;
   display: flex;
   flex-direction: column;
@@ -633,19 +675,68 @@ input[style*="border-color: rgb(76, 175, 80)"] {
   color: #1976d2;
 }
 
-@media (max-width: 600px) {
-  .toast-container {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    width: min(90vw, 360px);
-    top: 12px;
+@media (max-width: 1000px) {
+  .toast-container,
+  #toastContainer {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: min(90vw, 360px) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    top: auto !important;
   }
 
   .toast {
     min-width: auto;
     width: 100%;
   }
+
+  .password-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .password-requirements {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: auto;
+    bottom: 100%;
+    top: auto;
+    transform: translateY(-8px);
+    margin: 0;
+  }
+}
+
+.password-requirements {
+  margin-top: 0.35rem;
+  padding: 0.65rem 0.85rem;
+  background: #f7f9fb;
+  border: 1px solid #e0e7ef;
+  border-radius: 8px;
+  display: none;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.password-requirements.active {
+  display: grid;
+}
+
+.password-requirements .req-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+}
+
+.password-requirements .req-item.ok {
+  color: #2e7d32;
+}
+
+.password-requirements .req-icon {
+  font-size: 18px;
+  color: inherit;
 }
 
 .terms-section {

@@ -34,7 +34,6 @@
                 id="firstName"
                 name="firstName"
                 value="${(user.firstName!'')}"
-                readonly
                 placeholder="Nombre"
                 required
               />
@@ -45,7 +44,6 @@
                 id="lastName"
                 name="lastName"
                 value="${(user.lastName!'')}"
-                readonly
                 placeholder="Apellido"
                 required
               />
@@ -59,7 +57,6 @@
             placeholder="Correo electrónico"
             pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
             value="${(user.email!'')}"
-            readonly
             title="Debe ser un email válido (incluye @ y dominio)"
             required
           />
