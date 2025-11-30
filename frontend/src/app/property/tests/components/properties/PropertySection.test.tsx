@@ -15,9 +15,9 @@ const h = vi.hoisted(() => {
     internalIsSelectedMock: vi.fn(),
 
     // servicios
-    getAllMock: vi.fn(async () => [{ id: 10, title: "A", operation: "VENTA" }]),
-    getAvailableMock: vi.fn(async () => [{ id: 99, title: "Avail", operation: "ALQUILER" }]),
-    getByTextMock: vi.fn(async (_: string) => [{ id: 20, title: "B", operation: "ALQUILER" }]),
+    getAllMock: vi.fn(async () => [{ id: 10, title: "A", operation: "VENTA", status: "DISPONIBLE" }]),
+    getAvailableMock: vi.fn(async () => [{ id: 99, title: "Avail", operation: "ALQUILER", status: "DISPONIBLE" }]),
+    getByTextMock: vi.fn(async (_: string) => [{ id: 20, title: "B", operation: "ALQUILER", status: "DISPONIBLE" }]),
     delPropMock: vi.fn(),
 
     // row actions
@@ -88,7 +88,7 @@ vi.mock("../../../../shared/context/AlertContext", () => ({
 
 const authContextMock = vi.fn(() => ({ isAdmin: false, info: null }));
 vi.mock("../../../user/context/AuthContext", () => ({
-  useAuthContext: (...args: any[]) => authContextMock(...args),
+  useAuthContext: authContextMock,
 }));
 
 vi.mock("react-router-dom", () => ({
@@ -216,18 +216,18 @@ describe("<PropertySection />", () => {
   });
 
   it("fetchAll y fetchByText llaman servicios, actualizan búsqueda y retornan los datos", async () => {
-    h.getAvailableMock.mockResolvedValue([{ id: 99, title: "Avail", operation: "ALQUILER" }]);
-    h.getByTextMock.mockResolvedValue([{ id: 20, title: "B", operation: "ALQUILER" }]);
+    h.getAvailableMock.mockResolvedValue([{ id: 99, title: "Avail", operation: "ALQUILER", status: "DISPONIBLE" }]);
+    h.getByTextMock.mockResolvedValue([{ id: 20, title: "B", operation: "ALQUILER", status: "DISPONIBLE" }]);
     renderSUT();
     const list1 = await h.lastGridProps.fetchAll();
     expect(h.getAvailableMock).toHaveBeenCalled();
     expect(h.onSearchMock).toHaveBeenCalledWith(list1);
-    expect(list1).toEqual([{ id: 99, title: "Avail", operation: "ALQUILER" }]);
+    expect(list1).toEqual([{ id: 99, title: "Avail", operation: "ALQUILER", status: "DISPONIBLE" }]);
 
     const list2 = await h.lastGridProps.fetchByText("x");
     expect(h.getByTextMock).toHaveBeenCalledWith("x");
     expect(h.onSearchMock).toHaveBeenCalledWith(list2);
-    expect(list2).toEqual([{ id: 20, title: "B", operation: "ALQUILER" }]);
+    expect(list2).toEqual([{ id: 20, title: "B", operation: "ALQUILER", status: "DISPONIBLE" }]);
   });
 
   it("onCreate navega a /properties/new y onEdit a /properties/:id/edit", () => {
@@ -253,12 +253,12 @@ describe("<PropertySection />", () => {
 
     renderSUT({ availableOnly: true });
     h.getByTextMock.mockResolvedValueOnce([
-      { id: 1, status: "DISPONIBLE" },
-      { id: 2, status: "VENDIDO" },
+      { id: 1, title: "Prop1", operation: "VENTA", status: "DISPONIBLE" },
+      { id: 2, title: "Prop2", operation: "ALQUILER", status: "VENDIDO" },
     ]);
     const filtered = await h.lastGridProps.fetchByText("x");
-    expect(filtered).toEqual([{ id: 1, status: "DISPONIBLE" }]);
-    expect(h.onSearchMock).toHaveBeenCalledWith([{ id: 1, status: "DISPONIBLE" }]);
+    expect(filtered).toEqual([{ id: 1, title: "Prop1", operation: "VENTA", status: "DISPONIBLE" }]);
+    expect(h.onSearchMock).toHaveBeenCalledWith([{ id: 1, title: "Prop1", operation: "VENTA", status: "DISPONIBLE" }]);
   });
 
   it("mantiene la fila seleccionada aunque no esté disponible cuando filterAvailable=true", () => {
@@ -270,8 +270,8 @@ describe("<PropertySection />", () => {
 
   it("fetchAll aplica operationFilter a las propiedades disponibles", async () => {
     h.getAvailableMock.mockResolvedValueOnce([
-      { id: 5, title: "Propiedad ALQ", operation: "ALQUILER" },
-      { id: 6, title: "Propiedad VENTA", operation: "VENTA" },
+      { id: 5, title: "Propiedad ALQ", operation: "ALQUILER", status: "DISPONIBLE" },
+      { id: 6, title: "Propiedad VENTA", operation: "VENTA", status: "DISPONIBLE" },
     ]);
     renderSUT({ operationFilter: "ALQUILER" });
 
@@ -279,7 +279,7 @@ describe("<PropertySection />", () => {
     expect(h.getAvailableMock).toHaveBeenCalled();
     expect(h.getAllMock).not.toHaveBeenCalled();
     expect(h.onSearchMock).toHaveBeenCalledWith(list);
-    expect(list).toEqual([{ id: 5, title: "Propiedad ALQ", operation: "ALQUILER" }]);
+    expect(list).toEqual([{ id: 5, title: "Propiedad ALQ", operation: "ALQUILER", status: "DISPONIBLE" }]);
   });
 
   it("no intenta eliminar si el usuario cancela la confirmación", async () => {

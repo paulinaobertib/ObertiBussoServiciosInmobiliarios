@@ -77,7 +77,7 @@ describe("PropertyCrudContext", () => {
   it("puede refrescar properties", async () => {
     const { result } = renderContext();
     await act(async () => {
-      await result.current.refreshProperties();
+      await result.current.refreshProperties("all");
     });
     expect(result.current.propertiesList).toEqual([{ id: 1, title: "Depto" }]);
   });
@@ -167,7 +167,7 @@ describe("PropertyCrudContext", () => {
     act(() => {
       result.current.toggleSelect("amenity", 1);
     });
-    const params = result.current.buildSearchParams({ priceMin: 100 });
+    const params = result.current.buildSearchParams({ priceFrom: 100 });
     expect(params.amenities).toEqual(["Piscina"]);
   });
 

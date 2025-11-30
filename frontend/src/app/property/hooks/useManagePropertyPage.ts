@@ -10,6 +10,7 @@ import { usePropertiesContext } from "../context/PropertiesContext";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
 import type { Image } from "../../shared/components/images/image";
 import { useApiErrors } from "../../shared/hooks/useErrors";
+import { useAuthContext } from "../../user/context/AuthContext";
 
 type BackendImageDTO = ImageDTO;
 
@@ -37,6 +38,7 @@ export const useManagePropertyPage = () => {
   const [formReady, setFormReady] = useState(false);
 
   const { setSelected, resetSelected, selected, refreshProperties } = usePropertiesContext();
+  const { isAdmin } = useAuthContext();
 
   // Helpers de UI (confirmaciones / avisos)
   const confirmAction = useCallback(
@@ -230,7 +232,7 @@ export const useManagePropertyPage = () => {
         }
 
         // Refrescar el catálogo de propiedades después de crear
-        await refreshProperties();
+        await refreshProperties(isAdmin ? "all" : "available");
         
         nav("/", { replace: true });
         return;
@@ -257,7 +259,7 @@ export const useManagePropertyPage = () => {
       await success("Propiedad actualizada", "Se guardaron los cambios.");
       
       // Refrescar el catálogo de propiedades antes de navegar
-      await refreshProperties();
+      await refreshProperties(isAdmin ? "all" : "available");
       
       nav("/", { replace: true });
     } catch (e) {
