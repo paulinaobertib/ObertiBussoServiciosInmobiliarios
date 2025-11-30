@@ -6,6 +6,7 @@ import { PropertyCard } from "./PropertyCard";
 import type { Property } from "../../types/property";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
+import { hasWaitingPromptBeenDismissed, promptWaitingProperty } from "../../utils/waitingPropertyPrompt";
 
 interface Props {
   properties: Property[];
@@ -14,23 +15,6 @@ interface Props {
   isSelected?: (id: number) => boolean;
   onCardClick?: (property: Property) => void;
   isLoading?: boolean;
-}
-
-const DISMISSED_KEY = "waitingPropsDismissedIds";
-
-function readDismissed(): number[] {
-  try {
-    const raw = localStorage.getItem(DISMISSED_KEY);
-    return raw ? (JSON.parse(raw) as number[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function addDismissed(id: number) {
-  const prev = readDismissed();
-  const next = Array.from(new Set([...prev, id]));
-  localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
 }
 
 export const CatalogList = ({
@@ -74,41 +58,21 @@ export const CatalogList = ({
 
     if (!waiting.length) return;
 
-    const dismissed = new Set(readDismissed());
-    const candidate = waiting.find((p) => !dismissed.has(Number(p.id)));
+    const candidate = waiting.find((p) => !hasWaitingPromptBeenDismissed(Number(p.id)));
     if (!candidate) return;
 
-    const propId = Number(candidate.id);
     promptingRef.current = true;
-
-    const title = "Propiedad en estado ESPERA";
-    const description =
-      `La propiedad "${candidate.title}" quedó en ESPERA por vencimiento de contrato.\n` + `¿Qué querés hacer?`;
 
     (async () => {
       try {
-        if (typeof alertApi?.confirm === "function") {
-          // Primary -> Renovar contrato | Secondary -> Ver propiedad
-          const goRenew = await alertApi.confirm({
-            title,
-            description,
-            primaryLabel: "Renovar contrato",
-            secondaryLabel: "Ver propiedad",
-          });
-          addDismissed(propId);
-          if (goRenew) {
-            navigate("/contracts/new");
-          } else {
-            navigate(`/properties/${propId}`);
-          }
-        } else if (typeof alertApi?.warning === "function") {
-          await alertApi.warning({ title, description, primaryLabel: "Ver propiedad" });
-          addDismissed(propId);
-          navigate(`/properties/${propId}`);
-        } else if (typeof alertApi?.showAlert === "function") {
-          alertApi.showAlert(description ?? title, "warning");
-          addDismissed(propId);
-        }
+        await promptWaitingProperty({
+          property: candidate,
+          alertApi,
+          onRenewContract: () => navigate("/contracts/new"),
+          onViewProperty: () => {
+            navigate(`/properties/${candidate.id}`);
+          },
+        });
       } finally {
         // dejamos que vuelva a chequear por si aparece otra en ESPERA más adelante
         promptingRef.current = false;

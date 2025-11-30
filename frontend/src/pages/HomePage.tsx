@@ -40,18 +40,25 @@ export default function Home() {
     if (typeof alertApi?.showAlert === "function") return alertApi.showAlert(description ?? title, "warning");
   };
 
-  const { selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, resetSelected, setPropertiesLoading } =
+  const { propertiesList, selectedPropertyIds, toggleCompare, clearComparison, disabledCompare, resetSelected, setPropertiesLoading } =
     usePropertiesContext();
 
   const [mode, setMode] = useState<"normal" | "edit" | "delete">("normal");
   const [selectionMode, setSelectionMode] = useState(false);
   const [results, setResults] = useState<Property[] | null>(null);
 
+  // console.log("🏠 HomePage render: results =", results, "propertiesList length =", propertiesList?.length);
+
   useEffect(() => {
     resetSelected();
     // Don't call refreshProperties here - usePropertyPanel hook already does it
     // This was causing double loading on mount
   }, [resetSelected]);
+
+  // Reset search results when user role changes to show the full catalog
+  useEffect(() => {
+    setResults(null);
+  }, [isAdmin]);
 
   const handleAction = (action: "create" | "edit" | "delete") => {
     if (action === "create") {

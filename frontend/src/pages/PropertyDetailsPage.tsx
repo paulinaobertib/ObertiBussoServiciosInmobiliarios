@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Typography, Button, IconButton, CircularProgress, Stack } from "@mui/material";
 import { BasePage } from "./BasePage";
@@ -13,6 +13,7 @@ import { deleteProperty } from "../app/property/services/property.service";
 import { useGlobalAlert } from "../app/shared/context/AlertContext";
 import { useApiErrors } from "../app/shared/hooks/useErrors";
 import { LoadingButton } from "@mui/lab";
+import { hasWaitingPromptBeenDismissed, promptWaitingProperty } from "../app/property/utils/waitingPropertyPrompt";
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ const PropertyDetailsPage = () => {
   const { isAdmin } = useAuthContext();
   const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
+  const waitingPromptingRef = useRef(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -50,6 +52,36 @@ const PropertyDetailsPage = () => {
       localStorage.removeItem("selectedPropertyId");
     };
   }, [id, loadProperty]);
+
+  // Aviso para propiedades en estado ESPERA (misma lógica que Home)
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (!currentProperty) return;
+    if (typeof window === "undefined") return;
+
+    const status = String(currentProperty.status ?? "").toUpperCase();
+    if (status !== "ESPERA") return;
+
+    const propId = Number(currentProperty.id);
+    if (hasWaitingPromptBeenDismissed(propId)) return;
+    if (waitingPromptingRef.current) return;
+
+    waitingPromptingRef.current = true;
+    (async () => {
+      try {
+        await promptWaitingProperty({
+          property: currentProperty,
+          alertApi,
+          onRenewContract: () => navigate("/contracts/new"),
+          onViewProperty: () => navigate(`/properties/${propId}`),
+        });
+      } catch (err) {
+        console.error("Error mostrando aviso de propiedad en ESPERA", err);
+      } finally {
+        waitingPromptingRef.current = false;
+      }
+    })();
+  }, [alertApi, currentProperty, isAdmin, navigate]);
 
   // ---- LOADING GLOBAL ----
   if (loading) {
