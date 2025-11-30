@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Box, Stack, Typography, CircularProgress } from "@mui/material";
+import { Box, Stack, CircularProgress } from "@mui/material";
 import { useAppointments } from "../../../hooks/useAppointments";
 import { AppointmentCard } from "./AppointmentCard";
 import { EmptyState } from "../../../../shared/components/EmptyState";

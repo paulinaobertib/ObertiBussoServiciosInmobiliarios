@@ -45,6 +45,10 @@ const PropertyDetailsPage = () => {
       }
     };
     fetch();
+
+    return () => {
+      localStorage.removeItem("selectedPropertyId");
+    };
   }, [id, loadProperty]);
 
   // ---- LOADING GLOBAL ----

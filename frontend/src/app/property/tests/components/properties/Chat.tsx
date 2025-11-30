@@ -30,7 +30,7 @@ const FINAL_SYSTEM_MESSAGES = [
 
 const isFinalSystemMessage = (content?: string) => (content ? FINAL_SYSTEM_MESSAGES.includes(content) : false);
 
-const DERIVATION_REDIRECT_DELAY = 3000;
+const DERIVATION_REDIRECT_DELAY = 2000;
 
 const CHAT_FONT_SIZES = {
   heading: { xs: "0.95rem", sm: "0.85rem" },
@@ -412,14 +412,20 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     const lastSystemMsg = messages.filter(msg => msg.from === "system").pop();
     if (!lastSystemMsg || !lastSystemMsg.content) return;
 
+    console.log('Deriving: Last system message:', lastSystemMsg.content);
+
     const phoneMatch = lastSystemMsg.content.match(/\+?\d{10,15}/);
     if (!phoneMatch) {
+      console.log('No phone match found in message');
       return;
     }
 
     const phone = phoneMatch[0];
+    console.log('Phone found:', phone);
     const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad ${property?.title ?? ""}`);
     const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
+
+    console.log('Redirecting to:', url);
 
     const timer = window.setTimeout(() => {
       window.location.href = url;

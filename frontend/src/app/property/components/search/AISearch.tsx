@@ -182,7 +182,6 @@ export const AISearch = ({
                   value={prompt}
                   onChange={(event) => setPrompt(event.target.value)}
                   onKeyDown={handleKeyDown as any}
-                  autoFocus
                 />
 
                 {error && (

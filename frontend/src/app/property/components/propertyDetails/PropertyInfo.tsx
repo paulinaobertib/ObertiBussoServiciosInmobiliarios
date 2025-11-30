@@ -73,16 +73,16 @@ export const PropertyInfo = ({ property }: Props) => {
   const address = formatPropertyAddress(property);
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} sx={{ width: "100%" }}>
       {/* Title */}
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+      <Typography variant="h5" fontWeight={700} gutterBottom sx={{ wordBreak: "break-word" }}>
         {property.title}
       </Typography>
 
       {/* Location */}
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
         <LocationOnIcon fontSize="small" sx={{ opacity: 0.7, fontSize: 18 }} />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-word" }}>
           {address || "Ubicación desconocida"}
         </Typography>
       </Box>
@@ -104,55 +104,68 @@ export const PropertyInfo = ({ property }: Props) => {
       </Box>
 
       {/* Operation/Status */}
-      <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-        <Chip
-          label={property.operation.toUpperCase()}
-          size="medium"
-          sx={{
-            bgcolor: theme.palette.secondary.main,
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: "0.875rem",
-            py: 0.5,
-            px: 1.2,
-            pointerEvents: "none",
-            cursor: "default",
-            userSelect: "none",
-          }}
-          clickable={false}
-          tabIndex={-1}
-        />
-        <Chip
-          label={property.status}
-          size="medium"
-          sx={{ fontSize: "0.875rem", pointerEvents: "none", cursor: "default", userSelect: "none" }}
-          clickable={false}
-          tabIndex={-1}
-        />
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          mb: 1,
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", width: "100%", justifyContent: { xs: "space-between", sm: "flex-start" }, gap: 1 }}>
+          <Chip
+            label={property.operation.toUpperCase()}
+            size="medium"
+            sx={{
+              bgcolor: theme.palette.secondary.main,
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              py: 0.5,
+              px: 1.2,
+              pointerEvents: "none",
+              cursor: "default",
+              userSelect: "none",
+            }}
+            clickable={false}
+            tabIndex={-1}
+          />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Chip
+              label={property.status}
+              size="medium"
+              sx={{ fontSize: "0.875rem", pointerEvents: "none", cursor: "default", userSelect: "none" }}
+              clickable={false}
+              tabIndex={-1}
+            />
+            {isAdmin && (
+              <IconButton
+                aria-label="editar estado"
+                size="small"
+                onClick={() =>
+                  setStatusModal({
+                    title: "Editar estado",
+                    Component: StatusForm,
+                    componentProps: {
+                      action: "edit-status" as const,
+                      item: { id: property.id, status: property.status },
+                    },
+                  })
+                }
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
 
         {isAdmin && (
           <>
-            <IconButton
-              aria-label="editar estado"
-              size="small"
-              onClick={() =>
-                setStatusModal({
-                  title: "Editar estado",
-                  Component: StatusForm,
-                  componentProps: {
-                    action: "edit-status" as const,
-                    item: { id: property.id, status: property.status },
-                  },
-                })
-              }
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-
             <Chip
               label="Destacar"
               variant="filled"
-              sx={{ ml: "auto" }}
+              sx={{ ml: { xs: 0, sm: "auto" }, width: { xs: "100%", sm: "auto" } }}
               icon={
                 <Switch
                   aria-label="Destacar propiedad"

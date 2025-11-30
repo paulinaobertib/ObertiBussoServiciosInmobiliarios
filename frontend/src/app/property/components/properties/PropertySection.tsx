@@ -261,7 +261,7 @@ export const PropertySection = ({
       onSearch={onSearch}
       onCreate={openCreate}
       onEdit={openEdit}
-      onDelete={() => {}}
+      onDelete={handleDelete}
       toggleSelect={gridToggleSelect}
       isSelected={gridIsSelected}
       entityName="Propiedad"
