@@ -320,4 +320,59 @@ describe("GridSection", () => {
     const ids2: Set<any> = props.rowSelectionModel?.ids;
     expect(ids2.size).toBe(0);
   });
+
+  it("aplica minWidth por defecto a cada columna (acciones y datos)", () => {
+    render(
+      <GridSection
+        data={data}
+        loading={false}
+        columns={
+          [
+            { field: "name", headerName: "Nombre", width: 120 },
+            { field: "actions", headerName: "Acciones" },
+          ] as any
+        }
+        onSearch={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        entityName={entityName}
+        fetchAll={vi.fn(async () => [])}
+        fetchByText={vi.fn(async () => [])}
+        showActions
+      />
+    );
+
+    const props = getLastGridProps();
+    expect(props.columns[0].minWidth).toBeGreaterThanOrEqual(200);
+    expect(props.columns[1].minWidth).toBeGreaterThanOrEqual(160);
+    expect(props.sx["& .MuiDataGrid-cell[data-field='actions']"].justifyContent).toBe("center");
+    expect(props.sx["& .MuiDataGrid-cell[data-field='actions']"].gap).toBe(1);
+    expect(props.sx["& .MuiDataGrid-columnHeader[data-field='actions']"].justifyContent).toBe("center");
+  });
+
+  it("aplica minWidth de datos incluso cuando showActions=false", () => {
+    render(
+      <GridSection
+        data={data}
+        loading={false}
+        columns={
+          [
+            { field: "name", headerName: "Nombre", width: 120 },
+            { field: "actions", headerName: "Acciones" },
+          ] as any
+        }
+        onSearch={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        entityName={entityName}
+        fetchAll={vi.fn(async () => [])}
+        fetchByText={vi.fn(async () => [])}
+        showActions={false}
+      />
+    );
+
+    const props = getLastGridProps();
+    expect(props.columns[0].minWidth).toBeGreaterThanOrEqual(200);
+    expect(props.columns[1].minWidth).toBeGreaterThanOrEqual(200);
+  });
 });

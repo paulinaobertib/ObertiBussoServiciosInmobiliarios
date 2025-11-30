@@ -19,6 +19,8 @@ vi.mock("../../services/inquiry.service");
 vi.mock("../../services/property.service");
 vi.mock("../../../chat/services/chatSession.service");
 
+type UseInquiriesValue = ReturnType<typeof useInquiries>;
+
 describe("useInquiries", () => {
   const mockNavigate = vi.fn();
   const mockHandleError = vi.fn();
@@ -82,7 +84,7 @@ describe("useInquiries", () => {
     });
   });
 
-  const waitForBootstrap = async (hook: ReturnType<typeof renderHook>) => {
+  const waitForBootstrap = async (hook: { result: { current: UseInquiriesValue } }) => {
     await waitFor(() => expect(hook.result.current.loading).toBe(false));
   };
 

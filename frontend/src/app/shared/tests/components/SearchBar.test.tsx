@@ -95,4 +95,44 @@ describe("SearchBar", () => {
       expect(mockOnSearch).toHaveBeenCalledWith([]);
     });
   });
+
+  it("filtra localmente cuando no se provee fetchByText", async () => {
+    render(
+      <SearchBar
+        data={[
+          { id: 1, title: "Casa amplia", city: "Córdoba" },
+          { id: 2, title: "Depto chico", city: "Rosario" },
+        ]}
+        onSearch={mockOnSearch}
+        debounceMs={0}
+        localFilterFields={["title"]}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/buscar/i), { target: { value: "casa" } });
+
+    await waitFor(() => {
+      expect(mockOnSearch).toHaveBeenCalledWith([{ id: 1, title: "Casa amplia", city: "Córdoba" }]);
+    });
+  });
+
+  it("al limpiar búsqueda tras escribir llama a fetchAll", async () => {
+    mockFetchByText.mockResolvedValueOnce([]);
+    mockFetchAll.mockResolvedValueOnce([{ id: 9 }]);
+
+    render(
+      <SearchBar fetchAll={mockFetchAll} fetchByText={mockFetchByText} onSearch={mockOnSearch} debounceMs={0} />
+    );
+
+    const input = screen.getByPlaceholderText(/buscar/i);
+    fireEvent.change(input, { target: { value: "casa" } });
+    await waitFor(() => {
+      expect(mockFetchByText).toHaveBeenCalledWith("casa");
+    });
+
+    fireEvent.change(input, { target: { value: "" } });
+    await waitFor(() => {
+      expect(mockFetchAll).toHaveBeenCalled();
+    });
+  });
 });

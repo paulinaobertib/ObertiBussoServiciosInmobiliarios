@@ -27,6 +27,7 @@ describe("AuthProvider", () => {
     vi.clearAllMocks();
     sessionStorage.clear();
     localStorage.clear();
+    (notificationService.createUserNotificationPreference as any).mockResolvedValue({ data: fakePrefs[0] });
 
     // Mock global window.location (solo lo que usamos)
     Object.defineProperty(window, "location", {
@@ -154,5 +155,36 @@ describe("AuthProvider", () => {
 
     expect(localStorage.getItem("selectedPropertyId")).toBeNull();
     expect(localStorage.getItem("propertyCategorySelection")).toBeNull();
+  });
+
+  it("crea preferencias por defecto cuando el usuario no tiene", async () => {
+    (userService.getMe as any).mockResolvedValue({ data: fakeUser });
+    (userService.addPrincipalRole as any).mockResolvedValue({});
+    (userService.getRoles as any).mockResolvedValue({ data: fakeRoles });
+    (notificationService.getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
+    let callIndex = 0;
+    (notificationService.createUserNotificationPreference as any).mockImplementation(async () => ({
+      data: {
+        userId: "u1",
+        type: callIndex++ === 0 ? "PROPIEDADNUEVA" : "PROPIEDADINTERES",
+        enabled: true,
+      },
+    }));
+
+    const wrapper = ({ children }: any) => <AuthProvider>{children}</AuthProvider>;
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+    await waitFor(() => expect(result.current.info?.preferences).toHaveLength(2));
+    expect(notificationService.createUserNotificationPreference).toHaveBeenCalledTimes(2);
+  });
+
+  it("marca sesión expirada cuando getMe responde 401 y había sesión previa", async () => {
+    localStorage.setItem("authInfo", JSON.stringify({ id: "u1", roles: [] }));
+    (userService.getMe as any).mockRejectedValue({ response: { status: 401 } });
+
+    const wrapper = ({ children }: any) => <AuthProvider>{children}</AuthProvider>;
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+    await waitFor(() => expect(result.current.sessionExpired).toBe(true));
   });
 });

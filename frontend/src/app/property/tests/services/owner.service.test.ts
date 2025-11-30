@@ -3,6 +3,8 @@ import * as ownerService from "../../services/owner.service";
 import { api } from "../../../../api";
 import type { Owner, OwnerCreate } from "../../types/owner";
 
+const getAllPropertiesMock = vi.fn();
+
 vi.mock("../../../../api", () => ({
   api: {
     get: vi.fn(),
@@ -12,9 +14,14 @@ vi.mock("../../../../api", () => ({
   },
 }));
 
+vi.mock("../../services/property.service", () => ({
+  getAllProperties: (...args: any[]) => getAllPropertiesMock(...args),
+}));
+
 describe("ownerService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAllPropertiesMock.mockReset();
   });
 
   it("postOwner llama a api.post con OwnerCreate y devuelve datos", async () => {
@@ -171,5 +178,52 @@ describe("ownerService", () => {
   it("lanza error si api.get falla en getOwnersByText", async () => {
     (api.get as any).mockRejectedValue(new Error("Search failed"));
     await expect(ownerService.getOwnersByText("Jane")).rejects.toThrow("Search failed");
+  });
+
+  it("getPropertiesByOwner filtra y tolera errores parciales", async () => {
+    const properties = Array.from({ length: 10 }, (_, idx) => ({ id: idx + 1, title: `Prop ${idx + 1}` }));
+    getAllPropertiesMock.mockResolvedValue({ data: properties });
+
+    const ownerMap: Record<number, number | "error"> = {
+      1: 50,
+      2: 99,
+      3: "error",
+      4: 50,
+      5: 10,
+      6: 50,
+      7: 75,
+      8: 50,
+      9: 50,
+      10: 10,
+    };
+
+    (api.get as any).mockImplementation((url: string) => {
+      const propertyId = Number(url.split("/").pop());
+      const owner = ownerMap[propertyId];
+      if (owner === "error") {
+        return Promise.reject(new Error("owner fetch failed"));
+      }
+      return Promise.resolve({ data: { id: owner ?? -1 } });
+    });
+
+    const result = await ownerService.getPropertiesByOwner(50);
+
+    expect(getAllPropertiesMock).toHaveBeenCalledTimes(1);
+    expect(api.get).toHaveBeenCalledTimes(10);
+    expect(result.map((p) => p.id)).toEqual([1, 4, 6, 8, 9]);
+  });
+
+  it("getPropertiesByOwner acepta listas sin formato y ownerIds distintos", async () => {
+    const properties = [{ id: 7 }, { id: 8 }, { id: 9 }];
+    getAllPropertiesMock.mockResolvedValue(properties as any);
+
+    (api.get as any).mockImplementation((url: string) => {
+      const propertyId = Number(url.split("/").pop());
+      return Promise.resolve({ data: { id: propertyId === 8 ? 42 : 100 } });
+    });
+
+    const result = await ownerService.getPropertiesByOwner(42);
+
+    expect(result).toEqual([{ id: 8 }]);
   });
 });

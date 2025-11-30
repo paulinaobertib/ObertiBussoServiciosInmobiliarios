@@ -138,7 +138,7 @@ describe("Componente Chat", () => {
     });
     await act(async () => fireEvent.click(btnOtra));
 
-    expect(mockSendMessage).toHaveBeenCalledWith("CERRAR", 1, 300);
+    expect(mockSendMessage).toHaveBeenCalledWith("CERRAR", 1, 300, { silent: true });
     expect(await screen.findByLabelText(/Buscar propiedad/i)).toBeInTheDocument();
   });
 
@@ -165,5 +165,31 @@ describe("Componente Chat", () => {
       expect(mockStartSessionGuest).toHaveBeenCalled();
     });
     expect(localStorage.getItem("chatSessionId")).toBe("400");
+  });
+
+  it("al cerrar con sesión activa envía mensaje CERRAR", async () => {
+    mockStartSessionUser.mockResolvedValue(999);
+    (useChatContext as Mock).mockReturnValue({
+      messages: [{ from: "system", content: "Seguimos" }],
+      sendMessage: mockSendMessage,
+      loading: false,
+      addSystemMessage: mockAddSystemMessage,
+      addUserMessage: mockAddUserMessage,
+      clearMessages: mockClearMessages,
+      isTyping: false,
+    });
+
+    render(<Chat initialPropertyId={1} />);
+    await act(async () => fireEvent.click(await screen.findByText("Sí")));
+
+    await waitFor(() => expect(mockStartSessionUser).toHaveBeenCalled());
+
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText(/Cerrar chat/i));
+    });
+
+    await waitFor(() => {
+      expect(mockSendMessage).toHaveBeenCalledWith("CERRAR", 1, 999);
+    });
   });
 });

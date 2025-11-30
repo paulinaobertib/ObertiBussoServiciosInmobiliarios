@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Typography, Button, IconButton, CircularProgress } from "@mui/material";
+import { Box, Typography, Button, IconButton, CircularProgress, Stack } from "@mui/material";
 import { BasePage } from "./BasePage";
 import { usePropertiesContext } from "../app/property/context/PropertiesContext";
 import { PropertyDetails } from "../app/property/components/propertyDetails/PropertyDetails";
@@ -136,13 +136,13 @@ const PropertyDetailsPage = () => {
       </IconButton>
 
       <BasePage>
-        <Box sx={{ display: "flex", justifyContent: "end", mt: 2, gap: 1, flexWrap: "wrap" }}>
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
           {!isAdmin ? (
             <Button variant="contained" onClick={() => setInquiryOpen(true)}>
               Consultar por esta propiedad
             </Button>
           ) : (
-            <>
+            <Stack direction="row" spacing={1}>
               <Button
                 variant="contained"
                 onClick={() => navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))}
@@ -157,7 +157,7 @@ const PropertyDetailsPage = () => {
               <LoadingButton variant="outlined" color="error" loading={deleting} onClick={handleDeleteProperty}>
                 Eliminar propiedad
               </LoadingButton>
-            </>
+            </Stack>
           )}
         </Box>
 
