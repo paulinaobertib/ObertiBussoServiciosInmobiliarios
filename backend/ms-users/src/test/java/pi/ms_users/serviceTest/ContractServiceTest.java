@@ -94,6 +94,11 @@ class ContractServiceTest {
         propertyDTO.setId(100L);
     }
 
+    @BeforeEach
+    void forceTimezone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Argentina/Buenos_Aires"));
+    }
+
     // casos de exito
 
     @Test
