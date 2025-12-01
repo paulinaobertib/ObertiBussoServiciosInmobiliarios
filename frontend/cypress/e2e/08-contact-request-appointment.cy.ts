@@ -193,16 +193,19 @@ describe("Reserva de turno - Usuario no autenticado", () => {
     // Navegar directamente a la ruta de perfil/turnos
     cy.visit(`${appBaseUrl}/profile`, { timeout: 15000 });
 
-    // Esperar carga de los turnos del usuario
-    cy.wait("@getUserAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-
     // Esperar a que la página de perfil se renderice
-    cy.wait(800);
+    cy.wait(1000);
 
     // Click en el botón "Mis Turnos" para abrir la sección
     cy.contains("button, a, li", /Mis Turnos/i, { timeout: 10000 })
       .should("be.visible")
       .then(($btn) => cy.wrap($btn).click());
+
+    // Esperar que se carguen los turnos después de hacer click
+    cy.wait("@getUserAppointments", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
+
+    // Esperar a que la sección se renderice
+    cy.wait(800);
 
     // Buscar y hacer click en el primer botón "Cancelar"
     cy.contains("button", /^Cancelar$/i, { timeout: 10000 })

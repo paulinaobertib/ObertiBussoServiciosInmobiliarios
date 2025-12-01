@@ -66,7 +66,7 @@ describe("Admin - CRUD de noticias", () => {
     // Esperar a que el detalle se renderice
     cy.wait(500);
 
-    cy.contains("h4", noticia.titulo).should("be.visible");
+    cy.contains("h5", noticia.titulo).should("be.visible");
     cy.contains("button", "Volver").click();
     
     // Esperar a que vuelva a la lista

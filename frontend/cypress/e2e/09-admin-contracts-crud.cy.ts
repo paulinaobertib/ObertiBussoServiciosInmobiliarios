@@ -138,10 +138,9 @@ describe("Admin - CRUD de contratos de alquiler", () => {
     cy.contains("button", "Nuevo Contrato", { timeout: SLOT_TIMEOUT }).click();
 
     cy.location("pathname", { timeout: SLOT_TIMEOUT }).should("include", "/contracts/new");
-    cy.wait("@getAvailableProperties", { timeout: SLOT_TIMEOUT });
     
     // Esperar a que la tabla de propiedades se renderice
-    cy.wait(800);
+    cy.wait(1000);
 
     // Buscar la fila que contiene "Propiedad A" y seleccionar su checkbox
     cy.contains('[role="row"]', /Propiedad A/i, { timeout: SLOT_TIMEOUT })

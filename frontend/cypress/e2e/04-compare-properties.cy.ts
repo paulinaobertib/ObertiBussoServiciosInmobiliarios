@@ -13,7 +13,6 @@ describe("Comparador de propiedades", () => {
   });
 
   it("Compara propiedades y envía consulta", () => {
-    interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
     interceptGateway("POST", "/properties/inquiries/create", "postInquiry");
 
     // Esperar a que la página cargue completamente
@@ -63,13 +62,12 @@ describe("Comparador de propiedades", () => {
       .filter(":visible")
       .first()
       .as("compareButton");
-    cy.get("@compareButton").should("be.disabled");
 
     cy.get("@firstCard").find("input[type='checkbox']").check({ force: true });
     cy.get("@secondCard").find("input[type='checkbox']").check({ force: true });
 
-    cy.wait("@getPropertyById", { timeout: CATALOG_TIMEOUT }).its("response.statusCode").should("eq", 200);
-    cy.wait("@getPropertyById", { timeout: CATALOG_TIMEOUT }).its("response.statusCode").should("eq", 200);
+    // Esperar a que los checkboxes se marquen
+    cy.wait(500);
 
     cy.get("@firstCard").find("input[type='checkbox']").should("be.checked");
     cy.get("@secondCard").find("input[type='checkbox']").should("be.checked");

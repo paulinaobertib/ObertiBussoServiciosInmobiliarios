@@ -102,6 +102,6 @@ describe("Login con Keycloak", () => {
 
     // Verificar elementos de la UI
     cy.get('[aria-label="profile"]', { timeout: 30000 }).should("be.visible");
-    cy.get('[aria-label="logout"]').should("be.visible");
+    cy.contains("button", /Cerrar sesión/i).should("be.visible");
   });
 });

@@ -57,8 +57,8 @@ describe("Noticias: Visualización desde usuario normal", () => {
     // Esperar a que el detalle se renderice
     cy.wait(500);
 
-    // verificar detalle visible
-    cy.get("h4").should("be.visible");
+    // verificar detalle visible - el título es un Typography variant="h5"
+    cy.get("h5", { timeout: 10000 }).should("be.visible");
     cy.get("button").contains("Volver").should("be.visible");
 
   });
