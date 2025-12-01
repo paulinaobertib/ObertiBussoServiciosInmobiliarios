@@ -32,6 +32,23 @@ export const Calendar = ({ onSelectDate, initialDate = dayjs() }: Props) => {
             width: "100%",
             maxWidth: 360,
             mx: "auto",
+            "& .MuiPickersCalendarHeader-label": {
+              fontSize: { xs: "1rem", sm: "0.85rem" },
+              fontWeight: 600,
+              textTransform: "capitalize",
+            },
+            "& .MuiPickersArrowSwitcher-button .MuiSvgIcon-root": {
+              fontSize: { xs: "1rem", sm: "0.85rem" },
+            },
+            "& .MuiTypography-root": {
+              fontSize: { xs: "0.95rem", sm: "0.8rem" },
+            },
+            "& .MuiPickersDay-root": {
+              fontSize: { xs: "0.9rem", sm: "0.75rem" },
+            },
+            "& .MuiDayCalendar-weekDayLabel": {
+              fontSize: { xs: "0.8rem", sm: "0.7rem" },
+            },
           }}
         />
       </Box>

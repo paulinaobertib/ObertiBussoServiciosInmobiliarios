@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.Status;
+import pi.ms_properties.dto.PropertyFilterDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -34,31 +35,37 @@ public interface IPropertyRepository extends JpaRepository<Property, Long>, JpaS
     @EntityGraph(attributePaths = {"neighborhood", "type", "amenities", "images", "inquiries", "comments", "maintenances"})
     List<Property> findByOwner(Long ownerId);
 
-    @Query(value = """
-    SELECT 
-        p.id,
-        p.title,
-        p.operation,
-        p.currency,
-        p.price,
-        CONCAT(p.street, ' ', p.number) AS address,
-        n.name AS neighborhood,
-        t.name AS type,
-        p.bedrooms,
-        p.bathrooms,
-        p.rooms,
-        p.credit,
-        p.financing,
-        p.expenses,
-        p.description,
-        JSON_ARRAYAGG(a.name) AS features
-    FROM property p
-    LEFT JOIN neighborhood n ON p.neighborhood_id = n.id
-    LEFT JOIN type t ON p.type_id = t.id
-    LEFT JOIN property_amenity pa ON p.id = pa.property_id
-    LEFT JOIN amenity a ON pa.amenity_id = a.id
-    WHERE p.status = 'DISPONIBLE'
-    GROUP BY p.id
-    """, nativeQuery = true)
-    List<Map<String, Object>> getPropertiesForAI();
+    @Query("""
+        SELECT p FROM Property p
+        WHERE p.status = 'DISPONIBLE'
+        AND (:#{#f.street} IS NULL 
+            OR LOWER(p.street) LIKE LOWER(CONCAT('%', :#{#f.street}, '%')))
+        AND (COALESCE(:#{#f.rooms}, p.rooms) IS NULL 
+            OR p.rooms >= COALESCE(:#{#f.rooms}, p.rooms))
+        AND (COALESCE(:#{#f.bathrooms}, p.bathrooms) IS NULL 
+            OR p.bathrooms >= COALESCE(:#{#f.bathrooms}, p.bathrooms))
+        AND (COALESCE(:#{#f.bedrooms}, p.bedrooms) IS NULL 
+            OR p.bedrooms >= COALESCE(:#{#f.bedrooms}, p.bedrooms))
+        AND (COALESCE(:#{#f.area}, p.area) IS NULL 
+            OR p.area >= COALESCE(:#{#f.area}, p.area))
+        AND (COALESCE(:#{#f.coveredArea}, p.coveredArea) IS NULL 
+            OR p.coveredArea >= COALESCE(:#{#f.coveredArea}, p.coveredArea))
+        AND (COALESCE(:#{#f.price}, p.price) IS NULL 
+            OR p.price <= COALESCE(:#{#f.price}, p.price))
+        AND (COALESCE(:#{#f.expenses}, p.expenses) IS NULL 
+            OR p.expenses <= COALESCE(:#{#f.expenses}, p.expenses))
+        AND (:#{#f.currency} IS NULL 
+            OR LOWER(p.currency) = LOWER(:#{#f.currency}))
+        AND (:#{#f.operation} IS NULL 
+            OR LOWER(p.operation) = LOWER(:#{#f.operation}))
+        AND (:#{#f.type} IS NULL 
+            OR LOWER(p.type.name) = LOWER(:#{#f.type}))
+        AND (:#{#f.neighborhood} IS NULL 
+            OR LOWER(p.neighborhood.name) LIKE LOWER(CONCAT('%', :#{#f.neighborhood}, '%')))
+        AND (:#{#f.credit} IS NULL 
+            OR p.credit = :#{#f.credit})
+        AND (:#{#f.financing} IS NULL 
+            OR p.financing = :#{#f.financing})
+    """)
+    List<Property> searchByFilters(@Param("f") PropertyFilterDTO f);
 }

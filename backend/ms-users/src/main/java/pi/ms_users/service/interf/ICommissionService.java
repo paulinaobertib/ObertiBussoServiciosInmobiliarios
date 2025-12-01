@@ -46,4 +46,6 @@ public interface ICommissionService {
     ResponseEntity<Map<YearMonth, BigDecimal>> getYearMonthlyTotals(int year, PaymentCurrency currency);
 
     ResponseEntity<Map<CommissionStatus, Long>> countByStatus();
+
+    ResponseEntity<BigDecimal> getPartialCommissionsRemainingAmount();
 }

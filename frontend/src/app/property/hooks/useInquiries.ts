@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getInquiriesByUser,
@@ -51,17 +51,21 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
 
   // ---------- Cargar catálogo de propiedades (una vez) ----------
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         const r = await getAllProperties();
         const list = toArray<{ id: number; title: string }>(r);
-        setProperties(list.map((p) => ({ id: p.id, title: p.title })));
+        if (mounted) setProperties(list.map((p) => ({ id: p.id, title: p.title })));
       } catch (e) {
         handleError(e);
-        setProperties([]);
+        if (mounted) setProperties([]);
       }
     })();
-  }, []);
+    return () => {
+      mounted = false;
+    };
+  }, [handleError]);
 
   // ---------- Cargar sesiones de chat (solo admin) ----------
   const loadChatSessions = useCallback(async () => {
@@ -104,14 +108,19 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
   };
 
   // ---------- Cargar consultas ----------
+  const memoPropertyIds = useMemo(() => {
+    if (!propertyIds || !propertyIds.length) return undefined;
+    return [...propertyIds];
+  }, [propertyIds ? propertyIds.join(",") : ""]);
+
   const loadAll = useCallback(async () => {
     if (!info?.id) return;
     setLoading(true);
     try {
-      if (propertyIds?.length) {
+      if (memoPropertyIds?.length) {
         // Lista por propiedades específicas (ej. vista por propiedad)
         const all: Inquiry[] = [];
-        for (const pid of propertyIds) {
+        for (const pid of memoPropertyIds) {
           const res = await getInquiriesByProperty(pid);
           all.push(...toArray<Inquiry>(res?.data ?? res));
         }
@@ -129,7 +138,7 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [info?.id, isAdmin, propertyIds, handleError]);
+  }, [info?.id, isAdmin, memoPropertyIds, handleError]);
 
   // Bootstrap / recarga cuando cambian deps REALES
   useEffect(() => {
@@ -141,21 +150,13 @@ export const useInquiries = ({ propertyIds }: UseInquiriesArgs = {}) => {
     setActionLoadingId(inqId);
     try {
       await updateInquiry(inqId);
-      // Update local sin refrescar todo
       setInquiries((prev) =>
-        prev.map((i) =>
-          i.id === inqId
-            ? {
-                ...i,
-                status: "CERRADA",
-                dateClose: new Date().toISOString(),
-              }
-            : i
-        )
+        prev.map((inq) => (inq.id === inqId ? { ...inq, status: "CERRADA" as InquiryStatus } : inq))
       );
+      // Recargar para obtener la fecha correcta del backend
+      await loadAll();
     } catch (e) {
       handleError(e);
-      // fallback: si preferís, podrías llamar loadAll() acá
     } finally {
       setActionLoadingId(null);
     }

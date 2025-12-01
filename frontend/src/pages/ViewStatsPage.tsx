@@ -23,17 +23,22 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 
+import { useNavigate } from "react-router-dom";
+
 import ChartCard from "../app/property/components/view/ChartCard";
 import { useViewStats } from "../app/property/hooks/useViewsStats";
 import BasePage from "./BasePage";
+import { InfoIconWithDialog } from "../app/shared/components/InfoIconWithDialog";
 
 interface InfoCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
+  infoTitle?: string;
+  infoDescription?: string;
 }
 
-function InfoCard({ title, value, icon }: InfoCardProps) {
+function InfoCard({ title, value, icon, infoTitle, infoDescription }: InfoCardProps) {
   const theme = useTheme();
   const iconWrapperBg = alpha(theme.palette.primary.main, theme.palette.mode === "light" ? 0.12 : 0.24);
   return (
@@ -66,9 +71,14 @@ function InfoCard({ title, value, icon }: InfoCardProps) {
         >
           {icon}
         </Box>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.4 }}>
-          {title}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flex: 1 }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.4 }}>
+            {title}
+          </Typography>
+          {infoTitle && infoDescription && (
+            <InfoIconWithDialog title={infoTitle} description={infoDescription} size={18} />
+          )}
+        </Box>
       </Box>
 
       <Box display="flex" flexDirection="column" gap={1}>
@@ -141,6 +151,7 @@ const parseDurationToHours = (value: string | number | null | undefined) => {
 };
 
 export default function ViewStatsPage() {
+  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState(getInitialRange);
   const commissionYear = useMemo(() => {
     const parsed = Number.parseInt(dateRange.to.slice(0, 4), 10);
@@ -198,23 +209,98 @@ export default function ViewStatsPage() {
   const topViewsByStatus = useMemo(() => pickTopEntries(stats.status, 8), [stats.status]);
   const topViewsByOperation = useMemo(() => pickTopEntries(stats.operation, 6), [stats.operation]);
   const topViewsByRooms = useMemo(() => pickTopEntries(stats.rooms, 6), [stats.rooms]);
-  const topViewsByAmenity = useMemo(() => pickTopEntries(stats.amenity, 8), [stats.amenity]);
+  const topViewsByAmenity = useMemo(() => pickTopEntries(stats.amenity, 5), [stats.amenity]);
   const topViewsByStatusAndType = useMemo(
     () => pickTopEntries(flattenStatusAndType(stats.statusAndType), 10),
     [stats.statusAndType]
   );
+  const viewsByDayDescending = useMemo(() => {
+    if (!stats.day) return {};
+    return Object.entries(stats.day)
+      .sort(([, a], [, b]) => Number(b ?? 0) - Number(a ?? 0))
+      .reduce<Record<string, number>>((acc, [key, value]) => {
+        acc[String(key)] = Number(value ?? 0);
+        return acc;
+      }, {});
+  }, [stats.day]);
   const viewCharts = [
-    { title: "Vistas por día", data: stats.day, type: "bar" as const },
-    { title: "Vistas por mes", data: stats.month, type: "doughnut" as const },
-    { title: "Propiedades con más vistas", data: topViewsByProperty, type: "bar" as const },
-    { title: "Vistas por tipo de propiedad", data: topViewsByPropertyType, type: "pie" as const },
-    { title: "Vistas por barrio", data: topViewsByNeighborhood, type: "pie" as const },
-    { title: "Vistas por tipo de barrio", data: topViewsByNeighborhoodType, type: "doughnut" as const },
-    { title: "Vistas por estado", data: topViewsByStatus, type: "doughnut" as const },
-    { title: "Vistas por estado y tipo", data: topViewsByStatusAndType, type: "bar" as const },
-    { title: "Vistas por tipo de operación", data: topViewsByOperation, type: "pie" as const },
-    { title: "Vistas por ambientes", data: topViewsByRooms, type: "bar" as const },
-    { title: "Amenidades más consultadas", data: topViewsByAmenity, type: "bar" as const },
+    {
+      title: "Vistas por día",
+      data: viewsByDayDescending,
+      type: "bar" as const,
+      infoTitle: "Vistas por día",
+      infoDescription: "Distribución diaria de visualizaciones de propiedades. Muestra la cantidad de vistas registradas cada día en el período analizado.",
+    },
+    {
+      title: "Vistas por mes",
+      data: stats.month,
+      type: "doughnut" as const,
+      infoTitle: "Vistas por mes",
+      infoDescription: "Distribución mensual de visualizaciones de propiedades. Permite identificar los meses con mayor actividad de visualización.",
+    },
+    {
+      title: "Propiedades con más vistas",
+      data: topViewsByProperty,
+      type: "pie" as const,
+      infoTitle: "Propiedades con más vistas",
+      infoDescription: "Ranking de las propiedades que han recibido más visualizaciones. Identifica las propiedades más populares entre los usuarios.",
+    },
+    {
+      title: "Vistas por tipo de propiedad",
+      data: topViewsByPropertyType,
+      type: "pie" as const,
+      infoTitle: "Vistas por tipo de propiedad",
+      infoDescription: "Distribución de visualizaciones según el tipo de propiedad (casa, departamento, local, etc.). Muestra qué tipos de propiedades generan más interés.",
+    },
+    {
+      title: "Vistas por barrio",
+      data: topViewsByNeighborhood,
+      type: "pie" as const,
+      infoTitle: "Vistas por barrio",
+      infoDescription: "Distribución de visualizaciones por barrio. Identifica las zonas geográficas que despiertan mayor interés entre los usuarios.",
+    },
+    {
+      title: "Vistas por tipo de barrio",
+      data: topViewsByNeighborhoodType,
+      type: "doughnut" as const,
+      infoTitle: "Vistas por tipo de barrio",
+      infoDescription: "Distribución de visualizaciones según la clasificación del barrio. Muestra las preferencias por tipo de barrio.",
+    },
+    {
+      title: "Vistas por estado",
+      data: topViewsByStatus,
+      type: "doughnut" as const,
+      infoTitle: "Vistas por estado",
+      infoDescription: "Distribución de visualizaciones según el estado de la propiedad (disponible, reservada, vendida, etc.).",
+    },
+    {
+      title: "Vistas por estado y tipo",
+      data: topViewsByStatusAndType,
+      type: "bar" as const,
+      infoTitle: "Vistas por estado y tipo",
+      infoDescription: "Análisis combinado de visualizaciones por estado y tipo de propiedad.",
+    },
+    {
+      title: "Vistas por tipo de operación",
+      data: topViewsByOperation,
+      type: "pie" as const,
+      infoTitle: "Vistas por tipo de operación",
+      infoDescription: "Distribución de visualizaciones según el tipo de operación (venta, alquiler). Muestra qué tipo de transacción genera más interés.",
+    },
+    {
+      title: "Vistas por ambientes",
+      data: topViewsByRooms,
+      type: "bar" as const,
+      infoTitle: "Vistas por ambientes",
+      infoDescription: "Distribución de visualizaciones según la cantidad de ambientes de las propiedades. Identifica las preferencias de tamaño de vivienda.",
+    },
+    {
+      title: "Características más consultadas",
+      data: topViewsByAmenity,
+      type: "bar" as const,
+      infoTitle: "Características más consultadas",
+      infoDescription: "Ranking de las características o amenities más buscadas por los usuarios (cocheras, piletas, jardines, etc.).",
+    },
   ] as const;
 
   // --- CONSULTAS ---
@@ -296,6 +382,11 @@ export default function ViewStatsPage() {
     [stats.commissionsTotalInDateRange, currencySymbol]
   );
 
+  const partialCommissionRemainingAmount = useMemo(
+    () => formatMoney(stats.partialCommissionsRemainingAmount || 0, currencySymbol),
+    [stats.partialCommissionsRemainingAmount, currencySymbol]
+  );
+
   const averageInquiryResponseHours = useMemo(
     () => parseDurationToHours(stats.inquiryResponseTime),
     [stats.inquiryResponseTime]
@@ -332,344 +423,493 @@ export default function ViewStatsPage() {
   const paymentsByUtilityRangeCount = stats.paymentsByUtilityRangeCount ?? 0;
 
   return (
-    <BasePage>
-      <Box sx={{ py: 4 }}>
-        {/* Header */}
-        <Box sx={{ position: "relative", mb: 3 }}>
-          <IconButton
-            onClick={() => window.history.back()}
-            sx={{ position: "absolute", top: 0, left: 0, display: { xs: "none", sm: "inline-flex" } }}
-          >
-            <ReplyIcon />
-          </IconButton>
+    <>
+      <IconButton
+        size="small"
+        onClick={() => navigate(-1)}
+        sx={{ position: "absolute", top: 64, left: 8, zIndex: 1300, display: { xs: "none", sm: "inline-flex" } }}
+      >
+        <ReplyIcon />
+      </IconButton>
+      <BasePage>
+        <Box sx={{ py: 4 }}>
+          {/* Header */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" align="center" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+              Panel de estadísticas
+            </Typography>
+          </Box>
 
-          <Typography variant="h5" align="center" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-            Panel de estadísticas
-          </Typography>
-        </Box>
-
-        {/* Tabs de navegación */}
-        <Box mb={4}>
-          <Tabs
-            value={activeSection}
-            onChange={(_, newValue) => setActiveSection(newValue)}
-            centered
-            TabIndicatorProps={{ sx: { height: 4, borderRadius: 999, bgcolor: "primary.main" } }}
-            sx={{
-              borderBottom: 1,
-              borderColor: "divider",
-              maxWidth: 520,
-              mx: "auto",
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                minWidth: "auto",
-                px: { xs: 1, sm: 2.5 },
-              },
-              "& .MuiTab-root.Mui-selected": {
-                color: "primary.main",
-              },
-            }}
-          >
-            <Tab label="Vistas" value="views" />
-            <Tab label="Consultas" value="inquiry" />
-            <Tab label="Encuestas" value="survey" />
-            <Tab label="Finanzas" value="finances" />
-          </Tabs>
-        </Box>
-
-        {/* Filtro de rango de fechas (solo en Finanzas) */}
-        {activeSection === "finances" && (
+          {/* Tabs de navegación */}
           <Box mb={4}>
-            <Paper
-              elevation={1}
+            <Tabs
+              value={activeSection}
+              onChange={(_, newValue) => setActiveSection(newValue)}
+              centered
+              TabIndicatorProps={{ sx: { height: 4, borderRadius: 999, bgcolor: "primary.main" } }}
               sx={{
-                p: 2,
-                borderRadius: 2,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
+                borderBottom: 1,
+                borderColor: "divider",
+                maxWidth: 520,
+                mx: "auto",
+                "& .MuiTab-root": {
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  minWidth: "auto",
+                  px: { xs: 1, sm: 2.5 },
+                },
+                "& .MuiTab-root.Mui-selected": {
+                  color: "primary.main",
+                },
               }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Rango de fechas para comisiones y pagos
-              </Typography>
-              <Divider />
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
-                <TextField
-                  label="Desde"
-                  type="date"
-                  value={dateRange.from}
-                  onChange={handleDateChange("from")}
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ width: { xs: "100%", sm: 220 } }}
-                />
-                <TextField
-                  label="Hasta"
-                  type="date"
-                  value={dateRange.to}
-                  onChange={handleDateChange("to")}
-                  InputLabelProps={{ shrink: true }}
-                  sx={{ width: { xs: "100%", sm: 220 } }}
-                />
-              </Stack>
-            </Paper>
+              <Tab label="Vistas" value="views" />
+              <Tab label="Consultas" value="inquiry" />
+              <Tab label="Encuestas" value="survey" />
+              <Tab label="Finanzas" value="finances" />
+            </Tabs>
           </Box>
-        )}
 
-        {/* Resúmenes numéricos */}
-        <Grid container spacing={3} mb={4}>
-          {activeSection === "views" && (
-            <>
-              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                <InfoCard
-                  icon={<VisibilityIcon fontSize="large" color="inherit" />}
-                  title="Total de Vistas"
-                  value={totalViews}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                <InfoCard
-                  icon={<VisibilityIcon fontSize="large" color="inherit" />}
-                  title="Vistas promedio por día"
-                  value={avgViewsPerDay}
-                />
-              </Grid>
-            </>
-          )}
-
-          {activeSection === "inquiry" && (
-            <Grid size={{ xs: 12, sm: 12, md: 12 }}>
-              <InfoCard
-                icon={<AccessTimeIcon fontSize="large" color="inherit" />}
-                title="Tiempo promedio de respuesta"
-                value={averageInquiryResponseLabel}
-              />
-            </Grid>
-          )}
-
-          {activeSection === "survey" && (
-            <>
-              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                <InfoCard
-                  icon={<PollIcon fontSize="large" color="inherit" />}
-                  title="Total de Encuestas"
-                  value={stats.surveysCount}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 6 }}>
-                <InfoCard
-                  icon={<PollIcon fontSize="large" color="inherit" />}
-                  title="Puntaje Prom. Encuestas"
-                  value={`${stats.averageSurveyScore.toFixed(2)} / 5`}
-                />
-              </Grid>
-            </>
-          )}
-
-          {/* --- KPIs de Finanzas --- */}
+          {/* Filtro de rango de fechas (solo en Finanzas) */}
           {activeSection === "finances" && (
-            <>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<GavelIcon fontSize="large" color="inherit" />}
-                  title="Total Contratos"
-                  value={totalContracts}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<GavelIcon fontSize="large" color="inherit" />}
-                  title="Contratos Activos"
-                  value={activeContracts}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<GavelIcon fontSize="large" color="inherit" />}
-                  title="Contratos Inactivos"
-                  value={inactiveContracts}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
-                  title="Comisiones totales en el rango"
-                  value={totalCommissionInRangeMoney}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
-                  title="Comisiones Pagadas (Total $)"
-                  value={formatMoney(commissionTotalsByStatus["PAGADA"] || 0, currencySymbol)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
-                  title="Comisiones Parciales (Total $)"
-                  value={formatMoney(commissionTotalsByStatus["PARCIAL"] || 0, currencySymbol)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
-                  title="Comisiones Pendientes (Total $)"
-                  value={formatMoney(commissionTotalsByStatus["PENDIENTE"] || 0, currencySymbol)}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
-                  title="Pagos totales en el rango"
-                  value={paymentsTotal}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
-                  title="Pagos asociados a contratos (rango)"
-                  value={paymentsByContractRangeCount}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
-                  title="Pagos asociados a comisiones (rango)"
-                  value={paymentsByCommissionRangeCount}
-                />
-              </Grid>
-              {/* Si querés mostrar utilities */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <InfoCard
-                  icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
-                  title="Pagos de Servicios (rango)"
-                  value={paymentsByUtilityRangeCount}
-                />
-              </Grid>
-            </>
-          )}
-        </Grid>
-
-        {/* Carga / Error */}
-        {loading && (
-          <Box display="flex" justifyContent="center" py={6}>
-            <CircularProgress />
-          </Box>
-        )}
-        {error && <Alert severity="error">{error}</Alert>}
-
-        {/* Grilla de gráficos */}
-        {!loading && !error && (
-          <Box display="flex" flexDirection="column" gap={4}>
-            {activeSection === "views" && (
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Vistas de Propiedades
+            <Box mb={4}>
+              <Paper
+                elevation={1}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Rango de fechas para comisiones y pagos
                 </Typography>
-                <Grid container spacing={3}>
-                  {viewCharts.map((cfg) => (
-                    <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title={cfg.title} data={cfg.data} type={cfg.type} />
-                    </Grid>
-                  ))}
+                <Divider />
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                  <TextField
+                    label="Desde"
+                    type="date"
+                    value={dateRange.from}
+                    onChange={handleDateChange("from")}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ width: { xs: "100%", sm: 220 } }}
+                  />
+                  <TextField
+                    label="Hasta"
+                    type="date"
+                    value={dateRange.to}
+                    onChange={handleDateChange("to")}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ width: { xs: "100%", sm: 220 } }}
+                  />
+                </Stack>
+              </Paper>
+            </Box>
+          )}
+
+          {/* Resúmenes numéricos */}
+          <Grid container spacing={3} mb={4}>
+            {activeSection === "views" && (
+              <>
+                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                  <InfoCard
+                    icon={<VisibilityIcon fontSize="large" color="inherit" />}
+                    title="Total de Vistas"
+                    value={totalViews}
+                    infoTitle="Total de Vistas"
+                    infoDescription="Cantidad total de veces que los usuarios han visualizado las propiedades publicadas en el sistema."
+                  />
                 </Grid>
-              </Box>
+                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                  <InfoCard
+                    icon={<VisibilityIcon fontSize="large" color="inherit" />}
+                    title="Vistas promedio por día"
+                    value={avgViewsPerDay}
+                    infoTitle="Vistas promedio por día"
+                    infoDescription="Promedio diario de visualizaciones de propiedades. Se calcula dividiendo el total de vistas por la cantidad de días en el período."
+                  />
+                </Grid>
+              </>
             )}
 
             {activeSection === "inquiry" && (
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Consultas
-                </Typography>
-                <Grid container spacing={3}>
-                  {[
-                    { title: "Consultas por Mes", data: inquiriesPerMonth, type: "line" },
-                    { title: "Propiedades Más Consultadas", data: mostConsultedProperties, type: "bar" },
-                    { title: "Distribución por Estado", data: inquiryStatusDistribution, type: "doughnut" },
-                    { title: "Por Día de la Semana", data: inquiriesByDayOfWeek, type: "pie" },
-                    { title: "Por Franja Horaria", data: inquiriesByTimeRange, type: "bar" },
-                  ].map((cfg) => (
-                    <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title={cfg.title} data={cfg.data} />
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
+              <Grid size={{ xs: 12, sm: 12, md: 12 }}>
+                <InfoCard
+                  icon={<AccessTimeIcon fontSize="large" color="inherit" />}
+                  title="Tiempo promedio de respuesta"
+                  value={averageInquiryResponseLabel}
+                  infoTitle="Tiempo promedio de respuesta"
+                  infoDescription="Tiempo promedio que tarda el equipo en responder a las consultas de los usuarios. Este indicador mide la eficiencia en la atención al cliente."
+                />
+              </Grid>
             )}
 
             {activeSection === "survey" && (
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Encuestas
-                </Typography>
-                <Grid container spacing={3}>
-                  {[
-                    { title: "Distribución de Puntajes", data: surveyScoreDistribution, type: "bar" },
-                    { title: "Puntaje Promedio Diario", data: surveyDailyAverage, type: "line" },
-                    { title: "Puntaje Promedio Mensual", data: surveyMonthlyAverage, type: "doughnut" },
-                  ].map((cfg) => (
-                    <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                      <ChartCard title={cfg.title} data={cfg.data} />
-                    </Grid>
-                  ))}
+              <>
+                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                  <InfoCard
+                    icon={<PollIcon fontSize="large" color="inherit" />}
+                    title="Total de Encuestas"
+                    value={stats.surveysCount}
+                    infoTitle="Total de Encuestas"
+                    infoDescription="Cantidad total de encuestas de satisfacción completadas por los usuarios. Estas encuestas permiten evaluar la calidad del servicio brindado."
+                  />
                 </Grid>
-              </Box>
+                <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+                  <InfoCard
+                    icon={<PollIcon fontSize="large" color="inherit" />}
+                    title="Puntaje Prom. Encuestas"
+                    value={`${stats.averageSurveyScore.toFixed(2)} / 5`}
+                    infoTitle="Puntaje Promedio de Encuestas"
+                    infoDescription="Puntaje promedio obtenido en las encuestas de satisfacción, en una escala de 1 a 5. Este indicador refleja el nivel de satisfacción general de los usuarios con el servicio."
+                  />
+                </Grid>
+              </>
             )}
 
-            {/* --- Sección Finanzas --- */}
+            {/* --- KPIs de Finanzas --- */}
             {activeSection === "finances" && (
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Finanzas
-                </Typography>
-
-                {/* --- KPIs de Payments dentro de la sección Contratos --- */}
-                <Grid container spacing={3} mb={2}></Grid>
-
-                {/* Gráficos de Contratos + Payments + Comisiones */}
-                <Grid container spacing={3}>
-                  {/* Lo que ya tenías */}
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Contratos por estado" data={topContractsByStatus} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Contratos por tipo" data={topContractsByType} />
-                  </Grid>
-
-                  {/* Payments */}
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Pagos por concepto (rango)" data={paymentsByConcept} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Pagos por moneda (rango)" data={paymentsByCurrency} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 12, md: 8 }}>
-                    <ChartCard title="Pagos por mes (rango)" data={paymentsMonthlyTotals} />
-                  </Grid>
-
-                  {/* (Opcional) Comisiones – útiles si querés ver todo “económico” en la pestaña Contratos */}
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Comisiones por estado" data={commissionTotalsByStatus} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Comisiones por mes" data={commissionYearMonthlyTotals} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                    <ChartCard title="Cantidad de comisiones por estado" data={commissionCountsByStatus} />
-                  </Grid>
-                  {/* <Grid size={{ xs: 12, sm: 6, md: 4 }}> */}
-                  {/* <ChartCard title="Comisiones por Tipo de Pago" data={commissionsCountByPaymentType} />  */}
-                  {/* </Grid> */}
+              <>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<GavelIcon fontSize="large" color="inherit" />}
+                    title="Total Contratos"
+                    value={totalContracts}
+                    infoTitle="Total Contratos"
+                    infoDescription="Cantidad total de contratos registrados en el sistema, incluyendo tanto contratos activos como inactivos."
+                  />
                 </Grid>
-              </Box>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<GavelIcon fontSize="large" color="inherit" />}
+                    title="Contratos Activos"
+                    value={activeContracts}
+                    infoTitle="Contratos Activos"
+                    infoDescription="Cantidad de contratos que se encuentran actualmente en vigencia."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<GavelIcon fontSize="large" color="inherit" />}
+                    title="Contratos Inactivos"
+                    value={inactiveContracts}
+                    infoTitle="Contratos Inactivos"
+                    infoDescription="Cantidad de contratos que han finalizado o se encuentran inactivos. Estos contratos ya no están en vigencia."
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Comisiones totales en el rango"
+                    value={totalCommissionInRangeMoney}
+                    infoTitle="Comisiones totales en el rango"
+                    infoDescription="Suma total de todas las comisiones generadas en el rango de fechas seleccionado. Incluye comisiones pagadas, parciales y pendientes."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Comisiones Pagadas (Total $)"
+                    value={formatMoney(commissionTotalsByStatus["PAGADA"] || 0, currencySymbol)}
+                    infoTitle="Comisiones Pagadas"
+                    infoDescription="Monto total de comisiones que han sido completamente pagadas. Estas comisiones ya fueron cobradas en su totalidad."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Comisiones Parciales (Total $)"
+                    value={formatMoney(commissionTotalsByStatus["PARCIAL"] || 0, currencySymbol)}
+                    infoTitle="Comisiones Parciales"
+                    infoDescription="Monto total de comisiones que han sido pagadas parcialmente. Estas comisiones aún tienen un saldo pendiente por cobrar."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Saldo restante Comisiones Parciales"
+                    value={partialCommissionRemainingAmount}
+                    infoTitle="Saldo restante de comisiones parciales"
+                    infoDescription="Saldo pendiente por cobrar de las comisiones que se encuentran en estado parcial. Representa el dinero que resta percibir."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Comisiones Pendientes (Total $)"
+                    value={formatMoney(commissionTotalsByStatus["PENDIENTE"] || 0, currencySymbol)}
+                    infoTitle="Comisiones Pendientes"
+                    infoDescription="Monto total de comisiones que aún no han sido pagadas. Estas comisiones están pendientes de cobro."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<MonetizationOnIcon fontSize="large" color="inherit" />}
+                    title="Pagos totales en el rango"
+                    value={paymentsTotal}
+                    infoTitle="Pagos totales en el rango"
+                    infoDescription="Suma total de todos los pagos registrados en el rango de fechas seleccionado. Incluye pagos de alquileres, comisiones y servicios."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
+                    title="Pagos asociados a contratos (rango)"
+                    value={paymentsByContractRangeCount}
+                    infoTitle="Pagos asociados a contratos"
+                    infoDescription="Cantidad de pagos registrados que están asociados a contratos de alquiler en el rango de fechas seleccionado. Incluye pagos de alquileres y depósitos."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
+                    title="Pagos asociados a comisiones (rango)"
+                    value={paymentsByCommissionRangeCount}
+                    infoTitle="Pagos asociados a comisiones"
+                    infoDescription="Cantidad de pagos registrados que están asociados a todos los tipos de comisiones en el rango de fechas seleccionado."
+                  />
+                </Grid>
+                {/* Si querés mostrar utilities */}
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <InfoCard
+                    icon={<AttachMoneyIcon fontSize="large" color="inherit" />}
+                    title="Pagos de Servicios (rango)"
+                    value={paymentsByUtilityRangeCount}
+                    infoTitle="Pagos de Servicios"
+                    infoDescription="Cantidad de pagos registrados correspondientes a servicios (como expensas, servicios públicos, etc.) en el rango de fechas seleccionado."
+                  />
+                </Grid>
+              </>
             )}
-          </Box>
-        )}
-      </Box>
-    </BasePage>
+          </Grid>
+
+          {/* Carga / Error */}
+          {loading && (
+            <Box display="flex" justifyContent="center" py={6}>
+              <CircularProgress />
+            </Box>
+          )}
+          {error && <Alert severity="error">{error}</Alert>}
+
+          {/* Grilla de gráficos */}
+          {!loading && !error && (
+            <Box display="flex" flexDirection="column" gap={4}>
+              {activeSection === "views" && (
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                    Vistas de Propiedades
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {viewCharts.map((cfg) => (
+                      <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                        <ChartCard
+                          title={cfg.title}
+                          data={cfg.data}
+                          type={cfg.type}
+                          infoTitle={cfg.infoTitle}
+                          infoDescription={cfg.infoDescription}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+
+              {activeSection === "inquiry" && (
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                    Consultas
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {[
+                      {
+                        title: "Consultas por Mes",
+                        data: inquiriesPerMonth,
+                        type: "line" as const,
+                        infoTitle: "Consultas por Mes",
+                        infoDescription: "Evolución mensual de las consultas recibidas. Muestra la tendencia de consultas a lo largo del tiempo.",
+                      },
+                      {
+                        title: "Propiedades Más Consultadas",
+                        data: mostConsultedProperties,
+                        type: "pie" as const,
+                        infoTitle: "Propiedades Más Consultadas",
+                        infoDescription: "Ranking de las propiedades que han recibido más consultas. Identifica las propiedades que generan mayor interés entre los usuarios.",
+                      },
+                      {
+                        title: "Distribución por Estado",
+                        data: inquiryStatusDistribution,
+                        type: "doughnut" as const,
+                        infoTitle: "Distribución de Consultas por Estado",
+                        infoDescription: "Distribución de las consultas según su estado (pendiente, respondida, cerrada, etc.). Muestra el estado de gestión de las consultas.",
+                      },
+                      {
+                        title: "Por Día de la Semana",
+                        data: inquiriesByDayOfWeek,
+                        type: "pie" as const,
+                        infoTitle: "Consultas por Día de la Semana",
+                        infoDescription: "Distribución de consultas según el día de la semana. Identifica los días con mayor actividad de consultas.",
+                      },
+                      {
+                        title: "Por Franja Horaria",
+                        data: inquiriesByTimeRange,
+                        type: "bar" as const,
+                        infoTitle: "Consultas por Franja Horaria",
+                        infoDescription: "Distribución de consultas según la hora del día. Muestra en qué momentos los usuarios realizan más consultas.",
+                      },
+                    ].map((cfg) => (
+                      <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                        <ChartCard
+                          title={cfg.title}
+                          data={cfg.data}
+                          type={cfg.type}
+                          infoTitle={cfg.infoTitle}
+                          infoDescription={cfg.infoDescription}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+
+              {activeSection === "survey" && (
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                    Encuestas
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {[
+                      {
+                        title: "Distribución de Puntajes",
+                        data: surveyScoreDistribution,
+                        type: "bar" as const,
+                        infoTitle: "Distribución de Puntajes",
+                        infoDescription: "Distribución de los puntajes otorgados en las encuestas de satisfacción. Muestra cómo se distribuyen las calificaciones de 1 a 5.",
+                      },
+                      {
+                        title: "Puntaje Promedio Diario",
+                        data: surveyDailyAverage,
+                        type: "line" as const,
+                        infoTitle: "Puntaje Promedio Diario",
+                        infoDescription: "Evolución diaria del puntaje promedio de las encuestas. Permite identificar tendencias en la satisfacción del cliente a lo largo del tiempo.",
+                      },
+                      {
+                        title: "Puntaje Promedio Mensual",
+                        data: surveyMonthlyAverage,
+                        type: "doughnut" as const,
+                        infoTitle: "Puntaje Promedio Mensual",
+                        infoDescription: "Puntaje promedio de satisfacción por mes. Muestra la evolución mensual de la satisfacción de los usuarios con el servicio.",
+                      },
+                    ].map((cfg) => (
+                      <Grid key={cfg.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                        <ChartCard
+                          title={cfg.title}
+                          data={cfg.data}
+                          type={cfg.type}
+                          infoTitle={cfg.infoTitle}
+                          infoDescription={cfg.infoDescription}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+
+              {/* --- Sección Finanzas --- */}
+              {activeSection === "finances" && (
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                    Finanzas
+                  </Typography>
+
+                  {/* --- KPIs de Payments dentro de la sección Contratos --- */}
+                  <Grid container spacing={3} mb={2}></Grid>
+
+                  {/* Gráficos de Contratos + Payments + Comisiones */}
+                  <Grid container spacing={3}>
+                    {/* Lo que ya tenías */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Contratos por estado"
+                        data={topContractsByStatus}
+                        infoTitle="Contratos por estado"
+                        infoDescription="Distribución de contratos según su estado (activo o inactivo). Muestra la situación actual de los contratos gestionados."
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Contratos por tipo"
+                        data={topContractsByType}
+                        infoTitle="Contratos por tipo"
+                        infoDescription="Distribución de contratos según su tipo (alquiler, venta, etc.). Identifica qué tipos de contratos son más comunes."
+                      />
+                    </Grid>
+
+                    {/* Payments */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Pagos por concepto (rango)"
+                        data={paymentsByConcept}
+                        infoTitle="Pagos por concepto"
+                        infoDescription="Distribución de pagos según su concepto (alquiler, comisión, servicios, etc.) en el rango de fechas seleccionado."
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Pagos por moneda (rango)"
+                        data={paymentsByCurrency}
+                        infoTitle="Pagos por moneda"
+                        infoDescription="Distribución de pagos según la moneda utilizada (ARS, USD, etc.) en el rango de fechas seleccionado."
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 12, md: 8 }}>
+                      <ChartCard
+                        title="Pagos por mes (rango)"
+                        data={paymentsMonthlyTotals}
+                        infoTitle="Pagos por mes"
+                        infoDescription="Evolución mensual de los pagos registrados en el rango de fechas seleccionado. Muestra la tendencia de pagos a lo largo del tiempo."
+                      />
+                    </Grid>
+
+                    {/* (Opcional) Comisiones – útiles si querés ver todo "económico" en la pestaña Contratos */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Comisiones por estado"
+                        data={commissionTotalsByStatus}
+                        infoTitle="Comisiones por estado"
+                        infoDescription="Distribución del monto total de comisiones según su estado (pagada, parcial, pendiente). Muestra la situación de cobro de las comisiones."
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Comisiones por mes"
+                        data={commissionYearMonthlyTotals}
+                        infoTitle="Comisiones por mes"
+                        infoDescription="Evolución mensual de las comisiones generadas durante el año seleccionado. Permite identificar los meses con mayor actividad de comisiones."
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                      <ChartCard
+                        title="Cantidad de comisiones por estado"
+                        data={commissionCountsByStatus}
+                        infoTitle="Cantidad de comisiones por estado"
+                        infoDescription="Cantidad de comisiones según su estado (pagada, parcial, pendiente). Muestra cuántas comisiones hay en cada estado."
+                      />
+                    </Grid>
+                    {/* <Grid size={{ xs: 12, sm: 6, md: 4 }}> */}
+                    {/* <ChartCard title="Comisiones por Tipo de Pago" data={commissionsCountByPaymentType} />  */}
+                    {/* </Grid> */}
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+          )}
+        </Box>
+      </BasePage>
+    </>
   );
 }

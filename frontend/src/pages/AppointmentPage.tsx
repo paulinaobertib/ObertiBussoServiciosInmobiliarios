@@ -25,6 +25,7 @@ import { AppointmentSection } from "../app/user/components/appointments/admin/Ap
 import { GenerateSlotsDialog } from "../app/user/components/appointments/admin/AppointmentsSlotsGenerator";
 import { AppointmentDetailsDialog } from "../app/user/components/appointments/admin/AppointmentDetails";
 import { useAppointments } from "../app/user/hooks/useAppointments";
+import { InfoIconWithDialog } from "../app/shared/components/InfoIconWithDialog";
 
 dayjs.locale("es");
 
@@ -82,9 +83,16 @@ export default function AppointmentPage() {
 
       <BasePage>
         <Container sx={{ py: 2 }}>
-          <Typography variant="h5" fontWeight={600} gutterBottom>
-            Turnero de Visitas
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <Typography variant="h5" fontWeight={600}>
+              Turnero de Visitas
+            </Typography>
+            <InfoIconWithDialog
+              title="Turnero de Visitas"
+              description="Herramienta interna para que el administrador cargue y gestione los turnos disponibles para visitas presenciales en la inmobiliaria."
+              size={20}
+            />
+          </Box>
 
           {/* Layout: dos columnas en md+, columna única en xs */}
           <Box

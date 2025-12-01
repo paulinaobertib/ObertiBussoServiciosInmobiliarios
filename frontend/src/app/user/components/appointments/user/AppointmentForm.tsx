@@ -10,6 +10,14 @@ import { EmptyState } from "../../../../shared/components/EmptyState";
 export const AppointmentForm: React.FC = () => {
   const { info } = useAuthContext();
   const { showAlert } = useGlobalAlert();
+  const inputCompactSx = {
+    "& .MuiInputBase-input": {
+      fontSize: { xs: "0.95rem", md: "0.85rem" },
+    },
+    "& .MuiInputLabel-root": {
+      fontSize: { xs: "0.95rem", md: "0.85rem" },
+    },
+  };
 
   const {
     bookingDate,
@@ -54,7 +62,7 @@ export const AppointmentForm: React.FC = () => {
     >
       {/* CALENDARIO */}
       <Box gridArea="cal">
-        <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" align="center" sx={{ mb: 1 }}>
           Seleccioná un día
         </Typography>
         <Calendar initialDate={bookingDate} onSelectDate={(d) => setBookingDate(d)} />
@@ -62,7 +70,7 @@ export const AppointmentForm: React.FC = () => {
 
       {/* SLOTS */}
       <Box gridArea="slots">
-        <Typography variant="subtitle1" align="center" sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" align="center" sx={{ mb: 1 }}>
           Horarios disponibles
         </Typography>
 
@@ -71,7 +79,15 @@ export const AppointmentForm: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : bookingSlots.length === 0 ? (
-          <EmptyState title="No hay turnos disponibles" description="Probá seleccionando otra fecha del calendario." />
+          <EmptyState
+            title="No hay turnos disponibles"
+            description="Probá seleccionando otra fecha del calendario."
+            sx={{
+              minHeight: 220,
+              "& .MuiTypography-subtitle1": { fontSize: { xs: "1rem", md: "0.9rem" } },
+              "& .MuiTypography-body2": { fontSize: { xs: "0.9rem", md: "0.8rem" } },
+            }}
+          />
         ) : (
           <Box
             sx={{
@@ -105,7 +121,7 @@ export const AppointmentForm: React.FC = () => {
 
       {/* NOTAS + SUBMIT */}
       <Box gridArea="notes" sx={{ display: "flex", flexDirection: "column" }}>
-        <Typography variant="subtitle1" align="center" sx={{ mt: 0 }}>
+        <Typography variant="subtitle2" align="center" sx={{ mt: 0, mb: 1 }}>
           Comentarios
         </Typography>
         <TextField
@@ -115,7 +131,8 @@ export const AppointmentForm: React.FC = () => {
           multiline
           rows={3}
           fullWidth
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, ...inputCompactSx }}
+          size="small"
         />
         <LoadingButton
           type="submit"
@@ -123,6 +140,8 @@ export const AppointmentForm: React.FC = () => {
           disabled={bookingSlotId === null || bookingLoading}
           fullWidth
           loading={bookingLoading} // único lugar con spinner
+          size="small"
+          sx={{ fontSize: { xs: "0.95rem", md: "0.85rem" } }}
         >
           Solicitar Turno
         </LoadingButton>

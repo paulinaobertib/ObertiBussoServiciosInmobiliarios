@@ -25,6 +25,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { LoadingButton } from "@mui/lab";
 import { useSearchFilters } from "../../hooks/useSearchFilters";
 import type { Property } from "../../types/property";
+import { formatAmount } from "../../../shared/utils/numberFormat";
+import { useBackButtonClose } from "../../../shared/hooks/useBackButtonClose";
 
 interface Props {
   onSearch(results: Property[]): void;
@@ -55,6 +57,17 @@ const accordionSx = {
   "&:before": { display: "none" },
 };
 
+const scrollableDetailsSx = {
+  px: 1,
+  mx: 1,
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 0.2,
+  maxHeight: 150,
+  overflowY: "auto",
+  pr: 1,
+};
+
 export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMobileTrigger }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -65,6 +78,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
     if (onMobileOpenChange) onMobileOpenChange(v);
     else setInternalOpen(v);
   };
+  const closeWithBack = useBackButtonClose(isMobile && open, () => setOpen(false));
 
   const [expanded, setExpanded] = useState<string | false>(false);
   const toggleAcc = (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
@@ -94,6 +108,25 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
 
   const priceCfg = dynLimits.price[(params.currency || "USD") as "USD" | "ARS"] ?? dynLimits.price.USD;
 
+  const sortedTypes = useMemo(() => [...typesList].sort((a, b) => a.name.localeCompare(b.name)), [typesList]);
+
+  const sortedAmenities = useMemo(
+    () => [...amenitiesList].sort((a, b) => a.name.localeCompare(b.name)),
+    [amenitiesList]
+  );
+
+  const sortedCities = useMemo(() => cities.slice().sort((a, b) => a.localeCompare(b)), [cities]);
+
+  const sortedNeighborhoods = useMemo(
+    () =>
+      [...neighborhoodsList].sort((a, b) => {
+        const nameCompare = a.name.localeCompare(b.name);
+        if (nameCompare !== 0) return nameCompare;
+        return (a.city ?? "").localeCompare(b.city ?? "");
+      }),
+    [neighborhoodsList]
+  );
+
   /* ═════════ Panel completo ═════════ */
   const Panel = (
     <Box sx={{ p: 2 }}>
@@ -103,7 +136,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           <Typography variant="subtitle1" fontSize={"1.2rem"} fontWeight={600}>
             Filtros de Búsqueda
           </Typography>
-          <IconButton size="small" onClick={() => setOpen(false)}>
+          <IconButton size="small" onClick={() => closeWithBack()}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -171,8 +204,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Tipos de Propiedad</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {typesList.map((tp) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedTypes.map((tp) => (
             <FormControlLabel
               key={tp.name}
               control={
@@ -194,7 +227,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Números de Ambientes</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
+        <AccordionDetails sx={scrollableDetailsSx}>
           {[1, 2, 3].map((n) => (
             <FormControlLabel
               key={n}
@@ -240,13 +273,14 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             max={priceCfg.max}
             step={priceCfg.step}
             valueLabelDisplay="auto"
+            valueLabelFormat={(value) => formatAmount(value as number)}
             marks={
               params.currency
                 ? [
                     { value: priceCfg.min, label: "0" },
                     {
                       value: priceCfg.max,
-                      label: priceCfg.max.toLocaleString(),
+                      label: formatAmount(priceCfg.max),
                     },
                   ]
                 : false
@@ -279,11 +313,12 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             max={dynLimits.area.max}
             step={dynLimits.area.step}
             valueLabelDisplay="auto"
+            valueLabelFormat={(value) => formatAmount(value)}
             marks={[
               { value: dynLimits.area.min, label: "0" },
               {
                 value: dynLimits.area.max,
-                label: dynLimits.area.max.toLocaleString(),
+                label: formatAmount(dynLimits.area.max),
               },
             ]}
             size="small"
@@ -300,11 +335,12 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
             max={dynLimits.covered.max}
             step={dynLimits.covered.step}
             valueLabelDisplay="auto"
+            valueLabelFormat={(value) => formatAmount(value)}
             marks={[
               { value: dynLimits.covered.min, label: "0" },
               {
                 value: dynLimits.covered.max,
-                label: dynLimits.covered.max.toLocaleString(),
+                label: formatAmount(dynLimits.covered.max),
               },
             ]}
             size="small"
@@ -318,8 +354,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           <Typography variant="body2">Características</Typography>
         </AccordionSummary>
 
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {amenitiesList.map((am) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedAmenities.map((am) => (
             <FormControlLabel
               key={am.id}
               control={
@@ -341,8 +377,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Ciudades</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {cities.map((city) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedCities.map((city) => (
             <FormControlLabel
               key={city}
               control={
@@ -364,8 +400,8 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="body2">Barrios</Typography>
         </AccordionSummary>
-        <AccordionDetails sx={{ px: 1, display: "flex", flexWrap: "wrap", mx: 1 }}>
-          {neighborhoodsList.map((nb) => (
+        <AccordionDetails sx={scrollableDetailsSx}>
+          {sortedNeighborhoods.map((nb) => (
             <FormControlLabel
               key={nb.name}
               control={
@@ -435,7 +471,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
       <Drawer
         anchor="bottom"
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={closeWithBack}
         PaperProps={{
           sx: (theme) => ({
             borderTopLeftRadius: 24,
@@ -450,7 +486,7 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           }),
         }}
       >
-        <Box sx={{ height: "100%", overflowY: "auto" }}>{Panel}</Box>
+        <Box sx={{ height: "100%", overflowY: "scroll", scrollbarGutter: "stable" }}>{Panel}</Box>
       </Drawer>
     </>
   ) : (

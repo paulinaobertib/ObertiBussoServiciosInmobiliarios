@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMapsSdk } from "../../../utils/googleMapsLoader";
 
@@ -128,9 +128,7 @@ export const MapSection = (props: Props) => {
             bgcolor: "rgba(245, 245, 245, 0.9)",
           }}
         >
-          <Typography variant="body2" color="text.secondary">
-            Cargando mapa...
-          </Typography>
+          <CircularProgress aria-label="Cargando mapa" />
         </Box>
       )}
     </Box>

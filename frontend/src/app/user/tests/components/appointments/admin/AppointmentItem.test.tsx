@@ -66,8 +66,8 @@ describe("AppointmentItem", () => {
     // Chip
     expect(screen.getByText("Pendiente")).toBeInTheDocument();
 
-    // primero muestra Cargando...
-    expect(screen.getByText(/Cargando/i)).toBeInTheDocument();
+    // primero muestra spinner
+    expect(screen.getByLabelText(/Cargando usuario/i)).toBeInTheDocument();
 
     // luego muestra el nombre del usuario
     await waitFor(() => {
@@ -109,7 +109,7 @@ describe("AppointmentItem", () => {
     renderWithTheme(<AppointmentItem slot={slot as any} appt={appt as any} onClick={onClick} />);
 
     // mientras carga
-    expect(screen.getByText(/Cargando/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cargando usuario/i)).toBeInTheDocument();
 
     // tras el fallo, debe mostrar "Cliente"
     await waitFor(() => {

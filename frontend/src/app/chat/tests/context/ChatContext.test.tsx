@@ -123,8 +123,9 @@ describe("ChatContext", () => {
       error: new Error("Error de prueba"),
     } as any);
 
+    type ChatContextValue = ReturnType<(typeof import("../../hooks/useChat"))["useChat"]>;
     const TestComponent = () => {
-      const context = useChatContext() as typeof mockUseChat & { error?: Error | null };
+      const context = useChatContext() as ChatContextValue & { error?: Error | null };
       return <div>{context.error ? context.error.message : "Sin error"}</div>;
     };
 

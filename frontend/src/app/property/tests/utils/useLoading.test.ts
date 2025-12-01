@@ -28,6 +28,7 @@ describe("useLoading", () => {
     });
 
     expect(loadingDuringExecution).toBe(true);
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it("debe establecer loading en false después de completar", async () => {

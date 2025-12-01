@@ -1,3 +1,4 @@
+import { formatAmount } from "../../../shared/utils/numberFormat";
 import React from "react";
 import { Box, Typography, Chip, Stack, Divider, useTheme } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -45,12 +46,12 @@ export const PropertyInfoCompare = ({ property }: Props) => {
     },
     {
       key: "area",
-      label: property.area ? `${property.area} m²` : "- m²",
+      label: property.area ? `${formatAmount(property.area)} m²` : "- m²",
       icon: <SquareFootIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />,
     },
     {
       key: "coveredArea",
-      label: property.coveredArea ? `${property.coveredArea} m² cubiertos` : "- m² cubiertos",
+      label: property.coveredArea ? `${formatAmount(property.coveredArea)} m² cubiertos` : "- m² cubiertos",
       icon: <FoundationIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />,
     },
   ];

@@ -120,5 +120,11 @@ public class CommissionController {
     public ResponseEntity<Map<CommissionStatus, Long>> countByStatus() {
         return commissionService.countByStatus();
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/partial/remainingAmount")
+    public ResponseEntity<BigDecimal> getPartialCommissionsRemainingAmount() {
+        return commissionService.getPartialCommissionsRemainingAmount();
+    }
 }
 

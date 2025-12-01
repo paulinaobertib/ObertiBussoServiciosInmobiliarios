@@ -1,3 +1,4 @@
+import { formatAmount } from "../../../shared/utils/numberFormat";
 import { Box, Grid, TextField, MenuItem, InputAdornment, IconButton, Typography, Checkbox, Stack } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { ImageUploader } from "../../../shared/components/images/ImageUploader";
@@ -236,11 +237,11 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
           <TextField
             fullWidth
             label="Precio"
-            value={form.price === 0 ? "" : form.price}
+            value={form.price === 0 ? "" : formatAmount(form.price)}
             onChange={num("price")}
             required
             error={!!fieldErrors.price}
-            inputProps={{ inputMode: "numeric", pattern: "[0-9]*", "data-testid": "expensas" }}
+            inputProps={{ inputMode: "numeric", pattern: "[0-9,.]*", "data-testid": "expensas" }}
             size="small"
             data-testid="select-moneda"
           />
@@ -252,10 +253,10 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
           <TextField
             fullWidth
             label="Expensas"
-            value={form.expenses ?? ""}
+            value={form.expenses === null ? "" : formatAmount(form.expenses)}
             onChange={num("expenses", { allowNull: true })}
             error={!!fieldErrors.expenses}
-            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+            inputProps={{ inputMode: "numeric", pattern: "[0-9,.]*" }}
             size="small"
             InputProps={{
               endAdornment: (
@@ -382,7 +383,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
           <TextField
             fullWidth
             label="Superficie Total"
-            value={form.area === 0 ? "" : form.area}
+            value={form.area === 0 ? "" : formatAmount(form.area)}
             onChange={num("area")}
             required
             error={!!fieldErrors.area}
@@ -394,7 +395,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
             <TextField
               fullWidth
               label="Superficie Cubierta"
-              value={form.coveredArea === 0 ? "" : form.coveredArea}
+              value={form.coveredArea === 0 ? "" : formatAmount(form.coveredArea)}
               onChange={num("coveredArea")}
               required
               error={!!fieldErrors.coveredArea}

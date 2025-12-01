@@ -4,6 +4,7 @@ import { LoadingButton } from "@mui/lab";
 import type { Utility } from "../../types/utility";
 import { postUtility, putUtility, deleteUtility } from "../../services/utility.service";
 import { useGlobalAlert } from "../../../shared/context/AlertContext";
+import { extractApiError } from "../../../shared/utils/error";
 
 interface Props {
   action: "add" | "edit" | "delete";
@@ -50,7 +51,7 @@ export const UtilitiesForm = ({ action, item, onDone }: Props) => {
       }
     } catch (e: any) {
       console.error(e);
-      showAlert(e?.message ?? "Error al guardar servicio", "error");
+      showAlert(extractApiError(e), "error");
     } finally {
       setLoading(false);
     }

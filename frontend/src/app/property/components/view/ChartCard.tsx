@@ -13,6 +13,7 @@ import {
   Legend,
   Title,
 } from "chart.js";
+import { InfoIconWithDialog } from "../../../shared/components/InfoIconWithDialog";
 
 // ⚙️ Registro de los componentes que usa Chart.js
 ChartJS.register(
@@ -32,6 +33,8 @@ interface ChartCardProps {
   title: string;
   data: Record<string, number>;
   type?: "bar" | "pie" | "line" | "doughnut" | "radar";
+  infoTitle?: string;
+  infoDescription?: string;
 }
 
 // 🎨 Colores predefinidos para las gráficas
@@ -48,13 +51,18 @@ const COLORS = [
   "#29B6F6",
 ];
 
-export default function ChartCard({ title, data, type = "bar" }: ChartCardProps) {
+export default function ChartCard({ title, data, type = "bar", infoTitle, infoDescription }: ChartCardProps) {
   if (!data || Object.keys(data).length === 0) {
     return (
       <Paper sx={{ p: 2, borderRadius: 2, textAlign: "center" }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-          {title}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            {title}
+          </Typography>
+          {infoTitle && infoDescription && (
+            <InfoIconWithDialog title={infoTitle} description={infoDescription} size={18} />
+          )}
+        </Box>
         <Typography variant="body2" color="text.secondary">
           No hay datos disponibles
         </Typography>
@@ -83,7 +91,7 @@ export default function ChartCard({ title, data, type = "bar" }: ChartCardProps)
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: type !== "bar", // ocultamos leyenda en barras
+        display: type !== "bar",
         position: "bottom" as const,
       },
       title: {
@@ -137,9 +145,14 @@ export default function ChartCard({ title, data, type = "bar" }: ChartCardProps)
 
   return (
     <Paper sx={{ p: 2, borderRadius: 2, height: 300 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-        {title}
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          {title}
+        </Typography>
+        {infoTitle && infoDescription && (
+          <InfoIconWithDialog title={infoTitle} description={infoDescription} size={18} />
+        )}
+      </Box>
       <Box sx={{ height: 250 }}>{renderChart()}</Box>
     </Paper>
   );

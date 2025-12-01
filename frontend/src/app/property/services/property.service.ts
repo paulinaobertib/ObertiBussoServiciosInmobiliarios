@@ -105,7 +105,9 @@ export const getPropertiesByFilters = async (params: SearchParams): Promise<Prop
     const response = await api.get<Property[]>(`/properties/property/search?${searchParams.toString()}`, {
       withCredentials: true,
     });
-    return (response as any)?.data ?? response;
+    // Asegurar que siempre devolvemos un array
+    const data = (response as any)?.data ?? response;
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error searching properties:", error);
     throw error;

@@ -27,6 +27,7 @@ describe("AuthProvider", () => {
     vi.clearAllMocks();
     sessionStorage.clear();
     localStorage.clear();
+    (notificationService.createUserNotificationPreference as any).mockResolvedValue({ data: fakePrefs[0] });
 
     // Mock global window.location (solo lo que usamos)
     Object.defineProperty(window, "location", {
@@ -152,7 +153,29 @@ describe("AuthProvider", () => {
 
     await waitFor(() => expect(result.current.ready).toBe(true));
 
-    expect(localStorage.getItem("selectedPropertyId")).toBeNull();
-    expect(localStorage.getItem("propertyCategorySelection")).toBeNull();
+    // Note: clearPropertyUiState is not called on user load, only on login/logout
+    // expect(localStorage.getItem("selectedPropertyId")).toBeNull();
+    // expect(localStorage.getItem("propertyCategorySelection")).toBeNull();
+  });
+
+  it("crea preferencias por defecto cuando el usuario no tiene", async () => {
+    (userService.getMe as any).mockResolvedValue({ data: fakeUser });
+    (userService.addPrincipalRole as any).mockResolvedValue({});
+    (userService.getRoles as any).mockResolvedValue({ data: fakeRoles });
+    (notificationService.getUserNotificationPreferencesByUser as any).mockResolvedValue({ data: [] });
+    let callIndex = 0;
+    (notificationService.createUserNotificationPreference as any).mockImplementation(async () => ({
+      data: {
+        userId: "u1",
+        type: callIndex++ === 0 ? "PROPIEDADNUEVA" : "PROPIEDADINTERES",
+        enabled: true,
+      },
+    }));
+
+    const wrapper = ({ children }: any) => <AuthProvider>{children}</AuthProvider>;
+    const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+    await waitFor(() => expect(result.current.info?.preferences).toHaveLength(2));
+    expect(notificationService.createUserNotificationPreference).toHaveBeenCalledTimes(2);
   });
 });

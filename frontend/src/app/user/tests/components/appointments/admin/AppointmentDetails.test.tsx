@@ -203,7 +203,7 @@ describe("<AppointmentDetailsDialog />", () => {
       />
     );
 
-    expect(screen.getByText("Cargando...")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cargando usuario/i)).toBeInTheDocument();
 
     await screen.findByText("Ana García");
     expect(screen.getByText("ana@dom.com")).toBeInTheDocument();

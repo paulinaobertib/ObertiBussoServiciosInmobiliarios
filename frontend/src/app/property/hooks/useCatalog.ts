@@ -6,7 +6,6 @@ import { Property } from "../types/property";
 import { buildRoute, ROUTES } from "../../../lib";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { useApiErrors } from "../../shared/hooks/useErrors";
-import { useEffect } from "react";
 
 interface Props {
   onFinish: () => void;
@@ -24,13 +23,6 @@ export const useCatalog = ({ onFinish, externalProperties }: Props) => {
 
   // Calcular el modo correcto basado en el rol del usuario
   const refreshMode = isAdmin ? "all" : "available";
-
-  // Cargar propiedades si no están cargadas, usando el modo correcto
-  useEffect(() => {
-    if (propertiesList === null) {
-      refreshProperties(refreshMode);
-    }
-  }, [propertiesList, refreshProperties, refreshMode]);
 
   const list = externalProperties ?? propertiesList ?? [];
 

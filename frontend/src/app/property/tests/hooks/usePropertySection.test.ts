@@ -15,6 +15,11 @@ vi.mock("../../context/PropertiesContext", () => ({
   }),
 }));
 
+const deletePropertyMock = vi.fn();
+vi.mock("../../services/property.service", () => ({
+  deleteProperty: (...args: any[]) => deletePropertyMock(...args),
+}));
+
 // ---- Mock de errores ----
 const handleErrorMock = vi.fn();
 vi.mock("../../../shared/hooks/useErrors", () => ({
@@ -35,6 +40,7 @@ describe("usePropertyPanel", () => {
     vi.clearAllMocks();
     currentList = null; // por defecto, sin datos aún
     mockAlert = {}; // limpiar alertApi mock
+    deletePropertyMock.mockReset();
   });
 
   it("estado inicial: loading=false y data vacía", () => {
@@ -132,5 +138,89 @@ describe("usePropertyPanel", () => {
     });
     expect(result.current.isSelected(7)).toBe(true);
     expect(result.current.isSelected(5)).toBe(false);
+  });
+
+  it("refresh usa el modo indicado y reporta errores", async () => {
+    const { result } = renderHook(() => usePropertyPanel("available"));
+    refreshPropertiesMock.mockClear();
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+    expect(refreshPropertiesMock).toHaveBeenCalledWith("available");
+
+    const boom = new Error("refresh fail");
+    refreshPropertiesMock.mockRejectedValueOnce(boom);
+    await act(async () => {
+      await result.current.refresh();
+    });
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+  });
+
+  it("removeProperty cancela si usuario no confirma", async () => {
+    mockAlert = { doubleConfirm: vi.fn().mockResolvedValue(false) };
+    const { result } = renderHook(() => usePropertyPanel());
+
+    const ok = await result.current.removeProperty({ id: 1, title: "Propiedad" } as any);
+    expect(ok).toBe(false);
+    expect(deletePropertyMock).not.toHaveBeenCalled();
+  });
+
+  it("removeProperty elimina, refresca y limpia selección", async () => {
+    const success = vi.fn();
+    mockAlert = { doubleConfirm: vi.fn().mockResolvedValue(true), success };
+    deletePropertyMock.mockResolvedValueOnce(undefined);
+
+    const { result } = renderHook(() => usePropertyPanel());
+    const prop = { id: 3, title: "Depto" } as any;
+
+    act(() => {
+      result.current.onSearch([prop]);
+      result.current.toggleSelect(3);
+    });
+    expect(result.current.isSelected(3)).toBe(true);
+
+    let ok: boolean | undefined;
+    await act(async () => {
+      ok = await result.current.removeProperty(prop);
+    });
+    expect(ok).toBe(true);
+    expect(deletePropertyMock).toHaveBeenCalledWith(prop);
+    expect(success).toHaveBeenCalledWith({
+      title: "Propiedad eliminada",
+      description: `"${prop.title}" se eliminó correctamente.`,
+      primaryLabel: "Volver",
+    });
+    expect(result.current.isSelected(3)).toBe(false);
+  });
+
+  it("removeProperty informa error cuando delete falla", async () => {
+    const boom = new Error("delete fail");
+    mockAlert = { doubleConfirm: vi.fn().mockResolvedValue(true) };
+    deletePropertyMock.mockRejectedValueOnce(boom);
+
+    const { result } = renderHook(() => usePropertyPanel());
+    const ok = await result.current.removeProperty({ id: 9, title: "Casa" } as any);
+    expect(ok).toBe(false);
+    expect(handleErrorMock).toHaveBeenCalledWith(boom);
+  });
+
+  it("removeSelected utiliza la propiedad seleccionada", async () => {
+    mockAlert = { doubleConfirm: vi.fn().mockResolvedValue(true), success: vi.fn() };
+    deletePropertyMock.mockResolvedValueOnce(undefined);
+
+    const prop = { id: 8, title: "Lote" } as any;
+    const { result } = renderHook(() => usePropertyPanel());
+
+    act(() => {
+      result.current.onSearch([prop]);
+      result.current.toggleSelect(8);
+    });
+
+    await act(async () => {
+      await result.current.removeSelected();
+    });
+
+    expect(deletePropertyMock).toHaveBeenCalledWith(prop);
   });
 });

@@ -12,6 +12,7 @@ import {
   Stack,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { useBackButtonClose } from "../hooks/useBackButtonClose";
 
 export interface MobileActionItem {
   label: string;
@@ -50,9 +51,10 @@ const MobileActionsDrawer: React.FC<MobileActionsDrawerProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const resolvedTopOffsetDesktop = topOffsetDesktop ?? topOffsetMobile;
   const appliedTopOffset = isMobile ? topOffsetMobile : resolvedTopOffsetDesktop;
+  const closeWithBack = useBackButtonClose(open, onClose);
 
   const handleAuthAction = () => {
-    onClose();
+    closeWithBack();
     if (isLoggedIn) {
       onLogout?.();
     } else {
@@ -75,7 +77,7 @@ const MobileActionsDrawer: React.FC<MobileActionsDrawerProps> = ({
     <Drawer
       anchor="left"
       open={open}
-      onClose={onClose}
+      onClose={closeWithBack}
       PaperProps={{
         sx: {
           width: isMobile ? "90%" : drawerWidth,

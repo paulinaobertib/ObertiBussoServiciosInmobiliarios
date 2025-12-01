@@ -10,22 +10,30 @@ vi.mock("../../../user/context/AuthContext", () => ({
 }));
 
 // Mock de los servicios
+const getAllAmenitiesMock = vi.fn().mockResolvedValue([{ id: 1, name: "Piscina" }]);
+const getAllOwnersMock = vi.fn().mockResolvedValue([{ id: 1, name: "Juan" }]);
+const getAllNeighborhoodsMock = vi.fn().mockResolvedValue([{ id: 1, name: "Centro" }]);
+const getAllTypesMock = vi.fn().mockResolvedValue([{ id: 1, name: "Casa" }]);
+const getAllPropertiesMock = vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]);
+const getAvailablePropertiesMock = vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]);
+const getPropertyByIdMock = vi.fn().mockResolvedValue({ id: 99, title: "Propiedad Test" });
+
 vi.mock("../../services/amenity.service", () => ({
-  getAllAmenities: vi.fn().mockResolvedValue([{ id: 1, name: "Piscina" }]),
+  getAllAmenities: (...args: any[]) => getAllAmenitiesMock(...args),
 }));
 vi.mock("../../services/owner.service", () => ({
-  getAllOwners: vi.fn().mockResolvedValue([{ id: 1, name: "Juan" }]),
+  getAllOwners: (...args: any[]) => getAllOwnersMock(...args),
 }));
 vi.mock("../../services/neighborhood.service", () => ({
-  getAllNeighborhoods: vi.fn().mockResolvedValue([{ id: 1, name: "Centro" }]),
+  getAllNeighborhoods: (...args: any[]) => getAllNeighborhoodsMock(...args),
 }));
 vi.mock("../../services/type.service", () => ({
-  getAllTypes: vi.fn().mockResolvedValue([{ id: 1, name: "Casa" }]),
+  getAllTypes: (...args: any[]) => getAllTypesMock(...args),
 }));
 vi.mock("../../services/property.service", () => ({
-  getAllProperties: vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]),
-  getAvailableProperties: vi.fn().mockResolvedValue([{ id: 1, title: "Depto" }]),
-  getPropertyById: vi.fn().mockResolvedValue({ id: 99, title: "Propiedad Test" }),
+  getAllProperties: (...args: any[]) => getAllPropertiesMock(...args),
+  getAvailableProperties: (...args: any[]) => getAvailablePropertiesMock(...args),
+  getPropertyById: (...args: any[]) => getPropertyByIdMock(...args),
 }));
 
 function renderContext() {
@@ -69,7 +77,7 @@ describe("PropertyCrudContext", () => {
   it("puede refrescar properties", async () => {
     const { result } = renderContext();
     await act(async () => {
-      await result.current.refreshProperties();
+      await result.current.refreshProperties("all");
     });
     expect(result.current.propertiesList).toEqual([{ id: 1, title: "Depto" }]);
   });
@@ -148,5 +156,85 @@ describe("PropertyCrudContext", () => {
     });
     expect(result.current.selectedPropertyIds).toEqual([]);
     expect(result.current.comparisonItems).toEqual([]);
+  });
+
+  it("buildSearchParams mapea amenidades por nombre", async () => {
+    const { result } = renderContext();
+    await act(async () => {
+      await result.current.refreshAmenities();
+    });
+
+    act(() => {
+      result.current.toggleSelect("amenity", 1);
+    });
+    const params = result.current.buildSearchParams({ priceFrom: 100 });
+    expect(params.amenities).toEqual(["Piscina"]);
+  });
+
+  it("setAddress actualiza estado y cambiar barrio resetea dirección", () => {
+    const { result } = renderContext();
+    act(() => {
+      result.current.setAddress({ street: "Av", number: "123", latitude: 1, longitude: 2 });
+    });
+    expect(result.current.selected.address).toEqual({ street: "Av", number: "123", latitude: 1, longitude: 2 });
+
+    act(() => {
+      result.current.toggleSelect("neighborhood", 5);
+    });
+    expect(result.current.selected.address).toEqual({ street: "", number: "", latitude: null, longitude: null });
+  });
+
+  it("seedSelectionsFromProperty replica datos y limpia cuando recibe null", () => {
+    const { result } = renderContext();
+    const prop: any = {
+      owner: { id: 3 },
+      neighborhood: { id: 4 },
+      type: { id: 5 },
+      amenities: [{ id: 6 }],
+      street: "Main",
+      number: "77",
+      latitude: -1,
+      longitude: -2,
+    };
+    act(() => {
+      result.current.seedSelectionsFromProperty(prop);
+    });
+    expect(result.current.selected).toMatchObject({
+      owner: 3,
+      neighborhood: 4,
+      type: 5,
+      amenities: [6],
+      address: { street: "Main", number: "77", latitude: -1, longitude: -2 },
+    });
+
+    act(() => {
+      result.current.seedSelectionsFromProperty(null);
+    });
+    expect(result.current.selected.owner).toBeNull();
+    expect(result.current.selected.amenities).toEqual([]);
+  });
+
+  it("refreshProperties permite modo available", async () => {
+    const { result } = renderContext();
+    await act(async () => {
+      await result.current.refreshProperties("available");
+    });
+    expect(getAvailablePropertiesMock).toHaveBeenCalled();
+  });
+
+  it("loadComparisonItems carga ids válidos y omite errores", async () => {
+    const { result } = renderContext();
+    getPropertyByIdMock.mockImplementation(async (id: number) => {
+      if (id === 2) throw new Error("fail");
+      return { id, title: `Prop ${id}` };
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await act(async () => {
+      await result.current.loadComparisonItems([1, 2]);
+    });
+
+    expect(result.current.comparisonItems).toEqual([{ id: 1, title: "Prop 1" }]);
+    errorSpy.mockRestore();
   });
 });

@@ -12,13 +12,38 @@ import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
 import RemoveIcon from "@mui/icons-material/RemoveRounded";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUpRounded";
-import { useEffect, useState, useRef } from "react";
+import Popper, { PopperProps } from "@mui/material/Popper";
+import { keyframes } from "@emotion/react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useChatContext } from "../context/ChatContext";
 import { useChatSession } from "../hooks/useChatSession";
 import { useAuthContext } from "../../user/context/AuthContext";
 import { getPropertiesByText } from "../../property/services/property.service";
 import { ChatSessionDTO } from "../types/chatSession";
 import { usePropertiesContext } from "../../property/context/PropertiesContext";
+import { useBackButtonClose } from "../../shared/hooks/useBackButtonClose";
+
+const FINAL_SYSTEM_MESSAGES = [
+  "La conversación ha finalizado. Gracias por contactarnos.",
+  "Tu consulta ha sido derivada a un asesor. Pronto te atenderán.",
+];
+
+const isFinalSystemMessage = (content?: string) => (content ? FINAL_SYSTEM_MESSAGES.includes(content) : false);
+
+const DERIVATION_REDIRECT_DELAY = 3000;
+
+const CHAT_FONT_SIZES = {
+  heading: { xs: "0.95rem", sm: "0.85rem" },
+  body: { xs: "0.9rem", sm: "0.8rem" },
+  label: { xs: "0.8rem", sm: "0.7rem" },
+  button: { xs: "0.9rem", sm: "0.8rem" },
+};
+
+const typingPulse = keyframes`
+  0% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+  100% { opacity: 0.2; transform: translateY(0); }
+`;
 
 interface Property {
   id: number;
@@ -37,8 +62,8 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const { propertiesList } = usePropertiesContext();
 
   const { info, isLogged } = useAuthContext();
-  const { messages, sendMessage, loading, addSystemMessage, addUserMessage, clearMessages } = useChatContext();
-  const { startSessionGuest, startSessionUser, loading: sessionLoading } = useChatSession();
+  const { messages, sendMessage, addSystemMessage, addUserMessage, clearMessages, isTyping } = useChatContext();
+  const { startSessionGuest, startSessionUser } = useChatSession();
   const derivingRef = useRef(false);
 
   // mostrar las opciones del chat
@@ -71,6 +96,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     emailOK;
 
   const [chatActive, setChatActive] = useState(true);
+  const [changingProperty, setChangingProperty] = useState(false);
 
   const [searchText, setSearchText] = useState("");
 
@@ -78,6 +104,16 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   // si tiene que buscar la propiedad por searchBar, le mostramos las opciones que tiene
   const [propertyOptions, setPropertyOptions] = useState<Property[]>([]);
+  const [optionsTyping, setOptionsTyping] = useState(false);
+  const [, setSuppressHeaderSpinner] = useState(false);
+
+  const availableProperties = useMemo(() => {
+    const list = propertiesList ?? [];
+    return list.filter((p: any) => {
+      const status = String(p?.status ?? "").toLowerCase();
+      return status === "" || status === "disponible";
+    });
+  }, [propertiesList]);
 
   // cuando el usuario no esta loggeado, le pido los datos
   const [showForm, setShowForm] = useState(!isLogged);
@@ -88,6 +124,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   const [showWelcome, setShowWelcome] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const optionsTimerRef = useRef<number | null>(null);
 
   const optionLabels: Record<string, string> = {
     VER_PRECIO: "¿Cuál es el precio?",
@@ -102,6 +139,24 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     CERRAR: "Finalizar chat",
   };
 
+  const clearOptionsTimer = useCallback(() => {
+    if (optionsTimerRef.current) {
+      window.clearTimeout(optionsTimerRef.current);
+      optionsTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleOptionsReveal = useCallback(() => {
+    clearOptionsTimer();
+    setOptionsTyping(true);
+    setShowOptions(false);
+    optionsTimerRef.current = window.setTimeout(() => {
+      setOptionsTyping(false);
+      setShowOptions(true);
+      optionsTimerRef.current = null;
+    }, 3000);
+  }, [clearOptionsTimer]);
+
   // si la propiedad viene desde una card
   useEffect(() => {
     if (initialPropertyId) {
@@ -115,10 +170,34 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   }, [initialPropertyId, propertiesList]);
 
   useEffect(() => {
+    if (step === "searchProperty" && !searchText) {
+      setPropertyOptions(availableProperties);
+    }
+  }, [step, searchText, availableProperties]);
+
+  useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (isTyping && step === "chat") {
+      clearOptionsTimer();
+      setOptionsTyping(true);
+      setShowOptions(false);
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    } else if (!isTyping && step === "chat" && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.from === "system" && !isFinalSystemMessage(lastMsg.content)) {
+        scheduleOptionsReveal();
+      } else {
+        setOptionsTyping(false);
+      }
+    }
+  }, [isTyping, step, messages, scheduleOptionsReveal, clearOptionsTimer]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -139,6 +218,10 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // que muestre las opciones despues de cada respuesta del sistema
   useEffect(() => {
     if (step !== "chat" || !property || !sessionId) {
+      if (optionsTimerRef.current) {
+        window.clearTimeout(optionsTimerRef.current);
+        optionsTimerRef.current = null;
+      }
       if (!showWelcome) setShowOptions(false);
       return;
     }
@@ -148,16 +231,41 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     setShowWelcome(false);
 
     const lastMsg = messages[messages.length - 1];
-    if (
-      lastMsg.from === "system" &&
-      lastMsg.content !== "La conversación ha finalizado. Gracias por contactarnos." &&
-      lastMsg.content !== "Tu consulta ha sido derivada a un asesor. Pronto te atenderán."
-    ) {
-      setShowOptions(true);
-    } else {
+    if (lastMsg.from !== "system" || isFinalSystemMessage(lastMsg.content)) {
       setShowOptions(false);
+      setOptionsTyping(false);
     }
-  }, [step, messages, property, sessionId]);
+
+    return () => {
+      if (optionsTimerRef.current) {
+        window.clearTimeout(optionsTimerRef.current);
+        optionsTimerRef.current = null;
+      }
+    };
+  }, [step, messages, property, sessionId, showWelcome]);
+
+  const closeChatUI = useCallback(() => {
+    setCollapsed(true);
+    setChatActive(false);
+    setOptionsTyping(false);
+    setShowOptions(false);
+    setSuppressHeaderSpinner(true);
+    clearMessages();
+    if (onClose) onClose();
+  }, [clearMessages, onClose]);
+
+  const sendCloseMessage = useCallback(async () => {
+    const lastMsg = messages[messages.length - 1];
+    if (!sessionId || !property || !lastMsg || isFinalSystemMessage(lastMsg.content)) {
+      return;
+    }
+
+    try {
+      await sendMessage("CERRAR", property.id, sessionId);
+    } catch (err) {
+      console.error("Error al enviar mensaje de cierre:", err);
+    }
+  }, [messages, property, sendMessage, sessionId]);
 
   const handleStart = async () => {
     try {
@@ -197,15 +305,33 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   // si la propiedad no viene desde la card, o si no quiere consultar por la que esta en la card
   const handlePropertySearch = async (value: string) => {
     setSearchText(value);
-    const result = await getPropertiesByText(searchText);
-    const filtered = result.filter((p: { status: string }) => p.status?.toLowerCase() === "disponible" || !p.status);
-    setPropertyOptions(filtered);
+    const query = value.trim();
+    if (!query) {
+      setPropertyOptions(availableProperties);
+      return;
+    }
+
+    try {
+      const result = await getPropertiesByText(query);
+      const filtered = result.filter((p: { status?: string }) => {
+        const status = String(p?.status ?? "").toLowerCase();
+        return status === "" || status === "disponible";
+      });
+      setPropertyOptions(filtered);
+    } catch (error) {
+      console.error("Error buscando propiedades:", error);
+      setPropertyOptions(availableProperties);
+    }
   };
 
   const handleChangeProperty = async () => {
+    setChangingProperty(true);
+    setSuppressHeaderSpinner(true);
+    clearOptionsTimer();
+    setShowOptions(false);
     try {
       if (chatActive && sessionId && property) {
-        await sendMessage("CERRAR", property.id, sessionId);
+        await sendMessage("CERRAR", property.id, sessionId, { silent: true });
         setChatActive(false);
       }
     } catch (error) {
@@ -215,31 +341,16 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     setSessionId(null);
     setProperty(null);
     setStep("searchProperty");
-    setShowOptions(true);
     setShowWelcome(true);
     setChatActive(true);
+    setChangingProperty(false);
   };
 
-  const handleClose = async () => {
-    const lastMsg = messages[messages.length - 1];
-    if (
-      sessionId &&
-      property &&
-      lastMsg.content != "La conversación ha finalizado. Gracias por contactarnos." &&
-      lastMsg.content != "Tu consulta ha sido derivada a un asesor. Pronto te atenderán."
-    ) {
-      try {
-        await sendMessage("CERRAR", property.id, sessionId);
-        setCollapsed(true);
-        setChatActive(false);
-      } catch (err) {
-        console.error("Error al enviar mensaje de cierre:", err);
-      }
-    }
-
-    clearMessages();
-    if (onClose) onClose();
-  };
+  const handleClose = useCallback(() => {
+    closeChatUI();
+    void sendCloseMessage();
+  }, [closeChatUI, sendCloseMessage]);
+  const closeWithBack = useBackButtonClose(!collapsed, handleClose);
 
   const renderContent = (content: string) => {
     return optionLabels[content] || content;
@@ -247,36 +358,43 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
 
   const handleTextInput = async (input: string) => {
     const trimmed = input.trim();
-    const index = Number(input.trim()) - 1;
-    const keys = Object.keys(optionLabels);
+    const index = Number(trimmed) - 1;
+    const optionKeys = Object.keys(optionLabels);
 
     if (!property || !sessionId) return;
 
-    addUserMessage(trimmed);
+    setInputValue("");
 
     const isInteger = /^\d+$/.test(trimmed);
 
     if (isInteger) {
-      if (keys[index]) {
+      if (optionKeys[index]) {
         setShowOptions(false);
-        await sendMessage(keys[index], property.id, sessionId);
-        if (keys[index] === "CERRAR") {
+        const selected = optionKeys[index];
+        if (selected === "CERRAR") {
+          setSuppressHeaderSpinner(true);
+          await sendMessage(selected, property.id, sessionId, { userDisplay: optionLabels[selected] });
           setChatActive(false);
-        }
-        if (keys[index] === "DERIVAR") {
-          derivingRef.current = true;
           setTimeout(() => {
-            setCollapsed(true);
-            setChatActive(false);
-            clearMessages();
-            if (onClose) onClose();
-          }, 1000);
+            closeChatUI();
+            setSuppressHeaderSpinner(false);
+          }, 2000);
+          return;
+        }
+        await sendMessage(selected, property.id, sessionId, { userDisplay: optionLabels[selected] });
+        if (optionKeys[index] === "DERIVAR") {
+          derivingRef.current = true;
+          setChatActive(false);
+        } else {
+          scheduleOptionsReveal();
         }
       } else {
+        addUserMessage(trimmed);
         addSystemMessage("Opción inválida. Por favor seleccioná un número de la lista.");
         setShowOptions(true);
       }
     } else {
+      addUserMessage(trimmed);
       addSystemMessage("Entrada inválida. Por favor escribí solo el número de una opción.");
       setShowOptions(true);
     }
@@ -289,34 +407,39 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
   };
 
   useEffect(() => {
-    if (derivingRef.current && messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
+    if (!derivingRef.current || messages.length === 0) return;
 
-      if (!lastMsg || !lastMsg.content) return;
+    const lastSystemMsg = messages.filter(msg => msg.from === "system").pop();
+    if (!lastSystemMsg || !lastSystemMsg.content) return;
 
-      const phoneMatch = lastMsg.content.match(/\+?\d{10,15}/);
-      if (phoneMatch) {
-        const phone = phoneMatch[0];
-        const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad ${property?.title}`);
-        const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
-        window.open(url, "_blank");
-        setChatActive(false);
-      }
-
-      derivingRef.current = false;
+    const phoneMatch = lastSystemMsg.content.match(/\+?\d{10,15}/);
+    if (!phoneMatch) {
+      return;
     }
-  }, [messages]);
+
+    const phone = phoneMatch[0];
+    const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad ${property?.title ?? ""}`);
+    const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
+
+    const timer = window.setTimeout(() => {
+      window.location.href = url;
+      closeChatUI();
+      derivingRef.current = false;
+    }, DERIVATION_REDIRECT_DELAY);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [messages, property, closeChatUI]);
 
   const renderMessages = () => (
     <Box
       sx={{
-        p: 2,
-        flexGrow: 1,
-        overrlowY: "auto",
-        //border: "1px solid #ccc",
+        p: 1,
+        flex: "1 0 400px",
+        overflowY: "auto",
         borderRadius: 1,
         backgroundColor: "#fff",
-        minHeight: 0,
       }}
     >
       {showWelcome && (
@@ -324,12 +447,12 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           sx={{
             display: "flex",
             justifyContent: "flex-start",
-            mb: 1,
+            mb: 1.5,
           }}
         >
           <Box
             sx={{
-              maxWidth: "70%",
+              maxWidth: { xs: "90%", sm: "70%" },
               bgcolor: "#FED7AA",
               color: "#000",
               px: 2,
@@ -338,10 +461,10 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
               borderTopRightRadius: 8,
             }}
           >
-            <Typography variant="body2" fontWeight="bold">
+            <Typography variant="body2" fontWeight="bold" sx={{ fontSize: CHAT_FONT_SIZES.label }}>
               Sistema
             </Typography>
-            <Typography>¡Bienvenido! ¿Cómo puedo ayudarte?</Typography>
+            <Typography sx={{ fontSize: CHAT_FONT_SIZES.body }}>¡Bienvenido! ¿Cómo puedo ayudarte?</Typography>
           </Box>
         </Box>
       )}
@@ -362,7 +485,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
           >
             <Box
               sx={{
-                maxWidth: "70%",
+                maxWidth: { xs: "90%", sm: "70%" },
                 bgcolor: color,
                 color: textColor,
                 px: 2,
@@ -372,14 +495,57 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
                 borderTopRightRadius: isUser ? 0 : 8,
               }}
             >
-              <Typography variant="body2" fontWeight="bold">
+              <Typography variant="body2" fontWeight="bold" sx={{ fontSize: CHAT_FONT_SIZES.label }}>
                 {isUser ? "Tú" : "Sistema"}
               </Typography>
-              <Typography>{renderContent(msg.content)}</Typography>
+              <Typography sx={{ fontSize: CHAT_FONT_SIZES.body, lineHeight: 1.4 }}>
+                {renderContent(msg.content)}
+              </Typography>
             </Box>
           </Box>
         );
       })}
+
+      {(isTyping || optionsTyping) && step === "chat" && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-start",
+            mb: 1,
+          }}
+        >
+          <Box
+            sx={{
+              maxWidth: { xs: "90%", sm: "70%" },
+              bgcolor: "#FED7AA",
+              color: "#000",
+              px: 2,
+              py: 1,
+              borderRadius: 2,
+              borderTopRightRadius: 8,
+            }}
+          >
+            <Typography variant="body2" fontWeight="bold" sx={{ fontSize: CHAT_FONT_SIZES.label }}>
+              Sistema
+            </Typography>
+            <Box sx={{ display: "flex", gap: 0.5, mt: 0.75, alignItems: "center" }}>
+              {[0, 0.2, 0.4].map((delay) => (
+                <Box
+                  key={delay}
+                  sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    bgcolor: "#000",
+                    animation: `${typingPulse} 1.2s infinite`,
+                    animationDelay: `${delay}s`,
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {showOptions && chatActive && (
         <Box
@@ -391,7 +557,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
         >
           <Box
             sx={{
-              maxWidth: "70%",
+              maxWidth: { xs: "90%", sm: "70%" },
               bgcolor: "#FED7AA",
               color: "#000",
               px: 2,
@@ -400,16 +566,16 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
               borderTopRightRadius: 8,
             }}
           >
-            <Typography variant="body2" fontWeight="bold">
+            <Typography variant="body2" fontWeight="bold" sx={{ fontSize: CHAT_FONT_SIZES.label }}>
               Sistema
             </Typography>
-            <Typography sx={{ mt: 1 }}>
+            <Typography sx={{ mt: 1, fontSize: CHAT_FONT_SIZES.body }}>
               Por favor, seleccioná una de las siguientes opciones escribiendo el número correspondiente:
             </Typography>
-            <Box component="ul" sx={{ pl: 3, mt: 1 }}>
+            <Box component="ul" sx={{ pl: 3, mt: 1, mb: 0 }}>
               {Object.values(optionLabels).map((label, idx) => (
                 <li key={idx}>
-                  <Typography>{`${idx + 1}. ${label}`}</Typography>
+                  <Typography sx={{ fontSize: CHAT_FONT_SIZES.body }}>{`${idx + 1}. ${label}`}</Typography>
                 </li>
               ))}
             </Box>
@@ -425,189 +591,312 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     <Box
       sx={{
         position: "fixed",
-        bottom: 20,
-        right: 20,
-        width: 380,
-        maxHeight: collapsed ? "auto" : "80vh",
-        boxShadow: 6,
-        borderRadius: 3,
+        bottom: { xs: 0, sm: 20 },
+        left: { xs: 0, sm: "auto" },
+        right: { xs: 0, sm: 20 },
+        width: { xs: "100%", sm: 380 },
+        maxWidth: { xs: "100%", sm: "calc(100vw - 40px)" },
+        maxHeight: {
+          xs: collapsed ? "auto" : "80vh",
+          sm: collapsed ? "auto" : "80vh",
+        },
+        boxShadow: { xs: "0 -8px 24px rgba(0,0,0,0.15)", sm: 6 },
+        borderRadius: { xs: "16px 16px 0 0", sm: 3 },
         border: "1px solid #ccc",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        zIndex: 10,
+        zIndex: 1400,
         backgroundColor: "#fff",
         transition: "max-height 0.2s ease",
       }}
     >
-      <Box sx={{ p: 2, borderBottom: "1px solid #eee", position: "relative", bgcolor: "#EB7333", color: "#fff" }}>
-        <Typography variant="h6" fontWeight="bold">
-          Asistente Virtual
-        </Typography>
+      <Box
+        sx={{
+          px: { xs: 1.25, sm: 1.5 },
+          py: { xs: 0.9, sm: 0.85 },
+          minHeight: property ? 60 : 40,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderBottom: "1px solid #eee",
+          bgcolor: "#EB7333",
+          color: "#fff",
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, my: 1 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ fontSize: CHAT_FONT_SIZES.heading, lineHeight: 1 }}>
+            Asistente Virtual
+          </Typography>
+          {property && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 0.75,
+                flexWrap: "wrap",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: CHAT_FONT_SIZES.label,
+                  opacity: 0.85,
+                  py: 0.25,
+                  flex: 1,
+                  minWidth: 0,
+                  wordBreak: "break-word",
+                }}
+              >
+                Propiedad consultada: {property.title || `#${property.id}`}
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
-        <IconButton
-          aria-label={collapsed ? "Restaurar chat" : "Minimizar chat"}
-          onClick={() => setCollapsed(!collapsed)}
-          sx={{ position: "absolute", right: 48, top: 8, color: "#fff" }}
-        >
-          {collapsed ? <KeyboardArrowUpIcon /> : <RemoveIcon />}
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          <IconButton
+            size="small"
+            aria-label={collapsed ? "Restaurar chat" : "Minimizar chat"}
+            onClick={() => setCollapsed(!collapsed)}
+            sx={{
+              color: "#fff",
+            }}
+          >
+            {collapsed ? <KeyboardArrowUpIcon fontSize="small" /> : <RemoveIcon fontSize="small" />}
+          </IconButton>
 
-        <IconButton
-          aria-label="Cerrar chat"
-          onClick={handleClose}
-          sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
-        >
-          <CloseIcon />
-        </IconButton>
+          <IconButton
+            size="small"
+            aria-label="Cerrar chat"
+            onClick={closeWithBack}
+            sx={{
+              color: "#fff",
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </Box>
 
       {!collapsed && (
         <>
-          <Box
-            sx={{
-              p: 2,
-              flexGrow: 1,
-              display: "flex",
-              flexDirection: "column",
-              minHeight: 0,
-              overflowY: "auto",
-              "&::-webkit-scrollbar": { width: "8px" },
-              "&::-webkit-scrollbar-track": { backgroundColor: "#f1f1f1" },
-              "&::-webkit-scrollbar-thumb": { backgroundColor: "#FED7AA" },
-            }}
-          >
-            {step === "greeting" && (
-              <Box>
-                <Typography>Hola, soy tu asistente virtual. Será un placer ayudarte.</Typography>
+          {changingProperty ? (
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                py: 4,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              <Box
+                sx={{
+                  px: { xs: 1.25, sm: 1.5 },
+                  py: { xs: 1.25, sm: 1.5 },
+                  flexGrow: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 0,
+                  "&::-webkit-scrollbar": { width: "8px" },
+                  "&::-webkit-scrollbar-track": { backgroundColor: "#f1f1f1" },
+                  "&::-webkit-scrollbar-thumb": { backgroundColor: "#FED7AA" },
+                }}
+              >
+                {step === "greeting" && (
+                  <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+                    <Box>
+                      <Typography sx={{ fontSize: CHAT_FONT_SIZES.body }}>
+                        Hola, soy tu asistente virtual. Será un placer ayudarte.
+                      </Typography>
 
-                {showForm && (
-                  <Box mt={2}>
-                    <Typography>Por favor, ingresá tus datos de contacto para continuar:</Typography>
-                    <TextField
-                      fullWidth
-                      label="Nombre"
-                      value={guestData.firstName}
-                      onChange={(e) => setGuestData({ ...guestData, firstName: e.target.value })}
-                      margin="dense"
-                    />
-                    <TextField
-                      fullWidth
-                      label="Apellido"
-                      value={guestData.lastName}
-                      onChange={(e) => setGuestData({ ...guestData, lastName: e.target.value })}
-                      margin="dense"
-                    />
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      value={guestData.email}
-                      onChange={(e) => setGuestData({ ...guestData, email: e.target.value })}
-                      margin="dense"
-                      error={guestData.email.trim() !== "" && !emailOK}
-                      helperText={guestData.email.trim() !== "" && !emailOK ? "Ingresá un email válido" : ""}
-                    />
-                    <TextField
-                      fullWidth
-                      label="Teléfono"
-                      value={guestData.phone}
-                      onChange={(e) => setGuestData({ ...guestData, phone: e.target.value })}
-                      margin="dense"
-                    />
+                      {showForm && (
+                        <Box mt={2}>
+                          <Typography sx={{ fontSize: CHAT_FONT_SIZES.body }}>
+                            Por favor, ingresá tus datos de contacto para continuar:
+                          </Typography>
+                          <TextField
+                            fullWidth
+                            label="Nombre"
+                            value={guestData.firstName}
+                            onChange={(e) => setGuestData({ ...guestData, firstName: e.target.value })}
+                            margin="dense"
+                            size="small"
+                          />
+                          <TextField
+                            fullWidth
+                            label="Apellido"
+                            value={guestData.lastName}
+                            onChange={(e) => setGuestData({ ...guestData, lastName: e.target.value })}
+                            margin="dense"
+                            size="small"
+                          />
+                          <TextField
+                            fullWidth
+                            label="Email"
+                            value={guestData.email}
+                            onChange={(e) => setGuestData({ ...guestData, email: e.target.value })}
+                            margin="dense"
+                            error={guestData.email.trim() !== "" && !emailOK}
+                            helperText={guestData.email.trim() !== "" && !emailOK ? "Ingresá un email válido" : ""}
+                            size="small"
+                          />
+                          <TextField
+                            fullWidth
+                            label="Teléfono"
+                            value={guestData.phone}
+                            onChange={(e) => setGuestData({ ...guestData, phone: e.target.value })}
+                            margin="dense"
+                            size="small"
+                          />
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Box mt="auto" pt={2} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                      {initialPropertyId ? (
+                        <>
+                          <Typography sx={{ fontSize: CHAT_FONT_SIZES.body }}>
+                            ¿Querés consultar sobre esta propiedad?
+                          </Typography>
+                          <Button
+                            fullWidth
+                            onClick={handleStart}
+                            variant="contained"
+                            sx={{ mt: 1, fontSize: CHAT_FONT_SIZES.button }}
+                          >
+                            Sí
+                          </Button>
+                          <Button
+                            fullWidth
+                            onClick={() => setStep("searchProperty")}
+                            variant="outlined"
+                            sx={{ fontSize: CHAT_FONT_SIZES.button }}
+                          >
+                            No, buscar otra
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          fullWidth
+                          onClick={() => setStep("searchProperty")}
+                          disabled={showForm && !guestDataComplete}
+                          variant="contained"
+                          sx={{ fontSize: CHAT_FONT_SIZES.button }}
+                        >
+                          Buscar propiedad para consultar
+                        </Button>
+                      )}
+                    </Box>
                   </Box>
                 )}
 
-                <Box mt={2}>
-                  {initialPropertyId ? (
-                    <>
-                      <Typography>¿Querés consultar sobre esta propiedad?</Typography>
-                      <Button onClick={handleStart} variant="contained" sx={{ mt: 1 }}>
-                        Sí
-                      </Button>
-                      <Button onClick={() => setStep("searchProperty")} sx={{ mt: 1, ml: 1 }}>
-                        No, buscar otra
-                      </Button>
-                    </>
-                  ) : (
+                {step === "searchProperty" && (
+                  <Box mt={0.5}>
+                    <Autocomplete
+                      fullWidth
+                      options={propertyOptions}
+                      getOptionLabel={(opt) => opt.title}
+                      onInputChange={(_, value) => handlePropertySearch(value)}
+                      onChange={(_, val) => setProperty(val)}
+                      renderInput={(params) => <TextField {...params} label="Buscar propiedad" size="small" />}
+                      noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
+                      slots={{ popper: ChatAutocompletePopper }}
+                      openOnFocus
+                      selectOnFocus
+                      clearOnBlur={false}
+                      includeInputInList
+                      ListboxProps={{
+                        style: {
+                          maxHeight: 280,
+                          overflowY: "auto",
+                          fontSize: CHAT_FONT_SIZES.body.sm,
+                        },
+                      }}
+                    />
                     <Button
-                      onClick={() => setStep("searchProperty")}
-                      disabled={showForm && !guestDataComplete}
+                      fullWidth
+                      onClick={handleStart}
+                      disabled={!property || (showForm && !guestDataComplete)}
                       variant="contained"
-                      sx={{ mt: 2 }}
+                      sx={{ mt: 2, fontSize: CHAT_FONT_SIZES.button }}
                     >
-                      Buscar propiedad para consultar
+                      Confirmar propiedad
                     </Button>
-                  )}
-                </Box>
-              </Box>
-            )}
-
-            {step === "searchProperty" && (
-              <Box mt={2}>
-                <Autocomplete
-                  fullWidth
-                  options={propertyOptions}
-                  getOptionLabel={(opt) => opt.title}
-                  onInputChange={(_, value) => handlePropertySearch(value)}
-                  onChange={(_, val) => setProperty(val)}
-                  renderInput={(params) => <TextField {...params} label="Buscar propiedad" />}
-                  noOptionsText={searchText ? "No se encontraron propiedades" : "Escribí para buscar propiedades"}
-                />
-                <Button
-                  onClick={handleStart}
-                  disabled={!property || (showForm && !guestDataComplete)}
-                  variant="contained"
-                  sx={{ mt: 2 }}
-                >
-                  Confirmar propiedad
-                </Button>
-              </Box>
-            )}
-
-            {step === "chat" && (
-              <>
-                {property && (
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#EB7333", textAlign: "center" }}>
-                    Propiedad en consulta: {property?.title || `#${property?.id}`}
-                  </Typography>
+                  </Box>
                 )}
-                <Button variant="outlined" color="secondary" onClick={handleChangeProperty} sx={{ mb: 1 }}>
-                  Consultar por otra propiedad
-                </Button>
-                {renderMessages()}
-              </>
-            )}
-          </Box>
 
-          {step === "chat" && chatActive && (
-            <Box sx={{ px: 2, pb: 2, pt: 0, borderTop: "1px solid #eee" }}>
-              <TextField
-                fullWidth
-                placeholder="Escribí el número de una opción"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    await sendCurrentInput();
-                  }
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={sendCurrentInput} disabled={!inputValue.trim()}>
-                        <SendIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
+                {step === "chat" && (
+                  <>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      color="secondary"
+                      onClick={handleChangeProperty}
+                      disabled={changingProperty}
+                      sx={{ mb: 1, fontSize: CHAT_FONT_SIZES.button }}
+                    >
+                      Consultar por otra propiedad
+                    </Button>
+                    {renderMessages()}
+                  </>
+                )}
+              </Box>
+
+              {step === "chat" && chatActive && (
+                <Box sx={{ px: { xs: 1.25, sm: 1.5 }, pb: 1.5, pt: 0.5, borderTop: "1px solid #eee" }}>
+                  <TextField
+                    type="tel"
+                    fullWidth
+                    placeholder="Escribí el número de una opción"
+                    value={inputValue}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\d{0,2}$/.test(value)) {
+                        setInputValue(value);
+                      }
+                    }}
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        await sendCurrentInput();
+                      }
+                    }}
+                    size="small"
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                      style: { fontSize: CHAT_FONT_SIZES.body.xs },
+                    }}
+                    InputProps={{
+                      sx: {
+                        height: 40,
+                        "& .MuiInputBase-input": {
+                          py: 0.5,
+                        },
+                      },
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={sendCurrentInput} disabled={!inputValue.trim()}>
+                            <SendIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
+              )}
+            </>
           )}
         </>
       )}
-
-      {(sessionLoading || loading) && <CircularProgress sx={{ position: "absolute", top: 10, right: 10 }} />}
     </Box>
   );
 };
+const ChatAutocompletePopper = (props: PopperProps) => (
+  <Popper {...props} style={{ ...props.style, zIndex: 2000 }} placement={props.placement ?? "bottom"} />
+);

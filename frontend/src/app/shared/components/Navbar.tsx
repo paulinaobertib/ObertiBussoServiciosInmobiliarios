@@ -4,11 +4,10 @@ import { AppBar, Box, Toolbar, IconButton, Button, useTheme, Tooltip } from "@mu
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import LogoutIcon from "@mui/icons-material/Logout";
 import RealEstateAgentIcon from "@mui/icons-material/RealEstateAgent";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
-import LoginIcon from "@mui/icons-material/Login";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import ContactMailIcon from "../../../assets/ic_consulta.svg";
 import NewspaperIcon from "../../../assets/ic_news.svg";
 import { ROUTES } from "../../../lib";
@@ -18,6 +17,7 @@ import { usePropertiesContext } from "../../property/context/PropertiesContext";
 import { useAuthContext } from "../../user/context/AuthContext";
 import SettingsDrawer from "../../user/components/Settings";
 import MobileActionsDrawer, { MobileActionItem } from "./MobileActionsDrawer";
+import { useGlobalAlert } from "../context/AlertContext";
 
 export const NAVBAR_HEIGHT = 56;
 export const NAVBAR_HEIGHT_XS = 48;
@@ -27,6 +27,7 @@ export const NavBar = () => {
   const navigate = useNavigate();
   const { clearComparison, resetSelected, pickItem } = usePropertiesContext();
   const { login, logout, isLogged, isAdmin, isTenant, info } = useAuthContext();
+  const alertApi = useGlobalAlert();
 
   const [mobileActionsOpen, setMobileActionsOpen] = React.useState(false);
   const [notificationDrawerOpen, setNotificationDrawerOpen] = React.useState(false);
@@ -37,6 +38,16 @@ export const NavBar = () => {
   const handleOpenNotifications = React.useCallback(() => {
     setNotificationDrawerOpen(true);
   }, []);
+
+  const handleLogoutClick = React.useCallback(async () => {
+    const confirmed = await alertApi.confirm({
+      title: "Estás por cerrar sesión",
+      description: "¿Deseás continuar?",
+      primaryLabel: "Cerrar",
+      secondaryLabel: "Mantenerse",
+    });
+    if (confirmed) logout();
+  }, [alertApi, logout]);
 
   const profileName = React.useMemo(() => {
     if (!info) return undefined;
@@ -63,7 +74,12 @@ export const NavBar = () => {
       (cb: () => void): (() => void) =>
       () => {
         closeMobileActions();
-        cb();
+        // Esperamos al siguiente tick para evitar interferencias con otros drawers que usan el back button
+        if (typeof window === "undefined") {
+          cb();
+          return;
+        }
+        window.setTimeout(() => cb(), 0);
       };
 
     const contactIcon = <Box component="img" src={ContactMailIcon} alt="Contacto" sx={{ width: 24, height: 24 }} />;
@@ -71,6 +87,7 @@ export const NavBar = () => {
 
     if (!isLogged) {
       return [
+        { label: "Inicio", icon: <HomeOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.HOME_APP)) },
         { label: "Contacto / Turnero de Citas", icon: contactIcon, onClick: withClose(() => navigate(ROUTES.CONTACT)) },
         { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
       ];
@@ -78,6 +95,7 @@ export const NavBar = () => {
 
     if (isAdmin) {
       return [
+        { label: "Inicio", icon: <HomeOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.HOME_APP)) },
         { label: "Mi Perfil", icon: <AccountCircleIcon />, onClick: withClose(goToProfile) },
         { label: "Turnero de Citas", icon: <MenuIcon />, onClick: withClose(() => navigate(ROUTES.APPOINTMENTS)) },
         {
@@ -92,6 +110,7 @@ export const NavBar = () => {
     }
 
     const items: MobileActionItem[] = [
+      { label: "Inicio", icon: <HomeOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.HOME_APP)) },
       { label: "Mi Perfil", icon: <AccountCircleIcon />, onClick: withClose(goToProfile) },
       { label: "Mis Favoritos", icon: <FavoriteIcon />, onClick: withClose(() => navigate(ROUTES.FAVORITES)) },
       { label: "Contacto / Turnero de Citas", icon: contactIcon, onClick: withClose(() => navigate(ROUTES.CONTACT)) },
@@ -192,37 +211,11 @@ export const NavBar = () => {
                 gap: 1,
               }}
             >
-              {/* NO LOGUEADO: Iniciar sesión */}
-              {!isLogged && (
-                <Tooltip title="Iniciar sesión">
-                  <IconButton
-                    color="inherit"
-                    aria-label="login"
-                    onClick={login}
-                    sx={{ p: 0.5, transform: "rotateY(180deg)" }}
-                  >
-                    <LoginIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-
-              {/* LOGUEADO USUARIO: Salir */}
-              {isLogged && !isAdmin && (
-                <Tooltip title="Salir">
-                  <IconButton color="inherit" aria-label="logout" onClick={logout}>
-                    <LogoutIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-
-              {/* ADMIN: Salir */}
-              {isAdmin && (
-                <Tooltip title="Salir">
-                  <IconButton color="inherit" aria-label="logout" onClick={logout}>
-                    <LogoutIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
+              <Tooltip title="Ir a inicio">
+                <IconButton size="small" onClick={goHome} color="inherit" aria-label="home">
+                  <HomeOutlinedIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           </Box>
 
@@ -314,11 +307,9 @@ export const NavBar = () => {
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Salir">
-                  <IconButton color="inherit" aria-label="logout" onClick={logout}>
-                    <LogoutIcon />
-                  </IconButton>
-                </Tooltip>
+                <Button color="inherit" onClick={handleLogoutClick} sx={{ textTransform: "none", fontWeight: 600 }}>
+                  Cerrar sesión
+                </Button>
               </>
             )}
           </Box>
@@ -342,7 +333,7 @@ export const NavBar = () => {
         profileEmail={profileEmail}
         isLoggedIn={isLogged}
         onLogin={!isLogged ? login : undefined}
-        onLogout={isLogged ? logout : undefined}
+        onLogout={isLogged ? handleLogoutClick : undefined}
       />
     </AppBar>
   );

@@ -57,6 +57,7 @@ vi.mock("../../../user/services/commission.service", () => ({
   getTotalAmountByStatus: vi.fn().mockResolvedValue(0),
   getDateTotals: vi.fn().mockResolvedValue(0),
   getYearMonthlyTotals: vi.fn().mockResolvedValue({}),
+  getPartialCommissionsRemainingAmount: vi.fn().mockResolvedValue(0),
   getCommissionsByPaymentType: vi.fn().mockResolvedValue([]),
   getCommissionsByStatus: vi.fn().mockResolvedValue([]),
 }));
@@ -179,6 +180,7 @@ describe("useViewStats", () => {
     commissionService.getTotalAmountByStatus.mockResolvedValueOnce(25); // PENDIENTE
     commissionService.getDateTotals.mockResolvedValueOnce(175);
     commissionService.getYearMonthlyTotals.mockResolvedValueOnce({ "2024-02": 80 });
+    commissionService.getPartialCommissionsRemainingAmount.mockResolvedValueOnce(75);
 
     commissionService.getCommissionsByPaymentType.mockResolvedValueOnce([{ id: "c-completo" } as any]);
     commissionService.getCommissionsByStatus.mockResolvedValueOnce([{ id: "s-pag" } as any]);
@@ -261,5 +263,6 @@ describe("useViewStats", () => {
     expect(result.current.stats.commissionsByStatus?.PAGADA).toHaveLength(1);
     expect(result.current.stats.commissionsByPaymentTypeList?.COMPLETO).toHaveLength(1);
     expect(result.current.stats.commissionsByPaymentTypeList?.CUOTAS).toHaveLength(0);
+    expect(result.current.stats.partialCommissionsRemainingAmount).toBe(75);
   });
 });

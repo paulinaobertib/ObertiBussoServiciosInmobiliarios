@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Box, Button, Card } from "@mui/material";
 import { DataGrid, GridColDef, GridRowId, GridRowSelectionModel, GridCallbackDetails } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
@@ -36,6 +36,9 @@ const HEADER_HEIGHT = 56;
 const FOOTER_HEIGHT = 52;
 const GRID_MIN_HEIGHT = HEADER_HEIGHT + ROW_HEIGHT * GRID_PAGE_SIZE + FOOTER_HEIGHT;
 const resolveRowId = (row: any): GridRowId => row?.id ?? row?.ID ?? row?.Id ?? row?._id;
+const DATA_MIN_WIDTH = 200;
+const ACTIONS_MIN_WIDTH = 160;
+const ACTIONS_FIELD = "actions";
 
 export const GridSection = ({
   data,
@@ -52,6 +55,7 @@ export const GridSection = ({
   selectable = true,
   showCreateButton = true,
   error,
+  showActions = true,
 }: GridSectionProps) => {
   const emptySelection = (): GridRowSelectionModel => ({
     type: "include",
@@ -114,6 +118,33 @@ export const GridSection = ({
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: GRID_PAGE_SIZE });
 
   const hasRows = Array.isArray(data) && data.length > 0;
+  const normalizedColumns = useMemo(() => {
+    return columns.map((col) => {
+      if (showActions && col.field === ACTIONS_FIELD) {
+        const minWidth = Math.max(col.minWidth ?? 0, ACTIONS_MIN_WIDTH);
+        return minWidth === col.minWidth ? col : { ...col, minWidth };
+      }
+      const minWidth = Math.max(col.minWidth ?? 0, DATA_MIN_WIDTH);
+      return minWidth === col.minWidth ? col : { ...col, minWidth };
+    });
+  }, [columns, showActions]);
+
+  const actionAlignmentStyles = showActions
+    ? {
+        "& .MuiDataGrid-cell[data-field='actions']": {
+          justifyContent: "center",
+          gap: 1,
+        },
+        "& .MuiDataGrid-cell[data-field='actions'] > *": {
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        },
+        "& .MuiDataGrid-columnHeader[data-field='actions']": {
+          justifyContent: "center",
+        },
+      }
+    : {};
 
   return (
     <>
@@ -146,7 +177,7 @@ export const GridSection = ({
           <DataGrid
             getRowId={resolveRowId}
             rows={data}
-            columns={columns}
+            columns={normalizedColumns}
             loading={loading}
             checkboxSelection={!!selectable}
             hideFooterSelectedRowCount
@@ -164,6 +195,7 @@ export const GridSection = ({
               "& .MuiDataGrid-virtualScroller": {
                 minHeight: ROW_HEIGHT * GRID_PAGE_SIZE,
               },
+              ...actionAlignmentStyles,
             }}
           />
         </Card>

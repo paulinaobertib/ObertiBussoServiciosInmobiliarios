@@ -29,7 +29,7 @@ export const CommentItem = ({ comment, authorName, onEdit, onDelete, deleting }:
               month: "short",
               year: "numeric",
             })}{" "}
-            · {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+            · {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })}
           </Typography>
         </Box>
         <Box>

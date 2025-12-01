@@ -52,11 +52,12 @@ describe("ContractItem", () => {
     expect(screen.getByText("PropiedadY")).toBeInTheDocument();
   });
 
-  it("muestra placeholders 'Cargando...' cuando no hay nombres", () => {
+  it("muestra spinners cuando no hay nombres", () => {
     mockUserName = "";
     mockPropertyName = "";
     render(<ContractItem contract={baseContract as any} />);
-    expect(screen.getAllByText("Cargando...").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Cargando usuario")).toBeInTheDocument();
+    expect(screen.getByLabelText("Cargando propiedad")).toBeInTheDocument();
   });
 
   it("formatea fechas con fmtLongDate", () => {

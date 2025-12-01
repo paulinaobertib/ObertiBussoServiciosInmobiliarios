@@ -65,7 +65,7 @@ describe("<AppointmentItem />", () => {
 
     expect(screen.getByText("Pendiente")).toBeInTheDocument();
     // Mientras carga
-    expect(screen.getByText(/Cargando/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cargando usuario/i)).toBeInTheDocument();
     // Luego el nombre
     await screen.findByText("Ana García");
   });

@@ -117,15 +117,14 @@ describe("SettingsDrawer", () => {
     await screen.findByText("Sin actividad.");
   });
 
-  it("muestra 'Cargando…' mientras las promesas están pendientes", async () => {
+  it("muestra el spinner mientras las promesas están pendientes", async () => {
     (useAuthContext as any).mockReturnValue(buildAuth({ info: { id: "u-load" }, isAdmin: false }));
     (getUserNotificationPreferencesByUser as any).mockReturnValue(new Promise(() => {}));
     (getNotificationsByUser as any).mockReturnValue(new Promise(() => {}));
 
     renderSettingsDrawer();
 
-    // Puede aparecer en preferencias o historial; con que exista uno alcanza
-    expect(screen.getAllByText("Cargando…").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/Cargando preferencias/i)).toBeInTheDocument();
   });
 
   it("NO admin: toggle de preferencia exitoso", async () => {

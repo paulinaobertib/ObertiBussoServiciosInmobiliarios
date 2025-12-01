@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Typography, Button, IconButton, CircularProgress } from "@mui/material";
+import { Box, Typography, Button, IconButton, CircularProgress, Stack } from "@mui/material";
 import { BasePage } from "./BasePage";
 import { usePropertiesContext } from "../app/property/context/PropertiesContext";
 import { PropertyDetails } from "../app/property/components/propertyDetails/PropertyDetails";
@@ -13,6 +13,7 @@ import { deleteProperty } from "../app/property/services/property.service";
 import { useGlobalAlert } from "../app/shared/context/AlertContext";
 import { useApiErrors } from "../app/shared/hooks/useErrors";
 import { LoadingButton } from "@mui/lab";
+import { hasWaitingPromptBeenDismissed, promptWaitingProperty } from "../app/property/utils/waitingPropertyPrompt";
 
 const PropertyDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ const PropertyDetailsPage = () => {
   const { isAdmin } = useAuthContext();
   const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
+  const waitingPromptingRef = useRef(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -45,7 +47,41 @@ const PropertyDetailsPage = () => {
       }
     };
     fetch();
+
+    return () => {
+      localStorage.removeItem("selectedPropertyId");
+    };
   }, [id, loadProperty]);
+
+  // Aviso para propiedades en estado ESPERA (misma lógica que Home)
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (!currentProperty) return;
+    if (typeof window === "undefined") return;
+
+    const status = String(currentProperty.status ?? "").toUpperCase();
+    if (status !== "ESPERA") return;
+
+    const propId = Number(currentProperty.id);
+    if (hasWaitingPromptBeenDismissed(propId)) return;
+    if (waitingPromptingRef.current) return;
+
+    waitingPromptingRef.current = true;
+    (async () => {
+      try {
+        await promptWaitingProperty({
+          property: currentProperty,
+          alertApi,
+          onRenewContract: () => navigate("/contracts/new"),
+          onViewProperty: () => navigate(`/properties/${propId}`),
+        });
+      } catch (err) {
+        console.error("Error mostrando aviso de propiedad en ESPERA", err);
+      } finally {
+        waitingPromptingRef.current = false;
+      }
+    })();
+  }, [alertApi, currentProperty, isAdmin, navigate]);
 
   // ---- LOADING GLOBAL ----
   if (loading) {
@@ -132,13 +168,13 @@ const PropertyDetailsPage = () => {
       </IconButton>
 
       <BasePage>
-        <Box sx={{ display: "flex", justifyContent: "end", mt: 2, gap: 1, flexWrap: "wrap" }}>
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
           {!isAdmin ? (
             <Button variant="contained" onClick={() => setInquiryOpen(true)}>
               Consultar por esta propiedad
             </Button>
           ) : (
-            <>
+            <Stack direction="row" spacing={1}>
               <Button
                 variant="contained"
                 onClick={() => navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))}
@@ -153,7 +189,7 @@ const PropertyDetailsPage = () => {
               <LoadingButton variant="outlined" color="error" loading={deleting} onClick={handleDeleteProperty}>
                 Eliminar propiedad
               </LoadingButton>
-            </>
+            </Stack>
           )}
         </Box>
 

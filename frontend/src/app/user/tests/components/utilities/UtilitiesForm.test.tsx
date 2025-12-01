@@ -15,6 +15,10 @@ vi.mock("../../../../shared/context/AlertContext", () => ({
   useGlobalAlert: vi.fn(),
 }));
 
+vi.mock("../../../../shared/utils/error", () => ({
+  extractApiError: vi.fn((e) => e?.response?.data || e?.message || "Error al guardar servicio"),
+}));
+
 describe("UtilitiesForm", () => {
   const mockShowAlert = vi.fn();
   const mockOnDone = vi.fn();
@@ -82,13 +86,17 @@ describe("UtilitiesForm", () => {
   });
 
   it("muestra error si post falla", async () => {
-    (postUtility as any).mockRejectedValueOnce(new Error("falló"));
+    const mockError = {
+      response: { data: "Error del backend" },
+      message: "falló",
+    };
+    (postUtility as any).mockRejectedValueOnce(mockError);
     render(<UtilitiesForm action="add" onDone={mockOnDone} />);
     fireEvent.change(screen.getByLabelText("Nombre"), { target: { value: "X" } });
     fireEvent.click(screen.getByRole("button", { name: /Confirmar/i }));
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith("falló", "error");
+      expect(mockShowAlert).toHaveBeenCalledWith("Error del backend", "error");
     });
   });
 

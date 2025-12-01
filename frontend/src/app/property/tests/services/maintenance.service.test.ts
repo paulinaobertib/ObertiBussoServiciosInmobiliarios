@@ -95,4 +95,30 @@ describe("maintenanceService", () => {
 
     await expect(maintenanceService.getMaintenanceById(1)).rejects.toThrow("Network error");
   });
+
+  it("lanza error en getMaintenancesByPropertyId", async () => {
+    (api.get as any).mockRejectedValueOnce(new Error("fail list"));
+    await expect(maintenanceService.getMaintenancesByPropertyId(2)).rejects.toThrow("fail list");
+  });
+
+  it("lanza error en postMaintenance", async () => {
+    (api.post as any).mockRejectedValueOnce(new Error("fail post"));
+    await expect(
+      maintenanceService.postMaintenance({ title: "t", description: "", date: "", propertyId: 1 })
+    ).rejects.toThrow("fail post");
+  });
+
+  it("lanza error en putMaintenance", async () => {
+    (api.put as any).mockRejectedValueOnce(new Error("fail put"));
+    await expect(
+      maintenanceService.putMaintenance({ id: 1, title: "", description: "", date: "", propertyId: 1 })
+    ).rejects.toThrow("fail put");
+  });
+
+  it("lanza error en deleteMaintenance", async () => {
+    (api.delete as any).mockRejectedValueOnce(new Error("fail delete"));
+    await expect(
+      maintenanceService.deleteMaintenance({ id: 1, title: "", description: "", date: "", propertyId: 1 })
+    ).rejects.toThrow("fail delete");
+  });
 });

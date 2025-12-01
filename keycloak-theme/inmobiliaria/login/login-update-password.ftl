@@ -19,19 +19,39 @@
           <#if stateChecker??>
             <input type="hidden" name="stateChecker" value="${stateChecker}" />
           </#if>
-          <div class="password-wrapper">
-            <input
-              type="password"
-              id="password-new"
-              name="password-new"
-              placeholder="Nueva contraseña"
-              autocomplete="new-password"
-              autofocus
-              required
-            />
-            <button type="button" class="toggle-password" onclick="togglePassword(this)">
-              <span class="material-icons">visibility</span>
-            </button>
+          <div class="password-field">
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="password-new"
+                name="password-new"
+                placeholder="Nueva contraseña"
+                autocomplete="new-password"
+                autofocus
+                required
+              />
+              <button type="button" class="toggle-password" onclick="togglePassword(this)">
+                <span class="material-icons">visibility</span>
+              </button>
+            </div>
+            <div class="password-requirements" id="passwordRequirements">
+              <div class="req-item" data-rule="length">
+                <span class="material-icons req-icon">radio_button_unchecked</span>
+                <span>Mínimo 8 caracteres</span>
+              </div>
+              <div class="req-item" data-rule="special">
+                <span class="material-icons req-icon">radio_button_unchecked</span>
+                <span>Mínimo un caracter especial</span>
+              </div>
+              <div class="req-item" data-rule="uppercase">
+                <span class="material-icons req-icon">radio_button_unchecked</span>
+                <span>Mínimo una mayúscula</span>
+              </div>
+              <div class="req-item" data-rule="number">
+                <span class="material-icons req-icon">radio_button_unchecked</span>
+                <span>Mínimo un número</span>
+              </div>
+            </div>
           </div>
 
           <div class="password-wrapper">
@@ -47,6 +67,7 @@
               <span class="material-icons">visibility</span>
             </button>
           </div>
+          <div id="passwordMatchHint" class="password-match-hint" aria-live="polite"></div>
 
           <div class="form-actions">
             <button type="submit" class="btn-primary" value="update-password">
@@ -201,7 +222,8 @@
 
     function togglePassword(btn) {
       const wrapper = btn.closest('.password-wrapper');
-      const input = wrapper.querySelector('input');
+      const input = wrapper?.querySelector('input');
+      if (!input || !btn) return;
       if (input.type === 'password') {
         input.type = 'text';
         btn.querySelector('.material-icons').innerText = 'visibility_off';
@@ -211,11 +233,44 @@
       }
     }
 
+    function meetsPasswordRules(value) {
+      return (
+        value.length >= 8 &&
+        /[!@#$%^&*(),.?\":{}|<>]/.test(value) &&
+        /[A-Z]/.test(value) &&
+        /\d/.test(value)
+      );
+    }
+
+    function updatePasswordRequirements(value) {
+      const rules = {
+        length: value.length >= 8,
+        special: /[!@#$%^&*(),.?\":{}|<>]/.test(value),
+        uppercase: /[A-Z]/.test(value),
+        number: /\d/.test(value),
+      };
+      const container = document.getElementById('passwordRequirements');
+      if (!container) return;
+      Object.entries(rules).forEach(([key, ok]) => {
+        const row = container.querySelector('[data-rule=\"' + key + '\"]');
+        if (!row) return;
+        const icon = row.querySelector('.req-icon');
+        if (ok) {
+          row.classList.add('ok');
+          if (icon) icon.textContent = 'check_circle';
+        } else {
+          row.classList.remove('ok');
+          if (icon) icon.textContent = 'radio_button_unchecked';
+        }
+      });
+    }
+
     function validatePasswordForm() {
       const passwordNew = document.getElementById('password-new');
       const passwordConfirm = document.getElementById('password-confirm');
       const password = passwordNew.value;
       const confirmPassword = passwordConfirm.value;
+      const matchHint = document.getElementById('passwordMatchHint');
 
       passwordNew.style.borderColor = '';
       passwordConfirm.style.borderColor = '';
@@ -266,8 +321,18 @@
         showToast(I18N.passwordsDoNotMatch, { type: 'error' });
         passwordConfirm.style.borderColor = '#ff6b6b';
         passwordNew.style.borderColor = '#ff6b6b';
+        if (matchHint) {
+          matchHint.textContent = 'Las contraseñas no coinciden';
+          matchHint.classList.remove('ok');
+          matchHint.classList.add('error');
+        }
         passwordConfirm.focus();
         return false;
+      }
+      if (matchHint) {
+        matchHint.textContent = 'Las contraseñas coinciden';
+        matchHint.classList.remove('error');
+        matchHint.classList.add('ok');
       }
 
       return true;
@@ -311,13 +376,59 @@
         });
       });
 
+      const passwordNew = document.getElementById('password-new');
       const passwordConfirmInput = document.getElementById('password-confirm');
-      passwordConfirmInput.addEventListener('blur', () => {
-        const passwordNew = document.getElementById('password-new');
-        if (passwordConfirmInput.value && passwordNew.value !== passwordConfirmInput.value) {
-          passwordConfirmInput.style.borderColor = '#ff6b6b';
-        } else if (passwordConfirmInput.value) {
-          passwordConfirmInput.style.borderColor = '#4caf50';
+      const reqBox = document.getElementById('passwordRequirements');
+      const preventSpace = (ev) => {
+        if (ev.key === ' ') ev.preventDefault();
+      };
+      passwordNew.addEventListener('keydown', preventSpace);
+      passwordConfirmInput.addEventListener('keydown', preventSpace);
+      updatePasswordRequirements(passwordNew.value);
+      passwordNew.addEventListener('input', (ev) => {
+        const sanitized = ev.target.value.replace(/\s+/g, '');
+        if (sanitized !== ev.target.value) ev.target.value = sanitized;
+        updatePasswordRequirements(ev.target.value);
+        const matchHint = document.getElementById('passwordMatchHint');
+        if (matchHint && passwordConfirmInput.value) {
+          if (!meetsPasswordRules(ev.target.value)) {
+            matchHint.textContent = 'Las contraseñas no cumplen con las especificaciones';
+            matchHint.classList.add('error');
+            matchHint.classList.remove('ok');
+          } else {
+            const ok = ev.target.value === passwordConfirmInput.value;
+            matchHint.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
+            matchHint.classList.toggle('ok', ok);
+            matchHint.classList.toggle('error', !ok);
+          }
+        }
+      });
+      passwordNew.addEventListener('focus', () => {
+        if (reqBox) reqBox.classList.add('active');
+      });
+      passwordNew.addEventListener('blur', () => {
+        if (reqBox) reqBox.classList.remove('active');
+      });
+      passwordConfirmInput.addEventListener('input', (ev) => {
+        const sanitized = ev.target.value.replace(/\s+/g, '');
+        if (sanitized !== ev.target.value) ev.target.value = sanitized;
+        const matchHint = document.getElementById('passwordMatchHint');
+        if (matchHint) {
+          if (ev.target.value && passwordNew.value) {
+            if (!meetsPasswordRules(passwordNew.value)) {
+              matchHint.textContent = 'Las contraseñas no cumplen con las especificaciones';
+              matchHint.classList.add('error');
+              matchHint.classList.remove('ok');
+            } else {
+              const ok = ev.target.value === passwordNew.value;
+              matchHint.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
+              matchHint.classList.toggle('ok', ok);
+              matchHint.classList.toggle('error', !ok);
+            }
+          } else {
+            matchHint.textContent = '';
+            matchHint.classList.remove('ok', 'error');
+          }
         }
       });
     });

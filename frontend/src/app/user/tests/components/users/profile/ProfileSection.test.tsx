@@ -11,7 +11,6 @@ vi.mock("../../../../../shared/hooks/useErrors", () => ({ useApiErrors: vi.fn() 
 vi.mock("../../../../services/user.service", () => ({ deleteUser: vi.fn() }));
 
 import { useProfile } from "../../../../hooks/useProfile";
-import { useAuthContext } from "../../../../context/AuthContext";
 import { useGlobalAlert } from "../../../../../shared/context/AlertContext";
 import { useApiErrors } from "../../../../../shared/hooks/useErrors";
 import { deleteUser } from "../../../../services/user.service";
@@ -27,8 +26,19 @@ const fakeUser: User = {
 };
 
 describe("ProfileSection", () => {
-  beforeEach(() => {
+  let handleErrorMock: any;
+  let logoutMock: any;
+  let setInfoMock: any;
+  let successMock: any;
+  let doubleConfirmMock: any;
+
+  beforeEach(async () => {
     vi.clearAllMocks();
+    handleErrorMock = vi.fn();
+    logoutMock = vi.fn();
+    setInfoMock = vi.fn();
+    successMock = vi.fn();
+    doubleConfirmMock = vi.fn().mockResolvedValue(true);
 
     (useProfile as any).mockReturnValue({
       profile: fakeUser,
@@ -36,19 +46,20 @@ describe("ProfileSection", () => {
       updateProfile: vi.fn().mockResolvedValue({ firstName: "NuevoNombre" }),
     });
 
+    const { useAuthContext } = await import("../../../../context/AuthContext");
     (useAuthContext as any).mockReturnValue({
       info: fakeUser,
-      logout: vi.fn(),
-      setInfo: vi.fn(),
+      logout: logoutMock,
+      setInfo: setInfoMock,
     });
 
     (useGlobalAlert as any).mockReturnValue({
-      success: vi.fn(),
-      doubleConfirm: vi.fn().mockResolvedValue(true),
+      success: successMock,
+      doubleConfirm: doubleConfirmMock,
     });
 
     (useApiErrors as any).mockReturnValue({
-      handleError: vi.fn(),
+      handleError: handleErrorMock,
     });
 
     (deleteUser as any).mockResolvedValue({});
@@ -94,38 +105,39 @@ describe("ProfileSection", () => {
     expect(screen.getByRole("button", { name: /Ocultar perfil/i })).toBeInTheDocument();
   });
 
-  /*
-  VER ESTOS QUE FALLAN
-  it("eliminar perfil: sin info → muestra error y no llama deleteUser", async () => {
-    (useAuthContext as any).mockReturnValueOnce({
-      info: null,
-      logout: vi.fn(),
-      setInfo: vi.fn(),
-    });
-
+  it("no elimina si el usuario cancela la confirmación", async () => {
+    doubleConfirmMock.mockResolvedValueOnce(false);
     render(<ProfileSection />);
-    const deleteBtn = screen.getByRole("button", {
-      name: (name) => name.includes("Eliminar") && name.includes("cuenta"),
-    });
-    fireEvent.click(deleteBtn);
+
+    fireEvent.click(screen.getByRole("button", { name: /Editar perfil/i }));
+    fireEvent.click(screen.getByLabelText("Eliminar mi cuenta"));
 
     await waitFor(() => {
       expect(deleteUser).not.toHaveBeenCalled();
-      expect(useApiErrors().handleError).toHaveBeenCalled();
     });
   });
 
-  it("eliminar perfil: con info llama deleteUser y logout", async () => {
+  it("elimina perfil cuando hay confirmación e info válida", async () => {
     render(<ProfileSection />);
-    const deleteBtn = screen.getByRole("button", {
-      name: (name) => name.includes("Eliminar") && name.includes("cuenta"),
-    });
-    fireEvent.click(deleteBtn);
+    fireEvent.click(screen.getByRole("button", { name: /Editar perfil/i }));
+    fireEvent.click(screen.getByLabelText("Eliminar mi cuenta"));
 
-    await waitFor(() => {
-      expect(deleteUser).toHaveBeenCalledWith(fakeUser.id);
-      expect(useAuthContext().logout).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(deleteUser).toHaveBeenCalledWith(fakeUser.id));
+    expect(setInfoMock).toHaveBeenCalledWith(null);
+    expect(successMock).toHaveBeenCalledWith({ title: "Cuenta eliminada", description: undefined, primaryLabel: "Ok" });
+    expect(logoutMock).toHaveBeenCalled();
   });
-*/
+
+  it("el botón alterna entre 'Editar perfil' y 'Guardar perfil' y guarda en la segunda pulsación", async () => {
+    render(<ProfileSection />);
+    const toggleButton = screen.getByRole("button", { name: /Editar perfil/i });
+    fireEvent.click(toggleButton);
+    expect(toggleButton).toHaveTextContent(/Guardar perfil/i);
+
+    fireEvent.click(toggleButton);
+    await waitFor(() => {
+      expect(useProfile().updateProfile).toHaveBeenCalled();
+    });
+    expect(toggleButton).toHaveTextContent(/Editar perfil/i);
+  });
 });

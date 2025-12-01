@@ -52,12 +52,13 @@ interface Ctx {
   refreshOwners: () => Promise<void>;
   refreshNeighborhoods: () => Promise<void>;
   refreshTypes: () => Promise<void>;
-  refreshProperties: (mode?: "all" | "available") => Promise<void>;
+  refreshProperties: (mode: "all" | "available") => Promise<void>;
   buildSearchParams: (n: Partial<SearchParams>) => Partial<SearchParams>;
   currentProperty: Property | null;
   loadProperty: (id: number) => Promise<void>;
   comparisonItems: Property[];
   comparisonLoading: boolean;
+  loadComparisonItems: (ids: number[]) => Promise<void>;
   selectedPropertyIds: number[];
   toggleCompare: (id: number) => void;
   clearComparison: () => void;
@@ -69,7 +70,7 @@ const Context = createContext<Ctx | null>(null);
 
 export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   // Acceder al estado de autenticación
-  const { isAdmin } = useAuthContext();
+  const { isAdmin, ready } = useAuthContext();
 
   // Listados de items
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
@@ -106,37 +107,46 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
     setTypesList(Array.isArray(list) ? list : []);
   }, []);
 
-  // Track del rol anterior para detectar cambios
+  const refreshRequestId = useRef(0);
   const previousIsAdminRef = useRef<boolean | null>(null);
 
-  const refreshProperties = useCallback(async (mode: "all" | "available" = "all") => {
+  const refreshProperties = useCallback(async (mode: "all" | "available") => {
+    const requestId = ++refreshRequestId.current;
     setPropertiesLoading(true);
+    const fetcher = mode === "all" ? getAllProperties : getAvailableProperties;
+
     try {
-      const fetcher = mode === "available" ? getAvailableProperties : getAllProperties;
       const list = await fetcher();
+      if (requestId !== refreshRequestId.current) return;
       setPropertiesList(Array.isArray(list) ? list : []);
+    } catch (error) {
+      if (requestId === refreshRequestId.current) {
+        console.error(`Error refreshing properties in mode ${mode}`, error);
+      }
     } finally {
-      setPropertiesLoading(false);
+      if (requestId === refreshRequestId.current) {
+        setPropertiesLoading(false);
+      }
     }
   }, []);
 
-  // Recargar propiedades cuando:
-  // 1. Primera carga (propertiesList === null)
-  // 2. Cambia el rol del usuario (isAdmin cambió)
-  // Solo ejecutar si NO estamos en entorno de test unitario (Vitest)
+  // Recargar propiedades cuando el estado de autenticación (rol) cambia, o en la carga inicial.
   useEffect(() => {
-    // Evitar ejecutar en tests unitarios donde el contexto de React no está completamente inicializado
-    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') return;
+    // Esperar a que la autenticación esté confirmada
+    if (!ready) return;
 
-    const mode = isAdmin ? "all" : "available";
     const isAdminChanged = previousIsAdminRef.current !== null && previousIsAdminRef.current !== isAdmin;
 
     if (propertiesList === null || isAdminChanged) {
-      refreshProperties(mode);
+      const mode = isAdmin ? "all" : "available";
+      refreshProperties(mode).catch((err) =>
+        console.error(`Error invoking auto-refresh of properties in mode ${mode}`, err)
+      );
     }
 
     previousIsAdminRef.current = isAdmin;
-  }, [isAdmin, propertiesList, refreshProperties]);  // Límites dinámicos calculados a partir de propertiesList
+  }, [ready, isAdmin, propertiesList, refreshProperties]);
+
   const dynamicLimits = useMemo(() => {
     const list = propertiesList ?? [];
 
@@ -296,26 +306,23 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
   const [comparisonItems, setComparisonItems] = useState<Property[]>([]);
   const [comparisonLoading, setComparisonLoading] = useState(false);
 
-  useEffect(() => {
-    if (selectedPropertyIds.length === 0) {
+  const loadComparisonItems = useCallback(async (ids: number[]) => {
+    if (ids.length === 0) {
       setComparisonItems([]);
-      setComparisonLoading(false);
       return;
     }
-    (async () => {
-      setComparisonLoading(true);
-      const items: Property[] = [];
-      for (const id of selectedPropertyIds) {
-        try {
-          items.push(await getPropertyById(id));
-        } catch (err) {
-          console.error(`No se pudo cargar la propiedad ${id}`, err);
-        }
+    setComparisonLoading(true);
+    const items: Property[] = [];
+    for (const id of ids) {
+      try {
+        items.push(await getPropertyById(id));
+      } catch (err) {
+        console.error(`No se pudo cargar la propiedad ${id}`, err);
       }
-      setComparisonItems(items);
-      setComparisonLoading(false);
-    })();
-  }, [selectedPropertyIds]);
+    }
+    setComparisonItems(items);
+    setComparisonLoading(false);
+  }, []);
 
   const toggleCompare = useCallback(
     (id: number) =>
@@ -363,6 +370,7 @@ export function PropertyCrudProvider({ children }: { children: ReactNode }) {
         loadProperty,
         comparisonItems,
         comparisonLoading,
+        loadComparisonItems,
         selectedPropertyIds,
         toggleCompare,
         clearComparison,

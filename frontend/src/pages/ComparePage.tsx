@@ -2,11 +2,10 @@ import { Box, Button, IconButton, CircularProgress } from "@mui/material";
 import { BasePage } from "./BasePage";
 import { PropertyDetailsCompare } from "../app/property/components/propertyDetails/PropertyDetailsCompare";
 import { usePropertiesContext } from "../app/property/context/PropertiesContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Modal } from "../app/shared/components/Modal";
 import { InquiryForm } from "../app/property/components/inquiries/InquiryForm";
-import { useState } from "react";
-import { ROUTES } from "../lib";
+import { useEffect, useState } from "react";
 import { useAuthContext } from "../app/user/context/AuthContext";
 import { PropertyDTOAI } from "../app/property/types/property";
 import { Comparer } from "../app/property/components/comparer/Comparer";
@@ -15,11 +14,15 @@ import { formatPropertyAddress } from "../app/property/utils/propertyLocation";
 
 const Compare = () => {
   const navigate = useNavigate();
-  const { clearComparison, comparisonItems, comparisonLoading, selectedPropertyIds } = usePropertiesContext();
+  const { clearComparison, comparisonItems, comparisonLoading, selectedPropertyIds, loadComparisonItems } =
+    usePropertiesContext();
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const { isAdmin } = useAuthContext();
 
-  // Mostrar loading mientras se cargan los datos de las propiedades
+  useEffect(() => {
+    loadComparisonItems(selectedPropertyIds);
+  }, [loadComparisonItems, selectedPropertyIds]);
+
   if (comparisonLoading) {
     return (
       <BasePage>
@@ -28,12 +31,6 @@ const Compare = () => {
         </Box>
       </BasePage>
     );
-  }
-
-  // Si no hay items para comparar, redirigir
-  if (comparisonItems.length === 0) {
-    clearComparison();
-    return <Navigate to={ROUTES.HOME_APP} replace />;
   }
 
   const handleBack = () => {

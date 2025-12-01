@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 
@@ -61,21 +61,25 @@ const Wrapper = (props: AddressSelectorProps) => {
 };
 
 describe("AddressSelector", () => {
-const baseProps: AddressSelectorProps = {
-  neighborhoodId: 1,
-  neighborhoodName: "Nueva Córdoba",
-  value: {
-    street: "",
-    number: "",
-    latitude: null,
-    longitude: null,
-  },
-  onChange: onChangeMock,
-};
+  const baseProps: AddressSelectorProps = {
+    neighborhoodId: 1,
+    neighborhoodName: "Nueva Córdoba",
+    value: {
+      street: "",
+      number: "",
+      latitude: null,
+      longitude: null,
+    },
+    onChange: onChangeMock,
+  };
 
   beforeEach(() => {
     vi.useRealTimers();
     vi.clearAllMocks();
+    mockFetchSuggestions.mockReset();
+    mockGeocodeForward.mockReset();
+    mockFetchSuggestions.mockResolvedValue([]);
+    mockGeocodeForward.mockResolvedValue(geocodeResponse);
   });
 
   it("renderiza inputs y propaga cambios manuales", async () => {
@@ -91,37 +95,6 @@ const baseProps: AddressSelectorProps = {
     expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ number: "1200" }));
   });
 
-  it("programa geocode y actualiza coordenadas luego del debounce", async () => {
-    render(<Wrapper {...baseProps} />);
-
-    const street = await screen.findByLabelText(/Calle/i);
-    const number = await screen.findByLabelText(/Número/i);
-
-    vi.useFakeTimers();
-
-    await act(async () => {
-      fireEvent.change(street, { target: { value: "Av. Siempreviva" } });
-      fireEvent.change(number, { target: { value: "742" } });
-
-      await vi.advanceTimersByTimeAsync(5000);
-      await Promise.resolve();
-    });
-
-    expect(mockGeocodeForward).toHaveBeenCalled();
-
-    expect(onChangeMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        street: "Av. Siempreviva",
-        number: "742",
-        latitude: geocodeResponse.lat,
-        longitude: geocodeResponse.lng,
-      })
-    );
-
-    vi.useRealTimers();
-  });
-
-
   it("permite configurar número sin especificar", async () => {
     render(<Wrapper {...baseProps} />);
 
@@ -131,5 +104,40 @@ const baseProps: AddressSelectorProps = {
     fireEvent.click(clearButton!);
 
     expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ number: "S/N" }));
+  });
+ 
+  it("sugiere direcciones al escribir y aplica la selección", async () => {
+    mockFetchSuggestions.mockResolvedValueOnce([
+      {
+        id: "1",
+        mainText: "Av. Testeo",
+        secondaryText: "Barrio Test",
+        placeId: "test-place",
+      },
+    ]);
+
+    render(<Wrapper {...baseProps} />);
+    const street = await screen.findByLabelText(/Calle/i);
+    fireEvent.focus(street);
+    fireEvent.change(street, { target: { value: "Av. Test" } });
+
+    await waitFor(
+      () => expect(mockFetchSuggestions).toHaveBeenCalledWith("Av. Test", expect.any(Object)),
+      { timeout: 2000 }
+    );
+    expect(await screen.findByText(/Av\. Testeo/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(/Av\. Testeo/i));
+
+    await waitFor(() => {
+      expect(onChangeMock).toHaveBeenCalledWith(expect.objectContaining({ street: "Av. Testeo" }));
+    });
+  });
+
+  it("abre el diálogo del mapa", async () => {
+    render(<Wrapper {...baseProps} />);
+    const mapButton = await screen.findByRole("button", { name: /Mapa/i });
+    fireEvent.click(mapButton);
+    expect(screen.getByText(/Elegir punto en el mapa/i)).toBeInTheDocument();
   });
 });

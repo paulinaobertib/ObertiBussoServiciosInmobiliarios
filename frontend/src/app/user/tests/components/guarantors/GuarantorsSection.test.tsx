@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { GuarantorsSection } from "../../../../user/components/guarantors/GuarantorsSection";
 
@@ -103,5 +103,24 @@ describe("GuarantorsSection", () => {
   it("no muestra columna actions cuando showActions=false", () => {
     render(<GuarantorsSection showActions={false} />);
     expect(screen.getByText("actions: no")).toBeInTheDocument();
+  });
+
+  it("expone fetchByText y adapta toggleSelect con números", () => {
+    const toggleSelect = vi.fn();
+    render(<GuarantorsSection toggleSelect={toggleSelect} selectedIds={[1]} />);
+    const props = GridSectionMock.mock.calls.at(-1)?.[0];
+    expect(props.fetchByText).toBe(mockFetchByText);
+    expect(props.multiSelect).toBe(true);
+    props.toggleSelect?.(["2", "foo"]);
+    expect(toggleSelect).toHaveBeenCalledWith([2]);
+  });
+
+  it("permite filtrar ejecutando fetchByText", async () => {
+    render(<GuarantorsSection />);
+    const props = GridSectionMock.mock.calls.at(-1)?.[0];
+    await act(async () => {
+      await props.fetchByText?.("Juan");
+    });
+    expect(mockFetchByText).toHaveBeenCalledWith("Juan");
   });
 });

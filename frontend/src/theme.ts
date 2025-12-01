@@ -93,6 +93,17 @@ let theme = createTheme({
         },
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        input: ({ theme }) => ({
+          fontSize: 16,
+          lineHeight: 1.4,
+          [theme.breakpoints.up("sm")]: {
+            fontSize: "0.95rem",
+          },
+        }),
+      },
+    },
     MuiMenu: {
       styleOverrides: {
         paper: {

@@ -159,7 +159,7 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
       {/* Miniaturas */}
       <Box
         sx={{
-          mt: 1,
+          my: 1,
           display: "flex",
           gap: 1,
           overflowX: "auto",
@@ -227,22 +227,25 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
       <Dialog
         open={lightboxOpen}
         onClose={closeLightbox}
-        maxWidth="xl"
-        fullWidth
+        maxWidth="lg"
         PaperProps={{
           sx: {
-            backgroundColor: "rgba(0,0,0,0.85)",
+            backgroundColor: "transparent",
             boxShadow: "none",
-            borderRadius: 0,
           },
+        }}
+        sx={{
+          zIndex: 9999,
         }}
       >
         <Box
           sx={{
             position: "relative",
-            width: { xs: "90vw", md: "70vw" },
-            maxHeight: "90vh",
             mx: "auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            p: 0,
           }}
         >
           <IconButton
@@ -250,15 +253,16 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
             onClick={closeLightbox}
             sx={{
               position: "absolute",
-              top: 8,
-              right: 8,
-              color: "#fff",
+              top: { xs: 4, sm: 8 },
+              right: { xs: 4, sm: 8 },
+              color: "white",
               zIndex: 2,
-              backgroundColor: "rgba(0,0,0,0.4)",
-              "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
+              p: { xs: 0.75, sm: 1 },
+              backgroundColor: "rgba(0,0,0,0.3)",
+              "&:hover": { backgroundColor: "rgba(0,0,0,0.5)" },
             }}
           >
-            <CancelIcon />
+            <CancelIcon fontSize={typeof window !== "undefined" && window.innerWidth < 600 ? "medium" : "small"} />
           </IconButton>
 
           {all.length > 1 && (
@@ -272,15 +276,18 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                 sx={{
                   position: "absolute",
                   top: "50%",
-                  left: 16,
+                  left: { xs: 4, sm: 16 },
                   transform: "translateY(-50%)",
-                  color: "#fff",
-                  backgroundColor: "rgba(0,0,0,0.4)",
-                  "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
+                  color: "white",
                   zIndex: 2,
+                  p: { xs: 0.75, sm: 1 },
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                  "&:hover": { backgroundColor: "rgba(0,0,0,0.5)" },
                 }}
               >
-                <ArrowBackIosNewIcon />
+                <ArrowBackIosNewIcon
+                  fontSize={typeof window !== "undefined" && window.innerWidth < 600 ? "medium" : "small"}
+                />
               </IconButton>
               <IconButton
                 aria-label="Imagen siguiente ampliada"
@@ -291,62 +298,76 @@ export const PropertyCarousel = ({ images, mainImage, title }: Props) => {
                 sx={{
                   position: "absolute",
                   top: "50%",
-                  right: 16,
+                  right: { xs: 4, sm: 16 },
                   transform: "translateY(-50%)",
-                  color: "#fff",
-                  backgroundColor: "rgba(0,0,0,0.4)",
-                  "&:hover": { backgroundColor: "rgba(0,0,0,0.6)" },
+                  color: "white",
                   zIndex: 2,
+                  p: { xs: 0.75, sm: 1 },
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                  "&:hover": { backgroundColor: "rgba(0,0,0,0.5)" },
                 }}
               >
-                <ArrowForwardIosIcon />
+                <ArrowForwardIosIcon
+                  fontSize={typeof window !== "undefined" && window.innerWidth < 600 ? "medium" : "small"}
+                />
               </IconButton>
             </>
           )}
 
-          {all[lightboxIdx] && (
-            <Box sx={{ width: "100%", height: "100%", textAlign: "center" }}>
-              {isVideo(all[lightboxIdx].url) ? (
-                <video
-                  src={getFullImageUrl(all[lightboxIdx].url)}
-                  muted
-                  controls
-                  playsInline
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    maxHeight: "90vh",
-                    objectFit: "contain",
-                  }}
-                  onContextMenu={(e) => e.preventDefault()}
-                />
-              ) : (
+          {all[lightboxIdx] &&
+            (() => {
+              const img = all[lightboxIdx];
+              if (isVideo(img.url)) {
+                return (
+                  <video
+                    src={getFullImageUrl(img.url)}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      height: "auto",
+                      maxWidth: "100vw",
+                      maxHeight: window.innerWidth < 600 ? "60vh" : "80vh",
+                      objectFit: "contain",
+                      cursor: "default",
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                );
+              }
+              return (
                 <Box
                   component="img"
-                  src={getFullImageUrl(all[lightboxIdx].url) || "/placeholder.svg"}
+                  src={getFullImageUrl(img.url) || "/placeholder.svg"}
                   alt={`Imagen ampliada ${lightboxIdx + 1} de ${title}`}
                   sx={{
                     display: "block",
-                    maxHeight: "90vh",
                     width: "100%",
                     height: "auto",
+                    maxWidth: "100vw",
+                    maxHeight: { xs: "60vh", sm: "80vh" },
                     objectFit: "contain",
                   }}
                 />
-              )}
-            </Box>
-          )}
+              );
+            })()}
 
           <Chip
             label={`${lightboxIdx + 1}/${all.length}`}
             size="small"
             sx={{
               position: "absolute",
-              bottom: 16,
-              right: 16,
+              bottom: { xs: 8, sm: 16 },
+              right: { xs: 8, sm: 16 },
               bgcolor: "rgba(0,0,0,0.6)",
               color: "#fff",
               fontWeight: "bold",
+              fontSize: { xs: "1rem", sm: "0.875rem" },
+              px: { xs: 1, sm: 1.5 },
+              py: { xs: 0.5, sm: 0.5 },
             }}
           />
         </Box>

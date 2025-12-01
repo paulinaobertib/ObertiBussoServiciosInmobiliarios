@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { NavBar } from "../../components/Navbar";
@@ -11,6 +11,7 @@ const mockResetSelected = vi.fn();
 const mockPickItem = vi.fn();
 const mockLogin = vi.fn();
 const mockLogout = vi.fn();
+const mockConfirm = vi.fn();
 
 // Mock de react-router-dom
 vi.mock("react-router-dom", async () => {
@@ -46,9 +47,16 @@ vi.mock("../../../property/context/PropertiesContext", () => ({
   }),
 }));
 
+vi.mock("../../context/AlertContext", () => ({
+  useGlobalAlert: () => ({
+    confirm: mockConfirm,
+  }),
+}));
+
 describe("NavBar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockConfirm.mockResolvedValue(true);
     mockAuthValues = {
       login: mockLogin,
       logout: mockLogout,
@@ -132,8 +140,7 @@ describe("NavBar", () => {
     const profileIcons = screen.getAllByLabelText(/profile/i);
     expect(profileIcons.length).toBeGreaterThan(0);
 
-    const logoutButtons = screen.getAllByLabelText(/logout/i);
-    expect(logoutButtons.length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /cerrar sesión/i })).toBeInTheDocument();
   });
 
   it("click en ícono de perfil navega a ADMIN si es admin", () => {
@@ -180,12 +187,12 @@ describe("NavBar", () => {
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES);
   });
 
-  it("logout (desktop) llama a logout al hacer click", () => {
+  it("logout (desktop) llama a logout al hacer click", async () => {
     setAuthMock({ isLogged: true });
     renderNavBar();
-    const logoutButtons = screen.getAllByLabelText(/logout/i);
-    fireEvent.click(logoutButtons[0]);
-    expect(mockLogout).toHaveBeenCalled();
+    const logoutButton = screen.getByRole("button", { name: /cerrar sesión/i });
+    fireEvent.click(logoutButton);
+    await waitFor(() => expect(mockLogout).toHaveBeenCalled());
   });
 
   it("desktop (admin): muestra TURNERO y CONTRATOS y navega", () => {
@@ -201,8 +208,10 @@ describe("NavBar", () => {
   it("móvil (no logueado): menú muestra acciones públicas y login funciona", async () => {
     renderNavBar();
 
-    const loginBtn = screen.getByLabelText(/login/i);
-    fireEvent.click(loginBtn);
+    fireEvent.click(screen.getByLabelText(/menu/i));
+
+    const loginAction = await screen.findByRole("button", { name: /iniciar sesión/i });
+    fireEvent.click(loginAction);
     expect(mockLogin).toHaveBeenCalled();
 
     fireEvent.click(screen.getByLabelText(/menu/i));
@@ -211,11 +220,12 @@ describe("NavBar", () => {
 
     const contactAction = await screen.findByRole("button", { name: /Contacto \/ Turnero de Citas/i });
     fireEvent.click(contactAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTACT);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTACT));
+    mockNavigate.mockClear();
 
     const newsAction = await screen.findByRole("button", { name: /Noticias/i });
     fireEvent.click(newsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEWS);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEWS));
   });
 
   it("móvil (usuario no admin): menú incluye acciones de perfil y favoritos", async () => {
@@ -232,12 +242,13 @@ describe("NavBar", () => {
 
     const profileAction = await screen.findByRole("button", { name: /Mi Perfil/i });
     fireEvent.click(profileAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.USER_PROFILE);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.USER_PROFILE));
+    mockNavigate.mockClear();
 
     fireEvent.click(screen.getByLabelText(/menu/i));
     const favoritesAction = await screen.findByRole("button", { name: /Mis Favoritos/i });
     fireEvent.click(favoritesAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.FAVORITES));
   });
 
   it("móvil (tenant): menú agrega acceso a contratos", async () => {
@@ -253,7 +264,7 @@ describe("NavBar", () => {
 
     const contractsAction = await screen.findByRole("button", { name: /Mis Contratos de Alquiler/i });
     fireEvent.click(contractsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT));
   });
 
   it("móvil (admin): menú muestra accesos administrativos adicionales", async () => {
@@ -268,22 +279,22 @@ describe("NavBar", () => {
 
     const appointmentsAction = await screen.findByRole("button", { name: /Turnero de Citas/i });
     fireEvent.click(appointmentsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APPOINTMENTS);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.APPOINTMENTS));
+    mockNavigate.mockClear();
 
     fireEvent.click(screen.getByLabelText(/menu/i));
     const statsAction = await screen.findByRole("button", { name: /Ver Estadísticas/i });
     fireEvent.click(statsAction);
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT));
   });
 
-  it("móvil: botón logout en encabezado dispara logout", () => {
-    setAuthMock({
-      isLogged: true,
-      info: { firstName: "Test", lastName: "User", userName: "user", email: "user@test.com" },
-    });
+  it("móvil: encabezado muestra acceso a inicio y omite login/logout directos", () => {
     renderNavBar();
-    const logoutBtn = screen.getAllByLabelText(/logout/i)[0];
-    fireEvent.click(logoutBtn);
-    expect(mockLogout).toHaveBeenCalled();
+    const homeButton = screen.getByLabelText(/home/i);
+    expect(homeButton).toBeInTheDocument();
+    expect(screen.queryByLabelText(/login/i)).toBeNull();
+    expect(screen.queryByLabelText(/logout/i)).toBeNull();
+    fireEvent.click(homeButton);
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.HOME_APP);
   });
 });

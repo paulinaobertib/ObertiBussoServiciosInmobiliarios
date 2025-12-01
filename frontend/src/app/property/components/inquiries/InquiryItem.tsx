@@ -26,8 +26,19 @@ export const InquiryItem = ({ inquiry, loading, onResolve, properties }: Props) 
   const { isAdmin } = useAuthContext();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const created = dayjs(inquiry.date).locale("es");
-  const closed = inquiry.dateClose ? dayjs(inquiry.dateClose).locale("es") : null;
+  // El backend envía LocalDateTime sin zona horaria, así que lo parseamos como hora local
+  // agregando manualmente el offset para evitar que dayjs lo trate como UTC
+  const parseLocalDateTime = (dateStr: string) => {
+    // Si ya tiene zona horaria, dejarlo como está
+    if (dateStr.includes('Z') || dateStr.includes('+') || dateStr.match(/-\d{2}:\d{2}$/)) {
+      return dayjs(dateStr);
+    }
+    // Si no tiene zona horaria, parsearlo como hora local del navegador
+    return dayjs(dateStr.replace('T', ' '));
+  };
+
+  const created = parseLocalDateTime(inquiry.date).locale("es");
+  const closed = inquiry.dateClose ? parseLocalDateTime(inquiry.dateClose).locale("es") : null;
   const status = statusMap[inquiry.status] || { label: inquiry.status };
   const isClosed = inquiry.status === "CERRADA";
 

@@ -9,6 +9,7 @@ import * as propertyService from "../../services/property.service";
 import * as chatService from "../../../chat/services/chatSession.service";
 import { buildRoute, ROUTES } from "../../../../lib";
 import { AxiosResponse } from "axios";
+import type { Inquiry } from "../../types/inquiry";
 
 // ---- Mocks ----
 vi.mock("react-router-dom", () => ({ useNavigate: vi.fn() }));
@@ -18,15 +19,30 @@ vi.mock("../../services/inquiry.service");
 vi.mock("../../services/property.service");
 vi.mock("../../../chat/services/chatSession.service");
 
+type UseInquiriesValue = ReturnType<typeof useInquiries>;
+
 describe("useInquiries", () => {
   const mockNavigate = vi.fn();
   const mockHandleError = vi.fn();
+  const mockAxiosResponse = <T,>(data: T): AxiosResponse<T> => ({
+    data,
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: {} as any,
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useNavigate as unknown as Mock).mockReturnValue(mockNavigate);
     (useApiErrors as unknown as Mock).mockReturnValue({ handleError: mockHandleError });
     (useAuthContext as unknown as Mock).mockReturnValue({ info: { id: 1 }, isAdmin: true });
+    vi.mocked(propertyService.getAllProperties).mockResolvedValue([]);
+    vi.mocked(chatService.getAllChatSessions).mockResolvedValue([]);
+    const emptyInquiries = mockAxiosResponse<Inquiry[]>([]);
+    vi.mocked(inquiryService.getAllInquiries).mockResolvedValue(emptyInquiries);
+    vi.mocked(inquiryService.getInquiriesByUser).mockResolvedValue(emptyInquiries);
+    vi.mocked(inquiryService.getInquiriesByProperty).mockResolvedValue(emptyInquiries);
   });
 
   it("carga propiedades al bootstrap", async () => {
@@ -68,39 +84,50 @@ describe("useInquiries", () => {
     });
   });
 
-  it("marca consulta como resuelta", async () => {
-    const inq = { id: 1, status: "ABIERTA" } as any;
-    const { result } = renderHook(() => useInquiries());
-    act(() => result.current.setSelected(inq));
+  const waitForBootstrap = async (hook: { result: { current: UseInquiriesValue } }) => {
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+  };
 
+  it("marca consulta como resuelta", async () => {
+    const initial = mockAxiosResponse<Inquiry[]>([{ id: 1, status: "ABIERTA" } as Inquiry]);
+    const closed = mockAxiosResponse<Inquiry[]>([{ id: 1, status: "CERRADA" } as Inquiry]);
+    vi.mocked(inquiryService.getAllInquiries).mockResolvedValueOnce(initial).mockResolvedValueOnce(closed);
     vi.mocked(inquiryService.updateInquiry).mockResolvedValue({} as AxiosResponse<any>);
 
-    await act(async () => result.current.markResolved(1));
+    const hook = renderHook(() => useInquiries());
+    await waitFor(() => {
+      expect(hook.result.current.inquiries).toEqual(initial.data);
+    });
 
-    expect(result.current.actionLoadingId).toBeNull();
-    expect(result.current.inquiries.find((i) => i.id === 1)?.status).toBe("CERRADA");
+    await act(async () => hook.result.current.markResolved(1));
+
+    expect(hook.result.current.actionLoadingId).toBeNull();
+    expect(hook.result.current.inquiries.find((i) => i.id === 1)?.status).toBe("CERRADA");
   });
 
-  it("navega a propiedad correctamente", () => {
-    const { result } = renderHook(() => useInquiries());
-    act(() => result.current.goToProperty(99));
+  it("navega a propiedad correctamente", async () => {
+    const hook = renderHook(() => useInquiries());
+    await waitForBootstrap(hook);
+    act(() => hook.result.current.goToProperty(99));
     expect(mockNavigate).toHaveBeenCalledWith(buildRoute(ROUTES.PROPERTY_DETAILS, 99));
   });
 
   it("closeChatSession llama loadChatSessions y maneja errores", async () => {
-    const { result } = renderHook(() => useInquiries());
+    const hook = renderHook(() => useInquiries());
     vi.mocked(chatService.getAllChatSessions).mockRejectedValue(new Error("fail"));
 
-    await act(async () => result.current.closeChatSession(1));
-    expect(result.current.actionLoadingId).toBeNull();
+    await waitForBootstrap(hook);
+    await act(async () => hook.result.current.closeChatSession(1));
+    expect(hook.result.current.actionLoadingId).toBeNull();
     expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it("exponen filtros y STATUS_OPTIONS correctamente", () => {
-    const { result } = renderHook(() => useInquiries());
-    expect(result.current.filterStatus).toBe("");
-    expect(result.current.filterProp).toBe("");
-    expect(result.current.STATUS_OPTIONS).toEqual(STATUS_OPTIONS);
+  it("exponen filtros y STATUS_OPTIONS correctamente", async () => {
+    const hook = renderHook(() => useInquiries());
+    await waitForBootstrap(hook);
+    expect(hook.result.current.filterStatus).toBe("");
+    expect(hook.result.current.filterProp).toBe("");
+    expect(hook.result.current.STATUS_OPTIONS).toEqual(STATUS_OPTIONS);
   });
 
   it("carga consultas filtradas por propertyIds", async () => {

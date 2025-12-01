@@ -116,6 +116,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
     commissionsTotalByStatus: Record<CommissionStatus, number>;
     commissionsTotalInDateRange: number;
     commissionsYearMonthlyTotals: Record<string, number>;
+    partialCommissionsRemainingAmount: number;
     commissionsByStatus?: Record<CommissionStatus, Commission[]>;
     commissionsByPaymentTypeList?: Record<CommissionPaymentType, Commission[]>;
     // - PAYMENTS -
@@ -161,6 +162,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
     commissionsTotalByStatus: { PAGADA: 0, PARCIAL: 0, PENDIENTE: 0 },
     commissionsTotalInDateRange: 0,
     commissionsYearMonthlyTotals: {},
+    partialCommissionsRemainingAmount: 0,
     // — PAYMENTS —
     paymentsTotalInDateRange: 0,
     paymentsCountByConcept: {},
@@ -216,6 +218,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           totalPendiente,
           totalInRange,
           yearMonthlyTotals,
+          partialRemainingAmount,
           // — PAYMENTS — base por rango de fechas
           allPayments,
         ] = await Promise.all([
@@ -254,6 +257,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           commissionService.getTotalAmountByStatus(CommissionStatus.PENDIENTE, commissionCfg.currency),
           commissionService.getDateTotals(commissionCfg.from, commissionCfg.to, commissionCfg.currency),
           commissionService.getYearMonthlyTotals(commissionCfg.year, commissionCfg.currency),
+          commissionService.getPartialCommissionsRemainingAmount(),
           // PAYMENTS — usar endpoint de rango con fechas amplias (1 año hacia atrás)
           paymentService.getPaymentsByDateRange(
             new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().slice(0, 10),
@@ -380,6 +384,7 @@ export const useViewStats = (options?: UseViewStatsOptions) => {
           commissionsTotalByStatus,
           commissionsTotalInDateRange: totalInRange,
           commissionsYearMonthlyTotals: yearMonthlyTotals,
+          partialCommissionsRemainingAmount: partialRemainingAmount,
           ...(commissionCfg.includeLists && {
             commissionsByStatus: { PAGADA: listPagadas, PARCIAL: listParcial, PENDIENTE: listPendiente },
             commissionsByPaymentTypeList,
