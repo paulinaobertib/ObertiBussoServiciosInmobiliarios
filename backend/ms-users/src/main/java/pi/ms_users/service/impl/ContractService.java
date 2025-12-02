@@ -525,7 +525,7 @@ public class ContractService implements IContractService {
     @Override
     public List<Contract> getContractsWithIncreaseInOneMonth() {
         LocalDate today = LocalDate.now();
-        LocalDate targetDate = today.plusDays(30);
+        LocalDate targetDate = today.plusMonths(1);
 
         return contractRepository.findAll().stream()
                 .filter(c -> {

@@ -179,7 +179,7 @@ class ContractServiceTest {
     @Test
     void sendEmailsForContractsWithIncreaseInOneMonth_success() {
         ContractIncrease increase = new ContractIncrease();
-        increase.setDate(LocalDate.now().plusDays(30).minusMonths(1).atStartOfDay());
+        increase.setDate(LocalDate.now().atStartOfDay());
 
         entity.setId(1L);
         entity.setAdjustmentFrequencyMonths(1);
@@ -203,7 +203,7 @@ class ContractServiceTest {
     @Test
     void sendAdminContractsWithIncreaseInOneMonth_success() {
         ContractIncrease increase = new ContractIncrease();
-        increase.setDate(LocalDate.now().plusDays(30).minusMonths(1).atStartOfDay());
+        increase.setDate(LocalDate.now().atStartOfDay());
 
         entity.setId(1L);
         entity.setAdjustmentFrequencyMonths(1);
