@@ -34,13 +34,5 @@
     </div>
   </div>
 
-  <#if url.redirectUri??>
-    <script>
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          window.location.href = '${url.redirectUri?js_string}';
-        }, 1500);
-      });
-    </script>
-  </#if>
+  <script src="${url.resourcesPath}/js/action-status.js"></script>
 </@common.page>

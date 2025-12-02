@@ -32,7 +32,7 @@
       
           <div class="password-wrapper">
               <input type="password" name="password" placeholder="Contraseña" required />
-              <button type="button" class="toggle-password" onclick="togglePassword(this)">
+              <button type="button" class="toggle-password">
                   <span class="material-icons">visibility</span>
               </button>
           </div>
@@ -74,87 +74,7 @@
     </div>
   </div>
 
-  <script>
-    let toastTimer;
-
-    function setButtonLoading(button) {
-      if (!button || button.classList.contains('is-loading')) return;
-      button.classList.add('is-loading');
-      button.setAttribute('aria-busy', 'true');
-      button.disabled = true;
-    }
-
-    function clearButtonLoading(button) {
-      if (!button) return;
-      const label = button.querySelector('.btn-label');
-      if (label && label.dataset.originalText) {
-        label.textContent = label.dataset.originalText;
-      }
-      button.classList.remove('is-loading');
-      button.removeAttribute('aria-busy');
-      button.disabled = false;
-    }
-
-    function togglePassword(btn) {
-      const wrapper = btn.closest('.password-wrapper');
-      const input = wrapper.querySelector('input');
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.querySelector('.material-icons').innerText = 'visibility_off';
-      } else {
-        input.type = 'password';
-        btn.querySelector('.material-icons').innerText = 'visibility';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('loginForm');
-      const loginButton = form.querySelector('.btn-primary');
-      const googleButton = document.querySelector('.google-btn');
-
-      form.addEventListener('submit', (e) => {
-        setButtonLoading(loginButton);
-        return true;
-      });
-
-      if (googleButton) {
-        const loginUrl = googleButton.dataset.loginUrl;
-        if (!loginUrl) {
-          googleButton.disabled = true;
-          googleButton.setAttribute('aria-disabled', 'true');
-          googleButton.style.display = 'none';
-        } else {
-          let googleLoadingTimeout;
-          googleButton.addEventListener('click', () => {
-            setButtonLoading(googleButton);
-            
-            // Timeout de 10 segundos para el loading de Google
-            googleLoadingTimeout = setTimeout(() => {
-              clearButtonLoading(googleButton);
-            }, 10000);
-            
-            window.location.assign(loginUrl);
-          });
-          
-          // Limpiar el timeout si el usuario vuelve a la página
-          window.addEventListener('pageshow', () => {
-            if (googleLoadingTimeout) {
-              clearTimeout(googleLoadingTimeout);
-            }
-            clearButtonLoading(googleButton);
-          });
-        }
-      }
-
-      const serverBanner = document.getElementById('serverErrorBanner');
-      if (serverBanner) {
-        setTimeout(() => {
-          serverBanner.style.transition = 'opacity 0.5s';
-          serverBanner.style.opacity = '0';
-          setTimeout(() => serverBanner.remove(), 500);
-        }, 8000);
-      }
-    });
-  </script>
+  <!-- External JavaScript -->
+  <script src="${url.resourcesPath}/js/login.js"></script>
 
 </@common.page>
