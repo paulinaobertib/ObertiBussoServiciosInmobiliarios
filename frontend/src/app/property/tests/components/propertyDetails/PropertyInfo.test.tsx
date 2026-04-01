@@ -54,6 +54,7 @@ describe("PropertyInfo", () => {
     price: 120000,
     expenses: 2000,
     showPrice: true,
+    showExpenses: true,
     credit: false,
     financing: false,
     outstanding: false,
@@ -98,7 +99,7 @@ describe("PropertyInfo", () => {
   });
 
   it("muestra 'Consultar precio' cuando showPrice es false", () => {
-    const prop = { ...baseProperty, showPrice: false };
+    const prop = { ...baseProperty, showPrice: false, showExpenses: false };
     render(<PropertyInfo property={prop} />);
     expect(screen.getByText(/Consultar precio/)).toBeInTheDocument();
     expect(screen.queryByText(/Expensas/)).not.toBeInTheDocument();
@@ -140,10 +141,17 @@ describe("PropertyInfo", () => {
   });
 
   it("muestra 'Consultar precio' si showPrice es false", () => {
-    const prop = { ...baseProperty, showPrice: false };
+    const prop = { ...baseProperty, showPrice: false, showExpenses: false };
     render(<PropertyInfo property={prop} />);
     expect(screen.getByText(/Consultar precio/i)).toBeInTheDocument();
     expect(screen.queryByText(/Expensas/)).not.toBeInTheDocument();
+  });
+
+  it("muestra expensas aunque showPrice sea false si showExpenses=true", () => {
+    const prop = { ...baseProperty, showPrice: false, showExpenses: true, expenses: 2500 };
+    render(<PropertyInfo property={prop} />);
+    expect(screen.getByText(/Consultar precio/i)).toBeInTheDocument();
+    expect(screen.getByText(/Expensas/i)).toBeInTheDocument();
   });
 
   it("muestra 'Ubicación desconocida' si no hay street ni neighborhood", () => {

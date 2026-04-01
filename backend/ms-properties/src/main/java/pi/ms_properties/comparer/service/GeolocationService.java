@@ -1,6 +1,7 @@
 package pi.ms_properties.comparer.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import pi.ms_properties.comparer.dto.PropertyDTOAI;
@@ -9,31 +10,35 @@ import pi.ms_properties.comparer.dto.PropertyDTOAI;
 public class GeolocationService {
 
     private final WebClient webClient;
+    private final String googleMapsApiKey;
 
-    public GeolocationService(WebClient.Builder webClientBuilder) {
+    public GeolocationService(WebClient.Builder webClientBuilder,
+                              @Value("${google.maps.api-key}") String googleMapsApiKey) {
         this.webClient = webClientBuilder
-                .baseUrl("https://nominatim.openstreetmap.org")
-                .defaultHeader("User-Agent", "mi-app-inmobiliaria")
+                .baseUrl("https://maps.googleapis.com")
                 .build();
+        this.googleMapsApiKey = googleMapsApiKey;
     }
 
     public PropertyDTOAI geolocation(PropertyDTOAI property) {
         try {
             JsonNode result = webClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/search")
-                            .queryParam("q", property.getAddress())
-                            .queryParam("format", "json")
-                            .queryParam("limit", "1")
+                            .path("/maps/api/geocode/json")
+                            .queryParam("address", property.getAddress())
+                            .queryParam("key", googleMapsApiKey)
                             .build())
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (result != null && result.isArray() && !result.isEmpty()) {
-                JsonNode node = result.get(0);
-                property.setLatitude(node.get("lat").asDouble());
-                property.setLongitude(node.get("lon").asDouble());
+            JsonNode results = result != null ? result.get("results") : null;
+            if (results != null && results.isArray() && !results.isEmpty()) {
+                JsonNode location = results.get(0).path("geometry").path("location");
+                if (location.has("lat") && location.has("lng")) {
+                    property.setLatitude(location.get("lat").asDouble());
+                    property.setLongitude(location.get("lng").asDouble());
+                }
             }
 
         } catch (Exception e) {

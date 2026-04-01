@@ -14,6 +14,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.*;
@@ -169,6 +171,7 @@ public class PropertyServiceTest {
         property.setPrice(BigDecimal.valueOf(150000));
         property.setShowPrice(true);
         property.setExpenses(BigDecimal.valueOf(5000));
+        property.setShowExpenses(true);
         property.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
         property.setDate(LocalDateTime.now());
         property.setMainImage("https://ejemplo.com/mainImage.jpg");
@@ -201,6 +204,7 @@ public class PropertyServiceTest {
         propertyDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertyDTO.setShowPrice(true);
         propertyDTO.setExpenses(BigDecimal.valueOf(5000.0));
+        propertyDTO.setShowExpenses(true);
         propertyDTO.setCredit(true);
         propertyDTO.setFinancing(false);
         propertyDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
@@ -228,6 +232,7 @@ public class PropertyServiceTest {
         propertySaveDTO.setPrice(BigDecimal.valueOf(150000.0));
         propertySaveDTO.setShowPrice(true);
         propertySaveDTO.setExpenses(BigDecimal.valueOf(5000.0));
+        propertySaveDTO.setShowExpenses(true);
         propertySaveDTO.setCredit(true);
         propertySaveDTO.setFinancing(false);
         propertySaveDTO.setDescription("Casa amplia con pileta y jardín. Ideal para familias.");
@@ -284,6 +289,7 @@ public class PropertyServiceTest {
         propertyUpdateDTO.setPrice(BigDecimal.valueOf(160000.0));
         propertyUpdateDTO.setShowPrice(true);
         propertyUpdateDTO.setExpenses(BigDecimal.valueOf(5200.0));
+        propertyUpdateDTO.setShowExpenses(true);
         propertyUpdateDTO.setCredit(true);
         propertyUpdateDTO.setFinancing(true);
         propertyUpdateDTO.setOutstanding(true);
@@ -552,6 +558,7 @@ public class PropertyServiceTest {
                 List.of("ABIERTO"),
                 true,
                 false,
+                null,
                 null
         );
 
@@ -866,6 +873,7 @@ public class PropertyServiceTest {
                         List.of("ABIERTO"),
                         true,
                         false,
+                        null,
                         null
                 ));
 
@@ -880,6 +888,37 @@ public class PropertyServiceTest {
                 () -> propertyService.findByTitleDescription("moderno"));
 
         assertEquals("DB error", ex.getMessage());
+    }
+
+    @Test
+    void testFindBy_forbiddenWhenStatusFilterAndNotAdmin() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new TestingAuthenticationToken("user", "pass", "ROLE_user")
+        );
+        try {
+            ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+                    () -> propertyService.findBy(
+                            BigDecimal.valueOf(0), BigDecimal.valueOf(100000),
+                            0f, 1000f,
+                            0f, 500f,
+                            List.of(3f),
+                            "VENTA",
+                            List.of("CASA"),
+                            List.of("Pileta"),
+                            List.of("CABA"),
+                            List.of("Palermo"),
+                            List.of("ABIERTO"),
+                            true,
+                            false,
+                            null,
+                            Status.DISPONIBLE
+                    ));
+
+            assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+            verify(propertyRepository, never()).findAll(any(Specification.class));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test

@@ -3,6 +3,7 @@ import { useAuthContext } from "../../user/context/AuthContext";
 import { postInquiry } from "../services/inquiry.service";
 import { useApiErrors } from "../../shared/hooks/useErrors";
 import { useGlobalAlert } from "../../shared/context/AlertContext";
+import { trackGoogleAdsConversion } from "../../shared/utils/googleAds";
 
 type InquiryFormFields = {
   firstName: string;
@@ -90,6 +91,7 @@ export const useInquiryForm = ({ propertyIds, successTitle, successDescription }
           successTitle ?? "Consulta enviada",
           successDescription ?? "Gracias por contactarte. Te responderemos a la brevedad."
         );
+        trackGoogleAdsConversion("consulta_enviada");
 
         // ✅ siempre resetea el formulario
         setForm(makeInitial());

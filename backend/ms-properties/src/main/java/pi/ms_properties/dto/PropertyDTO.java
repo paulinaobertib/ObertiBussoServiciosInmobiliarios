@@ -29,6 +29,7 @@ public class PropertyDTO {
     private BigDecimal price;
     private Boolean showPrice;
     private BigDecimal expenses;
+    private Boolean showExpenses;
     private Boolean credit;
     private Boolean financing;
     private Boolean outstanding;

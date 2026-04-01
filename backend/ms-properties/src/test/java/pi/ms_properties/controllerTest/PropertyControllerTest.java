@@ -158,8 +158,8 @@ class PropertyControllerTest {
 
     @Test
     void testSearchProperties() {
-        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(), anyBoolean(), anyBoolean(), any(Currency.class))).thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
-        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, List.of(3f), "venta", List.of("casa"), List.of("pileta"), List.of("cordoba"), List.of("centro"), List.of("urbano"), true, false, Currency.ARS);
+        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(), anyBoolean(), anyBoolean(), any(Currency.class), any())).thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
+        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, List.of(3f), "venta", List.of("casa"), List.of("pileta"), List.of("cordoba"), List.of("centro"), List.of("urbano"), true, false, Currency.ARS, null);
         assertEquals(1, response.getBody().size());
     }
 
@@ -201,7 +201,7 @@ class PropertyControllerTest {
     void testSearchProperties_withDefaults() throws Exception {
         when(propertyService.findBy(any(), any(), anyFloat(), anyFloat(), anyFloat(), anyFloat(),
                 anyList(), anyString(), anyList(), anyList(), anyList(), anyList(),
-                anyList(), any(), any(), any()))
+                anyList(), any(), any(), any(), any()))
                 .thenReturn(ResponseEntity.ok(List.of()));
 
         mockMvc.perform(get("/property/search"))

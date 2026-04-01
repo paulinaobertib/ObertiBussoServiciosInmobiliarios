@@ -18,6 +18,7 @@ interface UseSearchFiltersReturn {
     neighborhoodTypes: string[];
     operation: string;
     currency: string;
+    status: string;
     credit: boolean;
     financing: boolean;
     priceRange: [number, number];
@@ -43,6 +44,15 @@ interface UseSearchFiltersReturn {
 }
 
 export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFiltersReturn => {
+  const statusLabels: Record<string, string> = {
+    DISPONIBLE: "Disponible",
+    VENDIDA: "Vendida",
+    ALQUILADA: "Alquilada",
+    RESERVADA: "Reservada",
+    ESPERA: "En espera",
+    INACTIVA: "Inactiva",
+  };
+
   const {
     buildSearchParams,
     typesList,
@@ -83,6 +93,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     neighborhoodTypes: [] as string[],
     operation: "",
     currency: "",
+    status: "",
     credit: false,
     financing: false,
     priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max] as [number, number],
@@ -259,6 +270,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
       neighborhoodTypes: [],
       operation: "",
       currency: "",
+      status: "",
       credit: false,
       financing: false,
       priceRange: [dynamicLimits.price.ARS.min, dynamicLimits.price.ARS.max] as [number, number],
@@ -284,6 +296,7 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
 
     if (params.operation) push(params.operation, "operation");
     if (params.currency) push(params.currency, "currency");
+    if (params.status) push(statusLabels[params.status] ?? params.status, "status", params.status);
     if (params.credit) push("Apto Crédito", "credit", true);
     if (params.financing) push("Financiamiento", "financing", true);
     params.types.forEach((t) => push(t, "types", t));

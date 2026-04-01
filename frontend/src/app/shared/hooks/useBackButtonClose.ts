@@ -79,6 +79,7 @@ const detachListenerIfIdle = () => {
 export const useBackButtonClose = (active: boolean, onClose: () => void) => {
   const skipPopRef = useRef(false);
   const pushedRef = useRef(false);
+  const hasHistoryEntryRef = useRef(false);
   const scrollPositionRef = useRef({ x: 0, y: 0 });
   const restoreScrollRef = useRef<number | null>(null);
   const onCloseRef = useRef(onClose);
@@ -105,9 +106,10 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
       onCloseRef.current?.();
       return;
     }
-    if (pushedRef.current) {
+    if (pushedRef.current && hasHistoryEntryRef.current) {
       skipPopRef.current = true;
       pushedRef.current = false;
+      hasHistoryEntryRef.current = false;
       startPendingPop();
       window.history.back();
       restoreScroll();
@@ -127,7 +129,6 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
         y: window.scrollY,
       };
 
-      pushedRef.current = true;
       skipPopRef.current = false;
 
       const entryId = ++overlaySequence;
@@ -136,6 +137,7 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
         skipPopRef,
         handleClose: () => {
           pushedRef.current = false;
+          hasHistoryEntryRef.current = false;
           restoreScroll();
           onCloseRef.current?.();
         },
@@ -147,13 +149,16 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
       ensureGlobalPopListener();
 
       window.history.pushState({ __overlay: true }, "");
+      pushedRef.current = true;
+      hasHistoryEntryRef.current = true;
       restoreScroll();
 
       return () => {
         const entryInstance = entryRef.current;
-        if (pushedRef.current) {
+        if (pushedRef.current && hasHistoryEntryRef.current) {
           skipPopRef.current = true;
           pushedRef.current = false;
+          hasHistoryEntryRef.current = false;
           startPendingPop();
           window.history.back();
           restoreScroll();
@@ -163,6 +168,7 @@ export const useBackButtonClose = (active: boolean, onClose: () => void) => {
             overlayStack.splice(idx, 1);
           }
           entryInstance.removed = true;
+          hasHistoryEntryRef.current = false;
           detachListenerIfIdle();
         }
         entryRef.current = null;

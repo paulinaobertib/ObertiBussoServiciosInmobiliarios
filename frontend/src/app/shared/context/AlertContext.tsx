@@ -51,6 +51,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const [st, setSt] = useState<State | null>(null);
   const resolver = useRef<((v: any) => void) | null>(null);
+  const closingRef = useRef(false);
 
   const palette = useMemo(
     () => ({
@@ -65,6 +66,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
   const open = useCallback(
     (mode: Mode, kind: Kind, opts?: Options) =>
       new Promise<boolean | void>((resolve) => {
+        closingRef.current = false;
         resolver.current = resolve;
         setSt({
           open: true,
@@ -132,6 +134,8 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
 
   // ---- cierre/acciones ----
   const close = (value?: any) => {
+    if (closingRef.current) return;
+    closingRef.current = true;
     setSt(null);
     resolver.current?.(value);
     resolver.current = null;
@@ -155,7 +159,11 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
   const ui = !st ? null : (
     <Dialog
       open={st.open}
-      onClose={st.opts.disableBackdropClose ? undefined : () => close(false)}
+      onClose={(_, reason) => {
+        if (st.opts.disableBackdropClose && reason === "backdropClick") return;
+        close(false);
+      }}
+      disableEscapeKeyDown={st.opts.disableBackdropClose}
       maxWidth="sm"
       fullWidth
       sx={{ "& .MuiPaper-root": { p: { xs: 3, sm: 4 }, borderRadius: 4 } }}

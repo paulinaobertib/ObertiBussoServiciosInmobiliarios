@@ -36,6 +36,7 @@ describe("PropertyInfoCompare", () => {
     price: 120000,
     expenses: 2000,
     showPrice: true,
+    showExpenses: true,
     credit: false,
     financing: false,
     outstanding: false,
@@ -62,7 +63,7 @@ describe("PropertyInfoCompare", () => {
   });
 
   it("muestra 'Consultar precio' si showPrice=false y sin expensas", () => {
-    const prop = { ...mockProperty, showPrice: false, expenses: 0 };
+    const prop = { ...mockProperty, showPrice: false, showExpenses: false, expenses: 0 };
     renderWithProvider(<PropertyInfoCompare property={prop} />);
     expect(screen.getByText(/Consultar precio/)).toBeInTheDocument();
     expect(screen.queryByText(/Expensas/)).not.toBeInTheDocument();
@@ -107,7 +108,7 @@ describe("PropertyInfoCompare", () => {
   });
 
   it("muestra 'Consultar precio' si showPrice=false", () => {
-    const prop = { ...mockProperty, showPrice: false };
+    const prop = { ...mockProperty, showPrice: false, showExpenses: false };
     renderWithProvider(<PropertyInfoCompare property={prop} />);
     expect(screen.getByText(/Consultar precio/i)).toBeInTheDocument();
   });

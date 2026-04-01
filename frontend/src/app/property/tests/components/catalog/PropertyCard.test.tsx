@@ -56,6 +56,7 @@ const baseProp = {
   credit: false,
   financing: false,
   showPrice: true,
+  showExpenses: true,
   outstanding: false,
   street: "Calle",
   number: "123",
@@ -195,9 +196,9 @@ describe("<PropertyCard />", () => {
     expect(screen.queryByText(/ALQUILER/i)).toBeNull();
   });
 
-  it("showPrice=true: muestra Expensas sólo cuando el valor es >= 1", () => {
+  it("showPrice/showExpenses: renderiza ambos bloques cuando ambos están activos", () => {
     const { rerender } = renderWithTheme(
-      <PropertyCard property={{ ...baseProp, showPrice: true, expenses: 5000 } as any} />
+      <PropertyCard property={{ ...baseProp, showPrice: true, showExpenses: true, expenses: 5000 } as any} />
     );
     expect(screen.getByText(/Precio/i)).toBeInTheDocument();
     expect(screen.getByText(/Expensas/i)).toBeInTheDocument();
@@ -206,21 +207,28 @@ describe("<PropertyCard />", () => {
 
     rerender(
       <ThemeProvider theme={theme}>
-        <PropertyCard property={{ ...baseProp, showPrice: true, expenses: 0 } as any} />
+        <PropertyCard property={{ ...baseProp, showPrice: true, showExpenses: true, expenses: 0 } as any} />
       </ThemeProvider>
     );
     expect(screen.queryByText(/Expensas/i)).toBeNull();
 
     rerender(
       <ThemeProvider theme={theme}>
-        <PropertyCard property={{ ...baseProp, showPrice: true, expenses: null } as any} />
+        <PropertyCard property={{ ...baseProp, showPrice: true, showExpenses: true, expenses: null } as any} />
       </ThemeProvider>
     );
     expect(screen.queryByText(/Expensas/i)).toBeNull();
   });
 
-  it("showPrice=false: muestra 'Consultar'", () => {
-    renderWithTheme(<PropertyCard property={{ ...baseProp, showPrice: false } as any} />);
+  it("showPrice=false y showExpenses=true: permite mostrar solo expensas", () => {
+    renderWithTheme(<PropertyCard property={{ ...baseProp, showPrice: false, showExpenses: true, expenses: 3500 } as any} />);
+    expect(screen.queryByText(/Precio/i)).toBeNull();
+    expect(screen.getByText(/Expensas/i)).toBeInTheDocument();
+    expect(screen.getByText(/ARS \$3\.500/i)).toBeInTheDocument();
+  });
+
+  it("showPrice=false y showExpenses=false: muestra 'Consultar'", () => {
+    renderWithTheme(<PropertyCard property={{ ...baseProp, showPrice: false, showExpenses: false } as any} />);
     expect(screen.getByText(/Precio - Expensas/i)).toBeInTheDocument();
     expect(screen.getByText(/Consultar/i)).toBeInTheDocument();
   });

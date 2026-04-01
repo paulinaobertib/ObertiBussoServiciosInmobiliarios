@@ -10,6 +10,7 @@ import { AuthProvider } from "./app/user/context/AuthContext";
 import { FavoritesProvider } from "./app/user/context/FavoritesContext";
 import { ChatProvider } from "./app/chat/context/ChatContext";
 import { ChatAlways } from "./pages/ChatAlways";
+import { WhatsAppFab } from "./pages/WhatsAppFab";
 import "./index.css";
 import AuthLoaderOverlay from "./app/user/context/AuthLoader";
 import AuthExpired from "./app/user/context/AuthExpired";
@@ -32,6 +33,7 @@ function App() {
                   <ChatProvider>
                     <Routes />
                     <ChatAlways />
+                    <WhatsAppFab />
                     {/* Overlays globales, al final para "tapar" todo */}
                     <AuthLoaderOverlay />
                     <AuthExpired />

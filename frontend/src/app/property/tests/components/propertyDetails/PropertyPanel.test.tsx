@@ -37,6 +37,7 @@ describe("PropertyPanel", () => {
     price: 120000,
     expenses: 2000,
     showPrice: true,
+    showExpenses: true,
     credit: false,
     financing: false,
     outstanding: false,

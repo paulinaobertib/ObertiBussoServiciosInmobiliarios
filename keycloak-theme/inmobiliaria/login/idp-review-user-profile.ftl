@@ -410,13 +410,6 @@
         return false;
       }
 
-      if (password.length < 8) {
-        showToast('La contraseña debe tener al menos 8 caracteres.', { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
-
       if (password.length > 64) {
         showToast('La contraseña no puede tener más de 64 caracteres.', { type: 'error' });
         passwordInput.style.borderColor = '#ff6b6b';

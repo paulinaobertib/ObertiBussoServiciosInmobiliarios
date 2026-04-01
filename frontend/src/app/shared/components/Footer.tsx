@@ -8,10 +8,16 @@ import { ROUTES } from "../../../lib";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "./Modal";
 import { SuggestionForm } from "../../property/components/suggestions/SuggestionForm";
+import { trackGoogleAdsConversion } from "../utils/googleAds";
 
 const Footer = () => {
   const navigate = useNavigate();
   const [suggestionOpen, setSuggestionOpen] = useState(false);
+
+  const openWhatsApp = (url: string) => {
+    trackGoogleAdsConversion("click_whatsapp");
+    window.open(url, "_blank");
+  };
 
   return (
     <Box
@@ -115,37 +121,37 @@ const Footer = () => {
                 </Typography>
               </Box>
 
-              {/* WhatsApp Pablo */}
+              {/* WhatsApp Luis */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <IconButton
                   aria-label="WhatsApp Pablo"
                   sx={{ color: "#fff", "&:hover": { color: "#4dabf5" } }}
-                  onClick={() => window.open("https://wa.me/5493513264536", "_blank")}
+                  onClick={() => openWhatsApp("https://wa.me/5493513264536")}
                 >
                   <WhatsAppIcon />
                 </IconButton>
                 <Typography
                   variant="body2"
                   sx={{ cursor: "pointer", color: "#fff", "&:hover": { color: "#4dabf5" } }}
-                  onClick={() => window.open("https://wa.me/5493513264536", "_blank")}
+                  onClick={() => openWhatsApp("https://wa.me/5493513264536")}
                 >
                   Luis: +54 9 351 3264536
                 </Typography>
               </Box>
 
-              {/* WhatsApp Luis */}
+              {/* WhatsApp Pablo */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <IconButton
                   aria-label="WhatsApp Luis"
                   sx={{ color: "#fff", "&:hover": { color: "#4dabf5" } }}
-                  onClick={() => window.open("https://wa.me/5493515107888", "_blank")}
+                  onClick={() => openWhatsApp("https://wa.me/5493515107888")}
                 >
                   <WhatsAppIcon />
                 </IconButton>
                 <Typography
                   variant="body2"
                   sx={{ cursor: "pointer", color: "#fff", "&:hover": { color: "#4dabf5" } }}
-                  onClick={() => window.open("https://wa.me/5493515107888", "_blank")}
+                  onClick={() => openWhatsApp("https://wa.me/5493515107888")}
                 >
                   Pablo: +54 9 351 5107888
                 </Typography>
@@ -167,16 +173,6 @@ const Footer = () => {
               >
                 Luis Galeano 1910 - Local 2<br />
                 Villa Cabrera, Córdoba, Argentina
-              </a>
-              <br />
-              <a
-                href="https://www.google.com/maps?q=Lisandro+de+la+Torre+299,+Local+7,+Villa+Carlos+Paz,+Córdoba,+Argentina"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "inherit", textDecoration: "none" }}
-              >
-                Lisandro de la Torre 299 – Local 7<br />
-                Villa Carlos Paz, Córdoba, Argentina
               </a>
             </Typography>
             <Box

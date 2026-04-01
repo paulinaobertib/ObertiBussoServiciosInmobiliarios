@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Property;
+import pi.ms_properties.domain.Status;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -198,6 +199,15 @@ public class PropertySpecification {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.equal(root.get("currency"), currency);
+        };
+    }
+
+    public static Specification<Property> hasStatus(Status status) {
+        return (root, query, criteriaBuilder) -> {
+            if (status == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.equal(root.get("status"), status);
         };
     }
 

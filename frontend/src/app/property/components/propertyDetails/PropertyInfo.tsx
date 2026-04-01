@@ -94,7 +94,7 @@ export const PropertyInfo = ({ property }: Props) => {
             ? formatPrice(property.price, property.currency)
             : "Consultar precio"}
         </Typography>
-        {property.showPrice && (
+        {property.showExpenses && (
           <Typography variant="subtitle1" color="text.secondary" fontWeight={600}>
             {property.expenses && property.expenses > 0
               ? `Expensas ${formatPrice(property.expenses, "ARS")}`
