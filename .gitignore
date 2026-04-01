@@ -1,5 +1,6 @@
 .vscode/
 **/application-local.yml
+**/application-nube.yml
 .pretierrc
 .DS_Store
 venv/
