@@ -49,7 +49,8 @@ export const PropertyCard = ({
     property.status === "DISPONIBLE" ? `${property.status} - ${property.operation}` : property.status || "Sin Estado";
 
   const badgeConfig = getExtendingBadgeConfig();
-  const showExpenses = typeof property.expenses === "number" && property.expenses >= 1;
+  const canShowPrice = property.showPrice;
+  const canShowExpenses = property.showExpenses && typeof property.expenses === "number" && property.expenses >= 1;
 
   return (
     <Card
@@ -250,30 +251,32 @@ export const PropertyCard = ({
 
         {/* Precio y expensas */}
         <Box sx={{ mb: "0.5rem" }}>
-          {property.showPrice ? (
+          {canShowPrice || canShowExpenses ? (
             <Box
               sx={{
-                display: showExpenses ? "grid" : "block",
-                gridTemplateColumns: showExpenses ? "repeat(2, minmax(0,1fr))" : undefined,
-                gap: showExpenses ? "0.5rem" : 0,
+                display: canShowPrice && canShowExpenses ? "grid" : "block",
+                gridTemplateColumns: canShowPrice && canShowExpenses ? "repeat(2, minmax(0,1fr))" : undefined,
+                gap: canShowPrice && canShowExpenses ? "0.5rem" : 0,
               }}
             >
-              <Box
-                sx={{
-                  flex: 1,
-                  p: 0.5,
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 0.5,
-                }}
-              >
-                <Typography variant="caption" color="text.secondary" fontSize={"0.75rem"}>
-                  Precio
-                </Typography>
-                <Typography variant="subtitle2" noWrap sx={{ whiteSpace: "nowrap" }} fontSize={"0.85rem"}>
-                  {`${property.currency} $${formatAmount(property.price)}`}
-                </Typography>
-              </Box>
-              {showExpenses && (
+              {canShowPrice && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    p: 0.5,
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 0.5,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary" fontSize={"0.75rem"}>
+                    Precio
+                  </Typography>
+                  <Typography variant="subtitle2" noWrap sx={{ whiteSpace: "nowrap" }} fontSize={"0.85rem"}>
+                    {`${property.currency} $${formatAmount(property.price)}`}
+                  </Typography>
+                </Box>
+              )}
+              {canShowExpenses && (
                 <Box
                   sx={{
                     flex: 1,

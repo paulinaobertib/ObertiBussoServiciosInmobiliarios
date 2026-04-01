@@ -270,7 +270,7 @@ export const useManagePropertyPage = () => {
   }, [confirmAction, warn, success, handleError, img, isEdit, nav, toDelete]);
 
   /* ────── validación de pasaje de pasos (se mantiene tu lógica) ────── */
-  const canProceed = !!selected.type && !!selected.neighborhood && !!selected.owner && selected.amenities.length > 0;
+  const canProceed = !!selected.type && !!selected.neighborhood && !!selected.owner;
 
   /* ────── título dinámico ────── */
   const title = property ? `Edición de ${property?.type?.name ?? "Propiedad"}` : `Alta de Propiedad`;

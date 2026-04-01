@@ -22,6 +22,7 @@ import { getPropertiesByText } from "../../property/services/property.service";
 import { ChatSessionDTO } from "../types/chatSession";
 import { usePropertiesContext } from "../../property/context/PropertiesContext";
 import { useBackButtonClose } from "../../shared/hooks/useBackButtonClose";
+import { trackGoogleAdsConversion } from "../../shared/utils/googleAds";
 
 const FINAL_SYSTEM_MESSAGES = [
   "La conversación ha finalizado. Gracias por contactarnos.",
@@ -422,6 +423,7 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
 
     const timer = window.setTimeout(() => {
+      trackGoogleAdsConversion("click_whatsapp");
       window.location.href = url;
       closeChatUI();
       derivingRef.current = false;

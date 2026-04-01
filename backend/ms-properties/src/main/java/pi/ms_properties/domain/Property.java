@@ -59,6 +59,9 @@ public class Property {
     @Column(name = "expenses", nullable = true)
     private BigDecimal expenses;
 
+    @Column(name = "show_expenses", nullable = false)
+    private Boolean showExpenses;
+
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 

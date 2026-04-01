@@ -47,16 +47,15 @@ class GeolocationServiceTest {
     @BeforeEach
     void setup() {
         when(webClientBuilder.baseUrl(anyString())).thenReturn(webClientBuilder);
-        when(webClientBuilder.defaultHeader(anyString(), anyString())).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
-        geolocationService = new GeolocationService(webClientBuilder);
+        geolocationService = new GeolocationService(webClientBuilder, "test-api-key");
     }
 
     // casos de exito
 
     @Test
     void testGeolocation_success() {
-        String json = "[{\"lat\": \"-31.4167\", \"lon\": \"-64.1833\"}]";
+        String json = "{\"results\":[{\"geometry\":{\"location\":{\"lat\":-31.4167,\"lng\":-64.1833}}}],\"status\":\"OK\"}";
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode mockJsonNode;
         try {
@@ -81,11 +80,11 @@ class GeolocationServiceTest {
     }
 
     @Test
-    void testUriBuilder_shouldIncludeCorrectParams() {
+    void testUriBuilder_shouldIncludeCorrectParams() throws Exception {
         PropertyDTOAI property = new PropertyDTOAI();
         property.setAddress("Córdoba, Argentina");
 
-        JsonNode emptyArray = new ObjectMapper().createArrayNode();
+        JsonNode emptyResults = new ObjectMapper().readTree("{\"results\":[],\"status\":\"ZERO_RESULTS\"}");
 
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenAnswer(invocation -> {
@@ -95,27 +94,26 @@ class GeolocationServiceTest {
 
             String uri = uriFunction.apply(org.springframework.web.util.UriComponentsBuilder.fromPath("")).toString();
 
-            assertEquals("/search?q=C%C3%B3rdoba,%20Argentina&format=json&limit=1", uri);
+            assertEquals("/maps/api/geocode/json?address=C%C3%B3rdoba,%20Argentina&key=test-api-key", uri);
             return requestHeadersSpec;
         });
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(emptyArray));
+        when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(emptyResults));
 
         geolocationService.geolocation(property);
     }
 
     @Test
-    void testResultIsEmptyArray_shouldNotSetCoordinates() {
+    void testResultIsEmptyResults_shouldNotSetCoordinates() throws Exception {
         PropertyDTOAI property = new PropertyDTOAI();
         property.setAddress("Córdoba, Argentina");
 
-        JsonNode emptyArray = new ObjectMapper().createArrayNode();
+        JsonNode emptyResults = new ObjectMapper().readTree("{\"results\":[],\"status\":\"ZERO_RESULTS\"}");
 
         lenient().when(webClient.get()).thenReturn(requestHeadersUriSpec);
         lenient().when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
-        lenient().when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
         lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        lenient().when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(emptyArray));
+        lenient().when(responseSpec.bodyToMono(JsonNode.class)).thenReturn(Mono.just(emptyResults));
 
         PropertyDTOAI result = geolocationService.geolocation(property);
 
@@ -124,11 +122,11 @@ class GeolocationServiceTest {
     }
 
     @Test
-    void testResultIsNotArray_shouldNotSetCoordinates() throws Exception {
+    void testResultWithoutResults_shouldNotSetCoordinates() throws Exception {
         PropertyDTOAI property = new PropertyDTOAI();
         property.setAddress("Córdoba, Argentina");
 
-        String json = "{\"lat\":\"-31.4\",\"lon\":\"-64.18\"}";
+        String json = "{\"status\":\"OK\"}";
         JsonNode node = new ObjectMapper().readTree(json);
 
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -164,7 +162,6 @@ class GeolocationServiceTest {
     void testGeolocalizate_error() {
         lenient().when(webClient.get()).thenReturn(requestHeadersUriSpec);
         lenient().when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
-        lenient().when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
         lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.bodyToMono(JsonNode.class)).thenThrow(new RuntimeException("Falla en API"));
 

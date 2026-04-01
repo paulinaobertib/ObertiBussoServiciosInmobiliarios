@@ -50,6 +50,7 @@ describe("PropertyDetails", () => {
     price: 120000,
     expenses: null,
     showPrice: true,
+    showExpenses: true,
     credit: false,
     financing: false,
     outstanding: false,

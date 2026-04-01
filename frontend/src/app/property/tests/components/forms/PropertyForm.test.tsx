@@ -25,6 +25,7 @@ const h = vi.hoisted(() => {
     price: 0,
     expenses: 0,
     showPrice: false,
+    showExpenses: false,
     outstanding: false,
     description: "",
     neighborhood: { id: 0, name: "" },

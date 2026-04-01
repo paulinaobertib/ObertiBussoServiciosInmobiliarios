@@ -22,6 +22,7 @@ export interface Property {
   price: number;
   expenses: number | null;
   showPrice: boolean;
+  showExpenses: boolean;
   credit: boolean;
   financing: boolean;
   outstanding: boolean;
@@ -52,6 +53,7 @@ export interface PropertyCreate {
   price: number;
   expenses: number | null;
   showPrice: boolean;
+  showExpenses: boolean;
   credit: boolean;
   financing: boolean;
   outstanding: boolean;
@@ -82,6 +84,7 @@ export interface PropertyUpdate {
   price: number;
   expenses: number | null;
   showPrice: boolean;
+  showExpenses: boolean;
   credit: boolean;
   financing: boolean;
   outstanding?: boolean;

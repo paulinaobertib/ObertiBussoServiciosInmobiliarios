@@ -55,6 +55,7 @@ describe("AISearch", () => {
     price: 100000,
     expenses: null,
     showPrice: true,
+    showExpenses: true,
     credit: false,
     financing: false,
     outstanding: false,

@@ -1,6 +1,7 @@
 package pi.ms_properties.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -9,29 +10,38 @@ import java.util.Optional;
 @Service
 public class GeocodingNeighborhoodService {
 
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://nominatim.openstreetmap.org")
-            .defaultHeader("User-Agent", "mi-app-inmobiliaria")
-            .build();
+    private final WebClient webClient;
+    private final String googleMapsApiKey;
+
+    public GeocodingNeighborhoodService(WebClient.Builder webClientBuilder,
+                                        @Value("${google.maps.api-key}") String googleMapsApiKey) {
+        this.webClient = webClientBuilder
+                .baseUrl("https://maps.googleapis.com")
+                .build();
+        this.googleMapsApiKey = googleMapsApiKey;
+    }
 
     public Optional<Coordinates> getCoordinates(String neighborhoodName, String city) {
-        String query = neighborhoodName + ", " + city + ", Argentina";
+        String address = neighborhoodName + ", " + city + ", Argentina";
 
         JsonNode json = webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/search")
-                        .queryParam("q", query)
-                        .queryParam("format", "json")
-                        .queryParam("limit", "1")
+                        .path("/maps/api/geocode/json")
+                        .queryParam("address", address)
+                        .queryParam("key", googleMapsApiKey)
                         .build())
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
 
-        if (json != null && json.isArray() && !json.isEmpty()) {
-            JsonNode first = json.get(0);
-            double lat = first.get("lat").asDouble();
-            double lon = first.get("lon").asDouble();
+        JsonNode results = json != null ? json.get("results") : null;
+        if (results != null && results.isArray() && !results.isEmpty()) {
+            JsonNode location = results.get(0).path("geometry").path("location");
+            if (!location.has("lat") || !location.has("lng")) {
+                return Optional.empty();
+            }
+            double lat = location.get("lat").asDouble();
+            double lon = location.get("lng").asDouble();
             return Optional.of(new Coordinates(lat, lon));
         }
 

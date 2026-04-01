@@ -14,6 +14,7 @@ export interface SearchParams {
   neighborhoods: string[];
   neighborhoodTypes: string[];
   currency: string;
+  status?: string;
   credit?: boolean;
   financing?: boolean;
 }

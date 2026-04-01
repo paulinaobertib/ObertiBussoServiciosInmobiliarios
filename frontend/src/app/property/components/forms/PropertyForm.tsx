@@ -55,7 +55,7 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
   /* Alias para mayor legibilidad */
   const { form, fieldErrors, num, showRooms, showBedrooms, showBathrooms, showCoveredArea, colSize } = ctrl;
   const toggleBooleanField = useCallback(
-    (field: "credit" | "financing" | "showPrice" | "outstanding") => {
+    (field: "credit" | "financing" | "showPrice" | "showExpenses" | "outstanding") => {
       ctrl.setField(field, !form[field]);
     },
     [form, ctrl]
@@ -270,8 +270,8 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
           />
         </Grid>
 
-        {/* ---------- MOSTRAR PRECIO ---------- */}
-        <Grid size={{ xs: 8 }}>
+        {/* ---------- MOSTRAR PRECIO / EXPENSAS ---------- */}
+        <Grid size={{ xs: 6 }}>
           <Stack
             direction="row"
             alignItems="center"
@@ -292,13 +292,38 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
               onClick={(e) => e.stopPropagation()}
             />
             <Typography noWrap color="text.secondary">
-              Mostrar precio de {form.operation === "VENTA" ? "venta" : "alquiler"} y expensas
+              Mostrar precio de {form.operation === "VENTA" ? "venta" : "alquiler"}
+            </Typography>
+          </Stack>
+        </Grid>
+        <Grid size={{ xs: 3 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            px={1}
+            py={0.5}
+            role="checkbox"
+            aria-checked={form.showExpenses}
+            tabIndex={0}
+            onClick={() => toggleBooleanField("showExpenses")}
+            onKeyDown={(event) => handleToggleKey(event, () => toggleBooleanField("showExpenses"))}
+            sx={{ border: "1px solid #ccc", borderRadius: 2, cursor: "pointer", "&:hover": { borderColor: "#444" } }}
+          >
+            <Checkbox
+              checked={form.showExpenses}
+              onChange={(e) => ctrl.setField("showExpenses", e.target.checked)}
+              size="small"
+              sx={{ p: 0.7 }}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Typography noWrap color="text.secondary">
+              Mostrar expensas
             </Typography>
           </Stack>
         </Grid>
 
         {/* ---------- MOSTRAR COMO PROPIEDAD DESTACADA ---------- */}
-        <Grid size={{ xs: 4 }}>
+        <Grid size={{ xs: 3 }}>
           <Stack
             direction="row"
             alignItems="center"

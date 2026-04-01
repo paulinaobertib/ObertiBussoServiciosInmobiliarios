@@ -10,6 +10,9 @@ import { SearchFilters } from "../../../components/catalog/SearchFilters";
 vi.mock("../../../hooks/useSearchFilters", () => ({
   useSearchFilters: vi.fn(),
 }));
+vi.mock("../../../../user/context/AuthContext", () => ({
+  useAuthContext: vi.fn(),
+}));
 
 // Mock de useMediaQuery (desktop=false por defecto)
 vi.mock("@mui/material", async (importOriginal) => {
@@ -22,6 +25,7 @@ vi.mock("@mui/material", async (importOriginal) => {
 
 const { useSearchFilters } = await import("../../../hooks/useSearchFilters");
 const { useMediaQuery } = await import("@mui/material");
+const { useAuthContext } = await import("../../../../user/context/AuthContext");
 
 const theme = createTheme();
 function renderWithTheme(ui: React.ReactElement) {
@@ -39,11 +43,13 @@ describe("<SearchFilters />", () => {
       types: [] as string[],
       rooms: [] as number[],
       currency: "",
+      status: "",
       priceRange: [0, 0] as [number, number],
       areaRange: [0, 0] as [number, number],
       coveredRange: [0, 0] as [number, number],
       cities: [] as string[],
       neighborhoods: [] as string[],
+      neighborhoodTypes: [] as string[],
     },
     dynLimits: {
       price: {
@@ -77,6 +83,7 @@ describe("<SearchFilters />", () => {
     vi.clearAllMocks();
     (useSearchFilters as any).mockReturnValue({ ...baseHook });
     (useMediaQuery as any).mockReturnValue(false); // desktop por defecto
+    (useAuthContext as any).mockReturnValue({ isAdmin: false });
   });
 
   it("renderiza panel fijo en desktop y todos los acordeones básicos", () => {
@@ -174,7 +181,7 @@ describe("<SearchFilters />", () => {
     expect(toggleParam).toHaveBeenCalledWith("rooms", 3);
   });
 
-  it("ejecuta filtros solo al presionar 'Buscar propiedades'", () => {
+  it("ejecuta filtros solo al presionar 'Filtrar'", () => {
     const apply = vi.fn();
     (useSearchFilters as any).mockReturnValue({
       ...baseHook,
@@ -189,6 +196,17 @@ describe("<SearchFilters />", () => {
 
     fireEvent.click(screen.getByTestId("filters-search-button"));
     expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it("muestra filtro Estado solo para admin", () => {
+    (useAuthContext as any).mockReturnValueOnce({ isAdmin: false });
+    const view = renderWithTheme(<SearchFilters onSearch={onSearch} />);
+    expect(screen.queryByRole("button", { name: /Estado/i })).toBeNull();
+    view.unmount();
+
+    (useAuthContext as any).mockReturnValueOnce({ isAdmin: true });
+    renderWithTheme(<SearchFilters onSearch={onSearch} />);
+    expect(screen.getByRole("button", { name: /Estado/i })).toBeInTheDocument();
   });
 
   it("amenities: marca/ desmarca llamando toggleAmenity", () => {

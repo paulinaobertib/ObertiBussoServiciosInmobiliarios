@@ -23,6 +23,7 @@ import pi.ms_properties.repository.feign.NotificationRepository;
 import pi.ms_properties.service.interf.IImageService;
 import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.service.interf.IViewService;
+import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.specification.PropertySpecification;
 
 import java.math.BigDecimal;
@@ -108,6 +109,7 @@ public class PropertyService implements IPropertyService {
         response.setPrice(property.getPrice());
         response.setShowPrice(property.getShowPrice());
         response.setExpenses(property.getExpenses());
+        response.setShowExpenses(property.getShowExpenses());
         response.setCredit(property.getCredit());
         response.setFinancing(property.getFinancing());
         response.setOutstanding(property.getOutstanding());
@@ -221,6 +223,9 @@ public class PropertyService implements IPropertyService {
         }
 
         updated.setImages(current.getImages());
+        updated.setInquiries(current.getInquiries());
+        updated.setComments(current.getComments());
+        updated.setMaintenances(current.getMaintenances());
         propertyRepository.save(updated);
 
         return ResponseEntity.ok(toDTO(updated));
@@ -303,7 +308,10 @@ public class PropertyService implements IPropertyService {
             List<Float> rooms, String operation, List<String> types,
             List<String> amenities, List<String> cities, List<String> neighborhoods, List<String> neighborhoodTypes,
             Boolean credit, Boolean financing,
-            Currency currency) {
+            Currency currency, Status status) {
+        if (status != null && !SecurityUtils.isAdmin()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los administradores puede filtrar por estado.");
+        }
 
         Specification<Property> spec = Specification
                 .where(PropertySpecification.hasPriceFrom(priceFrom))
@@ -321,7 +329,8 @@ public class PropertyService implements IPropertyService {
                 .and(PropertySpecification.hasNeighborhoodType(neighborhoodTypes))
                 .and(PropertySpecification.hasCredit(credit))
                 .and(PropertySpecification.hasFinancing(financing))
-                .and(PropertySpecification.hasCurrency(currency));
+                .and(PropertySpecification.hasCurrency(currency))
+                .and(PropertySpecification.hasStatus(status));
 
         List<Property> properties = propertyRepository.findAll(spec);
 

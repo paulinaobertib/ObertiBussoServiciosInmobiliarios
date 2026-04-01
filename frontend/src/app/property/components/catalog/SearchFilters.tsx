@@ -27,6 +27,7 @@ import { useSearchFilters } from "../../hooks/useSearchFilters";
 import type { Property } from "../../types/property";
 import { formatAmount } from "../../../shared/utils/numberFormat";
 import { useBackButtonClose } from "../../../shared/hooks/useBackButtonClose";
+import { useAuthContext } from "../../../user/context/AuthContext";
 
 interface Props {
   onSearch(results: Property[]): void;
@@ -68,9 +69,19 @@ const scrollableDetailsSx = {
   pr: 1,
 };
 
+const STATUS_OPTIONS = [
+  { value: "DISPONIBLE", label: "Disponible" },
+  { value: "VENDIDA", label: "Vendida" },
+  { value: "ALQUILADA", label: "Alquilada" },
+  { value: "RESERVADA", label: "Reservada" },
+  { value: "ESPERA", label: "En espera" },
+  { value: "INACTIVA", label: "Inactiva" },
+] as const;
+
 export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMobileTrigger }: Props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { isAdmin } = useAuthContext();
 
   const [internalOpen, setInternalOpen] = useState(false);
   const open = typeof mobileOpen === "boolean" ? mobileOpen : internalOpen;
@@ -198,6 +209,31 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           )}
         </AccordionDetails>
       </Accordion>
+
+      {/* ───────── Estado (solo admin) ───────── */}
+      {isAdmin && (
+        <Accordion disableGutters expanded={expanded === "estado"} onChange={toggleAcc("estado")} sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="body2">Estado</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={scrollableDetailsSx}>
+            {STATUS_OPTIONS.map((statusOption) => (
+              <FormControlLabel
+                key={statusOption.value}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={params.status === statusOption.value}
+                    onChange={() => toggleParam("status", statusOption.value)}
+                  />
+                }
+                label={statusOption.label}
+                sx={checkSx}
+              />
+            ))}
+          </AccordionDetails>
+        </Accordion>
+      )}
 
       {/* ───────── Tipo ───────── */}
       <Accordion disableGutters expanded={expanded === "tipo"} onChange={toggleAcc("tipo")} sx={accordionSx}>

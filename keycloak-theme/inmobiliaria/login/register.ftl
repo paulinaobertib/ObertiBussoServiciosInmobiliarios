@@ -85,31 +85,11 @@
                 id="password"
                 name="password"
                 placeholder="Contraseña"
-                minlength="8"
-                title="Mínimo 8 caracteres"
                 required
               />
               <button type="button" class="toggle-password" onclick="togglePassword(this)">
                 <span class="material-icons">visibility</span>
               </button>
-            </div>
-            <div class="password-requirements" id="passwordRequirements">
-              <div class="req-item" data-rule="length">
-                <span class="material-icons req-icon">radio_button_unchecked</span>
-                <span>Mínimo 8 caracteres</span>
-              </div>
-              <div class="req-item" data-rule="special">
-                <span class="material-icons req-icon">radio_button_unchecked</span>
-                <span>Mínimo un caracter especial</span>
-              </div>
-              <div class="req-item" data-rule="uppercase">
-                <span class="material-icons req-icon">radio_button_unchecked</span>
-                <span>Mínimo una mayúscula</span>
-              </div>
-              <div class="req-item" data-rule="number">
-                <span class="material-icons req-icon">radio_button_unchecked</span>
-                <span>Mínimo un número</span>
-              </div>
             </div>
           </div>
 
@@ -218,14 +198,8 @@
         usernameCharset: 'El nombre de usuario solo puede contener letras (a-z, A-Z), números (0-9), guiones (-) y guiones bajos (_).',
         usernameStartsWithNumber: 'El nombre de usuario no puede empezar con un número.',
         passwordRequired: 'Por favor ingresa una contraseña.',
-        passwordMinLength: 'La contraseña debe tener al menos 8 caracteres.',
-        passwordMaxLength: 'La contraseña no puede tener más de 64 caracteres.',
-        passwordUppercase: 'La contraseña debe incluir al menos una letra MAYÚSCULA (A-Z).',
-        passwordLowercase: 'La contraseña debe incluir al menos una letra minúscula (a-z).',
-        passwordNumber: 'La contraseña debe incluir al menos un número (0-9).',
         passwordContainsUsername: 'La contraseña no puede contener tu nombre de usuario.',
         passwordContainsEmail: 'La contraseña no puede contener tu dirección de email.',
-        passwordSpecialCharRecommendation: 'Recomendación: Es más seguro incluir al menos un carácter especial en tu contraseña.',
         passwordConfirmRequired: 'Por favor confirma tu contraseña.',
         passwordsDoNotMatch: 'Las contraseñas no coinciden. Por favor verifícalas e intenta nuevamente.',
         acceptTerms: 'Debes aceptar los Términos y Condiciones para registrarte.'
@@ -343,39 +317,6 @@
         input.type = 'password';
         btn.querySelector('.material-icons').innerText = 'visibility';
       }
-    }
-
-    // Feedback visual de reglas de contraseña (largo, especial, mayúscula, número)
-    function meetsPasswordRules(value) {
-      return (
-        value.length >= 8 &&
-        /[!@#$%^&*(),.?":{}|<>]/.test(value) &&
-        /[A-Z]/.test(value) &&
-        /\d/.test(value)
-      );
-    }
-
-    function updatePasswordRequirements(value) {
-      const rules = {
-        length: value.length >= 8,
-        special: /[!@#$%^&*(),.?\":{}|<>]/.test(value),
-        uppercase: /[A-Z]/.test(value),
-        number: /\d/.test(value),
-      };
-      const container = document.getElementById('passwordRequirements');
-      if (!container) return;
-      Object.entries(rules).forEach(([key, ok]) => {
-        const row = container.querySelector('[data-rule=\"' + key + '\"]');
-        if (!row) return;
-        const icon = row.querySelector('.req-icon');
-        if (ok) {
-          row.classList.add('ok');
-          if (icon) icon.textContent = 'check_circle';
-        } else {
-          row.classList.remove('ok');
-          if (icon) icon.textContent = 'radio_button_unchecked';
-        }
-      });
     }
 
     // Validación completa del formulario de registro
@@ -525,44 +466,6 @@
         return false;
       }
 
-      if (password.length < 8) {
-        showToast(I18N.validation.passwordMinLength, { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
-
-      if (password.length > 64) {
-        showToast(I18N.validation.passwordMaxLength, { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
-
-      // Validar que incluya mayúsculas
-      if (!/[A-Z]/.test(password)) {
-        showToast(I18N.validation.passwordUppercase, { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
-
-      // Validar que incluya minúsculas
-      if (!/[a-z]/.test(password)) {
-        showToast(I18N.validation.passwordLowercase, { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
-
-      // Validar que incluya números
-      if (!/\d/.test(password)) {
-        showToast(I18N.validation.passwordNumber, { type: 'error' });
-        passwordInput.style.borderColor = '#ff6b6b';
-        passwordInput.focus();
-        return false;
-      }
-
       // Validar que no contenga el usuario o email
       if (password.toLowerCase().includes(username.toLowerCase())) {
         showToast(I18N.validation.passwordContainsUsername, { type: 'error' });
@@ -576,11 +479,6 @@
         passwordInput.style.borderColor = '#ff6b6b';
         passwordInput.focus();
         return false;
-      }
-
-      // Validar caracteres especiales (recomendación, no bloqueante)
-      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-        showToast(I18N.validation.passwordSpecialCharRecommendation, { type: 'info', duration: 5000 });
       }
 
       // Validar confirmación de contraseña
@@ -661,26 +559,17 @@
       // Validación en tiempo real: mostrar feedback visual
       const passwordInput = document.getElementById('password');
       const passwordConfirmInput = document.getElementById('password-confirm');
-      const passwordReqBox = document.getElementById('passwordRequirements');
       const matchHint = document.getElementById('passwordMatchHint');
-      updatePasswordRequirements(passwordInput.value);
       passwordInput.addEventListener('input', (ev) => {
         const sanitized = ev.target.value.replace(/\s+/g, '');
         if (sanitized !== ev.target.value) {
           ev.target.value = sanitized;
         }
-        updatePasswordRequirements(ev.target.value);
         if (passwordConfirmInput.value && matchHint) {
-          if (!meetsPasswordRules(ev.target.value)) {
-            matchHint.textContent = 'Las contraseñas no cumplen con las especificaciones';
-            matchHint.classList.add('error');
-            matchHint.classList.remove('ok');
-          } else {
-            const ok = ev.target.value === passwordConfirmInput.value;
-            matchHint.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
-            matchHint.classList.toggle('ok', ok);
-            matchHint.classList.toggle('error', !ok);
-          }
+          const ok = ev.target.value === passwordConfirmInput.value;
+          matchHint.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
+          matchHint.classList.toggle('ok', ok);
+          matchHint.classList.toggle('error', !ok);
         }
       });
       const preventSpace = (ev) => {
@@ -697,27 +586,15 @@
         }
         if (matchHint) {
           if (ev.target.value && passwordInput.value) {
-            if (!meetsPasswordRules(passwordInput.value)) {
-              matchHint.textContent = 'Las contraseñas no cumplen con las especificaciones';
-              matchHint.classList.add('error');
-              matchHint.classList.remove('ok');
-            } else {
-              const ok = ev.target.value === passwordInput.value;
-              matchHint.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
-              matchHint.classList.toggle('ok', ok);
-              matchHint.classList.toggle('error', !ok);
-            }
+            const ok = ev.target.value === passwordInput.value;
+            matchHint.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
+            matchHint.classList.toggle('ok', ok);
+            matchHint.classList.toggle('error', !ok);
           } else {
             matchHint.textContent = '';
             matchHint.classList.remove('ok', 'error');
           }
         }
-      });
-      passwordInput.addEventListener('focus', () => {
-        if (passwordReqBox) passwordReqBox.classList.add('active');
-      });
-      passwordInput.addEventListener('blur', () => {
-        if (passwordReqBox) passwordReqBox.classList.remove('active');
       });
 
       passwordConfirmInput.addEventListener('blur', () => {
