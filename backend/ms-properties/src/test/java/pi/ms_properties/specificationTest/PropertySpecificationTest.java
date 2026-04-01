@@ -81,6 +81,7 @@ class PropertySpecificationTest {
         property.setPrice(BigDecimal.valueOf(150000.0));
         property.setShowPrice(true);
         property.setExpenses(BigDecimal.valueOf(2000));
+        property.setShowExpenses(true);
         property.setDescription("Casa con pileta en el centro de Córdoba");
         property.setDate(LocalDateTime.now());
         property.setStatus(Status.DISPONIBLE);
