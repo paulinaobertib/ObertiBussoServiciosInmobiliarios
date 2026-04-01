@@ -127,6 +127,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${INTEGRATION_DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${INTEGRATION_DB_PASSWORD}
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://auth.localtest.me:8080/realms/obertibussoserviciosinmobiliarios-integration/protocol/openid-connect/certs
+      GOOGLE_MAPS_API_KEY: dummy-key
     ports:
       - "8083:8083"
     depends_on:
