@@ -29,8 +29,3 @@ management:
     health:
       probes:
         enabled: true
-
-logging:
-  level:
-    com.netflix.discovery: DEBUG
-    org.springframework.cloud.netflix.eureka: DEBUG
