@@ -208,6 +208,7 @@ jobs:
               "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
               "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
               "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" \
               "ML_API_URL=https://${{ env.ML_HOSTNAME_PROD }}" \
               "URL_IA=${{ secrets.URL_IA }}" \
               "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
