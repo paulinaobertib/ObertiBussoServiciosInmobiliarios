@@ -50,7 +50,7 @@ ml:
     url: ${ML_API_URL}
 google:
   maps:
-    api-key: ${GOOGLE_MAPS_API_KEY}
+    api-key: ${GOOGLE_MAPS_API_KEY:}
 logging:
   level:
     root: INFO

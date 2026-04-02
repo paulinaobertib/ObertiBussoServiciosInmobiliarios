@@ -63,7 +63,7 @@ ml:  # Cambiar a Variable de Entorno
 
 google:
   maps:
-    api-key: ${GOOGLE_MAPS_API_KEY}
+    api-key: ${GOOGLE_MAPS_API_KEY:}
 
 comparer:
   endpoint: ${URL_IA}
