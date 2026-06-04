@@ -116,11 +116,20 @@ jobs:
 
       - name: Enable Always On
         run: |
-          az webapp config set \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_DEV }} \
-            --always-on true \
-            || echo "::warning::No se pudo activar Always On (plan sin soporte)"
+          ok=false
+          for i in 1 2 3 4 5; do
+            if az webapp config set \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_DEV }} \
+              --always-on true; then
+              ok=true; break
+            fi
+            echo "Intento $i: error de Azure (probable 'Conflict' transitorio mientras aplica el deploy). Reintento en 20s..."
+            sleep 20
+          done
+          if [ "$ok" != "true" ]; then
+            echo "::warning::No se pudo activar Always On tras 5 intentos"
+          fi
 
   deploy-prod:
     name: Deploy to Production
@@ -205,8 +214,17 @@ jobs:
 
       - name: Enable Always On
         run: |
-          az webapp config set \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --always-on true \
-            || echo "::warning::No se pudo activar Always On (plan sin soporte)"
+          ok=false
+          for i in 1 2 3 4 5; do
+            if az webapp config set \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --name ${{ env.APP_NAME_PROD }} \
+              --always-on true; then
+              ok=true; break
+            fi
+            echo "Intento $i: error de Azure (probable 'Conflict' transitorio mientras aplica el deploy). Reintento en 20s..."
+            sleep 20
+          done
+          if [ "$ok" != "true" ]; then
+            echo "::warning::No se pudo activar Always On tras 5 intentos"
+          fi
