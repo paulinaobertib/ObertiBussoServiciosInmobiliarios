@@ -344,4 +344,21 @@ class PropertyControllerTest {
         assertEquals(404, response.getStatusCode().value());
         verify(propertyService, never()).getSimpleById(5L);
     }
+
+    // ---------- PDF solo admin ----------
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void downloadPdf_admin_ok() throws Exception {
+        when(wasiPdfService.pdfForProperty(1L)).thenReturn(ResponseEntity.ok().build());
+        mockMvc.perform(get("/property/pdf/{id}", 1L))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void downloadPdf_nonAdmin_forbidden() throws Exception {
+        mockMvc.perform(get("/property/pdf/{id}", 1L))
+                .andExpect(status().isForbidden());
+    }
 }

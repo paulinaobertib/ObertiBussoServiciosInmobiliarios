@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.MultiValueMap;
+import pi.ms_properties.domain.Amenity;
 import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Image;
 import pi.ms_properties.domain.Operation;
@@ -236,6 +237,25 @@ class WasiMapperTest {
     }
 
     @Test
+    void fromWasiProperty_mapsFeaturesToAmenities() {
+        JsonNode n = node("{\"id_property\":\"9\",\"features\":{"
+                + "\"internal\":[{\"id\":116,\"nombre\":\"Agua\",\"name\":\"\"},"
+                + "{\"id\":85,\"nombre\":\"Cocina equipada\",\"name\":\"\"}],"
+                + "\"external\":[{\"id\":30,\"nombre\":\"Patio\",\"name\":\"\"}]}}");
+        List<Amenity> ams = new ArrayList<>(mapper().fromWasiProperty(n, false).getAmenities());
+        List<String> names = ams.stream().map(Amenity::getName).toList();
+        assertEquals(3, ams.size());
+        assertTrue(names.contains("Agua"));
+        assertTrue(names.contains("Cocina equipada"));
+        assertTrue(names.contains("Patio"));
+    }
+
+    @Test
+    void fromWasiProperty_noFeatures_emptyAmenities() {
+        assertTrue(mapper().fromWasiProperty(node("{\"id_property\":\"10\"}"), false).getAmenities().isEmpty());
+    }
+
+    @Test
     void fromWasiProperty_mainImagePrefersOriginalThenBig() {
         assertEquals("o", mapper().fromWasiProperty(
                 node("{\"id_property\":\"7\",\"main_image\":{\"url\":\"u\",\"url_big\":\"b\",\"url_original\":\"o\"}}"),
@@ -243,6 +263,31 @@ class WasiMapperTest {
         assertEquals("b", mapper().fromWasiProperty(
                 node("{\"id_property\":\"8\",\"main_image\":{\"url\":\"u\",\"url_big\":\"b\"}}"),
                 false).getMainImage());
+    }
+
+    @Test
+    void sourceOf_alliedWithCompanyName_includesName() {
+        assertEquals("Aliada - GRUPO A INMOBILIARIA", mapper().sourceOf(
+                node("{\"owner\":\"allied\",\"company\":{\"name\":\"GRUPO A INMOBILIARIA\"}}")));
+    }
+
+    @Test
+    void sourceOf_alliedWithoutName_fallsBackToAliada() {
+        assertEquals("Aliada", mapper().sourceOf(node("{\"owner\":\"allied\"}")));
+        assertEquals("Aliada", mapper().sourceOf(node("{\"owner\":\"allied\",\"company\":{\"name\":\"\"}}")));
+    }
+
+    @Test
+    void sourceOf_ownOrMissing_isPropia() {
+        assertEquals("propia", mapper().sourceOf(node("{\"owner\":\"own\"}")));
+        assertEquals("propia", mapper().sourceOf(node("{}")));
+    }
+
+    @Test
+    void fromWasiProperty_adminSetsSourceWithAlliedName() {
+        PropertyDTO dto = mapper().fromWasiProperty(
+                node("{\"id_property\":\"11\",\"owner\":\"allied\",\"company\":{\"name\":\"Grupo X\"}}"), true);
+        assertEquals("Aliada - Grupo X", dto.getSource());
     }
 
     @Test

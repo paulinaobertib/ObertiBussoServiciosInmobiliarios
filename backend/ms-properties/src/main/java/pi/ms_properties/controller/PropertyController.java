@@ -155,6 +155,7 @@ public class PropertyController {
         return resp;
     }
 
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/pdf/{id}")
     public ResponseEntity<?> downloadPdf(@PathVariable Long id) {
         if (id != null && id >= WasiMapper.SYNTHETIC_ID_BASE) {

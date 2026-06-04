@@ -588,6 +588,33 @@ public class PropertyMergeService {
                 : "La propiedad se ocultó de la página (el admin la sigue viendo).");
     }
 
+    /**
+     * Opciones del filtro de origen: "propia" + cada inmobiliaria aliada distinta ("Aliada - &lt;nombre&gt;"),
+     * derivadas de la lista de Wasi cacheada. Así el filtro permite elegir una aliada puntual.
+     */
+    public List<String> originOptions() {
+        List<String> out = new ArrayList<>();
+        out.add("propia");
+        if (!wasiApiProperties.isConfigured()) {
+            return out;
+        }
+        Set<String> allied = new HashSet<>();
+        try {
+            for (JsonNode n : wasiPropertyListCache.getOrLoadAll()) {
+                String src = wasiMapper.sourceOf(n);
+                if (src != null && !"propia".equalsIgnoreCase(src)) {
+                    allied.add(src);
+                }
+            }
+        } catch (Exception ignored) {
+            // ante un fallo, devolvemos al menos "propia"
+        }
+        List<String> sorted = new ArrayList<>(allied);
+        sorted.sort(String.CASE_INSENSITIVE_ORDER);
+        out.addAll(sorted);
+        return out;
+    }
+
     public PropertySimpleDTO toSimpleFromWasi(PropertyDTO p) {
         PropertySimpleDTO s = new PropertySimpleDTO();
         s.setId(p.getId());

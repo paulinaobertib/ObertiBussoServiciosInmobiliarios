@@ -186,15 +186,16 @@ const PropertyDetailsPage = () => {
               sx={{ mr: "auto" }}
             />
           )}
-          <Button variant="outlined" onClick={handlePdf}>
-            Descargar PDF
-          </Button>
           {!isAdmin ? (
             <Button variant="contained" onClick={() => setInquiryOpen(true)}>
               Consultar por esta propiedad
             </Button>
           ) : (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Button variant="outlined" onClick={handlePdf}>
+                Descargar PDF
+              </Button>
+
               <Button
                 variant="contained"
                 onClick={() => navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))}

@@ -1,6 +1,5 @@
 package pi.ms_properties.wasi;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.lowagie.text.Document;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
@@ -33,21 +32,11 @@ public class WasiPdfService {
         if (!wasiApiProperties.isConfigured()) {
             return ResponseEntity.notFound().build();
         }
-        try {
-            JsonNode r = wasiApiClient.makePdf(wasiPropertyId);
-            if (WasiJsonUtil.isSuccess(r)) {
-                String url = r.path("url").asText("");
-                if (url.isBlank() && r.has("data")) {
-                    url = r.path("data").path("url").asText("");
-                }
-                if (!url.isBlank()) {
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(Map.of("url", url));
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Wasi PDF by id failed: {}", e.getMessage());
+        String url = httpsUrl(wasiApiClient.makePdfUrl(wasiPropertyId));
+        if (url != null && !url.isBlank()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("url", url));
         }
         return ResponseEntity.notFound().build();
     }
@@ -55,21 +44,11 @@ public class WasiPdfService {
     public ResponseEntity<?> pdfForProperty(Long propertyId) {
         var syncOpt = syncRepository.findByProperty_Id(propertyId);
         if (syncOpt.isPresent() && wasiApiProperties.isConfigured()) {
-            try {
-                JsonNode r = wasiApiClient.makePdf(syncOpt.get().getWasiPropertyId());
-                if (WasiJsonUtil.isSuccess(r)) {
-                    String url = r.path("url").asText("");
-                    if (url.isBlank() && r.has("data")) {
-                        url = r.path("data").path("url").asText("");
-                    }
-                    if (!url.isBlank()) {
-                        return ResponseEntity.ok()
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .body(Map.of("url", url));
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Wasi PDF failed: {}", e.getMessage());
+            String url = httpsUrl(wasiApiClient.makePdfUrl(syncOpt.get().getWasiPropertyId()));
+            if (url != null && !url.isBlank()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("url", url));
             }
         }
         Property p = propertyRepository.findById(propertyId).orElse(null);
@@ -108,5 +87,13 @@ public class WasiPdfService {
 
     private static String nullSafe(String s) {
         return s == null ? "" : s;
+    }
+
+    /** Wasi devuelve el Location del PDF como http://; se fuerza a https para evitar mixed-content. */
+    private static String httpsUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        return url.startsWith("http://") ? "https://" + url.substring("http://".length()) : url;
     }
 }

@@ -358,19 +358,29 @@ public class WasiMapper {
         t.setHasCoveredArea(true);
         dto.setType(t);
 
-        dto.setAmenities(new HashSet<>());
+        dto.setAmenities(extractAmenities(n));
         dto.setImages(extractGalleryImages(n));
 
         if (adminFields) {
             dto.setWasiId(wasiId);
-            String owner = text(n, "owner");
-            if ("allied".equalsIgnoreCase(owner)) {
-                dto.setSource("Aliada");
-            } else {
-                dto.setSource("propia");
-            }
+            dto.setSource(sourceOf(n));
         }
         return dto;
+    }
+
+    /**
+     * Origen de una propiedad de Wasi: "propia" si es de la inmobiliaria, o "Aliada - &lt;nombre&gt;"
+     * si es de una inmobiliaria aliada (Wasi trae owner="allied" y el nombre en company.name).
+     * Se usa tanto para el DTO como para armar las opciones del filtro de origen.
+     */
+    public String sourceOf(JsonNode n) {
+        String owner = text(n, "owner");
+        if (!"allied".equalsIgnoreCase(owner)) {
+            return "propia";
+        }
+        JsonNode company = n.get("company");
+        String name = company != null ? company.path("name").asText("").trim() : "";
+        return name.isEmpty() ? "Aliada" : "Aliada - " + name;
     }
 
     private static String extractMainImageUrl(JsonNode n) {
@@ -418,6 +428,41 @@ public class WasiMapper {
             img.setId((long) im.path("id").asInt(0));
             img.setUrl(url);
             result.add(img);
+        }
+        return result;
+    }
+
+    /**
+     * Características de la propiedad de Wasi -> amenities {id, name}, para que se muestren igual que
+     * las locales. Wasi las trae en features.internal[] (de la propiedad) y features.external[] (del
+     * entorno), cada una {id, nombre, name(""), own}; el label está en 'nombre' (name viene vacío).
+     */
+    private static Set<Amenity> extractAmenities(JsonNode n) {
+        Set<Amenity> result = new LinkedHashSet<>();
+        JsonNode features = n.get("features");
+        if (features == null || !features.isObject()) {
+            return result;
+        }
+        for (String group : new String[]{"internal", "external"}) {
+            JsonNode arr = features.get(group);
+            if (arr == null) {
+                continue;
+            }
+            // arr puede venir como array JSON o como objeto con claves numéricas; iterar JsonNode
+            // recorre los valores en ambos casos.
+            for (JsonNode it : arr) {
+                String name = it.path("nombre").asText("");
+                if (name.isEmpty()) {
+                    name = it.path("name").asText("");
+                }
+                if (name.isEmpty()) {
+                    continue;
+                }
+                Amenity a = new Amenity();
+                a.setId((long) it.path("id").asInt(0));
+                a.setName(name);
+                result.add(a);
+            }
         }
         return result;
     }

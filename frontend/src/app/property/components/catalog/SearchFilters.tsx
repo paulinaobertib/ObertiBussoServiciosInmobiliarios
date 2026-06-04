@@ -357,15 +357,11 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
               onChange={(e) => setParams({ ...params, source: e.target.value })}
             >
               <MenuItem value="">Todas</MenuItem>
-              <MenuItem value="propia">Propias</MenuItem>
-              <MenuItem value="Aliada">Aliada</MenuItem>
-              {wasiCompanies
-                .filter((c) => c !== "propia")
-                .map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
-                  </MenuItem>
-                ))}
+              {wasiCompanies.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c === "propia" ? "Propias" : c}
+                </MenuItem>
+              ))}
             </TextField>
           </AccordionDetails>
         </Accordion>

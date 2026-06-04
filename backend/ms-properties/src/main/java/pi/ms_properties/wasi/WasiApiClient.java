@@ -162,6 +162,35 @@ public class WasiApiClient {
         return get("/property/make-pdf/" + wasiPropertyId, Map.of());
     }
 
+    /**
+     * Devuelve la URL del PDF de una propiedad. El endpoint /property/make-pdf de Wasi responde con
+     * un 302 cuya cabecera Location es la URL firmada del PDF (no JSON), así que capturamos ese
+     * Location sin seguir el redirect. Algunas cuentas pueden devolver JSON {url}; se contempla también.
+     * Devuelve null si no se puede obtener.
+     */
+    public String makePdfUrl(int wasiPropertyId) {
+        ensureConfigured();
+        URI uri = uriWithCreds("/property/make-pdf/" + wasiPropertyId, Map.of());
+        try {
+            return wasiWebClient.get()
+                    .uri(uri)
+                    .exchangeToMono(resp -> {
+                        if (resp.statusCode().is3xxRedirection()) {
+                            String loc = resp.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION);
+                            return reactor.core.publisher.Mono.justOrEmpty(loc);
+                        }
+                        return resp.bodyToMono(JsonNode.class).map(j -> {
+                            String u = j.path("url").asText("");
+                            return u.isEmpty() ? j.path("data").path("url").asText("") : u;
+                        });
+                    })
+                    .block();
+        } catch (Exception e) {
+            log.error("Wasi make-pdf URL {} failed: {}", wasiPropertyId, e.getMessage());
+            return null;
+        }
+    }
+
     public JsonNode companyDetails() {
         return get("/company/details/", Map.of());
     }

@@ -31,6 +31,7 @@ public class WasiController {
     private final IWasiLocationMappingRepository locationMappingRepository;
     private final INeighborhoodRepository neighborhoodRepository;
     private final WasiPropertySyncService wasiPropertySyncService;
+    private final pi.ms_properties.service.impl.PropertyMergeService propertyMergeService;
 
     @GetMapping("/portals")
     @PreAuthorize("hasRole('admin')")
@@ -54,10 +55,7 @@ public class WasiController {
     @GetMapping("/companies")
     @PreAuthorize("hasRole('admin')")
     public ResponseEntity<List<String>> companies() {
-        List<String> names = new ArrayList<>();
-        names.add("propia");
-        names.add("Aliada");
-        return ResponseEntity.ok(names);
+        return ResponseEntity.ok(propertyMergeService.originOptions());
     }
 
     @GetMapping("/sync-status/{propertyId}")
