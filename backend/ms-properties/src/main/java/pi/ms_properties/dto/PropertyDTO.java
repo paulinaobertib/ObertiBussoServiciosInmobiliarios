@@ -47,6 +47,8 @@ public class PropertyDTO {
     private String rentsType;
     private String currency;
     private Boolean networkShare;
+    /** Si la propiedad se muestra al público. Solo se setea en respuestas de admin (default visible). */
+    private Boolean visible;
     /** Admin-only: "propia" or allied company label */
     private String source;
     private Integer wasiId;

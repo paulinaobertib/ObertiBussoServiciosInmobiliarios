@@ -216,6 +216,22 @@ describe("propertyService", () => {
     expect(result).toEqual({ success: true });
   });
 
+  it("putPropertyVisibility muestra/oculta la propiedad", async () => {
+    (api.put as any).mockResolvedValue({ data: { success: true } });
+
+    const result = await propertyService.putPropertyVisibility(1, false);
+    expect(api.put).toHaveBeenCalledWith("/properties/property/visibility/1", null, {
+      params: { visible: false },
+      withCredentials: true,
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("lanza error si api.put falla en putPropertyVisibility", async () => {
+    (api.put as any).mockRejectedValue(new Error("Visibility failed"));
+    await expect(propertyService.putPropertyVisibility(1, true)).rejects.toThrow("Visibility failed");
+  });
+
   // --- Tests de errores ---
   it("lanza error si api.post falla en postProperty", async () => {
     (api.post as any).mockRejectedValue(new Error("Post failed"));

@@ -8,7 +8,8 @@ vi.mock("../../../../utils/googleMapsLoader", () => {
     setCenter: vi.fn(),
     setZoom: vi.fn(),
   }));
-  const mockCircle = vi.fn(() => ({
+  const mockMarker = vi.fn(() => ({
+    setPosition: vi.fn(),
     setMap: vi.fn(),
   }));
 
@@ -16,7 +17,7 @@ vi.mock("../../../../utils/googleMapsLoader", () => {
     loadGoogleMapsSdk: vi.fn().mockResolvedValue({
       maps: {
         Map: mockMap,
-        Circle: mockCircle,
+        Marker: mockMarker,
       },
     }),
   };

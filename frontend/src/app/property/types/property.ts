@@ -45,6 +45,8 @@ export interface Property {
   source?: string;
   wasiId?: number;
   wasiPortals?: string[];
+  /** Admin-only from API: si la propiedad se muestra al público (default true) */
+  visible?: boolean;
   /** Admin form: Wasi publish */
   publishToWasi?: boolean;
   wasiPortalIds?: number[];

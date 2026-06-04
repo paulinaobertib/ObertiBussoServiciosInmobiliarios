@@ -6,14 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import pi.ms_properties.domain.Currency;
+import pi.ms_properties.domain.HiddenProperty;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.Status;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.domain.WasiPropertySync;
+import pi.ms_properties.repository.IHiddenPropertyRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.IWasiPropertySyncRepository;
 import pi.ms_properties.security.SecurityUtils;
@@ -23,6 +26,7 @@ import pi.ms_properties.wasi.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +42,7 @@ public class PropertyMergeService {
 
     private final IPropertyRepository propertyRepository;
     private final IWasiPropertySyncRepository syncRepository;
+    private final IHiddenPropertyRepository hiddenPropertyRepository;
     private final WasiMapper wasiMapper;
     private final WasiApiProperties wasiApiProperties;
     private final WasiPropertyListCache wasiPropertyListCache;
@@ -52,6 +57,7 @@ public class PropertyMergeService {
                 .collect(Collectors.toCollection(ArrayList::new));
         locals.addAll(fetchWasiDtosExcludingLinked(admin, n -> true));
         locals = applySourceFilter(locals, null, admin);
+        locals = applyVisibility(locals, admin);
         if (!admin) {
             locals.forEach(this::stripAdmin);
         }
@@ -66,6 +72,7 @@ public class PropertyMergeService {
                 .collect(Collectors.toCollection(ArrayList::new));
         locals.addAll(fetchWasiDtosExcludingLinked(admin, this::isWasiAvailable));
         locals = applySourceFilter(locals, null, admin);
+        locals = applyVisibility(locals, admin);
         if (!admin) {
             locals.forEach(this::stripAdmin);
         }
@@ -113,9 +120,11 @@ public class PropertyMergeService {
 
         locals.addAll(fetchWasiDtosExcludingLinked(admin,
                 n -> matchesWasiSearch(n, priceFrom, priceTo, areaFrom, areaTo, coveredAreaFrom, coveredAreaTo,
-                        rooms, operation, types, currency, status, garagesMin, condition, forTransfer)));
+                        rooms, operation, types, amenities, cities, neighborhoods, neighborhoodTypes,
+                        credit, financing, currency, status, garagesMin, condition, forTransfer)));
 
         locals = applySourceFilter(locals, source, admin);
+        locals = applyVisibility(locals, admin);
         if (!admin) {
             locals.forEach(this::stripAdmin);
         }
@@ -140,6 +149,7 @@ public class PropertyMergeService {
         }));
 
         locals = applySourceFilter(locals, null, admin);
+        locals = applyVisibility(locals, admin);
         if (!admin) {
             locals.forEach(this::stripAdmin);
         }
@@ -250,6 +260,8 @@ public class PropertyMergeService {
             float areaFrom, float areaTo,
             float coveredAreaFrom, float coveredAreaTo,
             List<Float> rooms, String operation, List<String> types,
+            List<String> amenities, List<String> cities, List<String> neighborhoods, List<String> neighborhoodTypes,
+            Boolean credit, Boolean financing,
             Currency currency, Status status,
             Integer garagesMin, String condition, Boolean forTransfer) {
         BigDecimal price = priceFrom.compareTo(BigDecimal.ZERO) > 0 || priceTo.compareTo(BigDecimal.ZERO) > 0
@@ -340,15 +352,93 @@ public class PropertyMergeService {
             }
         }
         if (types != null && !types.isEmpty()) {
-            String label = text(n, "property_type_label").toLowerCase(Locale.ROOT);
-            if (!label.isEmpty()) {
-                boolean match = types.stream().anyMatch(t -> label.contains(t.toLowerCase(Locale.ROOT)));
-                if (!match) {
-                    return false;
+            // Wasi NO devuelve un label de tipo en /property/search, solo el id numérico
+            // (id_property_type). Se compara contra el id que mapea cada nombre pedido.
+            int wid = wasiIntField(n, "id_property_type", -1);
+            boolean match = types.stream()
+                    .map(wasiMapper::typeIdFor)
+                    .anyMatch(id -> id > 0 && id == wid);
+            if (!match) {
+                return false;
+            }
+        }
+        if (cities != null && !cities.isEmpty()) {
+            String city = text(n, "city_label").toLowerCase(Locale.ROOT);
+            boolean match = !city.isEmpty() && cities.stream()
+                    .filter(c -> c != null && !c.isBlank())
+                    .map(c -> c.toLowerCase(Locale.ROOT))
+                    .anyMatch(c -> city.contains(c) || c.contains(city));
+            if (!match) {
+                return false;
+            }
+        }
+        if (neighborhoods != null && !neighborhoods.isEmpty()) {
+            // Wasi no tiene "barrio" como tal: se aproxima con zone/location/city.
+            String hay = (text(n, "zone_label") + " " + text(n, "location_label") + " " + text(n, "city_label"))
+                    .toLowerCase(Locale.ROOT);
+            boolean match = neighborhoods.stream()
+                    .anyMatch(b -> b != null && !b.isBlank() && hay.contains(b.toLowerCase(Locale.ROOT)));
+            if (!match) {
+                return false;
+            }
+        }
+        if (amenities != null && !amenities.isEmpty()) {
+            Set<String> feats = wasiFeatureNames(n);
+            boolean match = !feats.isEmpty() && amenities.stream()
+                    .filter(a -> a != null && !a.isBlank())
+                    .map(a -> a.toLowerCase(Locale.ROOT))
+                    .anyMatch(a -> feats.stream().anyMatch(f -> f.contains(a)));
+            if (!match) {
+                return false;
+            }
+        }
+        // Datos que Wasi no expone en /property/search: si el usuario filtra explícitamente por
+        // crédito/financiación o por tipo de barrio, las de Wasi no se pueden verificar -> se excluyen.
+        // (credit/financing == false sí matchea: una propiedad de Wasi no tiene crédito/financiación).
+        if (Boolean.TRUE.equals(credit) || Boolean.TRUE.equals(financing)) {
+            return false;
+        }
+        if (neighborhoodTypes != null && !neighborhoodTypes.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    /** Nombres de las características (features.internal/external) de una propiedad de Wasi, en minúscula. */
+    private static Set<String> wasiFeatureNames(JsonNode n) {
+        Set<String> out = new HashSet<>();
+        JsonNode features = n.get("features");
+        if (features == null) {
+            return out;
+        }
+        for (String group : new String[]{"internal", "external"}) {
+            for (JsonNode it : asNodeList(features.get(group))) {
+                String name = it.path("nombre").asText("");
+                if (name.isEmpty()) {
+                    name = it.path("name").asText("");
+                }
+                if (!name.isEmpty()) {
+                    out.add(name.toLowerCase(Locale.ROOT));
                 }
             }
         }
-        return true;
+        return out;
+    }
+
+    /** Normaliza un nodo de Wasi que puede venir como array JSON o como objeto con claves numéricas. */
+    private static List<JsonNode> asNodeList(JsonNode node) {
+        if (node == null) {
+            return List.of();
+        }
+        if (node.isArray()) {
+            List<JsonNode> out = new ArrayList<>();
+            node.forEach(out::add);
+            return out;
+        }
+        if (node.isObject()) {
+            return WasiJsonUtil.indexedItems(node);
+        }
+        return List.of();
     }
 
     private BigDecimal resolveWasiPrice(JsonNode n) {
@@ -456,6 +546,46 @@ public class PropertyMergeService {
         return list.stream()
                 .filter(d -> source.equalsIgnoreCase(d.getSource()))
                 .toList();
+    }
+
+    /**
+     * Visibilidad pública (toggle de admin). Funciona igual para locales y Wasi porque la clave es
+     * el id público del DTO (sintético para Wasi). Para no-admin: filtra las ocultas. Para admin:
+     * las deja todas y marca el flag {@code visible} para que el toggle refleje el estado.
+     */
+    private List<PropertyDTO> applyVisibility(List<PropertyDTO> list, boolean admin) {
+        Set<Long> hidden = hiddenPropertyRepository.findAllHiddenIds();
+        if (admin) {
+            list.forEach(d -> d.setVisible(d.getId() == null || !hidden.contains(d.getId())));
+            return list;
+        }
+        if (hidden.isEmpty()) {
+            return list;
+        }
+        return list.stream()
+                .filter(d -> d.getId() == null || !hidden.contains(d.getId()))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /** True si la propiedad (local o Wasi, por id público) está oculta para el público. */
+    public boolean isHidden(Long id) {
+        return id != null && hiddenPropertyRepository.existsById(id);
+    }
+
+    /** Marca/desmarca una propiedad como visible para el público. Idempotente. Solo admin (controller). */
+    public ResponseEntity<String> setVisibility(Long id, boolean visible) {
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Se requiere el id de la propiedad.");
+        }
+        boolean currentlyHidden = hiddenPropertyRepository.existsById(id);
+        if (visible && currentlyHidden) {
+            hiddenPropertyRepository.deleteById(id);
+        } else if (!visible && !currentlyHidden) {
+            hiddenPropertyRepository.save(new HiddenProperty(id));
+        }
+        return ResponseEntity.ok(visible
+                ? "La propiedad se muestra en la página."
+                : "La propiedad se ocultó de la página (el admin la sigue viendo).");
     }
 
     public PropertySimpleDTO toSimpleFromWasi(PropertyDTO p) {

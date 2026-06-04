@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.HtmlUtils;
 import pi.ms_properties.domain.*;
 import pi.ms_properties.dto.NeighborhoodDTO;
 import pi.ms_properties.dto.PropertyDTO;
@@ -14,8 +15,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -162,8 +167,18 @@ public class WasiMapper {
      * defecto configurable y se loguea un WARN para detectar tipos sin mapear.
      */
     private int guessWasiPropertyTypeId(String typeName) {
+        int id = matchWasiPropertyTypeId(typeName);
+        return id > 0 ? id : defaultPropertyTypeId(typeName == null ? "(vacío)" : typeName);
+    }
+
+    /**
+     * Núcleo del heurístico nombre -> id_property_type por palabras clave (sin aplicar el default).
+     * Devuelve -1 cuando ningún nombre matchea, para distinguir un match real (p. ej. "Casa" -> 1)
+     * de un fallback al default (que justo también es 1).
+     */
+    private static int matchWasiPropertyTypeId(String typeName) {
         if (typeName == null || typeName.isBlank()) {
-            return defaultPropertyTypeId("(vacío)");
+            return -1;
         }
         String n = typeName.toLowerCase();
         // Campo / quinta / chacra ANTES que "casa" para no capturar "casa de campo" como Casa.
@@ -230,7 +245,7 @@ public class WasiMapper {
         if (n.contains("casa")) {
             return 1; // House
         }
-        return defaultPropertyTypeId(typeName);
+        return -1;
     }
 
     private int defaultPropertyTypeId(String typeName) {
@@ -238,6 +253,38 @@ public class WasiMapper {
         log.warn("Wasi: tipo de propiedad '{}' sin mapeo a id_property_type; se usa el default {}. "
                 + "Revisar guessWasiPropertyTypeId o la tabla de tipos de Wasi.", typeName, def);
         return def;
+    }
+
+    /**
+     * Expone el mapeo nombre-de-tipo-local -> id_property_type de Wasi para que el filtro de tipo
+     * pueda comparar el nombre pedido (p. ej. "Casa") contra el id numérico que Wasi sí devuelve
+     * en cada propiedad (id_property_type). Devuelve -1 si el nombre no matchea ningún tipo de Wasi
+     * (sin tocar el default configurable, que es para el alta y no para el filtro).
+     */
+    public int typeIdFor(String typeName) {
+        return matchWasiPropertyTypeId(typeName);
+    }
+
+    /**
+     * Tabla inversa id_property_type -> nombre legible (Wasi no devuelve un label de tipo en
+     * /property/search, solo el id). Se usa para mostrar el tipo real en vez de un genérico "Wasi".
+     * Ver https://api.wasi.co/docs/en/guide/fields/property-types.html
+     */
+    private static final Map<Integer, String> WASI_TYPE_NAMES = Map.ofEntries(
+            Map.entry(1, "Casa"), Map.entry(2, "Departamento"), Map.entry(3, "Local"),
+            Map.entry(4, "Oficina"), Map.entry(5, "Terreno"), Map.entry(6, "Terreno comercial"),
+            Map.entry(7, "Finca"), Map.entry(8, "Galpón"), Map.entry(10, "Chalet"),
+            Map.entry(11, "Casa de campo"), Map.entry(12, "Hotel"), Map.entry(13, "Hotel"),
+            Map.entry(14, "Monoambiente"), Map.entry(15, "Consultorio"), Map.entry(16, "Edificio"),
+            Map.entry(17, "Terreno de playa"), Map.entry(18, "Hostel"), Map.entry(19, "Condominio"),
+            Map.entry(20, "Dúplex"), Map.entry(21, "Penthouse"), Map.entry(22, "Bungalow"),
+            Map.entry(23, "Granero"), Map.entry(24, "Casa de playa"), Map.entry(25, "Piso"),
+            Map.entry(26, "Cochera"), Map.entry(27, "Cortijo"), Map.entry(28, "Cabaña"),
+            Map.entry(29, "Isla"), Map.entry(30, "Nave industrial"), Map.entry(31, "Campo"),
+            Map.entry(32, "Lote"));
+
+    private static String wasiTypeName(int id) {
+        return WASI_TYPE_NAMES.getOrDefault(id, "Propiedad");
     }
 
     private static String nullSafe(String s) {
@@ -269,7 +316,7 @@ public class WasiMapper {
         dto.setCredit(false);
         dto.setFinancing(false);
         dto.setOutstanding("3".equals(text(n, "id_status_on_page")));
-        dto.setDescription(text(n, "observations"));
+        dto.setDescription(cleanHtml(text(n, "observations")));
         dto.setVideo(text(n, "video"));
         dto.setZipCode(text(n, "zip_code"));
         dto.setDate(parseWasiDate(n.path("created_at").asText(null)));
@@ -304,7 +351,7 @@ public class WasiMapper {
 
         Type t = new Type();
         t.setId(0L);
-        t.setName("Wasi");
+        t.setName(wasiTypeName(n.path("id_property_type").asInt(0)));
         t.setHasRooms(true);
         t.setHasBathrooms(true);
         t.setHasBedrooms(true);
@@ -312,7 +359,7 @@ public class WasiMapper {
         dto.setType(t);
 
         dto.setAmenities(new HashSet<>());
-        dto.setImages(new HashSet<>());
+        dto.setImages(extractGalleryImages(n));
 
         if (adminFields) {
             dto.setWasiId(wasiId);
@@ -328,14 +375,65 @@ public class WasiMapper {
 
     private static String extractMainImageUrl(JsonNode n) {
         JsonNode mi = n.get("main_image");
-        if (mi != null && mi.isObject()) {
-            String u = mi.path("url_big").asText("");
-            if (!u.isEmpty()) {
-                return u;
-            }
-            return mi.path("url").asText("");
+        return (mi != null && mi.isObject()) ? bestImageUrl(mi) : "";
+    }
+
+    /**
+     * Wasi sirve url/url_big como transformaciones con fit=contain + fondo blanco (padding) embebido.
+     * url_original es la imagen real sin relleno -> se prefiere para que no aparezca el borde blanco.
+     */
+    private static String bestImageUrl(JsonNode img) {
+        if (img == null) {
+            return "";
         }
-        return "";
+        String orig = img.path("url_original").asText("");
+        if (!orig.isEmpty()) {
+            return orig;
+        }
+        String big = img.path("url_big").asText("");
+        if (!big.isEmpty()) {
+            return big;
+        }
+        return img.path("url").asText("");
+    }
+
+    /**
+     * Galería completa de la propiedad de Wasi. galleries es una lista; galleries[0] es un objeto
+     * con claves numéricas "0".."N" (cada una una imagen). Se ordenan por position y se usa url_original.
+     */
+    private static Set<Image> extractGalleryImages(JsonNode n) {
+        Set<Image> result = new LinkedHashSet<>();
+        JsonNode galleries = n.get("galleries");
+        if (galleries == null || !galleries.isArray() || galleries.isEmpty()) {
+            return result;
+        }
+        List<JsonNode> imgs = new ArrayList<>(WasiJsonUtil.indexedItems(galleries.get(0)));
+        imgs.sort(Comparator.comparingInt(im -> im.path("position").asInt(0)));
+        for (JsonNode im : imgs) {
+            String url = bestImageUrl(im);
+            if (url.isEmpty()) {
+                continue;
+            }
+            Image img = new Image();
+            img.setId((long) im.path("id").asInt(0));
+            img.setUrl(url);
+            result.add(img);
+        }
+        return result;
+    }
+
+    /** Limpia el HTML que Wasi manda en 'observations' y lo deja como texto plano (como las locales). */
+    private static String cleanHtml(String html) {
+        if (html == null || html.isBlank()) {
+            return "";
+        }
+        String s = html
+                .replaceAll("(?i)<\\s*br\\s*/?>", "\n")
+                .replaceAll("(?i)</\\s*(p|div|li)\\s*>", "\n")
+                .replaceAll("<[^>]+>", "");
+        s = HtmlUtils.htmlUnescape(s);
+        s = s.replaceAll("[ \\t]+\n", "\n").replaceAll("\n{3,}", "\n\n").trim();
+        return s;
     }
 
     private static LocalDateTime parseWasiDate(String s) {

@@ -15,7 +15,7 @@ import { useAuthContext } from "../../../user/context/AuthContext";
 import { ModalItem, Info } from "../categories/CategoryModal";
 import { StatusForm } from "../forms/StatusForm";
 // Importa tu servicio de actualización si lo tienes
-import { putPropertyOutstanding } from "../../services/property.service";
+import { putPropertyOutstanding, putPropertyVisibility } from "../../services/property.service";
 import { formatPropertyAddress } from "../../utils/propertyLocation";
 
 interface Props {
@@ -29,6 +29,7 @@ export const PropertyInfo = ({ property }: Props) => {
   const [statusModal, setStatusModal] = useState<Info | null>(null);
   const theme = useTheme();
   const [outstanding, setOutstanding] = useState<boolean>(property.outstanding ?? false);
+  const [visible, setVisible] = useState<boolean>(property.visible ?? true);
 
   const handleToggleOutstanding = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.checked;
@@ -37,6 +38,16 @@ export const PropertyInfo = ({ property }: Props) => {
       setOutstanding(newValue);
     } catch (error) {
       console.error("Error al actualizar outstanding:", error);
+    }
+  };
+
+  const handleToggleVisibility = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.checked;
+    try {
+      await putPropertyVisibility(property.id, newValue);
+      setVisible(newValue);
+    } catch (error) {
+      console.error("Error al actualizar visibilidad:", error);
     }
   };
 
@@ -171,6 +182,21 @@ export const PropertyInfo = ({ property }: Props) => {
                   aria-label="Destacar propiedad"
                   checked={outstanding}
                   onChange={handleToggleOutstanding}
+                  size="small"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              }
+            />
+            <Chip
+              label={visible ? "Visible en la página" : "Oculta al público"}
+              variant="filled"
+              color={visible ? "default" : "warning"}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
+              icon={
+                <Switch
+                  aria-label="Mostrar propiedad en la página"
+                  checked={visible}
+                  onChange={handleToggleVisibility}
                   size="small"
                   onClick={(e) => e.stopPropagation()}
                 />

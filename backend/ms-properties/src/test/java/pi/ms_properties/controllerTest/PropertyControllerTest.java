@@ -300,4 +300,48 @@ class PropertyControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
     }
+
+    // ---------- visibilidad (mostrar/ocultar al público) ----------
+
+    @Test
+    @WithMockUser(roles = "admin")
+    void testUpdatePropertyVisibility() throws Exception {
+        when(propertyMergeService.setVisibility(1L, false))
+                .thenReturn(ResponseEntity.ok("La propiedad se ocultó de la página (el admin la sigue viendo)."));
+
+        mockMvc.perform(put("/property/visibility/{id}", 1L)
+                        .param("visible", "false")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("La propiedad se ocultó de la página (el admin la sigue viendo)."));
+    }
+
+    @Test
+    @WithMockUser(roles = "user")
+    void testUpdatePropertyVisibility_forbidden() throws Exception {
+        mockMvc.perform(put("/property/visibility/{id}", 1L)
+                        .param("visible", "false")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getById_hiddenProperty_returnsNotFound_forNonAdmin() {
+        when(propertyMergeService.isHidden(5L)).thenReturn(true);
+
+        ResponseEntity<PropertyDTO> response = propertyController.getById(5L);
+
+        assertEquals(404, response.getStatusCode().value());
+        verify(propertyService, never()).getById(5L);
+    }
+
+    @Test
+    void getSimpleById_hiddenProperty_returnsNotFound_forNonAdmin() {
+        when(propertyMergeService.isHidden(5L)).thenReturn(true);
+
+        ResponseEntity<PropertySimpleDTO> response = propertyController.getSimpleById(5L);
+
+        assertEquals(404, response.getStatusCode().value());
+        verify(propertyService, never()).getSimpleById(5L);
+    }
 }

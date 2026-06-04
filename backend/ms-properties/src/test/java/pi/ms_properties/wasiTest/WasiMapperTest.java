@@ -1,19 +1,24 @@
 package pi.ms_properties.wasiTest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.MultiValueMap;
 import pi.ms_properties.domain.Currency;
+import pi.ms_properties.domain.Image;
 import pi.ms_properties.domain.Operation;
 import pi.ms_properties.domain.Property;
 import pi.ms_properties.domain.RentsType;
 import pi.ms_properties.domain.Status;
 import pi.ms_properties.domain.Type;
 import pi.ms_properties.domain.WasiLocationMapping;
+import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.wasi.WasiApiProperties;
 import pi.ms_properties.wasi.WasiDefaultsProperties;
 import pi.ms_properties.wasi.WasiMapper;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -180,6 +185,75 @@ class WasiMapperTest {
     }
 
     // ---------- Advisory: configurable currency ids ----------
+
+    // ---------- fromWasiProperty: descripción, tipo, imágenes ----------
+
+    private static final ObjectMapper OM = new ObjectMapper();
+
+    private JsonNode node(String json) {
+        try {
+            return OM.readTree(json);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void fromWasiProperty_cleansHtmlDescriptionToPlainText() {
+        JsonNode n = node("{\"id_property\":\"123\",\"observations\":"
+                + "\"<p><span style=\\\"color:#000\\\">Hermosa casa &oacute;ptima de 100 m&sup2;<br/>"
+                + "con jard&iacute;n</span></p>\"}");
+        PropertyDTO dto = mapper().fromWasiProperty(n, false);
+        String d = dto.getDescription();
+        assertFalse(d.contains("<"), "no debe quedar HTML");
+        assertTrue(d.contains("óptima"), "&oacute; -> ó");
+        assertTrue(d.contains("m²"), "&sup2; -> ²");
+        assertTrue(d.contains("jardín"), "&iacute; -> í");
+        assertTrue(d.contains("\n"), "<br/> -> salto de línea");
+    }
+
+    @Test
+    void fromWasiProperty_typeNameFromIdPropertyType() {
+        assertEquals("Casa", mapper().fromWasiProperty(
+                node("{\"id_property\":\"1\",\"id_property_type\":1}"), false).getType().getName());
+        assertEquals("Lote", mapper().fromWasiProperty(
+                node("{\"id_property\":\"2\",\"id_property_type\":32}"), false).getType().getName());
+        // id desconocido -> nombre genérico, nunca "Wasi"
+        assertEquals("Propiedad", mapper().fromWasiProperty(
+                node("{\"id_property\":\"3\",\"id_property_type\":999}"), false).getType().getName());
+    }
+
+    @Test
+    void fromWasiProperty_galleryUsesOriginalUrlAndOrdersByPosition() {
+        JsonNode n = node("{\"id_property\":\"5\",\"galleries\":[{"
+                + "\"0\":{\"id\":11,\"position\":2,\"url\":\"u2\",\"url_big\":\"b2\",\"url_original\":\"o2\"},"
+                + "\"1\":{\"id\":10,\"position\":1,\"url\":\"u1\",\"url_big\":\"b1\",\"url_original\":\"o1\"}"
+                + "}]}");
+        List<Image> imgs = new ArrayList<>(mapper().fromWasiProperty(n, false).getImages());
+        assertEquals(2, imgs.size());
+        assertEquals("o1", imgs.get(0).getUrl()); // position 1 primero
+        assertEquals("o2", imgs.get(1).getUrl());
+    }
+
+    @Test
+    void fromWasiProperty_mainImagePrefersOriginalThenBig() {
+        assertEquals("o", mapper().fromWasiProperty(
+                node("{\"id_property\":\"7\",\"main_image\":{\"url\":\"u\",\"url_big\":\"b\",\"url_original\":\"o\"}}"),
+                false).getMainImage());
+        assertEquals("b", mapper().fromWasiProperty(
+                node("{\"id_property\":\"8\",\"main_image\":{\"url\":\"u\",\"url_big\":\"b\"}}"),
+                false).getMainImage());
+    }
+
+    @Test
+    void typeIdFor_publicMapping_returnsMinusOneWhenUnknown() {
+        WasiMapper m = mapper();
+        assertEquals(1, m.typeIdFor("Casa"));
+        assertEquals(32, m.typeIdFor("Lote"));
+        assertEquals(2, m.typeIdFor("Departamento"));
+        assertEquals(-1, m.typeIdFor("Tipo inexistente XYZ"));
+        assertEquals(-1, m.typeIdFor(null));
+    }
 
     @Test
     void currency_isConfigurable() {

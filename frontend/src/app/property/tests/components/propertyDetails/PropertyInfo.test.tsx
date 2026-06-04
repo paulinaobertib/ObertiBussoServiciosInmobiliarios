@@ -18,6 +18,7 @@ vi.mock("../../../utils/propertyLocation", () => ({
 }));
 
 const mockPutPropertyOutstanding = vi.fn(() => Promise.resolve());
+const mockPutPropertyVisibility = vi.fn(() => Promise.resolve());
 
 vi.mock("../../../../user/context/AuthContext", () => ({
   useAuthContext: vi.fn(() => ({ isAdmin: true })),
@@ -26,6 +27,8 @@ vi.mock("../../../../user/context/AuthContext", () => ({
 vi.mock("../../../services/property.service", () => ({
   putPropertyOutstanding: (...args: Parameters<typeof mockPutPropertyOutstanding>) =>
     mockPutPropertyOutstanding(...args),
+  putPropertyVisibility: (...args: Parameters<typeof mockPutPropertyVisibility>) =>
+    mockPutPropertyVisibility(...args),
 }));
 
 vi.mock("../../../components/categories/CategoryModal", () => ({
@@ -131,6 +134,25 @@ describe("PropertyInfo", () => {
     const editBtn = screen.getByRole("button", { name: /editar estado/i });
     fireEvent.click(editBtn);
     expect(screen.getByTestId("modal-item")).toHaveTextContent("Editar estado");
+  });
+
+  it("admin: oculta la propiedad al togglear 'Mostrar en la página'", () => {
+    (useAuthContext as unknown as Mock).mockReturnValue({ isAdmin: true });
+    render(<PropertyInfo property={baseProperty} />);
+    // Hay 2 switches: [0] Destacar, [1] Mostrar/ocultar. visible no viene -> default true (checked).
+    const switches = screen.getAllByRole("switch");
+    expect(switches).toHaveLength(2);
+    fireEvent.click(switches[1]);
+    expect(mockPutPropertyVisibility).toHaveBeenCalledWith(1, false);
+  });
+
+  it("admin: el toggle de visibilidad refleja visible=false (oculta) y al togglear la muestra", () => {
+    (useAuthContext as unknown as Mock).mockReturnValue({ isAdmin: true });
+    render(<PropertyInfo property={{ ...baseProperty, visible: false }} />);
+    expect(screen.getByText(/Oculta al público/i)).toBeInTheDocument();
+    const switches = screen.getAllByRole("switch");
+    fireEvent.click(switches[1]);
+    expect(mockPutPropertyVisibility).toHaveBeenCalledWith(1, true);
   });
 
   it("no renderiza controles de admin si isAdmin = false", () => {

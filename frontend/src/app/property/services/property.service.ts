@@ -155,3 +155,17 @@ export const putPropertyOutstanding = async (id: number, outstanding: boolean) =
     throw error;
   }
 };
+
+// Muestra/oculta la propiedad al público (solo admin). Sirve para locales y para las de Wasi.
+export const putPropertyVisibility = async (id: number, visible: boolean) => {
+  try {
+    const response = await api.put(`/properties/property/visibility/${id}`, null, {
+      params: { visible },
+      withCredentials: true,
+    });
+    return (response as any)?.data ?? response;
+  } catch (error) {
+    console.error("Error updating property visibility:", error);
+    throw error;
+  }
+};

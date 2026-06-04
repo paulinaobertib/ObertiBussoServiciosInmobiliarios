@@ -68,6 +68,14 @@ public class PropertyController {
     public ResponseEntity<String> updatePropertyOutstanding(@PathVariable Long id, @RequestParam Boolean outstanding) {
         return propertyService.updateOutstanding(id, outstanding);
     }
+
+    // Muestra/oculta la propiedad al público sin afectar Wasi ni su estado. Sirve para locales y para
+    // las de Wasi (id sintético >= SYNTHETIC_ID_BASE): solo guarda el id en hidden_property.
+    @PreAuthorize("hasRole('admin')")
+    @PutMapping("/visibility/{id}")
+    public ResponseEntity<String> updatePropertyVisibility(@PathVariable Long id, @RequestParam boolean visible) {
+        return propertyMergeService.setVisibility(id, visible);
+    }
     
     @GetMapping("/getAll")
     public ResponseEntity<List<PropertyDTO>> getAll() {
@@ -86,14 +94,25 @@ public class PropertyController {
 
     @GetMapping("/getById/{id}")
     public ResponseEntity<PropertyDTO> getById(@PathVariable Long id) {
+        boolean admin = SecurityUtils.isAdmin();
+        if (!admin && propertyMergeService.isHidden(id)) {
+            return ResponseEntity.notFound().build();
+        }
         if (id != null && id >= WasiMapper.SYNTHETIC_ID_BASE) {
-            PropertyDTO d = propertyMergeService.fetchWasiSynthetic(id, SecurityUtils.isAdmin());
+            PropertyDTO d = propertyMergeService.fetchWasiSynthetic(id, admin);
             if (d == null) {
                 return ResponseEntity.notFound().build();
             }
+            if (admin) {
+                d.setVisible(!propertyMergeService.isHidden(id));
+            }
             return ResponseEntity.ok(d);
         }
-        return propertyService.getById(id);
+        ResponseEntity<PropertyDTO> resp = propertyService.getById(id);
+        if (admin && resp.getBody() != null) {
+            resp.getBody().setVisible(!propertyMergeService.isHidden(id));
+        }
+        return resp;
     }
 
     @PreAuthorize("hasRole('admin')")
@@ -114,14 +133,26 @@ public class PropertyController {
 
     @GetMapping("/getSimple/{id}")
     public ResponseEntity<PropertySimpleDTO> getSimpleById(@PathVariable Long id) {
+        boolean admin = SecurityUtils.isAdmin();
+        if (!admin && propertyMergeService.isHidden(id)) {
+            return ResponseEntity.notFound().build();
+        }
         if (id != null && id >= WasiMapper.SYNTHETIC_ID_BASE) {
-            PropertyDTO d = propertyMergeService.fetchWasiSynthetic(id, SecurityUtils.isAdmin());
+            PropertyDTO d = propertyMergeService.fetchWasiSynthetic(id, admin);
             if (d == null) {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(propertyMergeService.toSimpleFromWasi(d));
+            PropertySimpleDTO s = propertyMergeService.toSimpleFromWasi(d);
+            if (admin) {
+                s.setVisible(!propertyMergeService.isHidden(id));
+            }
+            return ResponseEntity.ok(s);
         }
-        return propertyService.getSimpleById(id);
+        ResponseEntity<PropertySimpleDTO> resp = propertyService.getSimpleById(id);
+        if (admin && resp.getBody() != null) {
+            resp.getBody().setVisible(!propertyMergeService.isHidden(id));
+        }
+        return resp;
     }
 
     @GetMapping("/pdf/{id}")

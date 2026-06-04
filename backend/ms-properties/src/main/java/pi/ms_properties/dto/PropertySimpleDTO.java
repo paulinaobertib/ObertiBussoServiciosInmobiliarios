@@ -22,6 +22,8 @@ public class PropertySimpleDTO {
     private String currency;
     private String neighborhood;
     private String type;
+    /** Si la propiedad se muestra al público. Solo se setea en respuestas de admin (default visible). */
+    private Boolean visible;
     /** Admin-only */
     private String source;
     private Integer wasiId;
