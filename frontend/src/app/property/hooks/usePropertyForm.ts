@@ -57,6 +57,17 @@ function makeSafeProperty(raw?: Partial<Property>): Property {
     showExpenses: raw?.showExpenses ?? false,
     outstanding: raw?.outstanding ?? false,
 
+    garages: raw?.garages ?? null,
+    floor: raw?.floor ?? null,
+    video: raw?.video ?? "",
+    zipCode: raw?.zipCode ?? "",
+    privateArea: raw?.privateArea ?? null,
+    propertyCondition: raw?.propertyCondition ?? "",
+    rentsType: raw?.rentsType ?? "",
+    networkShare: raw?.networkShare ?? false,
+    publishToWasi: raw?.publishToWasi ?? false,
+    wasiPortalIds: raw?.wasiPortalIds ?? [],
+
     street: raw?.street ?? "",
     number: raw?.number ?? "",
     latitude: raw?.latitude ?? null,
@@ -337,6 +348,7 @@ export const usePropertyForm = (
     const { owner, neighborhood, type, amenities, ...rest } = form;
     return {
       ...rest,
+      networkShare: rest.networkShare ?? false,
       number: form.number.trim() || "S/N", // Auto-populate "S/N" if empty
       ownerId: owner.id,
       neighborhoodId: neighborhood.id,
@@ -352,6 +364,7 @@ export const usePropertyForm = (
     return {
       id,
       ...rest,
+      networkShare: rest.networkShare ?? false,
       number: form.number.trim() || "S/N", // Auto-populate "S/N" if empty
       ownerId: owner.id,
       neighborhoodId: neighborhood.id,

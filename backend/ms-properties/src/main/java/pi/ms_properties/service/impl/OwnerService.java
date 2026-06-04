@@ -14,6 +14,7 @@ import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.feign.ContractRepository;
 import pi.ms_properties.service.interf.IOwnerService;
 import pi.ms_properties.specification.OwnerSpecification;
+import pi.ms_properties.wasi.WasiClientService;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class OwnerService implements IOwnerService {
     private final IPropertyRepository propertyRepository;
 
     private final ContractRepository contractRepository;
+
+    private final WasiClientService wasiClientService;
 
     private static ContractDTO getContractDTO(ContractDTO contract) {
         if (contract == null) return null;
@@ -61,6 +64,11 @@ public class OwnerService implements IOwnerService {
         } catch (DataIntegrityViolationException e) {
             throw new IllegalArgumentException("El email '" + owner.getEmail() + "' ya existe");
         }
+        try {
+            wasiClientService.syncOwnerToWasi(owner);
+        } catch (Exception ignored) {
+            // best-effort
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body("Se ha guardado el propietario: " + owner.getFirstName() + " " + owner.getLastName());
     }
 
@@ -79,6 +87,11 @@ public class OwnerService implements IOwnerService {
                 .orElseThrow(() -> new EntityNotFoundException("No existe el propietario con ID: " + owner.getId()));
 
         Owner updated = ownerRepository.save(owner);
+        try {
+            wasiClientService.syncOwnerToWasi(updated);
+        } catch (Exception ignored) {
+            // best-effort
+        }
         return ResponseEntity.ok(updated);
     }
 

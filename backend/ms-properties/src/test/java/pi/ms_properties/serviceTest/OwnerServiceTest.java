@@ -18,6 +18,7 @@ import pi.ms_properties.repository.IOwnerRepository;
 import pi.ms_properties.repository.IPropertyRepository;
 import pi.ms_properties.repository.feign.ContractRepository;
 import pi.ms_properties.service.impl.OwnerService;
+import pi.ms_properties.wasi.WasiClientService;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +41,9 @@ class OwnerServiceTest {
 
     @Mock
     private ContractRepository contractRepository;
+
+    @Mock
+    private WasiClientService wasiClientService;
 
     private Owner owner;
 

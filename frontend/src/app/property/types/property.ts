@@ -17,6 +17,14 @@ export interface Property {
   rooms: number;
   bathrooms: number;
   bedrooms: number;
+  garages?: number | null;
+  floor?: number | null;
+  video?: string | null;
+  zipCode?: string | null;
+  privateArea?: number | null;
+  propertyCondition?: string | null;
+  rentsType?: string | null;
+  networkShare?: boolean | null;
   area: number;
   coveredArea: number;
   price: number;
@@ -33,6 +41,13 @@ export interface Property {
   mainImage: File | string;
   images: File[];
   date: string;
+  /** Admin-only from API */
+  source?: string;
+  wasiId?: number;
+  wasiPortals?: string[];
+  /** Admin form: Wasi publish */
+  publishToWasi?: boolean;
+  wasiPortalIds?: number[];
 }
 
 export interface PropertyCreate {
@@ -63,6 +78,16 @@ export interface PropertyCreate {
   amenitiesIds: number[];
   mainImage: File | string;
   images: File[];
+  garages?: number | null;
+  floor?: number | null;
+  video?: string | null;
+  zipCode?: string | null;
+  privateArea?: number | null;
+  propertyCondition?: string | null;
+  rentsType?: string | null;
+  networkShare?: boolean;
+  publishToWasi?: boolean;
+  wasiPortalIds?: number[];
 }
 
 export interface PropertyUpdate {
@@ -93,6 +118,16 @@ export interface PropertyUpdate {
   typeId: number;
   amenitiesIds: number[];
   mainImage: File | string;
+  garages?: number | null;
+  floor?: number | null;
+  video?: string | null;
+  zipCode?: string | null;
+  privateArea?: number | null;
+  propertyCondition?: string | null;
+  rentsType?: string | null;
+  networkShare?: boolean;
+  publishToWasi?: boolean;
+  wasiPortalIds?: number[];
 }
 
 export interface PropertyDTOAI {
@@ -123,4 +158,21 @@ export interface PropertySimple {
   currency: string;
   neighborhood: string;
   type: string;
+  source?: string;
+  wasiId?: number;
+}
+
+export interface WasiPortal {
+  id: number;
+  name: string;
+  active?: boolean;
+}
+
+export interface WasiLocationMapping {
+  neighborhoodId: number;
+  wasiCountryId: number;
+  wasiRegionId: number;
+  wasiCityId: number;
+  wasiLocationId?: number;
+  wasiZoneId?: number;
 }

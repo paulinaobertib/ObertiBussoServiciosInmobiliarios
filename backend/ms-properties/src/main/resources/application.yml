@@ -71,6 +71,21 @@ comparer:
   deployment: ${DEPLOY_IA}
   apiVersion: ${VERSION_IA}
 
+wasi:
+  api:
+    base-url: https://api.wasi.co/v1
+    id-company: ${WASI_ID_COMPANY:}
+    token: ${WASI_TOKEN:}
+    default-user-id: ${WASI_DEFAULT_USER_ID:1}
+    cache-ttl-minutes: 5
+  defaults:
+    country-id: 5
+    region-id: 14
+    property-type-default-id: 1
+    client-type-owner: 5
+    currency-usd: 3
+    currency-ars: 2
+
 logging:
   level:
     root: INFO

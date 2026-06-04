@@ -60,4 +60,25 @@ public class AzureBlobStorage implements IAzureBlobStorage {
     public String getImageUrl(String imageName) {
         return STORAGE_BASE_URL + imageName;
     }
+
+    @Override
+    public byte[] readBytes(String blobName) {
+        if (blobName == null || blobName.isBlank()) {
+            return null;
+        }
+        String path = blobName;
+        if (path.contains("blob.core.windows.net")) {
+            int idx = path.lastIndexOf("/images/");
+            if (idx >= 0) {
+                path = path.substring(idx + "/images/".length());
+            } else {
+                path = path.substring(path.lastIndexOf('/') + 1);
+            }
+        }
+        BlobClient blobClient = blobContainerClient.getBlobClient(path);
+        if (!blobClient.exists()) {
+            return null;
+        }
+        return blobClient.downloadContent().toBytes();
+    }
 }

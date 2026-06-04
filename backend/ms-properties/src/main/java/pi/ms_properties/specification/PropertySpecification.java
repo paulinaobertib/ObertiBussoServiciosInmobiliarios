@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import pi.ms_properties.domain.Currency;
 import pi.ms_properties.domain.Property;
+import pi.ms_properties.domain.PropertyCondition;
 import pi.ms_properties.domain.Status;
 
 import java.math.BigDecimal;
@@ -208,6 +209,42 @@ public class PropertySpecification {
                 return criteriaBuilder.conjunction();
             }
             return criteriaBuilder.equal(root.get("status"), status);
+        };
+    }
+
+    public static Specification<Property> hasGaragesMin(Integer garagesMin) {
+        return (root, query, criteriaBuilder) -> {
+            if (garagesMin == null || garagesMin <= 0) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.greaterThanOrEqualTo(
+                    criteriaBuilder.coalesce(root.get("garages"), criteriaBuilder.literal(0)),
+                    garagesMin
+            );
+        };
+    }
+
+    /**
+     * @param condition "nueva", "usada", or enum name fragment (admin/catalog filter).
+     */
+    public static Specification<Property> hasPropertyConditionFilter(String condition) {
+        return (root, query, criteriaBuilder) -> {
+            if (condition == null || condition.isBlank()) {
+                return criteriaBuilder.conjunction();
+            }
+            String c = condition.toLowerCase().trim();
+            if (c.contains("nueva")) {
+                return criteriaBuilder.equal(root.get("propertyCondition"), PropertyCondition.NUEVA);
+            }
+            if (c.contains("usada")) {
+                return criteriaBuilder.equal(root.get("propertyCondition"), PropertyCondition.USADA);
+            }
+            try {
+                PropertyCondition pc = PropertyCondition.valueOf(condition.trim().toUpperCase());
+                return criteriaBuilder.equal(root.get("propertyCondition"), pc);
+            } catch (IllegalArgumentException e) {
+                return criteriaBuilder.conjunction();
+            }
         };
     }
 

@@ -1,6 +1,7 @@
 import { Property, PropertyUpdate, PropertyCreate } from "../types/property";
 import { SearchParams } from "../types/searchParams";
 import { api } from "../../../api";
+import { downloadPropertyPdf as downloadPropertyPdfFromWasi } from "./wasi.service";
 
 export const postProperty = async (data: PropertyCreate) => {
   const form = new FormData();
@@ -113,6 +114,8 @@ export const getPropertiesByFilters = async (params: SearchParams): Promise<Prop
     throw error;
   }
 };
+
+export const downloadPropertyPdf = downloadPropertyPdfFromWasi;
 
 export const getPropertiesByText = async (value: string) => {
   try {

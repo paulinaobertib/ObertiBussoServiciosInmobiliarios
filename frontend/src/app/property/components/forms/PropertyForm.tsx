@@ -1,10 +1,25 @@
 import { formatAmount } from "../../../shared/utils/numberFormat";
-import { Box, Grid, TextField, MenuItem, InputAdornment, IconButton, Typography, Checkbox, Stack } from "@mui/material";
+import {
+  Box,
+  Grid,
+  TextField,
+  MenuItem,
+  InputAdornment,
+  IconButton,
+  Typography,
+  Checkbox,
+  Stack,
+  Switch,
+  FormControlLabel,
+  FormGroup,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { ImageUploader } from "../../../shared/components/images/ImageUploader";
 import { usePropertyForm } from "../../hooks/usePropertyForm";
 import type { Property, PropertyCreate, PropertyUpdate } from "../../types/property";
-import React, { forwardRef, useEffect, useCallback } from "react";
+import React, { forwardRef, useEffect, useCallback, useState } from "react";
+import { useAuthContext } from "../../../user/context/AuthContext";
+import { getWasiPortals } from "../../services/wasi.service";
 
 /* ─────────── ref API ─────────── */
 export type PropertyFormHandle = {
@@ -54,12 +69,28 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
 
   /* Alias para mayor legibilidad */
   const { form, fieldErrors, num, showRooms, showBedrooms, showBathrooms, showCoveredArea, colSize } = ctrl;
+  const { isAdmin } = useAuthContext();
+  const [wasiPortals, setWasiPortals] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    getWasiPortals()
+      .then(setWasiPortals)
+      .catch(() => setWasiPortals([]));
+  }, [isAdmin]);
+
   const toggleBooleanField = useCallback(
     (field: "credit" | "financing" | "showPrice" | "showExpenses" | "outstanding") => {
       ctrl.setField(field, !form[field]);
     },
     [form, ctrl]
   );
+
+  const toggleWasiPortal = (id: number) => {
+    const cur = form.wasiPortalIds ?? [];
+    const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    ctrl.setField("wasiPortalIds", next);
+  };
 
   const handleToggleKey = (event: React.KeyboardEvent, action: () => void) => {
     if (event.key === " " || event.key === "Enter") {
@@ -428,6 +459,149 @@ export const PropertyForm = forwardRef<PropertyFormHandle, Props>(function Prope
               size="small"
             />
           </Grid>
+        )}
+
+        <Grid size={{ xs: 6 }}>
+          <TextField
+            fullWidth
+            label="Cocheras"
+            type="number"
+            value={form.garages ?? ""}
+            onChange={(e) =>
+              ctrl.setField("garages", e.target.value === "" ? null : Math.min(29, Math.max(0, parseInt(e.target.value, 10) || 0)))
+            }
+            inputProps={{ min: 0, max: 29 }}
+            size="small"
+          />
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <TextField
+            fullWidth
+            label="Piso / Niveles"
+            type="number"
+            value={form.floor ?? ""}
+            onChange={(e) =>
+              ctrl.setField("floor", e.target.value === "" ? null : Math.min(60, Math.max(1, parseInt(e.target.value, 10) || 1)))
+            }
+            inputProps={{ min: 1, max: 60 }}
+            size="small"
+          />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <TextField
+            fullWidth
+            label="Video (URL)"
+            value={form.video ?? ""}
+            onChange={(e) => ctrl.setField("video", e.target.value)}
+            size="small"
+            placeholder="https://youtube.com/..."
+          />
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <TextField
+            fullWidth
+            label="Código postal"
+            value={form.zipCode ?? ""}
+            onChange={(e) => ctrl.setField("zipCode", e.target.value)}
+            size="small"
+          />
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <TextField
+            fullWidth
+            label="Superficie privada (m²)"
+            value={form.privateArea == null || form.privateArea === 0 ? "" : formatAmount(form.privateArea)}
+            onChange={num("privateArea", { allowNull: true })}
+            size="small"
+          />
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <TextField
+            select
+            fullWidth
+            label="Condición"
+            value={form.propertyCondition ?? ""}
+            onChange={(e) => ctrl.setField("propertyCondition", e.target.value)}
+            size="small"
+          >
+            <MenuItem value="">—</MenuItem>
+            <MenuItem value="NUEVA">Nueva</MenuItem>
+            <MenuItem value="USADA">Usada</MenuItem>
+            <MenuItem value="EN_PROYECTO">En proyecto</MenuItem>
+            <MenuItem value="EN_CONSTRUCCION">En construcción</MenuItem>
+          </TextField>
+        </Grid>
+        {form.operation === "ALQUILER" && (
+          <Grid size={{ xs: 6 }}>
+            <TextField
+              select
+              fullWidth
+              label="Tipo de alquiler"
+              value={form.rentsType ?? ""}
+              onChange={(e) => ctrl.setField("rentsType", e.target.value)}
+              size="small"
+            >
+              <MenuItem value="">—</MenuItem>
+              <MenuItem value="DIARIO">Diario</MenuItem>
+              <MenuItem value="SEMANAL">Semanal</MenuItem>
+              <MenuItem value="QUINCENAL">Quincenal</MenuItem>
+              <MenuItem value="MENSUAL">Mensual</MenuItem>
+            </TextField>
+          </Grid>
+        )}
+        <Grid size={{ xs: 12 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={!!form.networkShare}
+                onChange={(e) => ctrl.setField("networkShare", e.target.checked)}
+              />
+            }
+            label="Compartir en red Wasi"
+          />
+        </Grid>
+
+        {isAdmin && (
+          <>
+            <Grid size={{ xs: 12 }}>
+              <Typography variant="subtitle2" color="primary">
+                Publicación Wasi (admin)
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={!!form.publishToWasi}
+                    onChange={(e) => ctrl.setField("publishToWasi", e.target.checked)}
+                  />
+                }
+                label="Publicar en Wasi al guardar"
+              />
+            </Grid>
+            {form.publishToWasi && (
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                  Portales (requiere mapeo de ubicación del barrio en Wasi)
+                </Typography>
+                <FormGroup row sx={{ flexWrap: "wrap", gap: 1 }}>
+                  {wasiPortals.map((p) => (
+                    <FormControlLabel
+                      key={p.id}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={(form.wasiPortalIds ?? []).includes(p.id)}
+                          onChange={() => toggleWasiPortal(p.id)}
+                        />
+                      }
+                      label={p.name || `Portal ${p.id}`}
+                    />
+                  ))}
+                </FormGroup>
+              </Grid>
+            )}
+          </>
         )}
 
         {/* ---------- IMÁGENES (usan API del Page) ---------- */}

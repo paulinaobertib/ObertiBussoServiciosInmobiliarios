@@ -17,11 +17,16 @@ import pi.ms_properties.comparer.dto.PropertyDTOAI;
 import pi.ms_properties.comparer.service.AzureOpenAIService;
 import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
+import pi.ms_properties.repository.IAmenityRepository;
+import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.repository.ITypeRepository;
+import pi.ms_properties.service.impl.PropertyMergeService;
 import pi.ms_properties.service.interf.IPropertyService;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +57,19 @@ class AzureOpenAIServiceTest {
     private IPropertyRepository propertyRepository;
 
     @Mock
+    private IAmenityRepository amenityRepository;
+
+    @Mock
+    private ITypeRepository typeRepository;
+
+    @Mock
+    private INeighborhoodRepository neighborhoodRepository;
+
+    @Mock
     private IPropertyService propertyService;
+
+    @Mock
+    private PropertyMergeService propertyMergeService;
 
     @InjectMocks
     private AzureOpenAIService service;
@@ -179,6 +196,20 @@ class AzureOpenAIServiceTest {
 
     @Test
     void shouldReturn500_whenIAThrowsError() {
+        Map<String, Object> candidate = new HashMap<>();
+        candidate.put("id", 1L);
+        candidate.put("type", "casa");
+        candidate.put("neighborhood", "centro");
+        candidate.put("address", "");
+        candidate.put("rooms", 3f);
+        candidate.put("bedrooms", 2f);
+        candidate.put("bathrooms", 1f);
+        candidate.put("operation", "VENTA");
+        candidate.put("currency", "ARS");
+        candidate.put("price", 1);
+        candidate.put("amenities", List.of());
+        when(propertyMergeService.buildAiPropertyCandidates(anyString(), eq(45)))
+                .thenReturn(List.of(candidate));
         when(mockWebClient.post()).thenThrow(new RuntimeException("IA error"));
 
         ResponseEntity<List<PropertySimpleDTO>> response =

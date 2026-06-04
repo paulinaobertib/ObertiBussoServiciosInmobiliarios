@@ -17,4 +17,9 @@ export interface SearchParams {
   status?: string;
   credit?: boolean;
   financing?: boolean;
+  garages?: number;
+  condition?: string;
+  forTransfer?: boolean;
+  /** Admin: propia | all | todas | company label */
+  source?: string;
 }

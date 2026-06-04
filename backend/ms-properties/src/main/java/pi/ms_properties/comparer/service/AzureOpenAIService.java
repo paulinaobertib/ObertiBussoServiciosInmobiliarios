@@ -22,6 +22,7 @@ import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.repository.IAmenityRepository;
 import pi.ms_properties.repository.INeighborhoodRepository;
 import pi.ms_properties.repository.IPropertyRepository;
+import pi.ms_properties.service.impl.PropertyMergeService;
 import pi.ms_properties.repository.ITypeRepository;
 import pi.ms_properties.service.interf.IPropertyService;
 
@@ -55,6 +56,12 @@ public class AzureOpenAIService {
     private final INeighborhoodRepository neighborhoodRepository;
 
     private final IPropertyService propertyService;
+
+    private final PropertyMergeService propertyMergeService;
+
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     private final WebClient webClient = WebClient.builder()
             .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -155,21 +162,7 @@ public class AzureOpenAIService {
     @Transactional
     public ResponseEntity<List<PropertySimpleDTO>> searchAndReturnProperties(String userQuery) {
         try {
-            PropertyFilterDTO filters = extractFilters(userQuery);
-
-            List<Property> base = propertyRepository.searchByFilters(filters);
-
-            base = filterAmenities(base, filters);
-
-            base = base.stream().toList();
-
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-            List<Map<String, Object>> propsForAI = base.stream()
-                    .map(p -> mapper.convertValue(p, new TypeReference<Map<String, Object>>() {}))
-                    .toList();
+            List<Map<String, Object>> propsForAI = propertyMergeService.buildAiPropertyCandidates(userQuery, 45);
 
             String iaResponse = searchProperties(userQuery, propsForAI);
 

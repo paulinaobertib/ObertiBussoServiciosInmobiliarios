@@ -23,7 +23,9 @@ import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
 import pi.ms_properties.security.WebSecurityConfig;
+import pi.ms_properties.service.impl.PropertyMergeService;
 import pi.ms_properties.service.impl.PropertyService;
+import pi.ms_properties.wasi.WasiPdfService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -48,6 +50,12 @@ class PropertyControllerTest {
     private PropertyService propertyService;
 
     @Autowired
+    private PropertyMergeService propertyMergeService;
+
+    @Autowired
+    private WasiPdfService wasiPdfService;
+
+    @Autowired
     private PropertyController propertyController;
 
     @Autowired
@@ -58,6 +66,16 @@ class PropertyControllerTest {
         @Bean
         public PropertyService propertyService() {
             return Mockito.mock(PropertyService.class);
+        }
+
+        @Bean
+        public PropertyMergeService propertyMergeService() {
+            return Mockito.mock(PropertyMergeService.class);
+        }
+
+        @Bean
+        public WasiPdfService wasiPdfService() {
+            return Mockito.mock(WasiPdfService.class);
         }
     }
 
@@ -127,15 +145,15 @@ class PropertyControllerTest {
     @WithMockUser(roles = "admin")
     void testGetAll() {
         List<PropertyDTO> list = new ArrayList<>();
-        when(propertyService.getAll()).thenReturn(ResponseEntity.ok(list));
+        when(propertyMergeService.getAllMerged()).thenReturn(list);
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAll();
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(204, response.getStatusCode().value());
     }
 
     @Test
     void testGetAllUsers() {
         List<PropertyDTO> list = new ArrayList<>();
-        when(propertyService.getAllUsers()).thenReturn(ResponseEntity.ok(list));
+        when(propertyMergeService.getAvailableMerged()).thenReturn(list);
         ResponseEntity<List<PropertyDTO>> response = propertyController.getAllUsers();
         assertEquals(200, response.getStatusCode().value());
     }
@@ -158,15 +176,16 @@ class PropertyControllerTest {
 
     @Test
     void testSearchProperties() {
-        when(propertyService.findBy(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(), anyBoolean(), anyBoolean(), any(Currency.class), any())).thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
-        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, List.of(3f), "venta", List.of("casa"), List.of("pileta"), List.of("cordoba"), List.of("centro"), List.of("urbano"), true, false, Currency.ARS, null);
+        when(propertyMergeService.searchMerged(any(BigDecimal.class), any(BigDecimal.class), anyFloat(), anyFloat(), anyFloat(), anyFloat(), anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(), anyBoolean(), anyBoolean(), any(Currency.class), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(new PropertyDTO()));
+        ResponseEntity<List<PropertyDTO>> response = propertyController.searchProperties(BigDecimal.valueOf(0), BigDecimal.valueOf(100000), 0, 300, 0, 200, List.of(3f), "venta", List.of("casa"), List.of("pileta"), List.of("cordoba"), List.of("centro"), List.of("urbano"), true, false, Currency.ARS, null, null, null, null, null);
         assertEquals(1, response.getBody().size());
     }
 
     @Test
     void testSearchBy() {
-        when(propertyService.findByTitleDescription("pileta"))
-                .thenReturn(ResponseEntity.ok(List.of(new PropertyDTO())));
+        when(propertyMergeService.textSearchMerged("pileta"))
+                .thenReturn(List.of(new PropertyDTO()));
         ResponseEntity<List<PropertyDTO>> response = propertyController.searchBy("pileta");
         assertEquals(1, response.getBody().size());
     }
@@ -191,7 +210,7 @@ class PropertyControllerTest {
 
     @Test
     void testGetAllUsers_endpoint() throws Exception {
-        when(propertyService.getAllUsers()).thenReturn(ResponseEntity.ok(List.of()));
+        when(propertyMergeService.getAvailableMerged()).thenReturn(List.of());
 
         mockMvc.perform(get("/property/get"))
                 .andExpect(status().isOk());
@@ -199,10 +218,10 @@ class PropertyControllerTest {
 
     @Test
     void testSearchProperties_withDefaults() throws Exception {
-        when(propertyService.findBy(any(), any(), anyFloat(), anyFloat(), anyFloat(), anyFloat(),
-                anyList(), anyString(), anyList(), anyList(), anyList(), anyList(),
-                anyList(), any(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok(List.of()));
+        when(propertyMergeService.searchMerged(any(), any(), anyFloat(), anyFloat(), anyFloat(), anyFloat(),
+                anyList(), anyString(), anyList(), anyList(), anyList(), anyList(), anyList(),
+                any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of());
 
         mockMvc.perform(get("/property/search"))
                 .andExpect(status().isOk());

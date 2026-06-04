@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Button,
@@ -15,6 +15,8 @@ import {
   useMediaQuery,
   IconButton,
   Card,
+  TextField,
+  MenuItem,
 } from "@mui/material";
 import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
@@ -28,6 +30,7 @@ import type { Property } from "../../types/property";
 import { formatAmount } from "../../../shared/utils/numberFormat";
 import { useBackButtonClose } from "../../../shared/hooks/useBackButtonClose";
 import { useAuthContext } from "../../../user/context/AuthContext";
+import { getWasiCompanies } from "../../services/wasi.service";
 
 interface Props {
   onSearch(results: Property[]): void;
@@ -95,6 +98,14 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
   const toggleAcc = (p: string) => (_: unknown, ex: boolean) => setExpanded(ex ? p : false);
 
   const operationsOptions = ["VENTA", "ALQUILER"];
+
+  const [wasiCompanies, setWasiCompanies] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isAdmin) return;
+    getWasiCompanies()
+      .then(setWasiCompanies)
+      .catch(() => setWasiCompanies([]));
+  }, [isAdmin]);
 
   const {
     params,
@@ -276,6 +287,89 @@ export const SearchFilters = ({ onSearch, mobileOpen, onMobileOpenChange, hideMo
           ))}
         </AccordionDetails>
       </Accordion>
+
+      {/* ───────── Cocheras / Condición / Permuta ───────── */}
+      <Accordion disableGutters expanded={expanded === "extra"} onChange={toggleAcc("extra")} sx={accordionSx}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="body2">Cocheras y más</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ px: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+          <TextField
+            size="small"
+            type="number"
+            label="Mín. cocheras"
+            value={params.garages || ""}
+            onChange={(e) => setParams({ ...params, garages: Math.max(0, parseInt(e.target.value, 10) || 0) })}
+            inputProps={{ min: 0, max: 29 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={params.condition === "nueva"}
+                onChange={() =>
+                  setParams({ ...params, condition: params.condition === "nueva" ? "" : "nueva" })
+                }
+              />
+            }
+            label="Solo nuevas"
+            sx={checkSx}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={params.condition === "usada"}
+                onChange={() =>
+                  setParams({ ...params, condition: params.condition === "usada" ? "" : "usada" })
+                }
+              />
+            }
+            label="Solo usadas"
+            sx={checkSx}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={params.forTransfer}
+                onChange={() => setParams({ ...params, forTransfer: !params.forTransfer })}
+              />
+            }
+            label="Permuta"
+            sx={checkSx}
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      {isAdmin && (
+        <Accordion disableGutters expanded={expanded === "origen"} onChange={toggleAcc("origen")} sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="body2">Origen (admin)</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ px: 2 }}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Origen"
+              value={params.source}
+              onChange={(e) => setParams({ ...params, source: e.target.value })}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              <MenuItem value="propia">Propias</MenuItem>
+              <MenuItem value="Aliada">Aliada</MenuItem>
+              {wasiCompanies
+                .filter((c) => c !== "propia")
+                .map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+            </TextField>
+          </AccordionDetails>
+        </Accordion>
+      )}
 
       {/* ───────── Precio ───────── */}
       <Accordion disableGutters expanded={expanded === "precio"} onChange={toggleAcc("precio")} sx={accordionSx}>

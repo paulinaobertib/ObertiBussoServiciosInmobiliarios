@@ -24,6 +24,10 @@ interface UseSearchFiltersReturn {
     priceRange: [number, number];
     areaRange: [number, number];
     coveredRange: [number, number];
+    garages: number;
+    condition: string;
+    forTransfer: boolean;
+    source: string;
   };
   dynLimits: {
     price: { USD: { min: number; max: number; step: number }; ARS: { min: number; max: number; step: number } };
@@ -99,6 +103,10 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     priceRange: [LIMITS.price.ARS.min, LIMITS.price.ARS.max] as [number, number],
     areaRange: [0, dynamicLimits.area.max] as [number, number],
     coveredRange: [0, dynamicLimits.covered.max] as [number, number],
+    garages: 0,
+    condition: "",
+    forTransfer: false,
+    source: "",
   });
 
   // Solo actualizar rangos si el usuario no los ha modificado manualmente
@@ -185,6 +193,19 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
         delete base.rooms;
         if (!local.currency) {
           delete (base as any).currency;
+        }
+
+        if (local.garages > 0) {
+          (base as SearchParams).garages = local.garages;
+        }
+        if (local.condition) {
+          (base as SearchParams).condition = local.condition;
+        }
+        if (local.forTransfer) {
+          (base as SearchParams).forTransfer = true;
+        }
+        if (isAdmin && local.source) {
+          (base as SearchParams).source = local.source;
         }
 
         const res = await getPropertiesByFilters(buildSearchParams(base) as SearchParams);
@@ -276,6 +297,10 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
       priceRange: [dynamicLimits.price.ARS.min, dynamicLimits.price.ARS.max] as [number, number],
       areaRange: [0, dynamicLimits.area.max] as [number, number],
       coveredRange: [0, dynamicLimits.covered.max] as [number, number],
+      garages: 0,
+      condition: "",
+      forTransfer: false,
+      source: "",
     };
     setParams(cleared);
     setSelected({
@@ -304,6 +329,10 @@ export const useSearchFilters = (onSearch: (r: Property[]) => void): UseSearchFi
     params.neighborhoods.forEach((n) => push(n, "neighborhoods", n));
     params.neighborhoodTypes.forEach((nt) => push(nt, "neighborhoodTypes", nt));
     params.rooms.forEach((r) => push(r === 3 ? "3+" : `${r}`, "rooms", r));
+    if (params.garages > 0) out.push({ label: `≥${params.garages} cocheras`, onClear: () => setParams((p) => ({ ...p, garages: 0 })) });
+    if (params.condition) push(params.condition, "condition", params.condition);
+    if (params.forTransfer) out.push({ label: "Permuta", onClear: () => setParams((p) => ({ ...p, forTransfer: false })) });
+    if (params.source) push(params.source, "source", params.source);
 
     // Mostrar chip de precio si hay moneda seleccionada y el rango no está en el valor por defecto
     if (params.currency) {

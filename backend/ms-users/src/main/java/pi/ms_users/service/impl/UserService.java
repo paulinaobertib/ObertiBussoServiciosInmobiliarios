@@ -12,6 +12,7 @@ import pi.ms_users.domain.AgentChat;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
+import pi.ms_users.service.WasiTenantSyncService;
 import pi.ms_users.service.interf.IAgentChatService;
 import pi.ms_users.service.interf.IUserService;
 
@@ -28,6 +29,8 @@ public class UserService implements IUserService {
     private final IUserRepository userRepository;
 
     private final IAgentChatService agentChatService;
+
+    private final WasiTenantSyncService wasiTenantSyncService;
 
     @Override
     public void addPrincipalRole(Jwt jwt) {
@@ -122,6 +125,11 @@ public class UserService implements IUserService {
         }
 
         User updated = userRepository.updateUser(user);
+        try {
+            wasiTenantSyncService.syncTenantToWasi(updated);
+        } catch (Exception ignored) {
+            // best-effort
+        }
         return ResponseEntity.ok(updated);
     }
 

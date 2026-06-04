@@ -22,4 +22,7 @@ public class PropertySimpleDTO {
     private String currency;
     private String neighborhood;
     private String type;
+    /** Admin-only */
+    private String source;
+    private Integer wasiId;
 }

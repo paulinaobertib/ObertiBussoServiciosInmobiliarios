@@ -44,11 +44,20 @@ public class Property {
     @Column(name = "bedrooms", nullable = false)
     private Float bedrooms;
 
+    @Column(name = "garages", nullable = true)
+    private Integer garages;
+
+    @Column(name = "floor", nullable = true)
+    private Integer floor;
+
     @Column(name = "area", nullable = false)
     private Float area;
 
     @Column(name = "covered_area", nullable = false)
     private Float coveredArea;
+
+    @Column(name = "private_area", nullable = true)
+    private Float privateArea;
 
     @Column(name = "price", nullable = false)
     private BigDecimal price;
@@ -65,6 +74,12 @@ public class Property {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
+    @Column(name = "video", nullable = true, length = 500)
+    private String video;
+
+    @Column(name = "zip_code", nullable = true, length = 20)
+    private String zipCode;
+
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
@@ -75,7 +90,15 @@ public class Property {
     private Status status;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "property_condition", nullable = true)
+    private PropertyCondition propertyCondition;
+
+    @Enumerated(EnumType.STRING)
     private Operation operation;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rents_type", nullable = true)
+    private RentsType rentsType;
 
     @Enumerated(EnumType.STRING)
     private Currency currency;
@@ -85,6 +108,9 @@ public class Property {
 
     @Column(name = "financing", nullable = false)
     private Boolean financing;
+
+    @Column(name = "network_share", nullable = true)
+    private Boolean networkShare;
 
     @Column(name = "outstanding", nullable = false)
     private Boolean outstanding;

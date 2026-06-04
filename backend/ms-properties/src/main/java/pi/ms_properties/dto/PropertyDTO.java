@@ -24,8 +24,11 @@ public class PropertyDTO {
     private Float rooms;
     private Float bathrooms;
     private Float bedrooms;
+    private Integer garages;
+    private Integer floor;
     private Float area;
     private Float coveredArea;
+    private Float privateArea;
     private BigDecimal price;
     private Boolean showPrice;
     private BigDecimal expenses;
@@ -34,11 +37,20 @@ public class PropertyDTO {
     private Boolean financing;
     private Boolean outstanding;
     private String description;
+    private String video;
+    private String zipCode;
     private LocalDateTime date;
     private String mainImage;
     private String status;
+    private String propertyCondition;
     private String operation;
+    private String rentsType;
     private String currency;
+    private Boolean networkShare;
+    /** Admin-only: "propia" or allied company label */
+    private String source;
+    private Integer wasiId;
+    private java.util.List<String> wasiPortals;
     private NeighborhoodDTO neighborhood;
     private Type type;
     private Set<Amenity> amenities;

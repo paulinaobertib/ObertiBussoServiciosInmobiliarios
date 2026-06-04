@@ -79,6 +79,7 @@ spring:
             - Path=/api/properties/property/search
             - Path=/api/properties/property/text
             - Path=/api/properties/property/getSimple/**
+            - Path=/api/properties/property/pdf/**
             - Path=/api/properties/amenity/getAll
             - Path=/api/properties/amenity/getById/**
             - Path=/api/properties/amenity/getByName

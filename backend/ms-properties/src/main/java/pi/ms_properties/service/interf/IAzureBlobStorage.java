@@ -8,4 +8,7 @@ public interface IAzureBlobStorage {
     void delete(Storage storage);
 
     String getImageUrl(String imageName);
+
+    /** Download blob bytes by stored object name (basename), or null if missing. */
+    byte[] readBytes(String blobName);
 }

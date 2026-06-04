@@ -11,7 +11,11 @@ import pi.ms_properties.dto.PropertyDTO;
 import pi.ms_properties.dto.PropertySaveDTO;
 import pi.ms_properties.dto.PropertySimpleDTO;
 import pi.ms_properties.dto.PropertyUpdateDTO;
+import pi.ms_properties.security.SecurityUtils;
+import pi.ms_properties.service.impl.PropertyMergeService;
 import pi.ms_properties.service.interf.IPropertyService;
+import pi.ms_properties.wasi.WasiMapper;
+import pi.ms_properties.wasi.WasiPdfService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,6 +26,10 @@ import java.util.List;
 public class PropertyController {
 
     private final IPropertyService propertyService;
+
+    private final PropertyMergeService propertyMergeService;
+
+    private final WasiPdfService wasiPdfService;
 
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
@@ -63,16 +71,28 @@ public class PropertyController {
     
     @GetMapping("/getAll")
     public ResponseEntity<List<PropertyDTO>> getAll() {
-        return propertyService.getAll();
+        List<PropertyDTO> list = propertyMergeService.getAllMerged();
+        if (list.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/get")
     public ResponseEntity<List<PropertyDTO>> getAllUsers() {
-        return propertyService.getAllUsers();
+        List<PropertyDTO> list = propertyMergeService.getAvailableMerged();
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/getById/{id}")
     public ResponseEntity<PropertyDTO> getById(@PathVariable Long id) {
+        if (id != null && id >= WasiMapper.SYNTHETIC_ID_BASE) {
+            PropertyDTO d = propertyMergeService.fetchWasiSynthetic(id, SecurityUtils.isAdmin());
+            if (d == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(d);
+        }
         return propertyService.getById(id);
     }
 
@@ -82,17 +102,34 @@ public class PropertyController {
         return propertyService.getByStatus(status);
     }
 
-    @GetMapping("/search") public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") BigDecimal priceFrom, @RequestParam(defaultValue = "0") BigDecimal priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float coveredAreaFrom, @RequestParam(defaultValue = "0") float coveredAreaTo, @RequestParam(required = false) List<Float> rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(required = false) List<String> types, @RequestParam(required = false) List<String> amenities, @RequestParam(required = false) List<String> cities, @RequestParam(required = false) List<String> neighborhoods, @RequestParam(required = false) List<String> neighborhoodTypes, @RequestParam(required = false) Boolean credit, @RequestParam(required = false) Boolean financing, @RequestParam(required = false) Currency currency, @RequestParam(required = false) Status status) {
-        return propertyService.findBy(priceFrom, priceTo, areaFrom, areaTo, coveredAreaFrom, coveredAreaTo, rooms, operation, types, amenities, cities, neighborhoods, neighborhoodTypes, credit, financing, currency, status);
+    @GetMapping("/search") public ResponseEntity<List<PropertyDTO>> searchProperties(@RequestParam(defaultValue = "0") BigDecimal priceFrom, @RequestParam(defaultValue = "0") BigDecimal priceTo, @RequestParam(defaultValue = "0") float areaFrom, @RequestParam(defaultValue = "0") float areaTo, @RequestParam(defaultValue = "0") float coveredAreaFrom, @RequestParam(defaultValue = "0") float coveredAreaTo, @RequestParam(required = false) List<Float> rooms, @RequestParam(defaultValue = "") String operation, @RequestParam(required = false) List<String> types, @RequestParam(required = false) List<String> amenities, @RequestParam(required = false) List<String> cities, @RequestParam(required = false) List<String> neighborhoods, @RequestParam(required = false) List<String> neighborhoodTypes, @RequestParam(required = false) Boolean credit, @RequestParam(required = false) Boolean financing, @RequestParam(required = false) Currency currency, @RequestParam(required = false) Status status, @RequestParam(required = false) Integer garages, @RequestParam(required = false) String condition, @RequestParam(required = false) Boolean forTransfer, @RequestParam(required = false) String source) {
+        List<PropertyDTO> list = propertyMergeService.searchMerged(priceFrom, priceTo, areaFrom, areaTo, coveredAreaFrom, coveredAreaTo, rooms, operation, types, amenities, cities, neighborhoods, neighborhoodTypes, credit, financing, currency, status, garages, condition, forTransfer, source);
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/text")
     public ResponseEntity<List<PropertyDTO>> searchBy(@RequestParam String value) {
-        return propertyService.findByTitleDescription(value);
+        return ResponseEntity.ok(propertyMergeService.textSearchMerged(value));
     }
 
     @GetMapping("/getSimple/{id}")
     public ResponseEntity<PropertySimpleDTO> getSimpleById(@PathVariable Long id) {
+        if (id != null && id >= WasiMapper.SYNTHETIC_ID_BASE) {
+            PropertyDTO d = propertyMergeService.fetchWasiSynthetic(id, SecurityUtils.isAdmin());
+            if (d == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(propertyMergeService.toSimpleFromWasi(d));
+        }
         return propertyService.getSimpleById(id);
+    }
+
+    @GetMapping("/pdf/{id}")
+    public ResponseEntity<?> downloadPdf(@PathVariable Long id) {
+        if (id != null && id >= WasiMapper.SYNTHETIC_ID_BASE) {
+            int wid = (int) (id - WasiMapper.SYNTHETIC_ID_BASE);
+            return wasiPdfService.pdfForWasiPropertyId(wid);
+        }
+        return wasiPdfService.pdfForProperty(id);
     }
 }

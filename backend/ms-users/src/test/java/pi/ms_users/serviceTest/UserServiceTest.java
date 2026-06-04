@@ -20,6 +20,7 @@ import pi.ms_users.domain.AgentChat;
 import pi.ms_users.domain.User;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.security.SecurityUtils;
+import pi.ms_users.service.WasiTenantSyncService;
 import pi.ms_users.service.impl.UserService;
 import pi.ms_users.service.interf.IAgentChatService;
 
@@ -37,6 +38,9 @@ class UserServiceTest {
 
     @Mock
     private IAgentChatService agentChatService;
+
+    @Mock
+    private WasiTenantSyncService wasiTenantSyncService;
 
     @InjectMocks
     private UserService userService;

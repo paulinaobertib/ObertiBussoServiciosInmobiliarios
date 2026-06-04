@@ -31,6 +31,10 @@ import pi.ms_properties.service.impl.AzureBlobStorage;
 import pi.ms_properties.service.impl.ImageService;
 import pi.ms_properties.service.impl.PropertyService;
 import pi.ms_properties.service.interf.IViewService;
+import pi.ms_properties.wasi.WasiApiClient;
+import pi.ms_properties.wasi.WasiApiProperties;
+import pi.ms_properties.wasi.WasiMapper;
+import pi.ms_properties.wasi.WasiPropertySyncService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -95,6 +99,18 @@ public class PropertyServiceTest {
 
     @Mock
     private IViewRepository viewRepository;
+
+    @Mock
+    private WasiPropertySyncService wasiPropertySyncService;
+
+    @Mock
+    private WasiApiClient wasiApiClient;
+
+    @Mock
+    private WasiMapper wasiMapper;
+
+    @Mock
+    private WasiApiProperties wasiApiProperties;
 
     @InjectMocks
     private PropertyService propertyService;
@@ -559,6 +575,10 @@ public class PropertyServiceTest {
                 true,
                 false,
                 null,
+                null,
+                null,
+                null,
+                null,
                 null
         );
 
@@ -874,6 +894,10 @@ public class PropertyServiceTest {
                         true,
                         false,
                         null,
+                        null,
+                        null,
+                        null,
+                        null,
                         null
                 ));
 
@@ -911,7 +935,11 @@ public class PropertyServiceTest {
                             true,
                             false,
                             null,
-                            Status.DISPONIBLE
+                            Status.DISPONIBLE,
+                            null,
+                            null,
+                            null,
+                            null
                     ));
 
             assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());

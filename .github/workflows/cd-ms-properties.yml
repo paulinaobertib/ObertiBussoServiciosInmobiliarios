@@ -123,7 +123,9 @@ jobs:
               "URL_IA=${{ secrets.URL_IA }}" \
               "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
               "VERSION_IA=${{ secrets.VERSION_IA }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}"
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}" \
+              "WASI_ID_COMPANY=${{ secrets.WASI_ID_COMPANY }}" \
+              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}"
 
       - name: Enable Container Logs
         run: |
@@ -213,7 +215,9 @@ jobs:
               "URL_IA=${{ secrets.URL_IA }}" \
               "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
               "VERSION_IA=${{ secrets.VERSION_IA }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}"
+              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}" \
+              "WASI_ID_COMPANY=${{ secrets.WASI_ID_COMPANY }}" \
+              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}"
 
       - name: Restart Web App
         run: |

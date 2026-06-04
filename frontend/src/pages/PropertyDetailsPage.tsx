@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Typography, Button, IconButton, CircularProgress, Stack } from "@mui/material";
+import { Box, Typography, Button, IconButton, CircularProgress, Stack, Chip } from "@mui/material";
 import { BasePage } from "./BasePage";
 import { usePropertiesContext } from "../app/property/context/PropertiesContext";
 import { PropertyDetails } from "../app/property/components/propertyDetails/PropertyDetails";
@@ -9,7 +9,7 @@ import { InquiryForm } from "../app/property/components/inquiries/InquiryForm";
 import { useAuthContext } from "../app/user/context/AuthContext";
 import ReplyIcon from "@mui/icons-material/Reply";
 import { buildRoute, ROUTES } from "../lib";
-import { deleteProperty } from "../app/property/services/property.service";
+import { deleteProperty, downloadPropertyPdf } from "../app/property/services/property.service";
 import { useGlobalAlert } from "../app/shared/context/AlertContext";
 import { useApiErrors } from "../app/shared/hooks/useErrors";
 import { LoadingButton } from "@mui/lab";
@@ -112,6 +112,15 @@ const PropertyDetailsPage = () => {
     navigate(buildRoute(ROUTES.EDIT_PROPERTY, currentProperty.id));
   };
 
+  const handlePdf = async () => {
+    if (!currentProperty) return;
+    try {
+      await downloadPropertyPdf(currentProperty.id);
+    } catch (e) {
+      handleError(e);
+    }
+  };
+
   const handleDeleteProperty = async () => {
     if (!currentProperty || deleting) return;
     const label = currentProperty.title ?? `propiedad #${currentProperty.id}`;
@@ -168,13 +177,24 @@ const PropertyDetailsPage = () => {
       </IconButton>
 
       <BasePage>
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+          {isAdmin && currentProperty.source && (
+            <Chip
+              size="small"
+              label={currentProperty.source === "propia" ? "Propia" : currentProperty.source}
+              color={currentProperty.source === "propia" ? "success" : "info"}
+              sx={{ mr: "auto" }}
+            />
+          )}
+          <Button variant="outlined" onClick={handlePdf}>
+            Descargar PDF
+          </Button>
           {!isAdmin ? (
             <Button variant="contained" onClick={() => setInquiryOpen(true)}>
               Consultar por esta propiedad
             </Button>
           ) : (
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               <Button
                 variant="contained"
                 onClick={() => navigate(buildRoute(ROUTES.PROPERTY_NOTES, currentProperty.id))}

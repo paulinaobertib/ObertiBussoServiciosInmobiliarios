@@ -1,3 +1,10 @@
+wasi:
+  api:
+    base-url: ${WASI_API_BASE_URL:https://api.wasi.co/v1}
+    id-company: ${WASI_ID_COMPANY:}
+    token: ${WASI_TOKEN:}
+    id-client-type-tenant: 11
+
 server:
   port: ${SERVICE_PORT}
 

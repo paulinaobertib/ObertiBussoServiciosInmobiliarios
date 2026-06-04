@@ -1,5 +1,6 @@
 package pi.ms_properties.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,11 @@ import pi.ms_properties.service.interf.IPropertyService;
 import pi.ms_properties.service.interf.IViewService;
 import pi.ms_properties.security.SecurityUtils;
 import pi.ms_properties.specification.PropertySpecification;
+import pi.ms_properties.wasi.WasiApiClient;
+import pi.ms_properties.wasi.WasiApiProperties;
+import pi.ms_properties.wasi.WasiJsonUtil;
+import pi.ms_properties.wasi.WasiMapper;
+import pi.ms_properties.wasi.WasiPropertySyncService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -68,12 +74,45 @@ public class PropertyService implements IPropertyService {
 
     private final IViewRepository viewRepository;
 
+    private final WasiPropertySyncService wasiPropertySyncService;
+
+    private final WasiApiClient wasiApiClient;
+
+    private final WasiMapper wasiMapper;
+
+    private final WasiApiProperties wasiApiProperties;
+
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
         Property property = mapper.convertValue(propertyDTO, Property.class);
 
         property.setStatus(Status.fromString(propertyDTO.getStatus()));
         property.setOperation(Operation.fromString(propertyDTO.getOperation()));
         property.setCurrency(Currency.fromString(propertyDTO.getCurrency()));
+
+        property.setGarages(propertyDTO.getGarages());
+        property.setFloor(propertyDTO.getFloor());
+        property.setVideo(propertyDTO.getVideo());
+        property.setZipCode(propertyDTO.getZipCode());
+        property.setPrivateArea(propertyDTO.getPrivateArea());
+        property.setNetworkShare(propertyDTO.getNetworkShare() != null ? propertyDTO.getNetworkShare() : Boolean.FALSE);
+        if (propertyDTO.getPropertyCondition() != null && !propertyDTO.getPropertyCondition().isBlank()) {
+            try {
+                property.setPropertyCondition(PropertyCondition.valueOf(propertyDTO.getPropertyCondition().trim().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                property.setPropertyCondition(null);
+            }
+        } else {
+            property.setPropertyCondition(null);
+        }
+        if (propertyDTO.getRentsType() != null && !propertyDTO.getRentsType().isBlank()) {
+            try {
+                property.setRentsType(RentsType.valueOf(propertyDTO.getRentsType().trim().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                property.setRentsType(null);
+            }
+        } else {
+            property.setRentsType(null);
+        }
 
         property.setOwner(ownerRepository.findById(propertyDTO.getOwnerId())
                 .orElseThrow(() -> new NoSuchElementException("No se encontró el Owner con ID: " + propertyDTO.getOwnerId())));
@@ -114,6 +153,8 @@ public class PropertyService implements IPropertyService {
         response.setFinancing(property.getFinancing());
         response.setOutstanding(property.getOutstanding());
         response.setDescription(property.getDescription());
+        response.setVideo(property.getVideo());
+        response.setZipCode(property.getZipCode());
         response.setDate(property.getDate());
         response.setMainImage(azureBlobStorage.getImageUrl(property.getMainImage()));
 
@@ -122,12 +163,38 @@ public class PropertyService implements IPropertyService {
         response.setNeighborhood(neighborhoodDTO);
         response.setType(property.getType());
         response.setAmenities(property.getAmenities());
-        response.setImages(property.getImages());
+        if (property.getImages() != null) {
+            Set<Image> imgs = property.getImages().stream().map(img -> {
+                Image i = new Image();
+                i.setId(img.getId());
+                i.setUrl(azureBlobStorage.getImageUrl(img.getUrl()));
+                i.setProperty(img.getProperty());
+                return i;
+            }).collect(Collectors.toSet());
+            response.setImages(imgs);
+        } else {
+            response.setImages(Set.of());
+        }
         response.setStatus(property.getStatus().toString());
         response.setOperation(property.getOperation().toString());
         response.setCurrency(property.getCurrency().toString());
+        response.setGarages(property.getGarages());
+        response.setFloor(property.getFloor());
+        response.setPrivateArea(property.getPrivateArea());
+        if (property.getPropertyCondition() != null) {
+            response.setPropertyCondition(property.getPropertyCondition().name());
+        }
+        if (property.getRentsType() != null) {
+            response.setRentsType(property.getRentsType().name());
+        }
+        response.setNetworkShare(property.getNetworkShare());
 
         return response;
+    }
+
+    @Override
+    public PropertyDTO mapToDto(Property property) {
+        return toDTO(property);
     }
 
     @Override
@@ -168,15 +235,20 @@ public class PropertyService implements IPropertyService {
             recommendationFailed = true;
         }
 
+        try {
+            wasiPropertySyncService.syncAfterLocalCreate(propertyDTO, property.getId());
+        } catch (Exception ignored) {
+            // best-effort
+        }
+
         if (notificationFailed && recommendationFailed) {
             return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero fallaron la notificación y la recomendación.");
         } else if (notificationFailed) {
             return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero falló la notificación.");
         } else if (recommendationFailed) {
             return ResponseEntity.status(HttpStatus.MULTI_STATUS).body("La propiedad se guardó correctamente, pero falló el servicio de recomendación.");
-        } else {
-            return ResponseEntity.ok("La propiedad se ha guardado correctamente.");
         }
+        return ResponseEntity.ok("La propiedad se ha guardado correctamente.");
     }
 
     @Transactional
@@ -227,6 +299,12 @@ public class PropertyService implements IPropertyService {
         updated.setComments(current.getComments());
         updated.setMaintenances(current.getMaintenances());
         propertyRepository.save(updated);
+
+        try {
+            wasiPropertySyncService.syncAfterLocalUpdate(id, propertyDTO);
+        } catch (Exception e) {
+            // best-effort
+        }
 
         return ResponseEntity.ok(toDTO(updated));
     }
@@ -308,7 +386,8 @@ public class PropertyService implements IPropertyService {
             List<Float> rooms, String operation, List<String> types,
             List<String> amenities, List<String> cities, List<String> neighborhoods, List<String> neighborhoodTypes,
             Boolean credit, Boolean financing,
-            Currency currency, Status status) {
+            Currency currency, Status status,
+            Integer garagesMin, String condition, Boolean forTransfer, String source) {
         if (status != null && !SecurityUtils.isAdmin()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los administradores puede filtrar por estado.");
         }
@@ -330,7 +409,9 @@ public class PropertyService implements IPropertyService {
                 .and(PropertySpecification.hasCredit(credit))
                 .and(PropertySpecification.hasFinancing(financing))
                 .and(PropertySpecification.hasCurrency(currency))
-                .and(PropertySpecification.hasStatus(status));
+                .and(PropertySpecification.hasStatus(status))
+                .and(PropertySpecification.hasGaragesMin(garagesMin))
+                .and(PropertySpecification.hasPropertyConditionFilter(condition));
 
         List<Property> properties = propertyRepository.findAll(spec);
 
@@ -385,7 +466,11 @@ public class PropertyService implements IPropertyService {
                 .map(m -> Long.valueOf(m.get("id").toString()))
                 .toList();
 
-        List<Property> properties = propertyRepository.findAllById(idsOrdered);
+        List<Long> localIds = idsOrdered.stream()
+                .filter(id -> id < WasiMapper.SYNTHETIC_ID_BASE)
+                .toList();
+
+        List<Property> properties = propertyRepository.findAllById(localIds);
 
         Map<Long, PropertySimpleDTO> dtoMap = properties.stream()
                 .collect(Collectors.toMap(
@@ -393,12 +478,62 @@ public class PropertyService implements IPropertyService {
                         this::toSimpleDTO
                 ));
 
-        List<PropertySimpleDTO> ordered = idsOrdered.stream()
-                .map(dtoMap::get)
-                .filter(Objects::nonNull)
-                .toList();
+        List<PropertySimpleDTO> ordered = new ArrayList<>();
+        for (Long id : idsOrdered) {
+            if (id == null) {
+                continue;
+            }
+            if (id >= WasiMapper.SYNTHETIC_ID_BASE) {
+                if (!wasiApiProperties.isConfigured()) {
+                    continue;
+                }
+                try {
+                    int wid = (int) (id - WasiMapper.SYNTHETIC_ID_BASE);
+                    JsonNode root = wasiApiClient.getProperty(wid, true);
+                    if (root == null || !WasiJsonUtil.isSuccess(root)) {
+                        continue;
+                    }
+                    JsonNode prop = root;
+                    if (!prop.has("id_property")) {
+                        var it = root.elements();
+                        while (it.hasNext()) {
+                            JsonNode x = it.next();
+                            if (x != null && x.isObject() && x.has("id_property")) {
+                                prop = x;
+                                break;
+                            }
+                        }
+                    }
+                    PropertyDTO dto = wasiMapper.fromWasiProperty(prop, false);
+                    ordered.add(toSimpleFromWasiDto(dto));
+                } catch (Exception ignored) {
+                    // skip
+                }
+            } else {
+                PropertySimpleDTO s = dtoMap.get(id);
+                if (s != null) {
+                    ordered.add(s);
+                }
+            }
+        }
 
         return ResponseEntity.ok(ordered);
+    }
+
+    private PropertySimpleDTO toSimpleFromWasiDto(PropertyDTO p) {
+        PropertySimpleDTO dto = new PropertySimpleDTO();
+        dto.setId(p.getId());
+        dto.setTitle(p.getTitle());
+        dto.setPrice(p.getPrice());
+        dto.setDescription(p.getDescription());
+        dto.setDate(p.getDate());
+        dto.setMainImage(p.getMainImage());
+        dto.setStatus(p.getStatus());
+        dto.setOperation(p.getOperation());
+        dto.setCurrency(p.getCurrency());
+        dto.setNeighborhood(p.getNeighborhood() != null ? p.getNeighborhood().getName() : "");
+        dto.setType(p.getType() != null ? p.getType().getName() : "");
+        return dto;
     }
 
     private PropertySimpleDTO toSimpleDTO(Property property) {
