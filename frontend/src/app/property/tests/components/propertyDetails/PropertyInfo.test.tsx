@@ -114,6 +114,13 @@ describe("PropertyInfo", () => {
     expect(screen.getByText(/Ubicación desconocida/)).toBeInTheDocument();
   });
 
+  it("no muestra 'Características' si no hay amenities (aunque sí haya especificaciones)", () => {
+    const prop = { ...baseProperty, amenities: [] };
+    render(<PropertyInfo property={prop} />);
+    expect(screen.getByText(/Especificaciones/)).toBeInTheDocument();
+    expect(screen.queryByText(/Características/)).not.toBeInTheDocument();
+  });
+
   it("no muestra especificaciones ni características si no hay features ni amenities", () => {
     const prop = {
       ...baseProperty,

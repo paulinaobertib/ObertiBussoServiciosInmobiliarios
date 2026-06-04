@@ -134,6 +134,14 @@ jobs:
             --name ${{ env.APP_NAME_DEV }} \
             --docker-container-logging filesystem
 
+      - name: Enable Always On
+        run: |
+          az webapp config set \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_DEV }} \
+            --always-on true \
+            || echo "::warning::No se pudo activar Always On (plan sin soporte)"
+
   deploy-prod:
     name: Deploy to Production
     needs: [deploy-dev]
@@ -231,3 +239,11 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME_PROD }} \
             --docker-container-logging filesystem
+
+      - name: Enable Always On
+        run: |
+          az webapp config set \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME_PROD }} \
+            --always-on true \
+            || echo "::warning::No se pudo activar Always On (plan sin soporte)"

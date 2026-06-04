@@ -235,24 +235,26 @@ export const PropertyInfo = ({ property }: Props) => {
               ))}
             </Stack>
 
-            <Stack spacing={{ xs: 1, sm: 1.25 }}>
-              <Typography variant="subtitle1" fontWeight={600}>
-                Características
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {rawAmenities.map((am, i) => (
-                  <Chip
-                    key={keyOfAmenity(am, i)}
-                    label={labelOfAmenity(am)}
-                    size="small"
-                    variant="outlined"
-                    clickable={false}
-                    tabIndex={-1}
-                    sx={{ pointerEvents: "none", cursor: "default", userSelect: "none" }}
-                  />
-                ))}
-              </Box>
-            </Stack>
+            {amenities.length > 0 && (
+              <Stack spacing={{ xs: 1, sm: 1.25 }}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Características
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {rawAmenities.map((am, i) => (
+                    <Chip
+                      key={keyOfAmenity(am, i)}
+                      label={labelOfAmenity(am)}
+                      size="small"
+                      variant="outlined"
+                      clickable={false}
+                      tabIndex={-1}
+                      sx={{ pointerEvents: "none", cursor: "default", userSelect: "none" }}
+                    />
+                  ))}
+                </Box>
+              </Stack>
+            )}
           </Box>
         </Box>
       )}
