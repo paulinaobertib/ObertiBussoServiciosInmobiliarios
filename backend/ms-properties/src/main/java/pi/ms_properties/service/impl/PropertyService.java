@@ -83,6 +83,14 @@ public class PropertyService implements IPropertyService {
     private final WasiApiProperties wasiApiProperties;
 
     private Property SaveProperty(PropertyUpdateDTO propertyDTO) {
+        // Jackson no puede convertir enums vacíos (""): los enums se setean explícitamente más abajo,
+        // así que neutralizamos los strings en blanco antes de convertir para no romper con 400.
+        if (propertyDTO.getPropertyCondition() != null && propertyDTO.getPropertyCondition().isBlank()) {
+            propertyDTO.setPropertyCondition(null);
+        }
+        if (propertyDTO.getRentsType() != null && propertyDTO.getRentsType().isBlank()) {
+            propertyDTO.setRentsType(null);
+        }
         Property property = mapper.convertValue(propertyDTO, Property.class);
 
         property.setStatus(Status.fromString(propertyDTO.getStatus()));

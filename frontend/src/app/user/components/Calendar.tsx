@@ -1,5 +1,6 @@
 import { useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/es";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
@@ -20,7 +21,7 @@ export const Calendar = ({ onSelectDate, initialDate = dayjs() }: Props) => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
       <Box sx={{ width: "100%", display: "grid", placeItems: "center" }}>
         <DateCalendar
           value={selectedDate}
