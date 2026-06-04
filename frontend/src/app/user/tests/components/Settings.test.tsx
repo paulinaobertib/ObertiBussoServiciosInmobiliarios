@@ -141,11 +141,12 @@ describe("SettingsDrawer", () => {
     renderSettingsDrawer();
 
     // Esperar a que se carguen las preferencias
+    // (MUI v7 Switch expone role="switch", no "checkbox")
     await waitFor(() => {
-      expect(screen.getAllByRole("checkbox")).toHaveLength(2);
+      expect(screen.getAllByRole("switch")).toHaveLength(2);
     });
 
-    const checks = screen.getAllByRole("checkbox") as HTMLInputElement[];
+    const checks = screen.getAllByRole("switch") as HTMLInputElement[];
     expect(checks[0].checked).toBe(false);
 
     fireEvent.click(checks[0]);
@@ -163,12 +164,13 @@ describe("SettingsDrawer", () => {
 
     renderSettingsDrawer();
 
-    // Esperar a que se cargue el checkbox
+    // Esperar a que se cargue el switch
+    // (MUI v7 Switch expone role="switch", no "checkbox")
     await waitFor(() => {
-      expect(screen.getByRole("checkbox")).toBeInTheDocument();
+      expect(screen.getByRole("switch")).toBeInTheDocument();
     });
 
-    const cb = screen.getByRole("checkbox") as HTMLInputElement;
+    const cb = screen.getByRole("switch") as HTMLInputElement;
     expect(cb.checked).toBe(true);
 
     fireEvent.click(cb); // optimista: false → rollback: true
