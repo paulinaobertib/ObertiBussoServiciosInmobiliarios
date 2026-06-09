@@ -316,7 +316,11 @@ public class WasiMapper {
         dto.setCredit(false);
         dto.setFinancing(false);
         dto.setOutstanding("3".equals(text(n, "id_status_on_page")));
-        dto.setDescription(cleanHtml(text(n, "observations")));
+        String desc = cleanHtml(text(n, "observations"));
+        if ("allied".equalsIgnoreCase(text(n, "owner"))) {
+            desc = stripContactInfo(desc, alliedCompanyName(n));
+        }
+        dto.setDescription(desc);
         dto.setVideo(text(n, "video"));
         dto.setZipCode(text(n, "zip_code"));
         dto.setDate(parseWasiDate(n.path("created_at").asText(null)));
@@ -381,6 +385,16 @@ public class WasiMapper {
         JsonNode company = n.get("company");
         String name = company != null ? company.path("name").asText("").trim() : "";
         return name.isEmpty() ? "Aliada" : "Aliada - " + name;
+    }
+
+    /** Nombre de la inmobiliaria aliada (company.name); null si no viene o está vacío. */
+    private static String alliedCompanyName(JsonNode n) {
+        JsonNode company = n.get("company");
+        if (company == null) {
+            return null;
+        }
+        String name = company.path("name").asText("").trim();
+        return name.isEmpty() ? null : name;
     }
 
     private static String extractMainImageUrl(JsonNode n) {
@@ -479,6 +493,103 @@ public class WasiMapper {
         s = HtmlUtils.htmlUnescape(s);
         s = s.replaceAll("[ \\t]+\n", "\n").replaceAll("\n{3,}", "\n\n").trim();
         return s;
+    }
+
+    // Teléfono argentino: dos grupos de dígitos separados por espacio/.-, o prefijo +54/(0351),
+    // o corrida pegada de 10-11 dígitos. No matchea "351 m2" ni "Av. Colón 1234".
+    private static final java.util.regex.Pattern PHONE = java.util.regex.Pattern.compile(
+            "(?:\\+?54\\s?9?\\s?)?(?:\\(?0?\\d{2,4}\\)?[\\s.\\-]?)?\\d{3,4}[\\s.\\-]\\d{3,4}"
+                    + "|\\+?54\\s?9?\\s?\\d{6,11}"
+                    + "|\\b\\d{10,11}\\b");
+
+    // Llamados a la acción de contacto.
+    private static final java.util.regex.Pattern CONTACT_NOISE = java.util.regex.Pattern.compile(
+            "(?iu)(?:consult[aá](?:nos|n|me)?|comunic[aá](?:te|nos)?|llam[aá](?:nos|n|me)?"
+                    + "|escrib[ií](?:nos|me|inos)?|cont[aá]ct[aá](?:nos|me)?|contacto"
+                    + "|agend[aá]\\s+tu\\s+visita|coordin[aá]\\s+(?:tu\\s+)?visita"
+                    + "|m[aá]s\\s+info|mayor\\s+informaci[oó]n"
+                    + "|whats?app|wsp|wpp|s[ií]gue?nos|seguinos)");
+
+    private static final java.util.regex.Pattern EMAIL =
+            java.util.regex.Pattern.compile("[\\w.+\\-]+@[\\w\\-]+\\.[\\w.\\-]+");
+    private static final java.util.regex.Pattern URL = java.util.regex.Pattern.compile(
+            "(?i)\\b(?:https?://|www\\.)\\S+|\\b[\\w\\-]+\\.(?:com|com\\.ar|net|org)\\b\\S*");
+    private static final java.util.regex.Pattern HANDLE = java.util.regex.Pattern.compile(
+            "(?i)(?:^|\\s)@[\\w.]{2,}|\\b(?:instagram|facebook|tik\\s?tok)\\b");
+    private static final List<String> CONTACT_EMOJIS = List.of(
+            "💬", "📱", "☎", "☎️", "📞", "📲", "📍", "📧", "✉", "✉️", "🟢", "📩");
+
+    /**
+     * Quita de la descripción de una propiedad ALIADA (ya en texto plano) la parte de contacto/promo
+     * que pertenece a otra inmobiliaria y no debe mostrarse: teléfonos, CTA ("consultanos", "agendá
+     * tu visita"...), WhatsApp, email, URLs, handles de redes y el nombre de la aliada (company.name).
+     * Procesa por líneas (cleanHtml ya normalizó los saltos): descarta las líneas marcadas como ruido
+     * de contacto y re-une el resto, colapsando líneas vacías. Anclar al contexto de contacto evita
+     * borrar líneas legítimas con números (superficies, alturas de calle, CP): un número solo no
+     * alcanza salvo formato inequívoco de teléfono. alliedName puede ser null (no se borra nombre).
+     */
+    private static String stripContactInfo(String plainText, String alliedName) {
+        if (plainText == null || plainText.isBlank()) {
+            return plainText == null ? "" : plainText;
+        }
+        String alliedLower = alliedName == null ? null : alliedName.toLowerCase();
+        StringBuilder out = new StringBuilder();
+        for (String raw : plainText.split("\n", -1)) {
+            String line = raw;
+            if (alliedLower != null && line.toLowerCase().contains(alliedLower)) {
+                String compact = line.toLowerCase().replaceAll("[\\s/|·•\\-]+", "");
+                if (compact.equals(alliedLower.replaceAll("[\\s/|·•\\-]+", ""))) {
+                    continue; // la línea es solo el nombre de la aliada
+                }
+                line = line.replaceAll("(?i)" + java.util.regex.Pattern.quote(alliedName), " ").trim();
+            }
+            if (isContactNoise(line)) {
+                continue;
+            }
+            String cleaned = line.replaceAll("[\\s/|·•\\-]+$", "").replaceAll("^[\\s/|·•]+", "").trim();
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append("\n");
+            }
+            out.append(cleaned);
+        }
+        return out.toString().replaceAll("\n{3,}", "\n\n").trim();
+    }
+
+    /** ¿La línea es ruido de contacto que no debe mostrarse? */
+    private static boolean isContactNoise(String line) {
+        String t = line.trim();
+        if (t.isEmpty()) {
+            return false;
+        }
+        for (String e : CONTACT_EMOJIS) {
+            if (t.contains(e)) {
+                return true;
+            }
+        }
+        if (EMAIL.matcher(t).find() || URL.matcher(t).find() || HANDLE.matcher(t).find()) {
+            return true;
+        }
+        if (CONTACT_NOISE.matcher(t).find()) {
+            return true; // CTA aunque no haya número
+        }
+        // Teléfono sin CTA: solo descarta si la línea parece "de teléfonos" (2+ teléfonos o dominada
+        // por dígitos y pocas letras), para no borrar frases con un número suelto.
+        java.util.regex.Matcher m = PHONE.matcher(t);
+        int matches = 0;
+        int phoneChars = 0;
+        while (m.find()) {
+            matches++;
+            phoneChars += m.group().length();
+        }
+        if (matches == 0) {
+            return false;
+        }
+        int letters = t.replaceAll("[^\\p{L}]", "").length();
+        boolean dominated = phoneChars >= Math.max(1, t.replaceAll("\\s", "").length()) * 0.5;
+        return matches >= 2 || (dominated && letters <= 25);
     }
 
     private static LocalDateTime parseWasiDate(String s) {

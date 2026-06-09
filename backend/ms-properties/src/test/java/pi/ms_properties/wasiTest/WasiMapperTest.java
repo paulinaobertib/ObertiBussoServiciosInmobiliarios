@@ -300,6 +300,108 @@ class WasiMapperTest {
         assertEquals(-1, m.typeIdFor(null));
     }
 
+    // ---------- Saneamiento de descripción de aliadas: quitar contacto/promo de otras inmobiliarias ----------
+
+    /** Arma un JSON de propiedad de Wasi con observations/owner/company y devuelve la descripción ya saneada. */
+    private String descOf(String observations, String owner, String company) {
+        StringBuilder json = new StringBuilder("{\"id_property\":\"1\",\"observations\":");
+        try {
+            json.append(OM.writeValueAsString(observations));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (owner != null) {
+            json.append(",\"owner\":\"").append(owner).append("\"");
+        }
+        if (company != null) {
+            json.append(",\"company\":{\"name\":\"").append(company).append("\"}");
+        }
+        json.append("}");
+        return mapper().fromWasiProperty(node(json.toString()), true).getDescription();
+    }
+
+    @Test
+    void stripContact_exampleGiven_removesPhonePromoLine() {
+        String d = descOf(
+                "Hermosa casa con jardín.\n"
+                        + "💬 Consultanos para más info o agendá tu visita al 351 663-0095 // 351 637-6007 // 351 507-9918",
+                "allied", "Grupo X");
+        assertTrue(d.contains("Hermosa casa"), "se conserva la descripción real");
+        assertFalse(d.contains("663-0095"), "se borra el teléfono");
+        assertFalse(d.toLowerCase().contains("consultanos"), "se borra el CTA");
+        assertFalse(d.contains("💬"), "se borra el emoji de contacto");
+    }
+
+    @Test
+    void stripContact_phoneFormats_allRemoved() {
+        assertFalse(descOf("Linda casa.\nTel: 351 663-0095", "allied", null).contains("663"));
+        assertFalse(descOf("Linda casa.\n+54 351 1234567", "allied", null).contains("1234567"));
+        assertFalse(descOf("Linda casa.\n(0351) 456-7890", "allied", null).contains("456"));
+        assertFalse(descOf("Linda casa.\n3516630095 // 3516376007", "allied", null).contains("3516630095"));
+        assertFalse(descOf("Linda casa.\n11 4567-8900", "allied", null).contains("4567"));
+    }
+
+    @Test
+    void stripContact_ctaLines_removed() {
+        assertFalse(descOf("Excelente ubicación.\nComunicate con nosotros", "allied", null).toLowerCase().contains("comunicate"));
+        assertFalse(descOf("Excelente ubicación.\nEscribinos por WhatsApp", "allied", null).toLowerCase().contains("whatsapp"));
+        assertFalse(descOf("Excelente ubicación.\nAgendá tu visita hoy", "allied", null).toLowerCase().contains("agend"));
+        assertFalse(descOf("Excelente ubicación.\nConsultá mayor información", "allied", null).toLowerCase().contains("consult"));
+    }
+
+    @Test
+    void stripContact_emailUrlHandle_removed() {
+        assertFalse(descOf("Casa céntrica.\ninfo@inmobiliaria.com.ar", "allied", null).contains("@"));
+        assertFalse(descOf("Casa céntrica.\nwww.otrainmobiliaria.com.ar", "allied", null).toLowerCase().contains("www."));
+        assertFalse(descOf("Casa céntrica.\nSeguinos en @otra_inmo", "allied", null).contains("@otra_inmo"));
+        assertFalse(descOf("Casa céntrica.\nInstagram: @propiedades", "allied", null).toLowerCase().contains("instagram"));
+    }
+
+    @Test
+    void stripContact_alliedNameAsLine_removed() {
+        String d = descOf("Departamento luminoso.\nINMOBILIARIA OTRA SRL", "allied", "INMOBILIARIA OTRA SRL");
+        assertTrue(d.contains("Departamento luminoso"));
+        assertFalse(d.toUpperCase().contains("INMOBILIARIA OTRA SRL"), "se borra el nombre de la aliada");
+    }
+
+    @Test
+    void stripContact_alliedNameInsideContactLine_removed() {
+        String d = descOf("Casa a estrenar.\nConsultá en Grupo X al 351 663-0095", "allied", "Grupo X");
+        assertTrue(d.contains("Casa a estrenar"));
+        assertFalse(d.contains("Grupo X"));
+        assertFalse(d.contains("663-0095"));
+    }
+
+    @Test
+    void stripContact_keepsLegitNumbers_noFalsePositives() {
+        assertTrue(descOf("Lote de 351 m2 con frente amplio", "allied", null).contains("351 m2"));
+        assertTrue(descOf("Ubicado sobre Av. Colón 1234", "allied", null).contains("Av. Colón 1234"));
+        assertTrue(descOf("Superficie cubierta de 100 m²", "allied", null).contains("100 m²"));
+        assertTrue(descOf("Casa de 3 dormitorios y 2 baños", "allied", null).contains("3 dormitorios"));
+    }
+
+    @Test
+    void stripContact_keepsNormalDescription_untouched() {
+        String d = descOf("Amplia casa en barrio cerrado, 4 dormitorios, pileta y quincho.\n"
+                + "A 5 minutos del centro.", "allied", "Grupo X");
+        assertTrue(d.contains("Amplia casa en barrio cerrado"));
+        assertTrue(d.contains("A 5 minutos del centro"));
+    }
+
+    @Test
+    void stripContact_ownProperty_notCleaned() {
+        // Alcance: solo aliadas. En propias de Wasi la descripción queda intacta.
+        String d = descOf("Casa propia excelente.\nConsultanos al 351 663-0095", "own", null);
+        assertTrue(d.contains("Casa propia excelente"));
+        assertTrue(d.contains("663-0095"), "en propias no se limpia el contacto");
+    }
+
+    @Test
+    void stripContact_nullOrBlankObservations_safe() {
+        PropertyDTO dto = mapper().fromWasiProperty(node("{\"id_property\":\"1\",\"owner\":\"allied\"}"), true);
+        assertEquals("", dto.getDescription());
+    }
+
     @Test
     void currency_isConfigurable() {
         WasiDefaultsProperties defaults = new WasiDefaultsProperties();
