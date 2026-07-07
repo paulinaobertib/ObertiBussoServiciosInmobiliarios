@@ -1,23 +1,39 @@
 import { useState } from "react";
 import { Box, Fab, Tooltip, Menu, MenuItem, ListItemText, Typography } from "@mui/material";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import { matchPath, useLocation } from "react-router-dom";
 import { useAuthContext } from "../app/user/context/AuthContext";
+import { usePropertiesContext } from "../app/property/context/PropertiesContext";
 import { fabSlot } from "../app/shared/utils/fabSlot";
 import { trackGoogleAdsConversion } from "../app/shared/utils/googleAds";
+import { DEFAULT_WHATSAPP_MESSAGE, buildPropertyWhatsAppMessage } from "../app/shared/utils/whatsapp";
+import { ROUTES } from "../lib";
 
 const CONTACTS = [
   { name: "Luis", phone: "5493513264536" },
   { name: "Pablo", phone: "5493515107888" },
 ];
 
-const DEFAULT_WHATSAPP_MESSAGE = "Hola, quisiera realizar una consulta. Muchas gracias.";
-
 export function WhatsAppFab() {
   const { isAdmin } = useAuthContext();
+  const { currentProperty } = usePropertiesContext();
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const fabSize = "3.5rem";
 
   if (isAdmin) return null;
+
+  const propertyDetailsMatch = matchPath(ROUTES.PROPERTY_DETAILS, location.pathname);
+  const propertyId = Number(propertyDetailsMatch?.params.id);
+  const isPropertyDetailsPage = Boolean(propertyDetailsMatch && Number.isFinite(propertyId));
+  const isCurrentProperty = isPropertyDetailsPage && currentProperty?.id === propertyId;
+  const currentPageUrl =
+    isPropertyDetailsPage && typeof window !== "undefined"
+      ? `${window.location.origin}${location.pathname}${location.search}`
+      : undefined;
+  const whatsappMessage = isPropertyDetailsPage
+    ? buildPropertyWhatsAppMessage(isCurrentProperty ? currentProperty.title : null, currentPageUrl)
+    : DEFAULT_WHATSAPP_MESSAGE;
 
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -25,7 +41,7 @@ export function WhatsAppFab() {
   const handleSelect = (phone: string) => {
     handleClose();
     trackGoogleAdsConversion("click_whatsapp");
-    const encodedMessage = encodeURIComponent(DEFAULT_WHATSAPP_MESSAGE);
+    const encodedMessage = encodeURIComponent(whatsappMessage);
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
   };
 

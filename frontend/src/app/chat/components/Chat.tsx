@@ -23,6 +23,8 @@ import { ChatSessionDTO } from "../types/chatSession";
 import { usePropertiesContext } from "../../property/context/PropertiesContext";
 import { useBackButtonClose } from "../../shared/hooks/useBackButtonClose";
 import { trackGoogleAdsConversion } from "../../shared/utils/googleAds";
+import { buildPropertyWhatsAppMessage } from "../../shared/utils/whatsapp";
+import { buildRoute, ROUTES } from "../../../lib";
 
 const FINAL_SYSTEM_MESSAGES = [
   "La conversación ha finalizado. Gracias por contactarnos.",
@@ -419,7 +421,11 @@ export const Chat: React.FC<ChatProps> = ({ initialPropertyId, onClose }) => {
     }
 
     const phone = phoneMatch[0];
-    const msgText = encodeURIComponent(`Hola, quiero consultar por la propiedad ${property?.title ?? ""}`);
+    const propertyUrl =
+      property?.id && typeof window !== "undefined"
+        ? `${window.location.origin}${buildRoute(ROUTES.PROPERTY_DETAILS, property.id)}`
+        : undefined;
+    const msgText = encodeURIComponent(buildPropertyWhatsAppMessage(property?.title, propertyUrl));
     const url = `https://wa.me/${phone.replace("+", "")}?text=${msgText}`;
 
     const timer = window.setTimeout(() => {
