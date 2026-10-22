@@ -18,6 +18,7 @@ import pi.ms_users.controller.PaymentController;
 import pi.ms_users.domain.PaymentConcept;
 import pi.ms_users.domain.PaymentCurrency;
 import pi.ms_users.dto.PaymentDTO;
+import pi.ms_users.security.ContractAccess;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.interf.IPaymentService;
 
@@ -42,6 +43,11 @@ class PaymentControllerTest {
 
     @TestConfiguration
     static class Config {
+        @Bean(name = "contractAccess")
+        public ContractAccess contractAccess() {
+            return Mockito.mock(ContractAccess.class, inv -> inv.getMethod().getReturnType() == boolean.class ? Boolean.TRUE : null);
+        }
+
         @Bean
         public IPaymentService paymentService() {
             return Mockito.mock(IPaymentService.class);
@@ -148,7 +154,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByRange_shouldReturnOk() throws Exception {
         when(paymentService.getByDateRange(any(), any())).thenReturn(ResponseEntity.ok(List.of(getSamplePayment())));
 
@@ -159,7 +165,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByConcept_shouldReturnOk() throws Exception {
         when(paymentService.getByConcept(PaymentConcept.ALQUILER)).thenReturn(ResponseEntity.ok(List.of(getSamplePayment())));
 
@@ -168,7 +174,7 @@ class PaymentControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByCurrency_shouldReturnOk() throws Exception {
         when(paymentService.getByCurrency(PaymentCurrency.ARS)).thenReturn(ResponseEntity.ok(List.of(getSamplePayment())));
 

@@ -27,6 +27,11 @@ spring:
   application:
     name: ms-users
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -55,6 +60,18 @@ email:
 
 frontend:
   base-url: ${SWA_FRONTEND}
+
+# lectura de contratos en PDF (mismo Azure OpenAI que usa ms-properties)
+contract-ai:
+  endpoint: ${URL_IA:}
+  apiKey: ${APIKEY_IA:}
+  deployment: ${DEPLOY_IA:}
+  apiVersion: ${VERSION_IA:}
+
+# datos impresos en los recibos (los valores por defecto estan en ReceiptIssuerProperties)
+receipts:
+  email: ${RECEIPTS_EMAIL:}
+  phone: ${RECEIPTS_PHONE:}
 
 pi:
   keycloak:

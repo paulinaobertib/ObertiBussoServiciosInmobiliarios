@@ -29,7 +29,8 @@ export function useContractForm(
   initialPropertyId: number,
   initialUserId: string,
   initialData?: Contract | ContractGet,
-  onValidityChange?: (v: boolean) => void
+  onValidityChange?: (v: boolean) => void,
+  prefill?: Partial<ContractFormValues> | null
 ) {
   /* ---------- estado ---------- */
   const [values, setValues] = useState<ContractFormValues>({
@@ -80,6 +81,12 @@ export function useContractForm(
         : [],
     });
   }, [initialData]);
+
+  /* ---------- datos leídos del PDF del contrato ---------- */
+  useEffect(() => {
+    if (!prefill) return;
+    setValues((prev) => ({ ...prev, ...prefill }));
+  }, [prefill]);
 
   /* ---------- carga propiedad + usuario ---------- */
   useEffect(() => {

@@ -65,7 +65,7 @@ public class IncreaseIndexController {
         return increaseIndexService.getContractsByIncreaseIndex(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/{contractId}")
     public ResponseEntity<IncreaseIndex> getByContract(@PathVariable Long contractId) {
         return increaseIndexService.getByContract(contractId);

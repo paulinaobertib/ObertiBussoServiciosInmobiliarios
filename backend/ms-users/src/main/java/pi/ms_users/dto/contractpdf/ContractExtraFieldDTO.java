@@ -1,0 +1,13 @@
+package pi.ms_users.dto.contractpdf;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ContractExtraFieldDTO {
+    private String label;
+    private String value;
+}

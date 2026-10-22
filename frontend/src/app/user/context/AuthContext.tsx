@@ -8,10 +8,14 @@ import {
 import { getMe, getRoles, addPrincipalRole } from "../services/user.service";
 import { retry, sleep } from "../../shared/utils/retry";
 import { api } from "../../../api";
+import { getMyPortalAccess } from "../services/portalAccess.service";
+import type { PortalAccess } from "../types/portalAccess";
 
 export type AuthInfo = User & {
   roles: Role[];
   preferences: UserNotificationPreference[];
+  // qué secciones del portal de inquilino habilitó el admin
+  portalAccess?: Pick<PortalAccess, "canViewContracts" | "canViewReceipts">;
 };
 
 interface AuthContextValue {
@@ -20,6 +24,8 @@ interface AuthContextValue {
   isLogged: boolean;
   isAdmin: boolean;
   isTenant: boolean;
+  canViewContracts: boolean;
+  canViewReceipts: boolean;
   ready: boolean;
   loading: boolean;
   refreshing: boolean;
@@ -35,6 +41,8 @@ const AuthContext = createContext<AuthContextValue>({
   isLogged: false,
   isAdmin: false,
   isTenant: false,
+  canViewContracts: false,
+  canViewReceipts: false,
   ready: false,
   loading: true,
   refreshing: false,
@@ -73,6 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isLogged = Boolean(info);
   const isAdmin = info?.roles.includes("admin") ?? false;
   const isTenant = info?.roles.includes("tenant") ?? false;
+  // sin dato (version anterior del backend) se muestra todo, como antes
+  const canViewContracts = isAdmin || (isTenant && (info?.portalAccess?.canViewContracts ?? true));
+  const canViewReceipts = isAdmin || (isTenant && (info?.portalAccess?.canViewReceipts ?? true));
 
   const GW_URL = import.meta.env.VITE_GATEWAY_URL as string;
   const loginBaseUrl = `${GW_URL}/oauth2/authorization/keycloak-client`;
@@ -144,7 +155,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         preferences = await ensureDefaultPreferences(user.id);
       }
       
-      setInfo({ ...user, roles, preferences });
+      let portalAccess: AuthInfo["portalAccess"];
+      if (roles.includes("tenant") && !roles.includes("admin")) {
+        try {
+          const access = await getMyPortalAccess();
+          portalAccess = { canViewContracts: access.canViewContracts, canViewReceipts: access.canViewReceipts };
+        } catch {
+          portalAccess = undefined;
+        }
+      }
+
+      setInfo({ ...user, roles, preferences, portalAccess });
       setSessionExpired(false);
       // No limpiar estado de UI aquí para no interferir con la navegación normal
       // clearPropertyUiState(); 
@@ -309,6 +330,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLogged,
         isAdmin,
         isTenant,
+        canViewContracts,
+        canViewReceipts,
         loading,
         refreshing,
         sessionExpired,

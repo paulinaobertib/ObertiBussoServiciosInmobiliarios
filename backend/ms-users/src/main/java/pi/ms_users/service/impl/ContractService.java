@@ -16,6 +16,7 @@ import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.feign.Status;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
+import pi.ms_users.repository.ITenantPortalAccessRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
@@ -43,6 +44,8 @@ public class ContractService implements IContractService {
     private final IEmailService emailService;
 
     private final PropertyRepository propertyRepository;
+
+    private final ITenantPortalAccessRepository portalAccessRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -256,6 +259,18 @@ public class ContractService implements IContractService {
         return entity;
     }
 
+    // solo saca el rol de inquilino si no tiene otro contrato activo
+    // ni un acceso al portal (recibos/contratos) que le haya dado el admin
+    private void revokeTenantRoleIfUnused(String userId, Long endedContractId) {
+        if (userId == null) return;
+        if (contractRepository.existsOtherActiveByUserId(userId, endedContractId)) return;
+        boolean grantedByAdmin = portalAccessRepository.findById(userId)
+                .map(a -> a.isCanViewContracts() || a.isCanViewReceipts())
+                .orElse(false);
+        if (grantedByAdmin) return;
+        userRepository.deleteRoleToUser(userId, "tenant");
+    }
+
     private void validateDeposit(Boolean hasDeposit, BigDecimal amount, String note) {
         boolean hd = Boolean.TRUE.equals(hasDeposit);
         if (hd && (amount == null || amount.compareTo(BigDecimal.ZERO) < 0)) {
@@ -373,7 +388,7 @@ public class ContractService implements IContractService {
         if (status == ContractStatus.ACTIVO) {
             entity.setContractStatus(ContractStatus.INACTIVO);
 
-            userRepository.deleteRoleToUser(user.getId(), "tenant");
+            revokeTenantRoleIfUnused(user.getId(), entity.getId());
 
             EmailExpiredContractDTO emailExpiredContractDTO = new EmailExpiredContractDTO();
             emailExpiredContractDTO.setTo(user.getEmail());
@@ -406,7 +421,7 @@ public class ContractService implements IContractService {
 
         Optional<User> user = userRepository.findById(contract.get().getUserId());
 
-        userRepository.deleteRoleToUser(user.get().getId(), "tenant");
+        revokeTenantRoleIfUnused(user.get().getId(), id);
 
         return ResponseEntity.ok("Se ha eliminado el contrato.");
     }
@@ -651,7 +666,7 @@ public class ContractService implements IContractService {
         contracts.forEach(contract -> {
             Optional<User> user = userRepository.findById(contract.getUserId());
 
-            userRepository.deleteRoleToUser(user.get().getId(), "tenant");
+            revokeTenantRoleIfUnused(user.get().getId(), contract.getId());
 
             propertyRepository.updateStatusEspera(contract.getPropertyId());
 
@@ -714,7 +729,7 @@ public class ContractService implements IContractService {
         propertyRepository.updateStatus(propertyId, status);
 
         if (user != null) {
-            userRepository.deleteRoleToUser(user.getId(), "tenant");
+            revokeTenantRoleIfUnused(user.getId(), entity.getId());
 
             EmailExpiredContractDTO emailExpiredContractDTO = new EmailExpiredContractDTO();
             emailExpiredContractDTO.setTo(user.getEmail());

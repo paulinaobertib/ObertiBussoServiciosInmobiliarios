@@ -118,7 +118,11 @@ jobs:
               "PROPERTY_HOSTNAME=${{ env.PROPERTIES_HOSTNAME_DEV }}" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_DEV}}" \
               "WASI_ID_COMPANY=${{ secrets.WASI_ID_COMPANY }}" \
-              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}"
+              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}" \
+              "URL_IA=${{ secrets.URL_IA }}" \
+              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+              "VERSION_IA=${{ secrets.VERSION_IA }}"
 
       - name: Enable Container Logs
         run: |
@@ -222,7 +226,11 @@ jobs:
               "PROPERTY_HOSTNAME=${{ env.PROPERTIES_HOSTNAME_PROD }}" \
               "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}" \
               "WASI_ID_COMPANY=${{ secrets.WASI_ID_COMPANY }}" \
-              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}"
+              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}" \
+              "URL_IA=${{ secrets.URL_IA }}" \
+              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
+              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
+              "VERSION_IA=${{ secrets.VERSION_IA }}"
 
       - name: Enable Container Logs
         run: |

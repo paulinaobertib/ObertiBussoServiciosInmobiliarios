@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${r.title + ' ' + r.number}">Recibo</title>
+    <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Lato', sans-serif; color: #2b2b2b; font-size: 10.5pt; }
+        .page { position: relative; width: 210mm; height: 296mm; padding: 0; overflow: hidden; }
+
+        .topbar { height: 7mm; background: #f0901e; }
+        .topbar-thin { height: 1.2mm; background: #c95512; }
+
+        .header { padding: 9mm 16mm 5mm 16mm; }
+        .header table { width: 100%; border-collapse: collapse; }
+        .logo { height: 19mm; }
+        .issuer-name { font-family: 'Ubuntu'; font-weight: 700; font-size: 22pt; white-space: nowrap; color: #2b2b2b; letter-spacing: 0.3pt; }
+        .issuer-name .accent { color: #f0901e; }
+        .issuer-sub { font-family: 'Ubuntu'; font-weight: 500; font-size: 9.5pt; color: #5a5a5a; letter-spacing: 2.2pt; text-transform: uppercase; margin-top: 1mm; }
+        .mark { height: 15mm; vertical-align: middle; margin-right: 3mm; }
+
+        .doc-box { text-align: right; vertical-align: top; }
+        .doc-type-wrap { width: auto; margin-left: auto; border-collapse: collapse; }
+        .doc-type { background: #2b2b2b; color: #ffffff; font-weight: 900; letter-spacing: 2.5pt; white-space: nowrap;
+                    font-size: 15pt; padding: 2.2mm 4mm 2.2mm 5mm; border-radius: 2mm; text-align: center; }
+        .doc-type.liq { background: #c95512; }
+        .doc-number { font-size: 11pt; font-weight: 700; margin-top: 2.5mm; color: #2b2b2b; }
+        .doc-date { font-size: 9.5pt; color: #5a5a5a; margin-top: 0.8mm; }
+
+        .issuer-line { margin: 0 16mm; padding: 2.4mm 0; border-top: 0.3mm solid #e6e6e6; border-bottom: 0.3mm solid #e6e6e6;
+                       font-size: 8.8pt; color: #5a5a5a; }
+        .issuer-line .dot { color: #f0901e; padding: 0 1.6mm; }
+
+        .content { padding: 6mm 16mm 0 16mm; }
+
+        .parties { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff7ef; border: 0.3mm solid #fbd9b5; border-radius: 2.5mm; }
+        .parties td { padding: 3.2mm 4.5mm; vertical-align: top; width: 50%; }
+        .label { font-size: 7.6pt; font-weight: 700; color: #c95512; letter-spacing: 1.3pt; text-transform: uppercase; }
+        .value { font-size: 11pt; font-weight: 700; margin-top: 0.8mm; color: #2b2b2b; }
+        .value.light { font-weight: 400; }
+
+        .statement { margin-top: 6mm; font-size: 11pt; line-height: 1.55; text-align: justify; }
+        .statement b { font-weight: 700; }
+
+        .items { width: 100%; border-collapse: collapse; margin-top: 6mm; }
+        .items th { text-align: left; font-size: 7.8pt; letter-spacing: 1.3pt; text-transform: uppercase; color: #8a8a8a;
+                    border-bottom: 0.5mm solid #2b2b2b; padding: 0 0 1.8mm 0; }
+        .items th.amount, .items td.amount { text-align: right; }
+        .items td { padding: 2.6mm 0; border-bottom: 0.25mm solid #ececec; font-size: 10.5pt; }
+        .items td.amount { font-weight: 700; white-space: nowrap; }
+        .total-row td { border-bottom: none; padding: 0; }
+        .total-box { margin-top: 3mm; width: 100%; border-collapse: collapse; }
+        .total-box td { background: #f0901e; color: #ffffff; padding: 3mm 4.5mm; }
+        .total-box .t-label { font-weight: 900; letter-spacing: 2pt; font-size: 10pt; border-radius: 2mm 0 0 2mm; }
+        .total-box .t-amount { text-align: right; font-weight: 900; font-size: 16pt; border-radius: 0 2mm 2mm 0; }
+
+        .words { margin-top: 3mm; font-size: 9.5pt; color: #5a5a5a; }
+        .words b { color: #2b2b2b; }
+
+        .notes { margin-top: 5mm; padding: 3mm 4.5mm; border-left: 1mm solid #fab360; background: #fafafa; font-size: 9.5pt; color: #444444; }
+
+        .not-valid-banner { margin-top: 6mm; text-align: center; border: 0.6mm dashed #c95512; color: #c95512; border-radius: 2mm;
+                            font-weight: 900; letter-spacing: 2.5pt; font-size: 13pt; padding: 3.2mm; }
+        .not-valid-banner .small { display: block; font-weight: 400; letter-spacing: 0.4pt; font-size: 8.5pt; color: #8a5a3a; margin-top: 1mm; }
+
+        .signature-area { position: absolute; left: 16mm; right: 16mm; bottom: 30mm; height: 46mm; }
+        .seal { position: absolute; right: 74mm; bottom: 1mm; width: 40mm; height: 40mm; }
+        .sign-block { position: absolute; right: 0; bottom: 0; width: 72mm; text-align: center; }
+        .sign-script { font-family: 'Great Vibes'; font-size: 30pt; color: #1f3a68; line-height: 1; height: 15mm; }
+        .sign-line { border-top: 0.35mm solid #2b2b2b; margin: 1mm 4mm 1.5mm 4mm; }
+        .sign-name { font-weight: 900; font-size: 9.5pt; letter-spacing: 1.2pt; }
+        .sign-role { font-size: 8.3pt; color: #5a5a5a; margin-top: 0.6mm; }
+
+        /* openhtmltopdf no soporta opacity: se usan colores claros y z-index negativo para que quede detras */
+        .watermark { position: absolute; z-index: -1; left: -20mm; top: 125mm; width: 250mm; text-align: center; transform: rotate(-32deg);
+                     font-weight: 900; font-size: 40pt; letter-spacing: 3pt; color: #fbeadf; }
+        .watermark.annulled { color: #f6d5d9; font-size: 84pt; letter-spacing: 12pt; top: 115mm; }
+        .content, .header, .issuer-line, .signature-area { z-index: 1; }
+        .nowrap { white-space: nowrap; }
+
+        .footer { position: absolute; left: 0; right: 0; bottom: 0; }
+        .footer-inner { margin: 0 16mm; padding: 3mm 0 4mm 0; border-top: 0.3mm solid #e6e6e6; font-size: 8pt; color: #8a8a8a; }
+        .footer-inner table { width: 100%; border-collapse: collapse; }
+        .footer-inner .right { text-align: right; }
+        .footer .bar { height: 2.2mm; background: #f0901e; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="watermark" th:if="${r.liquidacion and !r.annulled}">NO VÁLIDO COMO RECIBO DE PAGO</div>
+    <div class="watermark annulled" th:if="${r.annulled}">ANULADO</div>
+
+    <div class="topbar"></div>
+    <div class="topbar-thin"></div>
+
+    <div class="header">
+        <table>
+            <tr>
+                <td style="vertical-align: middle;">
+                    <img th:if="${r.inmobiliaria}" class="logo" th:src="${r.logoDataUri}" alt="Oberti Busso" />
+                    <table th:unless="${r.inmobiliaria}" style="width: auto;">
+                        <tr>
+                            <td style="vertical-align: middle;"><img class="mark" th:src="${r.markDataUri}" alt="" /></td>
+                            <td style="vertical-align: middle;">
+                                <div class="issuer-name" th:text="${r.issuerName}">Luis María Oberti</div>
+                                <div class="issuer-sub" th:text="${r.issuerTitle}">Corredor Público</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="doc-box">
+                    <table class="doc-type-wrap"><tr><td class="doc-type" th:classappend="${r.liquidacion} ? 'liq'" th:text="${r.title}">RECIBO</td></tr></table>
+                    <div class="doc-number" th:text="${'N° ' + r.number}">N° LO-R-000001</div>
+                    <div class="doc-date" th:text="${r.placeAndDate}">Córdoba, 22 de octubre de 2026</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="issuer-line">
+        <span th:text="${r.address}">Padre Luis Galeano n° 1.910 – Local 2</span><span class="dot">•</span><span th:text="${r.city}">Córdoba</span><span class="dot">•</span><span th:text="${r.license}">Corredor Público Mat. 04-2101</span>
+    </div>
+
+    <div class="content">
+        <table class="parties">
+            <tr>
+                <td>
+                    <div class="label" th:text="${r.liquidacion} ? 'Destinatario' : (${r.inmobiliaria} ? 'Recibimos de' : 'Recibí de')">Recibí de</div>
+                    <div class="value" th:text="${r.payerName}">EMILIO ROBERTO MARTIN</div>
+                    <div class="value light" style="font-size: 9.5pt;" th:if="${r.payerDni != null}" th:text="${'DNI ' + r.payerDni}">DNI 23.821.639</div>
+                </td>
+                <td>
+                    <div class="label">Período</div>
+                    <div class="value" th:text="${r.period != null ? r.period : '—'}">Octubre 2026</div>
+                </td>
+            </tr>
+            <tr th:if="${r.propertyAddress != null or r.ownerName != null}">
+                <td style="padding-top: 0;">
+                    <div class="label">Inmueble</div>
+                    <div class="value light" th:text="${r.propertyAddress != null ? r.propertyAddress : '—'}">Dúplex A-14, La Arbolada</div>
+                </td>
+                <td style="padding-top: 0;">
+                    <div th:if="${r.ownerName != null}">
+                        <div class="label">Por cuenta y orden de</div>
+                        <div class="value light" th:text="${r.ownerName}">Silvina Verónica Quintana</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="statement" th:utext="${r.statementHtml}">
+            Recibí de ...
+        </div>
+
+        <table class="items">
+            <thead>
+            <tr>
+                <th>Concepto</th>
+                <th class="amount">Importe</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="it : ${r.items}">
+                <td th:text="${it.description}">Alquiler octubre 2026</td>
+                <td class="amount" th:text="${it.amount}">$ 850.000</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <table class="total-box">
+            <tr>
+                <td class="t-label" th:text="${r.liquidacion} ? 'TOTAL A PAGAR' : 'TOTAL RECIBIDO'">TOTAL</td>
+                <td class="t-amount" th:text="${r.total}">$ 1.116.960</td>
+            </tr>
+        </table>
+        <div class="words">Son: <b th:text="${r.totalInWords}">PESOS UN MILLÓN ...</b></div>
+
+        <div class="notes" th:if="${r.notes != null}" th:text="${r.notes}">Observaciones</div>
+
+        <div class="not-valid-banner" th:if="${r.liquidacion}">
+            NO VÁLIDO COMO RECIBO DE PAGO
+            <span class="small">Liquidación informativa. El recibo se emite una vez acreditado el pago.</span>
+        </div>
+    </div>
+
+    <div class="signature-area" th:unless="${r.liquidacion}">
+        <img class="seal" th:src="${r.sealDataUri}" alt="" />
+        <div class="sign-block">
+            <div class="sign-script" th:text="${r.signerName}">Luis María Oberti</div>
+            <div class="sign-line"></div>
+            <div class="sign-name" th:text="${#strings.toUpperCase(r.signerName)}">LUIS MARÍA OBERTI</div>
+            <div class="sign-role" th:text="${r.license}">Corredor Público · Mat. 04-2101</div>
+            <div class="sign-role" th:if="${r.inmobiliaria}" th:text="${'p/ ' + r.issuerName}">p/ Oberti Busso</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-inner">
+            <table>
+                <tr>
+                    <td th:text="${r.footerLeft}">Oberti Busso Servicios Inmobiliarios</td>
+                    <td class="right" th:text="${r.footerRight}">www.inmobiliariaobertibusso.com.ar</td>
+                </tr>
+            </table>
+        </div>
+        <div class="bar"></div>
+    </div>
+</div>
+</body>
+</html>

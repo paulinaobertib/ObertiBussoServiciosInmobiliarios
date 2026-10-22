@@ -3,10 +3,12 @@ import { Box, CircularProgress, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import { getRoles } from "../../../services/user.service";
 import { useUsers } from "../../../hooks/useUsers";
 import { UserForm } from "./UserForm";
 import { RoleForm } from "./RoleForm";
+import { PortalAccessForm } from "./PortalAccessForm";
 import { Modal } from "../../../../shared/components/Modal";
 import { GridSection } from "../../../../shared/components/GridSection";
 import type { User, Role } from "../../../types/user";
@@ -146,6 +148,24 @@ export function UsersSection({
     }
   };
 
+  const openPortalAccess = (u: User) => {
+    const roles: string[] = Array.isArray((u as any).roles) ? (u as any).roles : [];
+    setModalTitle("Acceso al portal");
+    setModalContent(
+      <PortalAccessForm
+        userId={(u as any).id}
+        userName={`${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email}
+        isTenant={roles.map((r) => String(r).toLowerCase()).includes("tenant")}
+        onSuccess={() => {
+          load();
+          setModalOpen(false);
+        }}
+        onClose={() => setModalOpen(false)}
+      />
+    );
+    setModalOpen(true);
+  };
+
   const columns = [
     { field: "firstName", headerName: "Nombre", flex: 1 },
     { field: "lastName", headerName: "Apellido", flex: 1 },
@@ -164,7 +184,7 @@ export function UsersSection({
           {
             field: "actions",
             headerName: "Acciones",
-            width: 120,
+            width: 160,
             sortable: false,
             filterable: false,
             renderCell: (params: any) => (
@@ -177,6 +197,9 @@ export function UsersSection({
                 </IconButton>
                 <IconButton size="small" title="Roles" onClick={() => openRoles(params.row)}>
                   <PeopleIcon fontSize="small" />
+                </IconButton>
+                <IconButton size="small" title="Acceso al portal (contratos / recibos)" onClick={() => openPortalAccess(params.row)}>
+                  <VpnKeyIcon fontSize="small" />
                 </IconButton>
               </Box>
             ),

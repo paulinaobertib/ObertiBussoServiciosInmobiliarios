@@ -24,6 +24,7 @@ import pi.ms_users.dto.feign.PropertyDTO;
 import pi.ms_users.dto.feign.Status;
 import pi.ms_users.repository.IContractRepository;
 import pi.ms_users.repository.IIncreaseIndexRepository;
+import pi.ms_users.repository.ITenantPortalAccessRepository;
 import pi.ms_users.repository.UserRepository.IUserRepository;
 import pi.ms_users.repository.feign.PropertyRepository;
 import pi.ms_users.security.SecurityUtils;
@@ -58,6 +59,9 @@ class ContractServiceTest {
 
     @Mock
     private PropertyRepository propertyRepository;
+
+    @Mock
+    private ITenantPortalAccessRepository portalAccessRepository;
 
     @Mock
     private EntityManager em;
@@ -825,5 +829,42 @@ class ContractServiceTest {
         Contract result = service.toEntity(dto);
 
         assertEquals(null, result.getUserId());
+    }
+
+    // ---- rol de inquilino al terminar un contrato ----
+
+    @Test
+    void updateStatus_inactivo_removesTenantRole_whenNothingElseKeepsIt() {
+        entity.setContractStatus(ContractStatus.ACTIVO);
+        when(contractRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+
+        service.updateStatus(1L);
+
+        verify(userRepository).deleteRoleToUser("user123", "tenant");
+    }
+
+    @Test
+    void updateStatus_inactivo_keepsTenantRole_whenUserHasAnotherActiveContract() {
+        entity.setContractStatus(ContractStatus.ACTIVO);
+        when(contractRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(contractRepository.existsOtherActiveByUserId("user123", 1L)).thenReturn(true);
+
+        service.updateStatus(1L);
+
+        verify(userRepository, never()).deleteRoleToUser(any(), any());
+    }
+
+    @Test
+    void delete_keepsTenantRole_whenAdminGrantedPortalAccess() {
+        when(contractRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(userRepository.findById("user123")).thenReturn(Optional.of(user));
+        when(portalAccessRepository.findById("user123"))
+                .thenReturn(Optional.of(new pi.ms_users.domain.TenantPortalAccess("user123", false, true, null)));
+
+        service.delete(1L);
+
+        verify(userRepository, never()).deleteRoleToUser(any(), any());
     }
 }

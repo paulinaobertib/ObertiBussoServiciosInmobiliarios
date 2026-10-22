@@ -9,6 +9,7 @@ import {
   MenuItem,
   CircularProgress,
   Divider,
+  Alert,
   Button,
   IconButton,
   Checkbox,
@@ -23,6 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Modal } from "../../../shared/components/Modal";
 import IncreaseIndexForm from "../increases/IncreaseIndexForm";
 import { useContractForm, ContractFormValues } from "../../hooks/contracts/useContractForm";
+import type { PrefillableField } from "../../utils/contractPdfPrefill";
 
 export type ContractFormHandle = {
   submit: () => Promise<ContractFormValues | null>;
@@ -36,14 +38,29 @@ interface Props {
   initialUserId: string;
   initialData?: Contract | ContractGet;
   onValidityChange?: (v: boolean) => void;
+  /** valores leídos del PDF del contrato */
+  prefill?: Partial<ContractFormValues> | null;
+  /** campos que el PDF no traía: se marcan para completarlos a mano */
+  missingFields?: PrefillableField[];
+  importedFileName?: string | null;
 }
 
 export const ContractForm = forwardRef<ContractFormHandle, Props>(function ContractForm(
-  { initialPropertyId, initialUserId, initialData, onValidityChange },
+  { initialPropertyId, initialUserId, initialData, onValidityChange, prefill, missingFields = [], importedFileName },
   ref
 ) {
   const { values, errors, property, user, loadingData, handleChange, reset, submit, getCreateData, setGuarantorsIds } =
-    useContractForm(initialPropertyId, initialUserId, initialData, onValidityChange);
+    useContractForm(initialPropertyId, initialUserId, initialData, onValidityChange, prefill);
+
+  // aviso en los campos que el contrato no trae, mientras sigan vacíos
+  const missingHint = (field: PrefillableField) =>
+    missingFields.includes(field) && !values[field]
+      ? {
+          helperText: "No figura en el contrato: completalo",
+          FormHelperTextProps: { sx: { color: "warning.main", fontWeight: 600 } },
+          sx: { "& .MuiOutlinedInput-notchedOutline": { borderColor: "warning.main", borderWidth: 2 } },
+        }
+      : {};
 
   const idx = useIncreaseIndexes();
   const [idxModalOpen, setIdxModalOpen] = useState(false);
@@ -65,6 +82,13 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
   return (
     <>
       <Box component="form" noValidate>
+        {importedFileName && (
+          <Alert severity={missingFields.length ? "warning" : "info"} sx={{ mb: 2 }}>
+            Datos completados desde <b>{importedFileName}</b>. Revisalos antes de crear el contrato
+            {missingFields.length ? "; los campos marcados no figuran en el contrato y hay que completarlos" : ""}. El PDF queda
+            adjunto al contrato.
+          </Alert>
+        )}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Card variant="outlined">
@@ -99,6 +123,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               size="small"
               value={values.contractType || ""}
               onChange={handleChange("contractType")}
+              {...missingHint("contractType")}
             >
               {Object.values(ContractType).map((t) => (
                 <MenuItem key={t} value={t}>
@@ -133,6 +158,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               InputLabelProps={{ shrink: true }}
               value={values.startDate || ""}
               onChange={handleChange("startDate")}
+              {...missingHint("startDate")}
             />
           </Grid>
 
@@ -146,6 +172,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               InputLabelProps={{ shrink: true }}
               value={values.endDate || ""}
               onChange={handleChange("endDate")}
+              {...missingHint("endDate")}
             />
           </Grid>
         </Grid>
@@ -167,6 +194,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               inputProps={{ min: 0 }}
               value={values.initialAmount === "" ? "" : values.initialAmount}
               onChange={handleChange("initialAmount")}
+              {...missingHint("initialAmount")}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
@@ -178,6 +206,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               size="small"
               value={values.currency || ""}
               onChange={handleChange("currency")}
+              {...missingHint("currency")}
             >
               <MenuItem value="ARS">Peso Argentino</MenuItem>
               <MenuItem value="USD">Dólar</MenuItem>
@@ -195,6 +224,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
                 size="small"
                 value={values.adjustmentIndexId ? String(values.adjustmentIndexId) : ""}
                 onChange={handleChange("adjustmentIndexId")}
+                {...missingHint("adjustmentIndexId")}
                 SelectProps={{
                   renderValue: (selected) => {
                     if (!selected) return "";
@@ -264,6 +294,7 @@ export const ContractForm = forwardRef<ContractFormHandle, Props>(function Contr
               inputProps={{ min: 1 }}
               value={values.adjustmentFrequencyMonths === "" ? "" : values.adjustmentFrequencyMonths}
               onChange={handleChange("adjustmentFrequencyMonths")}
+              {...missingHint("adjustmentFrequencyMonths")}
             />
           </Grid>
         </Grid>

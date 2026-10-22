@@ -18,6 +18,7 @@ import pi.ms_users.controller.ContractUtilityController;
 import pi.ms_users.domain.UtilityPeriodicityPayment;
 import pi.ms_users.dto.ContractUtilityDTO;
 import pi.ms_users.dto.ContractUtilityGetDTO;
+import pi.ms_users.security.ContractAccess;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.interf.IContractUtilityService;
 
@@ -42,6 +43,11 @@ class ContractUtilityControllerTest {
 
     @TestConfiguration
     static class Config {
+        @Bean(name = "contractAccess")
+        public ContractAccess contractAccess() {
+            return Mockito.mock(ContractAccess.class, inv -> inv.getMethod().getReturnType() == boolean.class ? Boolean.TRUE : null);
+        }
+
         @Bean
         public IContractUtilityService contractUtilityService() {
             return Mockito.mock(IContractUtilityService.class);
@@ -150,7 +156,7 @@ class ContractUtilityControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByUtility_shouldReturnOk() throws Exception {
         when(contractUtilityService.getByUtility(200L))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -161,7 +167,7 @@ class ContractUtilityControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByPeriodicity_shouldReturnOk() throws Exception {
         when(contractUtilityService.getByPeriodicity(UtilityPeriodicityPayment.MENSUAL))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));

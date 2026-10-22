@@ -49,7 +49,7 @@ public class CommissionController {
         return commissionService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewCommission(#id))")
     @GetMapping("/getById/{id}")
     public ResponseEntity<CommissionGetDTO> getById(@PathVariable Long id) {
         return commissionService.getById(id);
@@ -61,7 +61,7 @@ public class CommissionController {
         return commissionService.getAll();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/contract/{contractId}")
     public ResponseEntity<CommissionGetDTO> getByContractId(@PathVariable Long contractId) {
         return commissionService.getByContractId(contractId);

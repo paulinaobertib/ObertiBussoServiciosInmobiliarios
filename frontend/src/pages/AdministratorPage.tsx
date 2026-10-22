@@ -71,6 +71,16 @@ export default function AdministratorPage() {
       ),
     },
     {
+      key: "receipts",
+      label: "Recibos",
+      content: null,
+      ButtonComponent: () => (
+        <Button variant="outlined" onClick={() => navigate(ROUTES.RECEIPTS)}>
+          Recibos
+        </Button>
+      ),
+    },
+    {
       key: "statistics",
       label: "Estadisticas",
       content: null,

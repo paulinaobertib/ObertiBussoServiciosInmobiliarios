@@ -26,6 +26,8 @@ const ManageContractPage = lazy(() => import("./pages/ManageContractPage"));
 const AppointmentPage = lazy(() => import("./pages/AppointmentPage"));
 const ViewStatsPage = lazy(() => import("./pages/ViewStatsPage"));
 const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
+const ReceiptsPage = lazy(() => import("./pages/ReceiptsPage"));
+const TenantPortalPage = lazy(() => import("./pages/TenantPortalPage"));
 //import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
 /* ---------- Guards ---------- */
@@ -78,6 +80,15 @@ export function RequireAdminOrTenant({ children }: { children: ReactNode }) {
   if (loading) return null;
   if (shouldRedirect) return <Navigate to={ROUTES.HOME_APP} replace />;
   return <>{children}</>;
+}
+
+// contratos: admin, o inquilino al que el admin le habilitó la sección
+function RequireContractsAccess({ children }: { children: ReactNode }) {
+  const { isAdmin, isTenant, canViewContracts, loading } = useAuthContext();
+  if (loading) return null;
+  if (isAdmin || (isTenant && canViewContracts)) return <>{children}</>;
+  if (isTenant) return <Navigate to={ROUTES.TENANT} replace />;
+  return <RequireAdminOrTenant>{children}</RequireAdminOrTenant>;
 }
 
 /* ---------- Rutas ---------- */
@@ -134,9 +145,9 @@ export default function Routes() {
       <Route
         path={ROUTES.CONTRACT}
         element={
-          <RequireAdminOrTenant>
+          <RequireContractsAccess>
             <ContractsPage />
-          </RequireAdminOrTenant>
+          </RequireContractsAccess>
         }
       />
 
@@ -144,9 +155,9 @@ export default function Routes() {
       <Route
         path={ROUTES.CONTRACT_DETAIL}
         element={
-          <RequireAdminOrTenant>
+          <RequireContractsAccess>
             <ContractDetailPage />
-          </RequireAdminOrTenant>
+          </RequireContractsAccess>
         }
       />
       {/* <Route
@@ -180,6 +191,24 @@ export default function Routes() {
           <RequireAdmin>
             <ViewStatsPage />
           </RequireAdmin>
+        }
+      />
+      <Route
+        path={ROUTES.RECEIPTS}
+        element={
+          <RequireAdmin>
+            <ReceiptsPage />
+          </RequireAdmin>
+        }
+      />
+
+      {/* ---- Portal del inquilino: contratos y/o recibos según lo que habilitó el admin ---- */}
+      <Route
+        path={ROUTES.TENANT}
+        element={
+          <RequireAdminOrTenant>
+            <TenantPortalPage />
+          </RequireAdminOrTenant>
         }
       />
 

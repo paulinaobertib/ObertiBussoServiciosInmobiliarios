@@ -17,6 +17,9 @@ public interface IContractRepository extends JpaRepository<Contract, Long> {
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM Contract c WHERE c.propertyId = ?1 AND c.contractStatus = ?2")
     boolean existsByPropertyIdAndContractStatus(Long propertyId, ContractStatus status);
 
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END FROM Contract c WHERE c.userId = ?1 AND c.contractStatus = pi.ms_users.domain.ContractStatus.ACTIVO AND (?2 IS NULL OR c.id <> ?2)")
+    boolean existsOtherActiveByUserId(String userId, Long excludedContractId);
+
     @EntityGraph(attributePaths = {"adjustmentIndex", "contractUtilities", "contractIncrease", "payments", "guarantors"})
     Optional<Contract> findById(Long id);
 

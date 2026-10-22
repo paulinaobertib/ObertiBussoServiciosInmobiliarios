@@ -39,79 +39,79 @@ public class PaymentController {
         return paymentService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewPayment(#id))")
     @GetMapping("/getById/{id}")
     public ResponseEntity<PaymentDTO> getById(@PathVariable Long id) {
         return paymentService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/{contractId}")
     public ResponseEntity<List<PaymentDTO>> getByContract(@PathVariable Long contractId) {
         return paymentService.getByContract(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractUtility(#contractUtilityId))")
     @GetMapping("/getByUtility/{contractUtilityId}")
     public ResponseEntity<List<PaymentDTO>> getByContractUtility(@PathVariable Long contractUtilityId) {
         return paymentService.getByContractUtility(contractUtilityId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewCommission(#commissionId))")
     @GetMapping("/getByCommission/{commissionId}")
     public ResponseEntity<List<PaymentDTO>> getByCommission(@PathVariable Long commissionId) {
         return paymentService.getByCommission(commissionId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/last/getByContract/{contractId}")
     public ResponseEntity<PaymentDTO> getLastByContract(@PathVariable Long contractId) {
         return paymentService.getLastByContract(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractUtility(#contractUtilityId))")
     @GetMapping("/last/getByUtility/{contractUtilityId}")
     public ResponseEntity<PaymentDTO> getLastByContractUtility(@PathVariable Long contractUtilityId) {
         return paymentService.getLastByContractUtility(contractUtilityId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewCommission(#commissionId))")
     @GetMapping("/last/getByCommission/{commissionId}")
     public ResponseEntity<PaymentDTO> getLastByCommission(@PathVariable Long commissionId) {
         return paymentService.getLastByCommission(commissionId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByRange")
     public ResponseEntity<List<PaymentDTO>> getByDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return paymentService.getByDateRange(from, to);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/range/{contractId}")
     public ResponseEntity<List<PaymentDTO>> getByDateRangeAndContract(@PathVariable Long contractId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return paymentService.getByDateRangeAndContract(contractId, from, to);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractUtility(#contractUtilityId))")
     @GetMapping("/getByUtility/range/{contractUtilityId}")
     public ResponseEntity<List<PaymentDTO>> getByDateRangeAndUtility(@PathVariable Long contractUtilityId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return paymentService.getByDateRangeAndUtility(contractUtilityId, from, to);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewCommission(#commissionId))")
     @GetMapping("/getByCommission/range/{commissionId}")
     public ResponseEntity<List<PaymentDTO>> getByDateRangeAndCommission(@PathVariable Long commissionId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return paymentService.getByDateRangeAndCommission(commissionId, from, to);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByConcept/{concept}")
     public ResponseEntity<List<PaymentDTO>> getByConcept(@PathVariable PaymentConcept concept) {
         return paymentService.getByConcept(concept);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByCurrency/{currency}")
     public ResponseEntity<List<PaymentDTO>> getByCurrency(@PathVariable PaymentCurrency currency) {
         return paymentService.getByCurrency(currency);

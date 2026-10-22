@@ -6,6 +6,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import RealEstateAgentIcon from "@mui/icons-material/RealEstateAgent";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import ContactMailIcon from "../../../assets/ic_consulta.svg";
@@ -26,7 +27,7 @@ export const NavBar = () => {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const { clearComparison, resetSelected, pickItem } = usePropertiesContext();
-  const { login, logout, isLogged, isAdmin, isTenant, info } = useAuthContext();
+  const { login, logout, isLogged, isAdmin, isTenant, canViewContracts, canViewReceipts, info } = useAuthContext();
   const alertApi = useGlobalAlert();
 
   const [mobileActionsOpen, setMobileActionsOpen] = React.useState(false);
@@ -103,6 +104,7 @@ export const NavBar = () => {
           icon: <RealEstateAgentIcon />,
           onClick: withClose(() => navigate(ROUTES.CONTRACT)),
         },
+        { label: "Recibos", icon: <ReceiptLongIcon />, onClick: withClose(() => navigate(ROUTES.RECEIPTS)) },
         { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
         { label: "Mis Notificaciones", icon: <NotificationsIcon />, onClick: withClose(handleOpenNotifications) },
         { label: "Ver Estadísticas", icon: <QueryStatsIcon />, onClick: withClose(() => navigate(ROUTES.CONTRACT)) },
@@ -118,16 +120,23 @@ export const NavBar = () => {
       { label: "Mis Notificaciones", icon: <NotificationsIcon />, onClick: withClose(handleOpenNotifications) },
     ];
 
-    if (isTenant) {
+    if (isTenant && canViewReceipts) {
+      items.splice(1, 0, {
+        label: "Mis Recibos",
+        icon: <ReceiptLongIcon />,
+        onClick: withClose(() => navigate(`${ROUTES.TENANT}?tab=recibos`)),
+      });
+    }
+    if (isTenant && canViewContracts) {
       items.splice(1, 0, {
         label: "Mis Contratos de Alquiler",
         icon: <RealEstateAgentIcon />,
-        onClick: withClose(() => navigate(ROUTES.CONTRACT)),
+        onClick: withClose(() => navigate(`${ROUTES.TENANT}?tab=contratos`)),
       });
     }
 
     return items;
-  }, [closeMobileActions, goToProfile, handleOpenNotifications, isAdmin, isLogged, isTenant, navigate]);
+  }, [closeMobileActions, goToProfile, handleOpenNotifications, isAdmin, isLogged, isTenant, canViewContracts, canViewReceipts, navigate]);
 
   return (
     <AppBar component="nav" sx={{ height: { xs: NAVBAR_HEIGHT_XS, sm: NAVBAR_HEIGHT }, zIndex: 2000 }}>
@@ -242,9 +251,9 @@ export const NavBar = () => {
               Noticias
             </Button>
 
-            {isTenant && (
+            {isTenant && (canViewContracts || canViewReceipts) && (
               <Button
-                onClick={() => navigate(ROUTES.CONTRACT)}
+                onClick={() => navigate(ROUTES.TENANT)}
                 data-testid="tenant-contracts-button-desktop"
                 sx={{
                   color: palette.common.white,

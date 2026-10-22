@@ -59,7 +59,7 @@ public class UtilityController {
         return utilityService.getContractsByUtility(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/{contractId}")
     public ResponseEntity<List<UtilityDTO>> getByContract(@PathVariable Long contractId) {
         return utilityService.getByContract(contractId);

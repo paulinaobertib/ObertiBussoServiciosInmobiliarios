@@ -33,6 +33,7 @@ export const ROUTES = {
   APPOINTMENTS: "/appointments",
   STATS: "/stats",
   CONTRACT_DETAIL: "/contracts/:id",
+  RECEIPTS: "/receipts",
   //CONTRACT_DETAIL_TENANT: "/users/contracts/:id"
 };
 
@@ -59,4 +60,5 @@ export const PAGES = [
   { name: "Editar Contrato", url: ROUTES.EDIT_CONTRACT },
   { name: "Turnero", url: ROUTES.APPOINTMENTS },
   { name: "Estadisticas", url: ROUTES.STATS },
+  { name: "Recibos", url: ROUTES.RECEIPTS },
 ];

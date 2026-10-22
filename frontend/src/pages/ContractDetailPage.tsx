@@ -48,6 +48,8 @@ import { PaymentExtrasDialog } from "../app/user/components/payments/PaymentExtr
 import { ContractUtilityDialog } from "../app/user/components/contract-utilities/ManageContractUtility";
 import { ContractUtilityIncreaseDialog } from "../app/user/components/contract-utilities/ContractUtilityIncreaseDialog";
 import { CommissionDialog } from "../app/user/components/commission/CommissionDialog";
+import ContractDocumentCard from "../app/user/components/contracts/contractDetail/ContractDocumentCard";
+import ContractReceiptsCard from "../app/user/components/contracts/contractDetail/ContractReceiptsCard";
 
 import { getTime } from "../app/user/components/contracts/contractDetail/utils";
 import { useGlobalAlert } from "../app/shared/context/AlertContext";
@@ -62,7 +64,7 @@ const ALL_STATUSES: PropertyStatus[] = ["DISPONIBLE", "RESERVADA", "ALQUILADA", 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAdmin } = useAuthContext();
+  const { isAdmin, canViewReceipts } = useAuthContext();
 
   const alertApi: any = useGlobalAlert();
   const { handleError } = useApiErrors();
@@ -99,6 +101,14 @@ export default function ContractDetailPage() {
 
   const utilities = contract?.contractUtilities ?? [];
   const utilityNameMap = useUtilityNames(utilities);
+  // los pagos de servicios apuntan al servicio del contrato, no al catálogo
+  const contractUtilityNames = useMemo(
+    () =>
+      Object.fromEntries(
+        utilities.map((cu: any) => [cu.id, utilityNameMap[cu.utilityId] ?? "Servicio"])
+      ) as Record<number, string>,
+    [utilities, utilityNameMap]
+  );
 
   const guarantors = contract?.guarantors ?? [];
   const commission = (contract as any)?.commission ?? null;
@@ -469,6 +479,15 @@ export default function ContractDetailPage() {
               </Grid>
             </>
           )}
+
+          {/* PDF del contrato + datos extra, y recibos */}
+          <ContractDocumentCard contractId={contract.id} isAdmin={isAdmin} />
+          <ContractReceiptsCard
+            contract={contract}
+            isAdmin={isAdmin}
+            canViewReceipts={canViewReceipts}
+            utilityNames={contractUtilityNames}
+          />
         </Grid>
       </BasePage>
 

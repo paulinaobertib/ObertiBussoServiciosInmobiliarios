@@ -31,6 +31,8 @@ let mockAuthValues = {
   isLogged: false,
   isAdmin: false,
   isTenant: false,
+  canViewContracts: true,
+  canViewReceipts: true,
   info: null as any,
 };
 
@@ -63,6 +65,8 @@ describe("NavBar", () => {
       isLogged: false,
       isAdmin: false,
       isTenant: false,
+      canViewContracts: true,
+      canViewReceipts: true,
       info: null,
     };
   });
@@ -171,11 +175,11 @@ describe("NavBar", () => {
     expect(screen.getByText(/SOY INQUILINO/i)).toBeInTheDocument();
   });
 
-  it('click en "SOY INQUILINO" navega al contrato', () => {
+  it('click en "SOY INQUILINO" navega al portal del inquilino', () => {
     setAuthMock({ isTenant: true });
     renderNavBar();
     fireEvent.click(screen.getByText(/SOY INQUILINO/i));
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT);
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.TENANT);
   });
 
   it("muestra y navega a favoritos en desktop si usuario no es admin", () => {
@@ -264,7 +268,26 @@ describe("NavBar", () => {
 
     const contractsAction = await screen.findByRole("button", { name: /Mis Contratos de Alquiler/i });
     fireEvent.click(contractsAction);
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(ROUTES.CONTRACT));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.TENANT}?tab=contratos`));
+  });
+
+  it("móvil (tenant solo recibos): muestra recibos y no contratos", async () => {
+    setAuthMock({
+      isLogged: true,
+      isAdmin: false,
+      isTenant: true,
+      canViewContracts: false,
+      canViewReceipts: true,
+      info: { firstName: "Juan", lastName: "Inquilino", userName: "juan", email: "juan@test.com" },
+    });
+    renderNavBar();
+
+    fireEvent.click(screen.getByLabelText(/menu/i));
+
+    const receiptsAction = await screen.findByRole("button", { name: /Mis Recibos/i });
+    expect(screen.queryByRole("button", { name: /Mis Contratos de Alquiler/i })).not.toBeInTheDocument();
+    fireEvent.click(receiptsAction);
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.TENANT}?tab=recibos`));
   });
 
   it("móvil (admin): menú muestra accesos administrativos adicionales", async () => {

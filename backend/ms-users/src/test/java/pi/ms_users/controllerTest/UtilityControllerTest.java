@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_users.controller.UtilityController;
 import pi.ms_users.dto.ContractSimpleDTO;
 import pi.ms_users.dto.UtilityDTO;
+import pi.ms_users.security.ContractAccess;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.interf.IUtilityService;
 
@@ -38,6 +39,11 @@ class UtilityControllerTest {
 
     @TestConfiguration
     static class Config {
+        @Bean(name = "contractAccess")
+        public ContractAccess contractAccess() {
+            return Mockito.mock(ContractAccess.class, inv -> inv.getMethod().getReturnType() == boolean.class ? Boolean.TRUE : null);
+        }
+
         @Bean
         public IUtilityService utilityService() {
             return Mockito.mock(IUtilityService.class);

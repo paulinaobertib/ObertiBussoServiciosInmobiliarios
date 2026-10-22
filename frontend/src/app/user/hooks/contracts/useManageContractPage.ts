@@ -11,6 +11,8 @@ import type { ContractCreate, ContractGet } from "../../types/contract";
 import type { ContractFormHandle } from "../../components/contracts/ContractForm";
 import { ROUTES } from "../../../../lib";
 import { useApiErrors } from "../../../shared/hooks/useErrors";
+import { putContractExtraFields, uploadContractDocument } from "../../services/contractPdf.service";
+import type { ContractPdfImportResult } from "../../components/contracts/ContractPdfImportDialog";
 
 export function useManageContractPage() {
   const navigate = useNavigate();
@@ -37,6 +39,50 @@ export function useManageContractPage() {
   const [addGuarantors, setAddGuarantors] = useState<boolean>(false);
   const [selectedGuarantorIds, setSelectedGuarantorIds] = useState<number[]>([]);
   // const [selectedUtilityIds, setSelectedUtilityIds] = useState<number[]>([]);
+
+  // Contrato leído desde un PDF (solo creación)
+  const [pdfImport, setPdfImport] = useState<ContractPdfImportResult | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+
+  const applyPdfImport = useCallback(
+    (result: ContractPdfImportResult) => {
+      setPdfImport(result);
+      setImportOpen(false);
+      if (result.propertyId != null) setSelectedPropertyId(result.propertyId);
+      if (result.userId != null) setSelectedUserId(result.userId);
+      if (result.guarantorIds.length) {
+        setSelectedGuarantorIds((prev) => Array.from(new Set([...prev, ...result.guarantorIds])));
+        setAddGuarantors(true);
+      }
+      // se va al primer paso que quedó sin resolver
+      const step = result.propertyId == null ? 0 : result.userId == null ? 1 : 2;
+      setActiveStep(step);
+      if (step < 2 && typeof alertApi?.showAlert === "function") {
+        alertApi.showAlert(
+          step === 0
+            ? "Elegí la propiedad del contrato: no la encontramos sola."
+            : "Elegí el inquilino (o crealo): no lo encontramos solo.",
+          "info"
+        );
+      }
+    },
+    [alertApi]
+  );
+
+  // después de crear: se adjunta el PDF y se guardan los datos extra
+  const attachPdfImport = async (contractId: number | null) => {
+    if (!pdfImport) return;
+    if (!contractId) {
+      alertApi?.showAlert?.("El contrato se creó, pero no pudimos adjuntar el PDF. Adjuntalo desde el detalle del contrato.", "warning");
+      return;
+    }
+    try {
+      await uploadContractDocument(contractId, pdfImport.file);
+      if (pdfImport.extraFields.length) await putContractExtraFields(contractId, pdfImport.extraFields);
+    } catch (e) {
+      handleError(e);
+    }
+  };
 
   // Comisión inmediata post-creación
   const [commissionContractId, setCommissionContractId] = useState<number | null>(null);
@@ -166,6 +212,7 @@ export function useManageContractPage() {
         if (createdId) {
           await syncContractGuarantors(createdId, payload.guarantorsIds || []);
         }
+        await attachPdfImport(createdId);
 
         // Redirigir al listado y mostrar confirm desde ese screen (ya migrado)
         navigate(ROUTES.CONTRACT, {
@@ -224,6 +271,13 @@ export function useManageContractPage() {
 
     // Meta
     title,
+    isEdit,
+
+    // Contrato desde PDF
+    pdfImport,
+    importOpen,
+    setImportOpen,
+    applyPdfImport,
 
     // Comisión inmediata
     commissionContractId,
