@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bullseye
+FROM python:3.9-slim-bookworm
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --upgrade setuptools wheel \
+RUN pip install --upgrade "setuptools<81" wheel \
  && pip install "numpy<2.0.0" \
  && pip install --no-cache-dir -r requirements.txt
 
