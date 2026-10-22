@@ -19,6 +19,7 @@ describe("Inquilino - Visualización de contratos", () => {
     interceptGateway("GET", "/users/contracts/getById/*", "getContractById");
     interceptGateway("GET", "/users/user/getById/*", "getUserById");
     interceptGateway("GET", "/properties/property/getById/*", "getPropertyById");
+    interceptGateway("GET", "/users/portalAccess/me", "getPortalAccess");
   });
 
   it("Permite ingresar al panel de inquilino y abrir el detalle de un contrato", () => {
@@ -40,7 +41,8 @@ describe("Inquilino - Visualización de contratos", () => {
 
     // Esperar navegación y carga de contratos
     cy.wait("@getUserContracts", { timeout: 15000 }).its("response.statusCode").should("be.within", 200, 299);
-    cy.location("pathname", { timeout: VIEW_TIMEOUT }).should("include", "/contract");
+    // "Soy Inquilino" abre el portal del inquilino (contratos y/o recibos según lo habilitado)
+    cy.location("pathname", { timeout: VIEW_TIMEOUT }).should("include", "/tenant");
     
     // Esperar a que la lista de contratos se renderice
     cy.wait(800);
