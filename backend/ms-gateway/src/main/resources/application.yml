@@ -1,6 +1,11 @@
 server:
   port: ${WEBSITES_PORT}
   forward-headers-strategy: framework
+  # Comprime las respuestas JSON al navegador (ej: listado de propiedades ~577KB -> ~70KB)
+  compression:
+    enabled: true
+    mime-types: application/json,application/javascript,text/html,text/css,text/plain
+    min-response-size: 2KB
   reactive:
     session:
       timeout: PT24H # 24 horas de inactividad
@@ -143,9 +148,5 @@ management:
 
 logging:
   level:
-    org.springframework.cloud.gateway.filter: DEBUG
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.security.oauth2.client: DEBUG
-    org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.security.jwt: TRACE
+    org.springframework.cloud.gateway.filter: INFO
+    org.springframework.security: INFO
