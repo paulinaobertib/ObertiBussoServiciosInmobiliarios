@@ -41,19 +41,19 @@ public class ContractIncreaseController {
         return contractIncreaseService.deleteByContractId(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractIncrease(#id))")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractIncreaseDTO> getById(@PathVariable Long id) {
         return contractIncreaseService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/{contractId}")
     public ResponseEntity<List<ContractIncreaseDTO>> getByContractId(@PathVariable Long contractId) {
         return contractIncreaseService.getByContractId(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getLast/{contractId}")
     public ResponseEntity<ContractIncreaseDTO> getLastByContractId(@PathVariable Long contractId) {
         return contractIncreaseService.getLastByContractId(contractId);

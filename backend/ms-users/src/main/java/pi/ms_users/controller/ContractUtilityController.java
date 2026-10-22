@@ -43,25 +43,25 @@ public class ContractUtilityController {
         return contractUtilityService.deleteByContract(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractUtility(#id))")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractUtilityGetDTO> getById(@PathVariable Long id) {
         return contractUtilityService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/{contractId}")
     public ResponseEntity<List<ContractUtilityGetDTO>> getByContract(@PathVariable Long contractId) {
         return contractUtilityService.getByContract(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByUtility/{utilityId}")
     public ResponseEntity<List<ContractUtilityGetDTO>> getByUtility(@PathVariable Long utilityId) {
         return contractUtilityService.getByUtility(utilityId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByPeriodicity/{periodicity}")
     public ResponseEntity<List<ContractUtilityGetDTO>> getByPeriodicity(
             @PathVariable UtilityPeriodicityPayment periodicity) {

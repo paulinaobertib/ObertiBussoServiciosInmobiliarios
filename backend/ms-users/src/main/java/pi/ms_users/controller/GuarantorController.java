@@ -38,43 +38,43 @@ public class GuarantorController {
         return guarantorService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getById/{id}")
     public ResponseEntity<GuarantorGetDTO> getById(@PathVariable Long id) {
         return guarantorService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getAll")
     public ResponseEntity<List<GuarantorGetDTO>> getAll() {
         return guarantorService.getAll();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContract(#contractId))")
     @GetMapping("/getByContract/{contractId}")
     public ResponseEntity<List<GuarantorGetDTO>> getByContract(@PathVariable Long contractId) {
         return guarantorService.getByContract(contractId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getContracts/{guarantorId}")
     public ResponseEntity<List<ContractGuarantorGetDTO>> getContractsByGuarantor(@PathVariable Long guarantorId) {
         return guarantorService.getContractsByGuarantor(guarantorId);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByEmail")
     public ResponseEntity<GuarantorGetDTO> getByEmail(@RequestParam String email) {
         return guarantorService.getByEmail(email);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getByPhone")
     public ResponseEntity<GuarantorGetDTO> getByPhone(@RequestParam String phone) {
         return guarantorService.getByPhone(phone);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/search")
     public ResponseEntity<List<GuarantorGetDTO>> search(@RequestParam(name = "q") String query) {
         return guarantorService.search(query);

@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pi.ms_users.controller.IncreaseIndexController;
 import pi.ms_users.domain.IncreaseIndex;
 import pi.ms_users.dto.ContractSimpleDTO;
+import pi.ms_users.security.ContractAccess;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.interf.IIncreaseIndexService;
 
@@ -38,6 +39,11 @@ class IncreaseIndexControllerTest {
 
     @TestConfiguration
     static class Config {
+        @Bean(name = "contractAccess")
+        public ContractAccess contractAccess() {
+            return Mockito.mock(ContractAccess.class, inv -> inv.getMethod().getReturnType() == boolean.class ? Boolean.TRUE : null);
+        }
+
         @Bean
         public IIncreaseIndexService increaseIndexService() {
             return Mockito.mock(IIncreaseIndexService.class);

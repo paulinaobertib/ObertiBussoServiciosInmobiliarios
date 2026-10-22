@@ -35,13 +35,13 @@ public class ContractUtilityIncreaseController {
         return increaseService.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractUtilityIncrease(#id))")
     @GetMapping("/getById/{id}")
     public ResponseEntity<ContractUtilityIncreaseDTO> getById(@PathVariable Long id) {
         return increaseService.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'tenant')")
+    @PreAuthorize("hasRole('admin') or (hasRole('tenant') and @contractAccess.canViewContractUtility(#contractUtilityId))")
     @GetMapping("/getByContractUtility/{contractUtilityId}")
     public ResponseEntity<List<ContractUtilityIncreaseGetDTO>> getByContractUtility(@PathVariable Long contractUtilityId) {
         return increaseService.getByContractUtility(contractUtilityId);

@@ -17,6 +17,7 @@ import pi.ms_users.controller.GuarantorController;
 import pi.ms_users.dto.ContractGuarantorGetDTO;
 import pi.ms_users.dto.GuarantorDTO;
 import pi.ms_users.dto.GuarantorGetDTO;
+import pi.ms_users.security.ContractAccess;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.interf.IGuarantorService;
 
@@ -39,6 +40,11 @@ class GuarantorControllerTest {
 
     @TestConfiguration
     static class Config {
+        @Bean(name = "contractAccess")
+        public ContractAccess contractAccess() {
+            return Mockito.mock(ContractAccess.class, inv -> inv.getMethod().getReturnType() == boolean.class ? Boolean.TRUE : null);
+        }
+
         @Bean
         public IGuarantorService guarantorService() {
             return Mockito.mock(IGuarantorService.class);
@@ -105,7 +111,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getById_shouldReturnOk() throws Exception {
         when(guarantorService.getById(1L)).thenReturn(ResponseEntity.ok(getSampleGetDTO()));
 
@@ -116,7 +122,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getAll_shouldReturnOk() throws Exception {
         when(guarantorService.getAll()).thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
 
@@ -136,7 +142,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getContractsByGuarantor_shouldReturnOk() throws Exception {
         ContractGuarantorGetDTO contract = new ContractGuarantorGetDTO();
         contract.setId(200L);
@@ -149,7 +155,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByEmail_shouldReturnOk() throws Exception {
         when(guarantorService.getByEmail("juan@test.com")).thenReturn(ResponseEntity.ok(getSampleGetDTO()));
 
@@ -160,7 +166,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByPhone_shouldReturnOk() throws Exception {
         when(guarantorService.getByPhone("123456")).thenReturn(ResponseEntity.ok(getSampleGetDTO()));
 
@@ -171,7 +177,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void searchGuarantors_shouldReturnOk() throws Exception {
         when(guarantorService.search("Juan")).thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
 
@@ -230,7 +236,7 @@ class GuarantorControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getById_shouldReturnNotFound_whenServiceThrows() throws Exception {
         when(guarantorService.getById(999L))
                 .thenThrow(new EntityNotFoundException("No se encontró"));

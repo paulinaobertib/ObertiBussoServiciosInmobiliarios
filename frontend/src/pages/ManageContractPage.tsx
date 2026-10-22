@@ -19,6 +19,8 @@ import { PropertySection } from "../app/property/components/properties/PropertyS
 import { UsersSection } from "../app/user/components/users/panel/UsersSection";
 import { GuarantorsSection } from "../app/user/components/guarantors/GuarantorsSection";
 import { ContractForm } from "../app/user/components/contracts/ContractForm";
+import { ContractPdfImportDialog } from "../app/user/components/contracts/ContractPdfImportDialog";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 export default function ManageContractPage() {
   const theme = useTheme();
@@ -93,6 +95,12 @@ export default function ManageContractPage() {
           <Button variant="outlined" onClick={ctrl.cancel}>
             Cancelar
           </Button>
+
+          {!isEditMode && !ctrl.isEdit && (
+            <Button variant="contained" color="secondary" startIcon={<AutoAwesomeIcon />} onClick={() => ctrl.setImportOpen(true)}>
+              {ctrl.pdfImport ? "Volver a cargar PDF" : "Cargar desde PDF"}
+            </Button>
+          )}
 
           {/* Ocultar Stepper completamente en edición */}
           {!isEditMode && !isMobile && (
@@ -201,15 +209,26 @@ export default function ManageContractPage() {
         {ctrl.selectedPropertyId != null && ctrl.selectedUserId != null && (
           <Box sx={{ display: ctrl.activeStep === 2 ? "block" : "none" }}>
             <ContractForm
+              // se remonta si cambian propiedad o inquilino: el form guarda esos ids al montarse
+              key={`${ctrl.selectedPropertyId}-${ctrl.selectedUserId}`}
               ref={ctrl.formRef}
               initialPropertyId={ctrl.selectedPropertyId}
               initialUserId={ctrl.selectedUserId}
               initialData={ctrl.contract ?? undefined}
               onValidityChange={ctrl.setFormReady}
+              prefill={ctrl.pdfImport?.prefill.values ?? null}
+              missingFields={ctrl.pdfImport?.prefill.missing ?? []}
+              importedFileName={ctrl.pdfImport?.file.name ?? null}
             />
           </Box>
         )}
       </Box>
+
+      <ContractPdfImportDialog
+        open={ctrl.importOpen}
+        onClose={() => ctrl.setImportOpen(false)}
+        onApply={ctrl.applyPdfImport}
+      />
     </BasePage>
   );
 }

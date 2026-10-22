@@ -22,6 +22,7 @@ import pi.ms_users.dto.ContractDTO;
 import pi.ms_users.dto.ContractGetDTO;
 import pi.ms_users.dto.ContractSimpleDTO;
 import pi.ms_users.dto.feign.Status;
+import pi.ms_users.security.ContractAccess;
 import pi.ms_users.security.WebSecurityConfig;
 import pi.ms_users.service.interf.IContractService;
 
@@ -47,6 +48,11 @@ class ContractControllerTest {
 
     @TestConfiguration
     static class Config {
+        @Bean(name = "contractAccess")
+        public ContractAccess contractAccess() {
+            return Mockito.mock(ContractAccess.class, inv -> inv.getMethod().getReturnType() == boolean.class ? Boolean.TRUE : null);
+        }
+
         @Bean
         public IContractService contractService() {
             return Mockito.mock(IContractService.class);
@@ -189,7 +195,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByStatus_shouldReturnOk() throws Exception {
         when(contractService.getByStatus(ContractStatus.ACTIVO))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -201,7 +207,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByType_shouldReturnOk() throws Exception {
         when(contractService.getByType(ContractType.VIVIENDA))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -235,7 +241,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByDate_shouldReturnOk() throws Exception {
         when(contractService.getByDate(LocalDate.of(2025, 1, 1)))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -247,7 +253,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void getByDateRange_shouldReturnOk() throws Exception {
         when(contractService.getByDateRange(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -260,7 +266,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void expiringWithinDays_shouldReturnOk() throws Exception {
         when(contractService.getContractsExpiringWithin(30))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -272,7 +278,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void endingOn_shouldReturnOk() throws Exception {
         when(contractService.getContractsEndingDate(LocalDate.of(2025, 12, 31)))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
@@ -284,7 +290,7 @@ class ContractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "tenant")
+    @WithMockUser(roles = "admin")
     void endingBetween_shouldReturnOk() throws Exception {
         when(contractService.getContractsEndingBetween(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
                 .thenReturn(ResponseEntity.ok(List.of(getSampleGetDTO())));
