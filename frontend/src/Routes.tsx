@@ -1,28 +1,31 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, Suspense, lazy, useEffect, useState } from "react";
 import { Routes as RoutesDom, Route, Navigate } from "react-router-dom";
 
 import { ROUTES } from "./lib";
 import Home from "./pages/HomePage";
-import ManagePropertyPage from "./pages/ManagePropertyPage";
-import Compare from "./pages/ComparePage";
-import PropertyDetailsPage from "./pages/PropertyDetailsPage";
-import AdministratorPage from "./pages/AdministratorPage";
-import FavoritesPage from "./pages/FavoritesPage";
-import UserProfilePage from "./pages/UserProfilePage";
-import ContactPage from "./pages/ContactPage";
-import NewsPage from "./pages/NewsPage";
-import NewsDetailsPage from "./pages/NewsDetailsPage";
-import PoliciesPage from "./pages/PoliciesPage";
-import SurveyPage from "./pages/SurveyPage";
-import { PropertyNotesPage } from "./pages/PropertyNotesPage";
-
 import { useAuthContext } from "./app/user/context/AuthContext";
 import { useGlobalAlert } from "./app/shared/context/AlertContext";
-import ContractsPage from "./pages/ContractsPage";
-import ManageContractPage from "./pages/ManageContractPage";
-import AppointmentPage from "./pages/AppointmentPage";
-import ViewStatsPage from "./pages/ViewStatsPage";
-import ContractDetailPage from "./pages/ContractDetailPage";
+
+const ManagePropertyPage = lazy(() => import("./pages/ManagePropertyPage"));
+const Compare = lazy(() => import("./pages/ComparePage"));
+const PropertyDetailsPage = lazy(() => import("./pages/PropertyDetailsPage"));
+const AdministratorPage = lazy(() => import("./pages/AdministratorPage"));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const NewsPage = lazy(() => import("./pages/NewsPage"));
+const NewsDetailsPage = lazy(() => import("./pages/NewsDetailsPage"));
+const PoliciesPage = lazy(() => import("./pages/PoliciesPage"));
+const SurveyPage = lazy(() => import("./pages/SurveyPage"));
+const PropertyNotesPage = lazy(() =>
+  import("./pages/PropertyNotesPage").then((m) => ({ default: m.PropertyNotesPage })),
+);
+
+const ContractsPage = lazy(() => import("./pages/ContractsPage"));
+const ManageContractPage = lazy(() => import("./pages/ManageContractPage"));
+const AppointmentPage = lazy(() => import("./pages/AppointmentPage"));
+const ViewStatsPage = lazy(() => import("./pages/ViewStatsPage"));
+const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
 //import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
 /* ---------- Guards ---------- */
@@ -80,7 +83,8 @@ export function RequireAdminOrTenant({ children }: { children: ReactNode }) {
 /* ---------- Rutas ---------- */
 export default function Routes() {
   return (
-    <RoutesDom>
+    <Suspense fallback={null}>
+      <RoutesDom>
       <Route path={ROUTES.HOME_APP} element={<Home />} />
 
       {/* ---- crear / editar (solo admin) ---- */}
@@ -208,6 +212,7 @@ export default function Routes() {
 
       {/* ---- Catch-all ---- */}
       <Route path="*" element={<Navigate to={ROUTES.HOME_APP} replace />} />
-    </RoutesDom>
+      </RoutesDom>
+    </Suspense>
   );
 }
