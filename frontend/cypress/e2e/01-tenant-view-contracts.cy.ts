@@ -72,14 +72,18 @@ const ensureTenantContract = () => {
 
 describe("Inquilino - Visualización de contratos", () => {
   before(() => {
-    cy.clearCookies();
-    cy.clearLocalStorage();
+    cy.clearAllCookies();
+    cy.clearAllLocalStorage();
     ensureTenantContract();
+    // la sesión del admin vive en el dominio del gateway: clearCookies() solo limpia el dominio actual
+    cy.clearAllCookies();
+    cy.clearAllLocalStorage();
+    cy.clearAllSessionStorage();
   });
 
   beforeEach(() => {
-    cy.clearCookies();
-    cy.clearLocalStorage();
+    cy.clearAllCookies();
+    cy.clearAllLocalStorage();
     cy.viewport(1280, 720);
 
     // Interceptar todas las llamadas API
