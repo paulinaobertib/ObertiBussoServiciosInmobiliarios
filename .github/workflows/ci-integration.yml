@@ -8,6 +8,11 @@ jobs:
   integration:
     name: Build · Compose · Cypress
     runs-on: ubuntu-latest
+    # Todas las corridas usan la misma base QA (y los mismos datos de prueba): si dos
+    # ramas corren Cypress a la vez se pisan los contratos. Esperan en cola, no se cancelan.
+    concurrency:
+      group: integration-db-qa
+      cancel-in-progress: false
 
     env:
       COMPOSE_FILE: docker/docker-compose.integration.yml
