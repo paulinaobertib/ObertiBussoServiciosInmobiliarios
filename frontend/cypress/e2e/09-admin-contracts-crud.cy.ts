@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
-import { interceptGateway } from "../support/intercepts";
+import { appBaseUrl } from "../support/e2e";
+import { buildGatewayUrl, interceptGateway } from "../support/intercepts";
 
 const formatISODate = (date: Date) => {
   const year = date.getFullYear();
@@ -117,7 +118,36 @@ describe("Admin - CRUD de contratos de alquiler", () => {
     cy.loginAdmin();
   });
 
+  // la base de integración persiste entre corridas: si una corrida anterior dejó un contrato
+  // activo en "Propiedad A", el alta da 400 ("La propiedad ya tiene un contrato activo")
+  const cleanupLeftoverContracts = () => {
+    cy.request({ url: buildGatewayUrl("/properties/property/getAll"), failOnStatusCode: false }).then((propsResp) => {
+      const props: any[] = Array.isArray(propsResp.body) ? propsResp.body : [];
+      const propertyIds = props.filter((p) => /Propiedad A/i.test(p?.title ?? "")).map((p) => Number(p.id));
+      if (!propertyIds.length) return;
+
+      cy.request({ url: buildGatewayUrl("/users/contracts/getAll"), failOnStatusCode: false }).then((contractsResp) => {
+        const contracts: any[] = Array.isArray(contractsResp.body) ? contractsResp.body : [];
+        const leftovers = contracts.filter(
+          (c) => propertyIds.includes(Number(c.propertyId)) && String(c.contractStatus) === "ACTIVO"
+        );
+        leftovers.forEach((c) => {
+          cy.log(`Eliminando contrato residual ${c.id}`);
+          cy.request({ method: "DELETE", url: buildGatewayUrl(`/users/contracts/delete/${c.id}`), failOnStatusCode: false });
+          cy.request({
+            method: "PUT",
+            url: buildGatewayUrl(`/properties/property/status/${c.propertyId}`),
+            qs: { status: "DISPONIBLE" },
+            failOnStatusCode: false,
+          });
+        });
+      });
+    });
+  };
+
   it("Crea, busca y elimina contrato completo", () => {
+    cleanupLeftoverContracts();
+
     // Esperar a que la página inicial cargue
     cy.wait(800);
     
@@ -284,11 +314,14 @@ describe("Admin - CRUD de contratos de alquiler", () => {
     // Esperar a que la tabla de contratos se actualice después de editar
     cy.wait(800);
     
-    cy.contains("button", /^Ver detalle/i, { timeout: SLOT_TIMEOUT })
-      .first()
-      .click({ force: true });
+    // se abre el contrato creado (el primero de la lista puede ser otro)
+    cy.then(() => {
+      expect(createdContractId, "id del contrato creado").to.be.a("number");
+      cy.visit(`${appBaseUrl}/contracts/${createdContractId}`);
+    });
 
     cy.wait("@getContractById", { timeout: SLOT_TIMEOUT });
+    cy.contains("Notas del Contrato", { timeout: SLOT_TIMEOUT }).parent().should("contain.text", creationData.note);
     
     // Esperar a que el detalle se renderice antes de eliminar
     cy.wait(500);
