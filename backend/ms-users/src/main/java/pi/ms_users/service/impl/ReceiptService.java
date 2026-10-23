@@ -127,7 +127,10 @@ public class ReceiptService implements IReceiptService {
         r.setStatus(ReceiptStatus.EMITIDO);
         r.setIssueDate(dto.getIssueDate() != null ? dto.getIssueDate() : LocalDate.now());
         r.setPeriodMonth(dto.getPeriodMonth());
-        r.setPeriodYear(dto.getPeriodMonth() != null && dto.getPeriodYear() == null ? r.getIssueDate().getYear() : dto.getPeriodYear());
+        // con mes y sin año se usa el de la fecha; sin período queda null (Integer.valueOf: si no, el ternario desarma el null)
+        r.setPeriodYear(dto.getPeriodMonth() != null && dto.getPeriodYear() == null
+                ? Integer.valueOf(r.getIssueDate().getYear())
+                : dto.getPeriodYear());
         r.setCurrency(dto.getCurrency());
         r.setPayerName(dto.getPayerName().trim());
         r.setPayerDni(blankToNull(dto.getPayerDni()));

@@ -309,4 +309,27 @@ class ReceiptServiceTest {
         dto.setPaymentId(9L);
         assertEquals("LO-R-000001", service.create(dto).getBody().getNumber());
     }
+
+    @Test
+    void receiptWithoutPeriodWorks() throws Exception {
+        ReceiptDTO dto = alquilerConDetalle();
+        dto.setConcept(ReceiptConcept.OTRO);
+        dto.setPeriodMonth(null);
+        dto.setPeriodYear(null);
+        dto.setItems(List.of(new ReceiptItemDTO("Reintegro de gastos", new BigDecimal("15000"))));
+        when(sequenceRepository.findForUpdate(any())).thenReturn(Optional.empty());
+
+        ReceiptGetDTO saved = service.create(dto).getBody();
+        assertNull(saved.getPeriodMonth());
+        assertNull(saved.getPeriodYear());
+        assertTrue(text(service.preview(dto)).contains("conceptos que se detallan"));
+    }
+
+    @Test
+    void monthWithoutYearUsesIssueDateYear() {
+        ReceiptDTO dto = alquilerConDetalle();
+        dto.setPeriodYear(null);
+        when(sequenceRepository.findForUpdate(any())).thenReturn(Optional.empty());
+        assertEquals(2026, service.create(dto).getBody().getPeriodYear());
+    }
 }
