@@ -28,19 +28,13 @@ env:
   # Properties-specific
   IMAGE_NAME: ms-properties
   APP_PLAN_DEV: ${{ secrets.APP_PLAN_CORE_DEV }}
-  APP_PLAN_PROD: ${{ secrets.APP_PLAN_CORE_PROD }}
   APP_NAME_DEV: ${{ secrets.APP_PROPERTIES_DEV }}
-  APP_NAME_PROD: ${{ secrets.APP_PROPERTIES_PROD }}
   SERVICE_PORT: 8083
 
   EUREKA_HOSTNAME_DEV: ${{ secrets.APP_EUREKA_DEV }}.azurewebsites.net
-  EUREKA_HOSTNAME_PROD: ${{ secrets.EUREKA_HOSTNAME_PROD }}
   KEYCLOAK_HOSTNAME_DEV: ${{ secrets.APP_KEYCLOAK_DEV }}.azurewebsites.net
-  KEYCLOAK_HOSTNAME_PROD: ${{ secrets.KEYCLOAK_HOSTNAME_PROD }}
   USERS_HOSTNAME_DEV: ${{ secrets.APP_USERS_DEV }}.azurewebsites.net
-  USERS_HOSTNAME_PROD: ${{ secrets.USERS_HOSTNAME_PROD }}
   ML_HOSTNAME_DEV: ${{ secrets.APP_ML_DEV }}.azurewebsites.net
-  ML_HOSTNAME_PROD: ${{ secrets.APP_ML_PROD }}.azurewebsites.net
 
 jobs:
   deploy-dev:
@@ -154,114 +148,32 @@ jobs:
   deploy-prod:
     name: Deploy to Production
     needs: [deploy-dev]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
+    # Producción corre en AWS Lightsail (obertibusso-core-server) con docker compose.
+    # La config de runtime (DB, Keycloak, mail, WASI...) vive en /opt/core/*.env del servidor.
+    concurrency:
+      group: deploy-prod-ms-properties
+      cancel-in-progress: false
 
     steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ env.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+      - name: Deploy over SSH (forced command)
+        env:
+          TAG: ${{ inputs.image_tag }}
+          SSH_KEY: ${{ secrets.LIGHTSAIL_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}
+          HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          [[ "$TAG" =~ ^[0-9a-f]{7,40}$ ]] || { echo "::error::image tag inválido: $TAG"; exit 1; }
+          install -m 700 -d ~/.ssh
+          umask 077
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # deploy-core actualiza solo este servicio, espera healthy y vuelve atrás si falla
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
+              -o ConnectTimeout=20 "deploy@${HOST}" "ms-properties ${TAG}"
 
-      - name: Set variables
-        id: vars
-        run: |
-          echo "IMAGE=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}" >> $GITHUB_ENV
-
-      - name: Create Web App (if not exists)
-        run: |
-          az webapp create \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --plan ${{ env.APP_PLAN_PROD }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --deployment-container-image-name $IMAGE || true
-
-      - name: Configure Web App container
-        run: |
-          az webapp config container set \
-            --name ${{ env.APP_NAME_PROD }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --container-image-name $IMAGE \
-            --container-registry-url https://index.docker.io \
-            --container-registry-user ${{ env.DOCKERHUB_USERNAME }} \
-            --container-registry-password ${{ env.DOCKERHUB_TOKEN }}
-
-      - name: Ensure App Service Is Running
-        run: |
-          echo "Verificando estado del App Service..."
-          status=$(az webapp show \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --query state -o tsv)
-          echo "Estado actual: $status"
-          if [ "$status" != "Running" ]; then
-            echo "🔄 Iniciando App Service..."
-            az webapp start \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --name ${{ env.APP_NAME_PROD }}
-          else
-            echo "✅ App Service ya está en ejecución."
-          fi
-
-      - name: Set environment variables (App Settings)
-        run: |
-          az webapp config appsettings set \
-            --name ${{ env.APP_NAME_PROD }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --settings \
-              "SERVICE_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_PORT=${{ env.SERVICE_PORT }}" \
-              "WEBSITES_CONTAINER_START_TIME_LIMIT=1800" \
-              "WEBSITES_CONTAINER_STOP_TIME_LIMIT=120" \
-              "DOCKER_ENABLE_CI=true" \
-              "EUREKA_HOSTNAME=${{ env.EUREKA_HOSTNAME_PROD }}" \
-              "APP_HOSTNAME=$WEBSITE_HOSTNAME" \
-              "KEYCLOAK_HOSTNAME=${{ env.KEYCLOAK_HOSTNAME_PROD }}" \
-              "SPRING_DATASOURCE_URL=${{ secrets.DB_SQL_URL_PROD }}" \
-              "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_SQL_USERNAME }}" \
-              "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_SQL_PASSWORD }}" \
-              "AZURE_BLOB_CONNECTION_STRING=${{ env.AZURE_BLOB_CONNECTION_STRING }}" \
-              "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" \
-              "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" \
-              "SWA_FRONTEND=${{ secrets.URL_FRONTEND_PROD }}" \
-              "USER_HOSTNAME=${{ env.USERS_HOSTNAME_PROD}}" \
-              "APIKEY_IA=${{ secrets.APIKEY_IA }}" \
-              "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" \
-              "ML_API_URL=https://${{ env.ML_HOSTNAME_PROD }}" \
-              "URL_IA=${{ secrets.URL_IA }}" \
-              "DEPLOY_IA=${{ secrets.DEPLOY_IA }}" \
-              "VERSION_IA=${{ secrets.VERSION_IA }}" \
-              "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=${{secrets.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI_PROD}}" \
-              "WASI_ID_COMPANY=${{ secrets.WASI_ID_COMPANY }}" \
-              "WASI_TOKEN=${{ secrets.WASI_TOKEN }}"
-
-      - name: Restart Web App
-        run: |
-          az webapp restart \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }}
-      
-      - name: Enable Container Logs
-        run: |
-          az webapp log config \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --name ${{ env.APP_NAME_PROD }} \
-            --docker-container-logging filesystem
-
-      - name: Enable Always On
-        run: |
-          ok=false
-          for i in 1 2 3 4 5; do
-            if az webapp config set \
-              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-              --name ${{ env.APP_NAME_PROD }} \
-              --always-on true; then
-              ok=true; break
-            fi
-            echo "Intento $i: error de Azure (probable 'Conflict' transitorio mientras aplica el deploy). Reintento en 20s..."
-            sleep 20
-          done
-          if [ "$ok" != "true" ]; then
-            echo "::warning::No se pudo activar Always On tras 5 intentos"
-          fi
+      - name: Cleanup key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
