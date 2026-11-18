@@ -7,6 +7,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import RealEstateAgentIcon from "@mui/icons-material/RealEstateAgent";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import CalculateOutlinedIcon from "@mui/icons-material/CalculateOutlined";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import ContactMailIcon from "../../../assets/ic_consulta.svg";
@@ -91,6 +92,7 @@ export const NavBar = () => {
         { label: "Inicio", icon: <HomeOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.HOME_APP)) },
         { label: "Contacto / Turnero de Citas", icon: contactIcon, onClick: withClose(() => navigate(ROUTES.CONTACT)) },
         { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
+        { label: "Calculadora de alquileres", icon: <CalculateOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.RENT_CALCULATOR)) },
       ];
     }
 
@@ -106,6 +108,7 @@ export const NavBar = () => {
         },
         { label: "Recibos", icon: <ReceiptLongIcon />, onClick: withClose(() => navigate(ROUTES.RECEIPTS)) },
         { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
+        { label: "Calculadora de alquileres", icon: <CalculateOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.RENT_CALCULATOR)) },
         { label: "Mis Notificaciones", icon: <NotificationsIcon />, onClick: withClose(handleOpenNotifications) },
         { label: "Ver Estadísticas", icon: <QueryStatsIcon />, onClick: withClose(() => navigate(ROUTES.CONTRACT)) },
       ];
@@ -117,6 +120,7 @@ export const NavBar = () => {
       { label: "Mis Favoritos", icon: <FavoriteIcon />, onClick: withClose(() => navigate(ROUTES.FAVORITES)) },
       { label: "Contacto / Turnero de Citas", icon: contactIcon, onClick: withClose(() => navigate(ROUTES.CONTACT)) },
       { label: "Noticias", icon: newsIcon, onClick: withClose(() => navigate(ROUTES.NEWS)) },
+      { label: "Calculadora de alquileres", icon: <CalculateOutlinedIcon />, onClick: withClose(() => navigate(ROUTES.RENT_CALCULATOR)) },
       { label: "Mis Notificaciones", icon: <NotificationsIcon />, onClick: withClose(handleOpenNotifications) },
     ];
 
@@ -249,6 +253,17 @@ export const NavBar = () => {
               }}
             >
               Noticias
+            </Button>
+
+            <Button
+              data-testid="navbar-rent-calculator"
+              onClick={() => navigate(ROUTES.RENT_CALCULATOR)}
+              sx={{
+                color: palette.common.white,
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+              }}
+            >
+              Calculadora
             </Button>
 
             {isTenant && (canViewContracts || canViewReceipts) && (

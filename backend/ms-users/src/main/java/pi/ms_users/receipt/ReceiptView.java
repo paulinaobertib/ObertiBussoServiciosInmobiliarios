@@ -35,7 +35,6 @@ public class ReceiptView {
     private final String footerRight;
     private final String logoDataUri;
     private final String markDataUri;
-    private final String sealDataUri;
 
     public record Item(String description, String amount) {
     }

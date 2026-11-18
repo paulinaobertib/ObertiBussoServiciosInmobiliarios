@@ -228,7 +228,6 @@ public class ReceiptService implements IReceiptService {
                 .footerRight(String.join(" · ", contact))
                 .logoDataUri(pdfRenderer.imageDataUri("logo.png"))
                 .markDataUri(pdfRenderer.imageDataUri("arrow.png"))
-                .sealDataUri(pdfRenderer.imageDataUri(inmobiliaria ? "seal-inmobiliaria.png" : "seal-corredor.png"))
                 .build();
     }
 

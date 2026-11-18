@@ -42,7 +42,6 @@ public class ReceiptPdfRenderer {
             font(builder, "Lato-Black.ttf", "Lato", 900, BaseRendererBuilder.FontStyle.NORMAL);
             font(builder, "Ubuntu-Medium.ttf", "Ubuntu", 500, BaseRendererBuilder.FontStyle.NORMAL);
             font(builder, "Ubuntu-Bold.ttf", "Ubuntu", 700, BaseRendererBuilder.FontStyle.NORMAL);
-            font(builder, "GreatVibes-Regular.ttf", "Great Vibes", 400, BaseRendererBuilder.FontStyle.NORMAL);
             builder.toStream(out);
             builder.run();
             return out.toByteArray();

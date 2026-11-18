@@ -27,6 +27,7 @@ const AppointmentPage = lazy(() => import("./pages/AppointmentPage"));
 const ViewStatsPage = lazy(() => import("./pages/ViewStatsPage"));
 const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
 const ReceiptsPage = lazy(() => import("./pages/ReceiptsPage"));
+const RentCalculatorPage = lazy(() => import("./pages/RentCalculatorPage"));
 const TenantPortalPage = lazy(() => import("./pages/TenantPortalPage"));
 //import ContractDetailUserPage from './pages/ContractDetailTenantPage';
 
@@ -235,6 +236,7 @@ export default function Routes() {
       <Route path={ROUTES.PROPERTY_DETAILS} element={<PropertyDetailsPage />} />
       <Route path={ROUTES.CONTACT} element={<ContactPage />} />
       <Route path={ROUTES.NEWS} element={<NewsPage />} />
+      <Route path={ROUTES.RENT_CALCULATOR} element={<RentCalculatorPage />} />
       <Route path={ROUTES.NEWS_DETAILS} element={<NewsDetailsPage />} />
       <Route path={ROUTES.POLICIES} element={<PoliciesPage />} />
       <Route path={ROUTES.SURVEY} element={<SurveyPage />} />

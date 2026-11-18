@@ -65,9 +65,9 @@
         .not-valid-banner .small { display: block; font-weight: 400; letter-spacing: 0.4pt; font-size: 8.5pt; color: #8a5a3a; margin-top: 1mm; }
 
         .signature-area { position: absolute; left: 16mm; right: 16mm; bottom: 30mm; height: 46mm; }
-        .seal { position: absolute; right: 74mm; bottom: 1mm; width: 40mm; height: 40mm; }
         .sign-block { position: absolute; right: 0; bottom: 0; width: 72mm; text-align: center; }
-        .sign-script { font-family: 'Great Vibes'; font-size: 30pt; color: #1f3a68; line-height: 1; height: 15mm; }
+        /* espacio en blanco para firmar a mano */
+        .sign-space { height: 22mm; }
         .sign-line { border-top: 0.35mm solid #2b2b2b; margin: 1mm 4mm 1.5mm 4mm; }
         .sign-name { font-weight: 900; font-size: 9.5pt; letter-spacing: 1.2pt; }
         .sign-role { font-size: 8.3pt; color: #5a5a5a; margin-top: 0.6mm; }
@@ -185,9 +185,8 @@
     </div>
 
     <div class="signature-area" th:unless="${r.liquidacion}">
-        <img class="seal" th:src="${r.sealDataUri}" alt="" />
         <div class="sign-block">
-            <div class="sign-script" th:text="${r.signerName}">Luis María Oberti</div>
+            <div class="sign-space"></div>
             <div class="sign-line"></div>
             <div class="sign-name" th:text="${#strings.toUpperCase(r.signerName)}">LUIS MARÍA OBERTI</div>
             <div class="sign-role" th:text="${r.license}">Corredor Público · Mat. 04-2101</div>

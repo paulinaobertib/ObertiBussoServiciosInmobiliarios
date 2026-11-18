@@ -15,6 +15,7 @@ import {
 import Grid from "@mui/material/Grid";
 import ReplyIcon from "@mui/icons-material/Reply";
 import BasePage from "./BasePage";
+import CalculateOutlinedIcon from "@mui/icons-material/CalculateOutlined";
 
 import {
   getContractById,
@@ -116,6 +117,20 @@ export default function ContractDetailPage() {
   const increasesRaw = (contract as any)?.contractIncrease ?? [];
 
   const isActive = String(contract?.contractStatus) === "ACTIVO";
+
+  const rentCalculatorIndex = (() => {
+    const code = String(contract?.adjustmentIndex?.code ?? "").toUpperCase();
+    return code.includes("ICL") ? "ICL" : code.includes("IPC") ? "IPC" : null;
+  })();
+  const rentCalculatorLink =
+    contract && rentCalculatorIndex
+      ? `${ROUTES.RENT_CALCULATOR}?${new URLSearchParams({
+          monto: String(contract.initialAmount),
+          inicio: String(contract.startDate).slice(0, 10),
+          meses: String(contract.adjustmentFrequencyMonths || 12),
+          indice: rentCalculatorIndex,
+        })}`
+      : null;
 
   const paymentsSorted = useMemo(() => [...payments].sort((a, b) => getTime(b) - getTime(a)), [payments]);
   const increasesSorted = useMemo(() => [...increasesRaw].sort((a, b) => getTime(b) - getTime(a)), [increasesRaw]);
@@ -357,6 +372,15 @@ export default function ContractDetailPage() {
           onPayments={() => onPayments()}
           onIncrease={() => setOpenIncrease(true)}
         />
+
+        {/* abre la calculadora con los datos del contrato (IPC o ICL) */}
+        {rentCalculatorLink && (
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+            <Button size="small" variant="outlined" startIcon={<CalculateOutlinedIcon />} onClick={() => navigate(rentCalculatorLink)}>
+              Calcular aumentos ({rentCalculatorIndex})
+            </Button>
+          </Box>
+        )}
 
         {/* Grid */}
         <Grid container rowSpacing={3} columnSpacing={3} sx={{ alignItems: "stretch" }}>

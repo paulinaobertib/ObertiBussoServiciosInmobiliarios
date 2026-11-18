@@ -33,6 +33,7 @@ public class WebSecurityConfig {
                                 "/notices/getAll",
                                 "/notices/search",
                                 "/agentChat/getEnabledTrue",
+                                "/rentCalculator/calculate",
                                 "/actuator/health",
                                 "/actuator/health/**").permitAll()
                         .anyRequest().authenticated()

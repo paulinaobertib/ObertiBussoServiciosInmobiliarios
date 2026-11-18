@@ -34,6 +34,7 @@ export const ROUTES = {
   STATS: "/stats",
   CONTRACT_DETAIL: "/contracts/:id",
   RECEIPTS: "/receipts",
+  RENT_CALCULATOR: "/calculadora-alquiler",
   //CONTRACT_DETAIL_TENANT: "/users/contracts/:id"
 };
 
@@ -61,4 +62,5 @@ export const PAGES = [
   { name: "Turnero", url: ROUTES.APPOINTMENTS },
   { name: "Estadisticas", url: ROUTES.STATS },
   { name: "Recibos", url: ROUTES.RECEIPTS },
+  { name: "Calculadora de alquileres", url: ROUTES.RENT_CALCULATOR },
 ];
